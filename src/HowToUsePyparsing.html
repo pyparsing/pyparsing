@@ -6,7 +6,7 @@
 <meta name="generator" content="Docutils 0.3.0: http://docutils.sourceforge.net/" />
 <title>Using the pyparsing module</title>
 <meta name="author" content="Paul McGuire" />
-<meta name="date" content="Jan. 8, 2004" />
+<meta name="date" content="Jan. 19, 2004" />
 <meta name="copyright" content="Copyright © 2003 Paul McGuire." />
 <link rel="stylesheet" href="default.css" type="text/css" />
 </head>
@@ -25,9 +25,9 @@
 </pre>
 </td></tr>
 <tr><th class="docinfo-name">Revision:</th>
-<td>1.0.4</td></tr>
+<td>1.0.5</td></tr>
 <tr><th class="docinfo-name">Date:</th>
-<td>Jan. 8, 2004</td></tr>
+<td>Jan. 19, 2004</td></tr>
 <tr><th class="docinfo-name">Copyright:</th>
 <td>Copyright © 2003 Paul McGuire.</td></tr>
 </tbody>
@@ -214,6 +214,11 @@ matching pattern; returns a ParseResults object that makes the
 matched tokens available as a list, and optionally as a dictionary, 
 or as an object with named attributes</p>
 </li>
+<li><p class="first"><tt class="literal"><span class="pre">scanString(</span> <span class="pre">string</span> <span class="pre">)</span></tt> - generator function, used to find and
+extract matching text in the given string; for each matched text, 
+returns a ParseResults object and the start and end locations of the
+matched text in the original string</p>
+</li>
 <li><p class="first"><tt class="literal"><span class="pre">setName(</span> <span class="pre">name</span> <span class="pre">)</span></tt> - associate a short descriptive name for this
 element, useful in displaying exceptions and trace information</p>
 </li>
@@ -361,6 +366,7 @@ this is especially useful when processing tabular data where the first column co
 value for that line of data</li>
 <li>list elements that are deleted using <tt class="literal"><span class="pre">del</span></tt> will still be accessible by their
 dictionary keys</li>
+<li>supports <tt class="literal"><span class="pre">items()</span></tt> and <tt class="literal"><span class="pre">keys()</span></tt> methods, similar to a dictionary</li>
 </ul>
 </li>
 <li>as a nested list<ul>
@@ -373,8 +379,8 @@ tree</li>
 <p>ParseResults can also be converted to an ordinary list of strings
 by calling <tt class="literal"><span class="pre">asList()</span></tt>.  Note that this will strip the results of any
 field names that have been defined for any embedded parse elements.
-(The pprint module is especially good at printing out the nested contents
-given by asList().)</p>
+(The <tt class="literal"><span class="pre">pprint</span></tt> module is especially good at printing out the nested contents
+given by <tt class="literal"><span class="pre">asList()</span></tt>.)</p>
 </li>
 </ul>
 </div>

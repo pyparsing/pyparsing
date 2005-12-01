@@ -2,6 +2,19 @@
 Change Log
 ==========
 
+Version 1.0.5 -  19 Jan 2004
+---------------------------
+- Added scanString() generator method to ParseElement, to support regex-like
+  pattern-searching
+
+- Added items() list to ParseResults, to return named results as a 
+  list of (key,value) pairs
+  
+- Fixed memory overflow in asList() for deeply nested ParseResults
+
+- Minor performance speedup - 10-15%
+
+
 Version 1.0.4 -  8 Jan 2004
 ---------------------------
 - Added positional tokens StringStart, StringEnd, LineStart, and LineEnd

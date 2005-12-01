@@ -26,10 +26,11 @@
 #  - add validate() - check for left recursion
 #
 """
-parsing module - Classes and methods to define and execute parsing grammars
+pyparsing module - Classes and methods to define and execute parsing grammars
 """
-__version__ = "1.0.4"
+__version__ = "1.0.5"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
+#~ print "testing pyparsing module, version", __version__
 
 import string
 import copy,sys
@@ -95,6 +96,7 @@ class ParseResults(object):
     def __len__( self ): return len( self.list )
     def __iter__( self ): return iter( self.list )
     def keys( self ): return self.dict.keys()
+    def items( self ): return self.dict.items()
 
     def __getattr__( self, name ):
         if self.dict.has_key( name ):
@@ -106,7 +108,7 @@ class ParseResults(object):
         self.list += other.list
         self.dict.update( other.dict )
         return self
-
+       
     def __repr__( self ):
         return "(%s, %s)" % ( repr( self.list ), repr( self.dict ) )
 
@@ -133,23 +135,24 @@ class ParseResults(object):
 
     def asList( self ):
         "Returns the parse results as a nested list of matching tokens, all converted to strings."
-        return eval( str( self ),{} )
+        out = []
+        for res in self.list:
+            if isinstance(res,ParseResults):
+                out.append( res.asList() )
+            else:
+                out.append( res )
+        return out
 
 
-def col( loc, str ):
-    """Returns current column within a string, counting newlines as line separators
-       The first column is number 1.
-       """
-    lastCR = str.rfind("\n", 0, loc)
-    return loc - lastCR
+"""Returns current column within a string, counting newlines as line separators
+   The first column is number 1.
+   """
+col = lambda loc,str: loc - str.rfind("\n", 0, loc)
 
-
-def lineno( loc, str ):
-    """Returns current line number within a string, counting newlines as line separators
-       The first line is number 1.
-       """
-    return str.count("\n",0,loc) + 1
-
+"""Returns current line number within a string, counting newlines as line separators
+   The first line is number 1.
+   """
+lineno = lambda loc,str: str.count("\n",0,loc) + 1
 
 def line( loc, str ):
     """Returns the line of text containing loc within a string, counting newlines as line separators
@@ -230,7 +233,7 @@ class ParserElement(object):
             #~ while loc < instrlen and instring[loc].isspace():
             while loc < instrlen and instring[loc] in wt:
                 loc += 1
-
+                
         return loc
 
     def parseImpl( self, instring, loc, doActions=True ):
@@ -288,6 +291,25 @@ class ParserElement(object):
         loc, tokens = self.parse( instring.expandtabs(), 0 )
         return tokens
 
+    def scanString( self, instring ):
+        if not self.streamlined:
+            self.streamline()
+        for e in self.ignoreExprs:
+            e.streamline()
+        
+        instring = instring.expandtabs()
+        instrlen = len(instring)
+        loc = 0
+        parseFn = self.parse
+        while loc < instrlen:
+            try:
+                nextLoc,tokens = parseFn( instring, loc )
+            except ParseException:
+                loc += 1
+            else:
+                yield tokens, loc, nextLoc
+                loc = nextLoc
+        
     def __add__(self, other ):
         if isinstance( other, str ):
             other = Literal( other )
@@ -384,7 +406,7 @@ class Literal(Token):
     def parseImpl( self, instring, loc, doActions=True ):
         # Performance tuning: this routine gets called a *lot*
         # if this is a single character match string  and the first character matches,
-        # short-circuit as quickly as possible, and avoid constructing string slice 
+        # short-circuit as quickly as possible, and avoid constructing string slice
         if instring[loc] is not self.firstMatchChar or \
            (self.matchLen > 1 and instring[ loc:loc+self.matchLen ] != self.match ):
             raise ParseException, ( instring, loc, self.errmsg )
@@ -530,7 +552,7 @@ class LineEnd(PositionToken):
         self.whiteChars = " \t"
     
     def parseImpl( self, instring, loc, doActions=True ):
-        if instring[loc] is not "\n":
+        if loc<len(instring) and instring[loc] is not "\n":
             raise ParseException, ( instring, loc, "Expected end of line" )
         return loc, []
 
@@ -550,7 +572,7 @@ class StringEnd(PositionToken):
         super(StringEnd,self).__init__()
     
     def parseImpl( self, instring, loc, doActions=True ):
-        if loc != len(instring):
+        if loc < len(instring):
             raise ParseException, ( instring, loc, "Expected end of text" )
         return loc, []
 
@@ -604,7 +626,7 @@ class ParseExpression(ParserElement):
 
         for e in self.exprs:
             e.streamline()
-            
+
         if ( len(self.exprs) == 2 and
               not ( self.parseAction or self.resultsName ) ):
             other = self.exprs[0]
@@ -628,18 +650,10 @@ class And(ParseExpression):
        May be constructed using the '+' operator.
     """
     def parseImpl( self, instring, loc, doActions=True ):
-        #~ resultlist = ParseResults([])  - don't construct this until we know we will need it
-        resultlist = None
-        hasIgnoreExprs = ( len(self.ignoreExprs) > 0 )
-        lastExpr = self.exprs[-1]
-        for e in self.exprs:
+        loc, resultlist = self.exprs[0].parse( instring, loc, doActions )
+        for e in self.exprs[1:]:
             loc, exprtokens = e.parse( instring, loc, doActions )
-            if hasIgnoreExprs and e is not lastExpr:
-                loc = self.skipIgnorables( instring, loc )
-            if resultlist is None:
-                resultlist = exprtokens
-            else:
-                resultlist += exprtokens
+            resultlist += exprtokens
 
         return loc, resultlist
 
@@ -727,8 +741,6 @@ class ParseElementEnhance(ParserElement):
         if isinstance( other, Suppress ):
             if other not in self.ignoreExprs:
                 super( ParseElementEnhance, self).ignore( other )
-                if self.expr is None:
-                    print "self.expr=None at", self
                 self.expr.ignore( self.ignoreExprs[-1] )
         else:
             super( ParseElementEnhance, self).ignore( other )
@@ -759,7 +771,6 @@ class NotAny(ParseElementEnhance):
         self.errmsg = "Found unexpected token, "+str(self.expr)
         
     def parseImpl( self, instring, loc, doActions=True ):
-        tokenlist = None
         try:
             loc2, tokenlist = self.expr.tryParse( instring, loc )
         except ParseException:
@@ -775,15 +786,15 @@ class ZeroOrMore(ParseElementEnhance):
     def parseImpl( self, instring, loc, doActions=True ):
         tokens = []
         hasIgnoreExprs = ( len(self.ignoreExprs) > 0 )
-        while 1:
-            try:
-                loc, tmptokens = self.expr.parse( instring, loc, doActions )
-            except ParseException:
-                break
-            else:
-                tokens += tmptokens
+        try:
+            loc, tokens = self.expr.parse( instring, loc, doActions )
+            while 1:
                 if hasIgnoreExprs:
                     loc = self.skipIgnorables( instring, loc )
+                loc, tmptokens = self.expr.parse( instring, loc, doActions )
+                tokens += tmptokens
+        except ParseException:
+            pass
 
         return loc, tokens
 
@@ -791,23 +802,17 @@ class ZeroOrMore(ParseElementEnhance):
 class OneOrMore(ParseElementEnhance):
     "Repetition of one or more of the given expression."
     def parseImpl( self, instring, loc, doActions=True ):
-        tokens = []
-        foundAtLeastOne = False
         hasIgnoreExprs = ( len(self.ignoreExprs) > 0 )
-        while 1:
-            try:
-                loc, tmptokens = self.expr.parse( instring, loc, doActions )
-            except ParseException, err:
-                lastException = err
-                break
-            else:
-                foundAtLeastOne = True
-                tokens += tmptokens
+        # must be at least one
+        loc, tokens = self.expr.parse( instring, loc, doActions )
+        try:
+            while 1:
                 if hasIgnoreExprs:
                     loc = self.skipIgnorables( instring, loc )
-
-        if not foundAtLeastOne :
-            raise lastException
+                loc, tmptokens = self.expr.parse( instring, loc, doActions )
+                tokens += tmptokens
+        except ParseException, err:
+            pass
 
         return loc, tokens
 
@@ -823,8 +828,7 @@ class Optional(ParseElementEnhance):
 
     def parseImpl( self, instring, loc, doActions=True ):
         try:
-            loc, tmptokens = self.expr.parse( instring, loc, doActions )
-            tokens = tmptokens
+            loc, tokens = self.expr.parse( instring, loc, doActions )
         except ParseException:
             if self.defaultValue is not None:
                 tokens = [ self.defaultValue ]
@@ -901,7 +905,6 @@ class Group(TokenConverter):
     def postParse( self, instring, loc, tokenlist ):
         return loc, [ tokenlist ]
 
-
 class Dict(TokenConverter):
     """Converter to return a repetitive expression as a list, but also as a dictionary.
        Each element can also be referenced using the first token in the expression as its key.
@@ -952,12 +955,22 @@ def delimitedList( expr, delim=",", combine=False ):
 
 def oneOf( strs ):
     """Helper to quickly define a set of alternative Literals, and makes sure to do 
-       longest-first testing, regardless of the input order, but returns a MatchFirst 
-       for best performance.
+       longest-first testing when there is a conflict, regardless of the input order, 
+       but returns a MatchFirst for best performance.
     """
     symbols = strs.split()
-    symbols.sort( lambda x,y : len(y) - len(x) )
-    return MatchFirst( [ Literal(s) for s in symbols ] )
+    i = 0
+    while i < len(symbols)-1:
+        cur = symbols[i]
+        for j,other in enumerate(symbols[i+1:]):
+            if ( other.startswith(cur) ):
+                del symbols[i+j+1]
+                symbols.insert(i,other)
+                cur = other
+                break
+        else:
+            i += 1
+    return MatchFirst( [ Literal(sym) for sym in symbols ] )
     
 alphas     = string.letters
 nums       = string.digits
@@ -977,16 +990,16 @@ sglQuotedString = Combine( _sglQuote + ZeroOrMore( Word(_quotables+'"') | _escap
 quotedString = ( dblQuotedString | sglQuotedString ).setName("quotedString")
 
 # it's easy to get these comment structures wrong - they're very common, so may as well make them available
-_nonstar   = "".join( [ c for c in string.printable if c != "*" ] )
+_nonstar   = "".join([ chr(i) for i in range(256) if i not in map(ord,"*") ])
 cStyleComment = Combine( Literal("/*") +
                          ZeroOrMore( Word( _nonstar ) | ( "*" + ~Literal("/") ) ) +
                          Literal("*/") ).streamline().setName("cStyleComment")
-_notNL = "".join( [ c for c in string.printable if c not in "\n" ] )
+_notNL = "".join([ chr(i) for i in range(256) if i not in map(ord,"\n\r") ])
 restOfLine = Optional( Word( _notNL ), default="" ).setName("restOfLine").leaveWhitespace()
 _noncomma = "".join( [ c for c in printables if c != "," ] )
 _commasepitem = Combine(OneOrMore(Word(_noncomma) + 
                                   Optional( Word(" \t") + 
-                                            ~Literal(",") + ~LineEnd() + ~StringEnd() ) ) )
+                                            ~Literal(",") + ~LineEnd() ) ) )
 commaSeparatedList = delimitedList( Optional( quotedString | _commasepitem, default="") )
 
 
