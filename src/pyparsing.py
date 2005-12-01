@@ -59,8 +59,8 @@ The pyparsing module handles some of the problems that are typically vexing when
  - quoted strings
  - embedded comments
 """
-__version__ = "1.3.1"
-__versionTime__ = "10 June 2005 08:43"
+__version__ = "1.3.2"
+__versionTime__ = "24 July 2005 17:37"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -700,6 +700,18 @@ class ParserElement(object):
             other = Literal( other )
         return other ^ self
 
+    def __and__(self, other ):
+        """Implementation of & operator - returns Each"""
+        if isinstance( other, basestring ):
+            other = Literal( other )
+        return Each( [ self, other ] )
+
+    def __rand__(self, other ):
+        """Implementation of right-& operator"""
+        if isinstance( other, basestring ):
+            other = Literal( other )
+        return other & self
+
     def __invert__( self ):
         """Implementation of ~ operator - returns NotAny"""
         return NotAny( self )
@@ -960,6 +972,8 @@ class Word(Token):
         else:
             self.bodyCharsOrig = initChars
             self.bodyChars = _str2dict(initChars)
+            
+        self.maxSpecified = max > 0
 
         self.minLen = min
 
@@ -991,8 +1005,14 @@ class Word(Token):
         maxloc = min( maxloc, len(instring) )
         while loc < maxloc and instring[loc] in bodychars:
             loc += 1
-
+            
+        throwException = False
         if loc - start < self.minLen:
+            throwException = True
+        if self.maxSpecified and loc < len(instring) and instring[loc] in bodychars:
+            throwException = True
+
+        if throwException:
             #~ raise ParseException, ( instring, loc, self.errmsg )
             exc = self.myException
             exc.loc = loc
@@ -1336,7 +1356,7 @@ class ParseExpression(ParserElement):
 
     def setResultsName( self, name, listAllMatches=False ):
         ret = super(ParseExpression,self).setResultsName(name,listAllMatches)
-        ret.saveAsList = True
+        #~ ret.saveAsList = True
         return ret
     
     def validate( self, validateTrace=[] ):
@@ -1351,7 +1371,7 @@ class And(ParseExpression):
        Expressions may be separated by whitespace.
        May be constructed using the '+' operator.
     """
-    def __init__( self, exprs, savelist = False ):
+    def __init__( self, exprs, savelist = True ):
         super(And,self).__init__(exprs, savelist)
         self.mayReturnEmpty = True
         for e in exprs:
@@ -1465,7 +1485,8 @@ class MatchFirst(ParseExpression):
         maxExcLoc = -1
         for e in self.exprs:
             try:
-                return e.parse( instring, loc, doActions )
+                ret = e.parse( instring, loc, doActions )
+                return ret
             except ParseException, err:
                 if err.loc > maxExcLoc:
                     maxException = err
@@ -1491,6 +1512,86 @@ class MatchFirst(ParseExpression):
             
         if self.strRepr is None:
             self.strRepr = "{" + " | ".join( [ _ustr(e) for e in self.exprs ] ) + "}"
+        
+        return self.strRepr
+    
+    def checkRecursion( self, parseElementList ):
+        subRecCheckList = parseElementList[:] + [ self ]
+        for e in self.exprs:
+            e.checkRecursion( subRecCheckList )
+
+
+class Each(ParseExpression):
+    """Requires all given ParseExpressions to be found, but in any order.
+       Expressions may be separated by whitespace.
+       May be constructed using the '&' operator.
+    """
+    def __init__( self, exprs, savelist = True ):
+        super(Each,self).__init__(exprs, savelist)
+        self.mayReturnEmpty = True
+        for e in exprs:
+            if not e.mayReturnEmpty:
+                self.mayReturnEmpty = False
+                break
+        self.skipWhitespace = True
+        self.optionals = [ e.expr for e in exprs if isinstance(e,Optional) ]
+        self.multioptionals = [ e.expr for e in exprs if isinstance(e,ZeroOrMore) ]
+        self.multirequired = [ e.expr for e in exprs if isinstance(e,OneOrMore) ]
+        self.required = [ e for e in exprs if not isinstance(e,(Optional,ZeroOrMore,OneOrMore)) ]
+        self.required += self.multirequired
+
+    def parseImpl( self, instring, loc, doActions=True ):
+        tmpLoc = loc
+        tmpReqd = self.required[:]
+        tmpOpt  = self.optionals[:]
+        matchOrder = []
+
+        keepMatching = True
+        while keepMatching:
+            tmpExprs = tmpReqd + tmpOpt + self.multioptionals + self.multirequired
+            failed = []
+            for e in tmpExprs:
+                try:
+                    tmpLoc = e.tryParse( instring, tmpLoc )
+                except ParseException:
+                    failed.append(e)
+                else:
+                    matchOrder.append(e)
+                    if e in tmpReqd:
+                        tmpReqd.remove(e)
+                    elif e in tmpOpt:
+                        tmpOpt.remove(e)
+            if len(failed) == len(tmpExprs):
+                keepMatching = False
+        
+        if tmpReqd:
+            missing = ", ".join( [ str(e) for e in tmpReqd ] )
+            raise ParseException(instring,loc,"Missing one or more required elements (%s)" % missing )
+
+        resultlist = []
+        for e in matchOrder:
+            loc,results = e.parse(instring,loc,doActions)
+            resultlist.append(results)
+            
+        finalResults = ParseResults([])
+        for r in resultlist:
+            dups = {}
+            for k in r.keys():
+                if k in finalResults.keys():
+                    tmp = ParseResults(finalResults[k])
+                    tmp += ParseResults(r[k])
+                    dups[k] = tmp
+            finalResults += ParseResults(r)
+            for k,v in dups.items():
+                finalResults[k] = v
+        return loc, finalResults
+
+    def __str__( self ):
+        if hasattr(self,"name"):
+            return self.name
+            
+        if self.strRepr is None:
+            self.strRepr = "{" + " & ".join( [ _ustr(e) for e in self.exprs ] ) + "}"
         
         return self.strRepr
     
@@ -1881,7 +1982,10 @@ class Dict(TokenConverter):
             else:
                 dictvalue = tok.copy() #ParseResults(i)
                 del dictvalue[0]
-                tokenlist[ikey] = (dictvalue,i)
+                if len(dictvalue)!= 1 or (isinstance(dictvalue,ParseResults) and dictvalue.keys()):
+                    tokenlist[ikey] = (dictvalue,i)
+                else:
+                    tokenlist[ikey] = (dictvalue[0],i)
 
         if self.resultsName:
             return [ tokenlist ]

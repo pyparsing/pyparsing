@@ -2,15 +2,45 @@
 Change Log
 ==========
 
-Version 1.3.1 - June 12, 2005
+Version 1.3.2 - July 24, 2005
 -----------------------------
+- Added Each class as an enhanced version of And.  'Each' requires 
+  that all given expressions be present, but may occur in any order.  
+  Special handling is provided to group ZeroOrMore and OneOrMore 
+  elements that occur out-of-order in the input string.  You can also 
+  construct 'Each' objects by joining expressions with the '&' 
+  operator.  When using the Each class, results names are strongly 
+  recommended for accessing the matched tokens. (Suggested by Pradam 
+  Amini - thanks, Pradam!)
+  
+- Stricter interpretation of 'max' qualifier on Word elements.  If the 
+  'max' attribute is specified, matching will fail if an input field 
+  contains more than 'max' consecutive body characters.  For example, 
+  previously, Word(nums,max=3) would match the first three characters 
+  of '0123456', returning '012' and continuing parsing at '3'.  Now, 
+  when constructed using the max attribute, Word will raise an 
+  exception with this string.
+
+- Cleaner handling of nested dictionaries returned by Dict.  No
+  longer necessary to dereference sub-dictionaries as element [0] of
+  their parents. 
+  === NOTE: THIS CHANGE MAY BREAK SOME EXISTING CODE, BUT ONLY IF 
+  PARSING NESTED DICTIONARIES USING THE LITTLE-USED DICT CLASS ===
+  (Prompted by discussion thread on the Python Tutor list, with
+  contributions from Danny Yoo, Kent Johnson, and original post by
+  Liam Clarke - thanks all!)
+  
+
+
+Version 1.3.1 - June, 2005
+----------------------------------
 - Added markInputline() method to ParseException, to display the input
   text line location of the parsing exception. (Thanks, Stefan Behnel!)
   
 - Added setDefaultKeywordChars(), so that Keyword definitions using a 
   custom keyword character set do not all need to add the keywordChars
-  constructor argument (similar to setDefaultWhitespaceChars()). (suggested
-  by rzhanka on the SourceForge pyparsing forum.)
+  constructor argument (similar to setDefaultWhitespaceChars()). 
+  (suggested by rzhanka on the SourceForge pyparsing forum.)
   
 - Simplified passing debug actions to setDebugAction().  You can now
   pass 'None' for a debug action if you want to take the default 
@@ -39,7 +69,7 @@ Version 1.3.1 - June 12, 2005
   be retrieved as dictionary or attribute values of the returned results
   from the opening tag.
 
-- Added example SimpleCalc.py, a refinement on fourFn.py that adds
+- Added example minimath2.py, a refinement on fourFn.py that adds
   an interactive session and support for variables.  (Thanks, Steven Siew!)
   
 - Added performance improvement, up to 20% reduction!  (Found while working
