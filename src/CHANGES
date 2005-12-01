@@ -2,6 +2,32 @@
 Change Log
 ==========
 
+Version 1.0.6 -  13 Feb 2004
+----------------------------
+- Added NotInChars class (Thanks, Lee SangYeong).  This is the opposite of 
+  Word, in that it is constructed with a set of characters *not* to be matched.
+  (This enhancement also allowed me to clean up and simplify some of the
+  definitions for quoted strings, cStyleComment, and restOfLine.)
+  
+- **MINOR API CHANGE** - Added joinString argument to the __init__ method of 
+  Combine (Thanks, Thomas Kalka).  joinString defaults to "", but some 
+  applications might choose some other string to use instead, such as a blank 
+  or newline.  joinString was inserted as the second argument to __init__,
+  so if you have code that specifies an adjacent value, without using
+  'adjacent=', this code will break.
+
+- Modified LineStart to recognize the start of an empty line.
+
+- Added optional caseless flag to oneOf(), to create a list of CaselessLiteral
+  tokens instead of Literal tokens.
+
+- Added some enhancements to the SQL example:
+  . Oracle-style comments (Thanks to Harald Armin Massa)
+  . simple WHERE clause
+
+- Minor performance speedup - 5-15%
+
+
 Version 1.0.5 -  19 Jan 2004
 ---------------------------
 - Added scanString() generator method to ParseElement, to support regex-like

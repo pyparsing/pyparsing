@@ -1,6 +1,6 @@
 # module pyparsing.py
 #
-# Copyright (c) 2003, Paul T. McGuire
+# Copyright (c) 2003,2004  Paul T. McGuire
 #
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
@@ -28,7 +28,7 @@
 """
 pyparsing module - Classes and methods to define and execute parsing grammars
 """
-__version__ = "1.0.5"
+__version__ = "1.0.6"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 #~ print "testing pyparsing module, version", __version__
 
@@ -230,7 +230,6 @@ class ParserElement(object):
         if self.skipWhitespace:
             wt = self.whiteChars
             instrlen = len(instring)
-            #~ while loc < instrlen and instring[loc].isspace():
             while loc < instrlen and instring[loc] in wt:
                 loc += 1
                 
@@ -436,7 +435,7 @@ class Word(Token):
        defaults to the initial character set), and an optional minimum,
        maximum, and/or exact length.
     """
-    def __init__( self, initChars, bodyChars=None, min=0, max=0, exact=0 ):
+    def __init__( self, initChars, bodyChars=None, min=1, max=0, exact=0 ):
         super(Word,self).__init__()
         self.initChars = initChars
         if bodyChars :
@@ -466,9 +465,8 @@ class Word(Token):
         instrlen = len(instring)
         bodychars = self.bodyChars
         maxloc = start + self.maxLen
-        while loc < instrlen and \
-              instring[loc] in bodychars and \
-              loc < maxloc:
+        maxloc = min( maxloc, len(instring) )
+        while loc < maxloc and instring[loc] in bodychars:
             loc += 1
 
         if loc - start < self.minLen:
@@ -499,6 +497,61 @@ class Word(Token):
             else:
                 ret = "W:(%s)" % self.initChars
 
+        return ret
+
+
+class CharsNotIn(Token):
+    """Token for matching words composed of characters *not* in a given set.
+       Defined with string containing all disallowed characters, and an optional 
+       minimum, maximum, and/or exact length.
+    """
+    def __init__( self, notChars, min=1, max=0, exact=0 ):
+        super(CharsNotIn,self).__init__()
+        self.skipWhitespace = False
+        self.notChars = notChars
+        
+        self.minLen = min
+
+        if max > 0:
+            self.maxLen = max
+        else:
+            self.maxLen = sys.maxint
+
+        if exact > 0:
+            self.maxLen = exact
+            self.minLen = exact
+        
+        self.name = str(self)
+        self.errmsg = "Expected " + self.name
+
+    def parseImpl( self, instring, loc, doActions=True ):
+        if instring[loc] in self.notChars:
+            raise ParseException, ( instring, loc, self.errmsg )
+            
+        start = loc
+        loc += 1
+        notchars = self.notChars
+        maxlen = min( start+self.maxLen, len(instring) )
+        while loc < maxlen and \
+              not (instring[loc] in notchars):
+            loc += 1
+
+        if loc - start < self.minLen:
+            raise ParseException, ( instring, loc, self.errmsg )
+
+        return loc, [ instring[start:loc] ]
+
+    def __str__( self ):
+        try:
+            return super(CharsNotIn, self).__str__()
+        except:
+            pass
+
+        if len(self.notChars) > 4:
+            ret = "!W:(%s...)" % self.notChars[:4]
+        else:
+            ret = "!W:(%s)" % self.notChars
+        
         return ret
 
 
@@ -542,7 +595,7 @@ class LineStart(PositionToken):
         return loc
 
     def parseImpl( self, instring, loc, doActions=True ):
-        if col(loc, instring) != 1:
+        if not( loc==0 or ( loc<len(instring) and instring[loc-1] is "\n" ) ): #col(loc, instring) != 1:
             raise ParseException, ( instring, loc, "Expected start of line" )
         return loc, []
 
@@ -879,16 +932,17 @@ class Combine(TokenConverter):
        By default, the matching patterns must also be contiguous in the input string;
        this can be disabled by specifying 'adjacent=False' in the constructor.
     """
-    def __init__( self, expr, adjacent=True ):
+    def __init__( self, expr, joinString="", adjacent=True ):
         super(Combine,self).__init__( expr )
         # suppress whitespace-stripping in contained parse expressions, but re-enable it on the Combine itself
         if adjacent:
             self.leaveWhitespace()
         self.skipWhitespace = True
+        self.joinString = joinString
 
     def postParse( self, instring, loc, tokenlist ):
         retToks = ParseResults( tokenlist )
-        retToks.list = [ "".join(tokenlist._asStringList()) ]
+        retToks.list = [ self.joinString.join(tokenlist._asStringList()) ]
 
         if self.getResultsName() and len(retToks.keys())>0:
             return loc, [ retToks ]
@@ -953,7 +1007,7 @@ def delimitedList( expr, delim=",", combine=False ):
     else:
         return ( expr + ZeroOrMore( Suppress( Literal(delim) ) + expr ) ).setName(str(expr)+delim+"...")
 
-def oneOf( strs ):
+def oneOf( strs, caseless=False ):
     """Helper to quickly define a set of alternative Literals, and makes sure to do 
        longest-first testing when there is a conflict, regardless of the input order, 
        but returns a MatchFirst for best performance.
@@ -970,7 +1024,10 @@ def oneOf( strs ):
                 break
         else:
             i += 1
-    return MatchFirst( [ Literal(sym) for sym in symbols ] )
+    if caseless:
+        return MatchFirst( [ CaselessLiteral(sym) for sym in symbols ] )
+    else:
+        return MatchFirst( [ Literal(sym) for sym in symbols ] )
     
 alphas     = string.letters
 nums       = string.digits
@@ -980,26 +1037,25 @@ empty      = Empty().setName("empty")
 
 _bslash = "\\"
 _quotables = "".join( [ c for c in printables if c not in "\\\"'" ] )+" \t"
-_escapables = alphas + _bslash
+_escapables = "tnrfbacdeghijklmopqsuvwxyz" + _bslash
+_octDigits = "01234567"
 _escapedChar = ( Word( _bslash, _escapables, exact=2 ) |
-                 Word( _bslash, "01234567", min=2, max=4 ) )
+                 Word( _bslash, _octDigits, min=2, max=4 ) )
 _sglQuote = Literal("'")
 _dblQuote = Literal('"')
-dblQuotedString = Combine( _dblQuote + ZeroOrMore( Word(_quotables+"'") | _escapedChar ) + _dblQuote ).streamline()
-sglQuotedString = Combine( _sglQuote + ZeroOrMore( Word(_quotables+'"') | _escapedChar ) + _sglQuote ).streamline()
+dblQuotedString = Combine( _dblQuote + ZeroOrMore( CharsNotIn('\\"') | _escapedChar ) + _dblQuote ).streamline()
+sglQuotedString = Combine( _sglQuote + ZeroOrMore( CharsNotIn("\\'")  | _escapedChar ) + _sglQuote ).streamline()
 quotedString = ( dblQuotedString | sglQuotedString ).setName("quotedString")
 
 # it's easy to get these comment structures wrong - they're very common, so may as well make them available
-_nonstar   = "".join([ chr(i) for i in range(256) if i not in map(ord,"*") ])
 cStyleComment = Combine( Literal("/*") +
-                         ZeroOrMore( Word( _nonstar ) | ( "*" + ~Literal("/") ) ) +
+                         ZeroOrMore( CharsNotIn("*") | ( "*" + ~Literal("/") ) ) +
                          Literal("*/") ).streamline().setName("cStyleComment")
-_notNL = "".join([ chr(i) for i in range(256) if i not in map(ord,"\n\r") ])
-restOfLine = Optional( Word( _notNL ), default="" ).setName("restOfLine").leaveWhitespace()
+restOfLine = Optional( CharsNotIn( "\n\r" ), default="" ).setName("restOfLine").leaveWhitespace()
 _noncomma = "".join( [ c for c in printables if c != "," ] )
 _commasepitem = Combine(OneOrMore(Word(_noncomma) + 
                                   Optional( Word(" \t") + 
-                                            ~Literal(",") + ~LineEnd() ) ) )
+                                            ~Literal(",") + ~LineEnd() ) ) ).streamline().setName("commaItem")
 commaSeparatedList = delimitedList( Optional( quotedString | _commasepitem, default="") )
 
 

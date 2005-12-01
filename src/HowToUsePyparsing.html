@@ -6,8 +6,8 @@
 <meta name="generator" content="Docutils 0.3.0: http://docutils.sourceforge.net/" />
 <title>Using the pyparsing module</title>
 <meta name="author" content="Paul McGuire" />
-<meta name="date" content="Jan. 19, 2004" />
-<meta name="copyright" content="Copyright © 2003 Paul McGuire." />
+<meta name="date" content="Feb. 13, 2004" />
+<meta name="copyright" content="Copyright © 2003,2004 Paul McGuire." />
 <link rel="stylesheet" href="default.css" type="text/css" />
 </head>
 <body>
@@ -25,11 +25,11 @@
 </pre>
 </td></tr>
 <tr><th class="docinfo-name">Revision:</th>
-<td>1.0.5</td></tr>
+<td>1.0.6</td></tr>
 <tr><th class="docinfo-name">Date:</th>
-<td>Jan. 19, 2004</td></tr>
+<td>Feb. 13, 2004</td></tr>
 <tr><th class="docinfo-name">Copyright:</th>
-<td>Copyright © 2003 Paul McGuire.</td></tr>
+<td>Copyright © 2003,2004 Paul McGuire.</td></tr>
 </tbody>
 </table>
 <table class="field-list" frame="void" rules="none">
@@ -56,7 +56,7 @@ extracting data from formatted reports.</td>
 <li><a class="reference" href="#classes" id="id4" name="id4">2   Classes</a><ul class="auto-toc">
 <li><a class="reference" href="#classes-in-the-pyparsing-module" id="id5" name="id5">2.1   Classes in the pyparsing module</a></li>
 <li><a class="reference" href="#basic-parserelement-subclasses" id="id6" name="id6">2.2   Basic ParserElement subclasses</a></li>
-<li><a class="reference" href="#parse-expression-subclasses" id="id7" name="id7">2.3   Parse Expression subclasses</a></li>
+<li><a class="reference" href="#expression-subclasses" id="id7" name="id7">2.3   Expression subclasses</a></li>
 <li><a class="reference" href="#positional-subclasses" id="id8" name="id8">2.4   Positional subclasses</a></li>
 <li><a class="reference" href="#converter-subclasses" id="id9" name="id9">2.5   Converter subclasses</a></li>
 <li><a class="reference" href="#special-subclasses-and-exception-classes" id="id10" name="id10">2.6   Special subclasses and Exception classes</a></li>
@@ -277,10 +277,15 @@ also be constructed with any of the following optional parameters:</p>
 </ul>
 <p>If exact is specified, it will override any values for min or max.</p>
 </li>
+<li><p class="first"><tt class="literal"><span class="pre">CharsNotIn</span></tt> - similar to <tt class="literal"><span class="pre">Word</span></tt>, but matches characters not
+in the given constructor string (accepts only one string for both
+initial and body characters); also supports min, max, and exact
+optional parameters.</p>
+</li>
 </ul>
 </div>
-<div class="section" id="parse-expression-subclasses">
-<h2><a class="toc-backref" href="#id7" name="parse-expression-subclasses">2.3   Parse Expression subclasses</a></h2>
+<div class="section" id="expression-subclasses">
+<h2><a class="toc-backref" href="#id7" name="expression-subclasses">2.3   Expression subclasses</a></h2>
 <ul class="simple">
 <li><tt class="literal"><span class="pre">And</span></tt> - construct with a list of ParserElements, all of which must
 match for And to match; can also be created using the '+'
@@ -318,7 +323,8 @@ expressions; can also be created using the unary '~' operator</li>
 <h2><a class="toc-backref" href="#id9" name="converter-subclasses">2.5   Converter subclasses</a></h2>
 <ul class="simple">
 <li><tt class="literal"><span class="pre">Upcase</span></tt> - converts matched tokens to uppercase</li>
-<li><tt class="literal"><span class="pre">Combine</span></tt> - joins all matched tokens into a single string; expects
+<li><tt class="literal"><span class="pre">Combine</span></tt> - joins all matched tokens into a single string, using
+specified joinString (<tt class="literal"><span class="pre">default</span> <span class="pre">=</span> <span class="pre">&quot;&quot;</span></tt>); expects
 all matching tokens to be adjacent, with no intervening
 whitespace (can be overridden by specifying <tt class="literal"><span class="pre">adjacent=False</span></tt> in constructor)</li>
 <li><tt class="literal"><span class="pre">Suppress</span></tt> - clears matched tokens; useful to keep returned
@@ -397,11 +403,12 @@ only the separate list elements.  Can optionally specify <tt class="literal"><sp
 indicating that the expressions and delimiters should be returned as one
 combined value (useful for scoped variables, such as <tt class="literal"><span class="pre">a.b.c</span></tt>, or 
 <tt class="literal"><span class="pre">a::b::c</span></tt>, or paths such as <tt class="literal"><span class="pre">a/b/c</span></tt>).</li>
-<li><tt class="literal"><span class="pre">oneOf(</span> <span class="pre">string</span> <span class="pre">)</span></tt> - convenience function for quickly declaring an
+<li><tt class="literal"><span class="pre">oneOf(</span> <span class="pre">string,</span> <span class="pre">caseless=False</span> <span class="pre">)</span></tt> - convenience function for quickly declaring an
 alternative set of <tt class="literal"><span class="pre">Literal</span></tt> tokens, by splitting the given string on 
 whitespace boundaries.  The tokens are sorted so that the longest
 matches are attempted first; this ensures that a short token does
-not mask a longer one that starts with the same characters.</li>
+not mask a longer one that starts with the same characters. If caseless=True, will
+create an alternative set of CaselessLiteral tokens.</li>
 <li><tt class="literal"><span class="pre">lineno(</span> <span class="pre">loc,</span> <span class="pre">string</span> <span class="pre">)</span></tt> - function to give the line number of the
 location within the string; the first line is line 1, newlines
 start new rows</li>
