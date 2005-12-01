@@ -28,7 +28,7 @@ from __future__ import generators
 """
 pyparsing module - Classes and methods to define and execute parsing grammars
 """
-__version__ = "1.1.1"
+__version__ = "1.1.2"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 #~ print "testing pyparsing module, version", __version__
 
@@ -46,9 +46,14 @@ class ParseException(Exception):
         self.pstr = pstr
 
     def __getattr__( self, aname ):
+        """supported attributes by name are:
+            - lineno - returns the line number of the exception text
+            - col - returns the column number of the exception text
+            - line - returns the line containing the exception text
+        """
         if( aname == "lineno" ):
             return lineno( self.loc, self.pstr )
-        elif( aname == "column" ):
+        elif( aname in ("col", "column") ):
             return col( self.loc, self.pstr )
         elif( aname == "line" ):
             return line( self.loc, self.pstr )
@@ -61,6 +66,7 @@ class ParseException(Exception):
         return str(self)
 
 class RecursiveGrammarException(Exception):
+    "exception thrown by validate() if the grammar could be improperly recursive"
     def __init__( self, parseElementList ):
         self.parseElementTrace = parseElementList
     
@@ -157,16 +163,15 @@ class ParseResults(object):
                 out.append( res )
         return out
 
-
-"""Returns current column within a string, counting newlines as line separators
+col = lambda loc,strg: loc - strg.rfind("\n", 0, loc)
+col.__doc__ = """Returns current column within a string, counting newlines as line separators
    The first column is number 1.
    """
-col = lambda loc,strg: loc - strg.rfind("\n", 0, loc)
 
-"""Returns current line number within a string, counting newlines as line separators
+lineno = lambda loc,strg: strg.count("\n",0,loc) + 1
+lineno.__doc__ = """Returns current line number within a string, counting newlines as line separators
    The first line is number 1.
    """
-lineno = lambda loc,strg: strg.count("\n",0,loc) + 1
 
 def line( loc, strg ):
     """Returns the line of text containing loc within a string, counting newlines as line separators
@@ -216,11 +221,12 @@ class ParserElement(object):
         return self.resultsName
 
     def setParseAction( self, fn ):
-        """Define action to perform when successfully matching parse element definition
-           action is a callable method with the arguments (s, loc, toks) where:
-           - s   = the original string being parsed
-           - loc = the location of the matching substring
-           - toks = a list of the matched tokens
+        """Define action to perform when successfully matching parse element definition.
+           Parse action fn is a callable method with the arguments (s, loc, toks) where:
+            - s   = the original string being parsed
+            - loc = the location of the matching substring
+            - toks = a list of the matched tokens
+           fn must return toks (although fn may modify the list passed in as an argument) 
         """
         self.parseAction = fn
         return self
@@ -261,32 +267,41 @@ class ParserElement(object):
 
         if debugging:
             print "Match",self,"at loc",loc,"(%d,%d)" % ( lineno(loc,instring), col(loc,instring) )
-            
-        loc = self.preParse( instring, loc )
-        tokensStart = loc
-        
-        try:
-            loc,tokens = self.parseImpl( instring, loc, doActions )
-        except IndexError:
-            raise ParseException, ( instring, len(instring), "Expected "+str(self) )
-        except ParseException, err:
-            if debugging:
+            loc = self.preParse( instring, loc )
+            tokensStart = loc
+            try:
+                loc,tokens = self.parseImpl( instring, loc, doActions )
+            except IndexError:
+                raise ParseException, ( instring, len(instring), "Expected "+str(self) )
+            except ParseException, err:
                 print "Exception raised:", err
-            raise
-
+                raise
+        else:
+            loc = self.preParse( instring, loc )
+            tokensStart = loc
+            try:
+                loc,tokens = self.parseImpl( instring, loc, doActions )
+            except IndexError:
+                raise ParseException, ( instring, len(instring), "Expected "+str(self) )
+        
         loc,tokens = self.postParse( instring, loc, tokens )
 
         retTokens = ParseResults( tokens, self.getResultsName(), asList=self.saveList )
         if self.parseAction and doActions:
-            try:
+            if debugging:
+                try:
+                    tokens = self.parseAction( instring, tokensStart, retTokens )
+                    if isinstance(tokens,tuple):
+                        tokens = tokens[1]
+                    retTokens = ParseResults( tokens, self.getResultsName(), asList=self.saveList )
+                except ParseException, err:
+                    print "Exception raised in user parse action:", err
+                    raise
+            else:
                 tokens = self.parseAction( instring, tokensStart, retTokens )
                 if isinstance(tokens,tuple):
                     tokens = tokens[1]
                 retTokens = ParseResults( tokens, self.getResultsName(), asList=self.saveList )
-            except ParseException, err:
-                if debugging:
-                    print "Exception raised in user parse action:", err
-                raise
 
         if debugging:
             print "Matched",self,"->",retTokens.asList()
@@ -317,9 +332,11 @@ class ParserElement(object):
         instring = instring.expandtabs()
         instrlen = len(instring)
         loc = 0
+        preparseFn = self.preParse
         parseFn = self.parse
         while loc < instrlen:
             try:
+                loc = preparseFn( instring, loc )
                 nextLoc,tokens = parseFn( instring, loc )
             except ParseException:
                 loc += 1
@@ -433,7 +450,7 @@ class Literal(Token):
     # if this is a single character match string  and the first character matches,
     # short-circuit as quickly as possible, and avoid constructing string slice
     def parseImpl( self, instring, loc, doActions=True ):
-        if instring[loc] is not self.firstMatchChar or \
+        if not(instring[loc] == self.firstMatchChar) or \
            (self.matchLen > 1 and instring[ loc:loc+self.matchLen ] != self.match ):
             raise ParseException, ( instring, loc, self.errmsg )
         return loc+self.matchLen, [ self.match ]
@@ -485,11 +502,10 @@ class Word(Token):
         self.errmsg = "Expected " + self.name
 
     def parseImpl( self, instring, loc, doActions=True ):
-        if instring[ loc ] not in self.initChars:
+        if not(instring[ loc ] in self.initChars):
             raise ParseException, ( instring, loc, self.errmsg )
         start = loc
         loc += 1
-        instrlen = len(instring)
         bodychars = self.bodyChars
         maxloc = start + self.maxLen
         maxloc = min( maxloc, len(instring) )
@@ -611,32 +627,35 @@ class GoToColumn(PositionToken):
         return newloc, [ ret ]
 
 class LineStart(PositionToken):
+    "Matches if current position is at the beginning of a line within the parse string"
     def __init__( self ):
         super(LineStart,self).__init__()
         self.whiteChars = " \t"
 
     def preParse( self, instring, loc ):
         loc = super(LineStart,self).preParse(instring,loc)
-        if instring[loc] is "\n":
+        if instring[loc] == "\n":
             loc += 1
         return loc
 
     def parseImpl( self, instring, loc, doActions=True ):
-        if not( loc==0 or ( loc<len(instring) and instring[loc-1] is "\n" ) ): #col(loc, instring) != 1:
+        if not( loc==0 or ( loc<len(instring) and instring[loc-1] == "\n" ) ): #col(loc, instring) != 1:
             raise ParseException, ( instring, loc, "Expected start of line" )
         return loc, []
 
 class LineEnd(PositionToken):
+    "Matches if current position is at the end of a line within the parse string"
     def __init__( self ):
         super(LineEnd,self).__init__()
         self.whiteChars = " \t"
     
     def parseImpl( self, instring, loc, doActions=True ):
-        if loc<len(instring) and instring[loc] is not "\n":
+        if loc<len(instring) and instring[loc] != "\n":
             raise ParseException, ( instring, loc, "Expected end of line" )
         return loc, []
 
 class StringStart(PositionToken):
+    "Matches if current position is at the beginning of the parse string"
     def __init__( self ):
         super(StringStart,self).__init__()
     
@@ -648,6 +667,7 @@ class StringStart(PositionToken):
         return loc, []
 
 class StringEnd(PositionToken):
+    "Matches if current position is at the end of the parse string"
     def __init__( self ):
         super(StringEnd,self).__init__()
     
@@ -998,7 +1018,7 @@ class OneOrMore(ParseElementEnhance):
                     loc = self.skipIgnorables( instring, loc )
                 loc, tmptokens = self.expr.parse( instring, loc, doActions )
                 tokens += tmptokens
-        except ParseException, err:
+        except ParseException:
             pass
 
         return loc, tokens
@@ -1045,8 +1065,8 @@ class Optional(ParseElementEnhance):
     
 
 class Forward(ParseElementEnhance):
-    """Forward declaration of an expression to be defined later.
-       Used for recursive grammars, such as algebraic infix notation.
+    """Forward declaration of an expression to be defined later -
+       used for recursive grammars, such as algebraic infix notation.
        When the expression is known, it is assigned to the Forward variable using the '<<' operator.
     """
     def __init__( self, other=None ):
@@ -1079,12 +1099,12 @@ class Forward(ParseElementEnhance):
             return self.name
             
         strmethod = self.__str__
-        self.__class__ = ForwardNoRecurse
+        self.__class__ = _ForwardNoRecurse
         retString = str(self.expr)
         self.__class__ = Forward
         return "Forward:"+retString
 
-class ForwardNoRecurse(Forward):
+class _ForwardNoRecurse(Forward):
     def __str__( self ):
         return "..."
         
@@ -1174,6 +1194,9 @@ def delimitedList( expr, delim=",", combine=False ):
     """Helper to define a delimited list of expressions - the delimiter defaults to ','.
        By default, the list elements and delimiters can have intervening whitespace, and 
        comments, but this can be overridden by passing 'combine=True' in the constructor.
+       If combine is set to True, the matching tokens are returned as a single token
+       string, with the delimiters included; otherwise, the matching tokens are returned
+       as a list of tokens, with the delimiters suppressed.
     """
     if combine:
         return Combine( expr + ZeroOrMore( Literal(delim) + expr ) ).setName(str(expr)+delim+"...")
@@ -1218,20 +1241,20 @@ _escapedChar = ( Word( _bslash, _escapables, exact=2 ) |
                  Word( _bslash, _octDigits, min=2, max=4 ) )
 _sglQuote = Literal("'")
 _dblQuote = Literal('"')
-dblQuotedString = Combine( _dblQuote + ZeroOrMore( CharsNotIn('\\"\n\r') | _escapedChar ) + _dblQuote ).streamline()
-sglQuotedString = Combine( _sglQuote + ZeroOrMore( CharsNotIn("\\'\n\r") | _escapedChar ) + _sglQuote ).streamline()
-quotedString = ( dblQuotedString | sglQuotedString ).setName("quotedString")
+dblQuotedString = Combine( _dblQuote + ZeroOrMore( CharsNotIn('\\"\n\r') | _escapedChar ) + _dblQuote ).streamline().setName("string enclosed in double quotes")
+sglQuotedString = Combine( _sglQuote + ZeroOrMore( CharsNotIn("\\'\n\r") | _escapedChar ) + _sglQuote ).streamline().setName("string enclosed in single quotes")
+quotedString = ( dblQuotedString | sglQuotedString ).setName("quotedString using single or double quotes")
 
 # it's easy to get these comment structures wrong - they're very common, so may as well make them available
 cStyleComment = Combine( Literal("/*") +
                          ZeroOrMore( CharsNotIn("*") | ( "*" + ~Literal("/") ) ) +
-                         Literal("*/") ).streamline().setName("cStyleComment")
-restOfLine = Optional( CharsNotIn( "\n\r" ), default="" ).setName("restOfLine").leaveWhitespace()
+                         Literal("*/") ).streamline().setName("cStyleComment enclosed in /* ... */")
+restOfLine = Optional( CharsNotIn( "\n\r" ), default="" ).setName("rest of line up to \\n").leaveWhitespace()
 _noncomma = "".join( [ c for c in printables if c != "," ] )
 _commasepitem = Combine(OneOrMore(Word(_noncomma) + 
                                   Optional( Word(" \t") + 
                                             ~Literal(",") + ~LineEnd() ) ) ).streamline().setName("commaItem")
-commaSeparatedList = delimitedList( Optional( quotedString | _commasepitem, default="") )
+commaSeparatedList = delimitedList( Optional( quotedString | _commasepitem, default="") ).setName("commaSeparatedList")
 
 
 if __name__ == "__main__":

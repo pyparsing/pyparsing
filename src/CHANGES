@@ -2,6 +2,21 @@
 Change Log
 ==========
 
+Version 1.1.2 - ???
+-------------------
+- Fixed minor bug in scanString(), so that start location is at the start of 
+  the matched tokens, not at the start of the whitespace before the matched 
+  tokens.
+
+- Inclusion of HTML documentation, generated using Epydoc.  Reformatted some
+  doc strings to better generate readable docs.
+
+- Minor performance speedup, 5-15%
+
+- And on a process note, I've used the unittest module to define a series of
+  unit tests, to helpl avoid the embarrassment of the version 1.1 snafu.
+  
+
 Version 1.1.1 - 6 Mar 2004
 --------------------------
 - Fixed critical bug introduced in 1.1, which broke MatchFirst(!) token 
