@@ -2,6 +2,26 @@
 Change Log
 ==========
 
+Version 1.0.4 -  8 Jan 2004
+---------------------------
+- Added positional tokens StringStart, StringEnd, LineStart, and LineEnd
+
+- Added commaSeparatedList to pre-defined global token definitions; also added 
+  commasep.py to the examples directory, to demonstrate the differences between 
+  parsing comma-separated data and simple line-splitting at commas
+
+- Minor API change: delimitedList does not automatically enclose the
+  list elements in a Group, but makes this the responsibility of the caller;
+  also, if invoked using 'combine=True', the list delimiters are also included
+  in the returned text (good for scoped variables, such as a.b.c or a::b::c, or
+  for directory paths such as a/b/c)
+  
+- Performance speed-up again, 30-40%
+
+- Added httpServerLogParser.py to examples directory, as this is
+  a common parsing task
+  
+
 Version 1.0.3 - 23 Dec 2003
 ---------------------------
 - Performance speed-up again, 20-40%

@@ -3,11 +3,11 @@
 """Setup script for the pyparsing module distribution."""
 from distutils.core import setup
 
-from parsing import __version__
+from pyparsing import __version__
 
 setup(# Distribution meta-data
     name = "pyparsing",
-    version = "1.0.3",
+    version = __version__,
     description = "Python parsing module",
     author = "Paul McGuire",
     author_email = "ptmcg@users.sourceforge.net",

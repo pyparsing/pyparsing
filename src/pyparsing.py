@@ -28,12 +28,12 @@
 """
 parsing module - Classes and methods to define and execute parsing grammars
 """
-__version__ = "1.0.3"
+__version__ = "1.0.4"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
 import copy,sys
- 
+
 class ParseException(Exception):
     "exception thrown when parse expressions don't match class"
     __slots__ = ( "loc","msg","pstr" )
@@ -172,6 +172,7 @@ class ParserElement(object):
         self.resultsName = None
         self.saveList = savelist
         self.skipWhitespace = True
+        self.whiteChars = " \n\t\r"
         self.ignoreExprs = []
         self.debug = False
         self.streamlined = False
@@ -179,6 +180,7 @@ class ParserElement(object):
     def setName( self, name ):
         "Define name for this expression, for use in debugging."
         self.name = name
+        self.errmsg = "Expected " + self.name
         return self
 
     def setResultsName( self, name ):
@@ -206,25 +208,29 @@ class ParserElement(object):
         return self
 
     def skipIgnorables( self, instring, loc ):
-        if self.ignoreExprs:
-            exprsFound = True
-            while exprsFound:
-                exprsFound = False
-                for e in self.ignoreExprs:
-                    try:
-                        while 1:
-                            loc,dummy = e.parse( instring, loc )
-                            exprsFound = True
-                    except ParseException:
-                        pass
+        exprsFound = True
+        while exprsFound:
+            exprsFound = False
+            for e in self.ignoreExprs:
+                try:
+                    while 1:
+                        loc,dummy = e.parse( instring, loc )
+                        exprsFound = True
+                except ParseException:
+                    pass
         return loc
 
     def preParse( self, instring, loc ):
+        if self.ignoreExprs:
+            loc = self.skipIgnorables( instring, loc )
+        
         if self.skipWhitespace:
+            wt = self.whiteChars
             instrlen = len(instring)
-            while loc < instrlen and instring[loc].isspace():
+            #~ while loc < instrlen and instring[loc].isspace():
+            while loc < instrlen and instring[loc] in wt:
                 loc += 1
-        loc = self.skipIgnorables( instring, loc )
+
         return loc
 
     def parseImpl( self, instring, loc, doActions=True ):
@@ -234,8 +240,9 @@ class ParserElement(object):
         return loc,tokenlist
 
     def parse( self, instring, loc, doActions=True ):
+        debugging = ( self.debug and doActions )
 
-        if self.debug and doActions:
+        if debugging:
             print "Match",self,"at loc",loc,"(%d,%d)" % ( lineno(loc,instring), col(loc,instring) )
             
         loc = self.preParse( instring, loc )
@@ -243,25 +250,25 @@ class ParserElement(object):
         try:
             loc,tokens = self.parseImpl( instring, loc, doActions )
         except IndexError:
-            raise ParseException, ( instring, len(instring), "" )
+            raise ParseException, ( instring, len(instring), "Expected "+str(self) )
         except ParseException, err:
-            if self.debug and doActions:
+            if debugging:
                 print "Exception raised:", err
             raise
 
         loc,tokens = self.postParse( instring, loc, tokens )
 
         retTokens = ParseResults( tokens, self.getResultsName(), asList=self.saveList )
-        if doActions and self.parseAction:
+        if self.parseAction and doActions:
             try:
                 loc,tokens = self.parseAction( instring, loc, retTokens )
                 retTokens = ParseResults( tokens, self.getResultsName(), asList=self.saveList )
             except ParseException, err:
-                if self.debug:
+                if debugging:
                     print "Exception raised in user parse action:", err
                 raise
 
-        if self.debug and doActions:
+        if debugging:
             print "Matched",self,"->",retTokens.asList()
 
         return loc, retTokens
@@ -276,6 +283,8 @@ class ParserElement(object):
         """
         if not self.streamlined:
             self.streamline()
+        for e in self.ignoreExprs:
+            e.streamline()
         loc, tokens = self.parse( instring.expandtabs(), 0 )
         return tokens
 
@@ -376,8 +385,8 @@ class Literal(Token):
         # Performance tuning: this routine gets called a *lot*
         # if this is a single character match string  and the first character matches,
         # short-circuit as quickly as possible, and avoid constructing string slice 
-        if instring[loc] != self.firstMatchChar or \
-           ( self.matchLen > 1 and instring[ loc:loc+self.matchLen ] != self.match ):
+        if instring[loc] is not self.firstMatchChar or \
+           (self.matchLen > 1 and instring[ loc:loc+self.matchLen ] != self.match ):
             raise ParseException, ( instring, loc, self.errmsg )
         return loc+self.matchLen, [ self.match ]
 
@@ -433,9 +442,11 @@ class Word(Token):
         start = loc
         loc += 1
         instrlen = len(instring)
+        bodychars = self.bodyChars
+        maxloc = start + self.maxLen
         while loc < instrlen and \
-              instring[loc] in self.bodyChars and \
-              ( loc - start ) < self.maxLen:
+              instring[loc] in bodychars and \
+              loc < maxloc:
             loc += 1
 
         if loc - start < self.minLen:
@@ -469,15 +480,24 @@ class Word(Token):
         return ret
 
 
-class GoToColumn(Token):
+class PositionToken(Token):
+    def __init__( self ):
+        super(PositionToken,self).__init__()
+        self.name=self.__class__.__name__
+
+class GoToColumn(PositionToken):
     "Token to advance to a specific column of input text; useful for tabular report scraping."
     def __init__( self, colno ):
         super(GoToColumn,self).__init__()
         self.col = colno
 
     def preParse( self, instring, loc ):
-        while instring[loc].isspace() and col( loc, instring ) != self.col :
-            loc += 1
+        if col(loc,instring) != self.col:
+            instrlen = len(instring)
+            if self.ignoreExprs:
+                loc = self.skipIgnorables( instring, loc )
+            while loc < instrlen and instring[loc].isspace() and col( loc, instring ) != self.col :
+                loc += 1
         return loc
 
     def parseImpl( self, instring, loc, doActions=True ):
@@ -488,6 +508,51 @@ class GoToColumn(Token):
         ret = instring[ loc: newloc ]
         return newloc, [ ret ]
 
+class LineStart(PositionToken):
+    def __init__( self ):
+        super(LineStart,self).__init__()
+        self.whiteChars = " \t"
+
+    def preParse( self, instring, loc ):
+        loc = super(LineStart,self).preParse(instring,loc)
+        if instring[loc] is "\n":
+            loc += 1
+        return loc
+
+    def parseImpl( self, instring, loc, doActions=True ):
+        if col(loc, instring) != 1:
+            raise ParseException, ( instring, loc, "Expected start of line" )
+        return loc, []
+
+class LineEnd(PositionToken):
+    def __init__( self ):
+        super(LineEnd,self).__init__()
+        self.whiteChars = " \t"
+    
+    def parseImpl( self, instring, loc, doActions=True ):
+        if instring[loc] is not "\n":
+            raise ParseException, ( instring, loc, "Expected end of line" )
+        return loc, []
+
+class StringStart(PositionToken):
+    def __init__( self ):
+        super(StringStart,self).__init__()
+    
+    def parseImpl( self, instring, loc, doActions=True ):
+        if loc != 0:
+            # see if entire string up to here is just whitespace and ignoreables
+            if loc != self.preParse( instring, 0 ):
+                raise ParseException, ( instring, loc, "Expected start of text" )
+        return loc, []
+
+class StringEnd(PositionToken):
+    def __init__( self ):
+        super(StringEnd,self).__init__()
+    
+    def parseImpl( self, instring, loc, doActions=True ):
+        if loc != len(instring):
+            raise ParseException, ( instring, loc, "Expected end of text" )
+        return loc, []
 
 class ParseExpression(ParserElement):
     "Abstract subclass of ParserElement, for combining and post-processing parsed tokens."
@@ -537,6 +602,9 @@ class ParseExpression(ParserElement):
     def streamline( self ):
         super(ParseExpression,self).streamline()
 
+        for e in self.exprs:
+            e.streamline()
+            
         if ( len(self.exprs) == 2 and
               not ( self.parseAction or self.resultsName ) ):
             other = self.exprs[0]
@@ -562,13 +630,16 @@ class And(ParseExpression):
     def parseImpl( self, instring, loc, doActions=True ):
         #~ resultlist = ParseResults([])  - don't construct this until we know we will need it
         resultlist = None
-
+        hasIgnoreExprs = ( len(self.ignoreExprs) > 0 )
+        lastExpr = self.exprs[-1]
         for e in self.exprs:
             loc, exprtokens = e.parse( instring, loc, doActions )
-            loc = self.skipIgnorables( instring, loc )
+            if hasIgnoreExprs and e is not lastExpr:
+                loc = self.skipIgnorables( instring, loc )
             if resultlist is None:
-                resultlist = ParseResults([])
-            resultlist += exprtokens
+                resultlist = exprtokens
+            else:
+                resultlist += exprtokens
 
         return loc, resultlist
 
@@ -703,6 +774,7 @@ class ZeroOrMore(ParseElementEnhance):
     "Optional repetition of zero or more of the given expression."
     def parseImpl( self, instring, loc, doActions=True ):
         tokens = []
+        hasIgnoreExprs = ( len(self.ignoreExprs) > 0 )
         while 1:
             try:
                 loc, tmptokens = self.expr.parse( instring, loc, doActions )
@@ -710,7 +782,8 @@ class ZeroOrMore(ParseElementEnhance):
                 break
             else:
                 tokens += tmptokens
-                loc = self.skipIgnorables( instring, loc )
+                if hasIgnoreExprs:
+                    loc = self.skipIgnorables( instring, loc )
 
         return loc, tokens
 
@@ -720,6 +793,7 @@ class OneOrMore(ParseElementEnhance):
     def parseImpl( self, instring, loc, doActions=True ):
         tokens = []
         foundAtLeastOne = False
+        hasIgnoreExprs = ( len(self.ignoreExprs) > 0 )
         while 1:
             try:
                 loc, tmptokens = self.expr.parse( instring, loc, doActions )
@@ -729,7 +803,8 @@ class OneOrMore(ParseElementEnhance):
             else:
                 foundAtLeastOne = True
                 tokens += tmptokens
-                loc = self.skipIgnorables( instring, loc )
+                if hasIgnoreExprs:
+                    loc = self.skipIgnorables( instring, loc )
 
         if not foundAtLeastOne :
             raise lastException
@@ -751,7 +826,7 @@ class Optional(ParseElementEnhance):
             loc, tmptokens = self.expr.parse( instring, loc, doActions )
             tokens = tmptokens
         except ParseException:
-            if self.defaultValue != None:
+            if self.defaultValue is not None:
                 tokens = [ self.defaultValue ]
             else:
                 tokens = []
@@ -871,9 +946,9 @@ def delimitedList( expr, delim=",", combine=False ):
        comments, but this can be overridden by passing 'combine=True' in the constructor.
     """
     if combine:
-        return Combine( expr + ZeroOrMore( Suppress( Literal(delim) ) + expr ) ).setName(str(expr)+delim+"...")
+        return Combine( expr + ZeroOrMore( Literal(delim) + expr ) ).setName(str(expr)+delim+"...")
     else:
-        return Group( expr + ZeroOrMore( Suppress( Literal(delim) ) + expr ) ).setName(str(expr)+delim+"...")
+        return ( expr + ZeroOrMore( Suppress( Literal(delim) ) + expr ) ).setName(str(expr)+delim+"...")
 
 def oneOf( strs ):
     """Helper to quickly define a set of alternative Literals, and makes sure to do 
@@ -908,6 +983,11 @@ cStyleComment = Combine( Literal("/*") +
                          Literal("*/") ).streamline().setName("cStyleComment")
 _notNL = "".join( [ c for c in string.printable if c not in "\n" ] )
 restOfLine = Optional( Word( _notNL ), default="" ).setName("restOfLine").leaveWhitespace()
+_noncomma = "".join( [ c for c in printables if c != "," ] )
+_commasepitem = Combine(OneOrMore(Word(_noncomma) + 
+                                  Optional( Word(" \t") + 
+                                            ~Literal(",") + ~LineEnd() + ~StringEnd() ) ) )
+commaSeparatedList = delimitedList( Optional( quotedString | _commasepitem, default="") )
 
 
 if __name__ == "__main__":
@@ -933,9 +1013,9 @@ if __name__ == "__main__":
 
     ident          = Word( alphas, alphanums + "_$" )
     columnName     = Upcase( ident )
-    columnNameList = delimitedList( columnName )
-    tableName      = Upcase( Combine( ident + Optional( '.' + ident ) ) )
-    tableNameList  = delimitedList( tableName )
+    columnNameList = Group( delimitedList( columnName ) )
+    tableName      = Upcase( delimitedList( ident, ".", combine=True ) )
+    tableNameList  = Group( delimitedList( tableName ) )
     simpleSQL      = selectToken + \
                      ( '*' | columnNameList ).setResultsName( "columns" ) + \
                      fromToken + \
