@@ -2,6 +2,29 @@
 Change Log
 ==========
 
+Version 1.2.3 - November, 2004
+----------------------------------
+- Added support for Unicode strings in creating grammar definitions.  
+  (Big thanks to Gavin Panella!)
+
+- Added constant alphas8bit to include the following 8-bit characters:
+    ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏĞÑÒÓÔÕÖØÙÚÛÜİŞßàáâãäåæçèéêëìíîïğñòóôõöøùúûüış
+  
+- Added srange() function to simplify definition of Word elements, using 
+  regexp-like '[A-Za-z0-9]' syntax.  This also simplifies referencing
+  common 8-bit characters.
+  
+- Fixed bug in Dict when a single element Dict was embedded within another
+  Dict. (Thanks Andy Yates for catching this one!)
+  
+- Added 'formatted' argument to ParseResults.asXML().  If set to False,
+  suppresses insertion of whitespace for pretty-print formatting.  Default
+  equals True for backward compatibility.
+  
+- Added setDebugActions() function to ParserElement, to allow user-defined
+  debugging actions.
+
+
 Version 1.2.2 - September 27, 2004
 ----------------------------------
 - Modified delimitedList to accept an expression as the delimiter, instead
