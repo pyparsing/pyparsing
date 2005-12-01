@@ -1,0 +1,23 @@
+Change Log
+
+Version 1.0.2 - 18 Dec 2003
+---------------------------
+- NOTE: Changed API again!!! (for the last time, I hope)
+  Renamed module from parsing to pyparsing, to better reflect Python
+  linkage.
+
+- Also added dictExample.py to examples directory, to illustrate
+  usage of the Dict class.
+
+
+Version 1.0.1 - 17 Dec 2003
+---------------------------
+- NOTE:  Changed API!
+  Renamed 'len' argument on Word.__init__() to 'exact'
+
+- Performance speed-up, 10-30%
+
+
+Version 1.0.0 - 15 Dec 2003
+---------------------------
+- Initial release
