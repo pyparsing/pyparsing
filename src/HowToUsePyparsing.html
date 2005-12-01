@@ -6,8 +6,8 @@
 <meta name="generator" content="Docutils 0.3.0: http://docutils.sourceforge.net/" />
 <title>Using the pyparsing module</title>
 <meta name="author" content="Paul McGuire" />
-<meta name="date" content="Feb. 24, 2004" />
-<meta name="copyright" content="Copyright � 2003,2004 Paul McGuire." />
+<meta name="date" content="June, 2004" />
+<meta name="copyright" content="Copyright © 2003,2004 Paul McGuire." />
 <link rel="stylesheet" href="default.css" type="text/css" />
 </head>
 <body>
@@ -25,9 +25,9 @@
 </pre>
 </td></tr>
 <tr><th class="docinfo-name">Revision:</th>
-<td>1.1</td></tr>
+<td>1.2</td></tr>
 <tr><th class="docinfo-name">Date:</th>
-<td>Feb. 24, 2004</td></tr>
+<td>June, 2004</td></tr>
 <tr><th class="docinfo-name">Copyright:</th>
 <td>Copyright © 2003,2004 Paul McGuire.</td></tr>
 </tbody>
@@ -48,29 +48,29 @@ extracting data from formatted reports.</td>
 <div class="contents topic" id="contents">
 <p class="topic-title"><a name="contents">Contents</a></p>
 <ul class="auto-toc simple">
-<li><a class="reference" href="#steps-to-follow" id="id1" name="id1">1 Steps to follow</a><ul class="auto-toc">
-<li><a class="reference" href="#hello-world" id="id2" name="id2">1.1 Hello, World!</a></li>
-<li><a class="reference" href="#usage-notes" id="id3" name="id3">1.2 Usage notes</a></li>
+<li><a class="reference" href="#steps-to-follow" id="id1" name="id1">1   Steps to follow</a><ul class="auto-toc">
+<li><a class="reference" href="#hello-world" id="id2" name="id2">1.1   Hello, World!</a></li>
+<li><a class="reference" href="#usage-notes" id="id3" name="id3">1.2   Usage notes</a></li>
 </ul>
 </li>
-<li><a class="reference" href="#classes" id="id4" name="id4">2 Classes</a><ul class="auto-toc">
-<li><a class="reference" href="#classes-in-the-pyparsing-module" id="id5" name="id5">2.1 Classes in the pyparsing module</a></li>
-<li><a class="reference" href="#basic-parserelement-subclasses" id="id6" name="id6">2.2 Basic ParserElement subclasses</a></li>
-<li><a class="reference" href="#expression-subclasses" id="id7" name="id7">2.3 Expression subclasses</a></li>
-<li><a class="reference" href="#positional-subclasses" id="id8" name="id8">2.4 Positional subclasses</a></li>
-<li><a class="reference" href="#converter-subclasses" id="id9" name="id9">2.5 Converter subclasses</a></li>
-<li><a class="reference" href="#special-subclasses-and-exception-classes" id="id10" name="id10">2.6 Special subclasses and Exception classes</a></li>
+<li><a class="reference" href="#classes" id="id4" name="id4">2   Classes</a><ul class="auto-toc">
+<li><a class="reference" href="#classes-in-the-pyparsing-module" id="id5" name="id5">2.1   Classes in the pyparsing module</a></li>
+<li><a class="reference" href="#basic-parserelement-subclasses" id="id6" name="id6">2.2   Basic ParserElement subclasses</a></li>
+<li><a class="reference" href="#expression-subclasses" id="id7" name="id7">2.3   Expression subclasses</a></li>
+<li><a class="reference" href="#positional-subclasses" id="id8" name="id8">2.4   Positional subclasses</a></li>
+<li><a class="reference" href="#converter-subclasses" id="id9" name="id9">2.5   Converter subclasses</a></li>
+<li><a class="reference" href="#special-subclasses-and-exception-classes" id="id10" name="id10">2.6   Special subclasses and Exception classes</a></li>
 </ul>
 </li>
-<li><a class="reference" href="#miscellaneous-attributes-and-methods" id="id11" name="id11">3 Miscellaneous attributes and methods</a><ul class="auto-toc">
-<li><a class="reference" href="#helper-methods" id="id12" name="id12">3.1 Helper methods</a></li>
-<li><a class="reference" href="#common-string-and-token-constants" id="id13" name="id13">3.2 Common string and token constants</a></li>
+<li><a class="reference" href="#miscellaneous-attributes-and-methods" id="id11" name="id11">3   Miscellaneous attributes and methods</a><ul class="auto-toc">
+<li><a class="reference" href="#helper-methods" id="id12" name="id12">3.1   Helper methods</a></li>
+<li><a class="reference" href="#common-string-and-token-constants" id="id13" name="id13">3.2   Common string and token constants</a></li>
 </ul>
 </li>
 </ul>
 </div>
 <div class="section" id="steps-to-follow">
-<h1><a class="toc-backref" href="#id1" name="steps-to-follow">1 Steps to follow</a></h1>
+<h1><a class="toc-backref" href="#id1" name="steps-to-follow">1   Steps to follow</a></h1>
 <p>To parse an incoming data string, the client code must follow these steps:</p>
 <ol class="arabic simple">
 <li>First define the tokens and patterns to be matched, and assign
@@ -88,7 +88,7 @@ the returned results, if names are defined in the definition of
 the token pattern, using <tt class="literal"><span class="pre">setResultsName()</span></tt>.</li>
 </ol>
 <div class="section" id="hello-world">
-<h2><a class="toc-backref" href="#id2" name="hello-world">1.1 Hello, World!</a></h2>
+<h2><a class="toc-backref" href="#id2" name="hello-world">1.1   Hello, World!</a></h2>
 <p>The following complete Python program will parse the greeting &quot;Hello, World!&quot;,
 or any other greeting of the form &quot;&lt;salutation&gt;, &lt;addressee&gt;!&quot;:</p>
 <pre class="literal-block">
@@ -104,7 +104,7 @@ print greeting
 </pre>
 </div>
 <div class="section" id="usage-notes">
-<h2><a class="toc-backref" href="#id3" name="usage-notes">1.2 Usage notes</a></h2>
+<h2><a class="toc-backref" href="#id3" name="usage-notes">1.2   Usage notes</a></h2>
 <ul>
 <li><p class="first">The pyparsing module can be used to interpret simple command
 strings or algebraic expressions, or can be used to extract data
@@ -203,9 +203,9 @@ improvments have been in the 20-50% range.</p>
 </div>
 </div>
 <div class="section" id="classes">
-<h1><a class="toc-backref" href="#id4" name="classes">2 Classes</a></h1>
+<h1><a class="toc-backref" href="#id4" name="classes">2   Classes</a></h1>
 <div class="section" id="classes-in-the-pyparsing-module">
-<h2><a class="toc-backref" href="#id5" name="classes-in-the-pyparsing-module">2.1 Classes in the pyparsing module</a></h2>
+<h2><a class="toc-backref" href="#id5" name="classes-in-the-pyparsing-module">2.1   Classes in the pyparsing module</a></h2>
 <p><tt class="literal"><span class="pre">ParserElement</span></tt> - abstract base class for all pyparsing classes;
 methods for code to use are:</p>
 <ul>
@@ -213,6 +213,10 @@ methods for code to use are:</p>
 matching pattern; returns a ParseResults object that makes the
 matched tokens available as a list, and optionally as a dictionary, 
 or as an object with named attributes</p>
+</li>
+<li><p class="first"><tt class="literal"><span class="pre">parseFile(</span> <span class="pre">sourceFile</span> <span class="pre">)</span></tt> - a convenience function, that accepts an
+input file object or filename.  The file contents are passed as a 
+string to <tt class="literal"><span class="pre">parseString()</span></tt>.</p>
 </li>
 <li><p class="first"><tt class="literal"><span class="pre">scanString(</span> <span class="pre">sourceString</span> <span class="pre">)</span></tt> - generator function, used to find and
 extract matching text in the given source string; for each matched text, 
@@ -226,6 +230,11 @@ returns a tuple of:</p>
 random matches, instead of exhaustively defining the grammar for the entire
 source text (as would be required with <tt class="literal"><span class="pre">parseString</span></tt>).</p>
 </li>
+<li><p class="first"><tt class="literal"><span class="pre">transformString(</span> <span class="pre">sourceString</span> <span class="pre">)</span></tt> - convenience wrapper function for
+<tt class="literal"><span class="pre">scanString</span></tt>, to process the input source string, and replace matching
+text with the tokens returned from parse actions defined in the grammar
+(see <a class="reference" href="#setparseaction">setParseAction</a>).</p>
+</li>
 <li><p class="first"><tt class="literal"><span class="pre">setName(</span> <span class="pre">name</span> <span class="pre">)</span></tt> - associate a short descriptive name for this
 element, useful in displaying exceptions and trace information</p>
 </li>
@@ -234,6 +243,8 @@ the element; returns a copy of the element so that a single
 basic element can be referenced multiple times and given
 different names within a complex grammar</p>
 </li>
+</ul>
+<a class="target" id="setparseaction" name="setparseaction"></a><ul>
 <li><p class="first"><tt class="literal"><span class="pre">setParseAction(</span> <span class="pre">fn</span> <span class="pre">)</span></tt> - function to call after successful
 matching of the element; the function is defined as <tt class="literal"><span class="pre">fn(</span> <span class="pre">s,</span>
 <span class="pre">loc,</span> <span class="pre">toks</span> <span class="pre">)</span></tt>, where:</p>
@@ -242,13 +253,15 @@ matching of the element; the function is defined as <tt class="literal"><span cl
 <li><tt class="literal"><span class="pre">loc</span></tt> is the location in the string where matching started</li>
 <li><tt class="literal"><span class="pre">toks</span></tt> is a list of the matched tokens</li>
 </ul>
-<p><tt class="literal"><span class="pre">fn</span></tt> must return <tt class="literal"><span class="pre">toks</span></tt>, but may make
-changes to toks before returning.  For brevity, <tt class="literal"><span class="pre">fn</span></tt> may also be a
+<p><tt class="literal"><span class="pre">fn</span></tt> can return a modified <tt class="literal"><span class="pre">toks</span></tt> list, to perform conversion, or
+string modifications.  For brevity, <tt class="literal"><span class="pre">fn</span></tt> may also be a
 lambda - here is an example of using a parse action to convert matched
 integer tokens from strings to integers:</p>
 <pre class="literal-block">
 intNumber = Word(nums).setParseAction( lambda s,l,t: [ int(t[0]) ] )
 </pre>
+<p>If <tt class="literal"><span class="pre">fn</span></tt> does not modify the <tt class="literal"><span class="pre">toks</span></tt> list, it does not need to return
+anything at all.</p>
 </li>
 <li><p class="first"><tt class="literal"><span class="pre">leaveWhiteSpace()</span></tt> - change default behavior of skipping
 whitespace before starting matching (mostly used internally to the 
@@ -269,16 +282,21 @@ when trying to match this element</p>
 contain infinitely recursive constructs</p>
 </li>
 </ul>
+<a class="target" id="parsewithtabs" name="parsewithtabs"></a><ul class="simple">
+<li><tt class="literal"><span class="pre">parseWithTabs</span></tt> - function to override default behavior of converting
+tabs to spaces before parsing the input string; rarely used, except when
+specifying whitespace-significant grammars using the <a class="reference" href="#white">White</a> class.</li>
+</ul>
 </div>
 <div class="section" id="basic-parserelement-subclasses">
-<h2><a class="toc-backref" href="#id6" name="basic-parserelement-subclasses">2.2 Basic ParserElement subclasses</a></h2>
-<ul>
-<li><p class="first"><tt class="literal"><span class="pre">Literal</span></tt> - construct with a string to be matched exactly</p>
-</li>
-<li><p class="first"><tt class="literal"><span class="pre">CaselessLiteral</span></tt> - construct with a string to be matched, but
+<h2><a class="toc-backref" href="#id6" name="basic-parserelement-subclasses">2.2   Basic ParserElement subclasses</a></h2>
+<ul class="simple">
+<li><tt class="literal"><span class="pre">Literal</span></tt> - construct with a string to be matched exactly</li>
+<li><tt class="literal"><span class="pre">CaselessLiteral</span></tt> - construct with a string to be matched, but
 without case checking; results are always returned as the
-defining literal, NOT as they are found in the input string</p>
-</li>
+defining literal, NOT as they are found in the input string</li>
+</ul>
+<a class="target" id="word" name="word"></a><ul>
 <li><p class="first"><tt class="literal"><span class="pre">Word</span></tt> - one or more contiguous characters; construct with a
 string containing the set of allowed initial characters, and an
 optional second string of allowed body characters; if only one
@@ -292,15 +310,23 @@ also be constructed with any of the following optional parameters:</p>
 </ul>
 <p>If exact is specified, it will override any values for min or max.</p>
 </li>
-<li><p class="first"><tt class="literal"><span class="pre">CharsNotIn</span></tt> - similar to <tt class="literal"><span class="pre">Word</span></tt>, but matches characters not
+<li><p class="first"><tt class="literal"><span class="pre">CharsNotIn</span></tt> - similar to <a class="reference" href="#word">Word</a>, but matches characters not
 in the given constructor string (accepts only one string for both
 initial and body characters); also supports min, max, and exact
 optional parameters.</p>
 </li>
 </ul>
+<a class="target" id="white" name="white"></a><ul class="simple">
+<li><tt class="literal"><span class="pre">White</span></tt> - also similar to <a class="reference" href="#word">Word</a>, but matches whitespace 
+characters.  Not usually needed, as whitespace is implicitly
+ignored by pyparsing.  However, some grammars are whitespace-sensitive,
+such as those that use leading tabs or spaces to indicating grouping
+or hierarchy.  (If matching on tab characters, be sure to call 
+<a class="reference" href="#parsewithtabs">parseWithTabs</a> on the top-level parse element.)</li>
+</ul>
 </div>
 <div class="section" id="expression-subclasses">
-<h2><a class="toc-backref" href="#id7" name="expression-subclasses">2.3 Expression subclasses</a></h2>
+<h2><a class="toc-backref" href="#id7" name="expression-subclasses">2.3   Expression subclasses</a></h2>
 <ul class="simple">
 <li><tt class="literal"><span class="pre">And</span></tt> - construct with a list of ParserElements, all of which must
 match for And to match; can also be created using the '+'
@@ -321,12 +347,13 @@ be called if a match is found, or if a default is specified</li>
 <li><tt class="literal"><span class="pre">ZeroOrMore</span></tt> - similar to Optional, but can be repeated</li>
 <li><tt class="literal"><span class="pre">OneOrMore</span></tt> - similar to ZeroOrMore, but at least one match must
 be present</li>
-<li><tt class="literal"><span class="pre">NotAny</span></tt> - a negation expression, prevents matching of named
-expressions; can also be created using the unary '~' operator</li>
+<li><tt class="literal"><span class="pre">NotAny</span></tt> - a negative lookahead expression, prevents matching of named
+expressions, does not advance the parsing position within the input string; 
+can also be created using the unary '~' operator</li>
 </ul>
 </div>
 <div class="section" id="positional-subclasses">
-<h2><a class="toc-backref" href="#id8" name="positional-subclasses">2.4 Positional subclasses</a></h2>
+<h2><a class="toc-backref" href="#id8" name="positional-subclasses">2.4   Positional subclasses</a></h2>
 <ul class="simple">
 <li><tt class="literal"><span class="pre">StringStart</span></tt> - matches beginning of the text</li>
 <li><tt class="literal"><span class="pre">StringEnd</span></tt> - matches the end of the text</li>
@@ -335,7 +362,7 @@ expressions; can also be created using the unary '~' operator</li>
 </ul>
 </div>
 <div class="section" id="converter-subclasses">
-<h2><a class="toc-backref" href="#id9" name="converter-subclasses">2.5 Converter subclasses</a></h2>
+<h2><a class="toc-backref" href="#id9" name="converter-subclasses">2.5   Converter subclasses</a></h2>
 <ul class="simple">
 <li><tt class="literal"><span class="pre">Upcase</span></tt> - converts matched tokens to uppercase</li>
 <li><tt class="literal"><span class="pre">Combine</span></tt> - joins all matched tokens into a single string, using
@@ -348,7 +375,7 @@ tokens (such as list delimiters)</li>
 </ul>
 </div>
 <div class="section" id="special-subclasses-and-exception-classes">
-<h2><a class="toc-backref" href="#id10" name="special-subclasses-and-exception-classes">2.6 Special subclasses and Exception classes</a></h2>
+<h2><a class="toc-backref" href="#id10" name="special-subclasses-and-exception-classes">2.6   Special subclasses and Exception classes</a></h2>
 <ul>
 <li><p class="first"><tt class="literal"><span class="pre">Group</span></tt> - causes the matched tokens to be enclosed in a list;
 useful in repeated elements like <tt class="literal"><span class="pre">ZeroOrMore</span></tt> and <tt class="literal"><span class="pre">OneOrMore</span></tt> to
@@ -410,14 +437,25 @@ by calling <tt class="literal"><span class="pre">asList()</span></tt>.  Note tha
 field names that have been defined for any embedded parse elements.
 (The <tt class="literal"><span class="pre">pprint</span></tt> module is especially good at printing out the nested contents
 given by <tt class="literal"><span class="pre">asList()</span></tt>.)</p>
+<p>Finally, ParseResults can be converted to an XML string by calling <tt class="literal"><span class="pre">asXML()</span></tt>. Where
+possible, results will be tagged using the results names defined for the respective
+ParseExpressions.  <tt class="literal"><span class="pre">asXML()</span></tt> takes two optional arguments:</p>
+<ul class="simple">
+<li>doctagname - for ParseResults that do not have a defined name, this argument
+will wrap the resulting XML in a set of opening and closing tags <tt class="literal"><span class="pre">&lt;doctagname&gt;</span></tt>
+and <tt class="literal"><span class="pre">&lt;/doctagname&gt;</span></tt>.</li>
+<li>namedItemsOnly (default=False) - flag to indicate if the generated XML should 
+skip items that do not have defined names.  If a nested group item is named, then all
+embedded items will be included, whether they have names or not.</li>
+</ul>
 </li>
 </ul>
 </div>
 </div>
 <div class="section" id="miscellaneous-attributes-and-methods">
-<h1><a class="toc-backref" href="#id11" name="miscellaneous-attributes-and-methods">3 Miscellaneous attributes and methods</a></h1>
+<h1><a class="toc-backref" href="#id11" name="miscellaneous-attributes-and-methods">3   Miscellaneous attributes and methods</a></h1>
 <div class="section" id="helper-methods">
-<h2><a class="toc-backref" href="#id12" name="helper-methods">3.1 Helper methods</a></h2>
+<h2><a class="toc-backref" href="#id12" name="helper-methods">3.1   Helper methods</a></h2>
 <ul class="simple">
 <li><tt class="literal"><span class="pre">delimitedList(</span> <span class="pre">expr,</span> <span class="pre">delim=',')</span></tt> - convenience function for
 matching one or more occurrences of expr, separated by delim.
@@ -444,7 +482,7 @@ messages for exceptions</li>
 </ul>
 </div>
 <div class="section" id="common-string-and-token-constants">
-<h2><a class="toc-backref" href="#id13" name="common-string-and-token-constants">3.2 Common string and token constants</a></h2>
+<h2><a class="toc-backref" href="#id13" name="common-string-and-token-constants">3.2   Common string and token constants</a></h2>
 <ul class="simple">
 <li><tt class="literal"><span class="pre">alphas</span></tt> - same as <tt class="literal"><span class="pre">string.letters</span></tt></li>
 <li><tt class="literal"><span class="pre">nums</span></tt> - same as <tt class="literal"><span class="pre">string.digits</span></tt></li>
@@ -456,7 +494,9 @@ include whitespace, but not newlines</li>
 <li><tt class="literal"><span class="pre">dblQuotedString</span></tt> - a string of characters enclosed in &quot;s; may
 include whitespace, but not newlines</li>
 <li><tt class="literal"><span class="pre">quotedString</span></tt> - <tt class="literal"><span class="pre">sglQuotedString</span> <span class="pre">|</span> <span class="pre">dblQuotedString</span></tt></li>
-<li><tt class="literal"><span class="pre">cStyleComment</span></tt> - a comment block delimited by '/*' and '*/' sequences; can span
+<li><tt class="literal"><span class="pre">cStyleComment</span></tt> - a comment block delimited by <tt class="literal"><span class="pre">'/*'</span></tt> and <tt class="literal"><span class="pre">'*/'</span></tt> sequences; can span
+multiple lines, but does not support nesting of comments</li>
+<li><tt class="literal"><span class="pre">htmlComment</span></tt> - a comment block delimited by <tt class="literal"><span class="pre">'&lt;!--'</span></tt> and <tt class="literal"><span class="pre">'--&gt;'</span></tt> sequences; can span
 multiple lines, but does not support nesting of comments</li>
 <li><tt class="literal"><span class="pre">commaSeparatedList</span></tt> - similar to <tt class="literal"><span class="pre">delimitedList</span></tt>, except that the
 list expressions can be any text value, or a quoted string; quoted strings can

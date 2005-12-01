@@ -1,5 +1,5 @@
 include pyparsing.py
 include HowToUsePyparsing.html pyparsingClassDiagram.*
 include README CHANGES
-include examples/*.py examples/Setup.ini
+include examples/*.py examples/Setup.ini examples/*.dfm
 include htmldoc/*.*
