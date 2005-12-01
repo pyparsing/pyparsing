@@ -2,6 +2,44 @@
 Change Log
 ==========
 
+Version 1.2.1 - August 2004
+---------------------------
+- Added SkipTo(expression) token type, simplifying grammars that only
+  want to specify delimiting expressions, and want to match any characters
+  between them.
+  
+- Added helper method dictOf(key,value), making it easier to work with
+  the Dict class. (Inspired by Pavel Volkovitskiy, thanks!).
+
+- Added optional argument listAllMatches (default=False) to 
+  setResultsName().  Setting listAllMatches to True overrides the default
+  modal setting of tokens to results names; instead, the results name
+  acts as an accumulator for all matching tokens within the local 
+  repetition group. (Suggested by Amaury Le Leyzour - thanks!)
+  
+- Fixed bug in ParseResults, throwing exception when trying to extract
+  slice, or make a copy using [:]. (Thanks, Wilson Fowlie!)
+  
+- Fixed bug in transformString() when the input string contains <TAB>'s
+  (Thanks, Rick Walia!).
+  
+- Fixed bug in returning tokens from un-Grouped And's, Or's and 
+  MatchFirst's, where too many tokens would be included in the results, 
+  confounding parse actions and returned results.
+  
+- Fixed bug in naming ParseResults returned by And's, Or's, and Match
+  First's.
+
+- Fixed bug in LineEnd() - matching this token now correctly consumes
+  and returns the end of line "\n".
+  
+- Added a beautiful example for parsing Mozilla calendar files (Thanks, 
+  Petri Savolainen!).
+
+- Added support for dynamically modifying Forward expressions during
+  parsing.
+
+
 Version 1.2 - 20 June 2004
 --------------------------
 - Added definition for htmlComment to help support HTML scanning and

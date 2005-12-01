@@ -13,7 +13,7 @@ that client code uses to construct the grammar directly in Python code.
 Here is a program to parse "Hello, World!" (or any greeting of the form 
 "<salutation>, <addressee>!"):
 
-    from parsing import Word, alphas
+    from pyparsing import Word, alphas
     greet = Word( alphas ) + "," + Word( alphas ) + "!"
     hello = "Hello, World!"
     print hello, "->", greet.parseString( hello )
@@ -49,6 +49,8 @@ Installation
 Do the usual:
 
     python setup.py install
+    
+(pyparsing requires Python 2.3.2 or later.)
 
 
 Documentation
