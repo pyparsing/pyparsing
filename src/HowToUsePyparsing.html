@@ -6,7 +6,7 @@
 <meta name="generator" content="Docutils 0.3.0: http://docutils.sourceforge.net/" />
 <title>Using the pyparsing module</title>
 <meta name="author" content="Paul McGuire" />
-<meta name="date" content="Feb. 13, 2004" />
+<meta name="date" content="Feb. 24, 2004" />
 <meta name="copyright" content="Copyright © 2003,2004 Paul McGuire." />
 <link rel="stylesheet" href="default.css" type="text/css" />
 </head>
@@ -25,9 +25,9 @@
 </pre>
 </td></tr>
 <tr><th class="docinfo-name">Revision:</th>
-<td>1.0.6</td></tr>
+<td>1.1</td></tr>
 <tr><th class="docinfo-name">Date:</th>
-<td>Feb. 13, 2004</td></tr>
+<td>Feb. 24, 2004</td></tr>
 <tr><th class="docinfo-name">Copyright:</th>
 <td>Copyright © 2003,2004 Paul McGuire.</td></tr>
 </tbody>
@@ -76,7 +76,8 @@ extracting data from formatted reports.</td>
 <li>First define the tokens and patterns to be matched, and assign
 this to a program variable.  Optional results names or parsing
 actions can also be defined at this time.</li>
-<li>Call <tt class="literal"><span class="pre">parseString()</span></tt> on this variable, passing in the string to
+<li>Call <tt class="literal"><span class="pre">parseString()</span></tt> or <tt class="literal"><span class="pre">scanString()</span></tt> on this variable, passing in 
+the string to
 be parsed.  During the matching process, whitespace between
 tokens is skipped by default (although this can be changed).
 When token matches occur, any defined parse action methods are
@@ -190,14 +191,13 @@ not to include converted data within a <tt class="literal"><span class="pre">Com
 <li><p class="first">Be careful when defining parse actions that modify global variables or
 data structures (as in <tt class="literal"><span class="pre">fourFn.py</span></tt>), especially for low level tokens 
 or expressions 
-that may occur within an <tt class="literal"><span class="pre">And</span></tt> or <tt class="literal"><span class="pre">Or</span></tt> expression; an early element 
-of an <tt class="literal"><span class="pre">And</span></tt> may match, but the overall expression may fail, or a
-subsequent alternative of an <tt class="literal"><span class="pre">Or</span></tt> may be chosen as a better/longer match.</p>
+that may occur within an <tt class="literal"><span class="pre">And</span></tt> expression; an early element 
+of an <tt class="literal"><span class="pre">And</span></tt> may match, but the overall expression may fail.</p>
 </li>
 <li><p class="first">Performance of pyparsing may be slow for complex grammars and/or large
 input strings.  The <a class="reference" href="http://psyco.sourceforge.net/">psyco</a> package can be used to improve the speed of the
 pyparsing module with no changes to grammar or program logic - observed
-improvments have been in the 20% range.</p>
+improvments have been in the 20-50% range.</p>
 </li>
 </ul>
 </div>
@@ -209,15 +209,22 @@ improvments have been in the 20% range.</p>
 <p><tt class="literal"><span class="pre">ParserElement</span></tt> - abstract base class for all pyparsing classes;
 methods for code to use are:</p>
 <ul>
-<li><p class="first"><tt class="literal"><span class="pre">parseString(</span> <span class="pre">string</span> <span class="pre">)</span></tt> - only called once, on the overall
+<li><p class="first"><tt class="literal"><span class="pre">parseString(</span> <span class="pre">sourceString</span> <span class="pre">)</span></tt> - only called once, on the overall
 matching pattern; returns a ParseResults object that makes the
 matched tokens available as a list, and optionally as a dictionary, 
 or as an object with named attributes</p>
 </li>
-<li><p class="first"><tt class="literal"><span class="pre">scanString(</span> <span class="pre">string</span> <span class="pre">)</span></tt> - generator function, used to find and
-extract matching text in the given string; for each matched text, 
-returns a ParseResults object and the start and end locations of the
-matched text in the original string</p>
+<li><p class="first"><tt class="literal"><span class="pre">scanString(</span> <span class="pre">sourceString</span> <span class="pre">)</span></tt> - generator function, used to find and
+extract matching text in the given source string; for each matched text, 
+returns a tuple of:</p>
+<ul class="simple">
+<li>matched tokens (packaged as a ParseResults object)</li>
+<li>start location of the matched text in the given source string</li>
+<li>end location in the given source string</li>
+</ul>
+<p><tt class="literal"><span class="pre">scanString</span></tt> allows you to scan through the input source string for
+random matches, instead of exhaustively defining the grammar for the entire
+source text (as would be required with <tt class="literal"><span class="pre">parseString</span></tt>).</p>
 </li>
 <li><p class="first"><tt class="literal"><span class="pre">setName(</span> <span class="pre">name</span> <span class="pre">)</span></tt> - associate a short descriptive name for this
 element, useful in displaying exceptions and trace information</p>
@@ -228,15 +235,20 @@ basic element can be referenced multiple times and given
 different names within a complex grammar</p>
 </li>
 <li><p class="first"><tt class="literal"><span class="pre">setParseAction(</span> <span class="pre">fn</span> <span class="pre">)</span></tt> - function to call after successful
-matching of the element; the function is defined as <tt class="literal"><span class="pre">fn(</span> <span class="pre">str,</span>
+matching of the element; the function is defined as <tt class="literal"><span class="pre">fn(</span> <span class="pre">s,</span>
 <span class="pre">loc,</span> <span class="pre">toks</span> <span class="pre">)</span></tt>, where:</p>
 <ul class="simple">
-<li><tt class="literal"><span class="pre">str</span></tt> is the original parse string</li>
+<li><tt class="literal"><span class="pre">s</span></tt> is the original parse string</li>
 <li><tt class="literal"><span class="pre">loc</span></tt> is the location in the string where matching started</li>
 <li><tt class="literal"><span class="pre">toks</span></tt> is a list of the matched tokens</li>
 </ul>
-<p><tt class="literal"><span class="pre">fn</span></tt> must return a tuple of <tt class="literal"><span class="pre">(loc,</span> <span class="pre">toks)</span></tt>, but may make
-changes to toks before returning.</p>
+<p><tt class="literal"><span class="pre">fn</span></tt> must return <tt class="literal"><span class="pre">toks</span></tt>, but may make
+changes to toks before returning.  For brevity, <tt class="literal"><span class="pre">fn</span></tt> may also be a
+lambda - here is an example of using a parse action to convert matched
+integer tokens from strings to integers:</p>
+<pre class="literal-block">
+intNumber = Word(nums).setParseAction( lambda s,l,t: [ int(t[0]) ] )
+</pre>
 </li>
 <li><p class="first"><tt class="literal"><span class="pre">leaveWhiteSpace()</span></tt> - change default behavior of skipping
 whitespace before starting matching (mostly used internally to the 
@@ -252,6 +264,9 @@ patterns of comment syntax, for example</p>
 </li>
 <li><p class="first"><tt class="literal"><span class="pre">setDebug(</span> <span class="pre">dbgFlag=True</span> <span class="pre">)</span></tt> - function to enable/disable tracing output 
 when trying to match this element</p>
+</li>
+<li><p class="first"><tt class="literal"><span class="pre">validate()</span></tt> - function to verify that the defined grammar does not
+contain infinitely recursive constructs</p>
 </li>
 </ul>
 </div>
@@ -314,7 +329,7 @@ expressions; can also be created using the unary '~' operator</li>
 <h2><a class="toc-backref" href="#id8" name="positional-subclasses">2.4   Positional subclasses</a></h2>
 <ul class="simple">
 <li><tt class="literal"><span class="pre">StringStart</span></tt> - matches beginning of the text</li>
-<li><tt class="literal"><span class="pre">StringEnd</span></tt> - matches beginning of the text</li>
+<li><tt class="literal"><span class="pre">StringEnd</span></tt> - matches the end of the text</li>
 <li><tt class="literal"><span class="pre">LineStart</span></tt> - matches beginning of a line (lines delimited by <tt class="literal"><span class="pre">\n</span></tt> characters)</li>
 <li><tt class="literal"><span class="pre">LineEnd</span></tt> - matches the end of a line</li>
 </ul>
@@ -324,7 +339,7 @@ expressions; can also be created using the unary '~' operator</li>
 <ul class="simple">
 <li><tt class="literal"><span class="pre">Upcase</span></tt> - converts matched tokens to uppercase</li>
 <li><tt class="literal"><span class="pre">Combine</span></tt> - joins all matched tokens into a single string, using
-specified joinString (<tt class="literal"><span class="pre">default</span> <span class="pre">=</span> <span class="pre">&quot;&quot;</span></tt>); expects
+specified joinString (default <tt class="literal"><span class="pre">joinString=&quot;&quot;</span></tt>); expects
 all matching tokens to be adjacent, with no intervening
 whitespace (can be overridden by specifying <tt class="literal"><span class="pre">adjacent=False</span></tt> in constructor)</li>
 <li><tt class="literal"><span class="pre">Suppress</span></tt> - clears matched tokens; useful to keep returned
@@ -350,6 +365,14 @@ operator (see <tt class="literal"><span class="pre">fourFn.py</span></tt> for an
 </li>
 <li><p class="first"><tt class="literal"><span class="pre">ParseException</span></tt> - exception returned when a grammar parse fails;
 ParseExceptions have attributes loc, msg, line, lineno, and column</p>
+</li>
+<li><p class="first"><tt class="literal"><span class="pre">RecursiveGrammarException</span></tt> - exception returned by <tt class="literal"><span class="pre">validate()</span></tt> if
+the grammar contains a recursive infinite loop, such as:</p>
+<pre class="literal-block">
+badGrammar = Forward()
+goodToken = Literal(&quot;A&quot;)
+badGrammar &lt;&lt; Optional(goodToken) + badGrammar
+</pre>
 </li>
 <li><p class="first"><tt class="literal"><span class="pre">ParseResults</span></tt> - class used to contain and manage the lists of tokens
 created from parsing the input using the user-defined parse 
@@ -405,9 +428,9 @@ combined value (useful for scoped variables, such as <tt class="literal"><span c
 <tt class="literal"><span class="pre">a::b::c</span></tt>, or paths such as <tt class="literal"><span class="pre">a/b/c</span></tt>).</li>
 <li><tt class="literal"><span class="pre">oneOf(</span> <span class="pre">string,</span> <span class="pre">caseless=False</span> <span class="pre">)</span></tt> - convenience function for quickly declaring an
 alternative set of <tt class="literal"><span class="pre">Literal</span></tt> tokens, by splitting the given string on 
-whitespace boundaries.  The tokens are sorted so that the longest
+whitespace boundaries.  The tokens are sorted so that longer
 matches are attempted first; this ensures that a short token does
-not mask a longer one that starts with the same characters. If caseless=True, will
+not mask a longer one that starts with the same characters. If <tt class="literal"><span class="pre">caseless=True</span></tt>, will
 create an alternative set of CaselessLiteral tokens.</li>
 <li><tt class="literal"><span class="pre">lineno(</span> <span class="pre">loc,</span> <span class="pre">string</span> <span class="pre">)</span></tt> - function to give the line number of the
 location within the string; the first line is line 1, newlines
@@ -416,16 +439,17 @@ start new rows</li>
 location within the string; the first column is column 1,
 newlines reset the column number to 1</li>
 <li><tt class="literal"><span class="pre">line(</span> <span class="pre">loc,</span> <span class="pre">string</span> <span class="pre">)</span></tt> - function to retrieve the line of text
-representing <tt class="literal"><span class="pre">lineno(</span> <span class="pre">loc,</span> <span class="pre">string</span> <span class="pre">)</span></tt></li>
+representing <tt class="literal"><span class="pre">lineno(</span> <span class="pre">loc,</span> <span class="pre">string</span> <span class="pre">)</span></tt>; useful when printing out diagnostic
+messages for exceptions</li>
 </ul>
 </div>
 <div class="section" id="common-string-and-token-constants">
 <h2><a class="toc-backref" href="#id13" name="common-string-and-token-constants">3.2   Common string and token constants</a></h2>
 <ul class="simple">
-<li><tt class="literal"><span class="pre">alphas</span></tt> - same as string.letters</li>
-<li><tt class="literal"><span class="pre">nums</span></tt> - same as string.digits</li>
+<li><tt class="literal"><span class="pre">alphas</span></tt> - same as <tt class="literal"><span class="pre">string.letters</span></tt></li>
+<li><tt class="literal"><span class="pre">nums</span></tt> - same as <tt class="literal"><span class="pre">string.digits</span></tt></li>
 <li><tt class="literal"><span class="pre">alphanums</span></tt> - a string containing <tt class="literal"><span class="pre">alphas</span> <span class="pre">+</span> <span class="pre">nums</span></tt></li>
-<li><tt class="literal"><span class="pre">printables</span></tt> - same as string.printable, minus the ' ' character</li>
+<li><tt class="literal"><span class="pre">printables</span></tt> - same as <tt class="literal"><span class="pre">string.printable</span></tt>, minus the space (<tt class="literal"><span class="pre">'</span> <span class="pre">'</span></tt>) character</li>
 <li><tt class="literal"><span class="pre">empty</span></tt> - a <tt class="literal"><span class="pre">Literal(&quot;&quot;)</span></tt>; will always match</li>
 <li><tt class="literal"><span class="pre">sglQuotedString</span></tt> - a string of characters enclosed in 's; may
 include whitespace, but not newlines</li>
@@ -434,7 +458,7 @@ include whitespace, but not newlines</li>
 <li><tt class="literal"><span class="pre">quotedString</span></tt> - <tt class="literal"><span class="pre">sglQuotedString</span> <span class="pre">|</span> <span class="pre">dblQuotedString</span></tt></li>
 <li><tt class="literal"><span class="pre">cStyleComment</span></tt> - a comment block delimited by '/*' and '*/' sequences; can span
 multiple lines, but does not support nesting of comments</li>
-<li><tt class="literal"><span class="pre">commaSeparatedList</span></tt> - similar to delimitedList, except that the
+<li><tt class="literal"><span class="pre">commaSeparatedList</span></tt> - similar to <tt class="literal"><span class="pre">delimitedList</span></tt>, except that the
 list expressions can be any text value, or a quoted string; quoted strings can
 safely include commas without incorrectly breaking the string into two tokens</li>
 <li><tt class="literal"><span class="pre">restOfLine</span></tt> - all remaining printable characters up to but not including the next

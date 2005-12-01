@@ -2,6 +2,50 @@
 Change Log
 ==========
 
+Version 1.1 - 3 Mar 2004
+-------------------------
+- ***Changed API*** - While testing out parse actions, I found that the value 
+  of loc passed in was not the starting location of the matched tokens, but
+  the location of the next token in the list.  With this version, the location
+  passed to the parse action is now the starting location of the tokens that
+  matched.
+  
+  A second part of this change is that the return value of parse actions no 
+  longer needs to return a tuple containing both the location and the parsed
+  tokens (which may optionally be modified); parse actions only need to return
+  the list of tokens.  Parse actions that return a tuple are deprecated; they 
+  will still work properly for conversion/compatibility, but this behavior will 
+  be removed in a future version.
+  
+- Added validate() method, to help diagnose infinite recursion in a grammar tree.
+  validate() is not 100% fool-proof, but it can help track down nasty infinite
+  looping due recursively referencing the same grammar construct without some 
+  intervening characters.
+
+- Cleaned up default listing of some parse element types, to more closely match
+  ordinary BNF.  Instead of the form <classname>:[contents-list], some changes 
+  are:
+  . And(token1,token2,token3) is "{ token1 token2 token3 }"
+  . Or(token1,token2,token3) is "{ token1 ^ token2 ^ token3 }"
+  . MatchFirst(token1,token2,token3) is "{ token1 | token2 | token3 }"
+  . Optional(token) is "[ token ]"
+  . OneOrMore(token) is "{ token }..."
+  . ZeroOrMore(token) is "[ token ]..."
+  
+- Fixed an infinite loop in oneOf if the input string contains a duplicated
+  option. (Thanks Brad Clements)
+
+- Fixed a bug when specifying a results name on an Optional token. (Thanks 
+  again, Brad Clements)
+  
+- Fixed a bug introduced in 1.0.6 when I converted quotedString to use
+  CharsNotIn; I accidentally permitted quoted strings to span newlines.  I have
+  fixed this in this version to go back to the original behavior, in which
+  quoted strings do *not* span newlines.
+
+- Fixed minor bug in HTTP server log parser. (Thanks Jim Richardson)
+
+
 Version 1.0.6 -  13 Feb 2004
 ----------------------------
 - Added NotInChars class (Thanks, Lee SangYeong).  This is the opposite of 
@@ -36,7 +80,8 @@ Version 1.0.5 -  19 Jan 2004
 - Added items() list to ParseResults, to return named results as a 
   list of (key,value) pairs
   
-- Fixed memory overflow in asList() for deeply nested ParseResults
+- Fixed memory overflow in asList() for deeply nested ParseResults (Thanks,
+  Sverrir Valgeirsson)
 
 - Minor performance speedup - 10-15%
 
