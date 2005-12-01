@@ -59,8 +59,8 @@ The pyparsing module handles some of the problems that are typically vexing when
  - quoted strings
  - embedded comments
 """
-__version__ = "1.2.1"
-__versionTime__ = "19 August 04 12:24"
+__version__ = "1.2.2"
+__versionTime__ = "27 September 04 00:22"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -134,8 +134,12 @@ class ParseResults(object):
             self.__tokdict = {}
 
         if name:
+            if isinstance(name,int):
+                name = str(name)
             self.__name = name
             if toklist:
+                if isinstance(toklist,str):
+                    toklist = [ toklist ]
                 if asList:
                     if isinstance(toklist,ParseResults):
                         self[name] = (toklist.copy(),-1)
@@ -149,7 +153,7 @@ class ParseResults(object):
                         self[name] = toklist
 
     def __getitem__( self, i ):
-        if isinstance( i, int ) or isinstance( i, slice ):
+        if isinstance( i, (int,slice) ):
             return self.__toklist[i]
         else:
             if self.__modal:
@@ -225,13 +229,15 @@ class ParseResults(object):
         out += "]"
         return out
 
-    def _asStringList( self ):
+    def _asStringList( self, sep='' ):
         out = []
         for item in self.__toklist:
+            if out and sep:
+                out.append(sep)
             if isinstance( item, ParseResults ):
                 out += item._asStringList()
             else:
-                out += item
+                out.append( str(item) )
         return out
 
     def asList( self ):
@@ -470,7 +476,7 @@ class ParserElement(object):
                         tokens = tokens[1]
                     retTokens = ParseResults( tokens, 
                                               self.resultsName, 
-                                              asList=self.saveList and (isinstance(tokens,ParseResults) or isinstance(tokens,list) ), 
+                                              asList=self.saveList and isinstance(tokens,(ParseResults,list)), 
                                               modal=self.modalResults )
 
         if debugging:
@@ -479,7 +485,7 @@ class ParserElement(object):
         return loc, retTokens
 
     def tryParse( self, instring, loc ):
-        return self.parse( instring, loc, doActions=False )
+        return self.parse( instring, loc, doActions=False )[0]
 
     def parseString( self, instring ):
         """Execute the parse expression with the given string.
@@ -671,6 +677,23 @@ class Empty(Token):
         self.name = "Empty"
         self.mayReturnEmpty = True
         self.mayIndexError = False
+
+
+class NoMatch(Token):
+    """A token that will never match."""
+    def __init__( self ):
+        super(NoMatch,self).__init__()
+        self.name = "NoMatch"
+        self.mayReturnEmpty = True
+        self.mayIndexError = False
+        self.errmsg = "Unmatchable token"
+        s.myException.msg = self.errmsg
+        
+    def parseImpl( self, instring, loc, doActions=True ):
+        exc = self.myException
+        exc.loc = loc
+        exc.pstr = instring
+        raise exc
 
 
 class Literal(Token):
@@ -1188,7 +1211,7 @@ class Or(ParseExpression):
         maxMatchLoc = -1
         for e in self.exprs:
             try:
-                loc2, tokenlist = e.tryParse( instring, loc )
+                loc2 = e.tryParse( instring, loc )
             except ParseException, err:
                 if err.loc > maxExcLoc:
                     maxException = err
@@ -1244,7 +1267,7 @@ class MatchFirst(ParseExpression):
         maxExcLoc = -1
         for e in self.exprs:
             try:
-                return e.parse( instring, loc )
+                return e.parse( instring, loc, doActions )
             except ParseException, err:
                 if err.loc > maxExcLoc:
                     maxException = err
@@ -1348,12 +1371,26 @@ class ParseElementEnhance(ParserElement):
         return self.strRepr
 
 
+class FollowedBy(ParseElementEnhance):
+    """Lookahead matching of the given parse expression.  FollowedBy
+    does *not* advance the parsing position within the input string, it only 
+    verifies that the specified parse expression matches at the current 
+    position.  FollowedBy always returns a null token list."""
+    def __init__( self, expr ):
+        super(FollowedBy,self).__init__(expr)
+        self.mayReturnEmpty = True
+        
+    def parseImpl( self, instring, loc, doActions=True ):
+        self.expr.tryParse( instring, loc )
+        return loc, []
+
+
 class NotAny(ParseElementEnhance):
     """Lookahead to disallow matching with the given parse expression.  NotAny
     does *not* advance the parsing position within the input string, it only 
     verifies that the specified parse expression does *not* match at the current 
     position.  Also, NotAny does *not* skip over leading whitespace. NotAny 
-    always returns a null token list."""
+    always returns a null token list.  May be constructed using the '~' operator."""
     def __init__( self, expr ):
         super(NotAny,self).__init__(expr)
         #~ self.leaveWhitespace()
@@ -1364,7 +1401,7 @@ class NotAny(ParseElementEnhance):
         
     def parseImpl( self, instring, loc, doActions=True ):
         try:
-            loc2, tokenlist = self.expr.tryParse( instring, loc )
+            self.expr.tryParse( instring, loc )
         except (ParseException,IndexError):
             pass
         else:
@@ -1603,7 +1640,7 @@ class Combine(TokenConverter):
     def postParse( self, instring, loc, tokenlist ):
         retToks = tokenlist.copy()
         del retToks[:]
-        retToks += ParseResults([ self.joinString.join(tokenlist._asStringList()) ], modal=self.modalResults)
+        retToks += ParseResults([ "".join(tokenlist._asStringList(self.joinString)) ], modal=self.modalResults)
 
         if self.resultsName and len(retToks.keys())>0:
             return [ retToks ]
@@ -1667,9 +1704,9 @@ def delimitedList( expr, delim=",", combine=False ):
        as a list of tokens, with the delimiters suppressed.
     """
     if combine:
-        return Combine( expr + ZeroOrMore( Literal(delim) + expr ) ).setName(str(expr)+delim+"...")
+        return Combine( expr + ZeroOrMore( delim + expr ) ).setName(str(expr)+str(delim)+"...")
     else:
-        return ( expr + ZeroOrMore( Suppress( Literal(delim) ) + expr ) ).setName(str(expr)+delim+"...")
+        return ( expr + ZeroOrMore( Suppress( delim ) + expr ) ).setName(str(expr)+str(delim)+"...")
 
 def oneOf( strs, caseless=False ):
     """Helper to quickly define a set of alternative Literals, and makes sure to do 

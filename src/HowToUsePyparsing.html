@@ -6,7 +6,7 @@
 <meta name="generator" content="Docutils 0.3.0: http://docutils.sourceforge.net/" />
 <title>Using the pyparsing module</title>
 <meta name="author" content="Paul McGuire" />
-<meta name="date" content="August, 2004" />
+<meta name="date" content="September, 2004" />
 <meta name="copyright" content="Copyright © 2003,2004 Paul McGuire." />
 <link rel="stylesheet" href="default.css" type="text/css" />
 </head>
@@ -25,9 +25,9 @@
 </pre>
 </td></tr>
 <tr><th class="docinfo-name">Revision:</th>
-<td>1.2.1</td></tr>
+<td>1.2.2</td></tr>
 <tr><th class="docinfo-name">Date:</th>
-<td>August, 2004</td></tr>
+<td>September, 2004</td></tr>
 <tr><th class="docinfo-name">Copyright:</th>
 <td>Copyright © 2003,2004 Paul McGuire.</td></tr>
 </tbody>
@@ -332,6 +332,10 @@ ignored by pyparsing.  However, some grammars are whitespace-sensitive,
 such as those that use leading tabs or spaces to indicating grouping
 or hierarchy.  (If matching on tab characters, be sure to call 
 <a class="reference" href="#parsewithtabs">parseWithTabs</a> on the top-level parse element.)</li>
+<li><tt class="literal"><span class="pre">Empty</span></tt> - a null expression, requiring no characters - will always
+match; useful for debugging and for specialized grammars</li>
+<li><tt class="literal"><span class="pre">NoMatch</span></tt> - opposite of Empty, will never match; useful for debugging
+and for specialized grammars</li>
 </ul>
 </div>
 <div class="section" id="expression-subclasses">
@@ -356,6 +360,8 @@ be called if a match is found, or if a default is specified</li>
 <li><tt class="literal"><span class="pre">ZeroOrMore</span></tt> - similar to Optional, but can be repeated</li>
 <li><tt class="literal"><span class="pre">OneOrMore</span></tt> - similar to ZeroOrMore, but at least one match must
 be present</li>
+<li><tt class="literal"><span class="pre">FollowedBy</span></tt> - a lookahead expression, requires matching of the given
+expressions, but does not advance the parsing position within the input string</li>
 <li><tt class="literal"><span class="pre">NotAny</span></tt> - a negative lookahead expression, prevents matching of named
 expressions, does not advance the parsing position within the input string; 
 can also be created using the unary '~' operator</li>
@@ -503,7 +509,7 @@ messages for exceptions</li>
 <li><tt class="literal"><span class="pre">nums</span></tt> - same as <tt class="literal"><span class="pre">string.digits</span></tt></li>
 <li><tt class="literal"><span class="pre">alphanums</span></tt> - a string containing <tt class="literal"><span class="pre">alphas</span> <span class="pre">+</span> <span class="pre">nums</span></tt></li>
 <li><tt class="literal"><span class="pre">printables</span></tt> - same as <tt class="literal"><span class="pre">string.printable</span></tt>, minus the space (<tt class="literal"><span class="pre">'</span> <span class="pre">'</span></tt>) character</li>
-<li><tt class="literal"><span class="pre">empty</span></tt> - a <tt class="literal"><span class="pre">Literal(&quot;&quot;)</span></tt>; will always match</li>
+<li><tt class="literal"><span class="pre">empty</span></tt> - a global <tt class="literal"><span class="pre">Empty()</span></tt>; will always match</li>
 <li><tt class="literal"><span class="pre">sglQuotedString</span></tt> - a string of characters enclosed in 's; may
 include whitespace, but not newlines</li>
 <li><tt class="literal"><span class="pre">dblQuotedString</span></tt> - a string of characters enclosed in &quot;s; may

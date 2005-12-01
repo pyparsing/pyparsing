@@ -2,8 +2,35 @@
 Change Log
 ==========
 
-Version 1.2.1 - August 2004
----------------------------
+Version 1.2.2 - September 27, 2004
+----------------------------------
+- Modified delimitedList to accept an expression as the delimiter, instead
+  of only accepting strings.
+  
+- Modified ParseResults, to convert integer field keys string (to avoid
+  confusion with list access).
+
+- Modified Combine, to convert all embedded tokens to strings before
+  combining.
+  
+- Fixed bug in MatchFirst in which parse actions would be called for 
+  expressions that only partially match. (Thanks, John Hunter!)
+  
+- Fixed bug in fourFn.py example that fixes right-associativity of ^ 
+  operator. (Thanks, Andrea Griffini!)
+
+- Added class FollowedBy(expression), to look ahead in the input string 
+  without consuming tokens.
+
+- Added class NoMatch that never matches any input. Can be useful in
+  debugging, and in very specialized grammars.
+  
+- Added example pgn.py, for parsing chess game files stored in Portable
+  Game Notation. (Thanks, Alberto Santini!)
+
+
+Version 1.2.1 - August 19, 2004
+-------------------------------
 - Added SkipTo(expression) token type, simplifying grammars that only
   want to specify delimiting expressions, and want to match any characters
   between them.
