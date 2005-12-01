@@ -25,6 +25,7 @@
 #  - add pprint() - pretty-print output of defined BNF
 #
 from __future__ import generators
+
 __doc__ = \
 """
 pyparsing module - Classes and methods to define and execute parsing grammars
@@ -59,12 +60,13 @@ The pyparsing module handles some of the problems that are typically vexing when
  - quoted strings
  - embedded comments
 """
-__version__ = "1.3.2"
-__versionTime__ = "24 July 2005 17:37"
+__version__ = "1.3.3"
+__versionTime__ = "12 September 2005 22:50"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
 import copy,sys
+import warnings
 #~ sys.stderr.write( "testing pyparsing module, version %s, %s\n" % (__version__,__versionTime__ ) )
 
 def _ustr(obj):
@@ -96,6 +98,7 @@ def _str2dict(strg):
 
 alphas     = string.lowercase + string.uppercase
 nums       = string.digits
+hexnums    = nums + "ABCDEFabcdef"
 alphanums  = alphas + nums    
 
 class ParseBaseException(Exception):
@@ -529,6 +532,7 @@ class ParserElement(object):
     def postParse( self, instring, loc, tokenlist ):
         return tokenlist
 
+    #~ @profile
     def parse( self, instring, loc, doActions=True, callPreParse=True ):
         debugging = ( self.debug ) #and doActions )
 
@@ -851,8 +855,8 @@ class Literal(Token):
         try:
             self.firstMatchChar = matchString[0]
         except IndexError:
-            sys.stderr.write("\nnull string passed to Literal; use Empty() instead\n")
-            raise
+            warnings.warn("null string passed to Literal; use Empty() instead", 
+                            SyntaxWarning, stacklevel=2)
         self.name = '"%s"' % self.match
         self.errmsg = "Expected " + self.name
         self.mayReturnEmpty = False
@@ -862,6 +866,7 @@ class Literal(Token):
     # Performance tuning: this routine gets called a *lot*
     # if this is a single character match string  and the first character matches,
     # short-circuit as quickly as possible, and avoid calling startswith
+    #~ @profile
     def parseImpl( self, instring, loc, doActions=True ):
         if (instring[loc] == self.firstMatchChar and
             (self.matchLen==1 or instring.startswith(self.match,loc)) ):
@@ -891,8 +896,8 @@ class Keyword(Token):
         try:
             self.firstMatchChar = matchString[0]
         except IndexError:
-            sys.stderr.write("\nnull string passed to Keyword; use Empty() instead\n")
-            raise
+            warnings.warn("null string passed to Keyword; use Empty() instead", 
+                            SyntaxWarning, stacklevel=2)
         self.name = '"%s"' % self.match
         self.errmsg = "Expected " + self.name
         self.mayReturnEmpty = False
@@ -1500,7 +1505,6 @@ class MatchFirst(ParseExpression):
         else:
             raise maxException
 
-
     def __ior__(self, other ):
         if isinstance( other, basestring ):
             other = Literal( other )
@@ -1918,6 +1922,11 @@ class TokenConverter(ParseElementEnhance):
 
 class Upcase(TokenConverter):
     """Converter to upper case all matching tokens."""
+    def __init__(self, *args):
+        super(Upcase,self).__init__(*args)
+        warnings.warn("Upcase class is deprecated, use upcaseTokens parse action instead", 
+                       DeprecationWarning,stacklevel=2)
+    
     def postParse( self, instring, loc, tokenlist ):
         return map( string.upper, tokenlist )
 
@@ -2065,13 +2074,13 @@ empty      = Empty().setName("empty")
 
 _escapedPunc = Word( _bslash, r"\[]-*.$+^?()~ ", exact=2 ).setParseAction(lambda s,l,t:t[0][1])
 _printables_less_backslash = "".join([ c for c in printables if c not in  r"\]" ])
-_escapedHexChar = Combine( Suppress(_bslash + "0x") + Word(nums+"ABCDEFabcdef") ).setParseAction(lambda s,l,t:chr(int(t[0],16)))
-_escapedOctChar = Combine( Suppress(_bslash) + Word("0","01234567") ).setParseAction(lambda s,l,t:chr(int(t[0],8)))
+_escapedHexChar = Combine( Suppress(_bslash + "0x") + Word(hexnums) ).setParseAction(lambda s,l,t:unichr(int(t[0],16)))
+_escapedOctChar = Combine( Suppress(_bslash) + Word("0","01234567") ).setParseAction(lambda s,l,t:unichr(int(t[0],8)))
 _singleChar = _escapedPunc | _escapedHexChar | _escapedOctChar | Word(_printables_less_backslash,exact=1)
 _charRange = Group(_singleChar + Suppress("-") + _singleChar)
 _reBracketExpr = "[" + Optional("^").setResultsName("negate") + Group( OneOrMore( _charRange | _singleChar ) ).setResultsName("body") + "]"
 
-_expanded = lambda p: (isinstance(p,ParseResults) and ''.join([ chr(c) for c in range(ord(p[0]),ord(p[1])+1) ]) or p)
+_expanded = lambda p: (isinstance(p,ParseResults) and ''.join([ unichr(c) for c in range(ord(p[0]),ord(p[1])+1) ]) or p)
         
 def srange(s):
     r"""Helper to easily define string ranges for use in Word construction.  Borrows
@@ -2109,22 +2118,29 @@ def removeQuotes(s,l,t):
     """
     return t[0][1:-1]
 
+def upcaseTokens(s,l,t):
+    """Helper parse action to convert tokens to upper case."""
+    return map( str.upper, t )
+
+def downcaseTokens(s,l,t):
+    """Helper parse action to convert tokens to lower case."""
+    return map( str.lower, t )
+
 def _makeTags(tagStr, xml):
     """Internal helper to construct opening and closing tag expressions, given a tag name"""
     tagAttrName = Word(alphanums)
     if (xml):
         tagAttrValue = dblQuotedString.copy().setParseAction( removeQuotes )
+        openTag = "<" + Keyword(tagStr) + Dict(ZeroOrMore(Group( tagAttrName + Suppress("=") + tagAttrValue ))) + Optional("/",default="").setResultsName("empty") + ">"
     else:
         printablesLessRAbrack = "".join( [ c for c in string.printable if c not in ">" ] )
         tagAttrValue = quotedString.copy().setParseAction( removeQuotes ) | Word(printablesLessRAbrack)
-    openTag = "<" + Literal(tagStr) + dictOf( tagAttrName, Suppress("=") + tagAttrValue ).setResultsName("attributes") + Optional("/",default="").setResultsName("empty") + ">"
-    openTag = "<" + Literal(tagStr) + dictOf( tagAttrName, Suppress("=") + tagAttrValue ) + Optional("/",default="").setResultsName("empty") + ">"
-    openTag = "<" + Literal(tagStr) + Dict(ZeroOrMore(Group( tagAttrName + Suppress("=") + tagAttrValue ))) + Optional("/",default="").setResultsName("empty") + ">"
-    closeTag = "</" + Literal(tagStr) + ">"
-    openTag = openTag.setResultsName("start"+tagStr)
-    closeTag = closeTag.setResultsName("end"+tagStr)
-    openTag.setName("<"+tagStr+">")
-    closeTag.setName("</"+tagStr+">")
+        openTag = "<" + Keyword(tagStr,caseless=True) + Dict(ZeroOrMore(Group( tagAttrName.setParseAction(downcaseTokens) + Suppress("=") + tagAttrValue ))) + Optional("/",default="").setResultsName("empty") + ">"
+    closeTag = "</" + Keyword(tagStr,caseless=not xml) + ">"
+    
+    openTag = openTag.setResultsName("start"+tagStr.title()).setName("<"+tagStr+">")
+    closeTag = closeTag.setResultsName("end"+tagStr.title()).setName("</"+tagStr+">")
+    
     return openTag, closeTag
 
 def makeHTMLTags(tagStr):
@@ -2137,7 +2153,7 @@ def makeXMLTags(tagStr):
 
 alphas8bit = srange(r"[\0xc0-\0xd6\0xd8-\0xf6\0xf8-\0xfe]")
 
-_escapables = "tnrfbacdeghijklmopqsuvwxyz" + _bslash + "'" + '"'
+_escapables = "tnrfbacdeghijklmopqsuvwxyz " + _bslash + "'" + '"'
 _octDigits = "01234567"
 _escapedChar = ( Word( _bslash, _escapables, exact=2 ) |
                  Word( _bslash, _octDigits, min=2, max=4 ) )
@@ -2155,6 +2171,10 @@ htmlComment = Combine( Literal("<!--") + ZeroOrMore( CharsNotIn("-") |
                                                    (~Literal("-->") + Literal("-").leaveWhitespace() ) ) + 
                         Literal("-->") ).streamline().setName("htmlComment enclosed in <!-- ... -->")
 restOfLine = Optional( CharsNotIn( "\n\r" ), default="" ).setName("rest of line up to \\n").leaveWhitespace()
+dblSlashComment = "//" + restOfLine
+cppStyleComment = FollowedBy("/") + ( dblSlashComment | cStyleComment )
+javaStyleComment = cppStyleComment
+pythonStyleComment = "#" + restOfLine
 _noncomma = "".join( [ c for c in printables if c != "," ] )
 _commasepitem = Combine(OneOrMore(Word(_noncomma) + 
                                   Optional( Word(" \t") + 

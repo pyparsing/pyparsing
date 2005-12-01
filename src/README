@@ -5,9 +5,9 @@ PyParsing -- A Python Parsing Module
 Introduction
 ============
 
-The parsing module is an alternative approach to creating and executing 
+The pyparsing module is an alternative approach to creating and executing 
 simple grammars, vs. the traditional lex/yacc approach, or the use of 
-regular expressions.  The parsing module provides a library of classes 
+regular expressions.  The pyparsing module provides a library of classes 
 that client code uses to construct the grammar directly in Python code.
 
 Here is a program to parse "Hello, World!" (or any greeting of the form 
@@ -29,7 +29,7 @@ definitions.
 The parsed results returned from parseString() can be accessed as a 
 nested list, a dictionary, or an object with named attributes.
 
-The parsing module handles some of the problems that are typically 
+The pyparsing module handles some of the problems that are typically 
 vexing when writing text parsers:
 - extra or missing whitespace (the above program will also handle 
   "Hello,World!", "Hello  ,  World  !", etc.)
