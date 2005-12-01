@@ -59,8 +59,8 @@ The pyparsing module handles some of the problems that are typically vexing when
  - quoted strings
  - embedded comments
 """
-__version__ = "1.2.3"
-__versionTime__ = "21 November 04 00:09"
+__version__ = "1.3"
+__versionTime__ = "23 March 2005 22:42"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -91,6 +91,12 @@ def _ustr(obj):
         #return unicode(obj).encode(sys.getdefaultencoding(), 'replace')
         # ...
 
+def _str2dict(strg):
+    return dict( [(c,0) for c in strg] )
+
+alphas     = string.lowercase + string.uppercase
+nums       = string.digits
+alphanums  = alphas + nums    
 
 class ParseException(Exception):
     """exception thrown when parse expressions don't match class"""
@@ -152,13 +158,15 @@ class ParseResults(object):
             self.__name = None
             self.__parent = None
             self.__modal = modal
-            if type(toklist) is list:
+            if isinstance(toklist, list):
                 self.__toklist = toklist[:]
             else:
                 self.__toklist = [toklist]
-            self.__tokdict = {}
+            self.__tokdict = dict()
 
         if name:
+            if not self.__name:
+                self.__modal = self.__modal and modal
             if isinstance(name,int):
                 name = _ustr(name) # will always return a str, but use _ustr for consistency
             self.__name = name
@@ -228,15 +236,16 @@ class ParseResults(object):
         return None
 
     def __iadd__( self, other ):
-        offset = len(self.__toklist)
-        self.__toklist += other.__toklist
         if other.__tokdict:
-            addOffset = lambda a: (a<0 and offset) or (a + offset)
-            otherdictitems = [(k,(v[0],addOffset(v[1])) ) for (k,vlist) in other.__tokdict.items() for v in vlist]
+            offset = len(self.__toklist)
+            addoffset = ( lambda a: (a<0 and offset) or (a+offset) )
+            otherdictitems = [(k,(v[0],addoffset(v[1])) ) for (k,vlist) in other.__tokdict.items() for v in vlist]
             for k,v in otherdictitems:
                 self[k] = v
                 if isinstance(v[0],ParseResults):
                     v[0].__parent = self
+        self.__toklist += other.__toklist
+        del other
         return self
        
     def __repr__( self ):
@@ -261,8 +270,6 @@ class ParseResults(object):
                 out.append(sep)
             if isinstance( item, ParseResults ):
                 out += item._asStringList()
-            elif isinstance( item, basestring ):
-                out.append( item )
             else:
                 out.append( _ustr(item) )
         return out
@@ -361,15 +368,17 @@ class ParseResults(object):
         else:
             return None
 
-col = lambda loc,strg: loc - strg.rfind("\n", 0, loc)
-col.__doc__ = """Returns current column within a string, counting newlines as line separators
+def col (loc,strg):
+    """Returns current column within a string, counting newlines as line separators
    The first column is number 1.
    """
+    return loc - strg.rfind("\n", 0, loc)
 
-lineno = lambda loc,strg: strg.count("\n",0,loc) + 1
-lineno.__doc__ = """Returns current line number within a string, counting newlines as line separators
+def lineno(loc,strg):
+    """Returns current line number within a string, counting newlines as line separators
    The first line is number 1.
    """
+    return strg.count("\n",0,loc) + 1
 
 def line( loc, strg ):
     """Returns the line of text containing loc within a string, counting newlines as line separators
@@ -394,6 +403,14 @@ def _defaultExceptionDebugAction( instring, loc, expr, exc ):
 
 class ParserElement(object):
     """Abstract base level parser element class."""
+    DEFAULT_WHITE_CHARS = " \n\t\r"
+
+    def setDefaultWhitespaceChars( chars ):
+        """Overrides the default whitespace chars
+        """
+        ParserElement.DEFAULT_WHITE_CHARS = chars
+    setDefaultWhitespaceChars = staticmethod(setDefaultWhitespaceChars)
+    
     def __init__( self, savelist=False ):
         self.parseAction = None
         #~ self.name = "<unknown>"  # don't define self.name, let subclasses try/except upcall
@@ -401,7 +418,7 @@ class ParserElement(object):
         self.resultsName = None
         self.saveList = savelist
         self.skipWhitespace = True
-        self.whiteChars = " \n\t\r"
+        self.whiteChars = ParserElement.DEFAULT_WHITE_CHARS
         self.mayReturnEmpty = False
         self.keepTabs = False
         self.ignoreExprs = []
@@ -411,7 +428,14 @@ class ParserElement(object):
         self.errmsg = ""
         self.modalResults = True
         self.debugActions = ( None, None, None )
-        
+
+    def copy( self ):
+        """Make a copy of this ParseElement.  Useful for defining different parse actions
+           for the same parsing pattern, using copies of the original parse element."""
+        cpy = copy.copy( self )
+        cpy.whiteChars = ParserElement.DEFAULT_WHITE_CHARS
+        return cpy
+
     def setName( self, name ):
         """Define name for this expression, for use in debugging."""
         self.name = name
@@ -425,7 +449,7 @@ class ParserElement(object):
            this is so that the client can define a basic element, such as an
            integer, and reference it in multiple places with different names.
         """
-        newself = copy.copy( self )
+        newself = self.copy()
         newself.resultsName = name
         newself.modalResults = not listAllMatches
         return newself
@@ -651,9 +675,19 @@ class ParserElement(object):
         return Suppress( self )
 
     def leaveWhitespace( self ):
+        """Disables the skipping of whitespace before matching the characters in the 
+           ParserElement's defined pattern.  This is normally only used internally by
+           the pyparsing module, but may be needed in some whitespace-sensitive grammars.
+        """
         self.skipWhitespace = False
         return self
 
+    def setWhitespaceChars( self, chars ):
+        """Overrides the default whitespace chars
+        """
+        self.skipWhitespace = True
+        self.whiteChars = chars
+        
     def parseWithTabs( self ):
         """Overrides default behavior to expand <TAB>s to spaces before parsing the input string.
            Must be called before parseString when the input grammar contains elements that 
@@ -781,7 +815,53 @@ class Literal(Token):
     def parseImpl( self, instring, loc, doActions=True ):
         if (instring[loc] == self.firstMatchChar and
             (self.matchLen==1 or instring.startswith(self.match,loc)) ):
-            return loc+self.matchLen, [ self.match ]
+            return loc+self.matchLen, self.match
+        #~ raise ParseException, ( instring, loc, self.errmsg )
+        exc = self.myException
+        exc.loc = loc
+        exc.pstr = instring
+        raise exc
+
+class Keyword(Token):
+    """Token to exactly match a specified string as a keyword, that is, it must be 
+       immediately followed by a non-keyword character.  Compare with Literal::
+         Literal("if") will match the leading 'if' in 'ifAndOnlyIf'.
+         Keyword("if") will not; it will only match the leading 'if in 'if x=1', or 'if(y==2)'
+       Accepts two optional constructor arguments in addition to the keyword string:
+       identChars is a string of characters that would be valid identifier characters,
+       defaulting to all alphanumerics + "_" and "$"; caseless allows case-insensitive
+       matching, default is False.
+    """
+    def __init__( self, matchString, identChars=alphanums+"_$", caseless=False ):
+        super(Keyword,self).__init__()
+        self.match = matchString
+        self.matchLen = len(matchString)
+        try:
+            self.firstMatchChar = matchString[0]
+        except IndexError:
+            sys.stderr.write("\nnull string passed to Keyword; use Empty() instead\n")
+            raise
+        self.name = '"%s"' % self.match
+        self.errmsg = "Expected " + self.name
+        self.mayReturnEmpty = False
+        self.myException.msg = self.errmsg
+        self.mayIndexError = False
+        self.caseless = caseless
+        if caseless:
+            self.caselessmatch = matchString.upper()
+            identChars = identChars.upper()
+        self.identChars = _str2dict(identChars)
+
+    def parseImpl( self, instring, loc, doActions=True ):
+        if self.caseless:
+            if ( (instring[ loc:loc+self.matchLen ].upper() == self.caselessmatch) and
+                 (loc >= len(instring)-self.matchLen or instring[loc+self.matchLen].upper() not in self.identChars) ):
+                return loc+self.matchLen, self.match
+        else:
+            if (instring[loc] == self.firstMatchChar and
+                (self.matchLen==1 or instring.startswith(self.match,loc)) and
+                (loc >= len(instring)-self.matchLen or instring[loc+self.matchLen] not in self.identChars) ):
+                return loc+self.matchLen, self.match
         #~ raise ParseException, ( instring, loc, self.errmsg )
         exc = self.myException
         exc.loc = loc
@@ -804,7 +884,7 @@ class CaselessLiteral(Literal):
 
     def parseImpl( self, instring, loc, doActions=True ):
         if instring[ loc:loc+self.matchLen ].upper() == self.match:
-            return loc+self.matchLen, [ self.returnString ]
+            return loc+self.matchLen, self.returnString
         #~ raise ParseException, ( instring, loc, self.errmsg )
         exc = self.myException
         exc.loc = loc
@@ -819,20 +899,16 @@ class Word(Token):
        defaults to the initial character set), and an optional minimum,
        maximum, and/or exact length.
     """
-    def _str2dict(strg):
-        return dict( [(c,0) for c in strg] )
-    _str2dict = staticmethod(_str2dict)
-    
     def __init__( self, initChars, bodyChars=None, min=1, max=0, exact=0 ):
         super(Word,self).__init__()
         self.initCharsOrig = initChars
-        self.initChars = Word._str2dict(initChars)
+        self.initChars = _str2dict(initChars)
         if bodyChars :
             self.bodyCharsOrig = bodyChars
-            self.bodyChars = Word._str2dict(bodyChars)
+            self.bodyChars = _str2dict(bodyChars)
         else:
             self.bodyCharsOrig = initChars
-            self.bodyChars = Word._str2dict(initChars)
+            self.bodyChars = _str2dict(initChars)
 
         self.minLen = min
 
@@ -872,7 +948,7 @@ class Word(Token):
             exc.pstr = instring
             raise exc
 
-        return loc, [ instring[start:loc] ]
+        return loc, instring[start:loc]
 
     def __str__( self ):
         try:
@@ -947,7 +1023,7 @@ class CharsNotIn(Token):
             exc.pstr = instring
             raise exc
 
-        return loc, [ instring[start:loc] ]
+        return loc, instring[start:loc]
 
     def __str__( self ):
         try:
@@ -1017,7 +1093,7 @@ class White(Token):
             exc.pstr = instring
             raise exc
 
-        return loc, [ instring[start:loc] ]
+        return loc, instring[start:loc]
 
 
 class PositionToken(Token):
@@ -1047,7 +1123,7 @@ class GoToColumn(PositionToken):
             raise ParseException, ( instring, loc, "Text not in expected column" )
         newloc = loc + self.col - thiscol
         ret = instring[ loc: newloc ]
-        return newloc, [ ret ]
+        return newloc, ret
 
 class LineStart(PositionToken):
     """Matches if current position is at the beginning of a line within the parse string"""
@@ -1083,7 +1159,7 @@ class LineEnd(PositionToken):
     def parseImpl( self, instring, loc, doActions=True ):
         if loc<len(instring):
             if instring[loc] == "\n":
-                return loc+1, ["\n"]
+                return loc+1, "\n"
             else:
                 #~ raise ParseException, ( instring, loc, "Expected end of line" )
                 exc = self.myException
@@ -1148,6 +1224,8 @@ class ParseExpression(ParserElement):
         return self
 
     def leaveWhitespace( self ):
+        """Extends leaveWhitespace defined in base class, and also invokes leaveWhitespace on
+           all contained expressions."""
         self.skipWhitespace = False
         self.exprs = [ copy.copy(e) for e in self.exprs ]
         for e in self.exprs:
@@ -1231,7 +1309,6 @@ class And(ParseExpression):
         self.skipWhitespace = exprs[0].skipWhitespace
         self.whiteChars = exprs[0].whiteChars
 
- 
     def parseImpl( self, instring, loc, doActions=True ):
         loc, resultlist = self.exprs[0].parse( instring, loc, doActions )
         for e in self.exprs[1:]:
@@ -1384,12 +1461,11 @@ class ParseElementEnhance(ParserElement):
             self.skipWhitespace = expr.skipWhitespace
             self.whiteChars = expr.whiteChars
 
-        
     def parseImpl( self, instring, loc, doActions=True ):
         if self.expr is not None:
             return self.expr.parse( instring, loc, doActions )
         else:
-            raise ParseException(loc,"",instring)
+            raise ParseException(instring,loc,"")
 
     def leaveWhitespace( self ):
         self.skipWhitespace = False
@@ -1784,9 +1860,11 @@ def oneOf( strs, caseless=False ):
     """
     if caseless:
         isequal = ( lambda a,b: a.upper() == b.upper() )
+        masks = ( lambda a,b: b.upper().startswith(a.upper()) )
         parseElementClass = CaselessLiteral
     else:
         isequal = ( lambda a,b: a == b )
+        masks = ( lambda a,b: b.startswith(a) )
         parseElementClass = Literal
     
     symbols = strs.split()
@@ -1797,7 +1875,7 @@ def oneOf( strs, caseless=False ):
             if ( isequal(other, cur) ):
                 del symbols[i+j+1]
                 break
-            elif ( isequal(other[:len(cur)],cur) ):
+            elif ( masks(cur, other) ):
                 del symbols[i+j+1]
                 symbols.insert(i,other)
                 cur = other
@@ -1818,7 +1896,6 @@ def dictOf( key, value ):
     return Dict( ZeroOrMore( Group ( key + value ) ) )
 
 _bslash = "\\"
-nums       = string.digits
 printables = "".join( [ c for c in string.printable if c not in string.whitespace ] )
 empty      = Empty().setName("empty")
 
@@ -1828,9 +1905,10 @@ _escapedHexChar = Combine( Suppress(_bslash + "0x") + Word(nums+"ABCDEFabcdef") 
 _escapedOctChar = Combine( Suppress(_bslash) + Word("0","01234567") ).setParseAction(lambda s,l,t:chr(int(t[0],8)))
 _singleChar = _escapedPunc | _escapedHexChar | _escapedOctChar | Word(_printables_less_backslash,exact=1)
 _charRange = Group(_singleChar + Suppress("-") + _singleChar)
-_re = "[" + Optional("^").setResultsName("negate") + ZeroOrMore( _charRange | _singleChar ).setResultsName("body") + "]"
+_reBracketExpr = "[" + Optional("^").setResultsName("negate") + Group( OneOrMore( _charRange | _singleChar ) ).setResultsName("body") + "]"
 
 _expanded = lambda p: (isinstance(p,ParseResults) and ''.join([ chr(c) for c in range(ord(p[0]),ord(p[1])+1) ]) or p)
+        
 def srange(s):
     r"""Helper to easily define string ranges for use in Word construction.  Borrows
        syntax from regexp '[]' string range definitions::
@@ -1848,21 +1926,35 @@ def srange(s):
           any combination of the above ('aeiouy', 'a-zA-Z0-9_$', etc.)
     """
     try:
-        return "".join([_expanded(part) for part in _re.parseString(s).body])
+        return "".join([_expanded(part) for part in _reBracketExpr.parseString(s).body])
     except:
         return ""
-alphas     = string.lowercase + string.uppercase
-alphas8bit = srange(r"[\0xc0-\0xd6\0xd8-\0xf6\0xf8-\0xfe]")
-alphanums  = alphas + nums    
 
-_escapables = "tnrfbacdeghijklmopqsuvwxyz" + _bslash
+def replaceWith(replStr):
+    """Helper method for common parse actions that simply return a literal value.  Especially 
+       useful when used with transformString().
+    """
+    def _replFunc(*args):
+        return replStr
+    return _replFunc
+
+def removeQuotes(s,l,t):
+    """Helper parse action for removing quotation marks from parsed quoted strings.
+       To use, add this parse action to quoted string using::
+         quotedString.setParseAction( removeQuotes )
+    """
+    return t[0][1:-1]
+
+alphas8bit = srange(r"[\0xc0-\0xd6\0xd8-\0xf6\0xf8-\0xfe]")
+
+_escapables = "tnrfbacdeghijklmopqsuvwxyz" + _bslash + "'" + '"'
 _octDigits = "01234567"
 _escapedChar = ( Word( _bslash, _escapables, exact=2 ) |
                  Word( _bslash, _octDigits, min=2, max=4 ) )
 _sglQuote = Literal("'")
 _dblQuote = Literal('"')
-dblQuotedString = Combine( _dblQuote + ZeroOrMore( CharsNotIn('\\"\n\r') | _escapedChar ) + _dblQuote ).streamline().setName("string enclosed in double quotes")
-sglQuotedString = Combine( _sglQuote + ZeroOrMore( CharsNotIn("\\'\n\r") | _escapedChar ) + _sglQuote ).streamline().setName("string enclosed in single quotes")
+dblQuotedString = Combine( _dblQuote + ZeroOrMore( CharsNotIn('\\"\n\r') | _escapedChar | '""' ) + _dblQuote ).streamline().setName("string enclosed in double quotes")
+sglQuotedString = Combine( _sglQuote + ZeroOrMore( CharsNotIn("\\'\n\r") | _escapedChar | "''" ) + _sglQuote ).streamline().setName("string enclosed in single quotes")
 quotedString = ( dblQuotedString | sglQuotedString ).setName("quotedString using single or double quotes")
 
 # it's easy to get these comment structures wrong - they're very common, so may as well make them available

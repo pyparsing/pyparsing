@@ -2,8 +2,43 @@
 Change Log
 ==========
 
-Version 1.2.3 - November, 2004
+Version 1.3 - March, 2005
 ----------------------------------
+- Added new Keyword class, as a special form of Literal.  Keywords
+  must be followed by whitespace or other non-keyword characters, to
+  distinguish them from variables or other identifiers that just
+  happen to start with the same characters as a keyword.  For instance,
+  the input string containing "ifOnlyIfOnly" will match a Literal("if")
+  at the beginning and in the middle, but will fail to match a 
+  Keyword("if").  Keyword("if") will match only strings such as "if only" or 
+  "if(only)". (Berteun Damman requested this on comp.lang.python 
+  - great idea!)
+
+- Added setWhitespaceChars() method to override the characters to be 
+  skipped as whitespace before matching a particular ParseElement.  Also
+  added the class-level method setDefaultWhitespaceChars(), to allow
+  users to override the default set of whitespace characters (space,
+  tab, newline, and return) for all subsequently defined ParseElements.
+  (Inspired by Klaas Hofstra's inquiry on the Sourceforge pyparsing
+  forum.)
+  
+- Added helper parse actions to support some very common parse 
+  action use cases:
+  . replaceWith(replStr) - replaces the matching tokens with the 
+    provided replStr replacement string; especially useful with 
+    transformString()
+  . removeQuotes - removes first and last character from string enclosed
+    in quotes (note - NOT the same as the string strip() method, as only
+    a single character is removed at each end)
+    
+- Added copy() method to ParseElement, to make it easier to define 
+  different parse actions for the same basic parse expression.  (Note, copy
+  is implicitly called when using setResultsName().)
+
+
+  (The following changes were posted to CVS as Version 1.2.3 - 
+  October-December, 2004)
+  
 - Added support for Unicode strings in creating grammar definitions.  
   (Big thanks to Gavin Panella!)
 
@@ -24,14 +59,21 @@ Version 1.2.3 - November, 2004
 - Added setDebugActions() function to ParserElement, to allow user-defined
   debugging actions.
 
+- Added support for escaped quotes (either in \', \", or doubled quote 
+  form) to the predefined expressions for quoted strings. (Thanks, Ero
+  Carrera!)
+  
+- Minor performance improvement (~5%) converting "char in string" tests
+  to "char in dict". (Suggested by Gavin Panella, cool idea!)
+  
 
 Version 1.2.2 - September 27, 2004
 ----------------------------------
 - Modified delimitedList to accept an expression as the delimiter, instead
   of only accepting strings.
   
-- Modified ParseResults, to convert integer field keys string (to avoid
-  confusion with list access).
+- Modified ParseResults, to convert integer field keys to strings (to 
+  avoid confusion with list access).
 
 - Modified Combine, to convert all embedded tokens to strings before
   combining.
