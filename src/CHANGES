@@ -2,6 +2,55 @@
 Change Log
 ==========
 
+Version 1.3.1 - June 12, 2005
+-----------------------------
+- Added markInputline() method to ParseException, to display the input
+  text line location of the parsing exception. (Thanks, Stefan Behnel!)
+  
+- Added setDefaultKeywordChars(), so that Keyword definitions using a 
+  custom keyword character set do not all need to add the keywordChars
+  constructor argument (similar to setDefaultWhitespaceChars()). (suggested
+  by rzhanka on the SourceForge pyparsing forum.)
+  
+- Simplified passing debug actions to setDebugAction().  You can now
+  pass 'None' for a debug action if you want to take the default 
+  debug behavior.  To suppress a particular debug action, you can pass
+  the pyparsing method nullDebugAction.
+  
+- Refactored parse exception classes, moved all behavior to 
+  ParseBaseException, and the former ParseException is now a subclass of
+  ParseBaseException.  Added a second subclass, ParseFatalException, as
+  a subclass of ParseBaseException.  User-defined parse actions can raise
+  ParseFatalException if a data inconsistency is detected (such as a 
+  begin-tag/end-tag mismatch), and this will stop all parsing immediately.
+  (Inspired by e-mail thread with Michele Petrazzo - thanks, Michelle!)
+  
+- Added helper methods makeXMLTags and makeHTMLTags, that simplify the
+  definition of XML or HTML tag parse expressions for a given tagname.  
+  Both functions return a pair of parse expressions, one for the opening 
+  tag (that is, '<tagname>') and one for the closing tag ('</tagname>').
+  The opening tagame also recognizes any attribute definitions that have
+  been included in the opening tag, as well as an empty tag (one with a
+  trailing '/', as in '<BODY/>' which is equivalent to '<BODY></BODY>').
+  makeXMLTags uses stricter XML syntax for attributes, requiring that they
+  be enclosed in double quote characters - makeHTMLTags is more lenient, 
+  and accepts single-quoted strings or any contiguous string of characters
+  up to the next whitespace character or '>' character.  Attributes can
+  be retrieved as dictionary or attribute values of the returned results
+  from the opening tag.
+
+- Added example SimpleCalc.py, a refinement on fourFn.py that adds
+  an interactive session and support for variables.  (Thanks, Steven Siew!)
+  
+- Added performance improvement, up to 20% reduction!  (Found while working
+  with Wolfgang Borgert on performance tuning of his TTCN3 parser.)
+  
+- And another performance improvement, up to 25%, when using scanString!
+  (Found while working with Henrik Westlund on his C header file scanner.)
+  
+- Updated UML diagrams to reflect latest class/method changes.
+
+
 Version 1.3 - March, 2005
 ----------------------------------
 - Added new Keyword class, as a special form of Literal.  Keywords
@@ -10,9 +59,9 @@ Version 1.3 - March, 2005
   happen to start with the same characters as a keyword.  For instance,
   the input string containing "ifOnlyIfOnly" will match a Literal("if")
   at the beginning and in the middle, but will fail to match a 
-  Keyword("if").  Keyword("if") will match only strings such as "if only" or 
-  "if(only)". (Berteun Damman requested this on comp.lang.python 
-  - great idea!)
+  Keyword("if").  Keyword("if") will match only strings such as "if only" 
+  or "if(only)". (Proposed by Wolfgang Borgert, and Berteun Damman 
+  separately requested this on comp.lang.python - great idea!)
 
 - Added setWhitespaceChars() method to override the characters to be 
   skipped as whitespace before matching a particular ParseElement.  Also
