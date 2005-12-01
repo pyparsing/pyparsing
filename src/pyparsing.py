@@ -24,10 +24,11 @@
 #  Todo:
 #  - add pprint() - pretty-print output of defined BNF
 #
+from __future__ import generators
 """
 pyparsing module - Classes and methods to define and execute parsing grammars
 """
-__version__ = "1.1"
+__version__ = "1.1.1"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 #~ print "testing pyparsing module, version", __version__
 
@@ -506,23 +507,19 @@ class Word(Token):
         except:
             pass
 
+            
         if self.strRepr is None:
+            
+            def charsAsStr(s):
+                if len(s)>4:
+                    return s[:4]+"..."
+                else:
+                    return s
+            
             if ( self.initChars != self.bodyChars ):
-                if len( self.initChars ) > 4:
-                    if len( self.bodyChars ) > 4:
-                        self.strRepr = "W:(%s...,%s...)" % ( self.initChars[:4], self.bodyChars[:4] )
-                    else:
-                        self.strRepr = "W:(%s...,%s)" % ( self.initChars[:4], self.bodyChars )
-                else:
-                    if len( self.bodyChars ) > 4:
-                        self.strRepr = "W:(%s,%s...)" % ( self.initChars, self.bodyChars[:4] )
-                    else:
-                        self.strRepr = "W:(%s,%s)" % ( self.initChars, self.bodyChars )
+                self.strRepr = "W:(%s,%s)" % ( charsAsStr(self.initChars), charsAsStr(self.bodyChars) )
             else:
-                if len( self.initChars ) > 4:
-                    self.strRepr = "W:(%s...)" % self.initChars[:4]
-                else:
-                    self.strRepr = "W:(%s)" % self.initChars
+                self.strRepr = "W:(%s)" % charsAsStr(self.initChars)
 
         return self.strRepr
 
@@ -745,7 +742,7 @@ class And(ParseExpression):
             if not e.mayReturnEmpty:
                 self.mayReturnEmpty = False
                 break
-    
+ 
     def parseImpl( self, instring, loc, doActions=True ):
         loc, resultlist = self.exprs[0].parse( instring, loc, doActions )
         for e in self.exprs[1:]:
@@ -849,9 +846,9 @@ class MatchFirst(ParseExpression):
                 if err.loc > maxExcLoc:
                     maxException = err
                     maxExcLoc = err.loc
-        
+
         # only got here if no expression matched, raise exception for match that made it the furthest
-            raise maxException
+        raise maxException
 
         #~ return loc2, tokenlist
 
@@ -1077,7 +1074,20 @@ class Forward(ParseElementEnhance):
             self.expr.validate(tmp)
         self.checkRecursion([])        
         
+    def __str__( self ):
+        if hasattr(self,"name"):
+            return self.name
+            
+        strmethod = self.__str__
+        self.__class__ = ForwardNoRecurse
+        retString = str(self.expr)
+        self.__class__ = Forward
+        return "Forward:"+retString
 
+class ForwardNoRecurse(Forward):
+    def __str__( self ):
+        return "..."
+        
 class TokenConverter(ParseElementEnhance):
     "Abstract subclass of ParseExpression, for converting parsed results."
     def __init__( self, expr, savelist=False ):
