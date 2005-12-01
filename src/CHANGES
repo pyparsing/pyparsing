@@ -1,10 +1,20 @@
+==========
 Change Log
+==========
+
+Version 1.0.3 - 23 Dec 2003
+---------------------------
+- Performance speed-up again, 20-40%
+
+- Added Python distutils installation setup.py, etc. (thanks, Dave Kuhlman)
+
 
 Version 1.0.2 - 18 Dec 2003
 ---------------------------
-- NOTE: Changed API again!!! (for the last time, I hope)
-  Renamed module from parsing to pyparsing, to better reflect Python
-  linkage.
+- **NOTE: Changed API again!!!** (for the last time, I hope)
+  
+  + Renamed module from parsing to pyparsing, to better reflect Python
+    linkage.
 
 - Also added dictExample.py to examples directory, to illustrate
   usage of the Dict class.
@@ -12,8 +22,9 @@ Version 1.0.2 - 18 Dec 2003
 
 Version 1.0.1 - 17 Dec 2003
 ---------------------------
-- NOTE:  Changed API!
-  Renamed 'len' argument on Word.__init__() to 'exact'
+- **NOTE:  Changed API!**
+  
+  + Renamed 'len' argument on Word.__init__() to 'exact'
 
 - Performance speed-up, 10-30%
 
@@ -21,3 +32,13 @@ Version 1.0.1 - 17 Dec 2003
 Version 1.0.0 - 15 Dec 2003
 ---------------------------
 - Initial release
+
+Version 0.1.1 thru 0.1.17 - October-November, 2003
+--------------------------------------------------
+- initial development iterations:
+- added Dict, Group
+- added helper methods oneOf, delimitedList
+- added helpers quotedString (and double and single), restOfLine, cStyleComment
+- added MatchFirst as an alternative to the slower Or
+- added UML class diagram
+- fixed various logic bugs
