@@ -24,7 +24,7 @@
 #  Todo:
 #  - add pprint() - pretty-print output of defined BNF
 #
-from __future__ import generators
+#from __future__ import generators
 
 __doc__ = \
 """
@@ -60,8 +60,8 @@ The pyparsing module handles some of the problems that are typically vexing when
  - quoted strings
  - embedded comments
 """
-__version__ = "1.3.3"
-__versionTime__ = "12 September 2005 22:50"
+__version__ = "1.3.4"
+__versionTime__ = "24 September 2005 22:50"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -837,7 +837,7 @@ class NoMatch(Token):
         self.mayReturnEmpty = True
         self.mayIndexError = False
         self.errmsg = "Unmatchable token"
-        s.myException.msg = self.errmsg
+        self.myException.msg = self.errmsg
         
     def parseImpl( self, instring, loc, doActions=True ):
         exc = self.myException
@@ -959,6 +959,19 @@ class CaselessLiteral(Literal):
         exc.pstr = instring
         raise exc
 
+class CaselessKeyword(Keyword):
+    def __init__( self, matchString, identChars=Keyword.DEFAULT_KEYWORD_CHARS ):
+        super(CaselessKeyword,self).__init__( matchString, identCars, caseless=True )
+
+    def parseImpl( self, instring, loc, doActions=True ):
+        if ( (instring[ loc:loc+self.matchLen ].upper() == self.caselessmatch) and
+             (loc >= len(instring)-self.matchLen or instring[loc+self.matchLen].upper() not in self.identChars) ):
+            return loc+self.matchLen, self.match
+        #~ raise ParseException, ( instring, loc, self.errmsg )
+        exc = self.myException
+        exc.loc = loc
+        exc.pstr = instring
+        raise exc
 
 class Word(Token):
     """Token for matching words composed of allowed character sets.
@@ -1005,16 +1018,17 @@ class Word(Token):
             raise exc
         start = loc
         loc += 1
+        instrlen = len(instring)
         bodychars = self.bodyChars
         maxloc = start + self.maxLen
-        maxloc = min( maxloc, len(instring) )
+        maxloc = min( maxloc, instrlen )
         while loc < maxloc and instring[loc] in bodychars:
             loc += 1
             
         throwException = False
         if loc - start < self.minLen:
             throwException = True
-        if self.maxSpecified and loc < len(instring) and instring[loc] in bodychars:
+        if self.maxSpecified and loc < instrlen and instring[loc] in bodychars:
             throwException = True
 
         if throwException:
@@ -2133,13 +2147,13 @@ def _makeTags(tagStr, xml):
         tagAttrValue = dblQuotedString.copy().setParseAction( removeQuotes )
         openTag = "<" + Keyword(tagStr) + Dict(ZeroOrMore(Group( tagAttrName + Suppress("=") + tagAttrValue ))) + Optional("/",default="").setResultsName("empty") + ">"
     else:
-        printablesLessRAbrack = "".join( [ c for c in string.printable if c not in ">" ] )
+        printablesLessRAbrack = "".join( [ c for c in printables if c not in ">" ] )
         tagAttrValue = quotedString.copy().setParseAction( removeQuotes ) | Word(printablesLessRAbrack)
         openTag = "<" + Keyword(tagStr,caseless=True) + Dict(ZeroOrMore(Group( tagAttrName.setParseAction(downcaseTokens) + Suppress("=") + tagAttrValue ))) + Optional("/",default="").setResultsName("empty") + ">"
     closeTag = "</" + Keyword(tagStr,caseless=not xml) + ">"
     
-    openTag = openTag.setResultsName("start"+tagStr.title()).setName("<"+tagStr+">")
-    closeTag = closeTag.setResultsName("end"+tagStr.title()).setName("</"+tagStr+">")
+    openTag = openTag.setResultsName("start"+tagStr.title()).setName("<%s>" % tagStr)
+    closeTag = closeTag.setResultsName("end"+tagStr.title()).setName("</%s>" % tagStr)
     
     return openTag, closeTag
 
