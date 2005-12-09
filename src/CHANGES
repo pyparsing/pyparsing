@@ -2,6 +2,25 @@
 Change Log
 ==========
 
+Version 1.3.4 - ???
+----------------------------------
+- Added Regex class, to permit definition of complex embedded 
+  expressions using regular expressions. (Enhancement provided by
+  John Beisley, great job!)
+
+- Added CaselessKeyword class, to streamline grammars with, well, 
+  caseless keywords (Proposed by Stefan Behnel, thanks!)
+  
+- Fixed bug in SkipTo, when using an ignoreable expression.
+  (Patch provided by Anonymous, thanks, whoever-you-are!)
+  
+- Fixed typo in NoMatch class. (Good catch, Stefan Behnel!)
+
+- Fixed minor bug in _makeTags(), using string.printables instead
+  of pyparsing.printables.
+
+
+
 Version 1.3.3 - September 12, 2005
 ----------------------------------
 - Improved support for Unicode strings that would be returned using
