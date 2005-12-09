@@ -67,6 +67,7 @@ __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 import string
 import copy,sys
 import warnings
+import re
 #~ sys.stderr.write( "testing pyparsing module, version %s, %s\n" % (__version__,__versionTime__ ) )
 
 def _ustr(obj):
@@ -1063,6 +1064,61 @@ class Word(Token):
         return self.strRepr
 
 
+class Regex(Token):
+    """Token for matching strings that match a given regular expression.
+       Defined with string specifying the regular expression in a form recognized by the inbuilt Python re module.
+    """
+    def __init__( self, pattern, flags=0):
+        """The parameters pattern and flags are passed to the re.compile() function as-is. See the Python re module for an explanation of the acceptable patterns and flags."""
+        super(Regex,self).__init__()
+        
+        if len(pattern) == 0:
+            warnings.warn("null string passed to Regex; use Empty() instead", 
+                    SyntaxWarning, stacklevel=2)
+    
+        self.pattern = pattern
+        self.flags = flags
+        
+        try:
+            self.re = re.compile(self.pattern, self.flags)
+        except Exception,e:
+            warnings.warn("invalid pattern (%s) passed to Regex" % pattern, 
+                SyntaxWarning, stacklevel=2)
+            raise
+
+        self.name = _ustr(self)
+        self.errmsg = "Expected " + self.name
+        self.myException.msg = self.errmsg
+        self.mayIndexError = False
+    
+    def parseImpl( self, instring, loc, doActions=True ):
+        result = self.re.match(instring,loc)
+        if not result:
+            exc = self.myException
+            exc.loc = loc
+            exc.pstr = instring
+            raise exc
+        
+        loc = result.end()
+        ret = ParseResults(result.group())
+        d = result.groupdict()
+        if d:
+            for k in d.keys():
+                ret[k] = d[k]
+        return loc,ret
+    
+    def __str__( self ):
+        try:
+            return super(Regex,self).__str__()
+        except:
+            pass
+        
+        if self.strRepr is None:
+            self.strRepr = "Re:(%s)" % repr(self.pattern)
+        
+        return self.strRepr
+
+
 class CharsNotIn(Token):
     """Token for matching words composed of characters *not* in a given set.
        Defined with string containing all disallowed characters, and an optional 
@@ -1862,7 +1918,8 @@ class SkipTo(ParseElementEnhance):
         expr = self.expr
         while loc < instrlen:
             try:
-                expr.tryParse(instring, loc)
+                loc = expr.skipIgnorables( instring, loc )
+                expr.parse( instring, loc, doActions=False, callPreParse=False )
                 if self.includeMatch:
                     skipText = instring[startLoc:loc]
                     loc,mat = expr.parse(instring,loc)
