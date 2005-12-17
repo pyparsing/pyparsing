@@ -8,6 +8,10 @@ Version 1.3.4 - ???
   expressions using regular expressions. (Enhancement provided by
   John Beisley, great job!)
 
+- Converted implementations of Word, oneOf, quoted string, and 
+  comment helpers to utilize regular expression matching.  
+  Performance improvements in the 20-40% range.
+
 - Added CaselessKeyword class, to streamline grammars with, well, 
   caseless keywords (Proposed by Stefan Behnel, thanks!)
   
@@ -19,6 +23,8 @@ Version 1.3.4 - ???
 - Fixed minor bug in _makeTags(), using string.printables instead
   of pyparsing.printables.
 
+- Added some grammar definition-time checking to verify that
+  grammar is being built using proper ParserElements.
 
 
 Version 1.3.3 - September 12, 2005
