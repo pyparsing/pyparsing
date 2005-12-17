@@ -60,15 +60,15 @@ The pyparsing module handles some of the problems that are typically vexing when
  - quoted strings
  - embedded comments
 """
-__version__ = "1.3.4"
-__versionTime__ = "24 September 2005 22:50"
+__version__ = "1.3.4alpha2"
+__versionTime__ = "17 December 2005 13:55"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
 import copy,sys
 import warnings
 import re
-#~ sys.stderr.write( "testing pyparsing module, version %s, %s\n" % (__version__,__versionTime__ ) )
+sys.stderr.write( "testing pyparsing module, version %s, %s\n" % (__version__,__versionTime__ ) )
 
 def _ustr(obj):
     """Drop-in replacement for str(obj) that tries to be Unicode friendly. It first tries
@@ -463,9 +463,10 @@ class ParserElement(object):
         self.errmsg = ""
         self.modalResults = True
         self.debugActions = ( None, None, None )
+        self.re = None
 
     def copy( self ):
-        """Make a copy of this ParseElement.  Useful for defining different parse actions
+        """Make a copy of this ParserElement.  Useful for defining different parse actions
            for the same parsing pattern, using copies of the original parse element."""
         cpy = copy.copy( self )
         cpy.whiteChars = ParserElement.DEFAULT_WHITE_CHARS
@@ -480,7 +481,7 @@ class ParserElement(object):
     def setResultsName( self, name, listAllMatches=False ):
         """Define name for referencing matching tokens as a nested attribute 
            of the returned parse results.
-           NOTE: this returns a *copy* of the original ParseElement object;
+           NOTE: this returns a *copy* of the original ParserElement object;
            this is so that the client can define a basic element, such as an
            integer, and reference it in multiple places with different names.
         """
@@ -673,48 +674,72 @@ class ParserElement(object):
         """Implementation of + operator - returns And"""
         if isinstance( other, basestring ):
             other = Literal( other )
+        if not isinstance( other, ParserElement ):
+            warning.warn("Cannot add element of type %s to ParserElement" % type(other),
+                    SyntaxWarning, stacklevel=2)
         return And( [ self, other ] )
 
     def __radd__(self, other ):
         """Implementation of += operator"""
         if isinstance( other, basestring ):
             other = Literal( other )
+        if not isinstance( other, ParserElement ):
+            warning.warn("Cannot add element of type %s to ParserElement" % type(other),
+                    SyntaxWarning, stacklevel=2)
         return other + self
 
     def __or__(self, other ):
         """Implementation of | operator - returns MatchFirst"""
         if isinstance( other, basestring ):
             other = Literal( other )
+        if not isinstance( other, ParserElement ):
+            warning.warn("Cannot add element of type %s to ParserElement" % type(other),
+                    SyntaxWarning, stacklevel=2)
         return MatchFirst( [ self, other ] )
 
     def __ror__(self, other ):
         """Implementation of |= operator"""
         if isinstance( other, basestring ):
             other = Literal( other )
+        if not isinstance( other, ParserElement ):
+            warning.warn("Cannot add element of type %s to ParserElement" % type(other),
+                    SyntaxWarning, stacklevel=2)
         return other | self
 
     def __xor__(self, other ):
         """Implementation of ^ operator - returns Or"""
         if isinstance( other, basestring ):
             other = Literal( other )
+        if not isinstance( other, ParserElement ):
+            warning.warn("Cannot add element of type %s to ParserElement" % type(other),
+                    SyntaxWarning, stacklevel=2)
         return Or( [ self, other ] )
 
     def __rxor__(self, other ):
         """Implementation of ^= operator"""
         if isinstance( other, basestring ):
             other = Literal( other )
+        if not isinstance( other, ParserElement ):
+            warning.warn("Cannot add element of type %s to ParserElement" % type(other),
+                    SyntaxWarning, stacklevel=2)
         return other ^ self
 
     def __and__(self, other ):
         """Implementation of & operator - returns Each"""
         if isinstance( other, basestring ):
             other = Literal( other )
+        if not isinstance( other, ParserElement ):
+            warning.warn("Cannot add element of type %s to ParserElement" % type(other),
+                    SyntaxWarning, stacklevel=2)
         return Each( [ self, other ] )
 
     def __rand__(self, other ):
         """Implementation of right-& operator"""
         if isinstance( other, basestring ):
             other = Literal( other )
+        if not isinstance( other, ParserElement ):
+            warning.warn("Cannot add element of type %s to ParserElement" % type(other),
+                    SyntaxWarning, stacklevel=2)
         return other & self
 
     def __invert__( self ):
@@ -722,7 +747,7 @@ class ParserElement(object):
         return NotAny( self )
 
     def suppress( self ):
-        """Suppresses the output of this ParseElement; useful to keep punctuation from
+        """Suppresses the output of this ParserElement; useful to keep punctuation from
            cluttering up returned output.
         """
         return Suppress( self )
@@ -1010,7 +1035,31 @@ class Word(Token):
         self.myException.msg = self.errmsg
         self.mayIndexError = False
         
+        if ' ' not in self.initCharsOrig+self.bodyCharsOrig and (min==1 and max==0 and exact==0):
+            if self.bodyCharsOrig == self.initCharsOrig:
+                self.reString = "[%s]+" % _escapeRegexRangeChars(self.initCharsOrig)
+            elif len(self.bodyCharsOrig) == 1:
+                self.reString = "%s[%s]*" % \
+                                      (_escapeRegexChars(self.initCharsOrig),
+                                      _escapeRegexRangeChars(self.bodyCharsOrig),)
+            else:
+                self.reString = "[%s][%s]*" % \
+                                      (_escapeRegexRangeChars(self.initCharsOrig),
+                                      _escapeRegexRangeChars(self.bodyCharsOrig),)
+            self.re = re.compile( self.reString )
+        
     def parseImpl( self, instring, loc, doActions=True ):
+        if self.re:
+            result = self.re.match(instring,loc)
+            if not result:
+                exc = self.myException
+                exc.loc = loc
+                exc.pstr = instring
+                raise exc
+            
+            loc = result.end()
+            return loc,result.group()
+        
         if not(instring[ loc ] in self.initChars):
             #~ raise ParseException, ( instring, loc, self.errmsg )
             exc = self.myException
@@ -1081,6 +1130,7 @@ class Regex(Token):
         
         try:
             self.re = re.compile(self.pattern, self.flags)
+            self.reString = self.pattern
         except Exception,e:
             warnings.warn("invalid pattern (%s) passed to Regex" % pattern, 
                 SyntaxWarning, stacklevel=2)
@@ -1090,6 +1140,7 @@ class Regex(Token):
         self.errmsg = "Expected " + self.name
         self.myException.msg = self.errmsg
         self.mayIndexError = False
+        self.mayReturnEmpty = True
     
     def parseImpl( self, instring, loc, doActions=True ):
         result = self.re.match(instring,loc)
@@ -1100,8 +1151,8 @@ class Regex(Token):
             raise exc
         
         loc = result.end()
-        ret = ParseResults(result.group())
         d = result.groupdict()
+        ret = ParseResults(result.group())
         if d:
             for k in d.keys():
                 ret[k] = d[k]
@@ -1475,7 +1526,7 @@ class And(ParseExpression):
             e.checkRecursion( subRecCheckList )
             if not e.mayReturnEmpty:
                 break
-
+                
     def __str__( self ):
         if hasattr(self,"name"):
             return self.name
@@ -1593,7 +1644,6 @@ class MatchFirst(ParseExpression):
         subRecCheckList = parseElementList[:] + [ self ]
         for e in self.exprs:
             e.checkRecursion( subRecCheckList )
-
 
 class Each(ParseExpression):
     """Requires all given ParseExpressions to be found, but in any order.
@@ -2033,7 +2083,6 @@ class Combine(TokenConverter):
         else:
             return retToks
 
-
 class Group(TokenConverter):
     """Converter to return the matched tokens as a list - useful for returning tokens of ZeroOrMore and OneOrMore expressions."""
     def __init__( self, expr ):
@@ -2097,7 +2146,23 @@ def delimitedList( expr, delim=",", combine=False ):
     else:
         return ( expr + ZeroOrMore( Suppress( delim ) + expr ) ).setName(_ustr(expr)+_ustr(delim)+"...")
 
-def oneOf( strs, caseless=False ):
+def _escapeRegexChars(s):
+    #~  escape these chars: [\^$.|?*+()
+    for c in r"\[^$.|?*+()":
+        s = s.replace(c,"\\"+c)
+    s = s.replace("\n",r"\n")
+    s = s.replace("\t",r"\t")
+    return _ustr(s)
+    
+def _escapeRegexRangeChars(s):
+    #~  escape these chars: ^-]
+    for c in r"\^-]":
+        s = s.replace(c,"\\"+c)
+    s = s.replace("\n",r"\n")
+    s = s.replace("\t",r"\t")
+    return _ustr(s)
+    
+def oneOf( strs, caseless=False, useRegex=True ):
     """Helper to quickly define a set of alternative Literals, and makes sure to do 
        longest-first testing when there is a conflict, regardless of the input order, 
        but returns a MatchFirst for best performance.
@@ -2126,8 +2191,15 @@ def oneOf( strs, caseless=False ):
                 break
         else:
             i += 1
-    
-    return MatchFirst( [ parseElementClass(sym) for sym in symbols ] )
+
+    if not caseless and useRegex:
+        #~ print strs,"->", "|".join( [ _escapeRegexChars(sym) for sym in symbols] )
+        if len(symbols)==len("".join(symbols)):
+            return Regex( "[%s]" % "".join( [ _escapeRegexRangeChars(sym) for sym in symbols] ) )
+        else:
+            return Regex( "|".join( [ _escapeRegexChars(sym) for sym in symbols] ) )
+    else:
+        return MatchFirst( [ parseElementClass(sym) for sym in symbols ] )
 
 def dictOf( key, value ):
     """Helper to easily and clearly define a dictionary by specifying the respective patterns
@@ -2224,28 +2296,19 @@ def makeXMLTags(tagStr):
 
 alphas8bit = srange(r"[\0xc0-\0xd6\0xd8-\0xf6\0xf8-\0xfe]")
 
-_escapables = "tnrfbacdeghijklmopqsuvwxyz " + _bslash + "'" + '"'
-_octDigits = "01234567"
-_escapedChar = ( Word( _bslash, _escapables, exact=2 ) |
-                 Word( _bslash, _octDigits, min=2, max=4 ) )
-_sglQuote = Literal("'")
-_dblQuote = Literal('"')
-dblQuotedString = Combine( _dblQuote + ZeroOrMore( CharsNotIn('\\"\n\r') | _escapedChar | '""' ) + _dblQuote ).streamline().setName("string enclosed in double quotes")
-sglQuotedString = Combine( _sglQuote + ZeroOrMore( CharsNotIn("\\'\n\r") | _escapedChar | "''" ) + _sglQuote ).streamline().setName("string enclosed in single quotes")
-quotedString = ( dblQuotedString | sglQuotedString ).setName("quotedString using single or double quotes")
+_escapedChar = Regex(r"\\.")
+dblQuotedString = Regex(r'"([^"\n\r]|("")|(\\"))*?"').setName("string enclosed in double quotes")
+sglQuotedString = Regex(r"'([^'\n\r]|('')|(\\'))*?'").setName("string enclosed in single quotes")
+quotedString = Regex(r'''("([^"\n\r]|("")|(\\"))*?")|('([^'\n\r]|('')|(\\'))*?')''').setName("quotedString using single or double quotes")
 
 # it's easy to get these comment structures wrong - they're very common, so may as well make them available
-cStyleComment = Combine( Literal("/*") +
-                         ZeroOrMore( CharsNotIn("*") | ( "*" + ~Literal("/") ) ) +
-                         Literal("*/") ).streamline().setName("cStyleComment enclosed in /* ... */")
-htmlComment = Combine( Literal("<!--") + ZeroOrMore( CharsNotIn("-") | 
-                                                   (~Literal("-->") + Literal("-").leaveWhitespace() ) ) + 
-                        Literal("-->") ).streamline().setName("htmlComment enclosed in <!-- ... -->")
-restOfLine = Optional( CharsNotIn( "\n\r" ), default="" ).setName("rest of line up to \\n").leaveWhitespace()
-dblSlashComment = "//" + restOfLine
-cppStyleComment = FollowedBy("/") + ( dblSlashComment | cStyleComment )
+cStyleComment = Regex(r"\/\*[\s\S]*?\*\/")
+htmlComment = Regex(r"<!--[\s\S]*?-->")
+restOfLine = Regex(r".*").leaveWhitespace()
+dblSlashComment = Regex(r"\/\/.*")
+cppStyleComment = Regex(r"(\/\*[\s\S]*?\*\/)|(\/\/.*)")
 javaStyleComment = cppStyleComment
-pythonStyleComment = "#" + restOfLine
+pythonStyleComment = Regex(r"#.*")
 _noncomma = "".join( [ c for c in printables if c != "," ] )
 _commasepitem = Combine(OneOrMore(Word(_noncomma) + 
                                   Optional( Word(" \t") + 
