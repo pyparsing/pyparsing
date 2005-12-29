@@ -60,8 +60,8 @@ The pyparsing module handles some of the problems that are typically vexing when
  - quoted strings
  - embedded comments
 """
-__version__ = "1.3.4alpha2"
-__versionTime__ = "17 December 2005 13:55"
+__version__ = "1.4beta1"
+__versionTime__ = "21 December 2005 17:27"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -198,8 +198,8 @@ class ParseResults(object):
             if isinstance(name,int):
                 name = _ustr(name) # will always return a str, but use _ustr for consistency
             self.__name = name
-            if toklist:
-                if isinstance(toklist,basestring):
+            if not toklist in (None,'',[]):
+                if isinstance(toklist,basestring): 
                     toklist = [ toklist ]
                 if asList:
                     if isinstance(toklist,ParseResults):
@@ -2274,12 +2274,17 @@ def _makeTags(tagStr, xml):
     tagAttrName = Word(alphanums)
     if (xml):
         tagAttrValue = dblQuotedString.copy().setParseAction( removeQuotes )
-        openTag = "<" + Keyword(tagStr) + Dict(ZeroOrMore(Group( tagAttrName + Suppress("=") + tagAttrValue ))) + Optional("/",default="").setResultsName("empty") + ">"
+        openTag = Suppress("<") + Keyword(tagStr) + \
+                Dict(ZeroOrMore(Group( tagAttrName + Suppress("=") + tagAttrValue ))) + \
+                Optional("/",default=[False]).setResultsName("empty").setParseAction(lambda s,l,t:t[0]=='/') + Suppress(">")
     else:
         printablesLessRAbrack = "".join( [ c for c in printables if c not in ">" ] )
         tagAttrValue = quotedString.copy().setParseAction( removeQuotes ) | Word(printablesLessRAbrack)
-        openTag = "<" + Keyword(tagStr,caseless=True) + Dict(ZeroOrMore(Group( tagAttrName.setParseAction(downcaseTokens) + Suppress("=") + tagAttrValue ))) + Optional("/",default="").setResultsName("empty") + ">"
-    closeTag = "</" + Keyword(tagStr,caseless=not xml) + ">"
+        openTag = Suppress("<") + Keyword(tagStr,caseless=True) + \
+                Dict(ZeroOrMore(Group( tagAttrName.setParseAction(downcaseTokens) + \
+                Suppress("=") + tagAttrValue ))) + \
+                Optional("/",default=[False]).setResultsName("empty").setParseAction(lambda s,l,t:t[0]=='/') + Suppress(">")
+    closeTag = Combine("</" + Keyword(tagStr,caseless=not xml) + ">")
     
     openTag = openTag.setResultsName("start"+tagStr.title()).setName("<%s>" % tagStr)
     closeTag = closeTag.setResultsName("end"+tagStr.title()).setName("</%s>" % tagStr)
@@ -2302,13 +2307,13 @@ sglQuotedString = Regex(r"'([^'\n\r]|('')|(\\'))*?'").setName("string enclosed i
 quotedString = Regex(r'''("([^"\n\r]|("")|(\\"))*?")|('([^'\n\r]|('')|(\\'))*?')''').setName("quotedString using single or double quotes")
 
 # it's easy to get these comment structures wrong - they're very common, so may as well make them available
-cStyleComment = Regex(r"\/\*[\s\S]*?\*\/")
+cStyleComment = Regex(r"\/\*[\s\S]*?\*\/").setName("C style comment")
 htmlComment = Regex(r"<!--[\s\S]*?-->")
 restOfLine = Regex(r".*").leaveWhitespace()
-dblSlashComment = Regex(r"\/\/.*")
-cppStyleComment = Regex(r"(\/\*[\s\S]*?\*\/)|(\/\/.*)")
+dblSlashComment = Regex(r"\/\/.*").setName("// comment")
+cppStyleComment = Regex(r"(\/\*[\s\S]*?\*\/)|(\/\/.*)").setName("C++ style comment")
 javaStyleComment = cppStyleComment
-pythonStyleComment = Regex(r"#.*")
+pythonStyleComment = Regex(r"#.*").setName("Python style comment")
 _noncomma = "".join( [ c for c in printables if c != "," ] )
 _commasepitem = Combine(OneOrMore(Word(_noncomma) + 
                                   Optional( Word(" \t") + 
