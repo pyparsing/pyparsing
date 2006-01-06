@@ -198,7 +198,7 @@ class ParseCommaSeparatedValuesTest(ParseTestCase):
             results = commaSeparatedList.parseString(line)
             print results.asList()
             for t in tests:
-                assert results[t[0]] == t[1],"failed on %s, item %d s/b '%s', got '%s'" % ( line, t[0], t[1], results[t[0]] )
+                assert len(results)>t[0] and results[t[0]] == t[1],"failed on %s, item %d s/b '%s', got '%s'" % ( line, t[0], t[1], str(results.asList()) )
 
 class ParseEBNFTest(ParseTestCase):
     def runTest(self):
@@ -439,17 +439,66 @@ class QuotedStringsTest(ParseTestCase):
                                          (allStrings[1][1]==154 and allStrings[1][2]==184), \
             "quoted string failure"
         
+        escapedQuoteTest = \
+            r"""
+                'This string has an escaped (\') quote character'
+                "This string has an escaped (\") quote character"
+            """
+        sglStrings = [ (t[0],b,e) for (t,b,e) in sglQuotedString.scanString(escapedQuoteTest) ]
+        print sglStrings
+        assert len(sglStrings) == 1 and (sglStrings[0][1]==17 and sglStrings[0][2]==66), \
+            "single quoted string escaped quote failure (%s)" % str(sglStrings[0])
+        dblStrings = [ (t[0],b,e) for (t,b,e) in dblQuotedString.scanString(escapedQuoteTest) ]
+        print dblStrings
+        assert len(dblStrings) == 1 and (dblStrings[0][1]==83 and dblStrings[0][2]==132), \
+            "double quoted string escaped quote failure (%s)" % str(dblStrings[0])
+        allStrings = [ (t[0],b,e) for (t,b,e) in quotedString.scanString(escapedQuoteTest) ]
+        print allStrings
+        assert len(allStrings) == 2 and (allStrings[0][1]==17 and allStrings[0][2]==66 and
+                                          allStrings[1][1]==83 and allStrings[1][2]==132), \
+            "quoted string escaped quote failure (%s)" % ([str(s[0]) for s in allStrings])
+        
+        dblQuoteTest = \
+            r"""
+                'This string has an doubled ('') quote character'
+                "This string has an doubled ("") quote character"
+            """
+        sglStrings = [ (t[0],b,e) for (t,b,e) in sglQuotedString.scanString(dblQuoteTest) ]
+        print sglStrings
+        assert len(sglStrings) == 1 and (sglStrings[0][1]==17 and sglStrings[0][2]==66), \
+            "single quoted string escaped quote failure (%s)" % str(sglStrings[0])
+        dblStrings = [ (t[0],b,e) for (t,b,e) in dblQuotedString.scanString(dblQuoteTest) ]
+        print dblStrings
+        assert len(dblStrings) == 1 and (dblStrings[0][1]==83 and dblStrings[0][2]==132), \
+            "double quoted string escaped quote failure (%s)" % str(dblStrings[0])
+        allStrings = [ (t[0],b,e) for (t,b,e) in quotedString.scanString(dblQuoteTest) ]
+        print allStrings
+        assert len(allStrings) == 2 and (allStrings[0][1]==17 and allStrings[0][2]==66 and
+                                          allStrings[1][1]==83 and allStrings[1][2]==132), \
+            "quoted string escaped quote failure (%s)" % ([str(s[0]) for s in allStrings])
         
 class CaselessOneOfTest(ParseTestCase):
     def runTest(self):
-        from pyparsing import oneOf
+        from pyparsing import oneOf,ZeroOrMore
         
-        caseless1 = str( oneOf("d a b c aA B A C", caseless=True) )
-        print caseless1
-        caseless2 = str( oneOf("d a b c Aa B A C", caseless=True) )
-        print caseless2
-        assert caseless1.upper() == caseless2.upper(), "oneOf not handling caseless option properly"
-        assert caseless1 != caseless2, "Caseless option properly"
+        caseless1 = oneOf("d a b c aA B A C", caseless=True)
+        caseless1str = str( caseless1 )
+        print caseless1str
+        caseless2 = oneOf("d a b c Aa B A C", caseless=True)
+        caseless2str = str( caseless2 )
+        print caseless2str
+        assert caseless1str.upper() == caseless2str.upper(), "oneOf not handling caseless option properly"
+        assert caseless1str != caseless2str, "Caseless option properly sorted"
+        
+        res = ZeroOrMore(caseless1).parseString("AAaaAaaA")
+        print res
+        assert len(res) == 4, "caseless1 oneOf failed"
+        assert "".join(res) == "aA"*4,"caseless1 CaselessLiteral return failed"
+        
+        res = ZeroOrMore(caseless2).parseString("AAaaAaaA")
+        print res
+        assert len(res) == 4, "caseless2 oneOf failed"
+        assert "".join(res) == "Aa"*4,"caseless1 CaselessLiteral return failed"
         
 
 class AsXMLTest(ParseTestCase):
@@ -760,6 +809,48 @@ class SkipToParserTests(ParseTestCase):
         tryToParse('some text /* comment with ; in */some other stuff; working')
 
 
+class CustomQuotesTest(ParseTestCase):
+    def runTest(self):
+        from pyparsing import QuotedString
+
+        testString = r"""
+            sdlfjs :sdf\:jls::djf: sl:kfsjf
+            sdlfjs -sdf\:jls::--djf: sl-kfsjf
+            sdlfjs -sdf\:::jls::--djf: sl:::-kfsjf
+            sdlfjs ^sdf\:jls^^--djf^ sl-kfsjf
+            sdlfjs ^^^==sdf\:j=ls::--djf: sl=^^=kfsjf
+            sdlfjs ==sdf\:j=ls::--djf: sl==kfsjf^^^
+        """
+        colonQuotes = QuotedString(':','\\','::')
+        dashQuotes  = QuotedString('-','\\', '--')
+        hatQuotes   = QuotedString('^','\\')
+        hatQuotes1  = QuotedString('^','\\','^^')
+        dblEqQuotes = QuotedString('==','\\')
+        
+        def test(quoteExpr, expected):
+            print quoteExpr.pattern
+            assert quoteExpr.scanString(testString).next()[0][0] == expected, \
+                    "failed to match %s" % quoteExpr
+            print quoteExpr.scanString(testString).next()[0][0]
+        
+        test(colonQuotes, r":sdf\:jls::djf:")
+        test(dashQuotes,  r"-sdf\:jls::--djf: sl-")
+        test(hatQuotes,   r"^sdf\:jls^")
+        test(hatQuotes1,  r"^sdf\:jls^^--djf^")
+        test(dblEqQuotes, r"==sdf\:j=ls::--djf: sl==")
+        test( QuotedString(':::'), ':::jls::--djf: sl:::')
+        test( QuotedString('^^^',multiline=True), """^^^==sdf\:j=ls::--djf: sl=^^=kfsjf
+            sdlfjs ==sdf\:j=ls::--djf: sl==kfsjf^^^""")
+            
+        try:
+            bad1 = QuotedString('','\\')
+        except SyntaxError,se:
+            pass
+        else:
+            assert False,"failed to raise SyntaxError with empty quote string"
+
+
+
 class MiscellaneousParserTests(ParseTestCase):
     def runTest(self):
         import pyparsing
@@ -958,7 +1049,8 @@ class ParseUsingRegex(ParseTestCase):
         print ret.asList()
         print ret.items()
         print ret.content
-        assert namedGrouping.parseString('"zork" blah').content == 'zork', "named group lookup failed"
+        assert ret.content == 'zork', "named group lookup failed"
+        assert ret[0] == simpleString.parseString('"zork" blah')[0], "Regex not properly returning ParseResults for named vs. unnamed groups"
         
         try:
             #~ print "lets try an invalid RE"
@@ -983,6 +1075,7 @@ def makeTestSuite():
     suite.addTest( ParseEBNFTest() )
     suite.addTest( ScanStringTest() )
     suite.addTest( QuotedStringsTest() )
+    suite.addTest( CustomQuotesTest() )
     suite.addTest( CaselessOneOfTest() )
     suite.addTest( AsXMLTest() )
     suite.addTest( CommentParserTest() )
