@@ -60,15 +60,15 @@ The pyparsing module handles some of the problems that are typically vexing when
  - quoted strings
  - embedded comments
 """
-__version__ = "1.4beta2"
-__versionTime__ = "1 January 2006 11:12"
+__version__ = "1.4"
+__versionTime__ = "6 January 2006 11:22"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
 import copy,sys
 import warnings
 import re
-sys.stderr.write( "testing pyparsing module, version %s, %s\n" % (__version__,__versionTime__ ) )
+#~ sys.stderr.write( "testing pyparsing module, version %s, %s\n" % (__version__,__versionTime__ ) )
 
 def _ustr(obj):
     """Drop-in replacement for str(obj) that tries to be Unicode friendly. It first tries
@@ -1177,13 +1177,14 @@ class Regex(Token):
 class QuotedString(Token):
     """Token for matching strings that are delimited by quoting characters.
     """
-    def __init__( self, quoteChar, escChar=None, escQuote=None, multiline=False):
+    def __init__( self, quoteChar, escChar=None, escQuote=None, multiline=False, unquoteResults=True):
         """
            Defined with the following parameters:
-           - quoteCharacter
-           - escapeCharacter
-           - escapedQuote
-           - multiline
+           - quoteCharacter - string of one or more characters defining the quote delimiting string
+           - escapeCharacter - character to escape quotes, typically backslash (default=None)
+           - escapedQuote - special quote sequence to escape an embedded quote string (such as SQL's "" to escape and embedded ") (default=None)
+           - multiline - boolean indicating whether quotes can span multiple lines (default=False)
+           - unquoteResults - boolean indicating whether the matched text should be unquoted (default=True)
         """
         super(QuotedString,self).__init__()
         
@@ -1192,41 +1193,36 @@ class QuotedString(Token):
         if len(quoteChar) == 0:
             warnings.warn("quoteChar cannot be the empty string",SyntaxWarning,stacklevel=2)
             raise SyntaxError()
-            
+        
         self.quoteChar = quoteChar
         self.firstQuoteChar = quoteChar[0]
+        self.escChar = escChar
+        self.escQuote = escQuote
+        self.unquoteResults = unquoteResults
+        
         if multiline:
+            self.flags = re.MULTILINE | re.DOTALL
             self.pattern = r'%s([^%s%s]' % \
                 ( _escapeRegexChars(self.quoteChar),
                   _escapeRegexRangeChars(self.quoteChar[0]),
                   (escChar is not None and _escapeRegexRangeChars(escChar) or '') )
-            if len(self.quoteChar) > 1:
-                self.pattern += (
-                    '|(' + ')|('.join("%s[^%s]" % (_escapeRegexChars(self.quoteChar[:i]),
-                                                   _escapeRegexRangeChars(self.quoteChar[i])) for i in range(len(self.quoteChar)-1,0,-1)) + ')'
-                    )
-            if escQuote is not None:
-                self.pattern += (r'|(%s)' % _escapeRegexChars(escQuote))
-            if escChar is not None:
-                self.pattern += (r'|(%s.)' % _escapeRegexChars(escChar))
-            self.pattern += (r')*%s' % _escapeRegexChars(self.quoteChar))
-            self.flags = re.MULTILINE | re.DOTALL
         else:
+            self.flags = 0
             self.pattern = r'%s([^%s\n\r%s]' % \
                 ( _escapeRegexChars(self.quoteChar),
                   _escapeRegexRangeChars(self.quoteChar[0]),
                   (escChar is not None and _escapeRegexRangeChars(escChar) or '') )
-            if len(self.quoteChar) > 1:
-                self.pattern += (
-                    '|(' + ')|('.join("%s[^%s]" % (_escapeRegexChars(self.quoteChar[:i]),
-                                                   _escapeRegexRangeChars(self.quoteChar[i])) for i in range(len(self.quoteChar)-1,0,-1)) + ')'
-                    )
-            if escQuote is not None:
-                self.pattern += (r'|(%s)' % _escapeRegexChars(escQuote))
-            if escChar is not None:
-                self.pattern += (r'|(%s.)' % _escapeRegexChars(escChar))
-            self.pattern += (r')*%s' % _escapeRegexChars(self.quoteChar))
-            self.flags = 0
+        if len(self.quoteChar) > 1:
+            self.pattern += (
+                '|(' + ')|('.join("%s[^%s]" % (_escapeRegexChars(self.quoteChar[:i]),
+                                               _escapeRegexRangeChars(self.quoteChar[i])) for i in range(len(self.quoteChar)-1,0,-1)) + ')'
+                )
+        if escQuote:
+            self.pattern += (r'|(%s)' % _escapeRegexChars(escQuote))
+        if escChar:
+            self.pattern += (r'|(%s.)' % _escapeRegexChars(escChar))
+            self.escCharReplacePattern = self.escChar+"(.)"
+        self.pattern += (r')*%s' % _escapeRegexChars(self.quoteChar))
         
         try:
             self.re = re.compile(self.pattern, self.flags)
@@ -1252,6 +1248,21 @@ class QuotedString(Token):
         
         loc = result.end()
         ret = ParseResults(result.group())
+        
+        if self.unquoteResults:
+            
+            # strip off quotes
+            quoteLen = len(self.quoteChar)
+            ret = ret[quoteLen:-quoteLen]
+                
+            # replace escaped characters
+            if self.escChar:
+                ret = re.sub(self.escCharReplacePattern,"\g<1>",ret)
+
+            # replace escaped quotes
+            if self.escQuote:
+                ret.replace(self.escQuote, self.quoteChar)
+
         return loc,ret
     
     def __str__( self ):
