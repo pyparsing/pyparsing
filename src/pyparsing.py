@@ -1044,7 +1044,7 @@ class Word(Token):
                 self.reString = "[%s]+" % _escapeRegexRangeChars(self.initCharsOrig)
             elif len(self.bodyCharsOrig) == 1:
                 self.reString = "%s[%s]*" % \
-                                      (_escapeRegexChars(self.initCharsOrig),
+                                      (re.escape(self.initCharsOrig),
                                       _escapeRegexRangeChars(self.bodyCharsOrig),)
             else:
                 self.reString = "[%s][%s]*" % \
@@ -1203,26 +1203,26 @@ class QuotedString(Token):
         if multiline:
             self.flags = re.MULTILINE | re.DOTALL
             self.pattern = r'%s([^%s%s]' % \
-                ( _escapeRegexChars(self.quoteChar),
+                ( re.escape(self.quoteChar),
                   _escapeRegexRangeChars(self.quoteChar[0]),
                   (escChar is not None and _escapeRegexRangeChars(escChar) or '') )
         else:
             self.flags = 0
             self.pattern = r'%s([^%s\n\r%s]' % \
-                ( _escapeRegexChars(self.quoteChar),
+                ( re.escape(self.quoteChar),
                   _escapeRegexRangeChars(self.quoteChar[0]),
                   (escChar is not None and _escapeRegexRangeChars(escChar) or '') )
         if len(self.quoteChar) > 1:
             self.pattern += (
-                '|(' + ')|('.join("%s[^%s]" % (_escapeRegexChars(self.quoteChar[:i]),
+                '|(' + ')|('.join("%s[^%s]" % (re.escape(self.quoteChar[:i]),
                                                _escapeRegexRangeChars(self.quoteChar[i])) for i in range(len(self.quoteChar)-1,0,-1)) + ')'
                 )
         if escQuote:
-            self.pattern += (r'|(%s)' % _escapeRegexChars(escQuote))
+            self.pattern += (r'|(%s)' % re.escape(escQuote))
         if escChar:
-            self.pattern += (r'|(%s.)' % _escapeRegexChars(escChar))
-            self.escCharReplacePattern = self.escChar+"(.)"
-        self.pattern += (r')*%s' % _escapeRegexChars(self.quoteChar))
+            self.pattern += (r'|(%s.)' % re.escape(escChar))
+            self.escCharReplacePattern = re.escape(self.escChar)+"(.)"
+        self.pattern += (r')*%s' % re.escape(self.quoteChar))
         
         try:
             self.re = re.compile(self.pattern, self.flags)
@@ -1247,7 +1247,7 @@ class QuotedString(Token):
             raise exc
         
         loc = result.end()
-        ret = ParseResults(result.group())
+        ret = result.group()
         
         if self.unquoteResults:
             
@@ -1255,15 +1255,16 @@ class QuotedString(Token):
             quoteLen = len(self.quoteChar)
             ret = ret[quoteLen:-quoteLen]
                 
-            # replace escaped characters
-            if self.escChar:
-                ret = re.sub(self.escCharReplacePattern,"\g<1>",ret)
+            if isinstance(ret,basestring):
+                # replace escaped characters
+                if self.escChar:
+                    ret = re.sub(self.escCharReplacePattern,"\g<1>",ret)
 
-            # replace escaped quotes
-            if self.escQuote:
-                ret.replace(self.escQuote, self.quoteChar)
+                # replace escaped quotes
+                if self.escQuote:
+                    ret = ret.replace(self.escQuote, self.quoteChar)
 
-        return loc,ret
+        return loc, ret
     
     def __str__( self ):
         try:
@@ -2262,14 +2263,6 @@ def delimitedList( expr, delim=",", combine=False ):
     else:
         return ( expr + ZeroOrMore( Suppress( delim ) + expr ) ).setName(_ustr(expr)+_ustr(delim)+"...")
 
-def _escapeRegexChars(s):
-    #~  escape these chars: [\^$.|?*+()
-    for c in r"\[^$.|?*+()":
-        s = s.replace(c,"\\"+c)
-    s = s.replace("\n",r"\n")
-    s = s.replace("\t",r"\t")
-    return _ustr(s)
-    
 def _escapeRegexRangeChars(s):
     #~  escape these chars: ^-]
     for c in r"\^-]":
@@ -2313,7 +2306,7 @@ def oneOf( strs, caseless=False, useRegex=True ):
         if len(symbols)==len("".join(symbols)):
             return Regex( "[%s]" % "".join( [ _escapeRegexRangeChars(sym) for sym in symbols] ) )
         else:
-            return Regex( "|".join( [ _escapeRegexChars(sym) for sym in symbols] ) )
+            return Regex( "|".join( [ re.escape(sym) for sym in symbols] ) )
     else:
         return MatchFirst( [ parseElementClass(sym) for sym in symbols ] )
 
