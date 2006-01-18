@@ -61,7 +61,7 @@ The pyparsing module handles some of the problems that are typically vexing when
  - embedded comments
 """
 __version__ = "1.4"
-__versionTime__ = "6 January 2006 11:22"
+__versionTime__ = "17 January 2006 23:52"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
