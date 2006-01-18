@@ -1050,7 +1050,10 @@ class Word(Token):
                 self.reString = "[%s][%s]*" % \
                                       (_escapeRegexRangeChars(self.initCharsOrig),
                                       _escapeRegexRangeChars(self.bodyCharsOrig),)
-            self.re = re.compile( self.reString )
+            try:
+                self.re = re.compile( self.reString )
+            except:
+                self.re = None
         
     def parseImpl( self, instring, loc, doActions=True ):
         if self.re:
@@ -2303,12 +2306,16 @@ def oneOf( strs, caseless=False, useRegex=True ):
 
     if not caseless and useRegex:
         #~ print strs,"->", "|".join( [ _escapeRegexChars(sym) for sym in symbols] )
-        if len(symbols)==len("".join(symbols)):
-            return Regex( "[%s]" % "".join( [ _escapeRegexRangeChars(sym) for sym in symbols] ) )
-        else:
-            return Regex( "|".join( [ re.escape(sym) for sym in symbols] ) )
-    else:
-        return MatchFirst( [ parseElementClass(sym) for sym in symbols ] )
+        try:
+            if len(symbols)==len("".join(symbols)):
+                return Regex( "[%s]" % "".join( [ _escapeRegexRangeChars(sym) for sym in symbols] ) )
+            else:
+                return Regex( "|".join( [ re.escape(sym) for sym in symbols] ) )
+        except:
+            pass
+
+    # last resort, just use MatchFirst
+    return MatchFirst( [ parseElementClass(sym) for sym in symbols ] )
 
 def dictOf( key, value ):
     """Helper to easily and clearly define a dictionary by specifying the respective patterns
