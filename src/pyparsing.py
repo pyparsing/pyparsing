@@ -2466,9 +2466,9 @@ if __name__ == "__main__":
     fromToken      = CaselessLiteral( "from" )
 
     ident          = Word( alphas, alphanums + "_$" )
-    columnName     = Upcase( delimitedList( ident, ".", combine=True ) )
+    columnName     = delimitedList( ident, ".", combine=True ).setParseAction( upcaseTokens )
     columnNameList = Group( delimitedList( columnName ) )#.setName("columns")
-    tableName      = Upcase( delimitedList( ident, ".", combine=True ) )
+    tableName      = delimitedList( ident, ".", combine=True ).setParseAction( upcaseTokens )
     tableNameList  = Group( delimitedList( tableName ) )#.setName("tables")
     simpleSQL      = ( selectToken + \
                      ( '*' | columnNameList ).setResultsName( "columns" ) + \
