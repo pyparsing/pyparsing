@@ -1217,8 +1217,9 @@ class QuotedString(Token):
                   (escChar is not None and _escapeRegexRangeChars(escChar) or '') )
         if len(self.quoteChar) > 1:
             self.pattern += (
-                '|(' + ')|('.join("%s[^%s]" % (re.escape(self.quoteChar[:i]),
-                                               _escapeRegexRangeChars(self.quoteChar[i])) for i in range(len(self.quoteChar)-1,0,-1)) + ')'
+                '|(' + ')|('.join(["%s[^%s]" % (re.escape(self.quoteChar[:i]),
+                                               _escapeRegexRangeChars(self.quoteChar[i])) 
+                                    for i in range(len(self.quoteChar)-1,0,-1)]) + ')'
                 )
         if escQuote:
             self.pattern += (r'|(%s)' % re.escape(escQuote))
