@@ -2,8 +2,43 @@
 Change Log
 ==========
 
-Version 1.4 - January, 2006
-----------------------------------
+Version 1.4.1 - February, 2006
+------------------------------
+- Converted generator expression in QuotedString class to list 
+  comprehension, to retain compatibility with Python 2.3. (Thanks, Titus 
+  Brown for the heads-up!)
+
+- Added searchString() method to ParserElement, as an alternative to
+  using "scanString(instring).next()[0][0]" to search through a string 
+  looking for a substring matching a given parse expression. (Inspired by
+  e-mail conversation with Dave Feustel.)
+
+- Modified oneOf to accept lists of strings as well as a single string
+  of space-delimited literals.  (Suggested by Jacek Sieka - thanks!)
+
+- Removed deprecated use of Upcase in pyparsing test code. (Also caught by
+  Titus Brown.)
+
+- Removed lstrip() call from Literal - too aggressive in stripping
+  whitespace which may be valid for some grammars.  (Point raised by Jacek 
+  Sieka).  Also, made Literal more robust in the event of passing an empty 
+  string.
+  
+- Fixed bug in replaceWith when returning None.
+
+- Added cautionary documentation for Forward class when assigning a
+  MatchFirst expression, as in:
+    fwdExpr << a | b | c
+  Precedence of operators causes this to be evaluated as:
+    (fwdExpr << a) | b | c
+  thereby leaving b and c out as parseable alternatives.  Users must
+  explicitly group the values inserted into the Forward:
+    fwdExpr << (a | b | c)
+  (Suggested by Scot Wilcoxon - thanks, Scot!)
+  
+  
+Version 1.4 - January 18, 2006
+------------------------------
 - Added Regex class, to permit definition of complex embedded expressions 
   using regular expressions. (Enhancement provided by John Beisley, great 
   job!)
