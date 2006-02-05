@@ -1,6 +1,6 @@
 # module pyparsing.py
 #
-# Copyright (c) 2003,2004,2005  Paul T. McGuire
+# Copyright (c) 2003-2006  Paul T. McGuire
 #
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
@@ -60,8 +60,8 @@ The pyparsing module handles some of the problems that are typically vexing when
  - quoted strings
  - embedded comments
 """
-__version__ = "1.4"
-__versionTime__ = "18 January 2006 10:25"
+__version__ = "1.4.1"
+__versionTime__ = "05 February 2006 12:24"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -401,20 +401,19 @@ class ParseResults(object):
             return None
 
 def col (loc,strg):
-    """Returns current column within a string, counting newlines as line separators
+    """Returns current column within a string, counting newlines as line separators.
    The first column is number 1.
    """
     return loc - strg.rfind("\n", 0, loc)
 
 def lineno(loc,strg):
-    """Returns current line number within a string, counting newlines as line separators
+    """Returns current line number within a string, counting newlines as line separators.
    The first line is number 1.
    """
     return strg.count("\n",0,loc) + 1
 
 def line( loc, strg ):
-    """Returns the line of text containing loc within a string, counting newlines as line separators
-       The first line is number 1.
+    """Returns the line of text containing loc within a string, counting newlines as line separators.
        """
     lastCR = strg.rfind("\n", 0, loc)
     nextCR = strg.find("\n", loc)
@@ -670,6 +669,12 @@ class ParserElement(object):
         out.append(instring[lastE:])
         return "".join(out)
 
+    def searchString( self, instring ):
+        """Another extension to scanString, simplifying the access to the tokens found
+           to match the given parse expression.
+        """
+        return [ t[0] for t,s,e in self.scanString( instring ) ]
+            
     def __add__(self, other ):
         """Implementation of + operator - returns And"""
         if isinstance( other, basestring ):
@@ -876,10 +881,6 @@ class Literal(Token):
     """Token to exactly match a specified string."""
     def __init__( self, matchString ):
         super(Literal,self).__init__()
-        
-        # remove leading white space from matchString - this wont work anyway
-        matchString = matchString.lstrip()
-        
         self.match = matchString
         self.matchLen = len(matchString)
         try:
@@ -887,6 +888,7 @@ class Literal(Token):
         except IndexError:
             warnings.warn("null string passed to Literal; use Empty() instead", 
                             SyntaxWarning, stacklevel=2)
+            self.__class__ = Empty
         self.name = '"%s"' % self.match
         self.errmsg = "Expected " + self.name
         self.mayReturnEmpty = False
@@ -942,12 +944,14 @@ class Keyword(Token):
     def parseImpl( self, instring, loc, doActions=True ):
         if self.caseless:
             if ( (instring[ loc:loc+self.matchLen ].upper() == self.caselessmatch) and
-                 (loc >= len(instring)-self.matchLen or instring[loc+self.matchLen].upper() not in self.identChars) ):
+                 (loc >= len(instring)-self.matchLen or instring[loc+self.matchLen].upper() not in self.identChars) and
+                 (loc == 0 or instring[loc-1].upper() not in self.identChars) ):
                 return loc+self.matchLen, self.match
         else:
             if (instring[loc] == self.firstMatchChar and
                 (self.matchLen==1 or instring.startswith(self.match,loc)) and
-                (loc >= len(instring)-self.matchLen or instring[loc+self.matchLen] not in self.identChars) ):
+                (loc >= len(instring)-self.matchLen or instring[loc+self.matchLen] not in self.identChars) and
+                (loc == 0 or instring[loc-1] not in self.identChars) ):
                 return loc+self.matchLen, self.match
         #~ raise ParseException, ( instring, loc, self.errmsg )
         exc = self.myException
@@ -1198,6 +1202,7 @@ class QuotedString(Token):
             raise SyntaxError()
         
         self.quoteChar = quoteChar
+        self.quoteCharLen = len(quoteChar)
         self.firstQuoteChar = quoteChar[0]
         self.escChar = escChar
         self.escQuote = escQuote
@@ -1256,8 +1261,7 @@ class QuotedString(Token):
         if self.unquoteResults:
             
             # strip off quotes
-            quoteLen = len(self.quoteChar)
-            ret = ret[quoteLen:-quoteLen]
+            ret = ret[self.quoteCharLen:-self.quoteCharLen]
                 
             if isinstance(ret,basestring):
                 # replace escaped characters
@@ -2111,6 +2115,15 @@ class Forward(ParseElementEnhance):
     """Forward declaration of an expression to be defined later -
        used for recursive grammars, such as algebraic infix notation.
        When the expression is known, it is assigned to the Forward variable using the '<<' operator.
+       
+       Note: take care when assigning to Forward to not overlook precedence of operators.
+       Specifically, '|' has a lower precedence than '<<', so that::
+          fwdExpr << a | b | c
+       will actually be evaluated as::
+          (fwdExpr << a) | b | c
+       thereby leaving b and c out as parseable alternatives.  It is recommended that you
+       explicitly group the values inserted into the Forward::
+          fwdExpr << (a | b | c)
     """
     def __init__( self, other=None ):
         super(Forward,self).__init__( other, savelist=False )
@@ -2142,14 +2155,15 @@ class Forward(ParseElementEnhance):
     def __str__( self ):
         if hasattr(self,"name"):
             return self.name
-            
-        strmethod = self.__str__
+
         self.__class__ = _ForwardNoRecurse
-        if self.expr is not None: 
-            retString = _ustr(self.expr)
-        else:
-            retString = "None"
-        self.__class__ = Forward
+        try:
+            if self.expr is not None: 
+                retString = _ustr(self.expr)
+            else:
+                retString = "None"
+        finally:
+            self.__class__ = Forward
         return "Forward: "+retString
 
 class _ForwardNoRecurse(Forward):
@@ -2278,7 +2292,14 @@ def _escapeRegexRangeChars(s):
 def oneOf( strs, caseless=False, useRegex=True ):
     """Helper to quickly define a set of alternative Literals, and makes sure to do 
        longest-first testing when there is a conflict, regardless of the input order, 
-       but returns a MatchFirst for best performance.
+       but returns a MatchFirst for best performance.  
+       
+       Parameters:
+        - strs - a string of space-delimited literals, or a list of string literals
+        - caseless - (default=False) - treat all literals as caseless
+        - useRegex - (default=True) - as an optimization, will generate a Regex
+          object; otherwise, will generate a MatchFirst object (if caseless=True, or
+          if creating a Regex raises an exception)
     """
     if caseless:
         isequal = ( lambda a,b: a.upper() == b.upper() )
@@ -2289,7 +2310,14 @@ def oneOf( strs, caseless=False, useRegex=True ):
         masks = ( lambda a,b: b.startswith(a) )
         parseElementClass = Literal
     
-    symbols = strs.split()
+    if isinstance(strs,list):
+        symbols = strs[:]
+    elif isinstance(strs,basestring):
+        symbols = strs.split()
+    else:
+        warnings.warn("Invalid argument to oneOf, expected string or list",
+                SyntaxWarning, stacklevel=2)
+        
     i = 0
     while i < len(symbols)-1:
         cur = symbols[i]
@@ -2313,7 +2341,9 @@ def oneOf( strs, caseless=False, useRegex=True ):
             else:
                 return Regex( "|".join( [ re.escape(sym) for sym in symbols] ) )
         except:
-            pass
+            warnings.warn("Exception creating Regex for oneOf, building MatchFirst",
+                    SyntaxWarning, stacklevel=2)
+
 
     # last resort, just use MatchFirst
     return MatchFirst( [ parseElementClass(sym) for sym in symbols ] )
@@ -2374,7 +2404,7 @@ def replaceWith(replStr):
        useful when used with transformString().
     """
     def _replFunc(*args):
-        return replStr
+        return [replStr]
     return _replFunc
 
 def removeQuotes(s,l,t):
