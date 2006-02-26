@@ -60,8 +60,8 @@ The pyparsing module handles some of the problems that are typically vexing when
  - quoted strings
  - embedded comments
 """
-__version__ = "1.4.1"
-__versionTime__ = "05 February 2006 12:24"
+__version__ = "1.4.2"
+__versionTime__ = "06 February 2006 07:10"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -192,6 +192,9 @@ class ParseResults(object):
                 self.__toklist = [toklist]
             self.__tokdict = dict()
 
+        # this line is related to debugging the asXML bug
+        #~ asList = False
+        
         if name:
             if not self.__name:
                 self.__modal = self.__modal and modal
@@ -438,7 +441,10 @@ def nullDebugAction(*args):
 class ParserElement(object):
     """Abstract base level parser element class."""
     DEFAULT_WHITE_CHARS = " \n\t\r"
-
+    
+    # argument cache for optimizing repeated calls when backtracking through recursive expressions
+    exprArgCache = {}
+    
     def setDefaultWhitespaceChars( chars ):
         """Overrides the default whitespace chars
         """
@@ -576,6 +582,7 @@ class ParserElement(object):
                     if tokens is not None:
                         if isinstance(tokens,tuple):
                             tokens = tokens[1]
+                            warnings.warn("Returning loc from parse actions is deprecated, return only modified tokens", DeprecationWarning,stacklevel=2)
                         retTokens = ParseResults( tokens, 
                                                   self.resultsName, 
                                                   asList=self.saveAsList and isinstance(tokens,(ParseResults,list)), 
@@ -590,6 +597,7 @@ class ParserElement(object):
                 if tokens is not None:
                     if isinstance(tokens,tuple):
                         tokens = tokens[1]
+                        warnings.warn("Returning loc from parse actions is deprecated, return only modified tokens", DeprecationWarning,stacklevel=2)
                     retTokens = ParseResults( tokens, 
                                               self.resultsName, 
                                               asList=self.saveAsList and isinstance(tokens,(ParseResults,list)), 
@@ -610,6 +618,7 @@ class ParserElement(object):
            This is the main interface to the client code, once the complete 
            expression has been built.
         """
+        ParserElement.exprArgCache.clear()
         if not self.streamlined:
             self.streamline()
             self.saveAsList = True
@@ -995,7 +1004,7 @@ class CaselessLiteral(Literal):
 
 class CaselessKeyword(Keyword):
     def __init__( self, matchString, identChars=Keyword.DEFAULT_KEYWORD_CHARS ):
-        super(CaselessKeyword,self).__init__( matchString, identCars, caseless=True )
+        super(CaselessKeyword,self).__init__( matchString, identChars, caseless=True )
 
     def parseImpl( self, instring, loc, doActions=True ):
         if ( (instring[ loc:loc+self.matchLen ].upper() == self.caselessmatch) and
@@ -1863,11 +1872,23 @@ class ParseElementEnhance(ParserElement):
             self.skipWhitespace = expr.skipWhitespace
             self.whiteChars = expr.whiteChars
 
+    # this parseImpl gets repeatedly called during backtracking with the same arguments -
+    # we can cache these arguments and save ourselves the trouble of re-parsing the contained expression
     def parseImpl( self, instring, loc, doActions=True ):
         if self.expr is not None:
-            return self.expr.parse( instring, loc, doActions )
-        else:
-            raise ParseException(instring,loc,"",self)
+            lookup = (self,instring,loc,doActions)
+            try:
+                value = ParserElement.exprArgCache[ lookup ]
+                if isinstance(value,ParseException):
+                    raise value
+                return value
+            except KeyError:
+                try:
+                    ParserElement.exprArgCache[ lookup ] = value = self.expr.parse( instring, loc, doActions )
+                    return value
+                except ParseException, pe:
+                    ParserElement.exprArgCache[ lookup ] = pe
+                    raise
 
     def leaveWhitespace( self ):
         self.skipWhitespace = False
@@ -2310,7 +2331,7 @@ def oneOf( strs, caseless=False, useRegex=True ):
         masks = ( lambda a,b: b.startswith(a) )
         parseElementClass = Literal
     
-    if isinstance(strs,list):
+    if isinstance(strs,(list,tuple)):
         symbols = strs[:]
     elif isinstance(strs,basestring):
         symbols = strs.split()
