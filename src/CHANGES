@@ -2,6 +2,70 @@
 Change Log
 ==========
 
+Version 1.4.2 - March, 2006
+------------------------------
+- Significant speedup from memoizing nested expressions (a technique 
+  known as "packrat parsing"), thanks to Chris Lesniewski-Laas!  Your 
+  mileage may vary, but my Verilog parser doubled in speed to over 
+  700 lines/sec!
+  
+  This speedup may break existing programs that use parse actions that 
+  have side-effects.  For this reason, packrat parsing is disabled when
+  you first import pyparsing.  To activate the packrat feature, your
+  program must call the class method ParserElement.enablePackrat().  If
+  your program uses psyco to "compile as you go", you must call 
+  enablePackrat before calling psyco.full().  If you do not do this,
+  Python will crash.  For best results, call enablePackrat() immediately
+  after importing pyparsing.
+
+- Added new helper method countedArray(expr), for defining patterns that
+  start with a leading integer to indicate the number of array elements, 
+  followed by that many elements, matching the given expr parse 
+  expression.  For instance, this two-liner:
+    wordArray = countedArray(Word(alphas))
+    print wordArray.parseString("3 Practicality beats purity")[0]
+  returns the parsed array of words:
+    ['Practicality', 'beats', 'purity']
+  (Inspired by e-mail discussion with Ralf Vosseler.)
+
+- Added support for attaching multiple parse actions to a single 
+  ParserElement. (Suggested by Dan "Dang" Griffith - nice idea, Dan!)
+
+- Changed the default value returned internally by Optional, so that
+  None can be used as a default value.  (Suggested by Steven Bethard - 
+  I finally saw the light!)
+
+- Added dump() method to ParseResults, to make it easier to list out
+  and diagnose values returned from calling parseString.
+
+- A new example, a search query string parser, submitted by Steven 
+  Mooij and Rudolph Froger - a very interesting application, thanks!
+
+- Added an example that parses the BNF in Python's Grammar file, in 
+  support of generating Python grammar documentation. (Suggested by
+  J H Stovall.)
+  
+- A new example, submitted by Tim Cera, of a flexible parser module,
+  using a simple config variable to adjust parsing for input formats
+  that have slight variations - thanks, Tim!
+
+- Added a new docs directory, for additional documentation or help.
+  Currently, this includes the text and examples from my recent
+  presentation at PyCon.
+  
+- Fixed another typo in CaselessKeyword, thanks Stefan Behnel.
+
+- Expanded oneOf to also accept tuples, not just lists.  This really 
+  should be sufficient...
+
+- Added deprecation warnings when tuple is returned from a parse action.
+  Looking back, I see that I originally deprecated this feature in March,
+  2004, so I'm guessing people really shouldn't have been using this 
+  feature - I'll drop it altogether in 1.5, which will allow users to
+  return a tuple from a parse action (which is really handy when trying 
+  to reconstuct tuples from a tuple string representation!).
+
+
 Version 1.4.1 - February, 2006
 ------------------------------
 - Converted generator expression in QuotedString class to list 
