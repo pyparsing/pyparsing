@@ -2,12 +2,12 @@
 Change Log
 ==========
 
-Version 1.4.2 - March, 2006
+Version 1.4.2 - April, 2006
 ------------------------------
 - Significant speedup from memoizing nested expressions (a technique 
   known as "packrat parsing"), thanks to Chris Lesniewski-Laas!  Your 
-  mileage may vary, but my Verilog parser doubled in speed to over 
-  700 lines/sec!
+  mileage may vary, but my Verilog parser almost doubled in speed to 
+  over 600 lines/sec!
   
   This speedup may break existing programs that use parse actions that 
   have side-effects.  For this reason, packrat parsing is disabled when
@@ -26,10 +26,20 @@ Version 1.4.2 - March, 2006
     print wordArray.parseString("3 Practicality beats purity")[0]
   returns the parsed array of words:
     ['Practicality', 'beats', 'purity']
+  The leading token '3' is suppressed, although it is easily obtained
+  from the length of the returned array.
   (Inspired by e-mail discussion with Ralf Vosseler.)
 
 - Added support for attaching multiple parse actions to a single 
   ParserElement. (Suggested by Dan "Dang" Griffith - nice idea, Dan!)
+
+- Added support for asymmetric quoting characters in the recently-added
+  QuotedString class.  Now you can define your own quoted string syntax
+  like "<<This is a string in double angle brackets.>>".  To define
+  this custom form of QuotedString, your code would define:
+    dblAngleQuotedString = QuotedString('<<',endQuoteChar='>>')
+  QuotedString also supports escaped quotes, escape character other 
+  than '\', and multiline.
 
 - Changed the default value returned internally by Optional, so that
   None can be used as a default value.  (Suggested by Steven Bethard - 
@@ -48,6 +58,10 @@ Version 1.4.2 - March, 2006
 - A new example, submitted by Tim Cera, of a flexible parser module,
   using a simple config variable to adjust parsing for input formats
   that have slight variations - thanks, Tim!
+  
+- Added an example for parsing Roman numerals, showing the capability
+  of parse actions to "compile" Roman numerals into their integer
+  values during parsing.
 
 - Added a new docs directory, for additional documentation or help.
   Currently, this includes the text and examples from my recent
@@ -61,9 +75,10 @@ Version 1.4.2 - March, 2006
 - Added deprecation warnings when tuple is returned from a parse action.
   Looking back, I see that I originally deprecated this feature in March,
   2004, so I'm guessing people really shouldn't have been using this 
-  feature - I'll drop it altogether in 1.5, which will allow users to
-  return a tuple from a parse action (which is really handy when trying 
-  to reconstuct tuples from a tuple string representation!).
+  feature - I'll drop it altogether in the next release, which will 
+  allow users to return a tuple from a parse action (which is really 
+  handy when trying to reconstuct tuples from a tuple string 
+  representation!).
 
 
 Version 1.4.1 - February, 2006
