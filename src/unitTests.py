@@ -1,6 +1,7 @@
 # -*- coding: UTF-8 -*-
 from unittest import TestCase, TestSuite, TextTestRunner
 from pyparsing import ParseException
+import HTMLTestRunner
 
 import pprint
 import pdb
@@ -203,7 +204,7 @@ class ParseCommaSeparatedValuesTest(ParseTestCase):
 class ParseEBNFTest(ParseTestCase):
     def runTest(self):
         import ebnf
-        from pyparsing import Word, quotedString, alphas, nums
+        from pyparsing import Word, quotedString, alphas, nums,ParserElement
         
         print 'Constructing EBNF parser with pyparsing...'
         
@@ -647,7 +648,7 @@ class CommentParserTest(ParseTestCase):
 
 class ParseExpressionResultsTest(ParseTestCase):
     def runTest(self):
-        from pyparsing import Word,alphas,OneOrMore,Optional
+        from pyparsing import Word,alphas,OneOrMore,Optional,Group
 
         a = Word("a",alphas).setName("A")
         b = Word("b",alphas).setName("B")
@@ -657,7 +658,7 @@ class ParseExpressionResultsTest(ParseTestCase):
         word = Word(alphas).setName("word")
         
         #~ words = OneOrMore(word).setName("words")
-        words = OneOrMore(~a + word).setName("words")
+        words = Group(OneOrMore(~a + word)).setName("words")
         
         #~ phrase = words.setResultsName("Head") + \
                     #~ ( abc ^ ab ^ a ).setResultsName("ABC") + \
@@ -666,7 +667,7 @@ class ParseExpressionResultsTest(ParseTestCase):
                     #~ ( abc | ab | a ).setResultsName("ABC") + \
                     #~ words.setResultsName("Tail")
         phrase = words.setResultsName("Head") + \
-                    ( a + Optional(b + Optional(c)) ).setResultsName("ABC") + \
+                    Group( a + Optional(b + Optional(c)) ).setResultsName("ABC") + \
                     words.setResultsName("Tail")
         
         results = phrase.parseString("xavier yeti alpha beta charlie will beaver")
@@ -818,7 +819,7 @@ class CustomQuotesTest(ParseTestCase):
             sdlfjs -sdf\:jls::--djf: sl-kfsjf
             sdlfjs -sdf\:::jls::--djf: sl:::-kfsjf
             sdlfjs ^sdf\:jls^^--djf^ sl-kfsjf
-            sdlfjs ^^^==sdf\:j=ls::--djf: sl=^^=kfsjf
+            sdlfjs ^^^==sdf\:j=lz::--djf: sl=^^=kfsjf
             sdlfjs ==sdf\:j=ls::--djf: sl==kfsjf^^^
         """
         colonQuotes = QuotedString(':','\\','::')
@@ -829,19 +830,19 @@ class CustomQuotesTest(ParseTestCase):
         
         def test(quoteExpr, expected):
             print quoteExpr.pattern
-            assert quoteExpr.scanString(testString).next()[0][0] == expected, \
+            print quoteExpr.searchString(testString)[0]
+            assert quoteExpr.searchString(testString)[0] == expected, \
                     "failed to match %s" % quoteExpr
-            print quoteExpr.scanString(testString).next()[0][0]
         
-        test(colonQuotes, r":sdf\:jls::djf:")
-        test(dashQuotes,  r"-sdf\:jls::--djf: sl-")
-        test(hatQuotes,   r"^sdf\:jls^")
-        test(hatQuotes1,  r"^sdf\:jls^^--djf^")
-        test(dblEqQuotes, r"==sdf\:j=ls::--djf: sl==")
-        test( QuotedString(':::'), ':::jls::--djf: sl:::')
-        test( QuotedString('^^^',multiline=True), """^^^==sdf\:j=ls::--djf: sl=^^=kfsjf
-            sdlfjs ==sdf\:j=ls::--djf: sl==kfsjf^^^""")
-            
+        test(colonQuotes, r"sdf:jls:djf")
+        test(dashQuotes,  r"sdf:jls::-djf: sl")
+        test(hatQuotes,   r"sdf:jls")
+        test(hatQuotes1,  r"sdf:jls^--djf")
+        test(dblEqQuotes, r"sdf:j=ls::--djf: sl")
+        test( QuotedString(':::'), 'jls::--djf: sl')
+        test( QuotedString('==',endQuoteChar='--'), 'sdf\:j=lz::')
+        test( QuotedString('^^^',multiline=True), """==sdf\:j=lz::--djf: sl=^^=kfsjf
+            sdlfjs ==sdf\:j=ls::--djf: sl==kfsjf""")
         try:
             bad1 = QuotedString('','\\')
         except SyntaxError,se:
@@ -871,7 +872,9 @@ class MiscellaneousParserTests(ParseTestCase):
         print "verify proper streamline logic"
         compound = pyparsing.Literal("A") + "B" + "C" + "D"
         assert len(compound.exprs) == 2,"bad test setup"
+        print compound
         compound.streamline()
+        print compound
         assert len(compound.exprs) == 4,"streamline not working"
         
         # test for Optional with results name and no match
@@ -946,6 +949,14 @@ class MiscellaneousParserTests(ParseTestCase):
         testGrammar = "A" + pyparsing.Optional("B") + pyparsing.Optional("C") + pyparsing.Optional("D")
         testGrammar.parseString("A")
         testGrammar.parseString("AB")
+        
+        # test creating Literal with empty string
+        print 'verify non-fatal usage of Literal("")'
+        e = pyparsing.Literal("")
+        try:
+            e.parseString("SLJFD")
+        except Exception,e:
+            assert False, "Failed to handle empty Literal"
 
 class ParseHTMLTagsTest(ParseTestCase):
     def runTest(self):
@@ -1063,6 +1074,28 @@ class ParseUsingRegex(ParseTestCase):
             
         invRe = pyparsing.Regex('')
 
+class CountedArrayTest(ParseTestCase):
+    def runTest(self):
+        from pyparsing import Word,nums,OneOrMore,countedArray
+        
+        testString = "2 5 7 6 0 1 2 3 4 5 0 3 5 4 3"
+
+        integer = Word(nums).setParseAction(lambda s,l,t: int(t[0]))
+        countedField = countedArray(integer)
+        
+        r = OneOrMore(countedField).parseString( testString )
+        print r.asList()
+        
+        assert r.asList() == [[5,7],[0,1,2,3,4,5],[],[5,4,3]], \
+                "Failed matching countedArray, got " + str(r.asList())
+
+
+class EnablePackratParsing(ParseTestCase):
+    def runTest(self):
+        from pyparsing import ParserElement
+        ParserElement.enablePackrat()
+
+
 def makeTestSuite():
     suite = TestSuite()
     suite.addTest( PyparsingTestInit() )
@@ -1086,9 +1119,47 @@ def makeTestSuite():
     suite.addTest( ParseHTMLTagsTest() )
     suite.addTest( ParseUsingRegex() )
     suite.addTest( SkipToParserTests() )
+    suite.addTest( CountedArrayTest() )
+    suite.addTest( MiscellaneousParserTests() )
+    
+    # retest using packrat parsing (disable those tests that aren't compatible)
+    suite.addTest( EnablePackratParsing() )
+    
+    #~ suite.addTest( ParseIDLTest() )
+    suite.addTest( ParseASMLTest() )
+    suite.addTest( ParseFourFnTest() )
+    suite.addTest( ParseSQLTest() )
+    suite.addTest( ParseConfigFileTest() )
+    suite.addTest( ParseCommaSeparatedValuesTest() )
+    #~ suite.addTest( ParseEBNFTest() )
+    suite.addTest( ScanStringTest() )
+    suite.addTest( QuotedStringsTest() )
+    suite.addTest( CustomQuotesTest() )
+    suite.addTest( CaselessOneOfTest() )
+    suite.addTest( AsXMLTest() )
+    suite.addTest( CommentParserTest() )
+    suite.addTest( ParseExpressionResultsTest() )
+    suite.addTest( ParseExpressionResultsAccumulateTest() )
+    suite.addTest( ReStringRangeTest() )
+    suite.addTest( ParseKeywordTest() )
+    suite.addTest( ParseHTMLTagsTest() )
+    suite.addTest( ParseUsingRegex() )
+    suite.addTest( SkipToParserTests() )
+    suite.addTest( CountedArrayTest() )
     suite.addTest( MiscellaneousParserTests() )
     return suite
     
 
-testRunner = TextTestRunner()
+#~ # console mode
+#~ testRunner = TextTestRunner()
+#~ testRunner.run( makeTestSuite() )
+
+# HTML mode
+outfile = "testResults.html"
+outstream = file(outfile,"w")
+testRunner = HTMLTestRunner.HTMLTestRunner( stream=outstream )
 testRunner.run( makeTestSuite() )
+outstream.close()
+
+import os
+os.system(outfile)
