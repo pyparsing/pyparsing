@@ -5,10 +5,10 @@ Using the pyparsing module
 :author: Paul McGuire
 :address: ptmcg@users.sourceforge.net
 
-:revision: 1.3
-:date: March, 2005
+:revision: 1.4.2
+:date: April, 2006
 
-:copyright: Copyright |copy| 2003-2005 Paul McGuire. 
+:copyright: Copyright |copy| 2003-2006 Paul McGuire. 
 
 .. |copy| unicode:: 0xA9
 
@@ -198,6 +198,10 @@ methods for code to use are:
   text with the tokens returned from parse actions defined in the grammar
   (see setParseAction_).
 
+- ``searchString( sourceString )`` - another convenience wrapper function for
+  ``scanString``, returns a list of the matching tokens returned from each
+  call to ``scanString``.
+
 - ``setName( name )`` - associate a short descriptive name for this
   element, useful in displaying exceptions and trace information
 
@@ -213,8 +217,8 @@ methods for code to use are:
 
 .. _setParseAction:
 
-- ``setParseAction( fn )`` - function to call after successful
-  matching of the element; the function is defined as ``fn( s,
+- ``setParseAction( *fn )`` - specify one or more functions to call after successful
+  matching of the element; each function is defined as ``fn( s,
   loc, toks )``, where:
   
   - ``s`` is the original parse string
@@ -223,7 +227,10 @@ methods for code to use are:
   
   - ``toks`` is the list of the matched tokens, packaged as a ParseResults_ object
   
-  ``fn`` can return a modified ``toks`` list, to perform conversion, or
+  Multiple functions can be attached to a ParserElement by specifying multiple
+  arguments to setParseAction, or by calling setParseAction multiple times.
+  
+  Each parse action function can return a modified ``toks`` list, to perform conversion, or
   string modifications.  For brevity, ``fn`` may also be a
   lambda - here is an example of using a parse action to convert matched
   integer tokens from strings to integers::
@@ -267,9 +274,19 @@ methods for code to use are:
   
 .. _parseWithTabs:
 
-- ``parseWithTabs`` - function to override default behavior of converting
+- ``parseWithTabs()`` - function to override default behavior of converting
   tabs to spaces before parsing the input string; rarely used, except when
   specifying whitespace-significant grammars using the White_ class.
+
+- ``enablePackrat()`` - a class-level static method to enable a memoizing
+  performance enhancement, known as "packrat parsing".  packrat parsing is 
+  disabled by default, since it may conflict with some user programs that use
+  parse actions.  To activate the packrat feature, your
+  program must call the class method ParserElement.enablePackrat().  If
+  your program uses psyco to "compile as you go", you must call 
+  enablePackrat before calling psyco.full().  If you do not do this,
+  Python will crash.  For best results, call enablePackrat() immediately
+  after importing pyparsing.
 
 
 Basic ParserElement subclasses
@@ -285,6 +302,9 @@ Basic ParserElement subclasses
   whitespace, punctuation, or other non-keyword characters; prevents
   accidental matching of a non-keyword that happens to begin with a
   defined keyword
+  
+- ``CaselessKeyword`` - similar to Keyword, but with caseless matching
+  behavior
   
 .. _Word:
 
@@ -328,6 +348,29 @@ Basic ParserElement subclasses
   initial and body characters); also supports min, max, and exact
   optional parameters.
 
+- ``Regex`` - a powerful construct, that accepts a regular expression
+  to be matched at the current parse position; accepts an optional
+  flags parameter, corresponding to the flags parameter in the re.compile
+  method; if the expression includes named sub-fields, they will be 
+  represented in the returned ParseResults_
+
+- ``QuotedString`` - supports the definition of custom quoted string
+  formats, in addition to pyparsing's built-in dblQuotedString and
+  sglQuotedString.  QuotedString allows you to specify the following 
+  parameters:
+  
+  - quoteChar - string of one or more characters defining the quote delimiting string
+  
+  - escChar - character to escape quotes, typically backslash (default=None)
+  
+  - escQuote - special quote sequence to escape an embedded quote string (such as SQL's "" to escape an embedded ") (default=None)
+  
+  - multiline - boolean indicating whether quotes can span multiple lines (default=False)
+  
+  - unquoteResults - boolean indicating whether the matched text should be unquoted (default=True)
+  
+  - endQuoteChar - string of one or more characters defining the end of the quote delimited string (default=None => same as quoteChar)
+    
 - ``SkipTo`` - skips ahead in the input string, accepting any
   characters up to the specified pattern; may be constructed with 
   the following optional parameters:
@@ -372,9 +415,13 @@ Expression subclasses
   left-to-right, taking the first expression that matches; can
   also be created using the '|' operator
 
+- ``Each`` - similar to And, in that all of the provided expressions
+  must match; however, Each permits matching to be done in any order;
+  can also be created using the '&' operator
+  
 - ``Optional`` - construct with a ParserElement, but this element is
   not required to match; can be constructed with an optional ``default`` argument,
-  containing a default string to be supplied if the given optional
+  containing a default string or object to be supplied if the given optional
   parse element is not found in the input string; parse action will only
   be called if a match is found, or if a default is specified
 
@@ -533,7 +580,14 @@ Helper methods
   indicating that the expressions and delimiters should be returned as one
   combined value (useful for scoped variables, such as ``a.b.c``, or 
   ``a::b::c``, or paths such as ``a/b/c``).
-  
+
+- ``countedArray( expr )`` - convenience function for a pattern where an list of
+  instances of the given expression are preceded by an integer giving the count of
+  elements in the list.  Returns an expression that parses the leading integer,
+  reads exactly that many expressions, and returns the array of expressions in the
+  parse results - the leading integer is suppressed from the results (although it
+  is easily reconstructed by using len on the returned array).
+
 - ``oneOf( string, caseless=False )`` - convenience function for quickly declaring an
   alternative set of ``Literal`` tokens, by splitting the given string on 
   whitespace boundaries.  The tokens are sorted so that longer
@@ -544,6 +598,13 @@ Helper methods
 - ``dictOf( key, value )`` - convenience function for quickly declaring a 
   dictionary pattern of ``Dict( ZeroOrMore( Group( key + value ) ) )``.
 
+- ``makeHTMLTags( tagName )`` and ``makeXMLTags( tagName )`` - convenience
+  functions to create definitions of opening and closing tag expressions.  Returns
+  a pair of expressions, for the corresponding <tag> and </tag> strings.  Includes
+  support for attributes in the opening tag, such as <tag attr1="abc"> - attributes
+  are returned as keyed tokens in the returned ParseResults.  makeHTMLTags is less
+  restrictive than makeXMLTags, especially with respect to case sensitivity.
+  
 - ``lineno( loc, string )`` - function to give the line number of the
   location within the string; the first line is line 1, newlines
   start new rows

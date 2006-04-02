@@ -3,12 +3,294 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-<meta name="generator" content="Docutils 0.3.7: http://docutils.sourceforge.net/" />
+<meta name="generator" content="Docutils 0.3.10: http://docutils.sourceforge.net/" />
 <title>Using the pyparsing module</title>
 <meta name="author" content="Paul McGuire" />
-<meta name="date" content="March, 2005" />
-<meta name="copyright" content="Copyright © 2003-2005 Paul McGuire." />
-<link rel="stylesheet" href="default.css" type="text/css" />
+<meta name="date" content="April, 2006" />
+<meta name="copyright" content="Copyright © 2003-2006 Paul McGuire." />
+<style type="text/css">
+
+/*
+:Author: David Goodger
+:Contact: goodger@users.sourceforge.net
+:Date: $Date: 2005-12-18 01:56:14 +0100 (Sun, 18 Dec 2005) $
+:Revision: $Revision: 4224 $
+:Copyright: This stylesheet has been placed in the public domain.
+
+Default cascading style sheet for the HTML output of Docutils.
+
+See http://docutils.sf.net/docs/howto/html-stylesheets.html for how to
+customize this style sheet.
+*/
+
+/* used to remove borders from tables and images */
+.borderless, table.borderless td, table.borderless th {
+  border: 0 }
+
+table.borderless td, table.borderless th {
+  /* Override padding for "table.docutils td" with "! important".
+     The right padding separates the table cells. */
+  padding: 0 0.5em 0 0 ! important }
+
+.first {
+  /* Override more specific margin styles with "! important". */
+  margin-top: 0 ! important }
+
+.last, .with-subtitle {
+  margin-bottom: 0 ! important }
+
+.hidden {
+  display: none }
+
+a.toc-backref {
+  text-decoration: none ;
+  color: black }
+
+blockquote.epigraph {
+  margin: 2em 5em ; }
+
+dl.docutils dd {
+  margin-bottom: 0.5em }
+
+/* Uncomment (and remove this text!) to get bold-faced definition list terms
+dl.docutils dt {
+  font-weight: bold }
+*/
+
+div.abstract {
+  margin: 2em 5em }
+
+div.abstract p.topic-title {
+  font-weight: bold ;
+  text-align: center }
+
+div.admonition, div.attention, div.caution, div.danger, div.error,
+div.hint, div.important, div.note, div.tip, div.warning {
+  margin: 2em ;
+  border: medium outset ;
+  padding: 1em }
+
+div.admonition p.admonition-title, div.hint p.admonition-title,
+div.important p.admonition-title, div.note p.admonition-title,
+div.tip p.admonition-title {
+  font-weight: bold ;
+  font-family: sans-serif }
+
+div.attention p.admonition-title, div.caution p.admonition-title,
+div.danger p.admonition-title, div.error p.admonition-title,
+div.warning p.admonition-title {
+  color: red ;
+  font-weight: bold ;
+  font-family: sans-serif }
+
+/* Uncomment (and remove this text!) to get reduced vertical space in
+   compound paragraphs.
+div.compound .compound-first, div.compound .compound-middle {
+  margin-bottom: 0.5em }
+
+div.compound .compound-last, div.compound .compound-middle {
+  margin-top: 0.5em }
+*/
+
+div.dedication {
+  margin: 2em 5em ;
+  text-align: center ;
+  font-style: italic }
+
+div.dedication p.topic-title {
+  font-weight: bold ;
+  font-style: normal }
+
+div.figure {
+  margin-left: 2em ;
+  margin-right: 2em }
+
+div.footer, div.header {
+  clear: both;
+  font-size: smaller }
+
+div.line-block {
+  display: block ;
+  margin-top: 1em ;
+  margin-bottom: 1em }
+
+div.line-block div.line-block {
+  margin-top: 0 ;
+  margin-bottom: 0 ;
+  margin-left: 1.5em }
+
+div.sidebar {
+  margin-left: 1em ;
+  border: medium outset ;
+  padding: 1em ;
+  background-color: #ffffee ;
+  width: 40% ;
+  float: right ;
+  clear: right }
+
+div.sidebar p.rubric {
+  font-family: sans-serif ;
+  font-size: medium }
+
+div.system-messages {
+  margin: 5em }
+
+div.system-messages h1 {
+  color: red }
+
+div.system-message {
+  border: medium outset ;
+  padding: 1em }
+
+div.system-message p.system-message-title {
+  color: red ;
+  font-weight: bold }
+
+div.topic {
+  margin: 2em }
+
+h1.section-subtitle, h2.section-subtitle, h3.section-subtitle,
+h4.section-subtitle, h5.section-subtitle, h6.section-subtitle {
+  margin-top: 0.4em }
+
+h1.title {
+  text-align: center }
+
+h2.subtitle {
+  text-align: center }
+
+hr.docutils {
+  width: 75% }
+
+img.align-left {
+  clear: left }
+
+img.align-right {
+  clear: right }
+
+ol.simple, ul.simple {
+  margin-bottom: 1em }
+
+ol.arabic {
+  list-style: decimal }
+
+ol.loweralpha {
+  list-style: lower-alpha }
+
+ol.upperalpha {
+  list-style: upper-alpha }
+
+ol.lowerroman {
+  list-style: lower-roman }
+
+ol.upperroman {
+  list-style: upper-roman }
+
+p.attribution {
+  text-align: right ;
+  margin-left: 50% }
+
+p.caption {
+  font-style: italic }
+
+p.credits {
+  font-style: italic ;
+  font-size: smaller }
+
+p.label {
+  white-space: nowrap }
+
+p.rubric {
+  font-weight: bold ;
+  font-size: larger ;
+  color: maroon ;
+  text-align: center }
+
+p.sidebar-title {
+  font-family: sans-serif ;
+  font-weight: bold ;
+  font-size: larger }
+
+p.sidebar-subtitle {
+  font-family: sans-serif ;
+  font-weight: bold }
+
+p.topic-title {
+  font-weight: bold }
+
+pre.address {
+  margin-bottom: 0 ;
+  margin-top: 0 ;
+  font-family: serif ;
+  font-size: 100% }
+
+pre.literal-block, pre.doctest-block {
+  margin-left: 2em ;
+  margin-right: 2em ;
+  background-color: #eeeeee }
+
+span.classifier {
+  font-family: sans-serif ;
+  font-style: oblique }
+
+span.classifier-delimiter {
+  font-family: sans-serif ;
+  font-weight: bold }
+
+span.interpreted {
+  font-family: sans-serif }
+
+span.option {
+  white-space: nowrap }
+
+span.pre {
+  white-space: pre }
+
+span.problematic {
+  color: red }
+
+span.section-subtitle {
+  /* font-size relative to parent (h1..h6 element) */
+  font-size: 80% }
+
+table.citation {
+  border-left: solid 1px gray;
+  margin-left: 1px }
+
+table.docinfo {
+  margin: 2em 4em }
+
+table.docutils {
+  margin-top: 0.5em ;
+  margin-bottom: 0.5em }
+
+table.footnote {
+  border-left: solid 1px black;
+  margin-left: 1px }
+
+table.docutils td, table.docutils th,
+table.docinfo td, table.docinfo th {
+  padding-left: 0.5em ;
+  padding-right: 0.5em ;
+  vertical-align: top }
+
+table.docutils th.field-name, table.docinfo th.docinfo-name {
+  font-weight: bold ;
+  text-align: left ;
+  white-space: nowrap ;
+  padding-left: 0 }
+
+h1 tt.docutils, h2 tt.docutils, h3 tt.docutils,
+h4 tt.docutils, h5 tt.docutils, h6 tt.docutils {
+  font-size: 100% }
+
+tt.docutils {
+  background-color: #eeeeee }
+
+ul.auto-toc {
+  list-style-type: none }
+
+</style>
 </head>
 <body>
 <div class="document" id="using-the-pyparsing-module">
@@ -25,11 +307,11 @@
 </pre>
 </td></tr>
 <tr><th class="docinfo-name">Revision:</th>
-<td>1.3</td></tr>
+<td>1.4.2</td></tr>
 <tr><th class="docinfo-name">Date:</th>
-<td>March, 2005</td></tr>
+<td>April, 2006</td></tr>
 <tr><th class="docinfo-name">Copyright:</th>
-<td>Copyright © 2003-2005 Paul McGuire.</td></tr>
+<td>Copyright © 2003-2006 Paul McGuire.</td></tr>
 </tbody>
 </table>
 <table class="docutils field-list" frame="void" rules="none">
@@ -45,8 +327,8 @@ extracting data from formatted reports.</td>
 </tr>
 </tbody>
 </table>
-<div class="contents topic" id="contents">
-<p class="topic-title first"><a name="contents">Contents</a></p>
+<div class="contents topic">
+<p class="topic-title first"><a id="contents" name="contents">Contents</a></p>
 <ul class="auto-toc simple">
 <li><a class="reference" href="#steps-to-follow" id="id1" name="id1">1&nbsp;&nbsp;&nbsp;Steps to follow</a><ul class="auto-toc">
 <li><a class="reference" href="#hello-world" id="id2" name="id2">1.1&nbsp;&nbsp;&nbsp;Hello, World!</a></li>
@@ -71,14 +353,14 @@ extracting data from formatted reports.</td>
 </li>
 </ul>
 </div>
-<div class="section" id="steps-to-follow">
-<h1><a class="toc-backref" href="#id1" name="steps-to-follow">1&nbsp;&nbsp;&nbsp;Steps to follow</a></h1>
+<div class="section">
+<h1><a class="toc-backref" href="#id1" id="steps-to-follow" name="steps-to-follow">1&nbsp;&nbsp;&nbsp;Steps to follow</a></h1>
 <p>To parse an incoming data string, the client code must follow these steps:</p>
 <ol class="arabic simple">
 <li>First define the tokens and patterns to be matched, and assign
 this to a program variable.  Optional results names or parsing
 actions can also be defined at this time.</li>
-<li>Call <tt class="docutils literal"><span class="pre">parseString()</span></tt> or <tt class="docutils literal"><span class="pre">scanString()</span></tt> on this variable, passing in 
+<li>Call <tt class="docutils literal"><span class="pre">parseString()</span></tt> or <tt class="docutils literal"><span class="pre">scanString()</span></tt> on this variable, passing in
 the string to
 be parsed.  During the matching process, whitespace between
 tokens is skipped by default (although this can be changed).
@@ -89,8 +371,8 @@ Matching results may also be accessed as named attributes of
 the returned results, if names are defined in the definition of
 the token pattern, using <tt class="docutils literal"><span class="pre">setResultsName()</span></tt>.</li>
 </ol>
-<div class="section" id="hello-world">
-<h2><a class="toc-backref" href="#id2" name="hello-world">1.1&nbsp;&nbsp;&nbsp;Hello, World!</a></h2>
+<div class="section">
+<h2><a class="toc-backref" href="#id2" id="hello-world" name="hello-world">1.1&nbsp;&nbsp;&nbsp;Hello, World!</a></h2>
 <p>The following complete Python program will parse the greeting &quot;Hello, World!&quot;,
 or any other greeting of the form &quot;&lt;salutation&gt;, &lt;addressee&gt;!&quot;:</p>
 <pre class="literal-block">
@@ -105,8 +387,8 @@ print greeting
 ['Hello', ',', 'World', '!']
 </pre>
 </div>
-<div class="section" id="usage-notes">
-<h2><a class="toc-backref" href="#id3" name="usage-notes">1.2&nbsp;&nbsp;&nbsp;Usage notes</a></h2>
+<div class="section">
+<h2><a class="toc-backref" href="#id3" id="usage-notes" name="usage-notes">1.2&nbsp;&nbsp;&nbsp;Usage notes</a></h2>
 <ul>
 <li><p class="first">The pyparsing module can be used to interpret simple command
 strings or algebraic expressions, or can be used to extract data
@@ -115,7 +397,7 @@ or report scraping&quot;).  However, it is possible that your defined
 matching patterns may accept invalid inputs.  Use pyparsing to
 extract data from strings assumed to be well-formatted.</p>
 </li>
-<li><p class="first">To keep up the readability of your code, use the <tt class="docutils literal"><span class="pre">+</span></tt>, <tt class="docutils literal"><span class="pre">|</span></tt>, 
+<li><p class="first">To keep up the readability of your code, use the <tt class="docutils literal"><span class="pre">+</span></tt>, <tt class="docutils literal"><span class="pre">|</span></tt>,
 <tt class="docutils literal"><span class="pre">^</span></tt>, and <tt class="docutils literal"><span class="pre">~</span></tt> operators to combine expressions.  You can also combine
 string literals with ParseExpressions - they will be
 automatically converted to Literal objects.  For example:</p>
@@ -140,7 +422,7 @@ a = 10   *   4
 r= 1234/ 100000
 </pre>
 <p>Of course, it is quite simple to extend this example to support more elaborate expressions, with
-nesting with parentheses, floating point numbers, scientific notation, and named constants 
+nesting with parentheses, floating point numbers, scientific notation, and named constants
 (such as <tt class="docutils literal"><span class="pre">e</span></tt> or <tt class="docutils literal"><span class="pre">pi</span></tt>).  See <tt class="docutils literal"><span class="pre">fourFn.py</span></tt>, included in the examples directory.</p>
 </li>
 <li><p class="first"><tt class="docutils literal"><span class="pre">MatchFirst</span></tt> expressions are matched left-to-right, and the first
@@ -191,9 +473,9 @@ returned output.</p>
 other data types (ints, floats, booleans, etc.).</p>
 </li>
 <li><p class="first">Be careful when defining parse actions that modify global variables or
-data structures (as in <tt class="docutils literal"><span class="pre">fourFn.py</span></tt>), especially for low level tokens 
-or expressions 
-that may occur within an <tt class="docutils literal"><span class="pre">And</span></tt> expression; an early element 
+data structures (as in <tt class="docutils literal"><span class="pre">fourFn.py</span></tt>), especially for low level tokens
+or expressions
+that may occur within an <tt class="docutils literal"><span class="pre">And</span></tt> expression; an early element
 of an <tt class="docutils literal"><span class="pre">And</span></tt> may match, but the overall expression may fail.</p>
 </li>
 <li><p class="first">Performance of pyparsing may be slow for complex grammars and/or large
@@ -204,24 +486,24 @@ improvments have been in the 20-50% range.</p>
 </ul>
 </div>
 </div>
-<div class="section" id="classes">
-<h1><a class="toc-backref" href="#id4" name="classes">2&nbsp;&nbsp;&nbsp;Classes</a></h1>
-<div class="section" id="classes-in-the-pyparsing-module">
-<h2><a class="toc-backref" href="#id5" name="classes-in-the-pyparsing-module">2.1&nbsp;&nbsp;&nbsp;Classes in the pyparsing module</a></h2>
+<div class="section">
+<h1><a class="toc-backref" href="#id4" id="classes" name="classes">2&nbsp;&nbsp;&nbsp;Classes</a></h1>
+<div class="section">
+<h2><a class="toc-backref" href="#id5" id="classes-in-the-pyparsing-module" name="classes-in-the-pyparsing-module">2.1&nbsp;&nbsp;&nbsp;Classes in the pyparsing module</a></h2>
 <p><tt class="docutils literal"><span class="pre">ParserElement</span></tt> - abstract base class for all pyparsing classes;
 methods for code to use are:</p>
 <ul>
 <li><p class="first"><tt class="docutils literal"><span class="pre">parseString(</span> <span class="pre">sourceString</span> <span class="pre">)</span></tt> - only called once, on the overall
 matching pattern; returns a <a class="reference" href="#parseresults">ParseResults</a> object that makes the
-matched tokens available as a list, and optionally as a dictionary, 
+matched tokens available as a list, and optionally as a dictionary,
 or as an object with named attributes</p>
 </li>
 <li><p class="first"><tt class="docutils literal"><span class="pre">parseFile(</span> <span class="pre">sourceFile</span> <span class="pre">)</span></tt> - a convenience function, that accepts an
-input file object or filename.  The file contents are passed as a 
+input file object or filename.  The file contents are passed as a
 string to <tt class="docutils literal"><span class="pre">parseString()</span></tt>.</p>
 </li>
 <li><p class="first"><tt class="docutils literal"><span class="pre">scanString(</span> <span class="pre">sourceString</span> <span class="pre">)</span></tt> - generator function, used to find and
-extract matching text in the given source string; for each matched text, 
+extract matching text in the given source string; for each matched text,
 returns a tuple of:</p>
 <ul class="simple">
 <li>matched tokens (packaged as a <a class="reference" href="#parseresults">ParseResults</a> object)</li>
@@ -237,30 +519,36 @@ source text (as would be required with <tt class="docutils literal"><span class=
 text with the tokens returned from parse actions defined in the grammar
 (see <a class="reference" href="#setparseaction">setParseAction</a>).</p>
 </li>
+<li><p class="first"><tt class="docutils literal"><span class="pre">searchString(</span> <span class="pre">sourceString</span> <span class="pre">)</span></tt> - another convenience wrapper function for
+<tt class="docutils literal"><span class="pre">scanString</span></tt>, returns a list of the matching tokens returned from each
+call to <tt class="docutils literal"><span class="pre">scanString</span></tt>.</p>
+</li>
 <li><p class="first"><tt class="docutils literal"><span class="pre">setName(</span> <span class="pre">name</span> <span class="pre">)</span></tt> - associate a short descriptive name for this
 element, useful in displaying exceptions and trace information</p>
 </li>
-<li><p class="first"><tt class="docutils literal"><span class="pre">setResultsName(</span> <span class="pre">string,</span> <span class="pre">listAllMatches=False</span> <span class="pre">)</span></tt> - name to be given 
+<li><p class="first"><tt class="docutils literal"><span class="pre">setResultsName(</span> <span class="pre">string,</span> <span class="pre">listAllMatches=False</span> <span class="pre">)</span></tt> - name to be given
 to tokens matching
 the element; if multiple tokens within
 a repetition group (such as <tt class="docutils literal"><span class="pre">ZeroOrMore</span></tt> or <tt class="docutils literal"><span class="pre">delimitedList</span></tt>) the
 default is to return only the last matching token - if listAllMatches
-is set to True, then a list of matching tokens is returned. Note: 
+is set to True, then a list of matching tokens is returned. Note:
 <tt class="docutils literal"><span class="pre">setResultsName</span></tt> returns a <em>copy</em> of the element so that a single
 basic element can be referenced multiple times and given
 different names within a complex grammar.</p>
 </li>
 </ul>
-<a class="target" id="setparseaction" name="setparseaction"></a><ul>
-<li><p class="first"><tt class="docutils literal"><span class="pre">setParseAction(</span> <span class="pre">fn</span> <span class="pre">)</span></tt> - function to call after successful
-matching of the element; the function is defined as <tt class="docutils literal"><span class="pre">fn(</span> <span class="pre">s,</span>
+<ul id="setparseaction">
+<li><p class="first"><tt class="docutils literal"><span class="pre">setParseAction(</span> <span class="pre">*fn</span> <span class="pre">)</span></tt> - specify one or more functions to call after successful
+matching of the element; each function is defined as <tt class="docutils literal"><span class="pre">fn(</span> <span class="pre">s,</span>
 <span class="pre">loc,</span> <span class="pre">toks</span> <span class="pre">)</span></tt>, where:</p>
 <ul class="simple">
 <li><tt class="docutils literal"><span class="pre">s</span></tt> is the original parse string</li>
 <li><tt class="docutils literal"><span class="pre">loc</span></tt> is the location in the string where matching started</li>
 <li><tt class="docutils literal"><span class="pre">toks</span></tt> is the list of the matched tokens, packaged as a <a class="reference" href="#parseresults">ParseResults</a> object</li>
 </ul>
-<p><tt class="docutils literal"><span class="pre">fn</span></tt> can return a modified <tt class="docutils literal"><span class="pre">toks</span></tt> list, to perform conversion, or
+<p>Multiple functions can be attached to a ParserElement by specifying multiple
+arguments to setParseAction, or by calling setParseAction multiple times.</p>
+<p>Each parse action function can return a modified <tt class="docutils literal"><span class="pre">toks</span></tt> list, to perform conversion, or
 string modifications.  For brevity, <tt class="docutils literal"><span class="pre">fn</span></tt> may also be a
 lambda - here is an example of using a parse action to convert matched
 integer tokens from strings to integers:</p>
@@ -275,7 +563,7 @@ parse expression in different places in a grammar, with different parse actions
 attached to each</p>
 </li>
 <li><p class="first"><tt class="docutils literal"><span class="pre">leaveWhiteSpace()</span></tt> - change default behavior of skipping
-whitespace before starting matching (mostly used internally to the 
+whitespace before starting matching (mostly used internally to the
 pyparsing module, rarely used by client code)</p>
 </li>
 <li><p class="first"><tt class="docutils literal"><span class="pre">setWhitespaceChars(</span> <span class="pre">chars</span> <span class="pre">)</span></tt> - define the set of chars to be ignored
@@ -285,7 +573,7 @@ default set of whitespace (space, tab, newline, and return)</p>
 <li><p class="first"><tt class="docutils literal"><span class="pre">setDefaultWhitespaceChars(</span> <span class="pre">chars</span> <span class="pre">)</span></tt> - class-level method to override
 the default set of whitespace chars for all subsequently created ParserElements
 (including copies); useful when defining grammars that treat one or more of the
-default whitespace characters as significant (such as a line-sensitive grammar, to 
+default whitespace characters as significant (such as a line-sensitive grammar, to
 omit newline from the list of ignorable whitespace)</p>
 </li>
 <li><p class="first"><tt class="docutils literal"><span class="pre">suppress()</span></tt> - convenience function to suppress the output of the
@@ -296,21 +584,30 @@ ignored while matching defined patterns; can be called
 repeatedly to specify multiple expressions; useful to specify
 patterns of comment syntax, for example</p>
 </li>
-<li><p class="first"><tt class="docutils literal"><span class="pre">setDebug(</span> <span class="pre">dbgFlag=True</span> <span class="pre">)</span></tt> - function to enable/disable tracing output 
+<li><p class="first"><tt class="docutils literal"><span class="pre">setDebug(</span> <span class="pre">dbgFlag=True</span> <span class="pre">)</span></tt> - function to enable/disable tracing output
 when trying to match this element</p>
 </li>
 <li><p class="first"><tt class="docutils literal"><span class="pre">validate()</span></tt> - function to verify that the defined grammar does not
 contain infinitely recursive constructs</p>
 </li>
 </ul>
-<a class="target" id="parsewithtabs" name="parsewithtabs"></a><ul class="simple">
-<li><tt class="docutils literal"><span class="pre">parseWithTabs</span></tt> - function to override default behavior of converting
+<ul class="simple" id="parsewithtabs">
+<li><tt class="docutils literal"><span class="pre">parseWithTabs()</span></tt> - function to override default behavior of converting
 tabs to spaces before parsing the input string; rarely used, except when
 specifying whitespace-significant grammars using the <a class="reference" href="#white">White</a> class.</li>
+<li><tt class="docutils literal"><span class="pre">enablePackrat()</span></tt> - a class-level static method to enable a memoizing
+performance enhancement, known as &quot;packrat parsing&quot;.  packrat parsing is
+disabled by default, since it may conflict with some user programs that use
+parse actions.  To activate the packrat feature, your
+program must call the class method ParserElement.enablePackrat().  If
+your program uses psyco to &quot;compile as you go&quot;, you must call
+enablePackrat before calling psyco.full().  If you do not do this,
+Python will crash.  For best results, call enablePackrat() immediately
+after importing pyparsing.</li>
 </ul>
 </div>
-<div class="section" id="basic-parserelement-subclasses">
-<h2><a class="toc-backref" href="#id6" name="basic-parserelement-subclasses">2.2&nbsp;&nbsp;&nbsp;Basic ParserElement subclasses</a></h2>
+<div class="section">
+<h2><a class="toc-backref" href="#id6" id="basic-parserelement-subclasses" name="basic-parserelement-subclasses">2.2&nbsp;&nbsp;&nbsp;Basic ParserElement subclasses</a></h2>
 <ul class="simple">
 <li><tt class="docutils literal"><span class="pre">Literal</span></tt> - construct with a string to be matched exactly</li>
 <li><tt class="docutils literal"><span class="pre">CaselessLiteral</span></tt> - construct with a string to be matched, but
@@ -320,15 +617,17 @@ defining literal, NOT as they are found in the input string</li>
 whitespace, punctuation, or other non-keyword characters; prevents
 accidental matching of a non-keyword that happens to begin with a
 defined keyword</li>
+<li><tt class="docutils literal"><span class="pre">CaselessKeyword</span></tt> - similar to Keyword, but with caseless matching
+behavior</li>
 </ul>
-<a class="target" id="word" name="word"></a><ul>
+<ul id="word">
 <li><p class="first"><tt class="docutils literal"><span class="pre">Word</span></tt> - one or more contiguous characters; construct with a
 string containing the set of allowed initial characters, and an
 optional second string of allowed body characters; for instance,
 a common Word construct is to match a code identifier - in C, a
-valid identifier must start with an alphabetic character or an 
+valid identifier must start with an alphabetic character or an
 underscore ('_'), followed by a body that can also include numeric
-digits.  That is, <tt class="docutils literal"><span class="pre">a</span></tt>, <tt class="docutils literal"><span class="pre">i</span></tt>, <tt class="docutils literal"><span class="pre">MAX_LENGTH</span></tt>, <tt class="docutils literal"><span class="pre">_a1</span></tt>, <tt class="docutils literal"><span class="pre">b_109_</span></tt>, and 
+digits.  That is, <tt class="docutils literal"><span class="pre">a</span></tt>, <tt class="docutils literal"><span class="pre">i</span></tt>, <tt class="docutils literal"><span class="pre">MAX_LENGTH</span></tt>, <tt class="docutils literal"><span class="pre">_a1</span></tt>, <tt class="docutils literal"><span class="pre">b_109_</span></tt>, and
 <tt class="docutils literal"><span class="pre">plan9FromOuterSpace</span></tt>
 are all valid identifiers; <tt class="docutils literal"><span class="pre">9b7z</span></tt>, <tt class="docutils literal"><span class="pre">$a</span></tt>, <tt class="docutils literal"><span class="pre">.section</span></tt>, and <tt class="docutils literal"><span class="pre">0debug</span></tt>
 are not.  To
@@ -360,8 +659,27 @@ in the given constructor string (accepts only one string for both
 initial and body characters); also supports min, max, and exact
 optional parameters.</p>
 </li>
+<li><p class="first"><tt class="docutils literal"><span class="pre">Regex</span></tt> - a powerful construct, that accepts a regular expression
+to be matched at the current parse position; accepts an optional
+flags parameter, corresponding to the flags parameter in the re.compile
+method; if the expression includes named sub-fields, they will be
+represented in the returned <a class="reference" href="#parseresults">ParseResults</a></p>
+</li>
+<li><p class="first"><tt class="docutils literal"><span class="pre">QuotedString</span></tt> - supports the definition of custom quoted string
+formats, in addition to pyparsing's built-in dblQuotedString and
+sglQuotedString.  QuotedString allows you to specify the following
+parameters:</p>
+<ul class="simple">
+<li>quoteChar - string of one or more characters defining the quote delimiting string</li>
+<li>escChar - character to escape quotes, typically backslash (default=None)</li>
+<li>escQuote - special quote sequence to escape an embedded quote string (such as SQL's &quot;&quot; to escape an embedded &quot;) (default=None)</li>
+<li>multiline - boolean indicating whether quotes can span multiple lines (default=False)</li>
+<li>unquoteResults - boolean indicating whether the matched text should be unquoted (default=True)</li>
+<li>endQuoteChar - string of one or more characters defining the end of the quote delimited string (default=None =&gt; same as quoteChar)</li>
+</ul>
+</li>
 <li><p class="first"><tt class="docutils literal"><span class="pre">SkipTo</span></tt> - skips ahead in the input string, accepting any
-characters up to the specified pattern; may be constructed with 
+characters up to the specified pattern; may be constructed with
 the following optional parameters:</p>
 <ul class="simple">
 <li>include - if set to true, also consumes the match expression
@@ -371,12 +689,12 @@ to prevent false matches</li>
 </ul>
 </li>
 </ul>
-<a class="target" id="white" name="white"></a><ul class="simple">
-<li><tt class="docutils literal"><span class="pre">White</span></tt> - also similar to <a class="reference" href="#word">Word</a>, but matches whitespace 
+<ul class="simple" id="white">
+<li><tt class="docutils literal"><span class="pre">White</span></tt> - also similar to <a class="reference" href="#word">Word</a>, but matches whitespace
 characters.  Not usually needed, as whitespace is implicitly
 ignored by pyparsing.  However, some grammars are whitespace-sensitive,
 such as those that use leading tabs or spaces to indicating grouping
-or hierarchy.  (If matching on tab characters, be sure to call 
+or hierarchy.  (If matching on tab characters, be sure to call
 <a class="reference" href="#parsewithtabs">parseWithTabs</a> on the top-level parse element.)</li>
 <li><tt class="docutils literal"><span class="pre">Empty</span></tt> - a null expression, requiring no characters - will always
 match; useful for debugging and for specialized grammars</li>
@@ -384,8 +702,8 @@ match; useful for debugging and for specialized grammars</li>
 and for specialized grammars</li>
 </ul>
 </div>
-<div class="section" id="expression-subclasses">
-<h2><a class="toc-backref" href="#id7" name="expression-subclasses">2.3&nbsp;&nbsp;&nbsp;Expression subclasses</a></h2>
+<div class="section">
+<h2><a class="toc-backref" href="#id7" id="expression-subclasses" name="expression-subclasses">2.3&nbsp;&nbsp;&nbsp;Expression subclasses</a></h2>
 <ul class="simple">
 <li><tt class="docutils literal"><span class="pre">And</span></tt> - construct with a list of ParserElements, all of which must
 match for And to match; can also be created using the '+'
@@ -398,9 +716,12 @@ be created using the '^' operator</li>
 which must match for MatchFirst to match; matching is done
 left-to-right, taking the first expression that matches; can
 also be created using the '|' operator</li>
+<li><tt class="docutils literal"><span class="pre">Each</span></tt> - similar to And, in that all of the provided expressions
+must match; however, Each permits matching to be done in any order;
+can also be created using the '&amp;' operator</li>
 <li><tt class="docutils literal"><span class="pre">Optional</span></tt> - construct with a ParserElement, but this element is
 not required to match; can be constructed with an optional <tt class="docutils literal"><span class="pre">default</span></tt> argument,
-containing a default string to be supplied if the given optional
+containing a default string or object to be supplied if the given optional
 parse element is not found in the input string; parse action will only
 be called if a match is found, or if a default is specified</li>
 <li><tt class="docutils literal"><span class="pre">ZeroOrMore</span></tt> - similar to Optional, but can be repeated</li>
@@ -409,12 +730,12 @@ be present</li>
 <li><tt class="docutils literal"><span class="pre">FollowedBy</span></tt> - a lookahead expression, requires matching of the given
 expressions, but does not advance the parsing position within the input string</li>
 <li><tt class="docutils literal"><span class="pre">NotAny</span></tt> - a negative lookahead expression, prevents matching of named
-expressions, does not advance the parsing position within the input string; 
+expressions, does not advance the parsing position within the input string;
 can also be created using the unary '~' operator</li>
 </ul>
 </div>
-<div class="section" id="positional-subclasses">
-<h2><a class="toc-backref" href="#id8" name="positional-subclasses">2.4&nbsp;&nbsp;&nbsp;Positional subclasses</a></h2>
+<div class="section">
+<h2><a class="toc-backref" href="#id8" id="positional-subclasses" name="positional-subclasses">2.4&nbsp;&nbsp;&nbsp;Positional subclasses</a></h2>
 <ul class="simple">
 <li><tt class="docutils literal"><span class="pre">StringStart</span></tt> - matches beginning of the text</li>
 <li><tt class="docutils literal"><span class="pre">StringEnd</span></tt> - matches the end of the text</li>
@@ -422,8 +743,8 @@ can also be created using the unary '~' operator</li>
 <li><tt class="docutils literal"><span class="pre">LineEnd</span></tt> - matches the end of a line</li>
 </ul>
 </div>
-<div class="section" id="converter-subclasses">
-<h2><a class="toc-backref" href="#id9" name="converter-subclasses">2.5&nbsp;&nbsp;&nbsp;Converter subclasses</a></h2>
+<div class="section">
+<h2><a class="toc-backref" href="#id9" id="converter-subclasses" name="converter-subclasses">2.5&nbsp;&nbsp;&nbsp;Converter subclasses</a></h2>
 <ul class="simple">
 <li><tt class="docutils literal"><span class="pre">Upcase</span></tt> - converts matched tokens to uppercase</li>
 <li><tt class="docutils literal"><span class="pre">Combine</span></tt> - joins all matched tokens into a single string, using
@@ -435,8 +756,8 @@ results from being cluttered with required but uninteresting
 tokens (such as list delimiters)</li>
 </ul>
 </div>
-<div class="section" id="special-subclasses">
-<h2><a class="toc-backref" href="#id10" name="special-subclasses">2.6&nbsp;&nbsp;&nbsp;Special subclasses</a></h2>
+<div class="section">
+<h2><a class="toc-backref" href="#id10" id="special-subclasses" name="special-subclasses">2.6&nbsp;&nbsp;&nbsp;Special subclasses</a></h2>
 <ul class="simple">
 <li><tt class="docutils literal"><span class="pre">Group</span></tt> - causes the matched tokens to be enclosed in a list;
 useful in repeated elements like <tt class="docutils literal"><span class="pre">ZeroOrMore</span></tt> and <tt class="docutils literal"><span class="pre">OneOrMore</span></tt> to
@@ -452,9 +773,9 @@ patterns; when defining the actual expression later in the
 program, insert it into the <tt class="docutils literal"><span class="pre">Forward</span></tt> object using the <tt class="docutils literal"><span class="pre">&lt;&lt;</span></tt>
 operator (see <tt class="docutils literal"><span class="pre">fourFn.py</span></tt> for an example).</li>
 </ul>
-<a class="target" id="parseresults" name="parseresults"></a><ul>
+<ul id="parseresults">
 <li><p class="first"><tt class="docutils literal"><span class="pre">ParseResults</span></tt> - class used to contain and manage the lists of tokens
-created from parsing the input using the user-defined parse 
+created from parsing the input using the user-defined parse
 expression.  ParseResults can be accessed in a number of ways:</p>
 <ul class="simple">
 <li>as a list<ul>
@@ -464,13 +785,13 @@ expression.  ParseResults can be accessed in a number of ways:</p>
 </ul>
 </li>
 <li>as a dictionary<ul>
-<li>if <tt class="docutils literal"><span class="pre">setResultsName()</span></tt> is used to name elements within the 
+<li>if <tt class="docutils literal"><span class="pre">setResultsName()</span></tt> is used to name elements within the
 overall parse expression, then these fields can be referenced
 as dictionary elements or as attributes</li>
 <li>the Dict class generates dictionary entries using the data of the
 input text - in addition to ParseResults listed as <tt class="docutils literal"><span class="pre">[</span> <span class="pre">[</span> <span class="pre">a1,</span> <span class="pre">b1,</span> <span class="pre">c1,</span> <span class="pre">...],</span> <span class="pre">[</span> <span class="pre">a2,</span> <span class="pre">b2,</span> <span class="pre">c2,</span> <span class="pre">...]</span>&nbsp; <span class="pre">]</span></tt>
-it also acts as a dictionary with entries defined as <tt class="docutils literal"><span class="pre">{</span> <span class="pre">a1</span> <span class="pre">:</span> <span class="pre">[</span> <span class="pre">b1,</span> <span class="pre">c1,</span> <span class="pre">...</span> <span class="pre">]</span> <span class="pre">},</span> <span class="pre">{</span> <span class="pre">a2</span> <span class="pre">:</span> <span class="pre">[</span> <span class="pre">b2,</span> <span class="pre">c2,</span> <span class="pre">...</span> <span class="pre">]</span> <span class="pre">}</span></tt>; 
-this is especially useful when processing tabular data where the first column contains a key 
+it also acts as a dictionary with entries defined as <tt class="docutils literal"><span class="pre">{</span> <span class="pre">a1</span> <span class="pre">:</span> <span class="pre">[</span> <span class="pre">b1,</span> <span class="pre">c1,</span> <span class="pre">...</span> <span class="pre">]</span> <span class="pre">},</span> <span class="pre">{</span> <span class="pre">a2</span> <span class="pre">:</span> <span class="pre">[</span> <span class="pre">b2,</span> <span class="pre">c2,</span> <span class="pre">...</span> <span class="pre">]</span> <span class="pre">}</span></tt>;
+this is especially useful when processing tabular data where the first column contains a key
 value for that line of data</li>
 <li>list elements that are deleted using <tt class="docutils literal"><span class="pre">del</span></tt> will still be accessible by their
 dictionary keys</li>
@@ -496,18 +817,18 @@ ParseExpressions.  <tt class="docutils literal"><span class="pre">asXML()</span>
 <li>doctagname - for ParseResults that do not have a defined name, this argument
 will wrap the resulting XML in a set of opening and closing tags <tt class="docutils literal"><span class="pre">&lt;doctagname&gt;</span></tt>
 and <tt class="docutils literal"><span class="pre">&lt;/doctagname&gt;</span></tt>.</li>
-<li>namedItemsOnly (default=False) - flag to indicate if the generated XML should 
+<li>namedItemsOnly (default=False) - flag to indicate if the generated XML should
 skip items that do not have defined names.  If a nested group item is named, then all
 embedded items will be included, whether they have names or not.</li>
 </ul>
 </li>
 </ul>
 </div>
-<div class="section" id="exception-classes-and-troubleshooting">
-<h2><a class="toc-backref" href="#id11" name="exception-classes-and-troubleshooting">2.7&nbsp;&nbsp;&nbsp;Exception classes and Troubleshooting</a></h2>
-<a class="target" id="parseexception" name="parseexception"></a><ul>
+<div class="section">
+<h2><a class="toc-backref" href="#id11" id="exception-classes-and-troubleshooting" name="exception-classes-and-troubleshooting">2.7&nbsp;&nbsp;&nbsp;Exception classes and Troubleshooting</a></h2>
+<ul id="parseexception">
 <li><p class="first"><tt class="docutils literal"><span class="pre">ParseException</span></tt> - exception returned when a grammar parse fails;
-ParseExceptions have attributes loc, msg, line, lineno, and column; to view the 
+ParseExceptions have attributes loc, msg, line, lineno, and column; to view the
 text line and location where the reported ParseException occurs, use:</p>
 <pre class="literal-block">
 except ParseException, err:
@@ -526,30 +847,42 @@ badGrammar &lt;&lt; Optional(goodToken) + badGrammar
 </li>
 </ul>
 <p>You can also get some insights into the parsing logic using diagnostic parse actions,
-and setDebug(), or test the matching of expression fragments by testing them using 
+and setDebug(), or test the matching of expression fragments by testing them using
 scanString().</p>
 </div>
 </div>
-<div class="section" id="miscellaneous-attributes-and-methods">
-<h1><a class="toc-backref" href="#id12" name="miscellaneous-attributes-and-methods">3&nbsp;&nbsp;&nbsp;Miscellaneous attributes and methods</a></h1>
-<div class="section" id="helper-methods">
-<h2><a class="toc-backref" href="#id13" name="helper-methods">3.1&nbsp;&nbsp;&nbsp;Helper methods</a></h2>
+<div class="section">
+<h1><a class="toc-backref" href="#id12" id="miscellaneous-attributes-and-methods" name="miscellaneous-attributes-and-methods">3&nbsp;&nbsp;&nbsp;Miscellaneous attributes and methods</a></h1>
+<div class="section">
+<h2><a class="toc-backref" href="#id13" id="helper-methods" name="helper-methods">3.1&nbsp;&nbsp;&nbsp;Helper methods</a></h2>
 <ul class="simple">
 <li><tt class="docutils literal"><span class="pre">delimitedList(</span> <span class="pre">expr,</span> <span class="pre">delim=',')</span></tt> - convenience function for
 matching one or more occurrences of expr, separated by delim.
 By default, the delimiters are suppressed, so the returned results contain
 only the separate list elements.  Can optionally specify <tt class="docutils literal"><span class="pre">combine=True</span></tt>,
 indicating that the expressions and delimiters should be returned as one
-combined value (useful for scoped variables, such as <tt class="docutils literal"><span class="pre">a.b.c</span></tt>, or 
+combined value (useful for scoped variables, such as <tt class="docutils literal"><span class="pre">a.b.c</span></tt>, or
 <tt class="docutils literal"><span class="pre">a::b::c</span></tt>, or paths such as <tt class="docutils literal"><span class="pre">a/b/c</span></tt>).</li>
+<li><tt class="docutils literal"><span class="pre">countedArray(</span> <span class="pre">expr</span> <span class="pre">)</span></tt> - convenience function for a pattern where an list of
+instances of the given expression are preceded by an integer giving the count of
+elements in the list.  Returns an expression that parses the leading integer,
+reads exactly that many expressions, and returns the array of expressions in the
+parse results - the leading integer is suppressed from the results (although it
+is easily reconstructed by using len on the returned array).</li>
 <li><tt class="docutils literal"><span class="pre">oneOf(</span> <span class="pre">string,</span> <span class="pre">caseless=False</span> <span class="pre">)</span></tt> - convenience function for quickly declaring an
-alternative set of <tt class="docutils literal"><span class="pre">Literal</span></tt> tokens, by splitting the given string on 
+alternative set of <tt class="docutils literal"><span class="pre">Literal</span></tt> tokens, by splitting the given string on
 whitespace boundaries.  The tokens are sorted so that longer
 matches are attempted first; this ensures that a short token does
-not mask a longer one that starts with the same characters. If <tt class="docutils literal"><span class="pre">caseless=True</span></tt>, 
+not mask a longer one that starts with the same characters. If <tt class="docutils literal"><span class="pre">caseless=True</span></tt>,
 will create an alternative set of CaselessLiteral tokens.</li>
-<li><tt class="docutils literal"><span class="pre">dictOf(</span> <span class="pre">key,</span> <span class="pre">value</span> <span class="pre">)</span></tt> - convenience function for quickly declaring a 
+<li><tt class="docutils literal"><span class="pre">dictOf(</span> <span class="pre">key,</span> <span class="pre">value</span> <span class="pre">)</span></tt> - convenience function for quickly declaring a
 dictionary pattern of <tt class="docutils literal"><span class="pre">Dict(</span> <span class="pre">ZeroOrMore(</span> <span class="pre">Group(</span> <span class="pre">key</span> <span class="pre">+</span> <span class="pre">value</span> <span class="pre">)</span> <span class="pre">)</span> <span class="pre">)</span></tt>.</li>
+<li><tt class="docutils literal"><span class="pre">makeHTMLTags(</span> <span class="pre">tagName</span> <span class="pre">)</span></tt> and <tt class="docutils literal"><span class="pre">makeXMLTags(</span> <span class="pre">tagName</span> <span class="pre">)</span></tt> - convenience
+functions to create definitions of opening and closing tag expressions.  Returns
+a pair of expressions, for the corresponding &lt;tag&gt; and &lt;/tag&gt; strings.  Includes
+support for attributes in the opening tag, such as &lt;tag attr1=&quot;abc&quot;&gt; - attributes
+are returned as keyed tokens in the returned ParseResults.  makeHTMLTags is less
+restrictive than makeXMLTags, especially with respect to case sensitivity.</li>
 <li><tt class="docutils literal"><span class="pre">lineno(</span> <span class="pre">loc,</span> <span class="pre">string</span> <span class="pre">)</span></tt> - function to give the line number of the
 location within the string; the first line is line 1, newlines
 start new rows</li>
@@ -559,15 +892,15 @@ newlines reset the column number to 1</li>
 <li><tt class="docutils literal"><span class="pre">line(</span> <span class="pre">loc,</span> <span class="pre">string</span> <span class="pre">)</span></tt> - function to retrieve the line of text
 representing <tt class="docutils literal"><span class="pre">lineno(</span> <span class="pre">loc,</span> <span class="pre">string</span> <span class="pre">)</span></tt>; useful when printing out diagnostic
 messages for exceptions</li>
-<li><tt class="docutils literal"><span class="pre">srange(</span> <span class="pre">rangeSpec</span> <span class="pre">)</span></tt> - function to define a string of characters, 
-given a string of the form used by regexp string ranges, such as <tt class="docutils literal"><span class="pre">&quot;[0-9]&quot;</span></tt> for 
-all numeric digits, <tt class="docutils literal"><span class="pre">&quot;[A-Z_]&quot;</span></tt> for uppercase characters plus underscore, and 
-so on (note that rangeSpec does not include support for generic regular 
+<li><tt class="docutils literal"><span class="pre">srange(</span> <span class="pre">rangeSpec</span> <span class="pre">)</span></tt> - function to define a string of characters,
+given a string of the form used by regexp string ranges, such as <tt class="docutils literal"><span class="pre">&quot;[0-9]&quot;</span></tt> for
+all numeric digits, <tt class="docutils literal"><span class="pre">&quot;[A-Z_]&quot;</span></tt> for uppercase characters plus underscore, and
+so on (note that rangeSpec does not include support for generic regular
 expressions, just string range specs)</li>
 </ul>
 </div>
-<div class="section" id="helper-parse-actions">
-<h2><a class="toc-backref" href="#id14" name="helper-parse-actions">3.2&nbsp;&nbsp;&nbsp;Helper parse actions</a></h2>
+<div class="section">
+<h2><a class="toc-backref" href="#id14" id="helper-parse-actions" name="helper-parse-actions">3.2&nbsp;&nbsp;&nbsp;Helper parse actions</a></h2>
 <ul>
 <li><p class="first"><tt class="docutils literal"><span class="pre">removeQuotes</span></tt> - removes the first and last characters of a quoted string;
 useful to remove the delimiting quotes from quoted strings</p>
@@ -580,8 +913,8 @@ nbsp = Literal(&quot;&amp;nbsp;&quot;).setParseAction( replaceWith(&quot;&lt;BLA
 </li>
 </ul>
 </div>
-<div class="section" id="common-string-and-token-constants">
-<h2><a class="toc-backref" href="#id15" name="common-string-and-token-constants">3.3&nbsp;&nbsp;&nbsp;Common string and token constants</a></h2>
+<div class="section">
+<h2><a class="toc-backref" href="#id15" id="common-string-and-token-constants" name="common-string-and-token-constants">3.3&nbsp;&nbsp;&nbsp;Common string and token constants</a></h2>
 <ul>
 <li><p class="first"><tt class="docutils literal"><span class="pre">alphas</span></tt> - same as <tt class="docutils literal"><span class="pre">string.letters</span></tt></p>
 </li>
