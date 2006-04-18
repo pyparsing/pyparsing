@@ -60,14 +60,15 @@ The pyparsing module handles some of the problems that are typically vexing when
  - quoted strings
  - embedded comments
 """
-__version__ = "1.4.2"
-__versionTime__ = "31 March 2006 17:53"
+__version__ = "1.4.3"
+__versionTime__ = "11 April 2006 16:45"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
 import copy,sys
 import warnings
 import re
+import sre_constants
 #~ sys.stderr.write( "testing pyparsing module, version %s, %s\n" % (__version__,__versionTime__ ) )
 
 def _ustr(obj):
@@ -603,9 +604,6 @@ class ParserElement(object):
                     for fn in self.parseAction:
                         tokens = fn( instring, tokensStart, retTokens )
                         if tokens is not None:
-                            if isinstance(tokens,tuple):
-                                tokens = tokens[1]
-                                warnings.warn("Returning loc from parse actions is deprecated, return only modified tokens", DeprecationWarning,stacklevel=2)
                             retTokens = ParseResults( tokens, 
                                                       self.resultsName, 
                                                       asList=self.saveAsList and isinstance(tokens,(ParseResults,list)), 
@@ -619,9 +617,6 @@ class ParserElement(object):
                 for fn in self.parseAction:
                     tokens = fn( instring, tokensStart, retTokens )
                     if tokens is not None:
-                        if isinstance(tokens,tuple):
-                            tokens = tokens[1]
-                            warnings.warn("Returning loc from parse actions is deprecated, return only modified tokens", DeprecationWarning,stacklevel=2)
                         retTokens = ParseResults( tokens, 
                                                   self.resultsName, 
                                                   asList=self.saveAsList and isinstance(tokens,(ParseResults,list)), 
@@ -653,7 +648,7 @@ class ParserElement(object):
                 ParserElement._exprArgCache[ lookup ] = \
                     value = self._parseNoCache( instring, loc, doActions, callPreParse )
                 return value
-            except Exception, pe:
+            except ParseBaseException, pe:
                 ParserElement._exprArgCache[ lookup ] = pe
                 raise
 
@@ -854,6 +849,7 @@ class ParserElement(object):
         """
         self.skipWhitespace = True
         self.whiteChars = chars
+        return self
         
     def parseWithTabs( self ):
         """Overrides default behavior to expand <TAB>s to spaces before parsing the input string.
@@ -1226,7 +1222,7 @@ class Regex(Token):
         try:
             self.re = re.compile(self.pattern, self.flags)
             self.reString = self.pattern
-        except Exception,e:
+        except sre_constants.error,e:
             warnings.warn("invalid pattern (%s) passed to Regex" % pattern, 
                 SyntaxWarning, stacklevel=2)
             raise
@@ -1319,7 +1315,7 @@ class QuotedString(Token):
             self.pattern += (
                 '|(' + ')|('.join(["%s[^%s]" % (re.escape(self.endQuoteChar[:i]),
                                                _escapeRegexRangeChars(self.endQuoteChar[i])) 
-                                    for i in range(len(self.endQuoteChar)-1,0,-1)]) + ')'
+                                    for i in xrange(len(self.endQuoteChar)-1,0,-1)]) + ')'
                 )
         if escQuote:
             self.pattern += (r'|(%s)' % re.escape(escQuote))
@@ -1331,7 +1327,7 @@ class QuotedString(Token):
         try:
             self.re = re.compile(self.pattern, self.flags)
             self.reString = self.pattern
-        except Exception,e:
+        except sre_constants.error,e:
             warnings.warn("invalid pattern (%s) passed to Regex" % self.pattern, 
                 SyntaxWarning, stacklevel=2)
             raise
@@ -1510,6 +1506,7 @@ class PositionToken(Token):
         super(PositionToken,self).__init__()
         self.name=self.__class__.__name__
         self.mayReturnEmpty = True
+        self.mayIndexError = False
 
 class GoToColumn(PositionToken):
     """Token to advance to a specific column of input text; useful for tabular report scraping."""
@@ -1575,8 +1572,13 @@ class LineEnd(PositionToken):
                 exc.loc = loc
                 exc.pstr = instring
                 raise exc
+        elif loc == len(instring):
+            return loc+1, []
         else:
-            return loc, []
+            exc = self.myException
+            exc.loc = loc
+            exc.pstr = instring
+            raise exc
 
 class StringStart(PositionToken):
     """Matches if current position is at the beginning of the parse string"""
@@ -1610,7 +1612,13 @@ class StringEnd(PositionToken):
             exc.loc = loc
             exc.pstr = instring
             raise exc
-        return loc, []
+        elif loc == len(instring):
+            return loc+1, []
+        else:
+            exc = self.myException
+            exc.loc = loc
+            exc.pstr = instring
+            raise exc
 
 
 class ParseExpression(ParserElement):
@@ -2043,7 +2051,7 @@ class NotAny(ParseElementEnhance):
         #~ self.leaveWhitespace()
         self.skipWhitespace = False  # do NOT use self.leaveWhitespace(), don't want to propagate to exprs
         self.mayReturnEmpty = True
-        self.errmsg = "Found unexpected token, "+_ustr(self.expr)
+        self.errmsg = "Found unwanted token, "+_ustr(self.expr)
         self.myException = ParseException("",0,self.errmsg,self)
         
     def parseImpl( self, instring, loc, doActions=True ):
@@ -2088,8 +2096,6 @@ class ZeroOrMore(ParseElementEnhance):
                     tokens += tmptokens
         except (ParseException,IndexError):
             pass
-        except Exception,e:
-            print "####",e
 
         return loc, tokens
 
@@ -2385,10 +2391,11 @@ def delimitedList( expr, delim=",", combine=False ):
        string, with the delimiters included; otherwise, the matching tokens are returned
        as a list of tokens, with the delimiters suppressed.
     """
+    dlName = _ustr(expr)+u" ["+_ustr(delim)+u" "+_ustr(expr)+u"]..."
     if combine:
-        return Combine( expr + ZeroOrMore( delim + expr ) ).setName(_ustr(expr)+_ustr(delim)+"...")
+        return Combine( expr + ZeroOrMore( delim + expr ) ).setName(dlName)
     else:
-        return ( expr + ZeroOrMore( Suppress( delim ) + expr ) ).setName(_ustr(expr)+_ustr(delim)+"...")
+        return ( expr + ZeroOrMore( Suppress( delim ) + expr ) ).setName(dlName)
 
 def countedArray( expr ):
     """Helper to define a counted list of expressions.
@@ -2499,7 +2506,7 @@ _singleChar = _escapedPunc | _escapedHexChar | _escapedOctChar | Word(_printable
 _charRange = Group(_singleChar + Suppress("-") + _singleChar)
 _reBracketExpr = "[" + Optional("^").setResultsName("negate") + Group( OneOrMore( _charRange | _singleChar ) ).setResultsName("body") + "]"
 
-_expanded = lambda p: (isinstance(p,ParseResults) and ''.join([ unichr(c) for c in range(ord(p[0]),ord(p[1])+1) ]) or p)
+_expanded = lambda p: (isinstance(p,ParseResults) and ''.join([ unichr(c) for c in xrange(ord(p[0]),ord(p[1])+1) ]) or p)
         
 def srange(s):
     r"""Helper to easily define string ranges for use in Word construction.  Borrows
