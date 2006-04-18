@@ -2,8 +2,30 @@
 Change Log
 ==========
 
-Version 1.4.2 - April, 2006
+Version 1.4.3 - April, 2006
 ------------------------------
+- Fixed "except Exception" statements, the most critical added as part
+  of the packrat parsing enhancement.  (Thanks, Erick Tryzelaar!)
+  
+- Fixed end-of-string infinite looping on LineEnd and StringEnd 
+  expressions.  (Thanks again to Erick Tryzelaar.)
+  
+- Modified setWhitespaceChars to return self, to be consistent with
+  other ParserElement modifiers. (Suggested by Erick Tryzelaar.)
+
+- Added example program removeLineBreaks.py, a string transformer that 
+  converts text files with hard line-breaks into one with line breaks
+  only between paragraphs.  (I thought of this one myself.)
+
+- REMOVED SUPPORT FOR RETURNING PARSE LOCATION FROM A PARSE ACTION.
+  I announced this in March, 2004, and gave a final warning in the last
+  release.  Now you can return a tuple from a parse action, and it will
+  be treated like any other return value (i.e., the tuple will be 
+  substituted for the incoming tokens passed to the parse action).
+
+
+Version 1.4.2 - April 1, 2006 (No foolin'!)
+-------------------------------------------
 - Significant speedup from memoizing nested expressions (a technique 
   known as "packrat parsing"), thanks to Chris Lesniewski-Laas!  Your 
   mileage may vary, but my Verilog parser almost doubled in speed to 
