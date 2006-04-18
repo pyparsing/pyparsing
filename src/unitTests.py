@@ -1089,6 +1089,27 @@ class CountedArrayTest(ParseTestCase):
         assert r.asList() == [[5,7],[0,1,2,3,4,5],[],[5,4,3]], \
                 "Failed matching countedArray, got " + str(r.asList())
 
+class LineAndStringEndTest(ParseTestCase):
+    def runTest(self):
+        from pyparsing import OneOrMore,lineEnd,alphanums,Word,stringEnd,delimitedList
+
+        les = OneOrMore(lineEnd)
+        bnf1 = delimitedList(Word(alphanums),les)
+        bnf2 = Word(alphanums) + stringEnd
+        tests = [
+            ("test1\ntest1\ntest1\n", ['test1', 'test1', 'test1']),
+            ("test2\ntest2\ntest2", ['test2', 'test2', 'test2']),
+            ("a", ['a']),
+             ]
+
+        for t in tests:
+            res1 = bnf1.parseString(t[0])
+            print res1
+            assert res1.asList() == t[1], "Failed lineEnd/stringEnd test"
+            res2 = bnf2.searchString(t[0])
+            print res2
+            assert res2 == t[1][-1:], "Failed lineEnd/stringEnd test"
+
 
 class EnablePackratParsing(ParseTestCase):
     def runTest(self):
@@ -1120,6 +1141,7 @@ def makeTestSuite():
     suite.addTest( ParseUsingRegex() )
     suite.addTest( SkipToParserTests() )
     suite.addTest( CountedArrayTest() )
+    suite.addTest( LineAndStringEndTest() )
     suite.addTest( MiscellaneousParserTests() )
     
     # retest using packrat parsing (disable those tests that aren't compatible)
@@ -1146,6 +1168,7 @@ def makeTestSuite():
     suite.addTest( ParseUsingRegex() )
     suite.addTest( SkipToParserTests() )
     suite.addTest( CountedArrayTest() )
+    suite.addTest( LineAndStringEndTest() )
     suite.addTest( MiscellaneousParserTests() )
     return suite
     
