@@ -61,7 +61,7 @@ The pyparsing module handles some of the problems that are typically vexing when
  - embedded comments
 """
 __version__ = "1.4.3"
-__versionTime__ = "11 April 2006 16:45"
+__versionTime__ = "7 May 2006 21:35"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -69,6 +69,7 @@ import copy,sys
 import warnings
 import re
 import sre_constants
+import xml.sax.saxutils 
 #~ sys.stderr.write( "testing pyparsing module, version %s, %s\n" % (__version__,__versionTime__ ) )
 
 def _ustr(obj):
@@ -354,7 +355,7 @@ class ParseResults(object):
                 return ""
             else:
                 selfTag = "ITEM"
-                
+        
         out += [ nl, indent, "<", selfTag, ">" ]
         
         worklist = self.__toklist
@@ -374,7 +375,8 @@ class ParseResults(object):
                         continue
                     else:
                         resTag = "ITEM"
-                out += [ nl, nextLevelIndent, "<", resTag, ">", _ustr(res), "</", resTag, ">" ]
+                xmlBodyText = xml.sax.saxutils.escape(_ustr(res))
+                out += [ nl, nextLevelIndent, "<", resTag, ">", xmlBodyText, "</", resTag, ">" ]
         
         out += [ nl, indent, "</", selfTag, ">" ]
         return "".join(out)
@@ -417,7 +419,7 @@ class ParseResults(object):
             if isinstance(v,ParseResults):
                 if v.keys():
                     out.append('\n')
-                    out.append( dump(v,indent,depth+1) )
+                    out.append( v.dump(indent,depth+1) )
                     out.append('\n')
                 else:
                     out.append(str(v))
@@ -480,6 +482,7 @@ class ParserElement(object):
         self.saveAsList = savelist
         self.skipWhitespace = True
         self.whiteChars = ParserElement.DEFAULT_WHITE_CHARS
+        self.copyDefaultWhiteChars = True
         self.mayReturnEmpty = False
         self.keepTabs = False
         self.ignoreExprs = list()
@@ -497,7 +500,8 @@ class ParserElement(object):
         cpy = copy.copy( self )
         cpy.parseAction = self.parseAction[:]
         cpy.ignoreExprs = self.ignoreExprs[:]
-        cpy.whiteChars = ParserElement.DEFAULT_WHITE_CHARS
+        if self.copyDefaultWhiteChars:
+            cpy.whiteChars = ParserElement.DEFAULT_WHITE_CHARS
         return cpy
 
     def setName( self, name ):
@@ -849,6 +853,7 @@ class ParserElement(object):
         """
         self.skipWhitespace = True
         self.whiteChars = chars
+        self.copyDefaultWhiteChars = False
         return self
         
     def parseWithTabs( self ):
@@ -1315,7 +1320,7 @@ class QuotedString(Token):
             self.pattern += (
                 '|(' + ')|('.join(["%s[^%s]" % (re.escape(self.endQuoteChar[:i]),
                                                _escapeRegexRangeChars(self.endQuoteChar[i])) 
-                                    for i in xrange(len(self.endQuoteChar)-1,0,-1)]) + ')'
+                                    for i in range(len(self.endQuoteChar)-1,0,-1)]) + ')'
                 )
         if escQuote:
             self.pattern += (r'|(%s)' % re.escape(escQuote))
@@ -1459,7 +1464,7 @@ class White(Token):
     def __init__(self, ws=" \t\r\n", min=1, max=0, exact=0):
         super(White,self).__init__()
         self.matchWhite = ws
-        self.whiteChars = "".join([c for c in self.whiteChars if c not in self.matchWhite])
+        self.setWhitespaceChars( "".join([c for c in self.whiteChars if c not in self.matchWhite]) )
         #~ self.leaveWhitespace()
         self.name = ("".join([White.whiteStrs[c] for c in self.matchWhite]))
         self.mayReturnEmpty = True
@@ -1535,7 +1540,7 @@ class LineStart(PositionToken):
     """Matches if current position is at the beginning of a line within the parse string"""
     def __init__( self ):
         super(LineStart,self).__init__()
-        self.whiteChars = " \t"
+        self.setWhitespaceChars( " \t" )
         self.errmsg = "Expected start of line"
         self.myException.msg = self.errmsg
 
@@ -1558,7 +1563,7 @@ class LineEnd(PositionToken):
     """Matches if current position is at the end of a line within the parse string"""
     def __init__( self ):
         super(LineEnd,self).__init__()
-        self.whiteChars = " \t"
+        self.setWhitespaceChars( " \t" )
         self.errmsg = "Expected end of line"
         self.myException.msg = self.errmsg
     
@@ -1728,7 +1733,7 @@ class And(ParseExpression):
                 self.mayReturnEmpty = False
                 break
         self.skipWhitespace = exprs[0].skipWhitespace
-        self.whiteChars = exprs[0].whiteChars
+        self.setWhitespaceChars( exprs[0].whiteChars )
 
     def parseImpl( self, instring, loc, doActions=True ):
         loc, resultlist = self.exprs[0]._parse( instring, loc, doActions )
@@ -1921,7 +1926,7 @@ class Each(ParseExpression):
                 keepMatching = False
         
         if tmpReqd:
-            missing = ", ".join( [ str(e) for e in tmpReqd ] )
+            missing = ", ".join( [ _ustr(e) for e in tmpReqd ] )
             raise ParseException(instring,loc,"Missing one or more required elements (%s)" % missing )
 
         resultlist = []
@@ -1968,7 +1973,7 @@ class ParseElementEnhance(ParserElement):
         if expr is not None:
             self.mayIndexError = expr.mayIndexError
             self.skipWhitespace = expr.skipWhitespace
-            self.whiteChars = expr.whiteChars
+            self.setWhitespaceChars( expr.whiteChars )
             self.saveAsList = expr.saveAsList
     
     def parseImpl( self, instring, loc, doActions=True ):
@@ -2230,7 +2235,7 @@ class Forward(ParseElementEnhance):
        used for recursive grammars, such as algebraic infix notation.
        When the expression is known, it is assigned to the Forward variable using the '<<' operator.
        
-       Note: take care when assigning to Forward to not overlook precedence of operators.
+       Note: take care when assigning to Forward not to overlook precedence of operators.
        Specifically, '|' has a lower precedence than '<<', so that::
           fwdExpr << a | b | c
        will actually be evaluated as::
@@ -2391,7 +2396,7 @@ def delimitedList( expr, delim=",", combine=False ):
        string, with the delimiters included; otherwise, the matching tokens are returned
        as a list of tokens, with the delimiters suppressed.
     """
-    dlName = _ustr(expr)+u" ["+_ustr(delim)+u" "+_ustr(expr)+u"]..."
+    dlName = _ustr(expr)+" ["+_ustr(delim)+" "+_ustr(expr)+"]..."
     if combine:
         return Combine( expr + ZeroOrMore( delim + expr ) ).setName(dlName)
     else:
@@ -2506,7 +2511,7 @@ _singleChar = _escapedPunc | _escapedHexChar | _escapedOctChar | Word(_printable
 _charRange = Group(_singleChar + Suppress("-") + _singleChar)
 _reBracketExpr = "[" + Optional("^").setResultsName("negate") + Group( OneOrMore( _charRange | _singleChar ) ).setResultsName("body") + "]"
 
-_expanded = lambda p: (isinstance(p,ParseResults) and ''.join([ unichr(c) for c in xrange(ord(p[0]),ord(p[1])+1) ]) or p)
+_expanded = lambda p: (isinstance(p,ParseResults) and ''.join([ unichr(c) for c in range(ord(p[0]),ord(p[1])+1) ]) or p)
         
 def srange(s):
     r"""Helper to easily define string ranges for use in Word construction.  Borrows
