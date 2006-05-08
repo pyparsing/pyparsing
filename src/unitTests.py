@@ -511,14 +511,14 @@ class AsXMLTest(ParseTestCase):
         aaa = pyparsing.Word("a").setResultsName("A")
         bbb = pyparsing.Group(pyparsing.Word("b")).setResultsName("B")
         ccc = pyparsing.Combine(":" + pyparsing.Word("c")).setResultsName("C")
-        g1 = "XXX" + pyparsing.ZeroOrMore( aaa | bbb | ccc )
-        teststring = "XXX b b a b b a b :c b a"
+        g1 = "XXX>&<" + pyparsing.ZeroOrMore( aaa | bbb | ccc )
+        teststring = "XXX>&< b b a b b a b :c b a"
         #~ print teststring
         print "test including all items"
         xml = g1.parseString(teststring).asXML("TEST",namedItemsOnly=False)
         assert xml=="\n".join(["",
                                 "<TEST>",
-                                "  <ITEM>XXX</ITEM>",
+                                "  <ITEM>XXX&gt;&amp;&lt;</ITEM>",
                                 "  <B>",
                                 "    <ITEM>b</ITEM>",
                                 "  </B>",
@@ -1173,16 +1173,19 @@ def makeTestSuite():
     return suite
     
 
-#~ # console mode
-#~ testRunner = TextTestRunner()
-#~ testRunner.run( makeTestSuite() )
+console = False
+#~ console = True
+if console:
+    #~ # console mode
+    testRunner = TextTestRunner()
+    testRunner.run( makeTestSuite() )
+else:
+    # HTML mode
+    outfile = "testResults.html"
+    outstream = file(outfile,"w")
+    testRunner = HTMLTestRunner.HTMLTestRunner( stream=outstream )
+    testRunner.run( makeTestSuite() )
+    outstream.close()
 
-# HTML mode
-outfile = "testResults.html"
-outstream = file(outfile,"w")
-testRunner = HTMLTestRunner.HTMLTestRunner( stream=outstream )
-testRunner.run( makeTestSuite() )
-outstream.close()
-
-import os
-os.system(outfile)
+    import os
+    os.system(outfile)
