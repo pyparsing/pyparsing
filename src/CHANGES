@@ -2,8 +2,15 @@
 Change Log
 ==========
 
-Version 1.4.3 - April, 2006
+Version 1.4.3 - May, 2006
 ------------------------------
+- Fixed bug when copying ParserElements using copy() or 
+  setResultsName().  (Reported by Dan Thill, great catch!)
+  
+- Fixed bug in asXML() where token text contains <, >, and & 
+  characters - generated XML escapes these as &lt;, &gt; and
+  &amp;.  (Reported by Jacek Sieka, thanks!)
+  
 - Fixed "except Exception" statements, the most critical added as part
   of the packrat parsing enhancement.  (Thanks, Erick Tryzelaar!)
   
@@ -13,9 +20,15 @@ Version 1.4.3 - April, 2006
 - Modified setWhitespaceChars to return self, to be consistent with
   other ParserElement modifiers. (Suggested by Erick Tryzelaar.)
 
+- Fixed bug/typo in new ParseResults.dump() method.
+
 - Added example program removeLineBreaks.py, a string transformer that 
   converts text files with hard line-breaks into one with line breaks
-  only between paragraphs.  (I thought of this one myself.)
+  only between paragraphs.
+  
+- Added example program listAllMatches.py, to illustrate using the
+  listAllMatches option when specifying results names (also shows new
+  support for passing lists to oneOf).
 
 - REMOVED SUPPORT FOR RETURNING PARSE LOCATION FROM A PARSE ACTION.
   I announced this in March, 2004, and gave a final warning in the last
