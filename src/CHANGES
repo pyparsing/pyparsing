@@ -8,7 +8,7 @@ Version 1.4.3 - May, 2006
   setResultsName().  (Reported by Dan Thill, great catch!)
   
 - Fixed bug in asXML() where token text contains <, >, and & 
-  characters - generated XML escapes these as &lt;, &gt; and
+  characters - generated XML now escapes these as &lt;, &gt; and
   &amp;.  (Reported by Jacek Sieka, thanks!)
   
 - Fixed "except Exception" statements, the most critical added as part
@@ -29,6 +29,10 @@ Version 1.4.3 - May, 2006
 - Added example program listAllMatches.py, to illustrate using the
   listAllMatches option when specifying results names (also shows new
   support for passing lists to oneOf).
+
+- Added example program linenoExample.py, to illustrate using the
+  helper methods lineno, line, and col, and returning objects from a
+  parse action.
 
 - REMOVED SUPPORT FOR RETURNING PARSE LOCATION FROM A PARSE ACTION.
   I announced this in March, 2004, and gave a final warning in the last
