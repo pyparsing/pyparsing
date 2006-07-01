@@ -364,7 +364,7 @@ class RunExamplesTest(ParseTestCase):
         
 class ScanStringTest(ParseTestCase):
     def runTest(self):
-        from pyparsing import Word, Combine, Suppress, CharsNotIn, nums
+        from pyparsing import Word, Combine, Suppress, CharsNotIn, nums, StringEnd
         testdata = """
             <table border="0" cellpadding="3" cellspacing="3" frame="" width="90%">
                 <tr align="left" valign="top">
@@ -411,7 +411,11 @@ class ScanStringTest(ParseTestCase):
         print servers
         assert servers == ['129.6.15.28', '129.6.15.29', '132.163.4.101', '132.163.4.102', '132.163.4.103'], \
             "failed scanString()"
-            
+        
+        # test for stringEnd detection in scanString
+        foundStringEnds = [ r for r in StringEnd().scanString("xyzzy") ]
+        print foundStringEnds
+        assert foundStringEnds, "Failed to find StringEnd in scanString"
             
 class QuotedStringsTest(ParseTestCase):
     def runTest(self):
@@ -830,9 +834,11 @@ class CustomQuotesTest(ParseTestCase):
         
         def test(quoteExpr, expected):
             print quoteExpr.pattern
-            print quoteExpr.searchString(testString)[0]
-            assert quoteExpr.searchString(testString)[0] == expected, \
-                    "failed to match %s" % quoteExpr
+            print quoteExpr.searchString(testString)
+            print quoteExpr.searchString(testString)[0][0]
+            assert quoteExpr.searchString(testString)[0][0] == expected, \
+                    "failed to match %s, expected '%s', got '%s'" % \
+                    (quoteExpr,expected,quoteExpr.searchString(testString)[0])
         
         test(colonQuotes, r"sdf:jls:djf")
         test(dashQuotes,  r"sdf:jls::-djf: sl")
@@ -1091,25 +1097,111 @@ class CountedArrayTest(ParseTestCase):
 
 class LineAndStringEndTest(ParseTestCase):
     def runTest(self):
-        from pyparsing import OneOrMore,lineEnd,alphanums,Word,stringEnd,delimitedList
+        from pyparsing import OneOrMore,lineEnd,alphanums,Word,stringEnd,delimitedList,SkipTo
 
         les = OneOrMore(lineEnd)
         bnf1 = delimitedList(Word(alphanums),les)
         bnf2 = Word(alphanums) + stringEnd
+        bnf3 = Word(alphanums) + SkipTo(stringEnd)
         tests = [
-            ("test1\ntest1\ntest1\n", ['test1', 'test1', 'test1']),
-            ("test2\ntest2\ntest2", ['test2', 'test2', 'test2']),
+            ("testA\ntestB\ntestC\n", ['testA', 'testB', 'testC']),
+            ("testD\ntestE\ntestF", ['testD', 'testE', 'testF']),
             ("a", ['a']),
              ]
 
         for t in tests:
             res1 = bnf1.parseString(t[0])
-            print res1
-            assert res1.asList() == t[1], "Failed lineEnd/stringEnd test"
+            print res1,'=?',t[1]
+            assert res1.asList() == t[1], "Failed lineEnd/stringEnd test (1): "+repr(t[0])
             res2 = bnf2.searchString(t[0])
-            print res2
-            assert res2 == t[1][-1:], "Failed lineEnd/stringEnd test"
+            print res2[0].asList(),'=?',t[1][-1:]
+            assert res2[0].asList() == t[1][-1:], "Failed lineEnd/stringEnd test (2): "+repr(t[0])
+            res3 = bnf3.parseString(t[0])
+            print repr(res3[1]),'=?',repr(t[0][len(res3[0])+1:])
+            assert res3[1] == t[0][len(res3[0])+1:], "Failed lineEnd/stringEnd test (3): " +repr(t[0])
 
+class VariableParseActionArgsTest(ParseTestCase):
+    def runTest(self):
+        
+        pa3 = lambda s,l,t: t
+        pa2 = lambda l,t: t
+        pa1 = lambda t: t
+        def pa0(): return
+        class Callable3(object):
+            def __call__(self,s,l,t):
+                return t
+        class Callable2(object):
+            def __call__(self,l,t):
+                return t
+        class Callable1(object):
+            def __call__(self,t):
+                return t
+        class Callable0(object):
+            def __call__(self):
+                return 
+        class CallableS3(object):
+            @staticmethod
+            def __call__(s,l,t):
+                return t
+        class CallableS2(object):
+            @staticmethod
+            def __call__(l,t):
+                return t
+        class CallableS1(object):
+            @staticmethod
+            def __call__(t):
+                return t
+        class CallableS0(object):
+            @staticmethod
+            def __call__():
+                return
+        class CallableC3(object):
+            @classmethod
+            def __call__(cls,s,l,t):
+                return t
+        class CallableC2(object):
+            @classmethod
+            def __call__(cls,l,t):
+                return t
+        class CallableC1(object):
+            @classmethod
+            def __call__(cls,t):
+                return t
+        class CallableC0(object):
+            @classmethod
+            def __call__(cls):
+                return
+        def paArgs(*args):
+            print args
+            return args[2]
+
+        from pyparsing import Literal,OneOrMore
+        
+        A = Literal("A").setParseAction(pa0)
+        B = Literal("B").setParseAction(pa1)
+        C = Literal("C").setParseAction(pa2)
+        D = Literal("D").setParseAction(pa3)
+        E = Literal("E").setParseAction(Callable0())
+        F = Literal("F").setParseAction(Callable1())
+        G = Literal("G").setParseAction(Callable2())
+        H = Literal("H").setParseAction(Callable3())
+        I = Literal("I").setParseAction(CallableS0())
+        J = Literal("J").setParseAction(CallableS1())
+        K = Literal("K").setParseAction(CallableS2())
+        L = Literal("L").setParseAction(CallableS3())
+        M = Literal("M").setParseAction(CallableC0())
+        N = Literal("N").setParseAction(CallableC1())
+        O = Literal("O").setParseAction(CallableC2())
+        P = Literal("P").setParseAction(CallableC3())
+        Q = Literal("Q").setParseAction(paArgs)
+        R = Literal("R")
+        
+        gg = OneOrMore( A | B | C | D | E | F | G | H |
+                        I | J | K | L | M | N | O | P | Q | R )
+        testString = "RQPONMLKJIHGFEDCBA"
+        res = gg.parseString(testString)
+        print res.asList()
+        assert res.asList()==list(testString), "Failed to parse using variable length parse actions"
 
 class EnablePackratParsing(ParseTestCase):
     def runTest(self):
@@ -1142,34 +1234,36 @@ def makeTestSuite():
     suite.addTest( SkipToParserTests() )
     suite.addTest( CountedArrayTest() )
     suite.addTest( LineAndStringEndTest() )
+    suite.addTest( VariableParseActionArgsTest() )
     suite.addTest( MiscellaneousParserTests() )
     
     # retest using packrat parsing (disable those tests that aren't compatible)
     suite.addTest( EnablePackratParsing() )
-    
-    #~ suite.addTest( ParseIDLTest() )
-    suite.addTest( ParseASMLTest() )
-    suite.addTest( ParseFourFnTest() )
-    suite.addTest( ParseSQLTest() )
-    suite.addTest( ParseConfigFileTest() )
-    suite.addTest( ParseCommaSeparatedValuesTest() )
-    #~ suite.addTest( ParseEBNFTest() )
-    suite.addTest( ScanStringTest() )
-    suite.addTest( QuotedStringsTest() )
-    suite.addTest( CustomQuotesTest() )
-    suite.addTest( CaselessOneOfTest() )
-    suite.addTest( AsXMLTest() )
-    suite.addTest( CommentParserTest() )
-    suite.addTest( ParseExpressionResultsTest() )
-    suite.addTest( ParseExpressionResultsAccumulateTest() )
-    suite.addTest( ReStringRangeTest() )
-    suite.addTest( ParseKeywordTest() )
-    suite.addTest( ParseHTMLTagsTest() )
-    suite.addTest( ParseUsingRegex() )
-    suite.addTest( SkipToParserTests() )
-    suite.addTest( CountedArrayTest() )
-    suite.addTest( LineAndStringEndTest() )
-    suite.addTest( MiscellaneousParserTests() )
+    if 1:
+        #~ suite.addTest( ParseIDLTest() )
+        suite.addTest( ParseASMLTest() )
+        suite.addTest( ParseFourFnTest() )
+        suite.addTest( ParseSQLTest() )
+        suite.addTest( ParseConfigFileTest() )
+        suite.addTest( ParseCommaSeparatedValuesTest() )
+        #~ suite.addTest( ParseEBNFTest() )
+        suite.addTest( ScanStringTest() )
+        suite.addTest( QuotedStringsTest() )
+        suite.addTest( CustomQuotesTest() )
+        suite.addTest( CaselessOneOfTest() )
+        suite.addTest( AsXMLTest() )
+        suite.addTest( CommentParserTest() )
+        suite.addTest( ParseExpressionResultsTest() )
+        suite.addTest( ParseExpressionResultsAccumulateTest() )
+        suite.addTest( ReStringRangeTest() )
+        suite.addTest( ParseKeywordTest() )
+        suite.addTest( ParseHTMLTagsTest() )
+        suite.addTest( ParseUsingRegex() )
+        suite.addTest( SkipToParserTests() )
+        suite.addTest( CountedArrayTest() )
+        suite.addTest( LineAndStringEndTest() )
+        suite.addTest( VariableParseActionArgsTest() )
+        suite.addTest( MiscellaneousParserTests() )
     return suite
     
 
