@@ -2,14 +2,68 @@
 Change Log
 ==========
 
-Version 1.4.3 - May, 2006
+Version 1.4.3 - July, 2006
 ------------------------------
+- Fixed implementation of multiple parse actions for an expression
+  (added in 1.4.2).
+  . setParseAction() reverts to its previous behavior, setting
+    one (or more) actions for an expression, overwriting any
+    action or actions previously defined
+  . new method addParseAction() appends one or more parse actions
+    to the list of parse actions attached to an expression
+  Now it is harder to accidentally append parse actions to an
+  expression, when what you wanted to do was overwrite whatever had
+  been defined before.  (Thanks, Jean-Paul Calderone!)
+
+- Simplified interface to parse actions that do not require all 3
+  parse action arguments.  Very rarely do parse actions require more
+  than just the parsed tokens, yet parse actions still require all 
+  3 arguments including the string being parsed and the location
+  within the string where the parse expression was matched.  With this
+  release, parse actions may now be defined to be called as:
+  . fn(string,locn,tokens)  (the current form)
+  . fn(locn,tokens)
+  . fn(tokens)
+  . fn()
+  The setParseAction and addParseAction methods will internally decorate 
+  the provided parse actions with compatible wrappers to conform to 
+  the full (string,locn,tokens) argument sequence.
+
+- REMOVED SUPPORT FOR RETURNING PARSE LOCATION FROM A PARSE ACTION.
+  I announced this in March, 2004, and gave a final warning in the last
+  release.  Now you can return a tuple from a parse action, and it will
+  be treated like any other return value (i.e., the tuple will be 
+  substituted for the incoming tokens passed to the parse action, 
+  which is useful when trying to parse strings into tuples).
+  
+- Added setFailAction method, taking a callable function fn that
+  takes the arguments fn(s,loc,expr,err) where:
+  . s - string being parsed
+  . loc - location where expression match was attempted and failed
+  . expr - the parse expression that failed
+  . err - the exception thrown
+  The function returns no values.  It may throw ParseFatalException
+  if it is desired to stop parsing immediately.
+  (Suggested by peter21081944 on wikispaces.com)
+
+- Added class OnlyOnce as helper wrapper for parse actions.  OnlyOnce
+  only permits a parse action to be called one time, after which
+  all subsequent calls throw a ParseException.
+  
+- Added traceParseAction decorator to help debug parse actions.
+  Simply insert "@traceParseAction" ahead of the definition of your
+  parse action, and each invocation will be displayed, along with 
+  incoming arguments, and returned value.
+  
 - Fixed bug when copying ParserElements using copy() or 
   setResultsName().  (Reported by Dan Thill, great catch!)
   
 - Fixed bug in asXML() where token text contains <, >, and & 
   characters - generated XML now escapes these as &lt;, &gt; and
   &amp;.  (Reported by Jacek Sieka, thanks!)
+  
+- Fixed bug in SkipTo() when searching for a StringEnd(). (Reported 
+  by Pete McEvoy, thanks Pete!)
   
 - Fixed "except Exception" statements, the most critical added as part
   of the packrat parsing enhancement.  (Thanks, Erick Tryzelaar!)
@@ -21,6 +75,10 @@ Version 1.4.3 - May, 2006
   other ParserElement modifiers. (Suggested by Erick Tryzelaar.)
 
 - Fixed bug/typo in new ParseResults.dump() method.
+
+- Fixed bug in searchString() method, in which only the first token of
+  an expression was returned.  searchString() now returns a 
+  ParseResults collection of all search matches.
 
 - Added example program removeLineBreaks.py, a string transformer that 
   converts text files with hard line-breaks into one with line breaks
@@ -34,11 +92,11 @@ Version 1.4.3 - May, 2006
   helper methods lineno, line, and col, and returning objects from a
   parse action.
 
-- REMOVED SUPPORT FOR RETURNING PARSE LOCATION FROM A PARSE ACTION.
-  I announced this in March, 2004, and gave a final warning in the last
-  release.  Now you can return a tuple from a parse action, and it will
-  be treated like any other return value (i.e., the tuple will be 
-  substituted for the incoming tokens passed to the parse action).
+- Added example program parseListString.py, to which can parse the
+  string representation of a Python list back into a true list.  Taken
+  mostly from my PyCon presentation examples, but now with support 
+  for tuple elements, too!
+
 
 
 Version 1.4.2 - April 1, 2006 (No foolin'!)

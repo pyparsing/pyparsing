@@ -21,9 +21,6 @@
 # TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 # SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #
-#  Todo:
-#  - add pprint() - pretty-print output of defined BNF
-#
 #from __future__ import generators
 
 __doc__ = \
@@ -61,7 +58,7 @@ The pyparsing module handles some of the problems that are typically vexing when
  - embedded comments
 """
 __version__ = "1.4.3"
-__versionTime__ = "7 May 2006 21:35"
+__versionTime__ = "1 July 2006 05:32"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -215,7 +212,7 @@ class ParseResults(object):
                 else:
                     try:
                         self[name] = toklist[0]
-                    except TypeError:
+                    except (KeyError,TypeError):
                         self[name] = toklist
 
     def __getitem__( self, i ):
@@ -231,6 +228,8 @@ class ParseResults(object):
         if isinstance(v,tuple):
             self.__tokdict[k] = self.__tokdict.get(k,list()) + [v]
             sub = v[0]
+        elif isinstance(k,int):
+            self.__toklist[k] = v
         else:
             self.__tokdict[k] = self.__tokdict.get(k,list()) + [(v,0)]
             sub = v
@@ -476,6 +475,7 @@ class ParserElement(object):
     
     def __init__( self, savelist=False ):
         self.parseAction = list()
+        self.failAction = None
         #~ self.name = "<unknown>"  # don't define self.name, let subclasses try/except upcall
         self.strRepr = None
         self.resultsName = None
@@ -522,19 +522,80 @@ class ParserElement(object):
         newself.modalResults = not listAllMatches
         return newself
 
+    def normalizeParseActionArgs( f ):
+        """Internal method used to decorate parse actions that take fewer than 3 arguments,
+           so that all parse actions can be called as f(s,l,t)."""
+        STAR_ARGS = 4
+        try:
+            if f.func_code.co_flags & STAR_ARGS:
+                return f
+            numargs = f.func_code.co_argcount
+            if hasattr(f,"im_self"):
+                numargs -= 1
+        except AttributeError:
+            try:
+                # not a function, must be a callable object, get info from the
+                # im_func binding of its bound __call__ method
+                if f.__call__.im_func.func_code.co_flags & STAR_ARGS:
+                    return f
+                numargs = f.__call__.im_func.func_code.co_argcount
+                if hasattr(f.__call__,"im_self"):
+                    numargs -= 1
+            except AttributeError:
+                # not a bound method, get info directly from __call__ method
+                if f.__call__.func_code.co_flags & STAR_ARGS:
+                    return f
+                numargs = f.__call__.func_code.co_argcount
+                if hasattr(f.__call__,"im_self"):
+                    numargs -= 1
+
+        #~ print "adding function %s with %d args" % (f.func_name,numargs)
+        if numargs == 3:
+            return f
+        else:
+            if numargs == 2:
+                def tmp(s,l,t):
+                    return f(l,t)
+            elif numargs == 1:
+                def tmp(s,l,t):
+                    return f(t)
+            else: #~ numargs == 0:
+                def tmp(s,l,t):
+                    return f()
+            return tmp
+    normalizeParseActionArgs = staticmethod(normalizeParseActionArgs)
+            
     def setParseAction( self, *fns ):
         """Define action to perform when successfully matching parse element definition.
-           Parse action fn is a callable method with the arguments (s, loc, toks) where:
+           Parse action fn is a callable method with 0-3 arguments, called as fn(s,loc,toks),
+           fn(loc,toks), fn(toks), or just fn(), where:
             - s   = the original string being parsed
             - loc = the location of the matching substring
             - toks = a list of the matched tokens, packaged as a ParseResults object
-           If the functions in fns modify the tokens, it can return them as the return
+           If the functions in fns modify the tokens, they can return them as the return
            value from fn, and the modified list of tokens will replace the original.
-           Otherwise, fn does not need to return any value.
-        """
-        self.parseAction += fns
+           Otherwise, fn does not need to return any value."""
+        self.parseAction = [self.normalizeParseActionArgs(f) for f in list(fns)]
         return self
 
+    def addParseAction( self, *fns ):
+        """Add parse action to expression's list of parse actions. See setParseAction_."""
+        self.parseAction += [self.normalizeParseActionArgs(f) for f in list(fns)]
+        return self
+
+    def setFailAction( self, fn ):
+        """Define action to perform if parsing fails at this expression. 
+           Fail acton fn is a callable function that takes the arguments 
+           fn(s,loc,expr,err) where:
+            - s = string being parsed
+            - loc = location where expression match was attempted and failed
+            - expr = the parse expression that failed
+            - err = the exception thrown
+           The function returns no value.  It may throw ParseFatalException
+           if it is desired to stop parsing immediately."""
+        self.failAction = fn
+        return self
+        
     def skipIgnorables( self, instring, loc ):
         exprsFound = True
         while exprsFound:
@@ -570,34 +631,40 @@ class ParserElement(object):
     def _parseNoCache( self, instring, loc, doActions=True, callPreParse=True ):
         debugging = ( self.debug ) #and doActions )
 
-        if debugging:
+        if debugging or self.failAction:
             #~ print "Match",self,"at loc",loc,"(%d,%d)" % ( lineno(loc,instring), col(loc,instring) )
             if (self.debugActions[0] ):
                 self.debugActions[0]( instring, loc, self )
             if callPreParse:
-                loc = self.preParse( instring, loc )
+                preloc = self.preParse( instring, loc )
+            else:
+                preloc = loc
             tokensStart = loc
             try:
                 try:
-                    loc,tokens = self.parseImpl( instring, loc, doActions )
+                    loc,tokens = self.parseImpl( instring, preloc, doActions )
                 except IndexError:
                     raise ParseException( instring, len(instring), self.errmsg, self )
             except ParseException, err:
                 #~ print "Exception raised:", err
-                if (self.debugActions[2] ):
+                if self.debugActions[2]:
                     self.debugActions[2]( instring, tokensStart, self, err )
+                if self.failAction:
+                    self.failAction( instring, tokensStart, self, err )
                 raise
         else:
             if callPreParse:
-                loc = self.preParse( instring, loc )
+                preloc = self.preParse( instring, loc )
+            else:
+                preloc = loc
             tokensStart = loc
             if self.mayIndexError or loc >= len(instring):
                 try:
-                    loc,tokens = self.parseImpl( instring, loc, doActions )
+                    loc,tokens = self.parseImpl( instring, preloc, doActions )
                 except IndexError:
                     raise ParseException( instring, len(instring), self.errmsg, self )
             else:
-                loc,tokens = self.parseImpl( instring, loc, doActions )
+                loc,tokens = self.parseImpl( instring, preloc, doActions )
         
         tokens = self.postParse( instring, loc, tokens )
 
@@ -694,7 +761,7 @@ class ParserElement(object):
         ParserElement.resetCache()
         if not self.streamlined:
             self.streamline()
-            self.saveAsList = True
+            #~ self.saveAsList = True
         for e in self.ignoreExprs:
             e.streamline()
         if self.keepTabs:
@@ -717,14 +784,14 @@ class ParserElement(object):
         preparseFn = self.preParse
         parseFn = self._parse
         ParserElement.resetCache()
-        while loc < instrlen:
+        while loc <= instrlen:
             try:
-                loc = preparseFn( instring, loc )
-                nextLoc,tokens = parseFn( instring, loc, callPreParse=False )
+                preloc = preparseFn( instring, loc )
+                nextLoc,tokens = parseFn( instring, preloc, callPreParse=False )
             except ParseException:
                 loc += 1
             else:
-                yield tokens, loc, nextLoc
+                yield tokens, preloc, nextLoc
                 loc = nextLoc
         
     def transformString( self, instring ):
@@ -756,7 +823,7 @@ class ParserElement(object):
         """Another extension to scanString, simplifying the access to the tokens found
            to match the given parse expression.
         """
-        return [ t[0] for t,s,e in self.scanString( instring ) ]
+        return ParseResults([ t for t,s,e in self.scanString( instring ) ])
             
     def __add__(self, other ):
         """Implementation of + operator - returns And"""
@@ -1545,8 +1612,8 @@ class LineStart(PositionToken):
         self.myException.msg = self.errmsg
 
     def preParse( self, instring, loc ):
-        loc = super(LineStart,self).preParse(instring,loc)
-        if instring[loc] == "\n":
+        preloc = super(LineStart,self).preParse(instring,loc)
+        if instring[preloc] == "\n":
             loc += 1
         return loc
 
@@ -1693,6 +1760,8 @@ class ParseExpression(ParserElement):
                   not other.debug ):
                 self.exprs = other.exprs[:] + [ self.exprs[1] ]
                 self.strRepr = None
+                self.mayReturnEmpty |= other.mayReturnEmpty
+                self.mayIndexError  |= other.mayIndexError
 
             other = self.exprs[-1]
             if ( isinstance( other, self.__class__ ) and
@@ -1701,6 +1770,8 @@ class ParseExpression(ParserElement):
                   not other.debug ):
                 self.exprs = self.exprs[:-1] + other.exprs[:]
                 self.strRepr = None
+                self.mayReturnEmpty |= other.mayReturnEmpty
+                self.mayIndexError  |= other.mayIndexError
 
         return self
 
@@ -1715,10 +1786,10 @@ class ParseExpression(ParserElement):
             e.validate(tmp)
         self.checkRecursion( [] )
 
-    def _parseCache( self, instring, loc, doActions=True, callPreParse=True ):
-        if self.parseAction and doActions:
-            return self._parseNoCache( instring, loc, doActions, callPreParse )
-        return super(ParseExpression,self)._parseCache( instring, loc, doActions, callPreParse )
+    #~ def _parseCache( self, instring, loc, doActions=True, callPreParse=True ):
+        #~ if self.parseAction and doActions:
+            #~ return self._parseNoCache( instring, loc, doActions, callPreParse )
+        #~ return super(ParseExpression,self)._parseCache( instring, loc, doActions, callPreParse )
 
 class And(ParseExpression):
     """Requires all given ParseExpressions to be found in the given order.
@@ -2095,8 +2166,10 @@ class ZeroOrMore(ParseElementEnhance):
             hasIgnoreExprs = ( len(self.ignoreExprs) > 0 )
             while 1:
                 if hasIgnoreExprs:
-                    loc = self.skipIgnorables( instring, loc )
-                loc, tmptokens = self.expr._parse( instring, loc, doActions )
+                    preloc = self.skipIgnorables( instring, loc )
+                else:
+                    preloc = loc
+                loc, tmptokens = self.expr._parse( instring, preloc, doActions )
                 if tmptokens or tmptokens.keys():
                     tokens += tmptokens
         except (ParseException,IndexError):
@@ -2128,8 +2201,10 @@ class OneOrMore(ParseElementEnhance):
             hasIgnoreExprs = ( len(self.ignoreExprs) > 0 )
             while 1:
                 if hasIgnoreExprs:
-                    loc = self.skipIgnorables( instring, loc )
-                loc, tmptokens = self.expr._parse( instring, loc, doActions )
+                    preloc = self.skipIgnorables( instring, loc )
+                else:
+                    preloc = loc
+                loc, tmptokens = self.expr._parse( instring, preloc, doActions )
                 if tmptokens or tmptokens.keys():
                     tokens += tmptokens
         except (ParseException,IndexError):
@@ -2210,7 +2285,7 @@ class SkipTo(ParseElementEnhance):
         startLoc = loc
         instrlen = len(instring)
         expr = self.expr
-        while loc < instrlen:
+        while loc <= instrlen:
             try:
                 loc = expr.skipIgnorables( instring, loc )
                 expr._parse( instring, loc, doActions=False, callPreParse=False )
@@ -2248,6 +2323,8 @@ class Forward(ParseElementEnhance):
         super(Forward,self).__init__( other, savelist=False )
 
     def __lshift__( self, other ):
+        if isinstance( other, basestring ):
+            other = Literal(other)
         self.expr = other
         self.mayReturnEmpty = other.mayReturnEmpty
         self.strRepr = None
@@ -2385,6 +2462,32 @@ class Suppress(TokenConverter):
     def suppress( self ):
         return self
 
+
+class OnlyOnce(object):
+    """Wrapper for parse actions, to ensure they are only called once."""
+    def __init__(self, methodCall):
+        self.callable = ParserElement.normalizeParseActionArgs(methodCall)
+        self.called = False
+    def __call__(self,s,l,t):
+        if not self.called:
+            results = self.callable(s,l,t)
+            self.called = True
+            return results
+        raise ParseException(s,l,"")
+
+def traceParseAction(f):
+    """Decorator for debugging parse actions."""
+    def z(*paArgs):
+        thisFunc = f.func_name
+        s,l,t = paArgs[-3:]
+        if len(paArgs)>3:
+            thisFunc = paArgs[0].__class__.__name__ + '.' + thisFunc
+        sys.stderr.write( ">>entering %s(line: '%s', %d, %s)\n" % (thisFunc,line(l,s),l,t) )
+        ret = f(*paArgs)
+        sys.stderr.write( "<<leaving %s (ret: %s)\n" % (thisFunc,ret) )
+        return ret
+    return z
+        
 #
 # global helpers
 #
