@@ -57,8 +57,8 @@ The pyparsing module handles some of the problems that are typically vexing when
  - quoted strings
  - embedded comments
 """
-__version__ = "1.4.3"
-__versionTime__ = "1 July 2006 05:32"
+__version__ = "1.4.4"
+__versionTime__ = "2 August 2006 22:17"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -230,6 +230,7 @@ class ParseResults(object):
             sub = v[0]
         elif isinstance(k,int):
             self.__toklist[k] = v
+            sub = v
         else:
             self.__tokdict[k] = self.__tokdict.get(k,list()) + [(v,0)]
             sub = v
@@ -267,6 +268,11 @@ class ParseResults(object):
                 return ""
         return None
 
+    def __add__( self, other ):
+        ret = self.copy()
+        ret += other
+        return ret
+        
     def __iadd__( self, other ):
         if other.__tokdict:
             offset = len(self.__toklist)
@@ -409,6 +415,7 @@ class ParseResults(object):
            Accepts an optional indent argument so that this string can be embedded
            in a nested display of other data."""
         out = []
+        out.append( indent+str(self.asList()) )
         keys = self.items()
         keys.sort()
         for k,v in keys:
@@ -417,15 +424,14 @@ class ParseResults(object):
             out.append( "%s%s- %s: " % (indent,('  '*depth), k) )
             if isinstance(v,ParseResults):
                 if v.keys():
-                    out.append('\n')
+                    #~ out.append('\n')
                     out.append( v.dump(indent,depth+1) )
-                    out.append('\n')
+                    #~ out.append('\n')
                 else:
                     out.append(str(v))
             else:
                 out.append(str(v))
-        out.append('\n')
-        out.append( indent+str(self.asList()) )
+        #~ out.append('\n')
         return "".join(out)
     
 def col (loc,strg):
@@ -575,12 +581,12 @@ class ParserElement(object):
            If the functions in fns modify the tokens, they can return them as the return
            value from fn, and the modified list of tokens will replace the original.
            Otherwise, fn does not need to return any value."""
-        self.parseAction = [self.normalizeParseActionArgs(f) for f in list(fns)]
+        self.parseAction = map(self.normalizeParseActionArgs, list(fns))
         return self
 
     def addParseAction( self, *fns ):
         """Add parse action to expression's list of parse actions. See setParseAction_."""
-        self.parseAction += [self.normalizeParseActionArgs(f) for f in list(fns)]
+        self.parseAction += map(self.normalizeParseActionArgs, list(fns))
         return self
 
     def setFailAction( self, fn ):
@@ -770,8 +776,10 @@ class ParserElement(object):
             loc, tokens = self._parse( instring.expandtabs(), 0 )
         return tokens
 
-    def scanString( self, instring ):
-        """Scan the input string for expression matches.  Each match will return the matching tokens, start location, and end location."""
+    def scanString( self, instring, maxMatches=sys.maxint ):
+        """Scan the input string for expression matches.  Each match will return the 
+           matching tokens, start location, and end location.  May be called with optional
+           maxMatches argument, to clip scanning after 'n' matches are found."""
         if not self.streamlined:
             self.streamline()
         for e in self.ignoreExprs:
@@ -784,13 +792,15 @@ class ParserElement(object):
         preparseFn = self.preParse
         parseFn = self._parse
         ParserElement.resetCache()
-        while loc <= instrlen:
+        matches = 0
+        while loc <= instrlen and matches < maxMatches:
             try:
                 preloc = preparseFn( instring, loc )
                 nextLoc,tokens = parseFn( instring, preloc, callPreParse=False )
             except ParseException:
-                loc += 1
+                loc = preloc+1
             else:
+                matches += 1
                 yield tokens, preloc, nextLoc
                 loc = nextLoc
         
@@ -819,11 +829,12 @@ class ParserElement(object):
         out.append(instring[lastE:])
         return "".join(out)
 
-    def searchString( self, instring ):
+    def searchString( self, instring, maxMatches=sys.maxint ):
         """Another extension to scanString, simplifying the access to the tokens found
-           to match the given parse expression.
+           to match the given parse expression.  May be called with optional
+           maxMatches argument, to clip searching after 'n' matches are found.
         """
-        return ParseResults([ t for t,s,e in self.scanString( instring ) ])
+        return ParseResults([ t for t,s,e in self.scanString( instring, maxMatches ) ])
             
     def __add__(self, other ):
         """Implementation of + operator - returns And"""
@@ -2474,16 +2485,23 @@ class OnlyOnce(object):
             self.called = True
             return results
         raise ParseException(s,l,"")
+    def reset():
+        self.called = False
 
 def traceParseAction(f):
     """Decorator for debugging parse actions."""
+    f = ParserElement.normalizeParseActionArgs(f)
     def z(*paArgs):
         thisFunc = f.func_name
         s,l,t = paArgs[-3:]
         if len(paArgs)>3:
             thisFunc = paArgs[0].__class__.__name__ + '.' + thisFunc
         sys.stderr.write( ">>entering %s(line: '%s', %d, %s)\n" % (thisFunc,line(l,s),l,t) )
-        ret = f(*paArgs)
+        try:
+            ret = f(*paArgs)
+        except Exception, exc:
+            sys.stderr.write( "<<leaving %s (exception: %s)\n" % (thisFunc,exc) )
+            raise
         sys.stderr.write( "<<leaving %s (ret: %s)\n" % (thisFunc,ret) )
         return ret
     return z
@@ -2518,6 +2536,62 @@ def countedArray( expr ):
         arrayExpr << (n and Group(And([expr]*n)) or Group(empty))
         return []
     return ( Word(nums).setParseAction(countFieldParseAction) + arrayExpr )
+
+def _flatten(L):
+    if type(L) is not list: return [L]
+    if L == []: return L
+    return _flatten(L[0]) + _flatten(L[1:])
+
+def matchPreviousLiteral(expr):
+    """Helper to define an expression that is indirectly defined from
+       the tokens matched in a previous expression, that is, it looks
+       for a 'repeat' of a previous expression.  For example:
+           first = Word(nums)
+           second = matchPreviousLiteral(first)
+           matchExpr = first + ":" + second
+       will match "1:1", but not "1:2".  Because this matches a 
+       previous literal, will also match the leading "1:1" in "1:10".  
+       If this is not desired, use matchPreviousExpr.
+       Do *not* use with packrat parsing enabled.
+    """
+    rep = Forward()
+    def copyTokenToRepeater(s,l,t):
+        if t:
+            if len(t) == 1:
+                rep << t[0]
+            else:
+                # flatten t tokens
+                rep << And( map(Literal,_flatten( t.asList() ) ) )
+        else:
+            rep << Empty()
+    expr.addParseAction(copyTokenToRepeater)
+    return rep
+    
+def matchPreviousExpr(expr):
+    """Helper to define an expression that is indirectly defined from
+       the tokens matched in a previous expression, that is, it looks
+       for a 'repeat' of a previous expression.  For example:
+           first = Word(nums)
+           second = matchPreviousExpr(first)
+           matchExpr = first + ":" + second
+       will match "1:1", but not "1:2".  Because this matches by
+       expressions, will *not* match the leading "1:1" in "1:10";
+       the expressions are evaluated first, and then compared, so
+       "1" is compared with "10".
+       Do *not* use with packrat parsing enabled.
+    """
+    rep = Forward()
+    e2 = expr.copy()
+    rep << e2
+    def copyTokenToRepeater(s,l,t):
+        matchTokens = _flatten(t.asList())
+        def mustMatchTheseTokens(s,l,t):
+            theseTokens = _flatten(t.asList())
+            if  theseTokens != matchTokens:
+                raise ParseException("",0,"")
+        rep.setParseAction( mustMatchTheseTokens )
+    expr.addParseAction(copyTokenToRepeater)
+    return rep
     
 def _escapeRegexRangeChars(s):
     #~  escape these chars: ^-]
@@ -2660,6 +2734,16 @@ def downcaseTokens(s,l,t):
     """Helper parse action to convert tokens to lower case."""
     return map( str.lower, t )
 
+def keepOriginalText(s,startLoc,t):
+    """Helper parse action to preserve original parsed text,
+       overriding any nested parse actions."""
+    f = inspect.stack()[1][0]
+    try:
+        endloc = f.f_locals["loc"]
+    finally:
+        del f
+    return s[startLoc:endloc]
+        
 def _makeTags(tagStr, xml):
     """Internal helper to construct opening and closing tag expressions, given a tag name"""
     tagAttrName = Word(alphanums)
