@@ -58,7 +58,7 @@ The pyparsing module handles some of the problems that are typically vexing when
  - embedded comments
 """
 __version__ = "1.4.4"
-__versionTime__ = "2 August 2006 22:17"
+__versionTime__ = "9 September 2006 13:21"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -154,7 +154,13 @@ class ParseFatalException(ParseBaseException):
     """user-throwable exception thrown when inconsistent parse content
        is found; stops all parsing immediately"""
     pass
-    
+
+class ReparseException(ParseBaseException):
+    def __init_( self, newstring, restartLoc ):
+        self.newParseText = newstring
+        self.reparseLoc = restartLoc
+
+
 class RecursiveGrammarException(Exception):
     """exception thrown by validate() if the grammar could be improperly recursive"""
     def __init__( self, parseElementList ):
@@ -169,7 +175,7 @@ class ParseResults(object):
        - by list index (results[0], results[1], etc.)
        - by attribute (results.<resultsName>)
        """
-    __slots__ = ( "__toklist", "__tokdict", "__doinit", "__name", "__parent", "__modal" )
+    __slots__ = ( "__toklist", "__tokdict", "__doinit", "__name", "__parent", "__accumNames" )
     def __new__(cls, toklist, name=None, asList=True, modal=True ):
         if isinstance(toklist, cls):
             return toklist
@@ -184,7 +190,7 @@ class ParseResults(object):
             self.__doinit = False
             self.__name = None
             self.__parent = None
-            self.__modal = modal
+            self.__accumNames = {}
             if isinstance(toklist, list):
                 self.__toklist = toklist[:]
             else:
@@ -195,8 +201,8 @@ class ParseResults(object):
         #~ asList = False
         
         if name:
-            if not self.__name:
-                self.__modal = self.__modal and modal
+            if not modal:
+                self.__accumNames[name] = 0
             if isinstance(name,int):
                 name = _ustr(name) # will always return a str, but use _ustr for consistency
             self.__name = name
@@ -219,7 +225,7 @@ class ParseResults(object):
         if isinstance( i, (int,slice) ):
             return self.__toklist[i]
         else:
-            if self.__modal:
+            if i not in self.__accumNames:
                 return self.__tokdict[i][-1][0]
             else:
                 return ParseResults([ v[0] for v in self.__tokdict[i] ])
@@ -238,12 +244,16 @@ class ParseResults(object):
             sub.__parent = self
         
     def __delitem__( self, i ):
-        del self.__toklist[i]
+        if isinstance(i,(int,slice)):
+            del self.__toklist[i]
+        else:
+            del self._tokdict[i]
 
     def __contains__( self, k ):
         return self.__tokdict.has_key(k)
         
     def __len__( self ): return len( self.__toklist )
+    def __nonzero__( self ): return len( self.__toklist ) > 0
     def __iter__( self ): return iter( self.__toklist )
     def keys( self ): 
         """Returns all named result keys."""
@@ -251,7 +261,7 @@ class ParseResults(object):
     
     def items( self ): 
         """Returns all named result keys and values as a list of tuples."""
-        return [(k,v[-1][0]) for k,v in self.__tokdict.items()]
+        return [(k,self[k]) for k in self.__tokdict.keys()]
     
     def values( self ): 
         """Returns all named result values."""
@@ -260,7 +270,7 @@ class ParseResults(object):
     def __getattr__( self, name ):
         if name not in self.__slots__:
             if self.__tokdict.has_key( name ):
-                if self.__modal:
+                if name not in self.__accumNames:
                     return self.__tokdict[name][-1][0]
                 else:
                     return ParseResults([ v[0] for v in self.__tokdict[name] ])
@@ -277,12 +287,14 @@ class ParseResults(object):
         if other.__tokdict:
             offset = len(self.__toklist)
             addoffset = ( lambda a: (a<0 and offset) or (a+offset) )
-            otherdictitems = [(k,(v[0],addoffset(v[1])) ) for (k,vlist) in other.__tokdict.items() for v in vlist]
+            otheritems = other.__tokdict.items()
+            otherdictitems = [(k,(v[0],addoffset(v[1])) ) for (k,vlist) in otheritems for v in vlist]
             for k,v in otherdictitems:
                 self[k] = v
                 if isinstance(v[0],ParseResults):
                     v[0].__parent = self
         self.__toklist += other.__toklist
+        self.__accumNames.update( other.__accumNames )
         del other
         return self
        
@@ -331,7 +343,7 @@ class ParseResults(object):
         ret = ParseResults( self.__toklist )
         ret.__tokdict = self.__tokdict.copy()
         ret.__parent = self.__parent
-        ret.__modal = self.__modal
+        ret.__accumNames.update( self.__accumNames )
         ret.__name = self.__name
         return ret
         
@@ -438,7 +450,7 @@ def col (loc,strg):
     """Returns current column within a string, counting newlines as line separators.
    The first column is number 1.
    """
-    return loc - strg.rfind("\n", 0, loc)
+    return (loc<len(strg) and strg[loc] == '\n') and 1 or loc - strg.rfind("\n", 0, loc)
 
 def lineno(loc,strg):
     """Returns current line number within a string, counting newlines as line separators.
@@ -712,6 +724,8 @@ class ParserElement(object):
     # this method gets repeatedly called during backtracking with the same arguments -
     # we can cache these arguments and save ourselves the trouble of re-parsing the contained expression
     def _parseCache( self, instring, loc, doActions=True, callPreParse=True ):
+        if doActions and self.parseAction:
+            return self._parseNoCache( instring, loc, doActions, callPreParse )
         lookup = (self,instring,loc,callPreParse)
         if lookup in ParserElement._exprArgCache:
             value = ParserElement._exprArgCache[ lookup ]
@@ -1727,7 +1741,7 @@ class ParseExpression(ParserElement):
         """Extends leaveWhitespace defined in base class, and also invokes leaveWhitespace on
            all contained expressions."""
         self.skipWhitespace = False
-        self.exprs = [ copy.copy(e) for e in self.exprs ]
+        self.exprs = [ e.copy() for e in self.exprs ]
         for e in self.exprs:
             e.leaveWhitespace()
         return self
@@ -1814,8 +1828,8 @@ class And(ParseExpression):
             if not e.mayReturnEmpty:
                 self.mayReturnEmpty = False
                 break
-        self.skipWhitespace = exprs[0].skipWhitespace
         self.setWhitespaceChars( exprs[0].whiteChars )
+        self.skipWhitespace = exprs[0].skipWhitespace
 
     def parseImpl( self, instring, loc, doActions=True ):
         loc, resultlist = self.exprs[0]._parse( instring, loc, doActions )
@@ -2054,8 +2068,8 @@ class ParseElementEnhance(ParserElement):
         self.strRepr = None
         if expr is not None:
             self.mayIndexError = expr.mayIndexError
-            self.skipWhitespace = expr.skipWhitespace
             self.setWhitespaceChars( expr.whiteChars )
+            self.skipWhitespace = expr.skipWhitespace
             self.saveAsList = expr.saveAsList
     
     def parseImpl( self, instring, loc, doActions=True ):
@@ -2066,7 +2080,7 @@ class ParseElementEnhance(ParserElement):
             
     def leaveWhitespace( self ):
         self.skipWhitespace = False
-        self.expr = copy.copy(self.expr)
+        self.expr = self.expr.copy()
         if self.expr is not None:
             self.expr.leaveWhitespace()
         return self
@@ -2262,7 +2276,6 @@ class Optional(ParseElementEnhance):
                 tokens = [ self.defaultValue ]
             else:
                 tokens = []
-
         return loc, tokens
 
     def __str__( self ):
@@ -2284,7 +2297,7 @@ class SkipTo(ParseElementEnhance):
     def __init__( self, other, include=False, ignore=None ):
         super( SkipTo, self ).__init__( other )
         if ignore is not None:
-            self.expr = copy.copy( self.expr )
+            self.expr = self.expr.copy()
             self.expr.ignore(ignore)
         self.mayReturnEmpty = True
         self.mayIndexError = False
@@ -2372,6 +2385,14 @@ class Forward(ParseElementEnhance):
         finally:
             self.__class__ = Forward
         return "Forward: "+retString
+        
+    def copy(self):
+        if self.expr is not None:
+            return super(Forward,self).copy()
+        else:
+            ret = Forward()
+            ret << self
+            return ret
 
 class _ForwardNoRecurse(Forward):
     def __str__( self ):
@@ -2561,7 +2582,8 @@ def matchPreviousLiteral(expr):
                 rep << t[0]
             else:
                 # flatten t tokens
-                rep << And( map(Literal,_flatten( t.asList() ) ) )
+                tflat = _flatten(t.asList())
+                rep << And( [ Literal(tt) for tt in tflat ] )
         else:
             rep << Empty()
     expr.addParseAction(copyTokenToRepeater)
@@ -2728,11 +2750,11 @@ def removeQuotes(s,l,t):
 
 def upcaseTokens(s,l,t):
     """Helper parse action to convert tokens to upper case."""
-    return map( str.upper, t )
+    return [ str(tt).upper() for tt in t ]
 
 def downcaseTokens(s,l,t):
     """Helper parse action to convert tokens to lower case."""
-    return map( str.lower, t )
+    return [ str(tt).lower() for tt in t ]
 
 def keepOriginalText(s,startLoc,t):
     """Helper parse action to preserve original parsed text,
