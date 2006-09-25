@@ -21,6 +21,9 @@ Version 1.4.4 - September, 2006
   nested within another result. (Reported by don pasquale on 
   comp.lang.python, well done!)
 
+- Fixed bug in ParseResults items() method, when returning an item
+  marked as listAllMatches=True
+
 - Added new example, indentedGrammarExample.py, showing how to 
   define a grammar using indentation to show grouping (as Python
   does for defining statement nesting).  Instigated by an e-mail
