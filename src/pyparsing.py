@@ -66,7 +66,7 @@ import copy,sys
 import warnings
 import re
 import sre_constants
-import xml.sax.saxutils 
+import xml.sax.saxutils
 #~ sys.stderr.write( "testing pyparsing module, version %s, %s\n" % (__version__,__versionTime__ ) )
 
 def _ustr(obj):
@@ -95,6 +95,7 @@ def _ustr(obj):
 
 def _str2dict(strg):
     return dict( [(c,0) for c in strg] )
+    #~ return set( [c for c in strg] )
 
 alphas     = string.lowercase + string.uppercase
 nums       = string.digits
@@ -663,6 +664,8 @@ class ParserElement(object):
                     loc,tokens = self.parseImpl( instring, preloc, doActions )
                 except IndexError:
                     raise ParseException( instring, len(instring), self.errmsg, self )
+            #~ except ReparseException, retryEx:
+                #~ pass
             except ParseException, err:
                 #~ print "Exception raised:", err
                 if self.debugActions[2]:
@@ -2302,6 +2305,7 @@ class SkipTo(ParseElementEnhance):
         self.mayReturnEmpty = True
         self.mayIndexError = False
         self.includeMatch = include
+        self.asList = False
         self.errmsg = "No match found for "+_ustr(self.expr)
         self.myException = ParseException("",0,self.errmsg,self)
 
@@ -2757,6 +2761,7 @@ def downcaseTokens(s,l,t):
     return [ str(tt).lower() for tt in t ]
 
 def keepOriginalText(s,startLoc,t):
+    import inspect
     """Helper parse action to preserve original parsed text,
        overriding any nested parse actions."""
     f = inspect.stack()[1][0]
@@ -2807,8 +2812,8 @@ quotedString = Regex(r'''("([^"\n\r\\]|("")|(\\.))*")|('([^'\n\r\\]|('')|(\\.))*
 cStyleComment = Regex(r"\/\*[\s\S]*?\*\/").setName("C style comment")
 htmlComment = Regex(r"<!--[\s\S]*?-->")
 restOfLine = Regex(r".*").leaveWhitespace()
-dblSlashComment = Regex(r"\/\/.*").setName("// comment")
-cppStyleComment = Regex(r"(\/\*[\s\S]*?\*\/)|(\/\/.*)").setName("C++ style comment")
+dblSlashComment = Regex(r"\/\/(\\\n|.)*").setName("// comment")
+cppStyleComment = Regex(r"(\/\*[\s\S]*?\*\/)|(\/\/(\\\n|.)*)").setName("C++ style comment")
 javaStyleComment = cppStyleComment
 pythonStyleComment = Regex(r"#.*").setName("Python style comment")
 _noncomma = "".join( [ c for c in printables if c != "," ] )

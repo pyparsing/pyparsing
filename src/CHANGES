@@ -2,7 +2,7 @@
 Change Log
 ==========
 
-Version 1.4.4 - September, 2006
+Version 1.4.4 - October, 2006
 -------------------------------
 - Fixed traceParseAction decorator to also trap and record exception
   returns from parse actions, and to handle parse actions with 0,
@@ -23,6 +23,11 @@ Version 1.4.4 - September, 2006
 
 - Fixed bug in ParseResults items() method, when returning an item
   marked as listAllMatches=True
+
+- Fixed bug in definition of cppStyleComment (and javaStyleComment)
+  in which '//' line comments were not continued to the next line
+  if the line ends with a '\'.  (Reported by eagle-eyed Ralph
+  Corderoy!)
 
 - Added new example, indentedGrammarExample.py, showing how to 
   define a grammar using indentation to show grouping (as Python
