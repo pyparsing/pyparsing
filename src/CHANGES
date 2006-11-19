@@ -8,6 +8,15 @@ Version 1.4.4 - October, 2006
   returns from parse actions, and to handle parse actions with 0,
   1, 2, or 3 arguments.
 
+- Enhanced parse action normalization to support using classes as
+  parse actions; that is, the class constructor is called at parse 
+  time and the __init__ function is called with 0, 1, 2, or 3 
+  arguments.  If passing a class as a parse action, the __init__ 
+  method must use one  of the valid parse action parameter list 
+  formats. (This technique is useful when using pyparsing to compile 
+  parsed text into a series of application objects - see the new 
+  example simpleBool.py.)
+
 - Fixed bug in ParseResults when setting an item using an integer
   index. (Reported by Christopher Lambacher, thanks!)
 
@@ -29,26 +38,31 @@ Version 1.4.4 - October, 2006
   if the line ends with a '\'.  (Reported by eagle-eyed Ralph
   Corderoy!)
 
+- Optimized re's for cppStyleComment and quotedString for better
+  re performance - also provided by Ralph Corderoy, thanks!
+
 - Added new example, indentedGrammarExample.py, showing how to 
   define a grammar using indentation to show grouping (as Python
   does for defining statement nesting).  Instigated by an e-mail
   discussion with Andrew Dalke, thanks Andrew!
 
-- Added keepOriginalText parse action.  Sometimes pyparsing's 
-  whitespace-skipping leaves out too much whitespace.  Adding this
-  parse action will restore any internal whitespace for a parse
-  expression.  This is especially useful when defining expressions
-  for scanString or transformString applications.
+- Added new helper operatorPrecedence (based on e-mail list discussion
+  with Ralph Corderoy and Paolo Losi), to facilitate defintion of
+  grammars for expressions with unary and binary operators.  For
+  instance, this grammar defines a 6-function arithmetic expression
+  grammar, with unary plus and minus, proper operator precedence,and 
+  right- and left-associativity:
+  
+    expr = operatorGrammar( operand,
+        [("!", 1, opAssoc.LEFT),
+         ("^", 2, opAssoc.RIGHT),
+         (oneOf("+ -"), 1, opAssoc.RIGHT),
+         (oneOf("* /"), 2, opAssoc.LEFT),
+         (oneOf("+ -"), 2, opAssoc.LEFT),]
+        )
 
-- Added __add__ method for ParseResults class, to better support
-  using Python sum built-in for summing ParseResults objects returned
-  from scanString.
-  
-- Added reset method for the new OnlyOnce class wrapper for parse
-  actions (to allow a grammar to be used multiple times).
-  
-- Added optional maxMatches argument to scanString and searchString,
-  to short-circuit scanning after 'n' expression matches are found.
+  Also added example simpleArith.py and simpleBool.py to provide
+  more detailed code samples using this new helper method.
 
 - Added new helpers matchPreviousLiteral and matchPreviousExpr, for
   creating adaptive parsing expressions that match the same content
@@ -67,6 +81,22 @@ Version 1.4.4 - October, 2006
            
   will *not* match the leading "1:1" in "1:10"; the expressions are
   evaluated first, and then compared, so "1" is compared with "10".
+
+- Added keepOriginalText parse action.  Sometimes pyparsing's 
+  whitespace-skipping leaves out too much whitespace.  Adding this
+  parse action will restore any internal whitespace for a parse
+  expression.  This is especially useful when defining expressions
+  for scanString or transformString applications.
+
+- Added __add__ method for ParseResults class, to better support
+  using Python sum built-in for summing ParseResults objects returned
+  from scanString.
+  
+- Added reset method for the new OnlyOnce class wrapper for parse
+  actions (to allow a grammar to be used multiple times).
+  
+- Added optional maxMatches argument to scanString and searchString,
+  to short-circuit scanning after 'n' expression matches are found.
 
 
 Version 1.4.3 - July, 2006
