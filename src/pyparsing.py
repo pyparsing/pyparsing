@@ -58,7 +58,7 @@ The pyparsing module handles some of the problems that are typically vexing when
  - embedded comments
 """
 __version__ = "1.4.4"
-__versionTime__ = "9 September 2006 13:21"
+__versionTime__ = "19 October 2006 23:11"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -97,6 +97,9 @@ def _str2dict(strg):
     return dict( [(c,0) for c in strg] )
     #~ return set( [c for c in strg] )
 
+class _Constants(object):
+    pass
+    
 alphas     = string.lowercase + string.uppercase
 nums       = string.digits
 hexnums    = nums + "ABCDEFabcdef"
@@ -545,12 +548,19 @@ class ParserElement(object):
         """Internal method used to decorate parse actions that take fewer than 3 arguments,
            so that all parse actions can be called as f(s,l,t)."""
         STAR_ARGS = 4
+
         try:
+            restore = None
+            if isinstance(f,type):
+                restore = f
+                f = f.__init__
             if f.func_code.co_flags & STAR_ARGS:
                 return f
             numargs = f.func_code.co_argcount
             if hasattr(f,"im_self"):
                 numargs -= 1
+            if restore:
+                f = restore
         except AttributeError:
             try:
                 # not a function, must be a callable object, get info from the
@@ -1401,26 +1411,26 @@ class QuotedString(Token):
         
         if multiline:
             self.flags = re.MULTILINE | re.DOTALL
-            self.pattern = r'%s([^%s%s]' % \
+            self.pattern = r'%s(?:[^%s%s]' % \
                 ( re.escape(self.quoteChar),
                   _escapeRegexRangeChars(self.endQuoteChar[0]),
                   (escChar is not None and _escapeRegexRangeChars(escChar) or '') )
         else:
             self.flags = 0
-            self.pattern = r'%s([^%s\n\r%s]' % \
+            self.pattern = r'%s(?:[^%s\n\r%s]' % \
                 ( re.escape(self.quoteChar),
                   _escapeRegexRangeChars(self.endQuoteChar[0]),
                   (escChar is not None and _escapeRegexRangeChars(escChar) or '') )
         if len(self.endQuoteChar) > 1:
             self.pattern += (
-                '|(' + ')|('.join(["%s[^%s]" % (re.escape(self.endQuoteChar[:i]),
+                '|(?:' + ')|(?:'.join(["%s[^%s]" % (re.escape(self.endQuoteChar[:i]),
                                                _escapeRegexRangeChars(self.endQuoteChar[i])) 
                                     for i in range(len(self.endQuoteChar)-1,0,-1)]) + ')'
                 )
         if escQuote:
-            self.pattern += (r'|(%s)' % re.escape(escQuote))
+            self.pattern += (r'|(?:%s)' % re.escape(escQuote))
         if escChar:
-            self.pattern += (r'|(%s.)' % re.escape(escChar))
+            self.pattern += (r'|(?:%s.)' % re.escape(escChar))
             self.escCharReplacePattern = re.escape(self.escChar)+"(.)"
         self.pattern += (r')*%s' % re.escape(self.endQuoteChar))
         
@@ -1448,6 +1458,7 @@ class QuotedString(Token):
         
         loc = result.end()
         ret = result.group()
+        print ret
         
         if self.unquoteResults:
             
@@ -1805,7 +1816,6 @@ class ParseExpression(ParserElement):
 
     def setResultsName( self, name, listAllMatches=False ):
         ret = super(ParseExpression,self).setResultsName(name,listAllMatches)
-        #~ ret.saveAsList = True
         return ret
     
     def validate( self, validateTrace=[] ):
@@ -1813,11 +1823,6 @@ class ParseExpression(ParserElement):
         for e in self.exprs:
             e.validate(tmp)
         self.checkRecursion( [] )
-
-    #~ def _parseCache( self, instring, loc, doActions=True, callPreParse=True ):
-        #~ if self.parseAction and doActions:
-            #~ return self._parseNoCache( instring, loc, doActions, callPreParse )
-        #~ return super(ParseExpression,self)._parseCache( instring, loc, doActions, callPreParse )
 
 class And(ParseExpression):
     """Requires all given ParseExpressions to be found in the given order.
@@ -2570,7 +2575,7 @@ def _flatten(L):
 def matchPreviousLiteral(expr):
     """Helper to define an expression that is indirectly defined from
        the tokens matched in a previous expression, that is, it looks
-       for a 'repeat' of a previous expression.  For example:
+       for a 'repeat' of a previous expression.  For example::
            first = Word(nums)
            second = matchPreviousLiteral(first)
            matchExpr = first + ":" + second
@@ -2596,7 +2601,7 @@ def matchPreviousLiteral(expr):
 def matchPreviousExpr(expr):
     """Helper to define an expression that is indirectly defined from
        the tokens matched in a previous expression, that is, it looks
-       for a 'repeat' of a previous expression.  For example:
+       for a 'repeat' of a previous expression.  For example::
            first = Word(nums)
            second = matchPreviousExpr(first)
            matchExpr = first + ":" + second
@@ -2801,19 +2806,76 @@ def makeXMLTags(tagStr):
     """Helper to construct opening and closing tag expressions for XML, given a tag name"""
     return _makeTags( tagStr, True )
 
+opAssoc = _Constants()
+opAssoc.LEFT = object()
+opAssoc.RIGHT = object()
+
+def operatorPrecedence( baseExpr, opList ):
+    """Helper method for constructing grammars of expressions made up of 
+       operators working in a precedence hierarchy.  Operators may be unary or
+       binary, left- or right-associative.  Parse actions can also be attached
+       to operator expressions.
+        
+       Parameters:
+        - baseExpr - expression representing the most basic element for the nested 
+        - opList - list of tuples, one for each operator precedence level in the expression grammar; each tuple is of the form
+          (opExpr, numTerms, rightLeftAssoc, parseAction), where:
+           - opExpr is the pyparsing expression for the operator;
+              may also be a string, which will be converted to a Literal
+           - numTerms is the number of terms for this operator (must
+              be 1 or 2)
+           - rightLeftAssoc is the indicator whether the operator is
+              right or left associative, using the pyparsing-defined
+              constants opAssoc.RIGHT and opAssoc.LEFT.
+           - parseAction is the parse action to be associated with 
+              expressions matching this operator expression (the
+              parse action tuple member may be omitted)
+    """
+    ret = Forward()
+    lastExpr = baseExpr | ( Suppress('(') + ret + Suppress(')') )
+    for i,operDef in enumerate(opList):
+        opExpr,arity,rightLeftAssoc,pa = (operDef + (None,))[:4]
+        thisExpr = Forward().setName("expr%d" % i)
+        if rightLeftAssoc == opAssoc.LEFT:
+            if arity == 1:
+                matchExpr = Group( lastExpr + opExpr )
+            elif arity == 2:
+                matchExpr = Group( lastExpr + OneOrMore( opExpr + lastExpr ) )
+            else:
+                raise ValueError, "operator must be unary (1) or binary (2)"
+        elif rightLeftAssoc == opAssoc.RIGHT:
+            if arity == 1:
+                # try to avoid LR with this extra test
+                if not isinstance(opExpr, Optional):
+                    opExpr = Optional(opExpr)
+                matchExpr = FollowedBy(opExpr.expr + thisExpr) + Group( opExpr + thisExpr ) 
+            elif arity == 2:
+                matchExpr = Group( lastExpr + OneOrMore( opExpr + thisExpr ) )
+            else:
+                raise ValueError, "operator must be unary (1) or binary (2)"
+        else:
+            raise ValueError, "operator must indicate right or left associativity"
+        if pa:
+            matchExpr.setParseAction( pa )
+        thisExpr << ( matchExpr | lastExpr )
+        lastExpr = thisExpr
+    ret << lastExpr
+    return ret
+
 alphas8bit = srange(r"[\0xc0-\0xd6\0xd8-\0xf6\0xf8-\0xfe]")
 
-_escapedChar = Regex(r"\\.")
-dblQuotedString = Regex(r'"([^"\n\r\\]|("")|(\\.))*"').setName("string enclosed in double quotes")
-sglQuotedString = Regex(r"'([^'\n\r\\]|('')|(\\.))*'").setName("string enclosed in single quotes")
-quotedString = Regex(r'''("([^"\n\r\\]|("")|(\\.))*")|('([^'\n\r\\]|('')|(\\.))*')''').setName("quotedString using single or double quotes")
+dblQuotedString = Regex(r'"(?:[^"\n\r\\]|(?:"")|(?:\\.))*"').setName("string enclosed in double quotes")
+sglQuotedString = Regex(r"'(?:[^'\n\r\\]|(?:'')|(?:\\.))*'").setName("string enclosed in single quotes")
+quotedString = Regex(r'''(?:"(?:[^"\n\r\\]|(?:"")|(?:\\.))*")|(?:'(?:[^'\n\r\\]|(?:'')|(?:\\.))*')''').setName("quotedString using single or double quotes")
 
 # it's easy to get these comment structures wrong - they're very common, so may as well make them available
-cStyleComment = Regex(r"\/\*[\s\S]*?\*\/").setName("C style comment")
+cStyleComment = Regex(r"/\*(?:[^*]*\*+)+?/").setName("C style comment")
+
 htmlComment = Regex(r"<!--[\s\S]*?-->")
 restOfLine = Regex(r".*").leaveWhitespace()
 dblSlashComment = Regex(r"\/\/(\\\n|.)*").setName("// comment")
-cppStyleComment = Regex(r"(\/\*[\s\S]*?\*\/)|(\/\/(\\\n|.)*)").setName("C++ style comment")
+cppStyleComment = Regex(r"/(?:\*(?:[^*]*\*+)+?/|/[^\n]*(?:\n[^\n]*)*?(?:(?<!\\)|\Z))").setName("C++ style comment")
+
 javaStyleComment = cppStyleComment
 pythonStyleComment = Regex(r"#.*").setName("Python style comment")
 _noncomma = "".join( [ c for c in printables if c != "," ] )
