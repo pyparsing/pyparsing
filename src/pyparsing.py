@@ -57,8 +57,8 @@ The pyparsing module handles some of the problems that are typically vexing when
  - quoted strings
  - embedded comments
 """
-__version__ = "1.4.4"
-__versionTime__ = "19 October 2006 23:11"
+__version__ = "1.4.5"
+__versionTime__ = "19 November 2006 03:42"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -449,7 +449,25 @@ class ParseResults(object):
                 out.append(str(v))
         #~ out.append('\n')
         return "".join(out)
+
+    # add support for pickle protocol
+    def __getstate__(self):
+        return ( self.__toklist,
+                 ( self.__tokdict.copy(),
+                   self.__parent,
+                   self.__accumNames,
+                   self.__name ) )
     
+    def __setstate__(self,state):
+        self.__toklist = state[0]
+        self.__tokdict, \
+        self.__parent, \
+        inAccumNames, \
+        self.__name = state[1]
+        self.__accumNames = {}
+        self.__accumNames.update(inAccumNames)
+
+
 def col (loc,strg):
     """Returns current column within a string, counting newlines as line separators.
    The first column is number 1.
@@ -1458,7 +1476,6 @@ class QuotedString(Token):
         
         loc = result.end()
         ret = result.group()
-        print ret
         
         if self.unquoteResults:
             
@@ -1657,7 +1674,9 @@ class LineStart(PositionToken):
         return loc
 
     def parseImpl( self, instring, loc, doActions=True ):
-        if not( loc==0 or ( loc<len(instring) and instring[loc-1] == "\n" ) ): #col(loc, instring) != 1:
+        if not( loc==0 or
+            (loc == self.preParse( instring, 0 )) or
+            (instring[loc-1] == "\n") ): #col(loc, instring) != 1:
             #~ raise ParseException( instring, loc, "Expected start of line" )
             exc = self.myException
             exc.loc = loc
