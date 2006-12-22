@@ -2,6 +2,41 @@
 Change Log
 ==========
 
+Version 1.4.5 - December, 2006
+------------------------------
+- Removed debugging print statement from QuotedString class.  Sorry
+  for not stripping this out before the 1.4.4 release!
+
+- A significant performance improvement, the first one in a while!
+  For my Verilog parser, this version of pyparsing is about double the
+  speed - YMMV.
+
+- Added support for pickling of ParseResults objects.  (Reported by
+  Jeff Poole, thanks Jeff!)
+
+- Fixed minor bug in makeHTMLTags that did not recognize tag attributes
+  with embedded '-' or '_' characters.  Also, added support for 
+  passing expressions to makeHTMLTags and makeXMLTags, and used this 
+  feature to define the globals anyOpenTag and anyCloseTag.
+  
+- Fixed error in alphas8bit, I had omitted the y-with-umlaut character.
+
+- Added punc8bit string to complement alphas8bit - it contains all the
+  non-alphabetic, non-blank 8-bit characters.
+  
+- Added commonHTMLEntity expression, to match common HTML "ampersand"
+  codes, such as "&lt;", "&gt;", "&amp;", "&nbsp;", and "&quot;".  This
+  expression also defines a results name 'entity', which can be used
+  to extract the entity field (that is, "lt", "gt", etc.).  Also added
+  built-in parse action replaceHTMLEntity, which can be attached to
+  commonHTMLEntity to translate "&lt;", "&gt;", "&amp;", "&nbsp;", and 
+  "&quot;" to "<", ">", "&", " ", and "'".
+
+- Added example, htmlStripper.py, that strips HTML tags and scripts
+  from HTML pages.  It also translates common HTML entities to their
+  respective characters.
+
+
 Version 1.4.4 - October, 2006
 -------------------------------
 - Fixed traceParseAction decorator to also trap and record exception
@@ -47,7 +82,7 @@ Version 1.4.4 - October, 2006
   discussion with Andrew Dalke, thanks Andrew!
 
 - Added new helper operatorPrecedence (based on e-mail list discussion
-  with Ralph Corderoy and Paolo Losi), to facilitate defintion of
+  with Ralph Corderoy and Paolo Losi), to facilitate definition of
   grammars for expressions with unary and binary operators.  For
   instance, this grammar defines a 6-function arithmetic expression
   grammar, with unary plus and minus, proper operator precedence,and 
