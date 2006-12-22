@@ -58,7 +58,7 @@ The pyparsing module handles some of the problems that are typically vexing when
  - embedded comments
 """
 __version__ = "1.4.5"
-__versionTime__ = "19 November 2006 03:42"
+__versionTime__ = "16 December 2006 07:20"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -1859,7 +1859,9 @@ class And(ParseExpression):
         self.skipWhitespace = exprs[0].skipWhitespace
 
     def parseImpl( self, instring, loc, doActions=True ):
-        loc, resultlist = self.exprs[0]._parse( instring, loc, doActions )
+        # pass False as last arg to _parse for first element, since we already
+        # pre-parsed the string as part of our And pre-parsing
+        loc, resultlist = self.exprs[0]._parse( instring, loc, doActions, callPreParse=False )
         for e in self.exprs[1:]:
             loc, exprtokens = e._parse( instring, loc, doActions )
             if exprtokens or exprtokens.keys():
@@ -2101,7 +2103,7 @@ class ParseElementEnhance(ParserElement):
     
     def parseImpl( self, instring, loc, doActions=True ):
         if self.expr is not None:
-            return self.expr._parse( instring, loc, doActions )
+            return self.expr._parse( instring, loc, doActions, callPreParse=False )
         else:
             raise ParseException("",loc,self.errmsg,self)
             
@@ -2214,7 +2216,7 @@ class ZeroOrMore(ParseElementEnhance):
     def parseImpl( self, instring, loc, doActions=True ):
         tokens = []
         try:
-            loc, tokens = self.expr._parse( instring, loc, doActions )
+            loc, tokens = self.expr._parse( instring, loc, doActions, callPreParse=False )
             hasIgnoreExprs = ( len(self.ignoreExprs) > 0 )
             while 1:
                 if hasIgnoreExprs:
@@ -2248,7 +2250,7 @@ class OneOrMore(ParseElementEnhance):
     """Repetition of one or more of the given expression."""
     def parseImpl( self, instring, loc, doActions=True ):
         # must be at least one
-        loc, tokens = self.expr._parse( instring, loc, doActions )
+        loc, tokens = self.expr._parse( instring, loc, doActions, callPreParse=False )
         try:
             hasIgnoreExprs = ( len(self.ignoreExprs) > 0 )
             while 1:
@@ -2297,7 +2299,7 @@ class Optional(ParseElementEnhance):
 
     def parseImpl( self, instring, loc, doActions=True ):
         try:
-            loc, tokens = self.expr._parse( instring, loc, doActions )
+            loc, tokens = self.expr._parse( instring, loc, doActions, callPreParse=False )
         except (ParseException,IndexError):
             if self.defaultValue is not _optionalNotMatched:
                 tokens = [ self.defaultValue ]
@@ -2797,23 +2799,29 @@ def keepOriginalText(s,startLoc,t):
         
 def _makeTags(tagStr, xml):
     """Internal helper to construct opening and closing tag expressions, given a tag name"""
-    tagAttrName = Word(alphanums)
+    if isinstance(tagStr,basestring):
+        resname = tagStr
+        tagStr = Keyword(tagStr, caseless=not xml)
+    else:
+        resname = tagStr.name
+        
+    tagAttrName = Word(alphas,alphanums+"_-")
     if (xml):
         tagAttrValue = dblQuotedString.copy().setParseAction( removeQuotes )
-        openTag = Suppress("<") + Keyword(tagStr) + \
+        openTag = Suppress("<") + tagStr + \
                 Dict(ZeroOrMore(Group( tagAttrName + Suppress("=") + tagAttrValue ))) + \
                 Optional("/",default=[False]).setResultsName("empty").setParseAction(lambda s,l,t:t[0]=='/') + Suppress(">")
     else:
         printablesLessRAbrack = "".join( [ c for c in printables if c not in ">" ] )
         tagAttrValue = quotedString.copy().setParseAction( removeQuotes ) | Word(printablesLessRAbrack)
-        openTag = Suppress("<") + Keyword(tagStr,caseless=True) + \
+        openTag = Suppress("<") + tagStr + \
                 Dict(ZeroOrMore(Group( tagAttrName.setParseAction(downcaseTokens) + \
                 Suppress("=") + tagAttrValue ))) + \
                 Optional("/",default=[False]).setResultsName("empty").setParseAction(lambda s,l,t:t[0]=='/') + Suppress(">")
-    closeTag = Combine("</" + Keyword(tagStr,caseless=not xml) + ">")
+    closeTag = Combine("</" + tagStr + ">")
     
-    openTag = openTag.setResultsName("start"+"".join(tagStr.replace(":"," ").title().split())).setName("<%s>" % tagStr)
-    closeTag = closeTag.setResultsName("end"+"".join(tagStr.replace(":"," ").title().split())).setName("</%s>" % tagStr)
+    openTag = openTag.setResultsName("start"+"".join(resname.replace(":"," ").title().split())).setName("<%s>" % tagStr)
+    closeTag = closeTag.setResultsName("end"+"".join(resname.replace(":"," ").title().split())).setName("</%s>" % tagStr)
     
     return openTag, closeTag
 
@@ -2881,12 +2889,18 @@ def operatorPrecedence( baseExpr, opList ):
     ret << lastExpr
     return ret
 
-alphas8bit = srange(r"[\0xc0-\0xd6\0xd8-\0xf6\0xf8-\0xfe]")
+alphas8bit = srange(r"[\0xc0-\0xd6\0xd8-\0xf6\0xf8-\0xff]")
+punc8bit = srange(r"[\0xa1-\0xbf\0xd7\0xf7]")
 
 dblQuotedString = Regex(r'"(?:[^"\n\r\\]|(?:"")|(?:\\.))*"').setName("string enclosed in double quotes")
 sglQuotedString = Regex(r"'(?:[^'\n\r\\]|(?:'')|(?:\\.))*'").setName("string enclosed in single quotes")
 quotedString = Regex(r'''(?:"(?:[^"\n\r\\]|(?:"")|(?:\\.))*")|(?:'(?:[^'\n\r\\]|(?:'')|(?:\\.))*')''').setName("quotedString using single or double quotes")
 
+anyOpenTag,anyCloseTag = makeHTMLTags(Word(alphas,alphanums+"_"))
+commonHTMLEntity = Combine("&" + oneOf("gt lt amp nbsp quot").setResultsName("entity") +";")
+_htmlEntityMap = dict(zip("gt lt amp nbsp quot".split(),"><& '"))
+replaceHTMLEntity = lambda t : t.entity in _htmlEntityMap and _htmlEntityMap[t.entity] or None
+    
 # it's easy to get these comment structures wrong - they're very common, so may as well make them available
 cStyleComment = Regex(r"/\*(?:[^*]*\*+)+?/").setName("C style comment")
 
