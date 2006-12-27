@@ -57,17 +57,19 @@ The pyparsing module handles some of the problems that are typically vexing when
  - quoted strings
  - embedded comments
 """
-__version__ = "1.4.5"
-__versionTime__ = "16 December 2006 07:20"
+__version__ = "1.4.6"
+__versionTime__ = "27 December 2006 07:20"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
+"""TODO - clean up mayReturnEmpty - either use it or get rid of it
+"""
 import string
 import copy,sys
 import warnings
 import re
 import sre_constants
 import xml.sax.saxutils
-#~ sys.stderr.write( "testing pyparsing module, version %s, %s\n" % (__version__,__versionTime__ ) )
+sys.stderr.write( "testing pyparsing module, version %s, %s\n" % (__version__,__versionTime__ ) )
 
 def _ustr(obj):
     """Drop-in replacement for str(obj) that tries to be Unicode friendly. It first tries
@@ -173,6 +175,14 @@ class RecursiveGrammarException(Exception):
     def __str__( self ):
         return "RecursiveGrammarException: %s" % self.parseElementTrace
 
+class ParseResultsWithOffset(object):
+    def __init__(self,p1,p2):
+        self.tup = (p1,p2)
+    def __getitem__(self,i):
+        return self.tup[i]
+    def __repr__(self):
+        return repr(self.tup)
+
 class ParseResults(object):
     """Structured parse results, to provide multiple means of access to the parsed data:
        - as a list (len(results))
@@ -215,9 +225,9 @@ class ParseResults(object):
                     toklist = [ toklist ]
                 if asList:
                     if isinstance(toklist,ParseResults):
-                        self[name] = (toklist.copy(),-1)
+                        self[name] = ParseResultsWithOffset(toklist.copy(),-1)
                     else:
-                        self[name] = (ParseResults(toklist[0]),-1)
+                        self[name] = ParseResultsWithOffset(ParseResults(toklist[0]),-1)
                     self[name].__name = name
                 else:
                     try:
@@ -235,7 +245,7 @@ class ParseResults(object):
                 return ParseResults([ v[0] for v in self.__tokdict[i] ])
 
     def __setitem__( self, k, v ):
-        if isinstance(v,tuple):
+        if isinstance(v,ParseResultsWithOffset):
             self.__tokdict[k] = self.__tokdict.get(k,list()) + [v]
             sub = v[0]
         elif isinstance(k,int):
@@ -292,7 +302,7 @@ class ParseResults(object):
             offset = len(self.__toklist)
             addoffset = ( lambda a: (a<0 and offset) or (a+offset) )
             otheritems = other.__tokdict.items()
-            otherdictitems = [(k,(v[0],addoffset(v[1])) ) for (k,vlist) in otheritems for v in vlist]
+            otherdictitems = [(k, ParseResultsWithOffset(v[0],addoffset(v[1])) ) for (k,vlist) in otheritems for v in vlist]
             for k,v in otherdictitems:
                 self[k] = v
                 if isinstance(v[0],ParseResults):
@@ -2097,6 +2107,7 @@ class ParseElementEnhance(ParserElement):
         self.strRepr = None
         if expr is not None:
             self.mayIndexError = expr.mayIndexError
+            self.mayReturnEmpty = expr.mayReturnEmpty
             self.setWhitespaceChars( expr.whiteChars )
             self.skipWhitespace = expr.skipWhitespace
             self.saveAsList = expr.saveAsList
@@ -2499,16 +2510,16 @@ class Dict(TokenConverter):
         for i,tok in enumerate(tokenlist):
             ikey = _ustr(tok[0]).strip()
             if len(tok)==1:
-                tokenlist[ikey] = ("",i)
+                tokenlist[ikey] = ParseResultsWithOffset("",i)
             elif len(tok)==2 and not isinstance(tok[1],ParseResults):
-                tokenlist[ikey] = (tok[1],i)
+                tokenlist[ikey] = ParseResultsWithOffset(tok[1],i)
             else:
                 dictvalue = tok.copy() #ParseResults(i)
                 del dictvalue[0]
                 if len(dictvalue)!= 1 or (isinstance(dictvalue,ParseResults) and dictvalue.keys()):
-                    tokenlist[ikey] = (dictvalue,i)
+                    tokenlist[ikey] = ParseResultsWithOffset(dictvalue,i)
                 else:
-                    tokenlist[ikey] = (dictvalue[0],i)
+                    tokenlist[ikey] = ParseResultsWithOffset(dictvalue[0],i)
 
         if self.resultsName:
             return [ tokenlist ]
