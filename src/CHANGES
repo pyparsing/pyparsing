@@ -2,6 +2,18 @@
 Change Log
 ==========
 
+Version 1.4.6 - ???
+-------------------
+- Simplified constructor for ParseFatalException, to support common
+  exception idiom:
+    raise ParseFatalException, "descriptive exception message here"
+
+- Fixed bug when saving a tuple as a named result.  The returned
+  token list gave the proper tuple value, but accessing the result by
+  name only gave the first element of the tuple.  Reported by 
+  Poromenos, nice catch!
+
+
 Version 1.4.5 - December, 2006
 ------------------------------
 - Removed debugging print statement from QuotedString class.  Sorry
