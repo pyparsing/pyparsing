@@ -61,15 +61,13 @@ __version__ = "1.4.6"
 __versionTime__ = "27 December 2006 07:20"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
-"""TODO - clean up mayReturnEmpty - either use it or get rid of it
-"""
 import string
 import copy,sys
 import warnings
 import re
 import sre_constants
 import xml.sax.saxutils
-sys.stderr.write( "testing pyparsing module, version %s, %s\n" % (__version__,__versionTime__ ) )
+#~ sys.stderr.write( "testing pyparsing module, version %s, %s\n" % (__version__,__versionTime__ ) )
 
 def _ustr(obj):
     """Drop-in replacement for str(obj) that tries to be Unicode friendly. It first tries
@@ -138,7 +136,8 @@ class ParseBaseException(Exception):
             raise AttributeError, aname
 
     def __str__( self ):
-        return "%s (at char %d), (line:%d, col:%d)" % ( self.msg, self.loc, self.lineno, self.column )
+        return "%s (at char %d), (line:%d, col:%d)" % \
+                ( self.msg, self.loc, self.lineno, self.column )
     def __repr__( self ):
         return _ustr(self)
     def markInputline( self, markerString = ">!<" ):
@@ -148,7 +147,8 @@ class ParseBaseException(Exception):
         line_str = self.line
         line_column = self.column - 1
         if markerString:
-            line_str = "".join( [line_str[:line_column], markerString, line_str[line_column:]])
+            line_str = "".join( [line_str[:line_column],
+                                markerString, line_str[line_column:]])
         return line_str.strip()
 
 class ParseException(ParseBaseException):
@@ -306,7 +306,8 @@ class ParseResults(object):
             offset = len(self.__toklist)
             addoffset = ( lambda a: (a<0 and offset) or (a+offset) )
             otheritems = other.__tokdict.items()
-            otherdictitems = [(k, ParseResultsWithOffset(v[0],addoffset(v[1])) ) for (k,vlist) in otheritems for v in vlist]
+            otherdictitems = [(k, ParseResultsWithOffset(v[0],addoffset(v[1])) )
+                                for (k,vlist) in otheritems for v in vlist]
             for k,v in otherdictitems:
                 self[k] = v
                 if isinstance(v[0],ParseResults):
@@ -369,7 +370,8 @@ class ParseResults(object):
         """Returns the parse results as XML. Tags are created for tokens and lists that have defined results names."""
         nl = "\n"
         out = []
-        namedItems = dict( [ (v[1],k) for (k,vlist) in self.__tokdict.items() for v in vlist ] )
+        namedItems = dict( [ (v[1],k) for (k,vlist) in self.__tokdict.items()
+                                                            for v in vlist ] )
         nextLevelIndent = indent + "  "
         
         # collapse out indents if formatting is not desired
@@ -397,9 +399,15 @@ class ParseResults(object):
         for i,res in enumerate(worklist):
             if isinstance(res,ParseResults):
                 if i in namedItems:
-                    out += [ res.asXML(namedItems[i], namedItemsOnly and doctag is None, nextLevelIndent,formatted)]
+                    out += [ res.asXML(namedItems[i],
+                                        namedItemsOnly and doctag is None,
+                                        nextLevelIndent,
+                                        formatted)]
                 else:
-                    out += [ res.asXML(None, namedItemsOnly and doctag is None, nextLevelIndent,formatted)]
+                    out += [ res.asXML(None,
+                                        namedItemsOnly and doctag is None,
+                                        nextLevelIndent,
+                                        formatted)]
             else:
                 # individual token, see if there is a name for it
                 resTag = None
@@ -411,7 +419,9 @@ class ParseResults(object):
                     else:
                         resTag = "ITEM"
                 xmlBodyText = xml.sax.saxutils.escape(_ustr(res))
-                out += [ nl, nextLevelIndent, "<", resTag, ">", xmlBodyText, "</", resTag, ">" ]
+                out += [ nl, nextLevelIndent, "<", resTag, ">",
+                                                xmlBodyText,
+                                                "</", resTag, ">" ]
         
         out += [ nl, indent, "</", selfTag, ">" ]
         return "".join(out)
@@ -537,16 +547,17 @@ class ParserElement(object):
         self.skipWhitespace = True
         self.whiteChars = ParserElement.DEFAULT_WHITE_CHARS
         self.copyDefaultWhiteChars = True
-        self.mayReturnEmpty = False
+        self.mayReturnEmpty = False # used when checking for left-recursion
         self.keepTabs = False
         self.ignoreExprs = list()
         self.debug = False
         self.streamlined = False
-        self.mayIndexError = True
+        self.mayIndexError = True # used to optimize exception handling for subclasses that don't advance parse index
         self.errmsg = ""
-        self.modalResults = True
-        self.debugActions = ( None, None, None )
+        self.modalResults = True # used to mark results names as modal (report only last) or cumulative (list all)
+        self.debugActions = ( None, None, None ) #custom debug actions
         self.re = None
+        self.callPreparse = True # used to avoid redundant calls to preParse
 
     def copy( self ):
         """Make a copy of this ParserElement.  Useful for defining different parse actions
@@ -696,7 +707,7 @@ class ParserElement(object):
             #~ print "Match",self,"at loc",loc,"(%d,%d)" % ( lineno(loc,instring), col(loc,instring) )
             if (self.debugActions[0] ):
                 self.debugActions[0]( instring, loc, self )
-            if callPreParse:
+            if callPreParse and self.callPreparse:
                 preloc = self.preParse( instring, loc )
             else:
                 preloc = loc
@@ -1775,6 +1786,7 @@ class ParseExpression(ParserElement):
             self.exprs = [ Literal( exprs ) ]
         else:
             self.exprs = [ exprs ]
+        self.callPreparse = False
 
     def __getitem__( self, i ):
         return self.exprs[i]
@@ -1871,6 +1883,7 @@ class And(ParseExpression):
                 break
         self.setWhitespaceChars( exprs[0].whiteChars )
         self.skipWhitespace = exprs[0].skipWhitespace
+        self.callPreparse = True
 
     def parseImpl( self, instring, loc, doActions=True ):
         # pass False as last arg to _parse for first element, since we already
@@ -2115,7 +2128,7 @@ class ParseElementEnhance(ParserElement):
             self.setWhitespaceChars( expr.whiteChars )
             self.skipWhitespace = expr.skipWhitespace
             self.saveAsList = expr.saveAsList
-    
+
     def parseImpl( self, instring, loc, doActions=True ):
         if self.expr is not None:
             return self.expr._parse( instring, loc, doActions, callPreParse=False )
@@ -2357,7 +2370,7 @@ class SkipTo(ParseElementEnhance):
         while loc <= instrlen:
             try:
                 loc = expr.skipIgnorables( instring, loc )
-                expr._parse( instring, loc, doActions=False, callPreParse=False )
+                expr._parse( instring, loc, doActions=False )#, callPreParse=False )
                 if self.includeMatch:
                     skipText = instring[startLoc:loc]
                     loc,mat = expr._parse(instring,loc)
@@ -2448,7 +2461,6 @@ class TokenConverter(ParseElementEnhance):
     def __init__( self, expr, savelist=False ):
         super(TokenConverter,self).__init__( expr )#, savelist )
         self.saveAsList = False
-
 
 class Upcase(TokenConverter):
     """Converter to upper case all matching tokens."""
