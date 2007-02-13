@@ -58,10 +58,11 @@ The pyparsing module handles some of the problems that are typically vexing when
  - embedded comments
 """
 __version__ = "1.4.6"
-__versionTime__ = "27 December 2006 07:20"
+__versionTime__ = "13 February 2007 00:39"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
+from weakref import ref as wkref
 import copy,sys
 import warnings
 import re
@@ -193,7 +194,7 @@ class ParseResults(object):
        - by list index (results[0], results[1], etc.)
        - by attribute (results.<resultsName>)
        """
-    __slots__ = ( "__toklist", "__tokdict", "__doinit", "__name", "__parent", "__accumNames" )
+    __slots__ = ( "__toklist", "__tokdict", "__doinit", "__name", "__parent", "__accumNames", "__weakref__" )
     def __new__(cls, toklist, name=None, asList=True, modal=True ):
         if isinstance(toklist, cls):
             return toklist
@@ -259,7 +260,7 @@ class ParseResults(object):
             self.__tokdict[k] = self.__tokdict.get(k,list()) + [(v,0)]
             sub = v
         if isinstance(sub,ParseResults):
-            sub.__parent = self
+            sub.__parent = wkref(self)
         
     def __delitem__( self, i ):
         if isinstance(i,(int,slice)):
@@ -311,7 +312,7 @@ class ParseResults(object):
             for k,v in otherdictitems:
                 self[k] = v
                 if isinstance(v[0],ParseResults):
-                    v[0].__parent = self
+                    v[0].__parent = wkref(self)
         self.__toklist += other.__toklist
         self.__accumNames.update( other.__accumNames )
         del other
@@ -438,7 +439,7 @@ class ParseResults(object):
         if self.__name:
             return self.__name
         elif self.__parent:
-            par = self.__parent
+            par = self.__parent()
             if par:
                 return par.__lookup(self)
             else:
@@ -455,7 +456,7 @@ class ParseResults(object):
            Accepts an optional indent argument so that this string can be embedded
            in a nested display of other data."""
         out = []
-        out.append( indent+str(self.asList()) )
+        out.append( indent+_ustr(self.asList()) )
         keys = self.items()
         keys.sort()
         for k,v in keys:
@@ -468,9 +469,9 @@ class ParseResults(object):
                     out.append( v.dump(indent,depth+1) )
                     #~ out.append('\n')
                 else:
-                    out.append(str(v))
+                    out.append(_ustr(v))
             else:
-                out.append(str(v))
+                out.append(_ustr(v))
         #~ out.append('\n')
         return "".join(out)
 
@@ -478,29 +479,45 @@ class ParseResults(object):
     def __getstate__(self):
         return ( self.__toklist,
                  ( self.__tokdict.copy(),
-                   self.__parent,
+                   self.__parent is not None and self.__parent() or None,
                    self.__accumNames,
                    self.__name ) )
     
     def __setstate__(self,state):
         self.__toklist = state[0]
         self.__tokdict, \
-        self.__parent, \
+        par, \
         inAccumNames, \
         self.__name = state[1]
         self.__accumNames = {}
         self.__accumNames.update(inAccumNames)
+        if par is not None:
+            self.__parent = wkref(par)
+        else:
+            self.__parent = None
 
 
 def col (loc,strg):
     """Returns current column within a string, counting newlines as line separators.
    The first column is number 1.
+
+   Note: the default parsing behavior is to expand tabs in the input string
+   before starting the parsing process.  See L{I{ParserElement.parseString}<ParserElement.parseString>} for more information
+   on parsing strings containing <TAB>s, and suggested methods to maintain a
+   consistent view of the parsed string, the parse location, and line and column
+   positions within the parsed string.
    """
     return (loc<len(strg) and strg[loc] == '\n') and 1 or loc - strg.rfind("\n", 0, loc)
 
 def lineno(loc,strg):
     """Returns current line number within a string, counting newlines as line separators.
    The first line is number 1.
+   
+   Note: the default parsing behavior is to expand tabs in the input string
+   before starting the parsing process.  See L{I{ParserElement.parseString}<ParserElement.parseString>} for more information
+   on parsing strings containing <TAB>s, and suggested methods to maintain a
+   consistent view of the parsed string, the parse location, and line and column
+   positions within the parsed string.
    """
     return strg.count("\n",0,loc) + 1
 
@@ -515,13 +532,13 @@ def line( loc, strg ):
         return strg[lastCR+1:]
 
 def _defaultStartDebugAction( instring, loc, expr ):
-    print "Match",expr,"at loc",loc,"(%d,%d)" % ( lineno(loc,instring), col(loc,instring) )
+    print "Match",_ustr(expr),"at loc",loc,"(%d,%d)" % ( lineno(loc,instring), col(loc,instring) )
 
 def _defaultSuccessDebugAction( instring, startloc, endloc, expr, toks ):
-    print "Matched",expr,"->",toks.asList()
+    print "Matched",_ustr(expr),"->",toks.asList()
     
 def _defaultExceptionDebugAction( instring, loc, expr, exc ):
-    print "Exception raised:", exc
+    print "Exception raised:", _ustr(exc)
 
 def nullDebugAction(*args):
     """'Do-nothing' debug action, to suppress debugging output during parsing."""
@@ -558,6 +575,7 @@ class ParserElement(object):
         self.debugActions = ( None, None, None ) #custom debug actions
         self.re = None
         self.callPreparse = True # used to avoid redundant calls to preParse
+        self.callDuringTry = False
 
     def copy( self ):
         """Make a copy of this ParserElement.  Useful for defining different parse actions
@@ -634,25 +652,49 @@ class ParserElement(object):
             else: #~ numargs == 0:
                 def tmp(s,l,t):
                     return f()
+            try:
+                tmp.__name__ = f.__name__
+            except AttributeError:
+                # no need for special handling if attribute doesnt exist
+                pass
+            try:
+                tmp.__doc__ = f.__doc__
+            except AttributeError:
+                # no need for special handling if attribute doesnt exist
+                pass
+            try:
+                tmp.__dict__.update(f.__dict__)
+            except AttributeError:
+                # no need for special handling if attribute doesnt exist
+                pass
             return tmp
     normalizeParseActionArgs = staticmethod(normalizeParseActionArgs)
             
-    def setParseAction( self, *fns ):
+    def setParseAction( self, *fns, **kwargs ):
         """Define action to perform when successfully matching parse element definition.
            Parse action fn is a callable method with 0-3 arguments, called as fn(s,loc,toks),
            fn(loc,toks), fn(toks), or just fn(), where:
-            - s   = the original string being parsed
+            - s   = the original string being parsed (see note below)
             - loc = the location of the matching substring
             - toks = a list of the matched tokens, packaged as a ParseResults object
            If the functions in fns modify the tokens, they can return them as the return
            value from fn, and the modified list of tokens will replace the original.
-           Otherwise, fn does not need to return any value."""
+           Otherwise, fn does not need to return any value.
+           
+           Note: the default parsing behavior is to expand tabs in the input string
+           before starting the parsing process.  See L{I{parseString}<parseString>} for more information
+           on parsing strings containing <TAB>s, and suggested methods to maintain a
+           consistent view of the parsed string, the parse location, and line and column
+           positions within the parsed string.
+           """
         self.parseAction = map(self.normalizeParseActionArgs, list(fns))
+        self.callDuringTry = ("callDuringTry" in kwargs and kwargs["callDuringTry"])
         return self
 
-    def addParseAction( self, *fns ):
-        """Add parse action to expression's list of parse actions. See setParseAction_."""
+    def addParseAction( self, *fns, **kwargs ):
+        """Add parse action to expression's list of parse actions. See L{I{setParseAction}<setParseAction>}."""
         self.parseAction += map(self.normalizeParseActionArgs, list(fns))
+        self.callDuringTry = self.callDuringTry or ("callDuringTry" in kwargs and kwargs["callDuringTry"])
         return self
 
     def setFailAction( self, fn ):
@@ -743,7 +785,7 @@ class ParserElement(object):
         tokens = self.postParse( instring, loc, tokens )
 
         retTokens = ParseResults( tokens, self.resultsName, asList=self.saveAsList, modal=self.modalResults )
-        if self.parseAction and doActions:
+        if self.parseAction and (doActions or self.callDuringTry):
             if debugging:
                 try:
                     for fn in self.parseAction:
@@ -780,9 +822,9 @@ class ParserElement(object):
     # this method gets repeatedly called during backtracking with the same arguments -
     # we can cache these arguments and save ourselves the trouble of re-parsing the contained expression
     def _parseCache( self, instring, loc, doActions=True, callPreParse=True ):
-        if doActions and self.parseAction:
-            return self._parseNoCache( instring, loc, doActions, callPreParse )
-        lookup = (self,instring,loc,callPreParse)
+        #if doActions and self.parseAction:
+        #    return self._parseNoCache( instring, loc, doActions, callPreParse )
+        lookup = (self,instring,loc,callPreParse,doActions)
         if lookup in ParserElement._exprArgCache:
             value = ParserElement._exprArgCache[ lookup ]
             if isinstance(value,Exception):
@@ -833,6 +875,19 @@ class ParserElement(object):
         """Execute the parse expression with the given string.
            This is the main interface to the client code, once the complete 
            expression has been built.
+           
+           Note: parseString implicitly calls expandtabs() on the input string,
+           in order to report proper column numbers in parse actions.  
+           If the input string contains tabs and
+           the grammar uses parse actions that use the loc argument to index into the 
+           string being parsed, you can ensure you have a consistent view of the input 
+           string by:
+            - calling parseWithTabs on your grammar before calling parseString
+              (see L{I{parseWithTabs}<parseWithTabs>})
+            - define your parse action using the full (s,loc,toks) signature, and 
+              reference the input string using the parse action's s argument
+            - explictly expand the tabs in your input string before calling 
+              parseString           
         """
         ParserElement.resetCache()
         if not self.streamlined:
@@ -849,14 +904,18 @@ class ParserElement(object):
     def scanString( self, instring, maxMatches=sys.maxint ):
         """Scan the input string for expression matches.  Each match will return the 
            matching tokens, start location, and end location.  May be called with optional
-           maxMatches argument, to clip scanning after 'n' matches are found."""
+           maxMatches argument, to clip scanning after 'n' matches are found.
+           
+           Note that the start and end locations are reported relative to the string
+           being parsed.  See L{I{parseString}<parseString>} for more information on parsing 
+           strings with embedded tabs."""
         if not self.streamlined:
             self.streamline()
         for e in self.ignoreExprs:
             e.streamline()
         
         if not self.keepTabs:
-            instring = instring.expandtabs()
+            instring = _ustr(instring).expandtabs()
         instrlen = len(instring)
         loc = 0
         preparseFn = self.preParse
@@ -1122,7 +1181,7 @@ class Literal(Token):
             warnings.warn("null string passed to Literal; use Empty() instead", 
                             SyntaxWarning, stacklevel=2)
             self.__class__ = Empty
-        self.name = '"%s"' % self.match
+        self.name = '"%s"' % _ustr(self.match)
         self.errmsg = "Expected " + self.name
         self.mayReturnEmpty = False
         self.myException.msg = self.errmsg
@@ -1247,7 +1306,7 @@ class Word(Token):
        defaults to the initial character set), and an optional minimum,
        maximum, and/or exact length.
     """
-    def __init__( self, initChars, bodyChars=None, min=1, max=0, exact=0 ):
+    def __init__( self, initChars, bodyChars=None, min=1, max=0, exact=0, asKeyword=False ):
         super(Word,self).__init__()
         self.initCharsOrig = initChars
         self.initChars = _str2dict(initChars)
@@ -1275,6 +1334,7 @@ class Word(Token):
         self.errmsg = "Expected " + self.name
         self.myException.msg = self.errmsg
         self.mayIndexError = False
+        self.asKeyword = asKeyword
         
         if ' ' not in self.initCharsOrig+self.bodyCharsOrig and (min==1 and max==0 and exact==0):
             if self.bodyCharsOrig == self.initCharsOrig:
@@ -1287,6 +1347,8 @@ class Word(Token):
                 self.reString = "[%s][%s]*" % \
                                       (_escapeRegexRangeChars(self.initCharsOrig),
                                       _escapeRegexRangeChars(self.bodyCharsOrig),)
+            if self.asKeyword:
+                self.reString = r"\b"+self.reString+r"\b"
             try:
                 self.re = re.compile( self.reString )
             except:
@@ -1324,6 +1386,9 @@ class Word(Token):
             throwException = True
         if self.maxSpecified and loc < instrlen and instring[loc] in bodychars:
             throwException = True
+        if self.asKeyword:
+            if (start>0 and instring[start-1] in bodychars) or (loc<instrlen and instring[loc] in bodychars):
+                throwException = True
 
         if throwException:
             #~ raise ParseException( instring, loc, self.errmsg )
@@ -2370,10 +2435,10 @@ class SkipTo(ParseElementEnhance):
         while loc <= instrlen:
             try:
                 loc = expr.skipIgnorables( instring, loc )
-                expr._parse( instring, loc, doActions=False )#, callPreParse=False )
+                expr._parse( instring, loc, doActions=False, callPreParse=False )
                 if self.includeMatch:
                     skipText = instring[startLoc:loc]
-                    loc,mat = expr._parse(instring,loc)
+                    loc,mat = expr._parse(instring,loc,doActions,callPreParse=False)
                     if mat:
                         return loc, [ skipText, mat ]
                     else:
@@ -2410,6 +2475,11 @@ class Forward(ParseElementEnhance):
         self.expr = other
         self.mayReturnEmpty = other.mayReturnEmpty
         self.strRepr = None
+        self.mayIndexError = self.expr.mayIndexError
+        self.mayReturnEmpty = self.expr.mayReturnEmpty
+        self.setWhitespaceChars( self.expr.whiteChars )
+        self.skipWhitespace = self.expr.skipWhitespace
+        self.saveAsList = self.expr.saveAsList        
         return self
 
     def leaveWhitespace( self ):
@@ -2563,7 +2633,7 @@ class OnlyOnce(object):
             self.called = True
             return results
         raise ParseException(s,l,"")
-    def reset():
+    def reset(self):
         self.called = False
 
 def traceParseAction(f):
@@ -2582,6 +2652,10 @@ def traceParseAction(f):
             raise
         sys.stderr.write( "<<leaving %s (ret: %s)\n" % (thisFunc,ret) )
         return ret
+    try:
+        z.__name__ = f.__name__
+    except AttributeError:
+        pass
     return z
         
 #
@@ -2613,7 +2687,7 @@ def countedArray( expr ):
         n = int(t[0])
         arrayExpr << (n and Group(And([expr]*n)) or Group(empty))
         return []
-    return ( Word(nums).setParseAction(countFieldParseAction) + arrayExpr )
+    return ( Word(nums).setName("arrayLen").setParseAction(countFieldParseAction, callDuringTry=True) + arrayExpr )
 
 def _flatten(L):
     if type(L) is not list: return [L]
@@ -2643,7 +2717,7 @@ def matchPreviousLiteral(expr):
                 rep << And( [ Literal(tt) for tt in tflat ] )
         else:
             rep << Empty()
-    expr.addParseAction(copyTokenToRepeater)
+    expr.addParseAction(copyTokenToRepeater, callDuringTry=True)
     return rep
     
 def matchPreviousExpr(expr):
@@ -2668,8 +2742,8 @@ def matchPreviousExpr(expr):
             theseTokens = _flatten(t.asList())
             if  theseTokens != matchTokens:
                 raise ParseException("",0,"")
-        rep.setParseAction( mustMatchTheseTokens )
-    expr.addParseAction(copyTokenToRepeater)
+        rep.setParseAction( mustMatchTheseTokens, callDuringTry=True )
+    expr.addParseAction(copyTokenToRepeater, callDuringTry=True)
     return rep
     
 def _escapeRegexRangeChars(s):
@@ -2807,11 +2881,11 @@ def removeQuotes(s,l,t):
 
 def upcaseTokens(s,l,t):
     """Helper parse action to convert tokens to upper case."""
-    return [ str(tt).upper() for tt in t ]
+    return [ tt.upper() for tt in map(_ustr,t) ]
 
 def downcaseTokens(s,l,t):
     """Helper parse action to convert tokens to lower case."""
-    return [ str(tt).lower() for tt in t ]
+    return [ tt.lower() for tt in map(_ustr,t) ]
 
 def keepOriginalText(s,startLoc,t):
     import inspect
