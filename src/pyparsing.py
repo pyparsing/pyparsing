@@ -1,6 +1,6 @@
 # module pyparsing.py
 #
-# Copyright (c) 2003-2006  Paul T. McGuire
+# Copyright (c) 2003-2007  Paul T. McGuire
 #
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
@@ -58,7 +58,7 @@ The pyparsing module handles some of the problems that are typically vexing when
  - embedded comments
 """
 __version__ = "1.4.6"
-__versionTime__ = "13 February 2007 00:39"
+__versionTime__ = "11 April 2007 16:41"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -153,8 +153,8 @@ class ParseBaseException(Exception):
         return line_str.strip()
 
 class ParseException(ParseBaseException):
-    """exception thrown when parse expressions don't match class"""
-    """supported attributes by name are:
+    """exception thrown when parse expressions don't match class;
+       supported attributes by name are:
         - lineno - returns the line number of the exception text
         - col - returns the column number of the exception text
         - line - returns the line containing the exception text
@@ -166,11 +166,18 @@ class ParseFatalException(ParseBaseException):
        is found; stops all parsing immediately"""
     pass
 
-class ReparseException(ParseBaseException):
-    def __init_( self, newstring, restartLoc ):
-        self.newParseText = newstring
-        self.reparseLoc = restartLoc
-
+#~ class ReparseException(ParseBaseException):
+    #~ """Experimental class - parse actions can raise this exception to cause
+       #~ pyparsing to reparse the input string:
+        #~ - with a modified input string, and/or
+        #~ - with a modified start location
+       #~ Set the values of the ReparseException in the constructor, and raise the
+       #~ exception in a parse action to cause pyparsing to use the new string/location.
+       #~ Setting the values as None causes no change to be made.
+       #~ """
+    #~ def __init_( self, newstring, restartLoc ):
+        #~ self.newParseText = newstring
+        #~ self.reparseLoc = restartLoc
 
 class RecursiveGrammarException(Exception):
     """exception thrown by validate() if the grammar could be improperly recursive"""
@@ -180,7 +187,7 @@ class RecursiveGrammarException(Exception):
     def __str__( self ):
         return "RecursiveGrammarException: %s" % self.parseElementTrace
 
-class ParseResultsWithOffset(object):
+class _ParseResultsWithOffset(object):
     def __init__(self,p1,p2):
         self.tup = (p1,p2)
     def __getitem__(self,i):
@@ -230,9 +237,9 @@ class ParseResults(object):
                     toklist = [ toklist ]
                 if asList:
                     if isinstance(toklist,ParseResults):
-                        self[name] = ParseResultsWithOffset(toklist.copy(),-1)
+                        self[name] = _ParseResultsWithOffset(toklist.copy(),-1)
                     else:
-                        self[name] = ParseResultsWithOffset(ParseResults(toklist[0]),-1)
+                        self[name] = _ParseResultsWithOffset(ParseResults(toklist[0]),-1)
                     self[name].__name = name
                 else:
                     try:
@@ -250,7 +257,7 @@ class ParseResults(object):
                 return ParseResults([ v[0] for v in self.__tokdict[i] ])
 
     def __setitem__( self, k, v ):
-        if isinstance(v,ParseResultsWithOffset):
+        if isinstance(v,_ParseResultsWithOffset):
             self.__tokdict[k] = self.__tokdict.get(k,list()) + [v]
             sub = v[0]
         elif isinstance(k,int):
@@ -307,7 +314,7 @@ class ParseResults(object):
             offset = len(self.__toklist)
             addoffset = ( lambda a: (a<0 and offset) or (a+offset) )
             otheritems = other.__tokdict.items()
-            otherdictitems = [(k, ParseResultsWithOffset(v[0],addoffset(v[1])) )
+            otherdictitems = [(k, _ParseResultsWithOffset(v[0],addoffset(v[1])) )
                                 for (k,vlist) in otheritems for v in vlist]
             for k,v in otherdictitems:
                 self[k] = v
@@ -759,8 +766,6 @@ class ParserElement(object):
                     loc,tokens = self.parseImpl( instring, preloc, doActions )
                 except IndexError:
                     raise ParseException( instring, len(instring), self.errmsg, self )
-            #~ except ReparseException, retryEx:
-                #~ pass
             except ParseException, err:
                 #~ print "Exception raised:", err
                 if self.debugActions[2]:
@@ -956,7 +961,7 @@ class ParserElement(object):
                     out.append(t)
             lastE = e
         out.append(instring[lastE:])
-        return "".join(out)
+        return "".join(map(_ustr,out))
 
     def searchString( self, instring, maxMatches=sys.maxint ):
         """Another extension to scanString, simplifying the access to the tokens found
@@ -1719,14 +1724,14 @@ class White(Token):
         return loc, instring[start:loc]
 
 
-class PositionToken(Token):
+class _PositionToken(Token):
     def __init__( self ):
-        super(PositionToken,self).__init__()
+        super(_PositionToken,self).__init__()
         self.name=self.__class__.__name__
         self.mayReturnEmpty = True
         self.mayIndexError = False
 
-class GoToColumn(PositionToken):
+class GoToColumn(_PositionToken):
     """Token to advance to a specific column of input text; useful for tabular report scraping."""
     def __init__( self, colno ):
         super(GoToColumn,self).__init__()
@@ -1749,7 +1754,7 @@ class GoToColumn(PositionToken):
         ret = instring[ loc: newloc ]
         return newloc, ret
 
-class LineStart(PositionToken):
+class LineStart(_PositionToken):
     """Matches if current position is at the beginning of a line within the parse string"""
     def __init__( self ):
         super(LineStart,self).__init__()
@@ -1774,7 +1779,7 @@ class LineStart(PositionToken):
             raise exc
         return loc, []
 
-class LineEnd(PositionToken):
+class LineEnd(_PositionToken):
     """Matches if current position is at the end of a line within the parse string"""
     def __init__( self ):
         super(LineEnd,self).__init__()
@@ -1800,7 +1805,7 @@ class LineEnd(PositionToken):
             exc.pstr = instring
             raise exc
 
-class StringStart(PositionToken):
+class StringStart(_PositionToken):
     """Matches if current position is at the beginning of the parse string"""
     def __init__( self ):
         super(StringStart,self).__init__()
@@ -1818,7 +1823,7 @@ class StringStart(PositionToken):
                 raise exc
         return loc, []
 
-class StringEnd(PositionToken):
+class StringEnd(_PositionToken):
     """Matches if current position is at the end of the parse string"""
     def __init__( self ):
         super(StringEnd,self).__init__()
@@ -2440,7 +2445,9 @@ class SkipTo(ParseElementEnhance):
                     skipText = instring[startLoc:loc]
                     loc,mat = expr._parse(instring,loc,doActions,callPreParse=False)
                     if mat:
-                        return loc, [ skipText, mat ]
+                        skipRes = ParseResults( skipText )
+                        skipRes += mat
+                        return loc, [ skipRes ]
                     else:
                         return loc, [ skipText ]
                 else:
@@ -2596,16 +2603,16 @@ class Dict(TokenConverter):
         for i,tok in enumerate(tokenlist):
             ikey = _ustr(tok[0]).strip()
             if len(tok)==1:
-                tokenlist[ikey] = ParseResultsWithOffset("",i)
+                tokenlist[ikey] = _ParseResultsWithOffset("",i)
             elif len(tok)==2 and not isinstance(tok[1],ParseResults):
-                tokenlist[ikey] = ParseResultsWithOffset(tok[1],i)
+                tokenlist[ikey] = _ParseResultsWithOffset(tok[1],i)
             else:
                 dictvalue = tok.copy() #ParseResults(i)
                 del dictvalue[0]
                 if len(dictvalue)!= 1 or (isinstance(dictvalue,ParseResults) and dictvalue.keys()):
-                    tokenlist[ikey] = ParseResultsWithOffset(dictvalue,i)
+                    tokenlist[ikey] = _ParseResultsWithOffset(dictvalue,i)
                 else:
-                    tokenlist[ikey] = ParseResultsWithOffset(dictvalue[0],i)
+                    tokenlist[ikey] = _ParseResultsWithOffset(dictvalue[0],i)
 
         if self.resultsName:
             return [ tokenlist ]
@@ -2839,7 +2846,7 @@ _escapedHexChar = Combine( Suppress(_bslash + "0x") + Word(hexnums) ).setParseAc
 _escapedOctChar = Combine( Suppress(_bslash) + Word("0","01234567") ).setParseAction(lambda s,l,t:unichr(int(t[0],8)))
 _singleChar = _escapedPunc | _escapedHexChar | _escapedOctChar | Word(_printables_less_backslash,exact=1)
 _charRange = Group(_singleChar + Suppress("-") + _singleChar)
-_reBracketExpr = "[" + Optional("^").setResultsName("negate") + Group( OneOrMore( _charRange | _singleChar ) ).setResultsName("body") + "]"
+_reBracketExpr = Literal("[") + Optional("^").setResultsName("negate") + Group( OneOrMore( _charRange | _singleChar ) ).setResultsName("body") + "]"
 
 _expanded = lambda p: (isinstance(p,ParseResults) and ''.join([ unichr(c) for c in range(ord(p[0]),ord(p[1])+1) ]) or p)
         
@@ -2888,16 +2895,32 @@ def downcaseTokens(s,l,t):
     return [ tt.lower() for tt in map(_ustr,t) ]
 
 def keepOriginalText(s,startLoc,t):
-    import inspect
     """Helper parse action to preserve original parsed text,
        overriding any nested parse actions."""
-    f = inspect.stack()[1][0]
     try:
-        endloc = f.f_locals["loc"]
+        endloc = getTokensEndLoc()
+    except ParseException:
+        raise ParseFatalException, "incorrect usage of keepOriginalText - may only be called as a parse action"
+    del t[:]
+    t += ParseResults(s[startLoc:endloc])
+    return t
+
+def getTokensEndLoc():
+    """Method to be called from within a parse action to determine the end 
+       location of the parsed tokens."""
+    import inspect
+    fstack = inspect.stack()
+    try:
+        # search up the stack (through intervening argument normalizers) for correct calling routine
+        for f in fstack[2:]:
+            if f[3] == "_parseNoCache":
+                endloc = f[0].f_locals["loc"]
+                return endloc
+        else:
+            raise ParseFatalException, "incorrect usage of getTokensEndLoc - may only be called from within a parse action"
     finally:
-        del f
-    return s[startLoc:endloc]
-        
+        del fstack
+
 def _makeTags(tagStr, xml):
     """Internal helper to construct opening and closing tag expressions, given a tag name"""
     if isinstance(tagStr,basestring):
@@ -2906,7 +2929,7 @@ def _makeTags(tagStr, xml):
     else:
         resname = tagStr.name
         
-    tagAttrName = Word(alphas,alphanums+"_-")
+    tagAttrName = Word(alphas,alphanums+"_-:")
     if (xml):
         tagAttrValue = dblQuotedString.copy().setParseAction( removeQuotes )
         openTag = Suppress("<") + tagStr + \
