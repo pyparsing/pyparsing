@@ -175,7 +175,29 @@ class ParseConfigFileTest(ParseTestCase):
                 [ ("Startup.audioinf", "M3i"),
                   ("Languages.key1", "0x0003"),
                   ("test.foo","bar") ] )
+
+class ParseJSONDataTest(ParseTestCase):
+    def runTest(self):
+        from jsonParser import jsonObject
+        from jsonParserFull import test1,test2,test3,test4,test5
         
+        expected = [
+            [],
+            [],
+            [],
+            [],
+            [],
+            ]
+            
+        import pprint
+        for t,exp in zip((test1,test2,test3,test4,test5),expected):
+            result = jsonObject.parseString(t)
+##            print result.dump()
+            pprint.pprint(result.asList())
+            print
+##            if result.asList() != exp:
+##                print "Expected %s, parsed results as %s" % (exp, result.asList())
+
 class ParseCommaSeparatedValuesTest(ParseTestCase):
     def runTest(self):
         from pyparsing import commaSeparatedList
@@ -1227,6 +1249,42 @@ class ParseHTMLTagsTest(ParseTestCase):
             else:
                 print "BAD!!!"
 
+class UpcaseDowncaseUnicode(ParseTestCase):
+    def runTest(self):
+    
+        import pyparsing as pp
+        import sys
+
+        a = u'\u00bfC\u00f3mo esta usted?'
+        ualphas = u"".join( unichr(i) for i in range(sys.maxunicode)
+                            if unichr(i).isalpha() )
+        uword = pp.Word(ualphas).setParseAction(pp.upcaseTokens)
+
+        print uword.searchString(a)
+
+        uword = pp.Word(ualphas).setParseAction(pp.downcaseTokens)
+
+        print uword.searchString(a)
+
+
+        #test html data
+        html = "<TR class=maintxt bgColor=#ffffff> \
+            <TD vAlign=top>Производитель, модель</TD> \
+            <TD vAlign=top><STRONG>BenQ-Siemens CF61</STRONG></TD> \
+        ".decode('utf-8')
+
+        # u'Manufacturer, model
+        text_manuf = u'Производитель, модель'
+        manufacturer = pp.Literal(text_manuf)
+
+        td_start, td_end = pp.makeHTMLTags("td")
+        manuf_body =  td_start.suppress() + manufacturer + pp.SkipTo(td_end).setResultsName("cells", True) + td_end.suppress()
+
+        manuf_body.setDebug()
+
+        for tokens in manuf_body.scanString(html):
+            print tokens
+
 class ParseUsingRegex(ParseTestCase):
     def runTest(self):
     
@@ -1312,6 +1370,23 @@ class CountedArrayTest(ParseTestCase):
         countedField = countedArray(integer)
         
         r = OneOrMore(countedField).parseString( testString )
+        print r.asList()
+        
+        assert r.asList() == [[5,7],[0,1,2,3,4,5],[],[5,4,3]], \
+                "Failed matching countedArray, got " + str(r.asList())
+
+class CountedArrayTest2(ParseTestCase):
+    # addresses bug raised by Ralf Vosseler
+    def runTest(self):
+        from pyparsing import Word,nums,OneOrMore,countedArray
+        
+        testString = "2 5 7 6 0 1 2 3 4 5 0 3 5 4 3"
+
+        integer = Word(nums).setParseAction(lambda t: int(t[0]))
+        countedField = countedArray(integer)
+        
+        dummy = Word("A")
+        r = OneOrMore(dummy ^ countedField).parseString( testString )
         print r.asList()
         
         assert r.asList() == [[5,7],[0,1,2,3,4,5],[],[5,4,3]], \
@@ -1499,7 +1574,34 @@ class SingleArgExceptionTest(ParseTestCase):
             print "Received expected exception:", pbe
             raisedMsg = pbe.msg
         assert raisedMsg == testMessage, "Failed to get correct exception message"
+
+
+class KeepOriginalTextTest(ParseTestCase):
+    def runTest(self):
+        from pyparsing import makeHTMLTags, keepOriginalText
         
+        def rfn(t):
+            return "%s:%d" % (t.src, len("".join(t)))
+
+        makeHTMLStartTag = lambda tag: makeHTMLTags(tag)[0].setParseAction(keepOriginalText)
+            
+        # use the lambda, Luke
+        #~ start, imge = makeHTMLTags('IMG')  
+        start = makeHTMLStartTag('IMG')
+
+        # don't replace our fancy parse action with rfn, 
+        # append rfn to the list of parse actions
+        #~ start.setParseAction(rfn)
+        start.addParseAction(rfn)
+
+        #start.setParseAction(lambda s,l,t:t.src)
+        text = '''_<img src="images/cal.png"
+            alt="cal image" width="16" height="15">_'''
+        s = start.transformString(text)
+        print s
+        assert s.startswith("_images/cal.png:"), "failed to preserve input s properly"
+        assert s.endswith("77_"),"failed to return full original text properly"
+
 def makeTestSuite():
     suite = TestSuite()
     suite.addTest( PyparsingTestInit() )
@@ -1508,6 +1610,7 @@ def makeTestSuite():
     suite.addTest( ParseFourFnTest() )
     suite.addTest( ParseSQLTest() )
     suite.addTest( ParseConfigFileTest() )
+    suite.addTest( ParseJSONDataTest() )
     suite.addTest( ParseCommaSeparatedValuesTest() )
     suite.addTest( ParseEBNFTest() )
     suite.addTest( ScanStringTest() )
@@ -1524,6 +1627,7 @@ def makeTestSuite():
     suite.addTest( ParseUsingRegex() )
     suite.addTest( SkipToParserTests() )
     suite.addTest( CountedArrayTest() )
+    suite.addTest( CountedArrayTest2() )
     suite.addTest( LineAndStringEndTest() )
     suite.addTest( VariableParseActionArgsTest() )
     suite.addTest( RepeaterTest() )
@@ -1532,47 +1636,27 @@ def makeTestSuite():
     suite.addTest( ParseResultsPickleTest() )
     suite.addTest( ParseResultsWithNamedTupleTest() )
     suite.addTest( SingleArgExceptionTest() )
+    suite.addTest( UpcaseDowncaseUnicode() )
+    suite.addTest( KeepOriginalTextTest() )
     suite.addTest( MiscellaneousParserTests() )
 
     if 1:
         # retest using packrat parsing (disable those tests that aren't compatible)
         suite.addTest( EnablePackratParsing() )
         
-        #~ suite.addTest( ParseIDLTest() )
-        suite.addTest( ParseASMLTest() )
-        suite.addTest( ParseFourFnTest() )
-        suite.addTest( ParseSQLTest() )
-        suite.addTest( ParseConfigFileTest() )
-        suite.addTest( ParseCommaSeparatedValuesTest() )
-        #~ suite.addTest( ParseEBNFTest() )
-        suite.addTest( ScanStringTest() )
-        suite.addTest( QuotedStringsTest() )
-        suite.addTest( CustomQuotesTest() )
-        suite.addTest( CaselessOneOfTest() )
-        suite.addTest( AsXMLTest() )
-        suite.addTest( CommentParserTest() )
-        suite.addTest( ParseExpressionResultsTest() )
-        suite.addTest( ParseExpressionResultsAccumulateTest() )
-        suite.addTest( ReStringRangeTest() )
-        suite.addTest( ParseKeywordTest() )
-        suite.addTest( ParseHTMLTagsTest() )
-        suite.addTest( ParseUsingRegex() )
-        suite.addTest( SkipToParserTests() )
-        suite.addTest( CountedArrayTest() )
-        suite.addTest( LineAndStringEndTest() )
-        suite.addTest( VariableParseActionArgsTest() )
-        #~ suite.addTest( RepeaterTest() )
-        suite.addTest( RecursiveCombineTest() )
-        #~ suite.addTest( OperatorPrecedenceGrammarTest() )
-        suite.addTest( ParseResultsPickleTest() )
-        suite.addTest( ParseResultsWithNamedTupleTest() )
-        suite.addTest( SingleArgExceptionTest() )
-        suite.addTest( MiscellaneousParserTests() )
+        unpackrattables = [ EnablePackratParsing, ParseIDLTest, RepeaterTest, ]
+        
+        # add tests to test suite a second time, to run with packrat parsing
+        # (leaving out those that we know wont work with packrat)
+        packratTests = [t.__class__() for t in suite
+                            if t.__class__ not in unpackrattables]
+        suite.addTests( packratTests )
+        
     return suite
     
 
 console = False
-console = True
+#~ console = True
 if console:
     #~ # console mode
     testRunner = TextTestRunner()
