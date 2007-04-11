@@ -2,16 +2,74 @@
 Change Log
 ==========
 
-Version 1.4.6 - ???
--------------------
+Version 1.4.6 - April, 2007
+---------------------------
 - Simplified constructor for ParseFatalException, to support common
-  exception idiom:
-    raise ParseFatalException, "descriptive exception message here"
+  exception construction idiom:
+    raise ParseFatalException, "unexpected text: 'Spanish Inquisition'"
+
+- Added method getTokensEndLoc(), to be called from within a parse action,
+  for those parse actions that need both the starting *and* ending 
+  location of the parsed tokens within the input text.  
+
+- Enhanced behavior of keepOriginalText so that named parse fields are
+  preserved, even though tokens are replaced with the original input
+  text matched by the current expression.  Also, cleaned up the stack
+  traversal to be more robust.  Suggested by Tim Arnold - thanks, Tim!
+
+- Fixed subtle bug in which countedArray (and similar dynamic 
+  expressions configured in parse actions) failed to match within Or,
+  Each, FollowedBy, or NotAny.  Reported by Ralf Vosseler, thanks for 
+  your patience, Ralf!
+  
+- Fixed Unicode bug in upcaseTokens and downcaseTokens parse actions,
+  scanString, and default debugging actions; reported (and patch submitted)
+  by Nikolai Zamkovoi, spasibo!
 
 - Fixed bug when saving a tuple as a named result.  The returned
   token list gave the proper tuple value, but accessing the result by
   name only gave the first element of the tuple.  Reported by 
   Poromenos, nice catch!
+
+- Fixed bug in makeHTMLTags/makeXMLTags, which failed to match tag
+  attributes with namespaces.
+
+- Fixed bug in SkipTo when setting include=True, to have the skipped-to
+  tokens correctly included in the returned data.  Reported by gunars on 
+  the pyparsing wiki, thanks!
+
+- Fixed typobug in OnceOnly.reset method, omitted self argument.
+  Submitted by eike welk, thanks for the lint-picking!
+
+- Added performance enhancement to Forward class, suggested by 
+  akkartik on the pyparsing Wiki discussion, nice work!
+
+- Added optional asKeyword to Word constructor, to indicate that the
+  given word pattern should be matched only as a keyword, that is, it
+  should only match if it is within word boundaries.
+
+- Added S-expression parser to examples directory.
+
+- Added macro substitution example to examples directory.
+
+- Added holaMundo.py example, excerpted from Marco Alfonso's blog -
+  muchas gracias, Marco!
+  
+- Modified internal cyclic references in ParseResults to use weakrefs;
+  this should help reduce the memory footprint of large parsing 
+  programs, at some cost to performance (3-5%). Suggested by bca48150 on
+  the pyparsing wiki, thanks!
+
+- Enhanced the documentation describing the vagaries and idiosyncracies
+  of parsing strings with embedded tabs, and the impact on:
+  . parse actions
+  . scanString
+  . col and line helper functions
+  (Suggested by eike welk in response to some unexplained inconsistencies
+  between parsed location and offsets in the input string.)
+
+- Cleaned up internal decorators to preserve function names, 
+  docstrings, etc.
 
 
 Version 1.4.5 - December, 2006
