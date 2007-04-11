@@ -5,10 +5,10 @@ Using the pyparsing module
 :author: Paul McGuire
 :address: ptmcg@users.sourceforge.net
 
-:revision: 1.4.2
-:date: April, 2006
+:revision: 1.4.6
+:date: April, 2007
 
-:copyright: Copyright |copy| 2003-2006 Paul McGuire. 
+:copyright: Copyright |copy| 2003-2007 Paul McGuire. 
 
 .. |copy| unicode:: 0xA9
 
@@ -604,6 +604,59 @@ Helper methods
   support for attributes in the opening tag, such as <tag attr1="abc"> - attributes
   are returned as keyed tokens in the returned ParseResults.  makeHTMLTags is less
   restrictive than makeXMLTags, especially with respect to case sensitivity.
+
+- ``operatorPrecedence(baseOperand, operatorList)`` - convenience function to define a 
+  grammar for parsing
+  expressions with a hierarchical precedence of operators. To use the operatorPrecedence 
+  helper:
+  
+  1.  Define the base "atom" operand term of the grammar.
+      For this simple grammar, the smallest operand is either
+      and integer or a variable.  This will be the first argument
+      to the operatorPrecedence method.
+      
+  2.  Define a list of tuples for each level of operator
+      precendence.  Each tuple is of the form
+      (opExpr, numTerms, rightLeftAssoc, parseAction), where:
+      
+      - opExpr is the pyparsing expression for the operator;
+        may also be a string, which will be converted to a Literal
+      
+      - numTerms is the number of terms for this operator (must
+        be 1 or 2)
+      
+      - rightLeftAssoc is the indicator whether the operator is
+        right or left associative, using the pyparsing-defined
+        constants opAssoc.RIGHT and opAssoc.LEFT.
+      
+      - parseAction is the parse action to be associated with 
+        expressions matching this operator expression (the
+        parse action tuple member may be omitted)
+        
+  3.  Call operatorPrecedence passing the operand expression and
+      the operator precedence list, and save the returned value
+      as the generated pyparsing expression.  You can then use
+      this expression to parse input strings, or incorporate it
+      into a larger, more complex grammar.
+ 
+- ``matchPreviousLiteral`` and ``matchPreviousExpr`` - function to define and 
+  expression that matches the same content
+  as was parsed in a previous parse expression.  For instance::
+  
+        first = Word(nums)
+        matchExpr = first + ":" + matchPreviousLiteral(first)
+  
+  will match "1:1", but not "1:2".  Since this matches at the literal
+  level, this will also match the leading "1:1" in "1:10".
+  
+  In contrast::
+  
+        first = Word(nums)
+        matchExpr = first + ":" + matchPreviousExpr(first)
+           
+  will *not* match the leading "1:1" in "1:10"; the expressions are
+  evaluated first, and then compared, so "1" is compared with "10".
+  
   
 - ``lineno( loc, string )`` - function to give the line number of the
   location within the string; the first line is line 1, newlines
@@ -634,6 +687,12 @@ Helper parse actions
   replString; useful when using transformString, or converting HTML entities, as in::
   
       nbsp = Literal("&nbsp;").setParseAction( replaceWith("<BLANK>") )
+
+- ``keepOriginalText``- restores any internal whitespace or suppressed 
+  text within the tokens for a matched parse
+  expression.  This is especially useful when defining expressions
+  for scanString or transformString applications.
+
 
 
 Common string and token constants
