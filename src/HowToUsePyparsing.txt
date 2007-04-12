@@ -562,6 +562,10 @@ Exception classes and Troubleshooting
     goodToken = Literal("A")
     badGrammar << Optional(goodToken) + badGrammar
 
+- ``ParseFatalException`` - exception that parse actions can raise to stop parsing
+  immediately.  Should be used when a semantic error is found in the input text, such
+  as a mismatched XML tag.
+
 You can also get some insights into the parsing logic using diagnostic parse actions,
 and setDebug(), or test the matching of expression fragments by testing them using 
 scanString().
@@ -675,6 +679,13 @@ Helper methods
   all numeric digits, ``"[A-Z_]"`` for uppercase characters plus underscore, and 
   so on (note that rangeSpec does not include support for generic regular 
   expressions, just string range specs)
+
+- ``getTokensEndLoc()`` - function to call from within a parse action to get
+  the ending location for the matched tokens
+  
+- ``traceParseAction(fn)`` - decorator function to debug parse actions. Lists
+  each call, called arguments, and return value or exception
+  
   
 
 Helper parse actions
@@ -692,6 +703,10 @@ Helper parse actions
   text within the tokens for a matched parse
   expression.  This is especially useful when defining expressions
   for scanString or transformString applications.
+
+- ``downcase`` - converts all matched tokens to lowercase
+
+- ``upcase`` - converts all matched tokens to uppercase
 
 
 
