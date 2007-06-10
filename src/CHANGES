@@ -2,6 +2,41 @@
 Change Log
 ==========
 
+Version 1.4.7 - June, 2007
+--------------------------
+- NEW NOTATION SHORTCUT: ParserElement now accepts results names using
+  a notational shortcut, following the expression with the results name
+  in parentheses.  So this:
+
+    stats = "AVE:" + realNum.setResultsName("average") + \
+            "MIN:" + realNum.setResultsName("min") + \
+            "MAX:" + realNum.setResultsName("max")  
+
+  can now be written as this:
+  
+    stats = "AVE:" + realNum("average") + \
+            "MIN:" + realNum("min") + \
+            "MAX:" + realNum("max")  
+
+  The intent behind this change is to make it simpler to define results
+  names for significant fields within the expression, while keeping
+  the grammar syntax clean and uncluttered.
+  
+- Fixed bug when packrat parsing is enabled, with cached ParseResults
+  being updated by subsequent parsing.  Reported on the pyparsing
+  wiki by Kambiz, thanks!
+
+- Fixed bug in operatorPrecedence for unary operators with left
+  associativity, if multiple operators were given for the same term.
+
+- Fixed bug in example simpleBool.py, corrected precedence of "and" vs.
+  "or" operations.
+
+- Added ParserElement method setBreak(), which will invoke the pdb
+  module's set_trace() function when this expression is about to be 
+  parsed.
+
+
 Version 1.4.6 - April, 2007
 ---------------------------
 - Simplified constructor for ParseFatalException, to support common
@@ -158,7 +193,7 @@ Version 1.4.4 - October, 2006
   grammar, with unary plus and minus, proper operator precedence,and 
   right- and left-associativity:
   
-    expr = operatorGrammar( operand,
+    expr = operatorPrecedence( operand,
         [("!", 1, opAssoc.LEFT),
          ("^", 2, opAssoc.RIGHT),
          (oneOf("+ -"), 1, opAssoc.RIGHT),
