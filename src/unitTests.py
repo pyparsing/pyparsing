@@ -1051,20 +1051,24 @@ class OperatorPrecedenceGrammarTest(ParseTestCase):
                 "9 + 2 * 3",
                 "(9 + 2) * 3",
                 "(9 + -2) * 3",
+                "(9 + --2) * 3",
                 "(9 + -2) * 3^2^2",
                 "(9! + -2) * 3^2^2",
                 "M*X + B",
                 "M*(X + B)",
-                "1+2*-3^4*5+-+-6",]
+                "1+2*-3^4*5+-+-6",
+                "3!!"]
         expected = """[[9, '+', 2, '+', 3]]
-[[9, '+', [2, '*', 3]]]
-[[[9, '+', 2], '*', 3]]
-[[[9, '+', ['-', 2]], '*', 3]]
-[[[9, '+', ['-', 2]], '*', [3, '^', [2, '^', 2]]]]
-[[[[9, '!'], '+', ['-', 2]], '*', [3, '^', [2, '^', 2]]]]
-[[['M', '*', 'X'], '+', 'B']]
-[['M', '*', ['X', '+', 'B']]]
-[[1, '+', [2, '*', ['-', [3, '^', 4]], '*', 5], '+', ['-', ['+', ['-', 6]]]]]""".split('\n')
+                    [[9, '+', [2, '*', 3]]]
+                    [[[9, '+', 2], '*', 3]]
+                    [[[9, '+', ['-', 2]], '*', 3]]
+                    [[[9, '+', ['-', ['-', 2]]], '*', 3]]
+                    [[[9, '+', ['-', 2]], '*', [3, '^', [2, '^', 2]]]]
+                    [[[[9, '!'], '+', ['-', 2]], '*', [3, '^', [2, '^', 2]]]]
+                    [[['M', '*', 'X'], '+', 'B']]
+                    [['M', '*', ['X', '+', 'B']]]
+                    [[1, '+', [2, '*', ['-', [3, '^', 4]], '*', 5], '+', ['-', ['+', ['-', 6]]]]]
+                    [[3, '!', '!']]""".split('\n')
         expected = map(lambda x:eval(x),expected)
         for t,e in zip(test,expected):
             print t,"->",e
@@ -1370,6 +1374,7 @@ class CountedArrayTest(ParseTestCase):
         countedField = countedArray(integer)
         
         r = OneOrMore(countedField).parseString( testString )
+        print testString
         print r.asList()
         
         assert r.asList() == [[5,7],[0,1,2,3,4,5],[],[5,4,3]], \
@@ -1387,6 +1392,7 @@ class CountedArrayTest2(ParseTestCase):
         
         dummy = Word("A")
         r = OneOrMore(dummy ^ countedField).parseString( testString )
+        print testString
         print r.asList()
         
         assert r.asList() == [[5,7],[0,1,2,3,4,5],[],[5,4,3]], \
@@ -1602,6 +1608,28 @@ class KeepOriginalTextTest(ParseTestCase):
         assert s.startswith("_images/cal.png:"), "failed to preserve input s properly"
         assert s.endswith("77_"),"failed to return full original text properly"
 
+class PackratParsingCacheCopyTest(ParseTestCase):
+    def runTest(self):
+        from pyparsing import Word,nums,ParserElement,delimitedList,Literal,Optional,alphas,alphanums,ZeroOrMore,empty
+
+        integer = Word(nums).setName("integer")
+        id = Word(alphas+'_',alphanums+'_')
+        simpleType = Literal('int');
+        arrayType= simpleType+ZeroOrMore('['+delimitedList(integer)+']')
+        varType = arrayType | simpleType
+        varDec  = varType + delimitedList(id + Optional('='+integer))+';'
+         
+        codeBlock = Literal('{}')
+         
+        funcDef = Optional(varType | 'void')+id+'('+(delimitedList(varType+id)|'void'|empty)+')'+codeBlock
+         
+        program = varDec | funcDef
+        input = 'int f(){}'
+        results = program.parseString(input)
+        print "Parsed '%s' as %s" % (input, results.asList())
+        assert results.asList() == ['int', 'f', '(', ')', '{}'], "Error in packrat parsing"
+
+
 def makeTestSuite():
     suite = TestSuite()
     suite.addTest( PyparsingTestInit() )
@@ -1638,6 +1666,7 @@ def makeTestSuite():
     suite.addTest( SingleArgExceptionTest() )
     suite.addTest( UpcaseDowncaseUnicode() )
     suite.addTest( KeepOriginalTextTest() )
+    suite.addTest( PackratParsingCacheCopyTest() )
     suite.addTest( MiscellaneousParserTests() )
 
     if 1:
