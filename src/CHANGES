@@ -31,6 +31,11 @@ Version 1.4.7 - June, 2007
 
 - Fixed bug in example simpleBool.py, corrected precedence of "and" vs.
   "or" operations.
+  
+- Fixed bug in Dict class, in which keys were converted to strings
+  whether they needed to be or not.  Have narrowed this logic to 
+  convert keys to strings only if the keys are ints (which would 
+  confuse __getitem__ behavior for list indexing vs. key lookup).
 
 - Added ParserElement method setBreak(), which will invoke the pdb
   module's set_trace() function when this expression is about to be 
