@@ -58,7 +58,7 @@ The pyparsing module handles some of the problems that are typically vexing when
  - embedded comments
 """
 __version__ = "1.4.7"
-__versionTime__ = "4 June 2007 12:59"
+__versionTime__ = "15 June 2007 10:02"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -2639,7 +2639,11 @@ class Dict(TokenConverter):
 
     def postParse( self, instring, loc, tokenlist ):
         for i,tok in enumerate(tokenlist):
-            ikey = _ustr(tok[0]).strip()
+            if len(tok) == 0: 
+                continue
+            ikey = tok[0]
+            if isinstance(ikey,int):
+                ikey = _ustr(tok[0]).strip()
             if len(tok)==1:
                 tokenlist[ikey] = _ParseResultsWithOffset("",i)
             elif len(tok)==2 and not isinstance(tok[1],ParseResults):
