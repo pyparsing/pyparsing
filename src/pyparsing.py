@@ -58,7 +58,7 @@ The pyparsing module handles some of the problems that are typically vexing when
  - embedded comments
 """
 __version__ = "1.4.7"
-__versionTime__ = "15 June 2007 10:02"
+__versionTime__ = "15 July 2007 10:26"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -1876,6 +1876,8 @@ class StringEnd(_PositionToken):
             raise exc
         elif loc == len(instring):
             return loc+1, []
+        elif loc > len(instring):
+            return loc, []
         else:
             exc = self.myException
             exc.loc = loc
