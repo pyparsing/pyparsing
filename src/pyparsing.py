@@ -58,7 +58,7 @@ The pyparsing module handles some of the problems that are typically vexing when
  - embedded comments
 """
 __version__ = "1.4.8"
-__versionTime__ = "30 July 2007 10:26"
+__versionTime__ = "30 July 2007 23:20"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -795,7 +795,7 @@ class ParserElement(object):
                     self.failAction( instring, tokensStart, self, err )
                 raise
         else:
-            if callPreParse:
+            if callPreParse and self.callPreparse:
                 preloc = self.preParse( instring, loc )
             else:
                 preloc = loc
@@ -2238,6 +2238,7 @@ class ParseElementEnhance(ParserElement):
             self.setWhitespaceChars( expr.whiteChars )
             self.skipWhitespace = expr.skipWhitespace
             self.saveAsList = expr.saveAsList
+            self.callPreparse = expr.callPreparse
 
     def parseImpl( self, instring, loc, doActions=True ):
         if self.expr is not None:
