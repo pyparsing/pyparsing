@@ -57,8 +57,8 @@ The pyparsing module handles some of the problems that are typically vexing when
  - quoted strings
  - embedded comments
 """
-__version__ = "1.4.7"
-__versionTime__ = "15 July 2007 10:26"
+__version__ = "1.4.8"
+__versionTime__ = "30 July 2007 10:26"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -273,7 +273,7 @@ class ParseResults(object):
         if isinstance(i,(int,slice)):
             del self.__toklist[i]
         else:
-            del self._tokdict[i]
+            del self.__tokdict[i]
 
     def __contains__( self, k ):
         return self.__tokdict.has_key(k)
