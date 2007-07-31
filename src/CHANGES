@@ -2,6 +2,16 @@
 Change Log
 ==========
 
+Version 1.4.8 - ???
+-------------------
+- Fixed bug/typo when deleting an element from a ParseResults by
+  using the element's results name.
+  
+- Fixed whitespace-skipping bug in wrapper classes (such as Group,
+  Suppress, Combine, etc.) and when using setDebug(), reported by
+  new pyparsing user dazzawazza on SourceForge, nice job!
+  
+
 Version 1.4.7 - July, 2007
 --------------------------
 - NEW NOTATION SHORTCUT: ParserElement now accepts results names using
