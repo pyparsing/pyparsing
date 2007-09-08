@@ -4,12 +4,18 @@ Change Log
 
 Version 1.4.8 - ???
 -------------------
+- Added performance speedup to grammars using operatorPrecedence,
+  instigated by Stefan Reichör - thanks for the feedback, Stefan!
+  
 - Fixed bug/typo when deleting an element from a ParseResults by
   using the element's results name.
   
 - Fixed whitespace-skipping bug in wrapper classes (such as Group,
   Suppress, Combine, etc.) and when using setDebug(), reported by
   new pyparsing user dazzawazza on SourceForge, nice job!
+
+- Fixed minor bug in makeHTMLTags and makeXMLTags, which did not
+  accept whitespace in closing tags.
   
 
 Version 1.4.7 - July, 2007
