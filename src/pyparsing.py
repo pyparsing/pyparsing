@@ -57,8 +57,9 @@ The pyparsing module handles some of the problems that are typically vexing when
  - quoted strings
  - embedded comments
 """
+
 __version__ = "1.4.8"
-__versionTime__ = "30 July 2007 23:20"
+__versionTime__ = "8 Sept 2007 05:45"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -3006,6 +3007,16 @@ opAssoc = _Constants()
 opAssoc.LEFT = object()
 opAssoc.RIGHT = object()
 
+def _flattenOpPrecTokens(tokens):
+    if isinstance(tokens,ParseResults):
+        if len(tokens)==1:
+            if isinstance(tokens[0],ParseResults):
+                return _flattenOpPrecTokens(tokens[0])
+            else:
+                return tokens[0]
+        return map(_flattenOpPrecTokens,tokens)
+    return tokens
+    
 def operatorPrecedence( baseExpr, opList ):
     """Helper method for constructing grammars of expressions made up of 
        operators working in a precedence hierarchy.  Operators may be unary or
@@ -3014,7 +3025,8 @@ def operatorPrecedence( baseExpr, opList ):
         
        Parameters:
         - baseExpr - expression representing the most basic element for the nested 
-        - opList - list of tuples, one for each operator precedence level in the expression grammar; each tuple is of the form
+        - opList - list of tuples, one for each operator precedence level in the 
+          expression grammar; each tuple is of the form
           (opExpr, numTerms, rightLeftAssoc, parseAction), where:
            - opExpr is the pyparsing expression for the operator;
               may also be a string, which will be converted to a Literal
@@ -3031,12 +3043,12 @@ def operatorPrecedence( baseExpr, opList ):
     lastExpr = baseExpr | ( Suppress('(') + ret + Suppress(')') )
     for i,operDef in enumerate(opList):
         opExpr,arity,rightLeftAssoc,pa = (operDef + (None,))[:4]
-        thisExpr = Forward().setName("expr%d" % i)
+        thisExpr = Forward()#.setName("expr%d" % i)
         if rightLeftAssoc == opAssoc.LEFT:
             if arity == 1:
-                matchExpr = Group( lastExpr + OneOrMore( opExpr ) )
+                matchExpr = Group( lastExpr + ZeroOrMore( opExpr ) )
             elif arity == 2:
-                matchExpr = Group( lastExpr + OneOrMore( opExpr + lastExpr ) )
+                matchExpr = Group( lastExpr + ZeroOrMore( opExpr + lastExpr ) )
             else:
                 raise ValueError, "operator must be unary (1) or binary (2)"
         elif rightLeftAssoc == opAssoc.RIGHT:
@@ -3045,18 +3057,20 @@ def operatorPrecedence( baseExpr, opList ):
                 if not isinstance(opExpr, Optional):
                     opExpr = Optional(opExpr)
                 matchExpr = FollowedBy(opExpr.expr + thisExpr) + Group( opExpr + thisExpr ) 
+                matchExpr |= lastExpr
             elif arity == 2:
-                matchExpr = Group( lastExpr + OneOrMore( opExpr + thisExpr ) )
+                matchExpr = Group( lastExpr + ZeroOrMore( opExpr + thisExpr ) )
             else:
                 raise ValueError, "operator must be unary (1) or binary (2)"
         else:
             raise ValueError, "operator must indicate right or left associativity"
         if pa:
             matchExpr.setParseAction( pa )
-        thisExpr << ( matchExpr | lastExpr )
+        thisExpr << ( matchExpr )
         lastExpr = thisExpr
     ret << lastExpr
-    return ret
+    ret.setParseAction(_flattenOpPrecTokens)
+    return Group(ret)
 
 alphas8bit = srange(r"[\0xc0-\0xd6\0xd8-\0xf6\0xf8-\0xff]")
 punc8bit = srange(r"[\0xa1-\0xbf\0xd7\0xf7]")
