@@ -1347,7 +1347,9 @@ class Word(Token):
        Defined with string containing all allowed initial characters,
        an optional string containing allowed body characters (if omitted,
        defaults to the initial character set), and an optional minimum,
-       maximum, and/or exact length.
+       maximum, and/or exact length.  The default value for min is 1 (a
+       minimum value < 1 is not valid); the default values for max and exact
+       are 0, meaning no maximum or exact length restriction.
     """
     def __init__( self, initChars, bodyChars=None, min=1, max=0, exact=0, asKeyword=False ):
         super(Word,self).__init__()
@@ -1361,6 +1363,9 @@ class Word(Token):
             self.bodyChars = _str2dict(initChars)
             
         self.maxSpecified = max > 0
+        
+        if min < 1:
+            raise ValueError, "cannot specify a minimum length < 1; use Optional(Word()) if zero-length word is permitted"
 
         self.minLen = min
 
@@ -1641,13 +1646,18 @@ class QuotedString(Token):
 class CharsNotIn(Token):
     """Token for matching words composed of characters *not* in a given set.
        Defined with string containing all disallowed characters, and an optional 
-       minimum, maximum, and/or exact length.
+       minimum, maximum, and/or exact length.  The default value for min is 1 (a
+       minimum value < 1 is not valid); the default values for max and exact
+       are 0, meaning no maximum or exact length restriction.
     """
     def __init__( self, notChars, min=1, max=0, exact=0 ):
         super(CharsNotIn,self).__init__()
         self.skipWhitespace = False
         self.notChars = notChars
         
+        if min < 1:
+            raise ValueError, "cannot specify a minimum length < 1; use Optional(CharsNotIn()) if zero-length char group is permitted"
+
         self.minLen = min
 
         if max > 0:
