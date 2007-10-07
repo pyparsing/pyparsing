@@ -59,7 +59,7 @@ The pyparsing module handles some of the problems that are typically vexing when
 """
 
 __version__ = "1.4.8"
-__versionTime__ = "24 Sept 2007 20:41"
+__versionTime__ = "7 October 2007 00:25"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -3013,6 +3013,33 @@ def makeXMLTags(tagStr):
     """Helper to construct opening and closing tag expressions for XML, given a tag name"""
     return _makeTags( tagStr, True )
 
+def withAttribute(*args,**attrDict):
+    """Helper to create a validating parse action to be used with start tags created 
+       with makeXMLTags or makeHTMLTags. Use withAttribute to qualify a starting tag 
+       with a required attribute value, to avoid false matches on common tags such as 
+       <TD> or <DIV>.
+
+       Call withAttribute with a series of attribute names and values. Specify the list 
+       of filter attributes names and values as:
+        - keyword arguments, as in (class="Customer",align="right"), or
+        - a list of name-value tuples, as in ( ("ns1:class", "Customer"), ("ns2:align","right") )
+       For attribute names with a namespace prefix, you must use the second form.  Attribute
+       names are matched insensitive to upper/lower case.
+       """
+    if args:
+        attrs = args[:]
+    else:
+        attrs = attrDict.items()
+    attrs = [(k.lower(),v) for k,v in attrs]
+    def pa(s,l,tokens):
+        for attrName,attrValue in attrs:
+            if attrName not in tokens:
+                raise ParseException(s,l,"no matching attribute " + attrName)
+            if tokens[attrName] != attrValue:
+                raise ParseException(s,l,"attribute '%s' has value '%s', must be '%s'" % 
+                                            (attrName, tokens[attrName], attrValue))
+    return pa
+
 opAssoc = _Constants()
 opAssoc.LEFT = object()
 opAssoc.RIGHT = object()
@@ -3082,12 +3109,47 @@ def operatorPrecedence( baseExpr, opList ):
     ret.setParseAction(_flattenOpPrecTokens)
     return Group(ret)
 
-alphas8bit = srange(r"[\0xc0-\0xd6\0xd8-\0xf6\0xf8-\0xff]")
-punc8bit = srange(r"[\0xa1-\0xbf\0xd7\0xf7]")
-
 dblQuotedString = Regex(r'"(?:[^"\n\r\\]|(?:"")|(?:\\.))*"').setName("string enclosed in double quotes")
 sglQuotedString = Regex(r"'(?:[^'\n\r\\]|(?:'')|(?:\\.))*'").setName("string enclosed in single quotes")
 quotedString = Regex(r'''(?:"(?:[^"\n\r\\]|(?:"")|(?:\\.))*")|(?:'(?:[^'\n\r\\]|(?:'')|(?:\\.))*')''').setName("quotedString using single or double quotes")
+
+def nestedExpr(opener="(", closer=")", content=None, ignoreExpr=quotedString):
+    """Helper method for defining nested lists enclosed in opening and closing
+       delimiters ("(" and ")" are the default).
+       
+       Parameters:
+        - opener - opening character for a nested list (default="("); can also be a pyparsing expression
+        - closer - closing character for a nested list (default=")"); can also be a pyparsing expression
+        - content - expression for items within the nested lists (default=None)
+        - ignoreExpr - expression for ignoring opening and closing delimiters (default=quotedString)
+       
+       If an expression is not provided for the content argument, the nested
+       expression will capture all whitespace-delimited content between delimiters
+       as a list of separate values.
+       
+       Use the ignoreExpr argument to define expressions that may contain 
+       opening or closing characters that should not be treated as opening
+       or closing characters for nesting, such as quotedString or a comment
+       expression.  Specify multiple expressions using an Or or MatchFirst.
+       The default is quotedString, but if no expressions are to be ignored,
+       then pass None for this argument.
+    """
+    if opener == closer:
+        raise ValueError("opening and closing strings cannot be the same")
+    if content is None:
+        if isinstance(opener,basestring) and isinstance(closer,basestring):
+            content = (empty+CharsNotIn(opener+closer+ParserElement.DEFAULT_WHITE_CHARS).setParseAction(lambda t:t[0].strip()))
+        else:
+            raise ValueError("opening and closing arguments must be strings if no content expression is given")
+    ret = Forward()
+    if ignoreExpr is not None:
+        ret << ZeroOrMore( ignoreExpr | content | Group( Suppress(opener) + ret + Suppress(closer) ) )
+    else:
+        ret << ZeroOrMore( content | Group( Suppress(opener) + ret + Suppress(closer) ) )
+    return ret
+
+alphas8bit = srange(r"[\0xc0-\0xd6\0xd8-\0xf6\0xf8-\0xff]")
+punc8bit = srange(r"[\0xa1-\0xbf\0xd7\0xf7]")
 
 anyOpenTag,anyCloseTag = makeHTMLTags(Word(alphas,alphanums+"_:"))
 commonHTMLEntity = Combine("&" + oneOf("gt lt amp nbsp quot").setResultsName("entity") +";")
