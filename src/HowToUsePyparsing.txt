@@ -5,8 +5,8 @@ Using the pyparsing module
 :author: Paul McGuire
 :address: ptmcg@users.sourceforge.net
 
-:revision: 1.4.6
-:date: April, 2007
+:revision: 1.4.8
+:date: October, 2007
 
 :copyright: Copyright |copy| 2003-2007 Paul McGuire. 
 
@@ -602,12 +602,38 @@ Helper methods
 - ``dictOf( key, value )`` - convenience function for quickly declaring a 
   dictionary pattern of ``Dict( ZeroOrMore( Group( key + value ) ) )``.
 
+- ``nestedExpr(opener, closer, content, ignoreExpr)`` -helper method for defining 
+  nested lists enclosed in opening and closing delimiters ("(" and ")" are the default).
+
+  Parameters:
+  
+  - opener - opening character for a nested list (default="("); can also be a pyparsing expression
+  
+  - closer - closing character for a nested list (default=")"); can also be a pyparsing expression
+  
+  - content - expression for items within the nested lists (default=None)
+  
+  - ignoreExpr - expression for ignoring opening and closing delimiters (default=quotedString)
+
+
 - ``makeHTMLTags( tagName )`` and ``makeXMLTags( tagName )`` - convenience
   functions to create definitions of opening and closing tag expressions.  Returns
   a pair of expressions, for the corresponding <tag> and </tag> strings.  Includes
   support for attributes in the opening tag, such as <tag attr1="abc"> - attributes
-  are returned as keyed tokens in the returned ParseResults.  makeHTMLTags is less
-  restrictive than makeXMLTags, especially with respect to case sensitivity.
+  are returned as keyed tokens in the returned ParseResults.  ``makeHTMLTags`` is less
+  restrictive than ``makeXMLTags``, especially with respect to case sensitivity.
+
+- ``withAttribute( *args, **kwargs )`` - helper to create a validating parse action to be used with start tags created 
+  with ``makeXMLTags`` or ``makeHTMLTags``. Use ``withAttribute`` to qualify a starting tag 
+  with a required attribute value, to avoid false matches on common tags such as 
+  ``<TD>`` or ``<DIV>``.
+  
+  ``withAttribute`` can be called with:
+  
+  - keyword arguments, as in (class="Customer",align="right"), or
+  
+  - a list of name-value tuples, as in ( ("ns1:class", "Customer"), ("ns2:align","right") )
+
 
 - ``operatorPrecedence(baseOperand, operatorList)`` - convenience function to define a 
   grammar for parsing

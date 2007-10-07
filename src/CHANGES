@@ -2,8 +2,21 @@
 Change Log
 ==========
 
-Version 1.4.8 - ???
--------------------
+Version 1.4.8 - October, 2007
+-----------------------------
+- Added new helper method nestedExpr to easily create expressions
+  that parse lists of data in nested parentheses, braces, brackets,
+  etc.
+
+- Added withAttribute parse action helper, to simplify creating
+  filtering parse actions to attach to expressions returned by
+  makeHTMLTags and makeXMLTags.  Use withAttribute to qualify a
+  starting tag with one or more required attribute values, to avoid 
+  false matches on common tags such as <TD> or <DIV>.
+
+- Added new examples nested.py and withAttribute.py to demonstrate
+  the new features.
+
 - Added performance speedup to grammars using operatorPrecedence,
   instigated by Stefan Reichör - thanks for the feedback, Stefan!
   
@@ -14,9 +27,20 @@ Version 1.4.8 - ???
   Suppress, Combine, etc.) and when using setDebug(), reported by
   new pyparsing user dazzawazza on SourceForge, nice job!
 
+- Added restriction to prevent defining Word or CharsNotIn expressions
+  with minimum length of 0 (should use Optional if this is desired),
+  and enhanced docstrings to reflect this limitation.  Issue was
+  raised by Joey Tallieu, who submitted a patch with a slightly 
+  different solution.  Thanks for taking the initiative, Joey, and
+  please keep submitting your ideas!
+  
+- Fixed bug in makeHTMLTags that did not detect HTML tag attributes 
+  with no '= value' portion (such as "<td nowrap>"), reported by
+  hamidh on the pyparsing wiki - thanks!
+
 - Fixed minor bug in makeHTMLTags and makeXMLTags, which did not
   accept whitespace in closing tags.
-  
+
 
 Version 1.4.7 - July, 2007
 --------------------------
