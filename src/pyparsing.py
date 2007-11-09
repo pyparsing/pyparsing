@@ -272,12 +272,6 @@ class ParseResults(object):
         
     def __delitem__( self, i ):
         if isinstance(i,(int,slice)):
-            del self.__toklist[i]
-        else:
-            del self.__tokdict[i]
-
-    def __delitem__( self, i ):
-        if isinstance(i,(int,slice)):
             mylen = len( self.__toklist )
             del self.__toklist[i]
             
@@ -290,16 +284,10 @@ class ParseResults(object):
             removed = range(*i.indices(mylen))
             removed.reverse()
             # fixup indices in token dictionary
-            for name in self.__tokdict.keys():
-                #~ occurrences = self.__tokdict[name] #[_ParseResultsWithOffset(value, position) for value, position in self.__tokdict[name] if position not in removed]
-                #~ for j in removed:
-                    #~ for k, (value, position) in enumerate(occurrences):
-                        #~ occurrences[k] = _ParseResultsWithOffset(value, position - (position > j))
-                    #~ self.__tokdict[name] = occurrences
-                occurrences = self.__tokdict[name] #[_ParseResultsWithOffset(value, position) for value, position in self.__tokdict[name] if position not in removed]
+            for occurrences in self.__tokdict.itervalues():
                 for j in removed:
-                    for k, (value, position) in enumerate(self.__tokdict[name]):
-                        self.__tokdict[name][k] = _ParseResultsWithOffset(value, position - (position > j))
+                    for k, (value, position) in enumerate(occurrences):
+                        occurrences[k] = _ParseResultsWithOffset(value, position - (position > j))
         else:
             del self.__tokdict[i]
 
