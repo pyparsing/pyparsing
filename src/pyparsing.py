@@ -58,7 +58,7 @@ The pyparsing module handles some of the problems that are typically vexing when
  - embedded comments
 """
 
-__version__ = "1.4.8"
+__version__ = "1.4.9"
 __versionTime__ = "7 October 2007 00:25"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
@@ -265,7 +265,7 @@ class ParseResults(object):
             self.__toklist[k] = v
             sub = v
         else:
-            self.__tokdict[k] = self.__tokdict.get(k,list()) + [(v,0)]
+            self.__tokdict[k] = self.__tokdict.get(k,list()) + [_ParseResultsWithOffset(v,0)]
             sub = v
         if isinstance(sub,ParseResults):
             sub.__parent = wkref(self)
@@ -276,6 +276,55 @@ class ParseResults(object):
         else:
             del self.__tokdict[i]
 
+    def __delitem__( self, i ):
+        if isinstance(i,(int,slice)):
+            mylen = len( self.__toklist )
+            del self.__toklist[i]
+            
+            # convert int to slice
+            if isinstance(i, int):
+                if i < 0:
+                    i += mylen
+                i = slice(i, i+1)
+            # get removed indices
+            removed = range(*i.indices(mylen))
+            removed.reverse()
+            # fixup indices in token dictionary
+            for name in self.__tokdict.keys():
+                #~ occurrences = self.__tokdict[name] #[_ParseResultsWithOffset(value, position) for value, position in self.__tokdict[name] if position not in removed]
+                #~ for j in removed:
+                    #~ for k, (value, position) in enumerate(occurrences):
+                        #~ occurrences[k] = _ParseResultsWithOffset(value, position - (position > j))
+                    #~ self.__tokdict[name] = occurrences
+                occurrences = self.__tokdict[name] #[_ParseResultsWithOffset(value, position) for value, position in self.__tokdict[name] if position not in removed]
+                for j in removed:
+                    for k, (value, position) in enumerate(self.__tokdict[name]):
+                        self.__tokdict[name][k] = _ParseResultsWithOffset(value, position - (position > j))
+        else:
+            del self.__tokdict[i]
+
+    def __delitem__( self, i ):
+        if isinstance(i,(int,slice)):
+            mylen = len( self.__toklist )
+            del self.__toklist[i]
+            
+            # convert int to slice
+            if isinstance(i, int):
+                if i < 0:
+                    i += mylen
+                i = slice(i, i+1)
+            # get removed indices
+            removed = range(*i.indices(mylen))
+            removed.reverse()
+            # fixup indices in token dictionary
+            for name in self.__tokdict.keys():
+                occurrences = self.__tokdict[name]
+                for j in removed:
+                    for k, (value, position) in enumerate(occurrences):
+                        occurrences[k] = _ParseResultsWithOffset(value, position - (position > j))
+        else:
+            del self.__tokdict[i]
+
     def __contains__( self, k ):
         return self.__tokdict.has_key(k)
         
@@ -283,10 +332,18 @@ class ParseResults(object):
     def __bool__(self): return len( self.__toklist ) > 0
     def __nonzero__( self ): return self.__bool__()
     def __iter__( self ): return iter( self.__toklist )
+    def __reversed__( self ): return iter( reversed(self.__toklist) )
     def keys( self ): 
         """Returns all named result keys."""
         return self.__tokdict.keys()
-    
+        
+    def pop( self, index=-1 ):
+        """Removes and returns item at specified index (default=last).
+           Will work with either numeric indices or dict-key indicies."""
+        ret = self[index]
+        del self[index]
+        return ret
+        
     def items( self ): 
         """Returns all named result keys and values as a list of tuples."""
         return [(k,self[k]) for k in self.__tokdict.keys()]
@@ -634,7 +691,7 @@ class ParserElement(object):
                 self._parse = self._parse._originalParseMethod
         return self
 
-    def normalizeParseActionArgs( f ):
+    def _normalizeParseActionArgs( f ):
         """Internal method used to decorate parse actions that take fewer than 3 arguments,
            so that all parse actions can be called as f(s,l,t)."""
         STAR_ARGS = 4
@@ -697,7 +754,7 @@ class ParserElement(object):
                 # no need for special handling if attribute doesnt exist
                 pass
             return tmp
-    normalizeParseActionArgs = staticmethod(normalizeParseActionArgs)
+    _normalizeParseActionArgs = staticmethod(_normalizeParseActionArgs)
             
     def setParseAction( self, *fns, **kwargs ):
         """Define action to perform when successfully matching parse element definition.
@@ -716,13 +773,13 @@ class ParserElement(object):
            consistent view of the parsed string, the parse location, and line and column
            positions within the parsed string.
            """
-        self.parseAction = map(self.normalizeParseActionArgs, list(fns))
+        self.parseAction = map(self._normalizeParseActionArgs, list(fns))
         self.callDuringTry = ("callDuringTry" in kwargs and kwargs["callDuringTry"])
         return self
 
     def addParseAction( self, *fns, **kwargs ):
         """Add parse action to expression's list of parse actions. See L{I{setParseAction}<setParseAction>}."""
-        self.parseAction += map(self.normalizeParseActionArgs, list(fns))
+        self.parseAction += map(self._normalizeParseActionArgs, list(fns))
         self.callDuringTry = self.callDuringTry or ("callDuringTry" in kwargs and kwargs["callDuringTry"])
         return self
 
@@ -739,7 +796,7 @@ class ParserElement(object):
         self.failAction = fn
         return self
         
-    def skipIgnorables( self, instring, loc ):
+    def _skipIgnorables( self, instring, loc ):
         exprsFound = True
         while exprsFound:
             exprsFound = False
@@ -754,7 +811,7 @@ class ParserElement(object):
 
     def preParse( self, instring, loc ):
         if self.ignoreExprs:
-            loc = self.skipIgnorables( instring, loc )
+            loc = self._skipIgnorables( instring, loc )
         
         if self.skipWhitespace:
             wt = self.whiteChars
@@ -1789,7 +1846,7 @@ class GoToColumn(_PositionToken):
         if col(loc,instring) != self.col:
             instrlen = len(instring)
             if self.ignoreExprs:
-                loc = self.skipIgnorables( instring, loc )
+                loc = self._skipIgnorables( instring, loc )
             while loc < instrlen and instring[loc].isspace() and col( loc, instring ) != self.col :
                 loc += 1
         return loc
@@ -2370,7 +2427,7 @@ class ZeroOrMore(ParseElementEnhance):
             hasIgnoreExprs = ( len(self.ignoreExprs) > 0 )
             while 1:
                 if hasIgnoreExprs:
-                    preloc = self.skipIgnorables( instring, loc )
+                    preloc = self._skipIgnorables( instring, loc )
                 else:
                     preloc = loc
                 loc, tmptokens = self.expr._parse( instring, preloc, doActions )
@@ -2405,7 +2462,7 @@ class OneOrMore(ParseElementEnhance):
             hasIgnoreExprs = ( len(self.ignoreExprs) > 0 )
             while 1:
                 if hasIgnoreExprs:
-                    preloc = self.skipIgnorables( instring, loc )
+                    preloc = self._skipIgnorables( instring, loc )
                 else:
                     preloc = loc
                 loc, tmptokens = self.expr._parse( instring, preloc, doActions )
@@ -2491,7 +2548,7 @@ class SkipTo(ParseElementEnhance):
         expr = self.expr
         while loc <= instrlen:
             try:
-                loc = expr.skipIgnorables( instring, loc )
+                loc = expr._skipIgnorables( instring, loc )
                 expr._parse( instring, loc, doActions=False, callPreParse=False )
                 if self.includeMatch:
                     skipText = instring[startLoc:loc]
@@ -2688,7 +2745,7 @@ class Suppress(TokenConverter):
 class OnlyOnce(object):
     """Wrapper for parse actions, to ensure they are only called once."""
     def __init__(self, methodCall):
-        self.callable = ParserElement.normalizeParseActionArgs(methodCall)
+        self.callable = ParserElement._normalizeParseActionArgs(methodCall)
         self.called = False
     def __call__(self,s,l,t):
         if not self.called:
@@ -2701,7 +2758,7 @@ class OnlyOnce(object):
 
 def traceParseAction(f):
     """Decorator for debugging parse actions."""
-    f = ParserElement.normalizeParseActionArgs(f)
+    f = ParserElement._normalizeParseActionArgs(f)
     def z(*paArgs):
         thisFunc = f.func_name
         s,l,t = paArgs[-3:]
@@ -3143,9 +3200,9 @@ def nestedExpr(opener="(", closer=")", content=None, ignoreExpr=quotedString):
             raise ValueError("opening and closing arguments must be strings if no content expression is given")
     ret = Forward()
     if ignoreExpr is not None:
-        ret << ZeroOrMore( ignoreExpr | content | Group( Suppress(opener) + ret + Suppress(closer) ) )
+        ret << Group( Suppress(opener) + ZeroOrMore( ignoreExpr | content | ret ) + Suppress(closer) )
     else:
-        ret << ZeroOrMore( content | Group( Suppress(opener) + ret + Suppress(closer) ) )
+        ret << Group( Suppress(opener) + ZeroOrMore( content | ret )  + Suppress(closer) )
     return ret
 
 alphas8bit = srange(r"[\0xc0-\0xd6\0xd8-\0xf6\0xf8-\0xff]")

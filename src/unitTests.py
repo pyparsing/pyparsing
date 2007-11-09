@@ -1071,7 +1071,7 @@ class OperatorPrecedenceGrammarTest(ParseTestCase):
                     [[3, '!', '!']]""".split('\n')
         expected = map(lambda x:eval(x),expected)
         for t,e in zip(test,expected):
-            print t,"->",e
+            print t,"->",e, "got", expr.parseString(t).asList()
             assert expr.parseString(t).asList() == e,"mismatched results for operatorPrecedence: got %s, expected %s" % (expr.parseString(t).asList(),e)
     
 class ParseResultsPickleTest(ParseTestCase):
@@ -1260,8 +1260,8 @@ class UpcaseDowncaseUnicode(ParseTestCase):
         import sys
 
         a = u'\u00bfC\u00f3mo esta usted?'
-        ualphas = u"".join( unichr(i) for i in range(sys.maxunicode)
-                            if unichr(i).isalpha() )
+        ualphas = u"".join( [ unichr(i) for i in range(sys.maxunicode)
+                            if unichr(i).isalpha() ] )
         uword = pp.Word(ualphas).setParseAction(pp.upcaseTokens)
 
         print uword.searchString(a)
@@ -1284,7 +1284,7 @@ class UpcaseDowncaseUnicode(ParseTestCase):
         td_start, td_end = pp.makeHTMLTags("td")
         manuf_body =  td_start.suppress() + manufacturer + pp.SkipTo(td_end).setResultsName("cells", True) + td_end.suppress()
 
-        manuf_body.setDebug()
+        #~ manuf_body.setDebug()
 
         for tokens in manuf_body.scanString(html):
             print tokens
@@ -1629,6 +1629,14 @@ class PackratParsingCacheCopyTest(ParseTestCase):
         print "Parsed '%s' as %s" % (input, results.asList())
         assert results.asList() == ['int', 'f', '(', ')', '{}'], "Error in packrat parsing"
 
+class ParseResultsDelTest(ParseTestCase):
+    def runTest(self):
+        from pyparsing import OneOrMore, Word, alphas, nums
+        
+        grammar = OneOrMore(Word(nums))("ints") + OneOrMore(Word(alphas))("words")
+        res = grammar.parseString("123 456 ABC DEF")
+        print res
+        
 
 def makeTestSuite():
     suite = TestSuite()
@@ -1677,7 +1685,7 @@ def makeTestSuite():
         
         # add tests to test suite a second time, to run with packrat parsing
         # (leaving out those that we know wont work with packrat)
-        packratTests = [t.__class__() for t in suite
+        packratTests = [t.__class__() for t in suite._tests
                             if t.__class__ not in unpackrattables]
         suite.addTests( packratTests )
         

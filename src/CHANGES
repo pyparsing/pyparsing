@@ -2,6 +2,23 @@
 Change Log
 ==========
 
+Version 1.4.9 - ???
+-------------------
+- Fixed bug in nestedExpr, original version was overly greedy!
+  Thanks to Michael Ramirez for raising this issue.
+
+- Fixed internal bug in ParseResults - when an item was deleted,
+  the key indices were not updated.  Thanks to Tim Mitchell for 
+  posting a bugfix patch to the SF bug tracking system.
+
+- Added pop() method to ParseResults.  If pop is called with an
+  integer, it will use list semantics and update the ParseResults'
+  list of tokens.  If pop is called with a non-integer (a string,
+  for instance), then it will use dict semantics and update the
+  ParseResults' internal dict.  Suggested by Donn Ingle, thanks 
+  Donn!
+
+
 Version 1.4.8 - October, 2007
 -----------------------------
 - Added new helper method nestedExpr to easily create expressions
