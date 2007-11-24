@@ -1053,6 +1053,43 @@ class ParserElement(object):
                     SyntaxWarning, stacklevel=2)
         return other + self
 
+    def __mul__(self,other):
+        if isinstance(other,int):
+            minElements, optElements = other,0
+        else if isinstance(other,tuple):
+            if len(other)==2:
+                if isinstance(other[0],int) and
+                    isinstance(other[1],int)):
+                    minElements, optElements = other
+                    optElements -= minElements
+                else:
+                    raise TypeError("cannot multiply 'ParserElement' and ('%s','%s') objects", type(other[0]),type(other[1]))
+            else:
+                raise TypeError("can only multiply 'ParserElement' and int or (int,int) objects")
+        else:
+            raise TypeError("cannot multiply 'ParserElement' and '%s' objects", type(other))
+        
+        if minElements < 0:
+            raise ValueError("cannot multiply ParserElement by negative value")
+        if optElements < 0:
+            raise ValueError("second tuple value must be greater or equal to first tuple value")
+        if minElements == optElements == 0:
+            raise ValueError("cannot multiply ParserElement by 0 or (0,0)")
+        
+        if (optElements):
+            def makeOptionalList(n):
+                if n>1:
+                    return Optional(self + makeOptionalList(n-1))
+                else:
+                    return Optional(self)
+            if minElements:
+                ret = And([self]*minElements)+ makeOptionalList(optElements)
+            else:
+                ret = makeOptionalList(optElements)
+        else:
+            ret = And([self]*minElements)
+        return ret
+    
     def __or__(self, other ):
         """Implementation of | operator - returns MatchFirst"""
         if isinstance( other, basestring ):

@@ -4,6 +4,15 @@ Change Log
 
 Version 1.4.9 - ???
 -------------------
+- Added '*' multiplication operator support when creating 
+  grammars, accepting either an integer, or a two-integer
+  tuple multiplier, as in:
+    ipAddress = Word(nums) + ('.'+Word(nums))*3
+    phoneNumber = Word(nums) + ('-'+Word(nums))*(1,2)
+  If multiplying by a tuple, the two integer values represent
+  min and max multiples.  Suggested by Vincent of eToy.com,
+  great idea, Vincent!
+
 - Fixed bug in nestedExpr, original version was overly greedy!
   Thanks to Michael Ramirez for raising this issue.
 
