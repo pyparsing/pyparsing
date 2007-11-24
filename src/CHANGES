@@ -18,6 +18,9 @@ Version 1.4.9 - ???
   ParseResults' internal dict.  Suggested by Donn Ingle, thanks 
   Donn!
 
+- Fixed quoted string built-ins to accept '\xHH' hex characters 
+  within the string.
+
 
 Version 1.4.8 - October, 2007
 -----------------------------
