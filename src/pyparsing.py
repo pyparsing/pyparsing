@@ -59,7 +59,7 @@ The pyparsing module handles some of the problems that are typically vexing when
 """
 
 __version__ = "1.4.9"
-__versionTime__ = "23 November 2007 20:07"
+__versionTime__ = "28 November 2007 12:42"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -1056,10 +1056,9 @@ class ParserElement(object):
     def __mul__(self,other):
         if isinstance(other,int):
             minElements, optElements = other,0
-        else if isinstance(other,tuple):
+        elif isinstance(other,tuple):
             if len(other)==2:
-                if isinstance(other[0],int) and
-                    isinstance(other[1],int)):
+                if isinstance(other[0],int) and isinstance(other[1],int):
                     minElements, optElements = other
                     optElements -= minElements
                 else:
