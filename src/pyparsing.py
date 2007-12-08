@@ -59,7 +59,7 @@ The pyparsing module handles some of the problems that are typically vexing when
 """
 
 __version__ = "1.4.9"
-__versionTime__ = "28 November 2007 12:42"
+__versionTime__ = "8 December 2007 12:08"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -3175,7 +3175,6 @@ def operatorPrecedence( baseExpr, opList ):
                 if not isinstance(opExpr, Optional):
                     opExpr = Optional(opExpr)
                 matchExpr = FollowedBy(opExpr.expr + thisExpr) + Group( opExpr + thisExpr ) 
-                matchExpr |= lastExpr
             elif arity == 2:
                 matchExpr = Group( lastExpr + ZeroOrMore( opExpr + thisExpr ) )
             else:
@@ -3184,7 +3183,7 @@ def operatorPrecedence( baseExpr, opList ):
             raise ValueError, "operator must indicate right or left associativity"
         if pa:
             matchExpr.setParseAction( pa )
-        thisExpr << ( matchExpr )
+        thisExpr << ( matchExpr | lastExpr )
         lastExpr = thisExpr
     ret << lastExpr
     ret.setParseAction(_flattenOpPrecTokens)
