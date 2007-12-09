@@ -8,7 +8,7 @@ Version 1.4.9 - ???
   grammars, accepting either an integer, or a two-integer
   tuple multiplier, as in:
     ipAddress = Word(nums) + ('.'+Word(nums))*3
-    phoneNumber = Word(nums) + ('-'+Word(nums))*(1,2)
+    usPhoneNumber = Word(nums) + ('-'+Word(nums))*(1,2)
   If multiplying by a tuple, the two integer values represent
   min and max multiples.  Suggested by Vincent of eToy.com,
   great idea, Vincent!
@@ -18,14 +18,18 @@ Version 1.4.9 - ???
 
 - Fixed internal bug in ParseResults - when an item was deleted,
   the key indices were not updated.  Thanks to Tim Mitchell for 
-  posting a bugfix patch to the SF bug tracking system.
+  posting a bugfix patch to the SF bug tracking system!
+
+- Fixed internal bug in operatorPrecedence - when the results of
+  a right-associative term were sent to a parse action, the wrong
+  tokens were sent.  Reported by Torsten Marek, nice job!
 
 - Added pop() method to ParseResults.  If pop is called with an
-  integer, it will use list semantics and update the ParseResults'
-  list of tokens.  If pop is called with a non-integer (a string,
-  for instance), then it will use dict semantics and update the
-  ParseResults' internal dict.  Suggested by Donn Ingle, thanks 
-  Donn!
+  integer or with no arguments, it will use list semantics and 
+  update the ParseResults' list of tokens.  If pop is called with 
+  a non-integer (a string, for instance), then it will use dict 
+  semantics and update the ParseResults' internal dict.  
+  Suggested by Donn Ingle, thanks Donn!
 
 - Fixed quoted string built-ins to accept '\xHH' hex characters 
   within the string.
