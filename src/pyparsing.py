@@ -58,8 +58,8 @@ The pyparsing module handles some of the problems that are typically vexing when
  - embedded comments
 """
 
-__version__ = "1.4.9"
-__versionTime__ = "8 December 2007 12:08"
+__version__ = "1.4.10"
+__versionTime__ = "9 December 2007 19:47"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -3125,16 +3125,6 @@ opAssoc = _Constants()
 opAssoc.LEFT = object()
 opAssoc.RIGHT = object()
 
-def _flattenOpPrecTokens(tokens):
-    if isinstance(tokens,ParseResults):
-        if len(tokens)==1:
-            if isinstance(tokens[0],ParseResults):
-                return _flattenOpPrecTokens(tokens[0])
-            else:
-                return tokens[0]
-        return map(_flattenOpPrecTokens,tokens)
-    return tokens
-    
 def operatorPrecedence( baseExpr, opList ):
     """Helper method for constructing grammars of expressions made up of 
        operators working in a precedence hierarchy.  Operators may be unary or
@@ -3164,9 +3154,9 @@ def operatorPrecedence( baseExpr, opList ):
         thisExpr = Forward()#.setName("expr%d" % i)
         if rightLeftAssoc == opAssoc.LEFT:
             if arity == 1:
-                matchExpr = Group( lastExpr + ZeroOrMore( opExpr ) )
+                matchExpr = Group( FollowedBy(lastExpr + opExpr) + lastExpr + OneOrMore( opExpr ) )
             elif arity == 2:
-                matchExpr = Group( lastExpr + ZeroOrMore( opExpr + lastExpr ) )
+                matchExpr = Group( FollowedBy(lastExpr + opExpr + lastExpr) + lastExpr + OneOrMore( opExpr + lastExpr ) )
             else:
                 raise ValueError, "operator must be unary (1) or binary (2)"
         elif rightLeftAssoc == opAssoc.RIGHT:
@@ -3176,7 +3166,7 @@ def operatorPrecedence( baseExpr, opList ):
                     opExpr = Optional(opExpr)
                 matchExpr = FollowedBy(opExpr.expr + thisExpr) + Group( opExpr + thisExpr ) 
             elif arity == 2:
-                matchExpr = Group( lastExpr + ZeroOrMore( opExpr + thisExpr ) )
+                matchExpr = Group( FollowedBy(lastExpr + opExpr + thisExpr) + lastExpr + OneOrMore( opExpr + thisExpr ) )
             else:
                 raise ValueError, "operator must be unary (1) or binary (2)"
         else:
@@ -3186,8 +3176,7 @@ def operatorPrecedence( baseExpr, opList ):
         thisExpr << ( matchExpr | lastExpr )
         lastExpr = thisExpr
     ret << lastExpr
-    ret.setParseAction(_flattenOpPrecTokens)
-    return Group(ret)
+    return ret
 
 dblQuotedString = Regex(r'"(?:[^"\n\r\\]|(?:"")|(?:\\x[0-9a-fA-F]+)|(?:\\.))*"').setName("string enclosed in double quotes")
 sglQuotedString = Regex(r"'(?:[^'\n\r\\]|(?:'')|(?:\\x[0-9a-fA-F]+)|(?:\\.))*'").setName("string enclosed in single quotes")
