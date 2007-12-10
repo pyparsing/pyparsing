@@ -7,6 +7,8 @@ import sys
 import pprint
 import pdb
 
+TEST_USING_PACKRAT = True
+
 # simple utility for flattening nested lists
 def flatten(L):
     if type(L) is not list: return [L]
@@ -1025,7 +1027,7 @@ class RecursiveCombineTest(ParseTestCase):
         
         assert "".join(testVal) == "".join(expected), "Failed to process Combine with recursive content"
 
-class OperatorPrecedenceGrammarTest(ParseTestCase):
+class OperatorPrecedenceGrammarTest1(ParseTestCase):
     def runTest(self):
         from pyparsing import Word,nums,alphas,Literal,oneOf,operatorPrecedence,opAssoc
         
@@ -1073,7 +1075,159 @@ class OperatorPrecedenceGrammarTest(ParseTestCase):
         for t,e in zip(test,expected):
             print t,"->",e, "got", expr.parseString(t).asList()
             assert expr.parseString(t).asList() == e,"mismatched results for operatorPrecedence: got %s, expected %s" % (expr.parseString(t).asList(),e)
-    
+
+class OperatorPrecedenceGrammarTest2(ParseTestCase):
+    def runTest(self):
+
+        from pyparsing import operatorPrecedence, Word, alphas, oneOf, opAssoc
+        
+        boolVars = { "True":True, "False":False }
+        class BoolOperand(object):
+            def __init__(self,t):
+                self.args = t[0][0::2]
+            def __str__(self):
+                sep = " %s " % self.reprsymbol
+                return "(" + sep.join(map(str,self.args)) + ")"
+            
+        class BoolAnd(BoolOperand):
+            reprsymbol = '&'
+            def __nonzero__(self):
+                for a in self.args:
+                    if isinstance(a,basestring):
+                        v = boolVars[a]
+                    else:
+                        v = bool(a)
+                    if not v:
+                        return False
+                return True
+
+        class BoolOr(BoolOperand):
+            reprsymbol = '|'    
+            def __nonzero__(self):
+                for a in self.args:
+                    if isinstance(a,basestring):
+                        v = boolVars[a]
+                    else:
+                        v = bool(a)
+                    if v:
+                        return True
+                return False
+
+        class BoolNot(BoolOperand):
+            def __init__(self,t):
+                self.arg = t[0][1]
+            def __str__(self):
+                return "~" + str(self.arg)
+            def __nonzero__(self):
+                if isinstance(self.arg,basestring):
+                    v = boolVars[self.arg]
+                else:
+                    v = bool(self.arg)
+                return not v
+
+        boolOperand = Word(alphas,max=1) | oneOf("True False")
+        boolExpr = operatorPrecedence( boolOperand,
+            [
+            ("not", 1, opAssoc.RIGHT, BoolNot),
+            ("and", 2, opAssoc.LEFT,  BoolAnd),
+            ("or",  2, opAssoc.LEFT,  BoolOr),
+            ])
+        test = ["p and not q",
+                "not not p",
+                "not(p and q)",
+                "q or not p and r",
+                "q or not p or not r",
+                "q or not (p and r)",
+                "p or q or r",
+                "p or q or r and False",
+                "(p or q or r) and False",
+                ]
+
+        boolVars["p"] = True
+        boolVars["q"] = False
+        boolVars["r"] = True
+        print "p =", boolVars["p"]
+        print "q =", boolVars["q"]
+        print "r =", boolVars["r"]
+        print
+        for t in test:
+            res = boolExpr.parseString(t)[0]
+            print t,'\n', res, '=', bool(res),'\n'
+
+        
+class OperatorPrecedenceGrammarTest3(ParseTestCase):
+    def runTest(self):
+
+        from pyparsing import operatorPrecedence, Word, alphas, oneOf, opAssoc, nums, Literal
+        
+        global count
+        count = 0
+        
+        def evaluate_int(t):
+            global count
+            value = int(t[0])
+            print "evaluate_int", value
+            count += 1
+            return value
+
+        integer = Word(nums).setParseAction(evaluate_int)
+        variable = Word(alphas,exact=1)
+        operand = integer | variable
+
+        expop = Literal('^')
+        signop = oneOf('+ -')
+        multop = oneOf('* /')
+        plusop = oneOf('+ -')
+        factop = Literal('!')
+
+        expr = operatorPrecedence( operand,
+            [
+            ("!", 1, opAssoc.LEFT),
+            ("^", 2, opAssoc.RIGHT),
+            (signop, 1, opAssoc.RIGHT),
+            (multop, 2, opAssoc.LEFT),
+            (plusop, 2, opAssoc.LEFT),
+            ])
+
+        test = ["9"]
+        for t in test:
+            count = 0
+            print "%s => %s" % (t, expr.parseString(t))
+            assert count == 1, "count evaluated too many times!"
+
+class OperatorPrecedenceGrammarTest4(ParseTestCase):
+    def runTest(self):
+
+        import pyparsing
+
+        word = pyparsing.Word(pyparsing.alphas)
+
+        def supLiteral(s):
+            """Returns the suppressed literal s"""
+            return pyparsing.Literal(s).suppress()
+
+        def booleanExpr(atom):
+            ops = [
+                (supLiteral(u"!"), 1, pyparsing.opAssoc.RIGHT, lambda s, l, t: ["!", t[0][0]]),
+                (pyparsing.oneOf(u"= !="), 2, pyparsing.opAssoc.LEFT, ),
+                (supLiteral(u"&"), 2, pyparsing.opAssoc.LEFT,  lambda s, l, t: ["&", t[0]]),
+                (supLiteral(u"|"), 2, pyparsing.opAssoc.LEFT,  lambda s, l, t: ["|", t[0]])]
+            return pyparsing.operatorPrecedence(atom, ops)
+
+        f = booleanExpr(word) + pyparsing.StringEnd()
+
+        tests = [
+            ("bar = foo", "[['bar', '=', 'foo']]"),
+            ("bar = foo & baz = fee", "['&', [['bar', '=', 'foo'], ['baz', '=', 'fee']]]"),
+            ]
+        for test,expected in tests:
+            print test
+            results = f.parseString(test)
+            print results
+            assert str(results) == expected, "failed to match expected results, got '%s'" % str(results)
+            print
+        
+
 class ParseResultsPickleTest(ParseTestCase):
     def runTest(self):
         from pyparsing import makeHTMLTags
@@ -1668,7 +1822,10 @@ def makeTestSuite():
     suite.addTest( VariableParseActionArgsTest() )
     suite.addTest( RepeaterTest() )
     suite.addTest( RecursiveCombineTest() )
-    suite.addTest( OperatorPrecedenceGrammarTest() )
+    suite.addTest( OperatorPrecedenceGrammarTest1() )
+    suite.addTest( OperatorPrecedenceGrammarTest2() )
+    suite.addTest( OperatorPrecedenceGrammarTest3() )
+    suite.addTest( OperatorPrecedenceGrammarTest4() )
     suite.addTest( ParseResultsPickleTest() )
     suite.addTest( ParseResultsWithNamedTupleTest() )
     suite.addTest( SingleArgExceptionTest() )
@@ -1677,7 +1834,7 @@ def makeTestSuite():
     suite.addTest( PackratParsingCacheCopyTest() )
     suite.addTest( MiscellaneousParserTests() )
 
-    if 1:
+    if TEST_USING_PACKRAT:
         # retest using packrat parsing (disable those tests that aren't compatible)
         suite.addTest( EnablePackratParsing() )
         
