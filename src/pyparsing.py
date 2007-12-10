@@ -1089,6 +1089,9 @@ class ParserElement(object):
             ret = And([self]*minElements)
         return ret
     
+    def __rmul__(self, other):
+        return self.__mul__(other)
+
     def __or__(self, other ):
         """Implementation of | operator - returns MatchFirst"""
         if isinstance( other, basestring ):
