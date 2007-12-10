@@ -5,8 +5,8 @@ Using the pyparsing module
 :author: Paul McGuire
 :address: ptmcg@users.sourceforge.net
 
-:revision: 1.4.8
-:date: October, 2007
+:revision: 1.4.10
+:date: December, 2007
 
 :copyright: Copyright |copy| 2003-2007 Paul McGuire. 
 
@@ -403,7 +403,15 @@ Expression subclasses
 
 - ``And`` - construct with a list of ParserElements, all of which must
   match for And to match; can also be created using the '+'
-  operator
+  operator; multiple expressions can be Anded together using the '*'
+  operator as in::
+  
+    ipAddress = Word(nums) + ('.'+Word(nums))*3
+    
+  A tuple can be used as the multiplier, indicating a min/max::
+  
+    usPhoneNumber = Word(nums) + ('-'+Word(nums))*(1,2)
+
 
 - ``Or`` - construct with a list of ParserElements, any of which must
   match for Or to match; if more than one expression matches, the
@@ -485,6 +493,9 @@ Special subclasses
   program, insert it into the ``Forward`` object using the ``<<``
   operator (see ``fourFn.py`` for an example).
 
+
+Other classes
+-------------
 .. _ParseResults:
 
 - ``ParseResults`` - class used to contain and manage the lists of tokens
@@ -497,7 +508,11 @@ Special subclasses
     
     - individual elements can be found using [0], [1], [-1], etc.
     
-    - elements can be deleted using del
+    - elements can be deleted using ``del``
+    
+    - the -1th element can be extracted and removed in a single operation
+      using ``pop()``, or any element can be extracted and removed 
+      using ``pop(n)``
     
   - as a dictionary
   
@@ -515,6 +530,10 @@ Special subclasses
       dictionary keys
       
     - supports ``items()`` and ``keys()`` methods, similar to a dictionary
+    
+    - a keyed item can be extracted and removed using ``pop(key)``.  Here
+      key must be non-numeric (such as a string), in order to use dict 
+      extraction instead of list extraction.
       
   - as a nested list
   
@@ -623,18 +642,6 @@ Helper methods
   are returned as keyed tokens in the returned ParseResults.  ``makeHTMLTags`` is less
   restrictive than ``makeXMLTags``, especially with respect to case sensitivity.
 
-- ``withAttribute( *args, **kwargs )`` - helper to create a validating parse action to be used with start tags created 
-  with ``makeXMLTags`` or ``makeHTMLTags``. Use ``withAttribute`` to qualify a starting tag 
-  with a required attribute value, to avoid false matches on common tags such as 
-  ``<TD>`` or ``<DIV>``.
-  
-  ``withAttribute`` can be called with:
-  
-  - keyword arguments, as in (class="Customer",align="right"), or
-  
-  - a list of name-value tuples, as in ( ("ns1:class", "Customer"), ("ns2:align","right") )
-
-
 - ``operatorPrecedence(baseOperand, operatorList)`` - convenience function to define a 
   grammar for parsing
   expressions with a hierarchical precedence of operators. To use the operatorPrecedence 
@@ -729,6 +736,18 @@ Helper parse actions
   text within the tokens for a matched parse
   expression.  This is especially useful when defining expressions
   for scanString or transformString applications.
+
+- ``withAttribute( *args, **kwargs )`` - helper to create a validating parse action to be used with start tags created 
+  with ``makeXMLTags`` or ``makeHTMLTags``. Use ``withAttribute`` to qualify a starting tag 
+  with a required attribute value, to avoid false matches on common tags such as 
+  ``<TD>`` or ``<DIV>``.
+  
+  ``withAttribute`` can be called with:
+  
+  - keyword arguments, as in (class="Customer",align="right"), or
+  
+  - a list of name-value tuples, as in ( ("ns1:class", "Customer"), ("ns2:align","right") )
+
 
 - ``downcase`` - converts all matched tokens to lowercase
 

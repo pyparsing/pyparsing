@@ -6,7 +6,7 @@
 <meta name="generator" content="Docutils 0.4: http://docutils.sourceforge.net/" />
 <title>Using the pyparsing module</title>
 <meta name="author" content="Paul McGuire" />
-<meta name="date" content="October, 2007" />
+<meta name="date" content="December, 2007" />
 <meta name="copyright" content="Copyright © 2003-2007 Paul McGuire." />
 <style type="text/css">
 
@@ -307,9 +307,9 @@ ul.auto-toc {
 </pre>
 </td></tr>
 <tr><th class="docinfo-name">Revision:</th>
-<td>1.4.8</td></tr>
+<td>1.4.10</td></tr>
 <tr><th class="docinfo-name">Date:</th>
-<td>October, 2007</td></tr>
+<td>December, 2007</td></tr>
 <tr><th class="docinfo-name">Copyright:</th>
 <td>Copyright © 2003-2007 Paul McGuire.</td></tr>
 </tbody>
@@ -342,13 +342,14 @@ extracting data from formatted reports.</td>
 <li><a class="reference" href="#positional-subclasses" id="id8" name="id8">2.4&nbsp;&nbsp;&nbsp;Positional subclasses</a></li>
 <li><a class="reference" href="#converter-subclasses" id="id9" name="id9">2.5&nbsp;&nbsp;&nbsp;Converter subclasses</a></li>
 <li><a class="reference" href="#special-subclasses" id="id10" name="id10">2.6&nbsp;&nbsp;&nbsp;Special subclasses</a></li>
-<li><a class="reference" href="#exception-classes-and-troubleshooting" id="id11" name="id11">2.7&nbsp;&nbsp;&nbsp;Exception classes and Troubleshooting</a></li>
+<li><a class="reference" href="#other-classes" id="id11" name="id11">2.7&nbsp;&nbsp;&nbsp;Other classes</a></li>
+<li><a class="reference" href="#exception-classes-and-troubleshooting" id="id12" name="id12">2.8&nbsp;&nbsp;&nbsp;Exception classes and Troubleshooting</a></li>
 </ul>
 </li>
-<li><a class="reference" href="#miscellaneous-attributes-and-methods" id="id12" name="id12">3&nbsp;&nbsp;&nbsp;Miscellaneous attributes and methods</a><ul class="auto-toc">
-<li><a class="reference" href="#helper-methods" id="id13" name="id13">3.1&nbsp;&nbsp;&nbsp;Helper methods</a></li>
-<li><a class="reference" href="#helper-parse-actions" id="id14" name="id14">3.2&nbsp;&nbsp;&nbsp;Helper parse actions</a></li>
-<li><a class="reference" href="#common-string-and-token-constants" id="id15" name="id15">3.3&nbsp;&nbsp;&nbsp;Common string and token constants</a></li>
+<li><a class="reference" href="#miscellaneous-attributes-and-methods" id="id13" name="id13">3&nbsp;&nbsp;&nbsp;Miscellaneous attributes and methods</a><ul class="auto-toc">
+<li><a class="reference" href="#helper-methods" id="id14" name="id14">3.1&nbsp;&nbsp;&nbsp;Helper methods</a></li>
+<li><a class="reference" href="#helper-parse-actions" id="id15" name="id15">3.2&nbsp;&nbsp;&nbsp;Helper parse actions</a></li>
+<li><a class="reference" href="#common-string-and-token-constants" id="id16" name="id16">3.3&nbsp;&nbsp;&nbsp;Common string and token constants</a></li>
 </ul>
 </li>
 </ul>
@@ -704,34 +705,51 @@ and for specialized grammars</li>
 </div>
 <div class="section">
 <h2><a class="toc-backref" href="#id7" id="expression-subclasses" name="expression-subclasses">2.3&nbsp;&nbsp;&nbsp;Expression subclasses</a></h2>
-<ul class="simple">
-<li><tt class="docutils literal"><span class="pre">And</span></tt> - construct with a list of ParserElements, all of which must
+<ul>
+<li><p class="first"><tt class="docutils literal"><span class="pre">And</span></tt> - construct with a list of ParserElements, all of which must
 match for And to match; can also be created using the '+'
-operator</li>
-<li><tt class="docutils literal"><span class="pre">Or</span></tt> - construct with a list of ParserElements, any of which must
+operator; multiple expressions can be Anded together using the '*'
+operator as in:</p>
+<pre class="literal-block">
+ipAddress = Word(nums) + ('.'+Word(nums))*3
+</pre>
+<p>A tuple can be used as the multiplier, indicating a min/max:</p>
+<pre class="literal-block">
+usPhoneNumber = Word(nums) + ('-'+Word(nums))*(1,2)
+</pre>
+</li>
+<li><p class="first"><tt class="docutils literal"><span class="pre">Or</span></tt> - construct with a list of ParserElements, any of which must
 match for Or to match; if more than one expression matches, the
 expression that makes the longest match will be used; can also
-be created using the '^' operator</li>
-<li><tt class="docutils literal"><span class="pre">MatchFirst</span></tt> - construct with a list of ParserElements, any of
+be created using the '^' operator</p>
+</li>
+<li><p class="first"><tt class="docutils literal"><span class="pre">MatchFirst</span></tt> - construct with a list of ParserElements, any of
 which must match for MatchFirst to match; matching is done
 left-to-right, taking the first expression that matches; can
-also be created using the '|' operator</li>
-<li><tt class="docutils literal"><span class="pre">Each</span></tt> - similar to And, in that all of the provided expressions
+also be created using the '|' operator</p>
+</li>
+<li><p class="first"><tt class="docutils literal"><span class="pre">Each</span></tt> - similar to And, in that all of the provided expressions
 must match; however, Each permits matching to be done in any order;
-can also be created using the '&amp;' operator</li>
-<li><tt class="docutils literal"><span class="pre">Optional</span></tt> - construct with a ParserElement, but this element is
+can also be created using the '&amp;' operator</p>
+</li>
+<li><p class="first"><tt class="docutils literal"><span class="pre">Optional</span></tt> - construct with a ParserElement, but this element is
 not required to match; can be constructed with an optional <tt class="docutils literal"><span class="pre">default</span></tt> argument,
 containing a default string or object to be supplied if the given optional
 parse element is not found in the input string; parse action will only
-be called if a match is found, or if a default is specified</li>
-<li><tt class="docutils literal"><span class="pre">ZeroOrMore</span></tt> - similar to Optional, but can be repeated</li>
-<li><tt class="docutils literal"><span class="pre">OneOrMore</span></tt> - similar to ZeroOrMore, but at least one match must
-be present</li>
-<li><tt class="docutils literal"><span class="pre">FollowedBy</span></tt> - a lookahead expression, requires matching of the given
-expressions, but does not advance the parsing position within the input string</li>
-<li><tt class="docutils literal"><span class="pre">NotAny</span></tt> - a negative lookahead expression, prevents matching of named
+be called if a match is found, or if a default is specified</p>
+</li>
+<li><p class="first"><tt class="docutils literal"><span class="pre">ZeroOrMore</span></tt> - similar to Optional, but can be repeated</p>
+</li>
+<li><p class="first"><tt class="docutils literal"><span class="pre">OneOrMore</span></tt> - similar to ZeroOrMore, but at least one match must
+be present</p>
+</li>
+<li><p class="first"><tt class="docutils literal"><span class="pre">FollowedBy</span></tt> - a lookahead expression, requires matching of the given
+expressions, but does not advance the parsing position within the input string</p>
+</li>
+<li><p class="first"><tt class="docutils literal"><span class="pre">NotAny</span></tt> - a negative lookahead expression, prevents matching of named
 expressions, does not advance the parsing position within the input string;
-can also be created using the unary '~' operator</li>
+can also be created using the unary '~' operator</p>
+</li>
 </ul>
 </div>
 <div class="section">
@@ -773,6 +791,9 @@ patterns; when defining the actual expression later in the
 program, insert it into the <tt class="docutils literal"><span class="pre">Forward</span></tt> object using the <tt class="docutils literal"><span class="pre">&lt;&lt;</span></tt>
 operator (see <tt class="docutils literal"><span class="pre">fourFn.py</span></tt> for an example).</li>
 </ul>
+</div>
+<div class="section">
+<h2><a class="toc-backref" href="#id11" id="other-classes" name="other-classes">2.7&nbsp;&nbsp;&nbsp;Other classes</a></h2>
 <ul id="parseresults">
 <li><p class="first"><tt class="docutils literal"><span class="pre">ParseResults</span></tt> - class used to contain and manage the lists of tokens
 created from parsing the input using the user-defined parse
@@ -781,7 +802,10 @@ expression.  ParseResults can be accessed in a number of ways:</p>
 <li>as a list<ul>
 <li>total list of elements can be found using len()</li>
 <li>individual elements can be found using [0], [1], [-1], etc.</li>
-<li>elements can be deleted using del</li>
+<li>elements can be deleted using <tt class="docutils literal"><span class="pre">del</span></tt></li>
+<li>the -1th element can be extracted and removed in a single operation
+using <tt class="docutils literal"><span class="pre">pop()</span></tt>, or any element can be extracted and removed
+using <tt class="docutils literal"><span class="pre">pop(n)</span></tt></li>
 </ul>
 </li>
 <li>as a dictionary<ul>
@@ -796,6 +820,9 @@ value for that line of data</li>
 <li>list elements that are deleted using <tt class="docutils literal"><span class="pre">del</span></tt> will still be accessible by their
 dictionary keys</li>
 <li>supports <tt class="docutils literal"><span class="pre">items()</span></tt> and <tt class="docutils literal"><span class="pre">keys()</span></tt> methods, similar to a dictionary</li>
+<li>a keyed item can be extracted and removed using <tt class="docutils literal"><span class="pre">pop(key)</span></tt>.  Here
+key must be non-numeric (such as a string), in order to use dict
+extraction instead of list extraction.</li>
 </ul>
 </li>
 <li>as a nested list<ul>
@@ -825,7 +852,7 @@ embedded items will be included, whether they have names or not.</li>
 </ul>
 </div>
 <div class="section">
-<h2><a class="toc-backref" href="#id11" id="exception-classes-and-troubleshooting" name="exception-classes-and-troubleshooting">2.7&nbsp;&nbsp;&nbsp;Exception classes and Troubleshooting</a></h2>
+<h2><a class="toc-backref" href="#id12" id="exception-classes-and-troubleshooting" name="exception-classes-and-troubleshooting">2.8&nbsp;&nbsp;&nbsp;Exception classes and Troubleshooting</a></h2>
 <ul id="parseexception">
 <li><p class="first"><tt class="docutils literal"><span class="pre">ParseException</span></tt> - exception returned when a grammar parse fails;
 ParseExceptions have attributes loc, msg, line, lineno, and column; to view the
@@ -856,9 +883,9 @@ scanString().</p>
 </div>
 </div>
 <div class="section">
-<h1><a class="toc-backref" href="#id12" id="miscellaneous-attributes-and-methods" name="miscellaneous-attributes-and-methods">3&nbsp;&nbsp;&nbsp;Miscellaneous attributes and methods</a></h1>
+<h1><a class="toc-backref" href="#id13" id="miscellaneous-attributes-and-methods" name="miscellaneous-attributes-and-methods">3&nbsp;&nbsp;&nbsp;Miscellaneous attributes and methods</a></h1>
 <div class="section">
-<h2><a class="toc-backref" href="#id13" id="helper-methods" name="helper-methods">3.1&nbsp;&nbsp;&nbsp;Helper methods</a></h2>
+<h2><a class="toc-backref" href="#id14" id="helper-methods" name="helper-methods">3.1&nbsp;&nbsp;&nbsp;Helper methods</a></h2>
 <ul>
 <li><p class="first"><tt class="docutils literal"><span class="pre">delimitedList(</span> <span class="pre">expr,</span> <span class="pre">delim=',')</span></tt> - convenience function for
 matching one or more occurrences of expr, separated by delim.
@@ -901,16 +928,6 @@ a pair of expressions, for the corresponding &lt;tag&gt; and &lt;/tag&gt; string
 support for attributes in the opening tag, such as &lt;tag attr1=&quot;abc&quot;&gt; - attributes
 are returned as keyed tokens in the returned ParseResults.  <tt class="docutils literal"><span class="pre">makeHTMLTags</span></tt> is less
 restrictive than <tt class="docutils literal"><span class="pre">makeXMLTags</span></tt>, especially with respect to case sensitivity.</p>
-</li>
-<li><p class="first"><tt class="docutils literal"><span class="pre">withAttribute(</span> <span class="pre">*args,</span> <span class="pre">**kwargs</span> <span class="pre">)</span></tt> - helper to create a validating parse action to be used with start tags created
-with <tt class="docutils literal"><span class="pre">makeXMLTags</span></tt> or <tt class="docutils literal"><span class="pre">makeHTMLTags</span></tt>. Use <tt class="docutils literal"><span class="pre">withAttribute</span></tt> to qualify a starting tag
-with a required attribute value, to avoid false matches on common tags such as
-<tt class="docutils literal"><span class="pre">&lt;TD&gt;</span></tt> or <tt class="docutils literal"><span class="pre">&lt;DIV&gt;</span></tt>.</p>
-<p><tt class="docutils literal"><span class="pre">withAttribute</span></tt> can be called with:</p>
-<ul class="simple">
-<li>keyword arguments, as in (class=&quot;Customer&quot;,align=&quot;right&quot;), or</li>
-<li>a list of name-value tuples, as in ( (&quot;ns1:class&quot;, &quot;Customer&quot;), (&quot;ns2:align&quot;,&quot;right&quot;) )</li>
-</ul>
 </li>
 <li><p class="first"><tt class="docutils literal"><span class="pre">operatorPrecedence(baseOperand,</span> <span class="pre">operatorList)</span></tt> - convenience function to define a
 grammar for parsing
@@ -987,7 +1004,7 @@ each call, called arguments, and return value or exception</p>
 </ul>
 </div>
 <div class="section">
-<h2><a class="toc-backref" href="#id14" id="helper-parse-actions" name="helper-parse-actions">3.2&nbsp;&nbsp;&nbsp;Helper parse actions</a></h2>
+<h2><a class="toc-backref" href="#id15" id="helper-parse-actions" name="helper-parse-actions">3.2&nbsp;&nbsp;&nbsp;Helper parse actions</a></h2>
 <ul>
 <li><p class="first"><tt class="docutils literal"><span class="pre">removeQuotes</span></tt> - removes the first and last characters of a quoted string;
 useful to remove the delimiting quotes from quoted strings</p>
@@ -1003,6 +1020,16 @@ text within the tokens for a matched parse
 expression.  This is especially useful when defining expressions
 for scanString or transformString applications.</p>
 </li>
+<li><p class="first"><tt class="docutils literal"><span class="pre">withAttribute(</span> <span class="pre">*args,</span> <span class="pre">**kwargs</span> <span class="pre">)</span></tt> - helper to create a validating parse action to be used with start tags created
+with <tt class="docutils literal"><span class="pre">makeXMLTags</span></tt> or <tt class="docutils literal"><span class="pre">makeHTMLTags</span></tt>. Use <tt class="docutils literal"><span class="pre">withAttribute</span></tt> to qualify a starting tag
+with a required attribute value, to avoid false matches on common tags such as
+<tt class="docutils literal"><span class="pre">&lt;TD&gt;</span></tt> or <tt class="docutils literal"><span class="pre">&lt;DIV&gt;</span></tt>.</p>
+<p><tt class="docutils literal"><span class="pre">withAttribute</span></tt> can be called with:</p>
+<ul class="simple">
+<li>keyword arguments, as in (class=&quot;Customer&quot;,align=&quot;right&quot;), or</li>
+<li>a list of name-value tuples, as in ( (&quot;ns1:class&quot;, &quot;Customer&quot;), (&quot;ns2:align&quot;,&quot;right&quot;) )</li>
+</ul>
+</li>
 <li><p class="first"><tt class="docutils literal"><span class="pre">downcase</span></tt> - converts all matched tokens to lowercase</p>
 </li>
 <li><p class="first"><tt class="docutils literal"><span class="pre">upcase</span></tt> - converts all matched tokens to uppercase</p>
@@ -1010,7 +1037,7 @@ for scanString or transformString applications.</p>
 </ul>
 </div>
 <div class="section">
-<h2><a class="toc-backref" href="#id15" id="common-string-and-token-constants" name="common-string-and-token-constants">3.3&nbsp;&nbsp;&nbsp;Common string and token constants</a></h2>
+<h2><a class="toc-backref" href="#id16" id="common-string-and-token-constants" name="common-string-and-token-constants">3.3&nbsp;&nbsp;&nbsp;Common string and token constants</a></h2>
 <ul>
 <li><p class="first"><tt class="docutils literal"><span class="pre">alphas</span></tt> - same as <tt class="docutils literal"><span class="pre">string.letters</span></tt></p>
 </li>
