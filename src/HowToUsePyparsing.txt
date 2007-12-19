@@ -146,7 +146,23 @@ Usage notes
   
 - Parse actions can be used to convert values from strings to
   other data types (ints, floats, booleans, etc.).
+  
+- Results names are recommended for retrieving tokens from complex
+  expressions.  It is much easier to access a token using its field
+  name than using a positional index, especially if the expression 
+  contains optional elements.  ***NEW IN 1.4.7***  You can now shortcut
+  the setResultsName call::
+  
+    stats = "AVE:" + realNum.setResultsName("average") + \
+            "MIN:" + realNum.setResultsName("min") + \
+            "MAX:" + realNum.setResultsName("max")  
 
+  can now be written as this::
+  
+    stats = "AVE:" + realNum("average") + \
+            "MIN:" + realNum("min") + \
+            "MAX:" + realNum("max")  
+  
 - Be careful when defining parse actions that modify global variables or
   data structures (as in ``fourFn.py``), especially for low level tokens 
   or expressions 
@@ -240,11 +256,14 @@ methods for code to use are:
   If ``fn`` does not modify the ``toks`` list, it does not need to return
   anything at all.
 
+- ``setBreak( breakFlag=True )`` - if breakFlag is True, calls pdb.set_break()
+  as this expression is about to be parsed
+
 - ``copy()`` - returns a copy of a ParserElement; can be used to use the same
   parse expression in different places in a grammar, with different parse actions
   attached to each
 
-- ``leaveWhiteSpace()`` - change default behavior of skipping
+- ``leaveWhitespace()`` - change default behavior of skipping
   whitespace before starting matching (mostly used internally to the 
   pyparsing module, rarely used by client code)
 
