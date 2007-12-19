@@ -2,6 +2,14 @@
 Change Log
 ==========
 
+Version 1.4.11 - ???
+--------------------
+- Fixed bug when defining ignorable expressions that are
+  later enclosed in a wrapper expression (such as ZeroOrMore,
+  OneOrMore, etc.) - found while working with Prabhu 
+  Gurumurthy, thanks Prahbu!
+
+
 Version 1.4.10 - December 9, 2007
 ---------------------------------
 - Fixed bug introduced in v1.4.8, parse actions were called for
@@ -9,6 +17,7 @@ Version 1.4.10 - December 9, 2007
   operation level.  Again, big thanks to Torsten Marek for 
   helping isolate this problem!
   
+
 Version 1.4.9 - December 8, 2007
 --------------------------------
 - Added '*' multiplication operator support when creating 
