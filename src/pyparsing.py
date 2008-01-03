@@ -59,7 +59,7 @@ The pyparsing module handles some of the problems that are typically vexing when
 """
 
 __version__ = "1.4.11"
-__versionTime__ = "3 January 2008 09:49"
+__versionTime__ = "3 January 2008 13:18"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -1042,17 +1042,19 @@ class ParserElement(object):
         if isinstance( other, basestring ):
             other = Literal( other )
         if not isinstance( other, ParserElement ):
-            warnings.warn("Cannot add element of type %s to ParserElement" % type(other),
+            warnings.warn("Cannot combine element of type %s with ParserElement" % type(other),
                     SyntaxWarning, stacklevel=2)
+            return None
         return And( [ self, other ] )
 
     def __radd__(self, other ):
-        """Implementation of += operator"""
+        """Implementation of + operator when left operand is not a ParserElement"""
         if isinstance( other, basestring ):
             other = Literal( other )
         if not isinstance( other, ParserElement ):
-            warnings.warn("Cannot add element of type %s to ParserElement" % type(other),
+            warnings.warn("Cannot combine element of type %s with ParserElement" % type(other),
                     SyntaxWarning, stacklevel=2)
+            return None
         return other + self
 
     def __mul__(self,other):
@@ -1099,17 +1101,19 @@ class ParserElement(object):
         if isinstance( other, basestring ):
             other = Literal( other )
         if not isinstance( other, ParserElement ):
-            warnings.warn("Cannot add element of type %s to ParserElement" % type(other),
+            warnings.warn("Cannot combine element of type %s with ParserElement" % type(other),
                     SyntaxWarning, stacklevel=2)
+            return None
         return MatchFirst( [ self, other ] )
 
     def __ror__(self, other ):
-        """Implementation of |= operator"""
+        """Implementation of | operator when left operand is not a ParserElement"""
         if isinstance( other, basestring ):
             other = Literal( other )
         if not isinstance( other, ParserElement ):
-            warnings.warn("Cannot add element of type %s to ParserElement" % type(other),
+            warnings.warn("Cannot combine element of type %s with ParserElement" % type(other),
                     SyntaxWarning, stacklevel=2)
+            return None
         return other | self
 
     def __xor__(self, other ):
@@ -1117,17 +1121,19 @@ class ParserElement(object):
         if isinstance( other, basestring ):
             other = Literal( other )
         if not isinstance( other, ParserElement ):
-            warnings.warn("Cannot add element of type %s to ParserElement" % type(other),
+            warnings.warn("Cannot combine element of type %s with ParserElement" % type(other),
                     SyntaxWarning, stacklevel=2)
+            return None
         return Or( [ self, other ] )
 
     def __rxor__(self, other ):
-        """Implementation of ^= operator"""
+        """Implementation of ^ operator when left operand is not a ParserElement"""
         if isinstance( other, basestring ):
             other = Literal( other )
         if not isinstance( other, ParserElement ):
-            warnings.warn("Cannot add element of type %s to ParserElement" % type(other),
+            warnings.warn("Cannot combine element of type %s with ParserElement" % type(other),
                     SyntaxWarning, stacklevel=2)
+            return None
         return other ^ self
 
     def __and__(self, other ):
@@ -1135,17 +1141,19 @@ class ParserElement(object):
         if isinstance( other, basestring ):
             other = Literal( other )
         if not isinstance( other, ParserElement ):
-            warnings.warn("Cannot add element of type %s to ParserElement" % type(other),
+            warnings.warn("Cannot combine element of type %s with ParserElement" % type(other),
                     SyntaxWarning, stacklevel=2)
+            return None
         return Each( [ self, other ] )
 
     def __rand__(self, other ):
-        """Implementation of right-& operator"""
+        """Implementation of & operator when left operand is not a ParserElement"""
         if isinstance( other, basestring ):
             other = Literal( other )
         if not isinstance( other, ParserElement ):
-            warnings.warn("Cannot add element of type %s to ParserElement" % type(other),
+            warnings.warn("Cannot combine element of type %s with ParserElement" % type(other),
                     SyntaxWarning, stacklevel=2)
+            return None
         return other & self
 
     def __invert__( self ):
@@ -2675,7 +2683,7 @@ class Forward(ParseElementEnhance):
         self.skipWhitespace = self.expr.skipWhitespace
         self.saveAsList = self.expr.saveAsList        
         self.ignoreExprs.extend(self.expr.ignoreExprs)
-        return self
+        return None
 
     def leaveWhitespace( self ):
         self.skipWhitespace = False

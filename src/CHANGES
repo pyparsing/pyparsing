@@ -11,15 +11,30 @@ Version 1.4.11 - ???
 
 - Added WordStart and WordEnd positional classes, to support
   expressions that must occur at the start or end of a word.
+  Proposed by piranha on the pyparsing wiki, good idea!
 
-- Simplified use of nestedExpr when using an expression for
-  the opening or closing delimiters.  Found while working with
-  dfinnie on GHOP Task #277, thanks!
+- Simplified the use of nestedExpr when using an expression for
+  the opening or closing delimiters.  Now the content expression
+  will not have to explicitly negate closing delimiters.  Found 
+  while working with dfinnie on GHOP Task #277, thanks!
 
 - Added matchOnlyAtCol helper parser action, to simplify 
   parsing log or data files that have optional fields that are
   column dependent.  Inspired by a discussion thread with 
-  Hubritic on comp.lang.python.
+  hubritic on comp.lang.python.
+
+- Changed '<<' operator on Forward to return None, since this
+  is really used as a pseudo-assignment operator, not as a 
+  left-shift operator.  By returning None, it is easier to 
+  catch faulty statements such as a << b | c, where precedence
+  of operations causes the '|' operation to be performed 
+  *after* inserting b into a, so no alternation is actually
+  implemented.  The correct form is a << (b | c).  With this
+  change, an error will be reported instead of silently 
+  clipping the alternative term.  (Note: this may break some
+  existing code, but if it does, the code had a silent bug in
+  it anyway.)  Proposed by wcbarksdale on the pyparsing wiki,
+  thanks!
 
 
 Version 1.4.10 - December 9, 2007
