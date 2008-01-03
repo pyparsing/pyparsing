@@ -9,6 +9,13 @@ Version 1.4.11 - ???
   OneOrMore, etc.) - found while working with Prabhu 
   Gurumurthy, thanks Prahbu!
 
+- Added WordStart and WordEnd positional classes, to support
+  expressions that must occur at the start or end of a word.
+
+- Simplified use of nestedExpr when using an expression for
+  the opening or closing delimiters.  Found while working with
+  dfinnie on GHOP Task #277, thanks!
+
 
 Version 1.4.10 - December 9, 2007
 ---------------------------------
