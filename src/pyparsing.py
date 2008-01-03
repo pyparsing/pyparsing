@@ -59,7 +59,7 @@ The pyparsing module handles some of the problems that are typically vexing when
 """
 
 __version__ = "1.4.11"
-__versionTime__ = "2 January 2008 22:11"
+__versionTime__ = "3 January 2008 09:49"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -3059,6 +3059,15 @@ def srange(s):
         return "".join([_expanded(part) for part in _reBracketExpr.parseString(s).body])
     except:
         return ""
+
+def matchOnlyAtCol(n): 
+    """Helper method for defining parse actions that require matching at a specific 
+       column in the input text.
+    """
+    def verifyCol(strg,locn,toks): 
+        if col(locn,strg) != n: 
+            raise ParseException(strg,locn,"matched token not at column %d" % n) 
+    return verifyCol
 
 def replaceWith(replStr):
     """Helper method for common parse actions that simply return a literal value.  Especially 
