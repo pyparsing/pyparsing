@@ -1,6 +1,6 @@
 # module pyparsing.py
 #
-# Copyright (c) 2003-2007  Paul T. McGuire
+# Copyright (c) 2003-2008  Paul T. McGuire
 #
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
@@ -59,7 +59,7 @@ The pyparsing module handles some of the problems that are typically vexing when
 """
 
 __version__ = "1.4.11"
-__versionTime__ = "28 December 2007 22:46"
+__versionTime__ = "2 January 2008 22:11"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -106,6 +106,8 @@ alphas     = string.lowercase + string.uppercase
 nums       = string.digits
 hexnums    = nums + "ABCDEFabcdef"
 alphanums  = alphas + nums    
+_bslash = "\\"
+printables = "".join( [ c for c in string.printable if c not in string.whitespace ] )
 
 class ParseBaseException(Exception):
     """base exception class for all parsing runtime exceptions"""
@@ -1980,6 +1982,53 @@ class StringEnd(_PositionToken):
             exc.pstr = instring
             raise exc
 
+class WordStart(_PositionToken):
+    """Matches if the current position is at the beginning of a Word, and 
+       is not preceded by any character in a given set of wordChars 
+       (default=printables). To emulate the \b behavior of regular expressions, 
+       use WordStart(alphanums). WordStart will also match at the beginning of 
+       the string being parsed, or at the beginning of a line.
+    """
+    def __init__(self, wordChars = printables):
+        super(WordStart,self).__init__()
+        self.wordChars = _str2dict(wordChars)
+        self.errmsg = "Not at the start of a word"
+    
+    def parseImpl(self, instring, loc, doActions=True ):
+        if loc != 0:
+            if (instring[loc-1] in self.wordChars or
+                instring[loc] not in self.wordChars):
+                exc = self.myException
+                exc.loc = loc
+                exc.pstr = instring
+                raise exc
+        return loc, []
+
+class WordEnd(_PositionToken):
+    """Matches if the current position is at the end of a Word, and 
+       is not followed by any character in a given set of wordChars 
+       (default=printables). To emulate the \b behavior of regular expressions, 
+       use WordEnd(alphanums). WordEnd will also match at the end of 
+       the string being parsed, or at the end of a line.
+    """
+    def __init__(self, wordChars = printables):
+        super(WordEnd,self).__init__()
+        self.wordChars = _str2dict(wordChars)
+        self.skipWhitespace = False
+        self.errmsg = "Not at the end of a word"
+    
+    def parseImpl(self, instring, loc, doActions=True ):
+        instrlen = len(instring)
+        if instrlen>0 and loc<instrlen:
+            if (instring[loc] in self.wordChars or
+                instring[loc-1] not in self.wordChars):
+                #~ raise ParseException( instring, loc, "Expected end of word" )
+                exc = self.myException
+                exc.loc = loc
+                exc.pstr = instring
+                raise exc
+        return loc, []
+
 
 class ParseExpression(ParserElement):
     """Abstract subclass of ParserElement, for combining and post-processing parsed tokens."""
@@ -2972,9 +3021,6 @@ def dictOf( key, value ):
        fields.
     """
     return Dict( ZeroOrMore( Group ( key + value ) ) )
-
-_bslash = "\\"
-printables = "".join( [ c for c in string.printable if c not in string.whitespace ] )
 
 # convenience constants for positional expressions
 empty       = Empty().setName("empty")
