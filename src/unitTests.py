@@ -1845,6 +1845,7 @@ class WordBoundaryExpressionsTest(ParseTestCase):
         trailingVowel = vowel + we
         leadingConsonant = ws + consonant
         trailingConsonant = consonant + we
+        internalVowel = ~ws + vowel + ~we
 
         bnf = leadingVowel | trailingVowel
 
@@ -1852,11 +1853,18 @@ class WordBoundaryExpressionsTest(ParseTestCase):
         ABC DEF GHI
           JKL MNO PQR
         STU VWX YZ  """.splitlines()
+        tests.append( "\n".join(tests) )
 
         expectedResult = [
-            [['D', 'G'], ['A'], ['C', 'F'], ['I'], ['A', 'I']],
-            [['J', 'M', 'P'], [], ['L', 'R'], ['O'], ['O']],
-            [['S', 'V'], ['Y'], ['X', 'Z'], ['U'], ['U', 'Y']],
+            [['D', 'G'], ['A'], ['C', 'F'], ['I'], ['E'], ['A', 'I']],
+            [['J', 'M', 'P'], [], ['L', 'R'], ['O'], [], ['O']],
+            [['S', 'V'], ['Y'], ['X', 'Z'], ['U'], [], ['U', 'Y']],
+            [['D', 'G', 'J', 'M', 'P', 'S', 'V'], 
+             ['A', 'Y'], 
+             ['C', 'F', 'L', 'R', 'X', 'Z'], 
+             ['I', 'O', 'U'], 
+             ['E'],
+             ['A', 'I', 'O', 'U', 'Y']],
             ]
             
         for t,expected in zip(tests, expectedResult):
@@ -1867,6 +1875,7 @@ class WordBoundaryExpressionsTest(ParseTestCase):
                 leadingVowel,
                 trailingConsonant,
                 trailingVowel,
+                internalVowel,
                 bnf,
                 ]
                 )
