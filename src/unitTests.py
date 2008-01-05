@@ -1832,6 +1832,48 @@ class WithAttributeParseActionTest(ParseTestCase):
           print result.dump()
           assert result.asList() == expected, "Failed test, expected %s, got %s" % (expected, result.asList())
         
+class WordBoundaryExpressionsTest(ParseTestCase):
+    def runTest(self):
+        from pyparsing import WordEnd, WordStart, oneOf
+
+        ws = WordStart()
+        we = WordEnd()
+        vowel = oneOf(list("AEIOUY"))
+        consonant = oneOf(list("BCDFGHJKLMNPQRSTVWXZ"))
+
+        leadingVowel = ws + vowel
+        trailingVowel = vowel + we
+        leadingConsonant = ws + consonant
+        trailingConsonant = consonant + we
+
+        bnf = leadingVowel | trailingVowel
+
+        tests = """\
+        ABC DEF GHI
+          JKL MNO PQR
+        STU VWX YZ  """.splitlines()
+
+        expectedResult = [
+            [['D', 'G'], ['A'], ['C', 'F'], ['I'], ['A', 'I']],
+            [['J', 'M', 'P'], [], ['L', 'R'], ['O'], ['O']],
+            [['S', 'V'], ['Y'], ['X', 'Z'], ['U'], ['U', 'Y']],
+            ]
+            
+        for t,expected in zip(tests, expectedResult):
+            print t
+            results = map(lambda e: flatten(e.searchString(t).asList()), 
+                [
+                leadingConsonant,
+                leadingVowel,
+                trailingConsonant,
+                trailingVowel,
+                bnf,
+                ]
+                )
+            print results
+            assert results==expected,"Failed WordBoundaryTest, expected %s, got %s" % (expected,results)
+            print
+
 
 def makeTestSuite():
     suite = TestSuite()
@@ -1874,6 +1916,7 @@ def makeTestSuite():
     suite.addTest( KeepOriginalTextTest() )
     suite.addTest( PackratParsingCacheCopyTest() )
     suite.addTest( WithAttributeParseActionTest() )
+    suite.addTest( WordBoundaryExpressionsTest() )
     suite.addTest( MiscellaneousParserTests() )
 
     if TEST_USING_PACKRAT:
