@@ -1791,6 +1791,47 @@ class ParseResultsDelTest(ParseTestCase):
         res = grammar.parseString("123 456 ABC DEF")
         print res
         
+class WithAttributeParseActionTest(ParseTestCase):
+    def runTest(self):
+        """
+        This unit test checks withAttribute in these ways:
+        
+        * Argument forms as keywords and tuples
+        * Selecting matching tags by attribute
+        * Case-insensitive attribute matching
+        * Correctly matching tags having the attribute, and rejecting tags not having the attribute
+        
+        (Unit test written by voigts as part of the Google Highly Open Participation Contest)
+        """
+        
+        from pyparsing import makeHTMLTags, Word, withAttribute, nums
+        
+        data = """
+        <a>1</a>
+        <a b="x">2</a>
+        <a B="x">3</a>
+        <a b="X">4</a>
+        <a b="y">5</a>
+        """
+        tagStart, tagEnd = makeHTMLTags("a")
+        
+        expr = tagStart + Word(nums).setResultsName("value") + tagEnd
+          
+        expected = [['a', ['b', 'x'], False, '2', '</a>'], ['a', ['b', 'x'], False, '3', '</a>']]
+        
+        for attrib in [
+            withAttribute(b="x"),
+            withAttribute(B="x"),
+            withAttribute(("b","x")),
+            withAttribute(("B","x"))
+            ]:
+          
+          tagStart.setParseAction(attrib)
+          result = expr.searchString(data)
+          
+          print result.dump()
+          assert result.asList() == expected, "Failed test, expected %s, got %s" % (expected, result.asList())
+        
 
 def makeTestSuite():
     suite = TestSuite()
@@ -1832,6 +1873,7 @@ def makeTestSuite():
     suite.addTest( UpcaseDowncaseUnicode() )
     suite.addTest( KeepOriginalTextTest() )
     suite.addTest( PackratParsingCacheCopyTest() )
+    suite.addTest( WithAttributeParseActionTest() )
     suite.addTest( MiscellaneousParserTests() )
 
     if TEST_USING_PACKRAT:
