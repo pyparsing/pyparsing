@@ -1831,7 +1831,112 @@ class WithAttributeParseActionTest(ParseTestCase):
           
           print result.dump()
           assert result.asList() == expected, "Failed test, expected %s, got %s" % (expected, result.asList())
+
+class NestedExpressionsTest(ParseTestCase):
+    def runTest(self):
+        """
+        This unit test checks nestedExpr in these ways:
+        - use of default arguments
+        - use of non-default arguments (such as a pyparsing-defined comment
+          expression in place of quotedString)
+        - use of a custom content expression
+        - use of a pyparsing expression for opener and closer is *OPTIONAL*
+        - use of input data containing nesting delimiters
+        - correct grouping of parsed tokens according to nesting of opening
+          and closing delimiters in the input string
         
+        (Unit test written by christoph... as part of the Google Highly Open Participation Contest)
+        """
+        from pyparsing import nestedExpr, Literal, Regex, restOfLine, quotedString
+
+        #All defaults. Straight out of the example script. Also, qualifies for
+        #the bonus: note the fact that (Z | (E^F) & D) is not parsed :-).
+        # Tests for bug fixed in 1.4.10
+        print "Test defaults:"
+        teststring = "(( ax + by)*C) (Z | (E^F) & D)"
+
+        expr = nestedExpr()
+
+        expected = [[['ax', '+', 'by'], '*C']]
+        result = expr.parseString(teststring)
+        print result.dump()
+        assert result.asList() == expected, "Defaults didn't work. That's a bad sign. Expected: %s, got: %s" % (expected, result)
+
+        #Going through non-defaults, one by one; trying to think of anything
+        #odd that might not be properly handled.
+
+        #Change opener
+        print "\nNon-default opener"
+        opener = "["
+        teststring = test_string = "[[ ax + by)*C)"
+        expected = [[['ax', '+', 'by'], '*C']]
+        expr = nestedExpr("[")
+        result = expr.parseString(teststring)
+        print result.dump()
+        assert result.asList() == expected, "Non-default opener didn't work. Expected: %s, got: %s" % (expected, result)
+
+        #Change closer
+        print "\nNon-default closer"
+
+        teststring = test_string = "(( ax + by]*C]"
+        expected = [[['ax', '+', 'by'], '*C']]
+        expr = nestedExpr(closer="]")
+        result = expr.parseString(teststring)
+        print result.dump()
+        assert result.asList() == expected, "Non-default closer didn't work. Expected: %s, got: %s" % (expected, result)
+
+        # #Multicharacter opener, closer
+        # opener = "bar"
+        # closer = "baz"
+        print "\nLiteral expressions for opener and closer"
+
+        opener,closer = map(Literal, "bar baz".split())
+        expr = nestedExpr(opener, closer, 
+                    content=Regex(r"([^b ]|b(?!a)|ba(?![rz]))+")) 
+                    
+        teststring = "barbar ax + bybaz*Cbaz"
+        expected = [[['ax', '+', 'by'], '*C']]
+        # expr = nestedExpr(opener, closer)
+        result = expr.parseString(teststring)
+        print result.dump()
+        assert result.asList() == expected, "Multicharacter opener and closer didn't work. Expected: %s, got: %s" % (expected, result)
+
+        #Lisp-ish comments
+        print "\nUse ignore expression (1)"
+        comment = Regex(r";;.*")
+        teststring = \
+        """
+        (let ((greeting "Hello, world!")) ;;(foo bar
+           (display greeting))
+        """
+
+        expected = [['let', [['greeting', '"Hello,', 'world!"']], ';;(foo bar',\
+                         ['display', 'greeting']]]
+        expr = nestedExpr(ignoreExpr=comment)
+        result = expr.parseString(teststring)
+        print result.dump()
+        assert result.asList() == expected , "Lisp-ish comments (\";; <...> $\") didn't work. Expected: %s, got: %s" % (expected, result)
+
+
+        #Lisp-ish comments, using a standard bit of pyparsing, and an Or.
+        print "\nUse ignore expression (2)"
+        comment = ';;' + restOfLine 
+
+        teststring = \
+        """
+        (let ((greeting "Hello, )world!")) ;;(foo bar
+           (display greeting))
+        """
+
+        expected = [['let', [['greeting', '"Hello, )world!"']], ';;', '(foo bar', 
+                     ['display', 'greeting']]]
+        expr = nestedExpr(ignoreExpr=(comment ^ quotedString))
+        result = expr.parseString(teststring)
+        print result.dump()
+        assert result.asList() == expected , "Lisp-ish comments (\";; <...> $\") and quoted strings didn't work. Expected: %s, got: %s" % (expected, result)
+
+
+
 class WordBoundaryExpressionsTest(ParseTestCase):
     def runTest(self):
         from pyparsing import WordEnd, WordStart, oneOf
@@ -1925,6 +2030,7 @@ def makeTestSuite():
     suite.addTest( KeepOriginalTextTest() )
     suite.addTest( PackratParsingCacheCopyTest() )
     suite.addTest( WithAttributeParseActionTest() )
+    suite.addTest( NestedExpressionsTest() )
     suite.addTest( WordBoundaryExpressionsTest() )
     suite.addTest( MiscellaneousParserTests() )
 
