@@ -59,7 +59,7 @@ The pyparsing module handles some of the problems that are typically vexing when
 """
 
 __version__ = "1.4.11"
-__versionTime__ = "3 January 2008 13:18"
+__versionTime__ = "16 January 2008 06:02"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -1266,6 +1266,20 @@ class ParserElement(object):
             return ret;
         else:
             raise AttributeError, "no such attribute " + aname
+        
+    def __eq__(self,other):
+        if isinstance(other, basestring):
+            try:
+                (self + StringEnd()).parseString(_ustr(other))
+                return True
+            except ParseException:
+                return False
+        else:
+            return super(ParserElement,self)==other
+    
+    def __req__(self,other):
+        return self == other
+
 
 class Token(ParserElement):
     """Abstract ParserElement subclass, for defining atomic matching patterns."""
@@ -3175,6 +3189,9 @@ def withAttribute(*args,**attrDict):
         - a list of name-value tuples, as in ( ("ns1:class", "Customer"), ("ns2:align","right") )
        For attribute names with a namespace prefix, you must use the second form.  Attribute
        names are matched insensitive to upper/lower case.
+    
+       To verify that the attribute exists, but without specifying a value, pass
+       withAttribute.ANY_VALUE as the value.
        """
     if args:
         attrs = args[:]
@@ -3185,10 +3202,11 @@ def withAttribute(*args,**attrDict):
         for attrName,attrValue in attrs:
             if attrName not in tokens:
                 raise ParseException(s,l,"no matching attribute " + attrName)
-            if tokens[attrName] != attrValue:
+            if attrValue != withAttribute.ANY_VALUE and tokens[attrName] != attrValue:
                 raise ParseException(s,l,"attribute '%s' has value '%s', must be '%s'" % 
                                             (attrName, tokens[attrName], attrValue))
     return pa
+withAttribute.ANY_VALUE = object()
 
 opAssoc = _Constants()
 opAssoc.LEFT = object()

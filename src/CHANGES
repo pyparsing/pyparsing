@@ -4,24 +4,38 @@ Change Log
 
 Version 1.4.11 - ???
 --------------------
-- Fixed bug when defining ignorable expressions that are
-  later enclosed in a wrapper expression (such as ZeroOrMore,
-  OneOrMore, etc.) - found while working with Prabhu 
-  Gurumurthy, thanks Prahbu!
-
 - Added WordStart and WordEnd positional classes, to support
   expressions that must occur at the start or end of a word.
   Proposed by piranha on the pyparsing wiki, good idea!
+
+- Added matchOnlyAtCol helper parser action, to simplify 
+  parsing log or data files that have optional fields that are
+  column dependent.  Inspired by a discussion thread with 
+  hubritic on comp.lang.python.
+
+- Added withAttribute.ANY_VALUE as a match-all value when using
+  withAttribute.  Used to ensure that an attribute is present,
+  without having to specify the actual value for the attribute.
+
+- Added '==' short-cut to see if a given string matches a 
+  pyparsing expression.  For instance, you can now write:
+
+    integer = Word(nums)
+    if "123" == integer:
+       # do something
+    
+    print [ x for x in "123 234 asld".split() if x==integer ]
+    # prints ['123', '234']
 
 - Simplified the use of nestedExpr when using an expression for
   the opening or closing delimiters.  Now the content expression
   will not have to explicitly negate closing delimiters.  Found 
   while working with dfinnie on GHOP Task #277, thanks!
 
-- Added matchOnlyAtCol helper parser action, to simplify 
-  parsing log or data files that have optional fields that are
-  column dependent.  Inspired by a discussion thread with 
-  hubritic on comp.lang.python.
+- Fixed bug when defining ignorable expressions that are
+  later enclosed in a wrapper expression (such as ZeroOrMore,
+  OneOrMore, etc.) - found while working with Prabhu 
+  Gurumurthy, thanks Prahbu!
 
 - Changed '<<' operator on Forward to return None, since this
   is really used as a pseudo-assignment operator, not as a 
@@ -35,6 +49,11 @@ Version 1.4.11 - ???
   existing code, but if it does, the code had a silent bug in
   it anyway.)  Proposed by wcbarksdale on the pyparsing wiki,
   thanks!
+
+- Several unit tests were added to pyparsing's regression
+  suite, courtesy of the Google Highly-Open Participation
+  Contest.  Thanks to all who administered and took part in 
+  this event!
 
 
 Version 1.4.10 - December 9, 2007
