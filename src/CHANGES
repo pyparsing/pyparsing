@@ -4,6 +4,10 @@ Change Log
 
 Version 1.4.11 - ???
 --------------------
+- With help from Robert A. Clark, this version of pyparsing
+  is compatible with Python 3.0a3.  Thanks for the help, 
+  Robert!
+
 - Added WordStart and WordEnd positional classes, to support
   expressions that must occur at the start or end of a word.
   Proposed by piranha on the pyparsing wiki, good idea!
@@ -15,7 +19,10 @@ Version 1.4.11 - ???
 
 - Added withAttribute.ANY_VALUE as a match-all value when using
   withAttribute.  Used to ensure that an attribute is present,
-  without having to specify the actual value for the attribute.
+  without having to match on the actual attribute value.
+
+- Added get() method to ParseResults, similar to dict.get().
+  Suggested by new pyparsing user, Alejandro Dubrovksy, thanks!
 
 - Added '==' short-cut to see if a given string matches a 
   pyparsing expression.  For instance, you can now write:
@@ -36,6 +43,13 @@ Version 1.4.11 - ???
   later enclosed in a wrapper expression (such as ZeroOrMore,
   OneOrMore, etc.) - found while working with Prabhu 
   Gurumurthy, thanks Prahbu!
+
+- Fixed bug in withAttribute in which keys were automatically
+  converted to lowercase, making it impossible to match XML
+  attributes with uppercase characters in them.  Using with-
+  Attribute requires that you reference attributes in all
+  lowercase if parsing HTML, and in correct case when parsing
+  XML.
 
 - Changed '<<' operator on Forward to return None, since this
   is really used as a pseudo-assignment operator, not as a 

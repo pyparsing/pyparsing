@@ -59,7 +59,7 @@ The pyparsing module handles some of the problems that are typically vexing when
 """
 
 __version__ = "1.4.11"
-__versionTime__ = "16 January 2008 06:02"
+__versionTime__ = "10 February 2008 17:28"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -71,6 +71,17 @@ import sre_constants
 import xml.sax.saxutils
 #~ sys.stderr.write( "testing pyparsing module, version %s, %s\n" % (__version__,__versionTime__ ) )
 
+"""
+Detect if we are running version 3.X and make appropriate changes
+Robert A. Clark
+"""
+if sys.version_info[0] > 2:
+    __MAX_INT__ = sys.maxsize
+    __BASE_STRING__ = str
+else:
+    __MAX_INT__ = sys.maxint
+    __BASE_STRING__ = basestring
+
 def _ustr(obj):
     """Drop-in replacement for str(obj) that tries to be Unicode friendly. It first tries
        str(obj). If that fails with a UnicodeEncodeError, then it tries unicode(obj). It
@@ -81,7 +92,7 @@ def _ustr(obj):
         # it won't break any existing code.
         return str(obj)
         
-    except UnicodeEncodeError, e:
+    except UnicodeEncodeError:
         # The Python docs (http://docs.python.org/ref/customization.html#l2h-182)
         # state that "The return value must be a string object". However, does a
         # unicode object (being a subclass of basestring) count as a "string
@@ -236,7 +247,7 @@ class ParseResults(object):
                 name = _ustr(name) # will always return a str, but use _ustr for consistency
             self.__name = name
             if not toklist in (None,'',[]):
-                if isinstance(toklist,basestring): 
+                if isinstance(toklist,__BASE_STRING__): 
                     toklist = [ toklist ]
                 if asList:
                     if isinstance(toklist,ParseResults):
@@ -286,27 +297,6 @@ class ParseResults(object):
             removed = range(*i.indices(mylen))
             removed.reverse()
             # fixup indices in token dictionary
-            for occurrences in self.__tokdict.itervalues():
-                for j in removed:
-                    for k, (value, position) in enumerate(occurrences):
-                        occurrences[k] = _ParseResultsWithOffset(value, position - (position > j))
-        else:
-            del self.__tokdict[i]
-
-    def __delitem__( self, i ):
-        if isinstance(i,(int,slice)):
-            mylen = len( self.__toklist )
-            del self.__toklist[i]
-            
-            # convert int to slice
-            if isinstance(i, int):
-                if i < 0:
-                    i += mylen
-                i = slice(i, i+1)
-            # get removed indices
-            removed = range(*i.indices(mylen))
-            removed.reverse()
-            # fixup indices in token dictionary
             for name in self.__tokdict.keys():
                 occurrences = self.__tokdict[name]
                 for j in removed:
@@ -333,6 +323,23 @@ class ParseResults(object):
         ret = self[index]
         del self[index]
         return ret
+
+    def get(self, key, defaultValue=None):
+        """Returns named result matching the given key, or if there is no 
+           such name, then returns the given defaultValue or None if no 
+           defaultValue is specified."""
+        if key in self:
+            return self[key]
+        else:
+            return defaultValue
+
+    def insert( self, index, insStr ):
+        self.__toklist.insert(index, insStr)
+        # fixup indices in token dictionary
+        for name in self.__tokdict.keys():
+            occurrences = self.__tokdict[name]
+            for k, (value, position) in enumerate(occurrences):
+                occurrences[k] = _ParseResultsWithOffset(value, position + (position > j))
         
     def items( self ): 
         """Returns all named result keys and values as a list of tuples."""
@@ -588,13 +595,13 @@ def line( loc, strg ):
         return strg[lastCR+1:]
 
 def _defaultStartDebugAction( instring, loc, expr ):
-    print "Match",_ustr(expr),"at loc",loc,"(%d,%d)" % ( lineno(loc,instring), col(loc,instring) )
+    print ("Match",_ustr(expr),"at loc",loc,"(%d,%d)" % ( lineno(loc,instring), col(loc,instring) ))
 
 def _defaultSuccessDebugAction( instring, startloc, endloc, expr, toks ):
-    print "Matched",_ustr(expr),"->",toks.asList()
+    print ("Matched",_ustr(expr),"->",toks.asList())
     
 def _defaultExceptionDebugAction( instring, loc, expr, exc ):
-    print "Exception raised:", _ustr(exc)
+    print ("Exception raised:", _ustr(exc))
 
 def nullDebugAction(*args):
     """'Do-nothing' debug action, to suppress debugging output during parsing."""
@@ -715,7 +722,7 @@ class ParserElement(object):
                 if hasattr(f.__call__,"im_self"):
                     numargs -= 1
 
-        #~ print "adding function %s with %d args" % (f.func_name,numargs)
+        #~ print ("adding function %s with %d args" % (f.func_name,numargs))
         if numargs == 3:
             return f
         else:
@@ -822,7 +829,7 @@ class ParserElement(object):
         debugging = ( self.debug ) #and doActions )
 
         if debugging or self.failAction:
-            #~ print "Match",self,"at loc",loc,"(%d,%d)" % ( lineno(loc,instring), col(loc,instring) )
+            #~ print ("Match",self,"at loc",loc,"(%d,%d)" % ( lineno(loc,instring), col(loc,instring) ))
             if (self.debugActions[0] ):
                 self.debugActions[0]( instring, loc, self )
             if callPreParse and self.callPreparse:
@@ -836,7 +843,7 @@ class ParserElement(object):
                 except IndexError:
                     raise ParseException( instring, len(instring), self.errmsg, self )
             except ParseException, err:
-                #~ print "Exception raised:", err
+                #~ print ("Exception raised:", err)
                 if self.debugActions[2]:
                     self.debugActions[2]( instring, tokensStart, self, err )
                 if self.failAction:
@@ -884,7 +891,7 @@ class ParserElement(object):
                                                   modal=self.modalResults )
 
         if debugging:
-            #~ print "Matched",self,"->",retTokens.asList()
+            #~ print ("Matched",self,"->",retTokens.asList())
             if (self.debugActions[1] ):
                 self.debugActions[1]( instring, tokensStart, loc, self, retTokens )
 
@@ -973,7 +980,7 @@ class ParserElement(object):
             loc, tokens = self._parse( instring.expandtabs(), 0 )
         return tokens
 
-    def scanString( self, instring, maxMatches=sys.maxint ):
+    def scanString( self, instring, maxMatches=__MAX_INT__ ):
         """Scan the input string for expression matches.  Each match will return the 
            matching tokens, start location, and end location.  May be called with optional
            maxMatches argument, to clip scanning after 'n' matches are found.
@@ -1030,7 +1037,7 @@ class ParserElement(object):
         out.append(instring[lastE:])
         return "".join(map(_ustr,out))
 
-    def searchString( self, instring, maxMatches=sys.maxint ):
+    def searchString( self, instring, maxMatches=__MAX_INT__ ):
         """Another extension to scanString, simplifying the access to the tokens found
            to match the given parse expression.  May be called with optional
            maxMatches argument, to clip searching after 'n' matches are found.
@@ -1039,7 +1046,7 @@ class ParserElement(object):
             
     def __add__(self, other ):
         """Implementation of + operator - returns And"""
-        if isinstance( other, basestring ):
+        if isinstance( other, __BASE_STRING__ ):
             other = Literal( other )
         if not isinstance( other, ParserElement ):
             warnings.warn("Cannot combine element of type %s with ParserElement" % type(other),
@@ -1049,7 +1056,7 @@ class ParserElement(object):
 
     def __radd__(self, other ):
         """Implementation of + operator when left operand is not a ParserElement"""
-        if isinstance( other, basestring ):
+        if isinstance( other, __BASE_STRING__ ):
             other = Literal( other )
         if not isinstance( other, ParserElement ):
             warnings.warn("Cannot combine element of type %s with ParserElement" % type(other),
@@ -1098,7 +1105,7 @@ class ParserElement(object):
 
     def __or__(self, other ):
         """Implementation of | operator - returns MatchFirst"""
-        if isinstance( other, basestring ):
+        if isinstance( other, __BASE_STRING__ ):
             other = Literal( other )
         if not isinstance( other, ParserElement ):
             warnings.warn("Cannot combine element of type %s with ParserElement" % type(other),
@@ -1108,7 +1115,7 @@ class ParserElement(object):
 
     def __ror__(self, other ):
         """Implementation of | operator when left operand is not a ParserElement"""
-        if isinstance( other, basestring ):
+        if isinstance( other, __BASE_STRING__ ):
             other = Literal( other )
         if not isinstance( other, ParserElement ):
             warnings.warn("Cannot combine element of type %s with ParserElement" % type(other),
@@ -1118,7 +1125,7 @@ class ParserElement(object):
 
     def __xor__(self, other ):
         """Implementation of ^ operator - returns Or"""
-        if isinstance( other, basestring ):
+        if isinstance( other, __BASE_STRING__ ):
             other = Literal( other )
         if not isinstance( other, ParserElement ):
             warnings.warn("Cannot combine element of type %s with ParserElement" % type(other),
@@ -1128,7 +1135,7 @@ class ParserElement(object):
 
     def __rxor__(self, other ):
         """Implementation of ^ operator when left operand is not a ParserElement"""
-        if isinstance( other, basestring ):
+        if isinstance( other, __BASE_STRING__ ):
             other = Literal( other )
         if not isinstance( other, ParserElement ):
             warnings.warn("Cannot combine element of type %s with ParserElement" % type(other),
@@ -1138,7 +1145,7 @@ class ParserElement(object):
 
     def __and__(self, other ):
         """Implementation of & operator - returns Each"""
-        if isinstance( other, basestring ):
+        if isinstance( other, __BASE_STRING__ ):
             other = Literal( other )
         if not isinstance( other, ParserElement ):
             warnings.warn("Cannot combine element of type %s with ParserElement" % type(other),
@@ -1148,7 +1155,7 @@ class ParserElement(object):
 
     def __rand__(self, other ):
         """Implementation of & operator when left operand is not a ParserElement"""
-        if isinstance( other, basestring ):
+        if isinstance( other, __BASE_STRING__ ):
             other = Literal( other )
         if not isinstance( other, ParserElement ):
             warnings.warn("Cannot combine element of type %s with ParserElement" % type(other),
@@ -1268,7 +1275,7 @@ class ParserElement(object):
             raise AttributeError, "no such attribute " + aname
         
     def __eq__(self,other):
-        if isinstance(other, basestring):
+        if isinstance(other, __BASE_STRING__):
             try:
                 (self + StringEnd()).parseString(_ustr(other))
                 return True
@@ -1481,7 +1488,7 @@ class Word(Token):
         if max > 0:
             self.maxLen = max
         else:
-            self.maxLen = sys.maxint
+            self.maxLen = __MAX_INT__
 
         if exact > 0:
             self.maxLen = exact
@@ -1729,7 +1736,7 @@ class QuotedString(Token):
             # strip off quotes
             ret = ret[self.quoteCharLen:-self.endQuoteCharLen]
                 
-            if isinstance(ret,basestring):
+            if isinstance(ret,__BASE_STRING__):
                 # replace escaped characters
                 if self.escChar:
                     ret = re.sub(self.escCharReplacePattern,"\g<1>",ret)
@@ -1772,7 +1779,7 @@ class CharsNotIn(Token):
         if max > 0:
             self.maxLen = max
         else:
-            self.maxLen = sys.maxint
+            self.maxLen = __MAX_INT__
 
         if exact > 0:
             self.maxLen = exact
@@ -1851,7 +1858,7 @@ class White(Token):
         if max > 0:
             self.maxLen = max
         else:
-            self.maxLen = sys.maxint
+            self.maxLen = __MAX_INT__
 
         if exact > 0:
             self.maxLen = exact
@@ -2058,7 +2065,7 @@ class ParseExpression(ParserElement):
         super(ParseExpression,self).__init__(savelist)
         if isinstance( exprs, list ):
             self.exprs = exprs
-        elif isinstance( exprs, basestring ):
+        elif isinstance( exprs, __BASE_STRING__ ):
             self.exprs = [ Literal( exprs ) ]
         else:
             self.exprs = [ exprs ]
@@ -2172,7 +2179,7 @@ class And(ParseExpression):
         return loc, resultlist
 
     def __iadd__(self, other ):
-        if isinstance( other, basestring ):
+        if isinstance( other, __BASE_STRING__ ):
             other = Literal( other )
         return self.append( other ) #And( [ self, other ] )
         
@@ -2216,7 +2223,7 @@ class Or(ParseExpression):
                 if err.loc > maxExcLoc:
                     maxException = err
                     maxExcLoc = err.loc
-            except IndexError, err:
+            except IndexError:
                 if len(instring) > maxExcLoc:
                     maxException = ParseException(instring,len(instring),e.errmsg,self)
                     maxExcLoc = len(instring)
@@ -2234,7 +2241,7 @@ class Or(ParseExpression):
         return maxMatchExp._parse( instring, loc, doActions )
 
     def __ixor__(self, other ):
-        if isinstance( other, basestring ):
+        if isinstance( other, __BASE_STRING__ ):
             other = Literal( other )
         return self.append( other ) #Or( [ self, other ] )
 
@@ -2279,7 +2286,7 @@ class MatchFirst(ParseExpression):
                 if err.loc > maxExcLoc:
                     maxException = err
                     maxExcLoc = err.loc
-            except IndexError, err:
+            except IndexError:
                 if len(instring) > maxExcLoc:
                     maxException = ParseException(instring,len(instring),e.errmsg,self)
                     maxExcLoc = len(instring)
@@ -2292,7 +2299,7 @@ class MatchFirst(ParseExpression):
                 raise ParseException(instring, loc, "no defined alternatives to match", self)
 
     def __ior__(self, other ):
-        if isinstance( other, basestring ):
+        if isinstance( other, __BASE_STRING__ ):
             other = Literal( other )
         return self.append( other ) #MatchFirst( [ self, other ] )
 
@@ -2395,7 +2402,7 @@ class ParseElementEnhance(ParserElement):
     """Abstract subclass of ParserElement, for combining and post-processing parsed tokens."""
     def __init__( self, expr, savelist=False ):
         super(ParseElementEnhance,self).__init__(savelist)
-        if isinstance( expr, basestring ):
+        if isinstance( expr, __BASE_STRING__ ):
             expr = Literal(expr)
         self.expr = expr
         self.strRepr = None
@@ -2686,7 +2693,7 @@ class Forward(ParseElementEnhance):
         super(Forward,self).__init__( other, savelist=False )
 
     def __lshift__( self, other ):
-        if isinstance( other, basestring ):
+        if isinstance( other, __BASE_STRING__ ):
             other = Literal(other)
         self.expr = other
         self.mayReturnEmpty = other.mayReturnEmpty
@@ -2998,7 +3005,7 @@ def oneOf( strs, caseless=False, useRegex=True ):
     
     if isinstance(strs,(list,tuple)):
         symbols = strs[:]
-    elif isinstance(strs,basestring):
+    elif isinstance(strs,__BASE_STRING__):
         symbols = strs.split()
     else:
         warnings.warn("Invalid argument to oneOf, expected string or list",
@@ -3020,7 +3027,7 @@ def oneOf( strs, caseless=False, useRegex=True ):
             i += 1
 
     if not caseless and useRegex:
-        #~ print strs,"->", "|".join( [ _escapeRegexChars(sym) for sym in symbols] )
+        #~ print (strs,"->", "|".join( [ _escapeRegexChars(sym) for sym in symbols] ))
         try:
             if len(symbols)==len("".join(symbols)):
                 return Regex( "[%s]" % "".join( [ _escapeRegexRangeChars(sym) for sym in symbols] ) )
@@ -3143,7 +3150,7 @@ def getTokensEndLoc():
 
 def _makeTags(tagStr, xml):
     """Internal helper to construct opening and closing tag expressions, given a tag name"""
-    if isinstance(tagStr,basestring):
+    if isinstance(tagStr,__BASE_STRING__):
         resname = tagStr
         tagStr = Keyword(tagStr, caseless=not xml)
     else:
@@ -3197,7 +3204,7 @@ def withAttribute(*args,**attrDict):
         attrs = args[:]
     else:
         attrs = attrDict.items()
-    attrs = [(k.lower(),v) for k,v in attrs]
+    attrs = [(k,v) for k,v in attrs]
     def pa(s,l,tokens):
         for attrName,attrValue in attrs:
             if attrName not in tokens:
@@ -3294,7 +3301,7 @@ def nestedExpr(opener="(", closer=")", content=None, ignoreExpr=quotedString):
     if opener == closer:
         raise ValueError("opening and closing strings cannot be the same")
     if content is None:
-        if isinstance(opener,basestring) and isinstance(closer,basestring):
+        if isinstance(opener,__BASE_STRING__) and isinstance(closer,__BASE_STRING__):
             content = (empty+CharsNotIn(opener+closer+ParserElement.DEFAULT_WHITE_CHARS).setParseAction(lambda t:t[0].strip()))
         else:
             raise ValueError("opening and closing arguments must be strings if no content expression is given")
@@ -3333,20 +3340,20 @@ commaSeparatedList = delimitedList( Optional( quotedString | _commasepitem, defa
 if __name__ == "__main__":
 
     def test( teststring ):
-        print teststring,"->",
+        print (teststring,"->",)
         try:
             tokens = simpleSQL.parseString( teststring )
             tokenlist = tokens.asList()
-            print tokenlist
-            print "tokens = ",        tokens
-            print "tokens.columns =", tokens.columns
-            print "tokens.tables =",  tokens.tables
-            print tokens.asXML("SQL",True)
-        except ParseException, err:
-            print err.line
-            print " "*(err.column-1) + "^"
-            print err
-        print
+            print (tokenlist)
+            print ("tokens = ",        tokens)
+            print ("tokens.columns =", tokens.columns)
+            print ("tokens.tables =",  tokens.tables)
+            print (tokens.asXML("SQL",True))
+        except ParseException,err:
+            print (err.line)
+            print (" "*(err.column-1) + "^")
+            print (err)
+        print()
 
     selectToken    = CaselessLiteral( "select" )
     fromToken      = CaselessLiteral( "from" )
