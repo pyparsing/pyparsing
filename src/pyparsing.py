@@ -58,8 +58,8 @@ The pyparsing module handles some of the problems that are typically vexing when
  - embedded comments
 """
 
-__version__ = "1.4.11"
-__versionTime__ = "10 February 2008 17:28"
+__version__ = "1.4.12"
+__versionTime__ = "17 April 2008 21:48"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -297,7 +297,7 @@ class ParseResults(object):
             removed = range(*i.indices(mylen))
             removed.reverse()
             # fixup indices in token dictionary
-            for name in self.__tokdict.keys():
+            for name in self.__tokdict:
                 occurrences = self.__tokdict[name]
                 for j in removed:
                     for k, (value, position) in enumerate(occurrences):
@@ -336,14 +336,14 @@ class ParseResults(object):
     def insert( self, index, insStr ):
         self.__toklist.insert(index, insStr)
         # fixup indices in token dictionary
-        for name in self.__tokdict.keys():
+        for name in self.__tokdict:
             occurrences = self.__tokdict[name]
             for k, (value, position) in enumerate(occurrences):
                 occurrences[k] = _ParseResultsWithOffset(value, position + (position > j))
         
     def items( self ): 
         """Returns all named result keys and values as a list of tuples."""
-        return [(k,self[k]) for k in self.__tokdict.keys()]
+        return [(k,self[k]) for k in self.__tokdict]
     
     def values( self ): 
         """Returns all named result values."""
@@ -737,17 +737,17 @@ class ParserElement(object):
                     return f()
             try:
                 tmp.__name__ = f.__name__
-            except AttributeError:
+            except (AttributeError,TypeError):
                 # no need for special handling if attribute doesnt exist
                 pass
             try:
                 tmp.__doc__ = f.__doc__
-            except AttributeError:
+            except (AttributeError,TypeError):
                 # no need for special handling if attribute doesnt exist
                 pass
             try:
                 tmp.__dict__.update(f.__dict__)
-            except AttributeError:
+            except (AttributeError,TypeError):
                 # no need for special handling if attribute doesnt exist
                 pass
             return tmp
@@ -907,10 +907,8 @@ class ParserElement(object):
         if lookup in ParserElement._exprArgCache:
             value = ParserElement._exprArgCache[ lookup ]
             if isinstance(value,Exception):
-                if isinstance(value,ParseBaseException):
-                    value.loc = loc
                 raise value
-            return (value[0],value[1].copy())
+            return value
         else:
             try:
                 value = self._parseNoCache( instring, loc, doActions, callPreParse )
@@ -950,10 +948,14 @@ class ParserElement(object):
             ParserElement._parse = ParserElement._parseCache
     enablePackrat = staticmethod(enablePackrat)
 
-    def parseString( self, instring ):
+    def parseString( self, instring, parseAll=False ):
         """Execute the parse expression with the given string.
            This is the main interface to the client code, once the complete 
            expression has been built.
+           
+           If you want the grammar to require that the entire input string be
+           successfully parsed, then set parseAll to True (equivalent to ending
+           the grammar with StringEnd()).
            
            Note: parseString implicitly calls expandtabs() on the input string,
            in order to report proper column numbers in parse actions.  
@@ -974,10 +976,11 @@ class ParserElement(object):
             #~ self.saveAsList = True
         for e in self.ignoreExprs:
             e.streamline()
-        if self.keepTabs:
-            loc, tokens = self._parse( instring, 0 )
-        else:
-            loc, tokens = self._parse( instring.expandtabs(), 0 )
+        if not self.keepTabs:
+            instring = instring.expandtabs()
+        loc, tokens = self._parse( instring, 0 )
+        if parseAll:
+            StringEnd()._parse( instring, loc )
         return tokens
 
     def scanString( self, instring, maxMatches=__MAX_INT__ ):
@@ -1068,8 +1071,21 @@ class ParserElement(object):
         if isinstance(other,int):
             minElements, optElements = other,0
         elif isinstance(other,tuple):
+            if len(other)==0:
+                other = (None,None)
+            elif len(other)==1:
+                other = (other[0],None)
             if len(other)==2:
-                if isinstance(other[0],int) and isinstance(other[1],int):
+                if other[0] is None:
+                    other = (0, other[1])
+                if isinstance(other[0],int) and other[1] is None:
+                    if other[0] == 0:
+                        return ZeroOrMore(self)
+                    if other[0] == 1:
+                        return OneOrMore(self)
+                    else:
+                        return self*other[0] + ZeroOrMore(self)
+                elif isinstance(other[0],int) and isinstance(other[1],int):
                     minElements, optElements = other
                     optElements -= minElements
                 else:
@@ -1093,11 +1109,17 @@ class ParserElement(object):
                 else:
                     return Optional(self)
             if minElements:
-                ret = And([self]*minElements)+ makeOptionalList(optElements)
+                if minElements == 1:
+                    ret = self + makeOptionalList(optElements)
+                else:
+                    ret = And([self]*minElements) + makeOptionalList(optElements)
             else:
                 ret = makeOptionalList(optElements)
         else:
-            ret = And([self]*minElements)
+            if minElements == 1:
+                ret = self
+            else:
+                ret = And([self]*minElements)
         return ret
     
     def __rmul__(self, other):
@@ -1284,6 +1306,9 @@ class ParserElement(object):
         else:
             return super(ParserElement,self)==other
     
+    def __hash__(self):
+        return hash(id(self))
+
     def __req__(self,other):
         return self == other
 
@@ -1627,7 +1652,7 @@ class Regex(Token):
         d = result.groupdict()
         ret = ParseResults(result.group())
         if d:
-            for k in d.keys():
+            for k in d:
                 ret[k] = d[k]
         return loc,ret
     
@@ -2331,13 +2356,16 @@ class Each(ParseExpression):
                 self.mayReturnEmpty = False
                 break
         self.skipWhitespace = True
-        self.optionals = [ e.expr for e in exprs if isinstance(e,Optional) ]
-        self.multioptionals = [ e.expr for e in exprs if isinstance(e,ZeroOrMore) ]
-        self.multirequired = [ e.expr for e in exprs if isinstance(e,OneOrMore) ]
-        self.required = [ e for e in exprs if not isinstance(e,(Optional,ZeroOrMore,OneOrMore)) ]
-        self.required += self.multirequired
+        self.initExprGroups = True
 
     def parseImpl( self, instring, loc, doActions=True ):
+        if self.initExprGroups:
+            self.optionals = [ e.expr for e in self.exprs if isinstance(e,Optional) ]
+            self.multioptionals = [ e.expr for e in self.exprs if isinstance(e,ZeroOrMore) ]
+            self.multirequired = [ e.expr for e in self.exprs if isinstance(e,OneOrMore) ]
+            self.required = [ e for e in self.exprs if not isinstance(e,(Optional,ZeroOrMore,OneOrMore)) ]
+            self.required += self.multirequired
+            self.initExprGroups = False
         tmpLoc = loc
         tmpReqd = self.required[:]
         tmpOpt  = self.optionals[:]
@@ -3231,9 +3259,11 @@ def operatorPrecedence( baseExpr, opList ):
           expression grammar; each tuple is of the form
           (opExpr, numTerms, rightLeftAssoc, parseAction), where:
            - opExpr is the pyparsing expression for the operator;
-              may also be a string, which will be converted to a Literal
+              may also be a string, which will be converted to a Literal;
+              if numTerms is 3, opExpr is a tuple of two expressions, for the 
+              two operators separating the 3 terms
            - numTerms is the number of terms for this operator (must
-              be 1 or 2)
+              be 1, 2, or 3)
            - rightLeftAssoc is the indicator whether the operator is
               right or left associative, using the pyparsing-defined
               constants opAssoc.RIGHT and opAssoc.LEFT.
@@ -3245,14 +3275,24 @@ def operatorPrecedence( baseExpr, opList ):
     lastExpr = baseExpr | ( Suppress('(') + ret + Suppress(')') )
     for i,operDef in enumerate(opList):
         opExpr,arity,rightLeftAssoc,pa = (operDef + (None,))[:4]
+        if arity == 3:
+            if opExpr is None or len(opExpr) != 2:
+                raise ValueError, "if numterms=3, opExpr must be a tuple or list of two expressions"
+            opExpr1, opExpr2 = opExpr
         thisExpr = Forward()#.setName("expr%d" % i)
         if rightLeftAssoc == opAssoc.LEFT:
             if arity == 1:
-                matchExpr = Group( FollowedBy(lastExpr + opExpr) + lastExpr + OneOrMore( opExpr ) )
+                matchExpr = FollowedBy(lastExpr + opExpr) + Group( lastExpr + OneOrMore( opExpr ) )
             elif arity == 2:
-                matchExpr = Group( FollowedBy(lastExpr + opExpr + lastExpr) + lastExpr + OneOrMore( opExpr + lastExpr ) )
+                if opExpr is not None:
+                    matchExpr = FollowedBy(lastExpr + opExpr + lastExpr) + Group( lastExpr + OneOrMore( opExpr + lastExpr ) )
+                else:
+                    matchExpr = FollowedBy(lastExpr+lastExpr) + Group( lastExpr + OneOrMore(lastExpr) )
+            elif arity == 3:
+                matchExpr = FollowedBy(lastExpr + opExpr1 + lastExpr + opExpr2 + lastExpr) + \
+                            Group( lastExpr + opExpr1 + lastExpr + opExpr2 + lastExpr )
             else:
-                raise ValueError, "operator must be unary (1) or binary (2)"
+                raise ValueError, "operator must be unary (1), binary (2), or ternary (3)"
         elif rightLeftAssoc == opAssoc.RIGHT:
             if arity == 1:
                 # try to avoid LR with this extra test
@@ -3260,9 +3300,15 @@ def operatorPrecedence( baseExpr, opList ):
                     opExpr = Optional(opExpr)
                 matchExpr = FollowedBy(opExpr.expr + thisExpr) + Group( opExpr + thisExpr ) 
             elif arity == 2:
-                matchExpr = Group( FollowedBy(lastExpr + opExpr + thisExpr) + lastExpr + OneOrMore( opExpr + thisExpr ) )
+                if opExpr is not None:
+                    matchExpr = FollowedBy(lastExpr + opExpr + thisExpr) + Group( lastExpr + OneOrMore( opExpr + thisExpr ) )
+                else:
+                    matchExpr = FollowedBy(lastExpr + thisExpr) + Group( lastExpr + OneOrMore( thisExpr ) )
+            elif arity == 3:
+                matchExpr = FollowedBy(lastExpr + opExpr1 + thisExpr + opExpr2 + thisExpr) + \
+                            Group( lastExpr + opExpr1 + thisExpr + opExpr2 + thisExpr )
             else:
-                raise ValueError, "operator must be unary (1) or binary (2)"
+                raise ValueError, "operator must be unary (1), binary (2), or ternary (3)"
         else:
             raise ValueError, "operator must indicate right or left associativity"
         if pa:
