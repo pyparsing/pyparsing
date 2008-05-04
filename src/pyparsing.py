@@ -59,7 +59,7 @@ The pyparsing module handles some of the problems that are typically vexing when
 """
 
 __version__ = "1.4.12"
-__versionTime__ = "17 April 2008 21:48"
+__versionTime__ = "2 May 2008 02:10"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -3348,7 +3348,12 @@ def nestedExpr(opener="(", closer=")", content=None, ignoreExpr=quotedString):
         raise ValueError("opening and closing strings cannot be the same")
     if content is None:
         if isinstance(opener,__BASE_STRING__) and isinstance(closer,__BASE_STRING__):
-            content = (empty+CharsNotIn(opener+closer+ParserElement.DEFAULT_WHITE_CHARS).setParseAction(lambda t:t[0].strip()))
+            if ignoreExpr is not None:
+                content = (Combine(OneOrMore(~ignoreExpr + 
+                                CharsNotIn(opener+closer+ParserElement.DEFAULT_WHITE_CHARS,exact=1))
+                            ).setParseAction(lambda t:t[0].strip()))
+            else:
+                content = (empty+CharsNotIn(opener+closer+ParserElement.DEFAULT_WHITE_CHARS).setParseAction(lambda t:t[0].strip()))
         else:
             raise ValueError("opening and closing arguments must be strings if no content expression is given")
     ret = Forward()
