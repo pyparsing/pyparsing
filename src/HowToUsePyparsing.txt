@@ -5,10 +5,10 @@ Using the pyparsing module
 :author: Paul McGuire
 :address: ptmcg@users.sourceforge.net
 
-:revision: 1.4.10
-:date: December, 2007
+:revision: 1.5.0
+:date: June, 2008
 
-:copyright: Copyright |copy| 2003-2007 Paul McGuire. 
+:copyright: Copyright |copy| 2003-2008 Paul McGuire. 
 
 .. |copy| unicode:: 0xA9
 
@@ -63,6 +63,20 @@ The parsed tokens are returned in the following form::
     ['Hello', ',', 'World', '!']
     
 
+New features in 1.5.0
+---------------------
+Some of the significant features added in version 1.5.0 are:
+
+- ``indentedBlock`` helper method to define grammars using block indentation for grouping (like Python)
+
+- new parameter ``parseAll`` in ``ParserElement.parseString``
+
+- operator '-' for combining ParserElements; similar to the '+' operator, but raises an immediate
+  ``ParseSyntaxException`` if an expression after the '-' operator fails to match; using '-' can 
+  provide error messages that are more useful for application users to find syntax errors in their
+  input text
+
+
 Usage notes
 -----------
 
@@ -73,8 +87,8 @@ Usage notes
   matching patterns may accept invalid inputs.  Use pyparsing to
   extract data from strings assumed to be well-formatted.  
 
-- To keep up the readability of your code, use the ``+``, ``|``, 
-  ``^``, and ``~`` operators to combine expressions.  You can also combine
+- To keep up the readability of your code, use operators_  such as ``+``, ``|``, 
+  ``^``, and ``~`` to combine expressions.  You can also combine
   string literals with ParseExpressions - they will be
   automatically converted to Literal objects.  For example::
   
@@ -101,6 +115,61 @@ Usage notes
   nesting with parentheses, floating point numbers, scientific notation, and named constants 
   (such as ``e`` or ``pi``).  See ``fourFn.py``, included in the examples directory.
 
+- To modify pyparsing's default whitespace skipping, you can use one or
+  more of the following methods:
+  
+  - use the static method ``ParserElement.setDefaultWhitespaceChars``
+    to override the normal set of whitespace chars (' \t\n').  For instance
+    when defining a grammar in which newlines are significant, you should
+    call ``ParserElement.setDefaultWhitespaceChars(' \t')`` to remove 
+    newline from the set of skippable whitespace characters.  Calling
+    this method will affect all pyparsing expressions defined afterward.
+    
+  - call ``leaveWhitespace()`` on individual expressions, to suppress the 
+    skipping of whitespace before trying to match the expression
+    
+  - use ``Combine`` to require that successive expressions must be
+    adjacent in the input string.  For instance, this expression::
+    
+      real = Word(nums) + '.' + Word(nums)
+    
+    will match "3.14159", but will also match "3 . 12".  It will also 
+    return the matched results as ['3', '.', '14159'].  By changing this
+    expression to::
+    
+      real = Combine( Word(nums) + '.' + Word(nums) )
+    
+    it will not match numbers with embedded spaces, and it will return a
+    single concatenated string '3.14159' as the parsed token.
+
+- Repetition of expressions can be indicated using the '*' operator.  An
+  expression may be multiplied by an integer value (to indicate an exact
+  repetition count), or by a tuple containing
+  two integers, or None and an integer, representing min and max repetitions
+  (with None representing no min or no max, depending whether it is the first or
+  second tuple element).  See the following examples, where n is used to 
+  indicate an integer value:
+
+  - ``expr*3`` is equivalent to ``expr + expr + expr``
+  
+  - ``expr*(2,3)`` is equivalent to ``expr + expr + Optional(expr)``
+  
+  - ``expr*(n,None)`` or ``expr*(n,)`` is equivalent
+    to ``expr*n + ZeroOrMore(expr)`` (read as "at least n instances of expr")
+    
+  - ``expr*(None,n)`` is equivalent to ``expr*(0,n)``
+    (read as "0 to n instances of expr")
+    
+  - ``expr*(None,None)`` is equivalent to ``ZeroOrMore(expr)``
+  
+  - ``expr*(1,None)`` is equivalent to ``OneOrMore(expr)``
+
+  Note that ``expr*(None,n)`` does not raise an exception if
+  more than n exprs exist in the input stream; that is,
+  ``expr*(None,n)`` does not enforce a maximum number of expr
+  occurrences.  If this behavior is desired, then write
+  ``expr*(None,n) + ~expr``.
+  
 - ``MatchFirst`` expressions are matched left-to-right, and the first
   match found will skip all later expressions within, so be sure
   to define less-specific patterns after more-specific patterns.
@@ -115,7 +184,7 @@ Usage notes
   left-most expression in the ``Or`` list will win.
 
 - If parsing the contents of an entire file, pass it to the
-  parseFile method using::
+  ``parseFile`` method using::
     
     expr.parseFile( sourceFile )
     
@@ -150,8 +219,8 @@ Usage notes
 - Results names are recommended for retrieving tokens from complex
   expressions.  It is much easier to access a token using its field
   name than using a positional index, especially if the expression 
-  contains optional elements.  ***NEW IN 1.4.7***  You can now shortcut
-  the setResultsName call::
+  contains optional elements.  You can also shortcut
+  the ``setResultsName`` call::
   
     stats = "AVE:" + realNum.setResultsName("average") + \
             "MIN:" + realNum.setResultsName("min") + \
@@ -165,8 +234,7 @@ Usage notes
   
 - Be careful when defining parse actions that modify global variables or
   data structures (as in ``fourFn.py``), especially for low level tokens 
-  or expressions 
-  that may occur within an ``And`` expression; an early element 
+  or expressions that may occur within an ``And`` expression; an early element 
   of an ``And`` may match, but the overall expression may fail.
 
 - Performance of pyparsing may be slow for complex grammars and/or large
@@ -186,10 +254,12 @@ Classes in the pyparsing module
 ``ParserElement`` - abstract base class for all pyparsing classes;
 methods for code to use are:
 
-- ``parseString( sourceString )`` - only called once, on the overall
+- ``parseString( sourceString, parseAll=False )`` - only called once, on the overall
   matching pattern; returns a ParseResults_ object that makes the
   matched tokens available as a list, and optionally as a dictionary, 
-  or as an object with named attributes
+  or as an object with named attributes; if parseAll is set to True, then
+  parseString will raise a ParseException if the grammar does not process
+  the complete input string.
 
 - ``parseFile( sourceFile )`` - a convenience function, that accepts an
   input file object or filename.  The file contents are passed as a 
@@ -348,8 +418,8 @@ Basic ParserElement subclasses
   define an identifier that can only be composed of capital letters and
   underscores, use::
   
-  - Word( "ABCDEFGHIJKLMNOPQRSTUVWXYZ" )
-  - Word( srange("[A-Z]")
+  - Word( "ABCDEFGHIJKLMNOPQRSTUVWXYZ_" )
+  - Word( srange("[A-Z_]") )
 
   A Word may
   also be constructed with any of the following optional parameters:
@@ -431,6 +501,20 @@ Expression subclasses
   
     usPhoneNumber = Word(nums) + ('-'+Word(nums))*(1,2)
 
+  A special form of ``And`` is created if the '-' operator is used 
+  instead of the '+' operator.  In the ipAddress example above, if
+  no trailing '.' and Word(nums) are found after matching the initial
+  Word(nums), then pyparsing will back up in the grammar and try other
+  alternatives to ipAddress.  However, if ipAddress is defined as::
+  
+    strictIpAddress = Word(nums) - ('.'+Word(nums))*3
+    
+  then no backing up is done.  If the first Word(nums) of strictIpAddress
+  is matched, then any mismatch after that will raise a ParseSyntaxException,
+  which will halt the parsing process immediately.  By careful use of the
+  '-' operator, grammars can provide meaningful error messages close to 
+  the location where the incoming text does not match the specified
+  grammar.
 
 - ``Or`` - construct with a list of ParserElements, any of which must
   match for Or to match; if more than one expression matches, the
@@ -465,6 +549,28 @@ Expression subclasses
   can also be created using the unary '~' operator
 
 
+.. _operators:
+
+Expression operators
+--------------------
+
+- ``+`` - consecutive sequence
+
+- ``|`` - match first alternative
+
+- ``^`` - match longest alternative
+
+- ``&`` - match each alternative, in any order
+
+- ``-`` - like ``+`` but with no backup and retry of alternatives
+
+- ``*`` - repetition of expression
+
+- ``==`` - matching expression to string; returns True if the string matches the given expression
+
+- ``<<`` - expression definition for Forward expressions
+
+
 Positional subclasses
 ---------------------
 
@@ -476,11 +582,17 @@ Positional subclasses
 
 - ``LineEnd`` - matches the end of a line
 
+- ``WordStart`` - matches a leading word boundary
+
+- ``WordEnd`` - matches a trailing word boundary
+
+
 
 Converter subclasses
 --------------------
 
-- ``Upcase`` - converts matched tokens to uppercase
+- ``Upcase`` - converts matched tokens to uppercase (deprecated -
+  use ``upcaseTokens`` parse action instead)
 
 - ``Combine`` - joins all matched tokens into a single string, using
   specified joinString (default ``joinString=""``); expects
@@ -548,11 +660,14 @@ Other classes
     - list elements that are deleted using ``del`` will still be accessible by their
       dictionary keys
       
-    - supports ``items()`` and ``keys()`` methods, similar to a dictionary
+    - supports ``get()``, ``items()`` and ``keys()`` methods, similar to a dictionary
     
     - a keyed item can be extracted and removed using ``pop(key)``.  Here
       key must be non-numeric (such as a string), in order to use dict 
       extraction instead of list extraction.
+      
+    - new named elements can be added (in a parse action, for instance), using the same
+      syntax as adding an item to a dict (``parseResults["X"]="new item"``); named elements can be removed using ``del parseResults["X"]``
       
   - as a nested list
   
@@ -604,6 +719,10 @@ Exception classes and Troubleshooting
   immediately.  Should be used when a semantic error is found in the input text, such
   as a mismatched XML tag.
 
+- ``ParseSyntaxException`` - subclass of ``ParseFatalException`` raised when a
+  syntax error is found, based on the use of the '-' operator when defining
+  a sequence of expressions in an ``And`` expression.
+
 You can also get some insights into the parsing logic using diagnostic parse actions,
 and setDebug(), or test the matching of expression fragments by testing them using 
 scanString().
@@ -620,8 +739,8 @@ Helper methods
   By default, the delimiters are suppressed, so the returned results contain
   only the separate list elements.  Can optionally specify ``combine=True``,
   indicating that the expressions and delimiters should be returned as one
-  combined value (useful for scoped variables, such as ``a.b.c``, or 
-  ``a::b::c``, or paths such as ``a/b/c``).
+  combined value (useful for scoped variables, such as "a.b.c", or 
+  "a::b::c", or paths such as "a/b/c").
 
 - ``countedArray( expr )`` - convenience function for a pattern where an list of
   instances of the given expression are preceded by an integer giving the count of
@@ -640,11 +759,9 @@ Helper methods
 - ``dictOf( key, value )`` - convenience function for quickly declaring a 
   dictionary pattern of ``Dict( ZeroOrMore( Group( key + value ) ) )``.
 
-- ``nestedExpr(opener, closer, content, ignoreExpr)`` -helper method for defining 
+- ``nestedExpr(opener, closer, content, ignoreExpr)`` - helper method for defining 
   nested lists enclosed in opening and closing delimiters ("(" and ")" are the default).
 
-  Parameters:
-  
   - opener - opening character for a nested list (default="("); can also be a pyparsing expression
   
   - closer - closing character for a nested list (default=")"); can also be a pyparsing expression
@@ -673,17 +790,19 @@ Helper methods
       
   2.  Define a list of tuples for each level of operator
       precendence.  Each tuple is of the form
-      (opExpr, numTerms, rightLeftAssoc, parseAction), where:
+      ``(opExpr, numTerms, rightLeftAssoc, parseAction)``, where:
       
       - opExpr is the pyparsing expression for the operator;
-        may also be a string, which will be converted to a Literal
+        may also be a string, which will be converted to a Literal; if
+        None, indicates an empty operator, such as the implied
+        multiplication operation between 'm' and 'x' in "y = mx + b".
       
       - numTerms is the number of terms for this operator (must
         be 1 or 2)
       
       - rightLeftAssoc is the indicator whether the operator is
         right or left associative, using the pyparsing-defined
-        constants opAssoc.RIGHT and opAssoc.LEFT.
+        constants ``opAssoc.RIGHT`` and ``opAssoc.LEFT``.
       
       - parseAction is the parse action to be associated with 
         expressions matching this operator expression (the
@@ -712,7 +831,48 @@ Helper methods
            
   will *not* match the leading "1:1" in "1:10"; the expressions are
   evaluated first, and then compared, so "1" is compared with "10".
+
+- ``nestedExpr(opener, closer, content=None, ignoreExpr=quotedString)`` - method for defining nested 
+  lists enclosed in opening and closing delimiters.
+
+  - opener - opening character for a nested list (default="("); can also be a pyparsing expression
+    
+  - closer - closing character for a nested list (default=")"); can also be a pyparsing expression
+    
+  - content - expression for items within the nested lists (default=None)
+    
+  - ignoreExpr - expression for ignoring opening and closing delimiters (default=quotedString)
+
+  If an expression is not provided for the content argument, the nested
+  expression will capture all whitespace-delimited content between delimiters
+  as a list of separate values.
+
+  Use the ignoreExpr argument to define expressions that may contain
+  opening or closing characters that should not be treated as opening
+  or closing characters for nesting, such as quotedString or a comment
+  expression.  Specify multiple expressions using an Or or MatchFirst.
+  The default is quotedString, but if no expressions are to be ignored,
+  then pass None for this argument.
+
+
+- ``indentedBlock( statementExpr, indentationStackVar, indent=True)`` -
+  function to define an indented block of statements, similar to 
+  indentation-based blocking in Python source code:
   
+  - statementExpr is the expression defining a statement that
+    will be found in the indented block; a valid indentedBlock
+    must contain at least 1 matching statementExpr
+       
+  - indentationStackVar is a Python list variable; this variable
+    should be common to all ``indentedBlock`` expressions defined
+    within the same grammar, and should be reinitialized to [1]
+    each time the grammar is to be used
+        
+  - indent is a boolean flag indicating whether the expressions
+    within the block must be indented from the current parse
+    location; if using indentedBlock to define the left-most
+    statements (all starting in column 1), set indent to False
+        
   
 - ``lineno( loc, string )`` - function to give the line number of the
   location within the string; the first line is line 1, newlines
@@ -763,14 +923,23 @@ Helper parse actions
   
   ``withAttribute`` can be called with:
   
-  - keyword arguments, as in (class="Customer",align="right"), or
+  - keyword arguments, as in ``(class="Customer",align="right")``, or
   
-  - a list of name-value tuples, as in ( ("ns1:class", "Customer"), ("ns2:align","right") )
+  - a list of name-value tuples, as in ``( ("ns1:class", "Customer"), ("ns2:align","right") )``
 
+  An attribute can be specified to have the special value 
+  ``withAttribute.ANY_VALUE``, which will match any value - use this to 
+  ensure that an attribute is present but any attribute value is
+  acceptable.
 
-- ``downcase`` - converts all matched tokens to lowercase
+- ``downcaseTokens`` - converts all matched tokens to lowercase
 
-- ``upcase`` - converts all matched tokens to uppercase
+- ``upcaseTokens`` - converts all matched tokens to uppercase
+
+- ``matchOnlyAtCol( columnNumber )`` - a parse action that verifies that
+  an expression was matched at a particular column, raising a 
+  ParseException if matching at a different column number; useful when parsing
+  tabular data
 
 
 

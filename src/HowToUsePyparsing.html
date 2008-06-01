@@ -6,8 +6,8 @@
 <meta name="generator" content="Docutils 0.4: http://docutils.sourceforge.net/" />
 <title>Using the pyparsing module</title>
 <meta name="author" content="Paul McGuire" />
-<meta name="date" content="December, 2007" />
-<meta name="copyright" content="Copyright © 2003-2007 Paul McGuire." />
+<meta name="date" content="June, 2008" />
+<meta name="copyright" content="Copyright © 2003-2008 Paul McGuire." />
 <style type="text/css">
 
 /*
@@ -307,11 +307,11 @@ ul.auto-toc {
 </pre>
 </td></tr>
 <tr><th class="docinfo-name">Revision:</th>
-<td>1.4.10</td></tr>
+<td>1.5.0</td></tr>
 <tr><th class="docinfo-name">Date:</th>
-<td>December, 2007</td></tr>
+<td>June, 2008</td></tr>
 <tr><th class="docinfo-name">Copyright:</th>
-<td>Copyright © 2003-2007 Paul McGuire.</td></tr>
+<td>Copyright © 2003-2008 Paul McGuire.</td></tr>
 </tbody>
 </table>
 <table class="docutils field-list" frame="void" rules="none">
@@ -332,24 +332,26 @@ extracting data from formatted reports.</td>
 <ul class="auto-toc simple">
 <li><a class="reference" href="#steps-to-follow" id="id1" name="id1">1&nbsp;&nbsp;&nbsp;Steps to follow</a><ul class="auto-toc">
 <li><a class="reference" href="#hello-world" id="id2" name="id2">1.1&nbsp;&nbsp;&nbsp;Hello, World!</a></li>
-<li><a class="reference" href="#usage-notes" id="id3" name="id3">1.2&nbsp;&nbsp;&nbsp;Usage notes</a></li>
+<li><a class="reference" href="#new-features-in-1-5-0" id="id3" name="id3">1.2&nbsp;&nbsp;&nbsp;New features in 1.5.0</a></li>
+<li><a class="reference" href="#usage-notes" id="id4" name="id4">1.3&nbsp;&nbsp;&nbsp;Usage notes</a></li>
 </ul>
 </li>
-<li><a class="reference" href="#classes" id="id4" name="id4">2&nbsp;&nbsp;&nbsp;Classes</a><ul class="auto-toc">
-<li><a class="reference" href="#classes-in-the-pyparsing-module" id="id5" name="id5">2.1&nbsp;&nbsp;&nbsp;Classes in the pyparsing module</a></li>
-<li><a class="reference" href="#basic-parserelement-subclasses" id="id6" name="id6">2.2&nbsp;&nbsp;&nbsp;Basic ParserElement subclasses</a></li>
-<li><a class="reference" href="#expression-subclasses" id="id7" name="id7">2.3&nbsp;&nbsp;&nbsp;Expression subclasses</a></li>
-<li><a class="reference" href="#positional-subclasses" id="id8" name="id8">2.4&nbsp;&nbsp;&nbsp;Positional subclasses</a></li>
-<li><a class="reference" href="#converter-subclasses" id="id9" name="id9">2.5&nbsp;&nbsp;&nbsp;Converter subclasses</a></li>
-<li><a class="reference" href="#special-subclasses" id="id10" name="id10">2.6&nbsp;&nbsp;&nbsp;Special subclasses</a></li>
-<li><a class="reference" href="#other-classes" id="id11" name="id11">2.7&nbsp;&nbsp;&nbsp;Other classes</a></li>
-<li><a class="reference" href="#exception-classes-and-troubleshooting" id="id12" name="id12">2.8&nbsp;&nbsp;&nbsp;Exception classes and Troubleshooting</a></li>
+<li><a class="reference" href="#classes" id="id5" name="id5">2&nbsp;&nbsp;&nbsp;Classes</a><ul class="auto-toc">
+<li><a class="reference" href="#classes-in-the-pyparsing-module" id="id6" name="id6">2.1&nbsp;&nbsp;&nbsp;Classes in the pyparsing module</a></li>
+<li><a class="reference" href="#basic-parserelement-subclasses" id="id7" name="id7">2.2&nbsp;&nbsp;&nbsp;Basic ParserElement subclasses</a></li>
+<li><a class="reference" href="#expression-subclasses" id="id8" name="id8">2.3&nbsp;&nbsp;&nbsp;Expression subclasses</a></li>
+<li><a class="reference" href="#expression-operators" id="id9" name="id9">2.4&nbsp;&nbsp;&nbsp;Expression operators</a></li>
+<li><a class="reference" href="#positional-subclasses" id="id10" name="id10">2.5&nbsp;&nbsp;&nbsp;Positional subclasses</a></li>
+<li><a class="reference" href="#converter-subclasses" id="id11" name="id11">2.6&nbsp;&nbsp;&nbsp;Converter subclasses</a></li>
+<li><a class="reference" href="#special-subclasses" id="id12" name="id12">2.7&nbsp;&nbsp;&nbsp;Special subclasses</a></li>
+<li><a class="reference" href="#other-classes" id="id13" name="id13">2.8&nbsp;&nbsp;&nbsp;Other classes</a></li>
+<li><a class="reference" href="#exception-classes-and-troubleshooting" id="id14" name="id14">2.9&nbsp;&nbsp;&nbsp;Exception classes and Troubleshooting</a></li>
 </ul>
 </li>
-<li><a class="reference" href="#miscellaneous-attributes-and-methods" id="id13" name="id13">3&nbsp;&nbsp;&nbsp;Miscellaneous attributes and methods</a><ul class="auto-toc">
-<li><a class="reference" href="#helper-methods" id="id14" name="id14">3.1&nbsp;&nbsp;&nbsp;Helper methods</a></li>
-<li><a class="reference" href="#helper-parse-actions" id="id15" name="id15">3.2&nbsp;&nbsp;&nbsp;Helper parse actions</a></li>
-<li><a class="reference" href="#common-string-and-token-constants" id="id16" name="id16">3.3&nbsp;&nbsp;&nbsp;Common string and token constants</a></li>
+<li><a class="reference" href="#miscellaneous-attributes-and-methods" id="id15" name="id15">3&nbsp;&nbsp;&nbsp;Miscellaneous attributes and methods</a><ul class="auto-toc">
+<li><a class="reference" href="#helper-methods" id="id16" name="id16">3.1&nbsp;&nbsp;&nbsp;Helper methods</a></li>
+<li><a class="reference" href="#helper-parse-actions" id="id17" name="id17">3.2&nbsp;&nbsp;&nbsp;Helper parse actions</a></li>
+<li><a class="reference" href="#common-string-and-token-constants" id="id18" name="id18">3.3&nbsp;&nbsp;&nbsp;Common string and token constants</a></li>
 </ul>
 </li>
 </ul>
@@ -389,7 +391,19 @@ print greeting
 </pre>
 </div>
 <div class="section">
-<h2><a class="toc-backref" href="#id3" id="usage-notes" name="usage-notes">1.2&nbsp;&nbsp;&nbsp;Usage notes</a></h2>
+<h2><a class="toc-backref" href="#id3" id="new-features-in-1-5-0" name="new-features-in-1-5-0">1.2&nbsp;&nbsp;&nbsp;New features in 1.5.0</a></h2>
+<p>Some of the significant features added in version 1.5.0 are:</p>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">indentedBlock</span></tt> helper method to define grammars using block indentation for grouping (like Python)</li>
+<li>new parameter <tt class="docutils literal"><span class="pre">parseAll</span></tt> in <tt class="docutils literal"><span class="pre">ParserElement.parseString</span></tt></li>
+<li>operator '-' for combining ParserElements; similar to the '+' operator, but raises an immediate
+<tt class="docutils literal"><span class="pre">ParseSyntaxException</span></tt> if an expression after the '-' operator fails to match; using '-' can
+provide error messages that are more useful for application users to find syntax errors in their
+input text</li>
+</ul>
+</div>
+<div class="section">
+<h2><a class="toc-backref" href="#id4" id="usage-notes" name="usage-notes">1.3&nbsp;&nbsp;&nbsp;Usage notes</a></h2>
 <ul>
 <li><p class="first">The pyparsing module can be used to interpret simple command
 strings or algebraic expressions, or can be used to extract data
@@ -398,8 +412,8 @@ or report scraping&quot;).  However, it is possible that your defined
 matching patterns may accept invalid inputs.  Use pyparsing to
 extract data from strings assumed to be well-formatted.</p>
 </li>
-<li><p class="first">To keep up the readability of your code, use the <tt class="docutils literal"><span class="pre">+</span></tt>, <tt class="docutils literal"><span class="pre">|</span></tt>,
-<tt class="docutils literal"><span class="pre">^</span></tt>, and <tt class="docutils literal"><span class="pre">~</span></tt> operators to combine expressions.  You can also combine
+<li><p class="first">To keep up the readability of your code, use <a class="reference" href="#operators">operators</a>  such as <tt class="docutils literal"><span class="pre">+</span></tt>, <tt class="docutils literal"><span class="pre">|</span></tt>,
+<tt class="docutils literal"><span class="pre">^</span></tt>, and <tt class="docutils literal"><span class="pre">~</span></tt> to combine expressions.  You can also combine
 string literals with ParseExpressions - they will be
 automatically converted to Literal objects.  For example:</p>
 <pre class="literal-block">
@@ -426,6 +440,58 @@ r= 1234/ 100000
 nesting with parentheses, floating point numbers, scientific notation, and named constants
 (such as <tt class="docutils literal"><span class="pre">e</span></tt> or <tt class="docutils literal"><span class="pre">pi</span></tt>).  See <tt class="docutils literal"><span class="pre">fourFn.py</span></tt>, included in the examples directory.</p>
 </li>
+<li><p class="first">To modify pyparsing's default whitespace skipping, you can use one or
+more of the following methods:</p>
+<ul>
+<li><p class="first">use the static method <tt class="docutils literal"><span class="pre">ParserElement.setDefaultWhitespaceChars</span></tt>
+to override the normal set of whitespace chars (' tn').  For instance
+when defining a grammar in which newlines are significant, you should
+call <tt class="docutils literal"><span class="pre">ParserElement.setDefaultWhitespaceChars('</span> <span class="pre">\t')</span></tt> to remove
+newline from the set of skippable whitespace characters.  Calling
+this method will affect all pyparsing expressions defined afterward.</p>
+</li>
+<li><p class="first">call <tt class="docutils literal"><span class="pre">leaveWhitespace()</span></tt> on individual expressions, to suppress the
+skipping of whitespace before trying to match the expression</p>
+</li>
+<li><p class="first">use <tt class="docutils literal"><span class="pre">Combine</span></tt> to require that successive expressions must be
+adjacent in the input string.  For instance, this expression:</p>
+<pre class="literal-block">
+real = Word(nums) + '.' + Word(nums)
+</pre>
+<p>will match &quot;3.14159&quot;, but will also match &quot;3 . 12&quot;.  It will also
+return the matched results as ['3', '.', '14159'].  By changing this
+expression to:</p>
+<pre class="literal-block">
+real = Combine( Word(nums) + '.' + Word(nums) )
+</pre>
+<p>it will not match numbers with embedded spaces, and it will return a
+single concatenated string '3.14159' as the parsed token.</p>
+</li>
+</ul>
+</li>
+<li><p class="first">Repetition of expressions can be indicated using the '*' operator.  An
+expression may be multiplied by an integer value (to indicate an exact
+repetition count), or by a tuple containing
+two integers, or None and an integer, representing min and max repetitions
+(with None representing no min or no max, depending whether it is the first or
+second tuple element).  See the following examples, where n is used to
+indicate an integer value:</p>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">expr*3</span></tt> is equivalent to <tt class="docutils literal"><span class="pre">expr</span> <span class="pre">+</span> <span class="pre">expr</span> <span class="pre">+</span> <span class="pre">expr</span></tt></li>
+<li><tt class="docutils literal"><span class="pre">expr*(2,3)</span></tt> is equivalent to <tt class="docutils literal"><span class="pre">expr</span> <span class="pre">+</span> <span class="pre">expr</span> <span class="pre">+</span> <span class="pre">Optional(expr)</span></tt></li>
+<li><tt class="docutils literal"><span class="pre">expr*(n,None)</span></tt> or <tt class="docutils literal"><span class="pre">expr*(n,)</span></tt> is equivalent
+to <tt class="docutils literal"><span class="pre">expr*n</span> <span class="pre">+</span> <span class="pre">ZeroOrMore(expr)</span></tt> (read as &quot;at least n instances of expr&quot;)</li>
+<li><tt class="docutils literal"><span class="pre">expr*(None,n)</span></tt> is equivalent to <tt class="docutils literal"><span class="pre">expr*(0,n)</span></tt>
+(read as &quot;0 to n instances of expr&quot;)</li>
+<li><tt class="docutils literal"><span class="pre">expr*(None,None)</span></tt> is equivalent to <tt class="docutils literal"><span class="pre">ZeroOrMore(expr)</span></tt></li>
+<li><tt class="docutils literal"><span class="pre">expr*(1,None)</span></tt> is equivalent to <tt class="docutils literal"><span class="pre">OneOrMore(expr)</span></tt></li>
+</ul>
+<p>Note that <tt class="docutils literal"><span class="pre">expr*(None,n)</span></tt> does not raise an exception if
+more than n exprs exist in the input stream; that is,
+<tt class="docutils literal"><span class="pre">expr*(None,n)</span></tt> does not enforce a maximum number of expr
+occurrences.  If this behavior is desired, then write
+<tt class="docutils literal"><span class="pre">expr*(None,n)</span> <span class="pre">+</span> <span class="pre">~expr</span></tt>.</p>
+</li>
 <li><p class="first"><tt class="docutils literal"><span class="pre">MatchFirst</span></tt> expressions are matched left-to-right, and the first
 match found will skip all later expressions within, so be sure
 to define less-specific patterns after more-specific patterns.
@@ -440,7 +506,7 @@ the longest string in the input data.  In case of a tie, the
 left-most expression in the <tt class="docutils literal"><span class="pre">Or</span></tt> list will win.</p>
 </li>
 <li><p class="first">If parsing the contents of an entire file, pass it to the
-parseFile method using:</p>
+<tt class="docutils literal"><span class="pre">parseFile</span></tt> method using:</p>
 <pre class="literal-block">
 expr.parseFile( sourceFile )
 </pre>
@@ -473,10 +539,26 @@ returned output.</p>
 <li><p class="first">Parse actions can be used to convert values from strings to
 other data types (ints, floats, booleans, etc.).</p>
 </li>
+<li><p class="first">Results names are recommended for retrieving tokens from complex
+expressions.  It is much easier to access a token using its field
+name than using a positional index, especially if the expression
+contains optional elements.  You can also shortcut
+the <tt class="docutils literal"><span class="pre">setResultsName</span></tt> call:</p>
+<pre class="literal-block">
+stats = &quot;AVE:&quot; + realNum.setResultsName(&quot;average&quot;) + \
+        &quot;MIN:&quot; + realNum.setResultsName(&quot;min&quot;) + \
+        &quot;MAX:&quot; + realNum.setResultsName(&quot;max&quot;)
+</pre>
+<p>can now be written as this:</p>
+<pre class="literal-block">
+stats = &quot;AVE:&quot; + realNum(&quot;average&quot;) + \
+        &quot;MIN:&quot; + realNum(&quot;min&quot;) + \
+        &quot;MAX:&quot; + realNum(&quot;max&quot;)
+</pre>
+</li>
 <li><p class="first">Be careful when defining parse actions that modify global variables or
 data structures (as in <tt class="docutils literal"><span class="pre">fourFn.py</span></tt>), especially for low level tokens
-or expressions
-that may occur within an <tt class="docutils literal"><span class="pre">And</span></tt> expression; an early element
+or expressions that may occur within an <tt class="docutils literal"><span class="pre">And</span></tt> expression; an early element
 of an <tt class="docutils literal"><span class="pre">And</span></tt> may match, but the overall expression may fail.</p>
 </li>
 <li><p class="first">Performance of pyparsing may be slow for complex grammars and/or large
@@ -488,16 +570,18 @@ improvments have been in the 20-50% range.</p>
 </div>
 </div>
 <div class="section">
-<h1><a class="toc-backref" href="#id4" id="classes" name="classes">2&nbsp;&nbsp;&nbsp;Classes</a></h1>
+<h1><a class="toc-backref" href="#id5" id="classes" name="classes">2&nbsp;&nbsp;&nbsp;Classes</a></h1>
 <div class="section">
-<h2><a class="toc-backref" href="#id5" id="classes-in-the-pyparsing-module" name="classes-in-the-pyparsing-module">2.1&nbsp;&nbsp;&nbsp;Classes in the pyparsing module</a></h2>
+<h2><a class="toc-backref" href="#id6" id="classes-in-the-pyparsing-module" name="classes-in-the-pyparsing-module">2.1&nbsp;&nbsp;&nbsp;Classes in the pyparsing module</a></h2>
 <p><tt class="docutils literal"><span class="pre">ParserElement</span></tt> - abstract base class for all pyparsing classes;
 methods for code to use are:</p>
 <ul>
-<li><p class="first"><tt class="docutils literal"><span class="pre">parseString(</span> <span class="pre">sourceString</span> <span class="pre">)</span></tt> - only called once, on the overall
+<li><p class="first"><tt class="docutils literal"><span class="pre">parseString(</span> <span class="pre">sourceString,</span> <span class="pre">parseAll=False</span> <span class="pre">)</span></tt> - only called once, on the overall
 matching pattern; returns a <a class="reference" href="#parseresults">ParseResults</a> object that makes the
 matched tokens available as a list, and optionally as a dictionary,
-or as an object with named attributes</p>
+or as an object with named attributes; if parseAll is set to True, then
+parseString will raise a ParseException if the grammar does not process
+the complete input string.</p>
 </li>
 <li><p class="first"><tt class="docutils literal"><span class="pre">parseFile(</span> <span class="pre">sourceFile</span> <span class="pre">)</span></tt> - a convenience function, that accepts an
 input file object or filename.  The file contents are passed as a
@@ -559,11 +643,14 @@ intNumber = Word(nums).setParseAction( lambda s,l,t: [ int(t[0]) ] )
 <p>If <tt class="docutils literal"><span class="pre">fn</span></tt> does not modify the <tt class="docutils literal"><span class="pre">toks</span></tt> list, it does not need to return
 anything at all.</p>
 </li>
+<li><p class="first"><tt class="docutils literal"><span class="pre">setBreak(</span> <span class="pre">breakFlag=True</span> <span class="pre">)</span></tt> - if breakFlag is True, calls pdb.set_break()
+as this expression is about to be parsed</p>
+</li>
 <li><p class="first"><tt class="docutils literal"><span class="pre">copy()</span></tt> - returns a copy of a ParserElement; can be used to use the same
 parse expression in different places in a grammar, with different parse actions
 attached to each</p>
 </li>
-<li><p class="first"><tt class="docutils literal"><span class="pre">leaveWhiteSpace()</span></tt> - change default behavior of skipping
+<li><p class="first"><tt class="docutils literal"><span class="pre">leaveWhitespace()</span></tt> - change default behavior of skipping
 whitespace before starting matching (mostly used internally to the
 pyparsing module, rarely used by client code)</p>
 </li>
@@ -608,7 +695,7 @@ after importing pyparsing.</li>
 </ul>
 </div>
 <div class="section">
-<h2><a class="toc-backref" href="#id6" id="basic-parserelement-subclasses" name="basic-parserelement-subclasses">2.2&nbsp;&nbsp;&nbsp;Basic ParserElement subclasses</a></h2>
+<h2><a class="toc-backref" href="#id7" id="basic-parserelement-subclasses" name="basic-parserelement-subclasses">2.2&nbsp;&nbsp;&nbsp;Basic ParserElement subclasses</a></h2>
 <ul class="simple">
 <li><tt class="docutils literal"><span class="pre">Literal</span></tt> - construct with a string to be matched exactly</li>
 <li><tt class="docutils literal"><span class="pre">CaselessLiteral</span></tt> - construct with a string to be matched, but
@@ -643,8 +730,8 @@ for the initial character is used for the word body; for instance, to
 define an identifier that can only be composed of capital letters and
 underscores, use:</p>
 <pre class="literal-block">
-- Word( &quot;ABCDEFGHIJKLMNOPQRSTUVWXYZ&quot; )
-- Word( srange(&quot;[A-Z]&quot;)
+- Word( &quot;ABCDEFGHIJKLMNOPQRSTUVWXYZ_&quot; )
+- Word( srange(&quot;[A-Z_]&quot;) )
 </pre>
 <p>A Word may
 also be constructed with any of the following optional parameters:</p>
@@ -704,7 +791,7 @@ and for specialized grammars</li>
 </ul>
 </div>
 <div class="section">
-<h2><a class="toc-backref" href="#id7" id="expression-subclasses" name="expression-subclasses">2.3&nbsp;&nbsp;&nbsp;Expression subclasses</a></h2>
+<h2><a class="toc-backref" href="#id8" id="expression-subclasses" name="expression-subclasses">2.3&nbsp;&nbsp;&nbsp;Expression subclasses</a></h2>
 <ul>
 <li><p class="first"><tt class="docutils literal"><span class="pre">And</span></tt> - construct with a list of ParserElements, all of which must
 match for And to match; can also be created using the '+'
@@ -717,6 +804,20 @@ ipAddress = Word(nums) + ('.'+Word(nums))*3
 <pre class="literal-block">
 usPhoneNumber = Word(nums) + ('-'+Word(nums))*(1,2)
 </pre>
+<p>A special form of <tt class="docutils literal"><span class="pre">And</span></tt> is created if the '-' operator is used
+instead of the '+' operator.  In the ipAddress example above, if
+no trailing '.' and Word(nums) are found after matching the initial
+Word(nums), then pyparsing will back up in the grammar and try other
+alternatives to ipAddress.  However, if ipAddress is defined as:</p>
+<pre class="literal-block">
+strictIpAddress = Word(nums) - ('.'+Word(nums))*3
+</pre>
+<p>then no backing up is done.  If the first Word(nums) of strictIpAddress
+is matched, then any mismatch after that will raise a ParseSyntaxException,
+which will halt the parsing process immediately.  By careful use of the
+'-' operator, grammars can provide meaningful error messages close to
+the location where the incoming text does not match the specified
+grammar.</p>
 </li>
 <li><p class="first"><tt class="docutils literal"><span class="pre">Or</span></tt> - construct with a list of ParserElements, any of which must
 match for Or to match; if more than one expression matches, the
@@ -753,18 +854,34 @@ can also be created using the unary '~' operator</p>
 </ul>
 </div>
 <div class="section">
-<h2><a class="toc-backref" href="#id8" id="positional-subclasses" name="positional-subclasses">2.4&nbsp;&nbsp;&nbsp;Positional subclasses</a></h2>
+<h2><a class="toc-backref" href="#id9" id="expression-operators" name="expression-operators"><span id="operators"></span>2.4&nbsp;&nbsp;&nbsp;Expression operators</a></h2>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">+</span></tt> - consecutive sequence</li>
+<li><tt class="docutils literal"><span class="pre">|</span></tt> - match first alternative</li>
+<li><tt class="docutils literal"><span class="pre">^</span></tt> - match longest alternative</li>
+<li><tt class="docutils literal"><span class="pre">&amp;</span></tt> - match each alternative, in any order</li>
+<li><tt class="docutils literal"><span class="pre">-</span></tt> - like <tt class="docutils literal"><span class="pre">+</span></tt> but with no backup and retry of alternatives</li>
+<li><tt class="docutils literal"><span class="pre">*</span></tt> - repetition of expression</li>
+<li><tt class="docutils literal"><span class="pre">==</span></tt> - matching expression to string; returns True if the string matches the given expression</li>
+<li><tt class="docutils literal"><span class="pre">&lt;&lt;</span></tt> - expression definition for Forward expressions</li>
+</ul>
+</div>
+<div class="section">
+<h2><a class="toc-backref" href="#id10" id="positional-subclasses" name="positional-subclasses">2.5&nbsp;&nbsp;&nbsp;Positional subclasses</a></h2>
 <ul class="simple">
 <li><tt class="docutils literal"><span class="pre">StringStart</span></tt> - matches beginning of the text</li>
 <li><tt class="docutils literal"><span class="pre">StringEnd</span></tt> - matches the end of the text</li>
 <li><tt class="docutils literal"><span class="pre">LineStart</span></tt> - matches beginning of a line (lines delimited by <tt class="docutils literal"><span class="pre">\n</span></tt> characters)</li>
 <li><tt class="docutils literal"><span class="pre">LineEnd</span></tt> - matches the end of a line</li>
+<li><tt class="docutils literal"><span class="pre">WordStart</span></tt> - matches a leading word boundary</li>
+<li><tt class="docutils literal"><span class="pre">WordEnd</span></tt> - matches a trailing word boundary</li>
 </ul>
 </div>
 <div class="section">
-<h2><a class="toc-backref" href="#id9" id="converter-subclasses" name="converter-subclasses">2.5&nbsp;&nbsp;&nbsp;Converter subclasses</a></h2>
+<h2><a class="toc-backref" href="#id11" id="converter-subclasses" name="converter-subclasses">2.6&nbsp;&nbsp;&nbsp;Converter subclasses</a></h2>
 <ul class="simple">
-<li><tt class="docutils literal"><span class="pre">Upcase</span></tt> - converts matched tokens to uppercase</li>
+<li><tt class="docutils literal"><span class="pre">Upcase</span></tt> - converts matched tokens to uppercase (deprecated -
+use <tt class="docutils literal"><span class="pre">upcaseTokens</span></tt> parse action instead)</li>
 <li><tt class="docutils literal"><span class="pre">Combine</span></tt> - joins all matched tokens into a single string, using
 specified joinString (default <tt class="docutils literal"><span class="pre">joinString=&quot;&quot;</span></tt>); expects
 all matching tokens to be adjacent, with no intervening
@@ -775,7 +892,7 @@ tokens (such as list delimiters)</li>
 </ul>
 </div>
 <div class="section">
-<h2><a class="toc-backref" href="#id10" id="special-subclasses" name="special-subclasses">2.6&nbsp;&nbsp;&nbsp;Special subclasses</a></h2>
+<h2><a class="toc-backref" href="#id12" id="special-subclasses" name="special-subclasses">2.7&nbsp;&nbsp;&nbsp;Special subclasses</a></h2>
 <ul class="simple">
 <li><tt class="docutils literal"><span class="pre">Group</span></tt> - causes the matched tokens to be enclosed in a list;
 useful in repeated elements like <tt class="docutils literal"><span class="pre">ZeroOrMore</span></tt> and <tt class="docutils literal"><span class="pre">OneOrMore</span></tt> to
@@ -793,7 +910,7 @@ operator (see <tt class="docutils literal"><span class="pre">fourFn.py</span></t
 </ul>
 </div>
 <div class="section">
-<h2><a class="toc-backref" href="#id11" id="other-classes" name="other-classes">2.7&nbsp;&nbsp;&nbsp;Other classes</a></h2>
+<h2><a class="toc-backref" href="#id13" id="other-classes" name="other-classes">2.8&nbsp;&nbsp;&nbsp;Other classes</a></h2>
 <ul id="parseresults">
 <li><p class="first"><tt class="docutils literal"><span class="pre">ParseResults</span></tt> - class used to contain and manage the lists of tokens
 created from parsing the input using the user-defined parse
@@ -819,10 +936,12 @@ this is especially useful when processing tabular data where the first column co
 value for that line of data</li>
 <li>list elements that are deleted using <tt class="docutils literal"><span class="pre">del</span></tt> will still be accessible by their
 dictionary keys</li>
-<li>supports <tt class="docutils literal"><span class="pre">items()</span></tt> and <tt class="docutils literal"><span class="pre">keys()</span></tt> methods, similar to a dictionary</li>
+<li>supports <tt class="docutils literal"><span class="pre">get()</span></tt>, <tt class="docutils literal"><span class="pre">items()</span></tt> and <tt class="docutils literal"><span class="pre">keys()</span></tt> methods, similar to a dictionary</li>
 <li>a keyed item can be extracted and removed using <tt class="docutils literal"><span class="pre">pop(key)</span></tt>.  Here
 key must be non-numeric (such as a string), in order to use dict
 extraction instead of list extraction.</li>
+<li>new named elements can be added (in a parse action, for instance), using the same
+syntax as adding an item to a dict (<tt class="docutils literal"><span class="pre">parseResults[&quot;X&quot;]=&quot;new</span> <span class="pre">item&quot;</span></tt>); named elements can be removed using <tt class="docutils literal"><span class="pre">del</span> <span class="pre">parseResults[&quot;X&quot;]</span></tt></li>
 </ul>
 </li>
 <li>as a nested list<ul>
@@ -852,7 +971,7 @@ embedded items will be included, whether they have names or not.</li>
 </ul>
 </div>
 <div class="section">
-<h2><a class="toc-backref" href="#id12" id="exception-classes-and-troubleshooting" name="exception-classes-and-troubleshooting">2.8&nbsp;&nbsp;&nbsp;Exception classes and Troubleshooting</a></h2>
+<h2><a class="toc-backref" href="#id14" id="exception-classes-and-troubleshooting" name="exception-classes-and-troubleshooting">2.9&nbsp;&nbsp;&nbsp;Exception classes and Troubleshooting</a></h2>
 <ul id="parseexception">
 <li><p class="first"><tt class="docutils literal"><span class="pre">ParseException</span></tt> - exception returned when a grammar parse fails;
 ParseExceptions have attributes loc, msg, line, lineno, and column; to view the
@@ -876,6 +995,10 @@ badGrammar &lt;&lt; Optional(goodToken) + badGrammar
 immediately.  Should be used when a semantic error is found in the input text, such
 as a mismatched XML tag.</p>
 </li>
+<li><p class="first"><tt class="docutils literal"><span class="pre">ParseSyntaxException</span></tt> - subclass of <tt class="docutils literal"><span class="pre">ParseFatalException</span></tt> raised when a
+syntax error is found, based on the use of the '-' operator when defining
+a sequence of expressions in an <tt class="docutils literal"><span class="pre">And</span></tt> expression.</p>
+</li>
 </ul>
 <p>You can also get some insights into the parsing logic using diagnostic parse actions,
 and setDebug(), or test the matching of expression fragments by testing them using
@@ -883,17 +1006,17 @@ scanString().</p>
 </div>
 </div>
 <div class="section">
-<h1><a class="toc-backref" href="#id13" id="miscellaneous-attributes-and-methods" name="miscellaneous-attributes-and-methods">3&nbsp;&nbsp;&nbsp;Miscellaneous attributes and methods</a></h1>
+<h1><a class="toc-backref" href="#id15" id="miscellaneous-attributes-and-methods" name="miscellaneous-attributes-and-methods">3&nbsp;&nbsp;&nbsp;Miscellaneous attributes and methods</a></h1>
 <div class="section">
-<h2><a class="toc-backref" href="#id14" id="helper-methods" name="helper-methods">3.1&nbsp;&nbsp;&nbsp;Helper methods</a></h2>
+<h2><a class="toc-backref" href="#id16" id="helper-methods" name="helper-methods">3.1&nbsp;&nbsp;&nbsp;Helper methods</a></h2>
 <ul>
 <li><p class="first"><tt class="docutils literal"><span class="pre">delimitedList(</span> <span class="pre">expr,</span> <span class="pre">delim=',')</span></tt> - convenience function for
 matching one or more occurrences of expr, separated by delim.
 By default, the delimiters are suppressed, so the returned results contain
 only the separate list elements.  Can optionally specify <tt class="docutils literal"><span class="pre">combine=True</span></tt>,
 indicating that the expressions and delimiters should be returned as one
-combined value (useful for scoped variables, such as <tt class="docutils literal"><span class="pre">a.b.c</span></tt>, or
-<tt class="docutils literal"><span class="pre">a::b::c</span></tt>, or paths such as <tt class="docutils literal"><span class="pre">a/b/c</span></tt>).</p>
+combined value (useful for scoped variables, such as &quot;a.b.c&quot;, or
+&quot;a::b::c&quot;, or paths such as &quot;a/b/c&quot;).</p>
 </li>
 <li><p class="first"><tt class="docutils literal"><span class="pre">countedArray(</span> <span class="pre">expr</span> <span class="pre">)</span></tt> - convenience function for a pattern where an list of
 instances of the given expression are preceded by an integer giving the count of
@@ -912,9 +1035,8 @@ will create an alternative set of CaselessLiteral tokens.</p>
 <li><p class="first"><tt class="docutils literal"><span class="pre">dictOf(</span> <span class="pre">key,</span> <span class="pre">value</span> <span class="pre">)</span></tt> - convenience function for quickly declaring a
 dictionary pattern of <tt class="docutils literal"><span class="pre">Dict(</span> <span class="pre">ZeroOrMore(</span> <span class="pre">Group(</span> <span class="pre">key</span> <span class="pre">+</span> <span class="pre">value</span> <span class="pre">)</span> <span class="pre">)</span> <span class="pre">)</span></tt>.</p>
 </li>
-<li><p class="first"><tt class="docutils literal"><span class="pre">nestedExpr(opener,</span> <span class="pre">closer,</span> <span class="pre">content,</span> <span class="pre">ignoreExpr)</span></tt> -helper method for defining
+<li><p class="first"><tt class="docutils literal"><span class="pre">nestedExpr(opener,</span> <span class="pre">closer,</span> <span class="pre">content,</span> <span class="pre">ignoreExpr)</span></tt> - helper method for defining
 nested lists enclosed in opening and closing delimiters (&quot;(&quot; and &quot;)&quot; are the default).</p>
-<p>Parameters:</p>
 <ul class="simple">
 <li>opener - opening character for a nested list (default=&quot;(&quot;); can also be a pyparsing expression</li>
 <li>closer - closing character for a nested list (default=&quot;)&quot;); can also be a pyparsing expression</li>
@@ -940,14 +1062,16 @@ and integer or a variable.  This will be the first argument
 to the operatorPrecedence method.</li>
 <li>Define a list of tuples for each level of operator
 precendence.  Each tuple is of the form
-(opExpr, numTerms, rightLeftAssoc, parseAction), where:<ul>
+<tt class="docutils literal"><span class="pre">(opExpr,</span> <span class="pre">numTerms,</span> <span class="pre">rightLeftAssoc,</span> <span class="pre">parseAction)</span></tt>, where:<ul>
 <li>opExpr is the pyparsing expression for the operator;
-may also be a string, which will be converted to a Literal</li>
+may also be a string, which will be converted to a Literal; if
+None, indicates an empty operator, such as the implied
+multiplication operation between 'm' and 'x' in &quot;y = mx + b&quot;.</li>
 <li>numTerms is the number of terms for this operator (must
 be 1 or 2)</li>
 <li>rightLeftAssoc is the indicator whether the operator is
 right or left associative, using the pyparsing-defined
-constants opAssoc.RIGHT and opAssoc.LEFT.</li>
+constants <tt class="docutils literal"><span class="pre">opAssoc.RIGHT</span></tt> and <tt class="docutils literal"><span class="pre">opAssoc.LEFT</span></tt>.</li>
 <li>parseAction is the parse action to be associated with
 expressions matching this operator expression (the
 parse action tuple member may be omitted)</li>
@@ -977,6 +1101,41 @@ matchExpr = first + &quot;:&quot; + matchPreviousExpr(first)
 <p>will <em>not</em> match the leading &quot;1:1&quot; in &quot;1:10&quot;; the expressions are
 evaluated first, and then compared, so &quot;1&quot; is compared with &quot;10&quot;.</p>
 </li>
+<li><p class="first"><tt class="docutils literal"><span class="pre">nestedExpr(opener,</span> <span class="pre">closer,</span> <span class="pre">content=None,</span> <span class="pre">ignoreExpr=quotedString)</span></tt> - method for defining nested
+lists enclosed in opening and closing delimiters.</p>
+<ul class="simple">
+<li>opener - opening character for a nested list (default=&quot;(&quot;); can also be a pyparsing expression</li>
+<li>closer - closing character for a nested list (default=&quot;)&quot;); can also be a pyparsing expression</li>
+<li>content - expression for items within the nested lists (default=None)</li>
+<li>ignoreExpr - expression for ignoring opening and closing delimiters (default=quotedString)</li>
+</ul>
+<p>If an expression is not provided for the content argument, the nested
+expression will capture all whitespace-delimited content between delimiters
+as a list of separate values.</p>
+<p>Use the ignoreExpr argument to define expressions that may contain
+opening or closing characters that should not be treated as opening
+or closing characters for nesting, such as quotedString or a comment
+expression.  Specify multiple expressions using an Or or MatchFirst.
+The default is quotedString, but if no expressions are to be ignored,
+then pass None for this argument.</p>
+</li>
+<li><p class="first"><tt class="docutils literal"><span class="pre">indentedBlock(</span> <span class="pre">statementExpr,</span> <span class="pre">indentationStackVar,</span> <span class="pre">indent=True)</span></tt> -
+function to define an indented block of statements, similar to
+indentation-based blocking in Python source code:</p>
+<ul class="simple">
+<li>statementExpr is the expression defining a statement that
+will be found in the indented block; a valid indentedBlock
+must contain at least 1 matching statementExpr</li>
+<li>indentationStackVar is a Python list variable; this variable
+should be common to all <tt class="docutils literal"><span class="pre">indentedBlock</span></tt> expressions defined
+within the same grammar, and should be reinitialized to [1]
+each time the grammar is to be used</li>
+<li>indent is a boolean flag indicating whether the expressions
+within the block must be indented from the current parse
+location; if using indentedBlock to define the left-most
+statements (all starting in column 1), set indent to False</li>
+</ul>
+</li>
 <li><p class="first"><tt class="docutils literal"><span class="pre">lineno(</span> <span class="pre">loc,</span> <span class="pre">string</span> <span class="pre">)</span></tt> - function to give the line number of the
 location within the string; the first line is line 1, newlines
 start new rows</p>
@@ -1004,7 +1163,7 @@ each call, called arguments, and return value or exception</p>
 </ul>
 </div>
 <div class="section">
-<h2><a class="toc-backref" href="#id15" id="helper-parse-actions" name="helper-parse-actions">3.2&nbsp;&nbsp;&nbsp;Helper parse actions</a></h2>
+<h2><a class="toc-backref" href="#id17" id="helper-parse-actions" name="helper-parse-actions">3.2&nbsp;&nbsp;&nbsp;Helper parse actions</a></h2>
 <ul>
 <li><p class="first"><tt class="docutils literal"><span class="pre">removeQuotes</span></tt> - removes the first and last characters of a quoted string;
 useful to remove the delimiting quotes from quoted strings</p>
@@ -1026,18 +1185,27 @@ with a required attribute value, to avoid false matches on common tags such as
 <tt class="docutils literal"><span class="pre">&lt;TD&gt;</span></tt> or <tt class="docutils literal"><span class="pre">&lt;DIV&gt;</span></tt>.</p>
 <p><tt class="docutils literal"><span class="pre">withAttribute</span></tt> can be called with:</p>
 <ul class="simple">
-<li>keyword arguments, as in (class=&quot;Customer&quot;,align=&quot;right&quot;), or</li>
-<li>a list of name-value tuples, as in ( (&quot;ns1:class&quot;, &quot;Customer&quot;), (&quot;ns2:align&quot;,&quot;right&quot;) )</li>
+<li>keyword arguments, as in <tt class="docutils literal"><span class="pre">(class=&quot;Customer&quot;,align=&quot;right&quot;)</span></tt>, or</li>
+<li>a list of name-value tuples, as in <tt class="docutils literal"><span class="pre">(</span> <span class="pre">(&quot;ns1:class&quot;,</span> <span class="pre">&quot;Customer&quot;),</span> <span class="pre">(&quot;ns2:align&quot;,&quot;right&quot;)</span> <span class="pre">)</span></tt></li>
 </ul>
+<p>An attribute can be specified to have the special value
+<tt class="docutils literal"><span class="pre">withAttribute.ANY_VALUE</span></tt>, which will match any value - use this to
+ensure that an attribute is present but any attribute value is
+acceptable.</p>
 </li>
-<li><p class="first"><tt class="docutils literal"><span class="pre">downcase</span></tt> - converts all matched tokens to lowercase</p>
+<li><p class="first"><tt class="docutils literal"><span class="pre">downcaseTokens</span></tt> - converts all matched tokens to lowercase</p>
 </li>
-<li><p class="first"><tt class="docutils literal"><span class="pre">upcase</span></tt> - converts all matched tokens to uppercase</p>
+<li><p class="first"><tt class="docutils literal"><span class="pre">upcaseTokens</span></tt> - converts all matched tokens to uppercase</p>
+</li>
+<li><p class="first"><tt class="docutils literal"><span class="pre">matchOnlyAtCol(</span> <span class="pre">columnNumber</span> <span class="pre">)</span></tt> - a parse action that verifies that
+an expression was matched at a particular column, raising a
+ParseException if matching at a different column number; useful when parsing
+tabular data</p>
 </li>
 </ul>
 </div>
 <div class="section">
-<h2><a class="toc-backref" href="#id16" id="common-string-and-token-constants" name="common-string-and-token-constants">3.3&nbsp;&nbsp;&nbsp;Common string and token constants</a></h2>
+<h2><a class="toc-backref" href="#id18" id="common-string-and-token-constants" name="common-string-and-token-constants">3.3&nbsp;&nbsp;&nbsp;Common string and token constants</a></h2>
 <ul>
 <li><p class="first"><tt class="docutils literal"><span class="pre">alphas</span></tt> - same as <tt class="docutils literal"><span class="pre">string.letters</span></tt></p>
 </li>
