@@ -2,16 +2,18 @@
 Change Log
 ==========
 
-Version 1.5.0 - ???
---------------------
+Version 1.5.0 - June, 2008
+--------------------------
 This version of pyparsing includes work on two long-standing
 FAQ's: support for forcing parsing of the complete input string
 (without having to explicitly append StringEnd() to the grammar),
 and a method to improve the mechanism of detecting where syntax
 errors occur in an input string with various optional and
-alternative paths.  With these changes (and the past few minor
-updates), I thought it was finally time to bump the minor rev
-number on pyparsing - so 1.5.0 is now available!  Read on...
+alternative paths.  This release also includes a helper method
+to simplify definition of indentation-based grammars.  With 
+these changes (and the past few minor updates), I thought it was 
+finally time to bump the minor rev number on pyparsing - so 
+1.5.0 is now available!  Read on...
 
 - AT LAST!!!  You can now call parseString and have it raise
   an exception if the expression does not parse the entire
@@ -62,8 +64,25 @@ number on pyparsing - so 1.5.0 is now available!  Read on...
 
   Patches and suggestions proposed by several contributors on
   the pyparsing mailing list and wiki - special thanks to
-  Eike Welk and Thomas/Poldy on the wiki!
+  Eike Welk and Thomas/Poldy on the pyparsing wiki!
 
+- Added indentedBlock helper method, to encapsulate the parse 
+  actions and indentation stack management needed to keep track of 
+  indentation levels.  Use indentedBlock to define grammars for 
+  indentation-based grouping grammars, like Python's.
+  
+  indentedBlock takes up to 3 parameters:
+    - blockStatementExpr - expression defining syntax of statement 
+        that is repeated within the indented block  
+    - indentStack - list created by caller to manage indentation 
+        stack (multiple indentedBlock expressions 
+        within a single grammar should share a common indentStack)
+    - indent - boolean indicating whether block must be indented 
+        beyond the the current level; set to False for block of 
+        left-most statements (default=True)
+
+  A valid block must contain at least one indented statement.
+  
 - Fixed bug in nestedExpr in which ignored expressions needed
   to be set off with whitespace.  Reported by Stefaan Himpe,
   nice catch!
@@ -79,7 +98,7 @@ number on pyparsing - so 1.5.0 is now available!  Read on...
   . expr*(1,None) is equivalent to OneOrMore(expr)
 
   Note that expr*(None,n) does not raise an exception if
-  more than n exprs exist in the input stream; that is
+  more than n exprs exist in the input stream; that is,
   expr*(None,n) does not enforce a maximum number of expr
   occurrences.  If this behavior is desired, then write
   expr*(None,n) + ~expr
@@ -93,6 +112,13 @@ number on pyparsing - so 1.5.0 is now available!  Read on...
   Problem was due to premature grouping of the expressions in
   the overall Each during grammar construction, before the
   complete Each was defined.  Thanks, Michael!
+
+- Also fixed bug in Each in which Optional's with default values
+  were not getting the defaults added to the results of the 
+  overall Each expression.
+
+- Fixed a bug in Optional in which results names were not
+  assigned if a default value was supplied.
 
 - Cleaned up Py3K compatibility statements, including exception
   construction statements, and better equivalence between _ustr
