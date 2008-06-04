@@ -68,7 +68,6 @@ import copy,sys
 import warnings
 import re
 import sre_constants
-import xml.sax.saxutils
 #~ sys.stderr.write( "testing pyparsing module, version %s, %s\n" % (__version__,__versionTime__ ) )
 
 __all__ = [
@@ -134,6 +133,16 @@ else:
 def _str2dict(strg):
     return dict( [(c,0) for c in strg] )
     #~ return set( [c for c in strg] )
+
+def _xml_escape(data):
+    """Escape &, <, >, ', etc. in a string of data."""
+
+    # ampersand must be replaced first
+    from_symbols = '&><"'
+    to_symbols = ['&'+s+';' for s in "amp gt lt quot".split()]
+    for from_,to_ in zip(from_symbols, to_symbols):
+        data = data.replace(from_, to_)
+    return data
 
 class _Constants(object):
     pass
@@ -375,7 +384,7 @@ class ParseResults(object):
         for name in self.__tokdict:
             occurrences = self.__tokdict[name]
             for k, (value, position) in enumerate(occurrences):
-                occurrences[k] = _ParseResultsWithOffset(value, position + (position > j))
+                occurrences[k] = _ParseResultsWithOffset(value, position + (position > index))
 
     def items( self ):
         """Returns all named result keys and values as a list of tuples."""
@@ -518,7 +527,7 @@ class ParseResults(object):
                         continue
                     else:
                         resTag = "ITEM"
-                xmlBodyText = xml.sax.saxutils.escape(_ustr(res))
+                xmlBodyText = _xml_escape(_ustr(res))
                 out += [ nl, nextLevelIndent, "<", resTag, ">",
                                                 xmlBodyText,
                                                 "</", resTag, ">" ]
@@ -3481,16 +3490,16 @@ def nestedExpr(opener="(", closer=")", content=None, ignoreExpr=quotedString):
     return ret
 
 def indentedBlock(blockStatementExpr, indentStack, indent=True):
-    """Helper method for defining space-delimited indentation blocks, such as 
+    """Helper method for defining space-delimited indentation blocks, such as
        those used to define block statements in Python source code.
-       
+
        Parameters:
-        - blockStatementExpr - expression defining syntax of statement that 
+        - blockStatementExpr - expression defining syntax of statement that
             is repeated within the indented block
         - indentStack - list created by caller to manage indentation stack
             (multiple statementWithIndentedBlock expressions within a single grammar
             should share a common indentStack)
-        - indent - boolean indicating whether block must be indented beyond the 
+        - indent - boolean indicating whether block must be indented beyond the
             the current level; set to False for block of left-most statements
             (default=True)
 
@@ -3537,7 +3546,7 @@ punc8bit = srange(r"[\0xa1-\0xbf\0xd7\0xf7]")
 
 anyOpenTag,anyCloseTag = makeHTMLTags(Word(alphas,alphanums+"_:"))
 commonHTMLEntity = Combine(_L("&") + oneOf("gt lt amp nbsp quot").setResultsName("entity") +";")
-_htmlEntityMap = dict(zip("gt lt amp nbsp quot".split(),"><& '"))
+_htmlEntityMap = dict(zip("gt lt amp nbsp quot".split(),'><& "'))
 replaceHTMLEntity = lambda t : t.entity in _htmlEntityMap and _htmlEntityMap[t.entity] or None
 
 # it's easy to get these comment structures wrong - they're very common, so may as well make them available

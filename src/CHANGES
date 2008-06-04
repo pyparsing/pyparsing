@@ -2,6 +2,22 @@
 Change Log
 ==========
 
+Version 1.5.1 - ???, 2008
+--------------------------
+- Added optional parseAll argument to parseFile, to be consistent
+  with parseAll argument to parseString.  Posted by pboucher on the
+  pyparsing wiki, thanks!
+
+- Removed dependency on xml.sax.saxutils.escape, and included
+  internal implementation instead - proposed by Mike Droettboom on
+  the pyparsing mailing list, thanks Mike!  Also fixed erroneous 
+  mapping in replaceHTMLEntity of &quot to ', now correctly maps 
+  to ".
+
+- Fixed typo in ParseResults.insert, found by Alejandro Dubrovsky,
+  good catch!
+  
+
 Version 1.5.0 - June, 2008
 --------------------------
 This version of pyparsing includes work on two long-standing
