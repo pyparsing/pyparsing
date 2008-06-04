@@ -58,8 +58,8 @@ The pyparsing module handles some of the problems that are typically vexing when
  - embedded comments
 """
 
-__version__ = "1.5.0"
-__versionTime__ = "28 May 2008 10:05"
+__version__ = "1.5.1"
+__versionTime__ = "3 June 2008 22:11"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -1361,7 +1361,7 @@ class ParserElement(object):
         """Check defined expressions for valid structure, check for infinite recursive definitions."""
         self.checkRecursion( [] )
 
-    def parseFile( self, file_or_filename ):
+    def parseFile( self, file_or_filename, parseAll=False ):
         """Execute the parse expression on the given file or filename.
            If a filename is specified (instead of a file object),
            the entire file is opened, read, and closed before parsing.
@@ -1372,7 +1372,7 @@ class ParserElement(object):
             f = open(file_or_filename, "rb")
             file_contents = f.read()
             f.close()
-        return self.parseString(file_contents)
+        return self.parseString(file_contents, parseAll)
 
     def getException(self):
         return ParseException("",0,self.errmsg,self)
