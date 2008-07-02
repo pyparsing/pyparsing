@@ -8,15 +8,27 @@ Version 1.5.1 - ???, 2008
   with parseAll argument to parseString.  Posted by pboucher on the
   pyparsing wiki, thanks!
 
+- Added failOn argument to SkipTo, so that grammars can define
+  literal strings or pyparsing expressions which, if found in the
+  skipped text, will cause SkipTo to fail.  Useful to prevent 
+  SkipTo from reading past terminating expression.  Instigated by
+  question posed by Aki Niimura on the pyparsing wiki.
+  
 - Removed dependency on xml.sax.saxutils.escape, and included
   internal implementation instead - proposed by Mike Droettboom on
-  the pyparsing mailing list, thanks Mike!  Also fixed erroneous 
-  mapping in replaceHTMLEntity of &quot to ', now correctly maps 
+  the pyparsing mailing list, thanks Mike!  Also fixed erroneous
+  mapping in replaceHTMLEntity of &quot to ', now correctly maps
   to ".
 
 - Fixed typo in ParseResults.insert, found by Alejandro Dubrovsky,
   good catch!
-  
+
+- Added __dir__() methods to ParseBaseException and ParseResults,
+  to support new dir() behavior in Py2.6 and Py3.0.  If dir() is
+  called on a ParseResults object, the returned list will include
+  the base set of attribute names, plus any results names that are
+  defined.
+
 
 Version 1.5.0 - June, 2008
 --------------------------
@@ -26,9 +38,9 @@ FAQ's: support for forcing parsing of the complete input string
 and a method to improve the mechanism of detecting where syntax
 errors occur in an input string with various optional and
 alternative paths.  This release also includes a helper method
-to simplify definition of indentation-based grammars.  With 
-these changes (and the past few minor updates), I thought it was 
-finally time to bump the minor rev number on pyparsing - so 
+to simplify definition of indentation-based grammars.  With
+these changes (and the past few minor updates), I thought it was
+finally time to bump the minor rev number on pyparsing - so
 1.5.0 is now available!  Read on...
 
 - AT LAST!!!  You can now call parseString and have it raise
@@ -82,23 +94,23 @@ finally time to bump the minor rev number on pyparsing - so
   the pyparsing mailing list and wiki - special thanks to
   Eike Welk and Thomas/Poldy on the pyparsing wiki!
 
-- Added indentedBlock helper method, to encapsulate the parse 
-  actions and indentation stack management needed to keep track of 
-  indentation levels.  Use indentedBlock to define grammars for 
+- Added indentedBlock helper method, to encapsulate the parse
+  actions and indentation stack management needed to keep track of
+  indentation levels.  Use indentedBlock to define grammars for
   indentation-based grouping grammars, like Python's.
-  
+
   indentedBlock takes up to 3 parameters:
-    - blockStatementExpr - expression defining syntax of statement 
-        that is repeated within the indented block  
-    - indentStack - list created by caller to manage indentation 
-        stack (multiple indentedBlock expressions 
+    - blockStatementExpr - expression defining syntax of statement
+        that is repeated within the indented block
+    - indentStack - list created by caller to manage indentation
+        stack (multiple indentedBlock expressions
         within a single grammar should share a common indentStack)
-    - indent - boolean indicating whether block must be indented 
-        beyond the the current level; set to False for block of 
+    - indent - boolean indicating whether block must be indented
+        beyond the the current level; set to False for block of
         left-most statements (default=True)
 
   A valid block must contain at least one indented statement.
-  
+
 - Fixed bug in nestedExpr in which ignored expressions needed
   to be set off with whitespace.  Reported by Stefaan Himpe,
   nice catch!
@@ -130,7 +142,7 @@ finally time to bump the minor rev number on pyparsing - so
   complete Each was defined.  Thanks, Michael!
 
 - Also fixed bug in Each in which Optional's with default values
-  were not getting the defaults added to the results of the 
+  were not getting the defaults added to the results of the
   overall Each expression.
 
 - Fixed a bug in Optional in which results names were not

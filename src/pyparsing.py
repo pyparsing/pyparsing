@@ -59,7 +59,7 @@ The pyparsing module handles some of the problems that are typically vexing when
 """
 
 __version__ = "1.5.1"
-__versionTime__ = "3 June 2008 22:11"
+__versionTime__ = "1 July 2008 16:48"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -154,7 +154,7 @@ else:
 nums       = string.digits
 hexnums    = nums + "ABCDEFabcdef"
 alphanums  = alphas + nums
-_bslash = "\\"
+_bslash = chr(92)
 printables = "".join( [ c for c in string.printable if c not in string.whitespace ] )
 
 class ParseBaseException(Exception):
@@ -202,6 +202,9 @@ class ParseBaseException(Exception):
             line_str = "".join( [line_str[:line_column],
                                 markerString, line_str[line_column:]])
         return line_str.strip()
+    def __dir__(self):
+        return "loc msg pstr parserElement lineno col line " \
+               "markInputLine __str__ __repr__".split()
 
 class ParseException(ParseBaseException):
     """exception thrown when parse expressions don't match class;
@@ -604,6 +607,8 @@ class ParseResults(object):
         else:
             self.__parent = None
 
+    def __dir__(self):
+        return dir(super(ParseResults,self)) + self.keys()
 
 def col (loc,strg):
     """Returns current column within a string, counting newlines as line separators.
@@ -1542,7 +1547,6 @@ class Keyword(Token):
         """
         Keyword.DEFAULT_KEYWORD_CHARS = chars
     setDefaultKeywordChars = staticmethod(setDefaultKeywordChars)
-
 
 class CaselessLiteral(Literal):
     """Token to match a specified string, ignoring case of letters.
@@ -2791,7 +2795,7 @@ class SkipTo(ParseElementEnhance):
        argument is used to define grammars (typically quoted strings and comments) that
        might contain false matches.
     """
-    def __init__( self, other, include=False, ignore=None ):
+    def __init__( self, other, include=False, ignore=None, failOn=None ):
         super( SkipTo, self ).__init__( other )
         if ignore is not None:
             self.expr = self.expr.copy()
@@ -2800,6 +2804,10 @@ class SkipTo(ParseElementEnhance):
         self.mayIndexError = False
         self.includeMatch = include
         self.asList = False
+        if failOn is not None and isinstance(failOn, basestring):
+            self.failOn = Literal(failOn)
+        else:
+            self.failOn = failOn
         self.errmsg = "No match found for "+_ustr(self.expr)
         #self.myException = ParseException("",0,self.errmsg,self)
 
@@ -2807,12 +2815,17 @@ class SkipTo(ParseElementEnhance):
         startLoc = loc
         instrlen = len(instring)
         expr = self.expr
+        failParse = False
         while loc <= instrlen:
             try:
+                if self.failOn:
+                    failParse = True
+                    self.failOn.tryParse(instring, loc)
+                    failParse = False
                 loc = expr._skipIgnorables( instring, loc )
                 expr._parse( instring, loc, doActions=False, callPreParse=False )
+                skipText = instring[startLoc:loc]
                 if self.includeMatch:
-                    skipText = instring[startLoc:loc]
                     loc,mat = expr._parse(instring,loc,doActions,callPreParse=False)
                     if mat:
                         skipRes = ParseResults( skipText )
@@ -2821,9 +2834,12 @@ class SkipTo(ParseElementEnhance):
                     else:
                         return loc, [ skipText ]
                 else:
-                    return loc, [ instring[startLoc:loc] ]
+                    return loc, [ skipText ]
             except (ParseException,IndexError):
-                loc += 1
+                if failParse:
+                    raise
+                else:
+                    loc += 1
         exc = self.myException
         exc.loc = loc
         exc.pstr = instring
