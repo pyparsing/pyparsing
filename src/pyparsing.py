@@ -59,7 +59,7 @@ The pyparsing module handles some of the problems that are typically vexing when
 """
 
 __version__ = "1.5.1"
-__versionTime__ = "1 July 2008 16:48"
+__versionTime__ = "1 July 2008 21:54"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -256,6 +256,8 @@ class _ParseResultsWithOffset(object):
         return self.tup[i]
     def __repr__(self):
         return repr(self.tup)
+    def setOffset(self,i):
+        self.tup = (self.tup[0],i)
 
 class ParseResults(object):
     """Structured parse results, to provide multiple means of access to the parsed data:
@@ -285,9 +287,6 @@ class ParseResults(object):
                 self.__toklist = [toklist]
             self.__tokdict = dict()
 
-        # this line is related to debugging the asXML bug
-        #~ asList = False
-
         if name:
             if not modal:
                 self.__accumNames[name] = 0
@@ -299,9 +298,9 @@ class ParseResults(object):
                     toklist = [ toklist ]
                 if asList:
                     if isinstance(toklist,ParseResults):
-                        self[name] = _ParseResultsWithOffset(toklist.copy(),-1)
+                        self[name] = _ParseResultsWithOffset(toklist.copy(),0)
                     else:
-                        self[name] = _ParseResultsWithOffset(ParseResults(toklist[0]),-1)
+                        self[name] = _ParseResultsWithOffset(ParseResults(toklist[0]),0)
                     self[name].__name = name
                 else:
                     try:
@@ -424,6 +423,7 @@ class ParseResults(object):
                 self[k] = v
                 if isinstance(v[0],ParseResults):
                     v[0].__parent = wkref(self)
+            
         self.__toklist += other.__toklist
         self.__accumNames.update( other.__accumNames )
         del other

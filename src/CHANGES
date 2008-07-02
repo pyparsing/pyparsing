@@ -29,6 +29,10 @@ Version 1.5.1 - ???, 2008
   the base set of attribute names, plus any results names that are
   defined.
 
+- Fixed bug in ParseResults.asXML(), in which the first named
+  item within a ParseResults gets reported with an <ITEM> tag instead
+  of with the correct results name.
+
 
 Version 1.5.0 - June, 2008
 --------------------------
