@@ -59,7 +59,7 @@ The pyparsing module handles some of the problems that are typically vexing when
 """
 
 __version__ = "1.5.1"
-__versionTime__ = "1 July 2008 21:54"
+__versionTime__ = "27 July 2008 02:11"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -84,10 +84,10 @@ __all__ = [
 'htmlComment', 'javaStyleComment', 'keepOriginalText', 'line', 'lineEnd', 'lineStart', 'lineno',
 'makeHTMLTags', 'makeXMLTags', 'matchOnlyAtCol', 'matchPreviousExpr', 'matchPreviousLiteral',
 'nestedExpr', 'nullDebugAction', 'nums', 'oneOf', 'opAssoc', 'operatorPrecedence', 'printables',
-'punc8bit', 'pythonStyleComment', 'quotedString', 'removeQuotes', 'replaceHTMLEntity',
+'punc8bit', 'pythonStyleComment', 'quotedString', 'removeQuotes', 'replaceHTMLEntity', 
 'replaceWith', 'restOfLine', 'sglQuotedString', 'srange', 'stringEnd',
 'stringStart', 'traceParseAction', 'unicodeString', 'upcaseTokens', 'withAttribute',
-'indentedBlock',
+'indentedBlock', 'originalTextFor',
 ]
 
 
@@ -730,7 +730,7 @@ class ParserElement(object):
             def breaker(instring, loc, doActions=True, callPreParse=True):
                 import pdb
                 pdb.set_trace()
-                _parseMethod( instring, loc, doActions, callPreParse )
+                return _parseMethod( instring, loc, doActions, callPreParse )
             breaker._originalParseMethod = _parseMethod
             self._parse = breaker
         else:
@@ -1408,11 +1408,17 @@ class ParserElement(object):
         else:
             return super(ParserElement,self)==other
 
+    def __ne__(self,other):
+        return not (self == other)
+
     def __hash__(self):
         return hash(id(self))
 
     def __req__(self,other):
         return self == other
+
+    def __rne__(self,other):
+        return not (self == other)
 
 
 class Token(ParserElement):
@@ -2285,10 +2291,9 @@ class And(ParseExpression):
     """
 
     class _ErrorStop(Empty):
-        def __new__(cls,*args,**kwargs):
-            return And._ErrorStop.instance
-    _ErrorStop.instance = Empty()
-    _ErrorStop.instance.leaveWhitespace()
+        def __init__(self, *args, **kwargs):
+            super(Empty,self).__init__(*args, **kwargs)
+            self.leaveWhitespace()
 
     def __init__( self, exprs, savelist = True ):
         super(And,self).__init__(exprs, savelist)
@@ -2307,12 +2312,14 @@ class And(ParseExpression):
         loc, resultlist = self.exprs[0]._parse( instring, loc, doActions, callPreParse=False )
         errorStop = False
         for e in self.exprs[1:]:
-            if e is And._ErrorStop.instance:
+            if isinstance(e, And._ErrorStop):
                 errorStop = True
                 continue
             if errorStop:
                 try:
                     loc, exprtokens = e._parse( instring, loc, doActions )
+                except ParseSyntaxException:
+                    raise
                 except ParseBaseException, pe:
                     raise ParseSyntaxException(pe)
                 except IndexError, ie:
@@ -3147,7 +3154,7 @@ def matchPreviousExpr(expr):
 def _escapeRegexRangeChars(s):
     #~  escape these chars: ^-]
     for c in r"\^-]":
-        s = s.replace(c,"\\"+c)
+        s = s.replace(c,_bslash+c)
     s = s.replace("\n",r"\n")
     s = s.replace("\t",r"\t")
     return _ustr(s)
@@ -3221,6 +3228,27 @@ def dictOf( key, value ):
     """
     return Dict( ZeroOrMore( Group ( key + value ) ) )
 
+def originalTextFor(expr, asString=True):
+    """Helper to return the original, untokenized text for a given expression.  Useful to
+       restore the parsed fields of an HTML start tag into the raw tag text itself, or to
+       revert separate tokens with intervening whitespace back to the original matching
+       input text. Simpler to use than the parse action keepOriginalText, and does not
+       require the inspect module to chase up the call stack.  By default, returns a 
+       string containing the original parsed text.  If the optional asString argument
+       is passed as False, then the return value is a ParseResults containing any 
+       results names that were originally matched, and a single token containing the
+       original matched text from the input string."""
+    locMarker = Empty().setParseAction(lambda s,loc,t: loc)
+    matchExpr = locMarker("_original_start") + expr + locMarker("_original_end")
+    if asString:
+        extractText = lambda s,l,t: s[t._original_start:t._original_end]
+    else:
+        def extractText(s,l,t):
+            del t[:]
+            t[0] = s[t._original_start:t._original_end]
+    matchExpr.setParseAction(extractText)
+    return matchExpr
+    
 # convenience constants for positional expressions
 empty       = Empty().setName("empty")
 lineStart   = LineStart().setName("lineStart")
@@ -3554,7 +3582,7 @@ def indentedBlock(blockStatementExpr, indentStack, indent=True):
     else:
         smExpr = Group( Optional(NL) +
             (OneOrMore( PEER + Group(blockStatementExpr) + Optional(NL) )) )
-    blockStatementExpr.ignore("\\" + LineEnd())
+    blockStatementExpr.ignore(_bslash + LineEnd())
     return smExpr
 
 alphas8bit = srange(r"[\0xc0-\0xd6\0xd8-\0xf6\0xf8-\0xff]")

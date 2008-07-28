@@ -4,6 +4,20 @@ Change Log
 
 Version 1.5.1 - ???, 2008
 --------------------------
+- Added new helper method originalTextFor, to replace the use of
+  the current keepOriginalText parse action.  Now instead of 
+  using the parse action, as in:
+      fullName = Word(alphas) + Word(alphas)
+      fullName.setParseAction(keepOriginalText)
+  (in this example, we used keepOriginalText to restore any white
+  space that may have been skipped between the first and last
+  names)
+  You can now write:
+      fullName = originalTextFor(Word(alphas) + Word(alphas))
+  The implementation of originalTextFor is simpler and faster than
+  keepOriginalText, and does not depend on using the inspect or
+  imp modules.
+  
 - Added optional parseAll argument to parseFile, to be consistent
   with parseAll argument to parseString.  Posted by pboucher on the
   pyparsing wiki, thanks!
@@ -32,6 +46,9 @@ Version 1.5.1 - ???, 2008
 - Fixed bug in ParseResults.asXML(), in which the first named
   item within a ParseResults gets reported with an <ITEM> tag instead
   of with the correct results name.
+  
+- Fixed bug in '-' error stop, when '-' operator used inside a 
+  Combine expression.
 
 
 Version 1.5.0 - June, 2008
