@@ -31,8 +31,8 @@ Version 1.5.1 - ???, 2008
 - Removed dependency on xml.sax.saxutils.escape, and included
   internal implementation instead - proposed by Mike Droettboom on
   the pyparsing mailing list, thanks Mike!  Also fixed erroneous
-  mapping in replaceHTMLEntity of &quot to ', now correctly maps
-  to ".
+  mapping in replaceHTMLEntity of &quot; to ', now correctly maps
+  to ".  (Also added support for mapping &apos; to '.)
 
 - Fixed typo in ParseResults.insert, found by Alejandro Dubrovsky,
   good catch!
@@ -44,11 +44,15 @@ Version 1.5.1 - ???, 2008
   defined.
 
 - Fixed bug in ParseResults.asXML(), in which the first named
-  item within a ParseResults gets reported with an <ITEM> tag instead
-  of with the correct results name.
+  item within a ParseResults gets reported with an <ITEM> tag 
+  instead of with the correct results name.
   
-- Fixed bug in '-' error stop, when '-' operator used inside a 
+- Fixed bug in '-' error stop, when '-' operator is used inside a 
   Combine expression.
+
+- Reverted generator expression to use list comprehension, for 
+  better compatibility with old versions of Python.  Reported by
+  jester/artixdesign on the SourceForge pyparsing discussion list.
 
 
 Version 1.5.0 - June, 2008

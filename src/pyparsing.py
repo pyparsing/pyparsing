@@ -59,7 +59,7 @@ The pyparsing module handles some of the problems that are typically vexing when
 """
 
 __version__ = "1.5.1"
-__versionTime__ = "27 July 2008 02:11"
+__versionTime__ = "4 August 2008 12:21"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -129,17 +129,18 @@ if not _PY3K:
             # ...
 else:
     _ustr = str
+    unichr = chr
 
 def _str2dict(strg):
     return dict( [(c,0) for c in strg] )
     #~ return set( [c for c in strg] )
 
 def _xml_escape(data):
-    """Escape &, <, >, ', etc. in a string of data."""
+    """Escape &, <, >, ", ', etc. in a string of data."""
 
     # ampersand must be replaced first
-    from_symbols = '&><"'
-    to_symbols = ['&'+s+';' for s in "amp gt lt quot".split()]
+    from_symbols = '&><"\''
+    to_symbols = ['&'+s+';' for s in "amp gt lt quot apos".split()]
     for from_,to_ in zip(from_symbols, to_symbols):
         data = data.replace(from_, to_)
     return data
@@ -2523,7 +2524,7 @@ class Each(ParseExpression):
             raise ParseException(instring,loc,"Missing one or more required elements (%s)" % missing )
 
         # add any unmatched Optionals, in case they have default values defined
-        matchOrder += list(e for e in self.exprs if isinstance(e,Optional) and e.expr in tmpOpt)
+        matchOrder += [ e for e in self.exprs if isinstance(e,Optional) and e.expr in tmpOpt ]
 
         resultlist = []
         for e in matchOrder:
