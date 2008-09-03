@@ -59,7 +59,7 @@ The pyparsing module handles some of the problems that are typically vexing when
 """
 
 __version__ = "1.5.1"
-__versionTime__ = "4 August 2008 12:21"
+__versionTime__ = "3 September 2008 08:23"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -1063,6 +1063,7 @@ class ParserElement(object):
             instring = instring.expandtabs()
         loc, tokens = self._parse( instring, 0 )
         if parseAll:
+            loc = self.preParse( instring, loc )
             StringEnd()._parse( instring, loc )
         return tokens
 
@@ -1174,27 +1175,21 @@ class ParserElement(object):
         if isinstance(other,int):
             minElements, optElements = other,0
         elif isinstance(other,tuple):
-            if len(other)==0:
-                other = (None,None)
-            elif len(other)==1:
-                other = (other[0],None)
-            if len(other)==2:
-                if other[0] is None:
-                    other = (0, other[1])
-                if isinstance(other[0],int) and other[1] is None:
-                    if other[0] == 0:
-                        return ZeroOrMore(self)
-                    if other[0] == 1:
-                        return OneOrMore(self)
-                    else:
-                        return self*other[0] + ZeroOrMore(self)
-                elif isinstance(other[0],int) and isinstance(other[1],int):
-                    minElements, optElements = other
-                    optElements -= minElements
+            other = (other + (None, None))[:2]
+            if other[0] is None:
+                other = (0, other[1])
+            if isinstance(other[0],int) and other[1] is None:
+                if other[0] == 0:
+                    return ZeroOrMore(self)
+                if other[0] == 1:
+                    return OneOrMore(self)
                 else:
-                    raise TypeError("cannot multiply 'ParserElement' and ('%s','%s') objects", type(other[0]),type(other[1]))
+                    return self*other[0] + ZeroOrMore(self)
+            elif isinstance(other[0],int) and isinstance(other[1],int):
+                minElements, optElements = other
+                optElements -= minElements
             else:
-                raise TypeError("can only multiply 'ParserElement' and int or (int,int) objects")
+                raise TypeError("cannot multiply 'ParserElement' and ('%s','%s') objects", type(other[0]),type(other[1]))
         else:
             raise TypeError("cannot multiply 'ParserElement' and '%s' objects", type(other))
 
@@ -2906,6 +2901,7 @@ class Forward(ParseElementEnhance):
         if hasattr(self,"name"):
             return self.name
 
+        self._revertClass = self.__class__
         self.__class__ = _ForwardNoRecurse
         try:
             if self.expr is not None:
@@ -2913,8 +2909,8 @@ class Forward(ParseElementEnhance):
             else:
                 retString = "None"
         finally:
-            self.__class__ = Forward
-        return "Forward: "+retString
+            self.__class__ = self._revertClass
+        return self.__class__.__name__ + ": " + retString
 
     def copy(self):
         if self.expr is not None:
@@ -3235,10 +3231,14 @@ def originalTextFor(expr, asString=True):
        revert separate tokens with intervening whitespace back to the original matching
        input text. Simpler to use than the parse action keepOriginalText, and does not
        require the inspect module to chase up the call stack.  By default, returns a 
-       string containing the original parsed text.  If the optional asString argument
-       is passed as False, then the return value is a ParseResults containing any 
-       results names that were originally matched, and a single token containing the
-       original matched text from the input string."""
+       string containing the original parsed text.  
+       
+       If the optional asString argument is passed as False, then the return value is a 
+       ParseResults containing any results names that were originally matched, and a 
+       single token containing the original matched text from the input string.  So if 
+       the expression passed to originalTextFor contains expressions with defined
+       results names, you must set asString to False if you want to preserve those
+       results name values."""
     locMarker = Empty().setParseAction(lambda s,loc,t: loc)
     matchExpr = locMarker("_original_start") + expr + locMarker("_original_end")
     if asString:
@@ -3246,7 +3246,9 @@ def originalTextFor(expr, asString=True):
     else:
         def extractText(s,l,t):
             del t[:]
-            t[0] = s[t._original_start:t._original_end]
+            t.insert(0, s[t._original_start:t._original_end])
+            del t["_original_start"]
+            del t["_original_end"]
     matchExpr.setParseAction(extractText)
     return matchExpr
     
