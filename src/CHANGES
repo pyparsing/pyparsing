@@ -57,6 +57,11 @@ Version 1.5.1 - September, 2008
 - Fixed bug in parseString(parseAll=True), when the input string
   ends with a comment or whitespace.
 
+- Fixed bug in LineStart and LineEnd that did not recognize any
+  special whitespace chars defined using ParserElement.setDefault-
+  WhitespaceChars, found while debugging an issue for Marek Kubica,
+  thanks for the new test case, Marek!
+
 - Made Forward class more tolerant of subclassing.
 
 

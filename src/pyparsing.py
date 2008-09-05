@@ -2050,7 +2050,7 @@ class LineStart(_PositionToken):
     """Matches if current position is at the beginning of a line within the parse string"""
     def __init__( self ):
         super(LineStart,self).__init__()
-        self.setWhitespaceChars( " \t" )
+        self.setWhitespaceChars( ParserElement.DEFAULT_WHITE_CHARS.replace("\n","") )
         self.errmsg = "Expected start of line"
         #self.myException.msg = self.errmsg
 
@@ -2075,7 +2075,7 @@ class LineEnd(_PositionToken):
     """Matches if current position is at the end of a line within the parse string"""
     def __init__( self ):
         super(LineEnd,self).__init__()
-        self.setWhitespaceChars( " \t" )
+        self.setWhitespaceChars( ParserElement.DEFAULT_WHITE_CHARS.replace("\n","") )
         self.errmsg = "Expected end of line"
         #self.myException.msg = self.errmsg
 
