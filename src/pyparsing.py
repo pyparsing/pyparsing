@@ -59,12 +59,13 @@ The pyparsing module handles some of the problems that are typically vexing when
 """
 
 __version__ = "1.5.1"
-__versionTime__ = "3 September 2008 08:23"
+__versionTime__ = "30 September 2008 19:03"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
 from weakref import ref as wkref
-import copy,sys
+import copy
+import sys
 import warnings
 import re
 import sre_constants
@@ -3522,11 +3523,13 @@ def nestedExpr(opener="(", closer=")", content=None, ignoreExpr=quotedString):
     if content is None:
         if isinstance(opener,basestring) and isinstance(closer,basestring):
             if ignoreExpr is not None:
-                content = (Combine(OneOrMore(~ignoreExpr +
-                                CharsNotIn(opener+closer+ParserElement.DEFAULT_WHITE_CHARS,exact=1))
+                content = (Combine(OneOrMore(~ignoreExpr + ~Literal(opener) + ~Literal(closer) +
+                                CharsNotIn(ParserElement.DEFAULT_WHITE_CHARS,exact=1))
                             ).setParseAction(lambda t:t[0].strip()))
             else:
-                content = (empty+CharsNotIn(opener+closer+ParserElement.DEFAULT_WHITE_CHARS).setParseAction(lambda t:t[0].strip()))
+                content = (empty + ~Literal(opener) + ~Literal(closer) + 
+                                CharsNotIn(ParserElement.DEFAULT_WHITE_CHARS)
+                            ).setParseAction(lambda t:t[0].strip())
         else:
             raise ValueError("opening and closing arguments must be strings if no content expression is given")
     ret = Forward()

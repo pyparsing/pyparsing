@@ -27,7 +27,11 @@ Version 1.5.1 - September, 2008
   skipped text, will cause SkipTo to fail.  Useful to prevent 
   SkipTo from reading past terminating expression.  Instigated by
   question posed by Aki Niimura on the pyparsing wiki.
-  
+
+- Fixed bug in nestedExpr if multi-character expressions are given
+  for nesting delimiters.  Patch provided by new pyparsing user,
+  Hans-Martin Gaudecker - thanks, H-M!
+
 - Removed dependency on xml.sax.saxutils.escape, and included
   internal implementation instead - proposed by Mike Droettboom on
   the pyparsing mailing list, thanks Mike!  Also fixed erroneous
