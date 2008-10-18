@@ -5,8 +5,8 @@ Using the pyparsing module
 :author: Paul McGuire
 :address: ptmcg@users.sourceforge.net
 
-:revision: 1.5.0
-:date: June, 2008
+:revision: 1.5.1
+:date: October, 2008
 
 :copyright: Copyright |copy| 2003-2008 Paul McGuire. 
 
@@ -62,6 +62,27 @@ The parsed tokens are returned in the following form::
 
     ['Hello', ',', 'World', '!']
     
+
+New features in 1.5.1
+---------------------
+Some of the significant features added in version 1.5.0 are:
+
+- ``originalTextFor`` helper method, to simplify grammar expressions that need to preserve
+  the original input text; should be used in place of the ``keepOriginalText`` parse action::  
+  
+      fullName = Word(alphas) + Word(alphas)
+      fullName.setParseAction(keepOriginalText)
+  
+  should now be written::
+  
+      fullName = originalTextFor(Word(alphas) + Word(alphas))
+  
+- added parameter ``parseAll`` to ``ParserElement.parseFile`` to
+  match the arguments for ``ParserElement.parseString``
+
+- new argument ``failOn`` for SkipTo expressions, to define literal strings or expressions that 
+  should not be included in the skipped text
+
 
 New features in 1.5.0
 ---------------------
@@ -263,7 +284,7 @@ methods for code to use are:
 
 - ``parseFile( sourceFile )`` - a convenience function, that accepts an
   input file object or filename.  The file contents are passed as a 
-  string to ``parseString()``.
+  string to ``parseString()``.  ``parseFile`` also supports the ``parseAll`` argument.
   
 - ``scanString( sourceString )`` - generator function, used to find and
   extract matching text in the given source string; for each matched text, 
@@ -470,6 +491,8 @@ Basic ParserElement subclasses
   - ignore - allows the user to specify patterns to not be matched,
     to prevent false matches
   
+  - failOn - if a literal string or expression is given for this argument, it defines an expression that
+    should cause the ``SkipTo`` expression to fail, and not skip over that expression
 
 .. _White:
 
@@ -872,8 +895,19 @@ Helper methods
     within the block must be indented from the current parse
     location; if using indentedBlock to define the left-most
     statements (all starting in column 1), set indent to False
-        
+
+.. _originalTextFor:
+
+- ``originalTextFor( expr )`` - helper function to preserve the originally parsed text, regardless of any
+  token processing or conversion done by the contained expression.  For instance, the following expression::
   
+        fullName = Word(alphas) + Word(alphas)
+
+  will return the parse of "John Smith" as ['John', 'Smith'].  In some applications, the actual name as it
+  was given in the input string is what is desired.  To do this, use ``originalTextFor``::
+  
+        fullName = originalTextFor(Word(alphas) + Word(alphas))
+
 - ``lineno( loc, string )`` - function to give the line number of the
   location within the string; the first line is line 1, newlines
   start new rows
@@ -911,7 +945,7 @@ Helper parse actions
   
       nbsp = Literal("&nbsp;").setParseAction( replaceWith("<BLANK>") )
 
-- ``keepOriginalText``- restores any internal whitespace or suppressed 
+- ``keepOriginalText``- (deprecated, use originalTextFor_ instead) restores any internal whitespace or suppressed 
   text within the tokens for a matched parse
   expression.  This is especially useful when defining expressions
   for scanString or transformString applications.
