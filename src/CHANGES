@@ -2,6 +2,16 @@
 Change Log
 ==========
 
+Version 1.5.2 - ???
+-------------------
+- Fixed bug in SkipTo/failOn handling - thanks to eagle eye 
+  cpennington on the pyparsing wiki!
+
+- Simplified exception stack traces when reporting parse 
+  exceptions back to caller of parseString or parseFile - thanks
+  to a tip from Peter Otten on comp.lang.python.
+  
+
 Version 1.5.1 - October, 2008
 -------------------------------
 - Added new helper method originalTextFor, to replace the use of
