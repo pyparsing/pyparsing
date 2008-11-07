@@ -59,7 +59,7 @@ The pyparsing module handles some of the problems that are typically vexing when
 """
 
 __version__ = "1.5.2"
-__versionTime__ = "6 November 2008 12:30"
+__versionTime__ = "7 November 2008 11:15"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -1062,11 +1062,16 @@ class ParserElement(object):
             e.streamline()
         if not self.keepTabs:
             instring = instring.expandtabs()
-        loc, tokens = self._parse( instring, 0 )
-        if parseAll:
-            loc = self.preParse( instring, loc )
-            StringEnd()._parse( instring, loc )
-        return tokens
+        try:
+            loc, tokens = self._parse( instring, 0 )
+            if parseAll:
+                loc = self.preParse( instring, loc )
+                StringEnd()._parse( instring, loc )
+        except ParseBaseException, exc:
+            # catch and re-raise exception from here, clears out pyparsing internal stack trace
+            raise exc
+        else:
+            return tokens
 
     def scanString( self, instring, maxMatches=_MAX_INT ):
         """Scan the input string for expression matches.  Each match will return the
@@ -1383,7 +1388,11 @@ class ParserElement(object):
             f = open(file_or_filename, "rb")
             file_contents = f.read()
             f.close()
-        return self.parseString(file_contents, parseAll)
+        try:
+            return self.parseString(file_contents, parseAll)
+        except ParseBaseException, exc:
+            # catch and re-raise exception from here, clears out pyparsing internal stack trace
+            raise exc
 
     def getException(self):
         return ParseException("",0,self.errmsg,self)
@@ -2828,7 +2837,7 @@ class SkipTo(ParseElementEnhance):
                     except ParseBaseException:
                         pass
                     else:
-                    failParse = True
+                        failParse = True
                         raise ParseException(instring, loc, "Found expression " + str(self.failOn))
                     failParse = False
                 loc = expr._skipIgnorables( instring, loc )
