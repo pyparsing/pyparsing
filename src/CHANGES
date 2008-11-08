@@ -4,26 +4,43 @@ Change Log
 
 Version 1.5.2 - ???
 -------------------
-- Fixed bug in SkipTo/failOn handling - thanks to eagle eye 
+- Fixed bug in SkipTo/failOn handling - caught by eagle eye 
   cpennington on the pyparsing wiki!
 
 - Simplified exception stack traces when reporting parse 
   exceptions back to caller of parseString or parseFile - thanks
   to a tip from Peter Otten on comp.lang.python.
+
+- Enhanced classes that take a list of expressions (And, Or, 
+  MatchFirst, and Each) to accept generator expressions also.
+  This can be useful when generating lists of alternative
+  expressions, as in this case, where the user wanted to match
+  any repetitions of '+', '*', '#', or '.', but not mixtures
+  of them (that is, match '+++', but not '+-+'):
   
+      codes = "+*#."
+      format = MatchFirst(Word(c) for c in codes)
+      
+  Based on a problem posed by Denis Spir on the Python tutor
+  list.
+
 
 Version 1.5.1 - October, 2008
 -------------------------------
 - Added new helper method originalTextFor, to replace the use of
   the current keepOriginalText parse action.  Now instead of 
   using the parse action, as in:
+  
       fullName = Word(alphas) + Word(alphas)
       fullName.setParseAction(keepOriginalText)
+      
   (in this example, we used keepOriginalText to restore any white
   space that may have been skipped between the first and last
   names)
   You can now write:
+  
       fullName = originalTextFor(Word(alphas) + Word(alphas))
+      
   The implementation of originalTextFor is simpler and faster than
   keepOriginalText, and does not depend on using the inspect or
   imp modules.
