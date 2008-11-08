@@ -58,8 +58,8 @@ The pyparsing module handles some of the problems that are typically vexing when
  - embedded comments
 """
 
-__version__ = "1.5.1.Py3"
-__versionTime__ = "17 Oct 2008 20:05"
+__version__ = "1.5.2Py3"
+__versionTime__ = "8 November 2008 05:36"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -132,9 +132,11 @@ else:
     _ustr = str
     unichr = chr
 
-def _str2dict(strg):
-    return dict( [(c,0) for c in strg] )
-    #~ return set( [c for c in strg] )
+if not _PY3K:
+	def _str2dict(strg):
+	    return dict( [(c,0) for c in strg] )
+else:
+	_str2dict = set
 
 def _xml_escape(data):
     """Escape &, <, >, ", ', etc. in a string of data."""
@@ -1062,11 +1064,16 @@ class ParserElement(object):
             e.streamline()
         if not self.keepTabs:
             instring = instring.expandtabs()
-        loc, tokens = self._parse( instring, 0 )
-        if parseAll:
-            loc = self.preParse( instring, loc )
-            StringEnd()._parse( instring, loc )
-        return tokens
+        try:
+            loc, tokens = self._parse( instring, 0 )
+            if parseAll:
+                loc = self.preParse( instring, loc )
+                StringEnd()._parse( instring, loc )
+        except ParseBaseException, exc:
+            # catch and re-raise exception from here, clears out pyparsing internal stack trace
+            raise exc
+        else:
+            return tokens
 
     def scanString( self, instring, maxMatches=_MAX_INT ):
         """Scan the input string for expression matches.  Each match will return the
@@ -1383,7 +1390,11 @@ class ParserElement(object):
             f = open(file_or_filename, "rb")
             file_contents = f.read()
             f.close()
-        return self.parseString(file_contents, parseAll)
+        try:
+            return self.parseString(file_contents, parseAll)
+        except ParseBaseException, exc:
+            # catch and re-raise exception from here, clears out pyparsing internal stack trace
+            raise exc
 
     def getException(self):
         return ParseException("",0,self.errmsg,self)
@@ -2197,7 +2208,7 @@ class ParseExpression(ParserElement):
         elif isinstance( exprs, basestring ):
             self.exprs = [ Literal( exprs ) ]
         else:
-            self.exprs = [ exprs ]
+            self.exprs = list( exprs )
         self.callPreparse = False
 
     def __getitem__( self, i ):
@@ -2823,8 +2834,13 @@ class SkipTo(ParseElementEnhance):
         while loc <= instrlen:
             try:
                 if self.failOn:
-                    failParse = True
-                    self.failOn.tryParse(instring, loc)
+                    try:
+                        self.failOn.tryParse(instring, loc)
+                    except ParseBaseException:
+                        pass
+                    else:
+                        failParse = True
+                        raise ParseException(instring, loc, "Found expression " + str(self.failOn))
                     failParse = False
                 loc = expr._skipIgnorables( instring, loc )
                 expr._parse( instring, loc, doActions=False, callPreParse=False )
@@ -3605,7 +3621,7 @@ alphas8bit = srange(r"[\0xc0-\0xd6\0xd8-\0xf6\0xf8-\0xff]")
 punc8bit = srange(r"[\0xa1-\0xbf\0xd7\0xf7]")
 
 anyOpenTag,anyCloseTag = makeHTMLTags(Word(alphas,alphanums+"_:"))
-commonHTMLEntity = Combine(_L("&") + oneOf("gt lt amp nbsp quot").setResultsName("entity") +";")
+commonHTMLEntity = Combine(_L("&") + oneOf("gt lt amp nbsp quot").setResultsName("entity") +";").streamline()
 _htmlEntityMap = dict(zip("gt lt amp nbsp quot".split(),'><& "'))
 replaceHTMLEntity = lambda t : t.entity in _htmlEntityMap and _htmlEntityMap[t.entity] or None
 
