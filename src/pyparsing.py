@@ -59,7 +59,7 @@ The pyparsing module handles some of the problems that are typically vexing when
 """
 
 __version__ = "1.5.2"
-__versionTime__ = "8 November 2008 05:36"
+__versionTime__ = "5 December 2008 10:27"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -2208,7 +2208,10 @@ class ParseExpression(ParserElement):
         elif isinstance( exprs, basestring ):
             self.exprs = [ Literal( exprs ) ]
         else:
-            self.exprs = list( exprs )
+            try:
+                self.exprs = list( exprs )
+            except TypeError:
+                self.exprs = [ exprs ]
         self.callPreparse = False
 
     def __getitem__( self, i ):
@@ -3195,7 +3198,7 @@ def oneOf( strs, caseless=False, useRegex=True ):
         parseElementClass = Literal
 
     if isinstance(strs,(list,tuple)):
-        symbols = strs[:]
+        symbols = list(strs[:])
     elif isinstance(strs,basestring):
         symbols = strs.split()
     else:
