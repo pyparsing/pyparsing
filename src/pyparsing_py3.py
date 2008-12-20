@@ -59,7 +59,7 @@ The pyparsing module handles some of the problems that are typically vexing when
 """
 
 __version__ = "1.5.2Py3"
-__versionTime__ = "8 November 2008 05:36"
+__versionTime__ = "20 December 2008 06:00"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -110,6 +110,9 @@ if not _PY3K:
            str(obj). If that fails with a UnicodeEncodeError, then it tries unicode(obj). It
            then < returns the unicode object | encodes it with the default encoding | ... >.
         """
+        if isinstance(obj,unicode):
+            return obj
+
         try:
             # If this works, then _ustr(obj) has the same behaviour as str(obj), so
             # it won't break any existing code.
@@ -309,7 +312,7 @@ class ParseResults(object):
                 else:
                     try:
                         self[name] = toklist[0]
-                    except (KeyError,TypeError):
+                    except (KeyError,TypeError,IndexError):
                         self[name] = toklist
 
     def __getitem__( self, i ):
@@ -1974,7 +1977,7 @@ class White(Token):
     """Special matching class for matching whitespace.  Normally, whitespace is ignored
        by pyparsing grammars.  This class is included when some whitespace structures
        are significant.  Define with a string containing the whitespace characters to be
-       matched; default is " \\t\\n".  Also takes optional min, max, and exact arguments,
+       matched; default is " \\t\\r\\n".  Also takes optional min, max, and exact arguments,
        as defined for the Word class."""
     whiteStrs = {
         " " : "<SPC>",
@@ -2208,7 +2211,10 @@ class ParseExpression(ParserElement):
         elif isinstance( exprs, basestring ):
             self.exprs = [ Literal( exprs ) ]
         else:
-            self.exprs = list( exprs )
+            try:
+                self.exprs = list( exprs )
+            except TypeError:
+                self.exprs = [ exprs ]
         self.callPreparse = False
 
     def __getitem__( self, i ):
@@ -2812,9 +2818,7 @@ class SkipTo(ParseElementEnhance):
     """
     def __init__( self, other, include=False, ignore=None, failOn=None ):
         super( SkipTo, self ).__init__( other )
-        if ignore is not None:
-            self.expr = self.expr.copy()
-            self.expr.ignore(ignore)
+        self.ignoreExpr = ignore
         self.mayReturnEmpty = True
         self.mayIndexError = False
         self.includeMatch = include
@@ -2842,7 +2846,13 @@ class SkipTo(ParseElementEnhance):
                         failParse = True
                         raise ParseException(instring, loc, "Found expression " + str(self.failOn))
                     failParse = False
-                loc = expr._skipIgnorables( instring, loc )
+                if self.ignoreExpr is not None:
+                    while 1:
+                        try:
+                            loc = self.ignoreExpr.tryParse(instring,loc)
+                            print "found ignoreExpr, advance to", loc
+                        except ParseBaseException:
+                            break
                 expr._parse( instring, loc, doActions=False, callPreParse=False )
                 skipText = instring[startLoc:loc]
                 if self.includeMatch:
@@ -3195,7 +3205,7 @@ def oneOf( strs, caseless=False, useRegex=True ):
         parseElementClass = Literal
 
     if isinstance(strs,(list,tuple)):
-        symbols = strs[:]
+        symbols = list(strs[:])
     elif isinstance(strs,basestring):
         symbols = strs.split()
     else:

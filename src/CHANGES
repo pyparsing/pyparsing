@@ -7,6 +7,12 @@ Version 1.5.2 - ???
 - Fixed bug in SkipTo/failOn handling - caught by eagle eye 
   cpennington on the pyparsing wiki!
 
+- Fixed second bug in SkipTo when using the ignore constructor
+  argument, reported by Catherine Devlin, thanks!
+  
+- Fixed obscure bug reported by Eike Welk when using a class
+  as a ParseAction with an errant __getitem__ method.
+
 - Simplified exception stack traces when reporting parse 
   exceptions back to caller of parseString or parseFile - thanks
   to a tip from Peter Otten on comp.lang.python.
