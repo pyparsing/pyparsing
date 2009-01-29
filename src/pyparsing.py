@@ -59,7 +59,7 @@ The pyparsing module handles some of the problems that are typically vexing when
 """
 
 __version__ = "1.5.2"
-__versionTime__ = "4 January 2009 15:02"
+__versionTime__ = "29 January 2009 14:30"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -1419,9 +1419,11 @@ class ParserElement(object):
             raise AttributeError("no such attribute " + aname)
 
     def __eq__(self,other):
-        if isinstance(other, basestring):
+        if isinstance(other, ParserElement):
+            return self is other or self.__dict__ == other.__dict__
+        elif isinstance(other, basestring):
             try:
-                (self + StringEnd()).parseString(_ustr(other))
+                self.parseString(_ustr(other), parseAll=True)
                 return True
             except ParseBaseException:
                 return False
@@ -2821,7 +2823,8 @@ class Optional(ParseElementEnhance):
 
 class SkipTo(ParseElementEnhance):
     """Token for skipping over all undefined text until the matched expression is found.
-       If include is set to true, the matched expression is also consumed.  The ignore
+       If include is set to true, the matched expression is also parsed (the skipped text
+       and matched expression are returned as a 2-element list).  The ignore
        argument is used to define grammars (typically quoted strings and comments) that
        might contain false matches.
     """
