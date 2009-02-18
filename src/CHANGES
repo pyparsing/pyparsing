@@ -2,8 +2,12 @@
 Change Log
 ==========
 
-Version 1.5.2 - ???
--------------------
+Version 1.5.2 - February, 2009
+------------------------------
+- Removed __slots__ declaration on ParseBaseException, for
+  compatibility with IronPython 2.0.1.  "Raised" by David
+  Lawler on the pyparsing wiki, thanks David!
+  
 - Fixed bug in SkipTo/failOn handling - caught by eagle eye 
   cpennington on the pyparsing wiki!
 

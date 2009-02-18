@@ -59,7 +59,7 @@ The pyparsing module handles some of the problems that are typically vexing when
 """
 
 __version__ = "1.5.2"
-__versionTime__ = "29 January 2009 14:30"
+__versionTime__ = "17 February 2009 19:45"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -166,7 +166,6 @@ printables = "".join( [ c for c in string.printable if c not in string.whitespac
 
 class ParseBaseException(Exception):
     """base exception class for all parsing runtime exceptions"""
-    __slots__ = ( "loc","msg","pstr","parserElement" )
     # Performance tuning: we construct a *lot* of these, so keep this
     # constructor as small and fast as possible
     def __init__( self, pstr, loc=0, msg=None, elem=None ):

@@ -1,6 +1,6 @@
 # module pyparsing.py
 #
-# Copyright (c) 2003-2008  Paul T. McGuire
+# Copyright (c) 2003-2009  Paul T. McGuire
 #
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
@@ -59,7 +59,7 @@ The pyparsing module handles some of the problems that are typically vexing when
 """
 
 __version__ = "1.5.2Py3"
-__versionTime__ = "20 December 2008 06:00"
+__versionTime__ = "18 February 2009 23:46"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -100,6 +100,7 @@ if sys.version_info[0] > 2:
     _PY3K = True
     _MAX_INT = sys.maxsize
     basestring = str
+	unichr = chr
 else:
     _PY3K = False
     _MAX_INT = sys.maxint
@@ -166,7 +167,6 @@ printables = "".join( [ c for c in string.printable if c not in string.whitespac
 
 class ParseBaseException(Exception):
     """base exception class for all parsing runtime exceptions"""
-    __slots__ = ( "loc","msg","pstr","parserElement" )
     # Performance tuning: we construct a *lot* of these, so keep this
     # constructor as small and fast as possible
     def __init__( self, pstr, loc=0, msg=None, elem=None ):
@@ -1072,7 +1072,7 @@ class ParserElement(object):
             if parseAll:
                 loc = self.preParse( instring, loc )
                 StringEnd()._parse( instring, loc )
-        except ParseBaseException, exc:
+        except ParseBaseException as exc:
             # catch and re-raise exception from here, clears out pyparsing internal stack trace
             raise exc
         else:
@@ -1099,16 +1099,19 @@ class ParserElement(object):
         parseFn = self._parse
         ParserElement.resetCache()
         matches = 0
-        while loc <= instrlen and matches < maxMatches:
-            try:
-                preloc = preparseFn( instring, loc )
-                nextLoc,tokens = parseFn( instring, preloc, callPreParse=False )
-            except ParseException:
-                loc = preloc+1
-            else:
-                matches += 1
-                yield tokens, preloc, nextLoc
-                loc = nextLoc
+        try:
+            while loc <= instrlen and matches < maxMatches:
+                try:
+                    preloc = preparseFn( instring, loc )
+                    nextLoc,tokens = parseFn( instring, preloc, callPreParse=False )
+                except ParseException:
+                    loc = preloc+1
+                else:
+                    matches += 1
+                    yield tokens, preloc, nextLoc
+                    loc = nextLoc
+        except ParseBaseException as pe:
+            raise pe
 
     def transformString( self, instring ):
         """Extension to scanString, to modify matching text with modified tokens that may
@@ -1122,25 +1125,31 @@ class ParserElement(object):
         # force preservation of <TAB>s, to minimize unwanted transformation of string, and to
         # keep string locs straight between transformString and scanString
         self.keepTabs = True
-        for t,s,e in self.scanString( instring ):
-            out.append( instring[lastE:s] )
-            if t:
-                if isinstance(t,ParseResults):
-                    out += t.asList()
-                elif isinstance(t,list):
-                    out += t
-                else:
-                    out.append(t)
-            lastE = e
-        out.append(instring[lastE:])
-        return "".join(map(_ustr,out))
+        try:
+            for t,s,e in self.scanString( instring ):
+                out.append( instring[lastE:s] )
+                if t:
+                    if isinstance(t,ParseResults):
+                        out += t.asList()
+                    elif isinstance(t,list):
+                        out += t
+                    else:
+                        out.append(t)
+                lastE = e
+            out.append(instring[lastE:])
+            return "".join(map(_ustr,out))
+        except ParseBaseException as pe:
+            raise pe
 
     def searchString( self, instring, maxMatches=_MAX_INT ):
         """Another extension to scanString, simplifying the access to the tokens found
            to match the given parse expression.  May be called with optional
            maxMatches argument, to clip searching after 'n' matches are found.
         """
-        return ParseResults([ t for t,s,e in self.scanString( instring, maxMatches ) ])
+        try:
+            return ParseResults([ t for t,s,e in self.scanString( instring, maxMatches ) ])
+        except ParseBaseException as pe:
+            raise pe
 
     def __add__(self, other ):
         """Implementation of + operator - returns And"""
@@ -1410,9 +1419,11 @@ class ParserElement(object):
             raise AttributeError("no such attribute " + aname)
 
     def __eq__(self,other):
-        if isinstance(other, basestring):
+        if isinstance(other, ParserElement):
+            return self is other or self.__dict__ == other.__dict__
+        elif isinstance(other, basestring):
             try:
-                (self + StringEnd()).parseString(_ustr(other))
+                self.parseString(_ustr(other), parseAll=True)
                 return True
             except ParseBaseException:
                 return False
@@ -2812,7 +2823,8 @@ class Optional(ParseElementEnhance):
 
 class SkipTo(ParseElementEnhance):
     """Token for skipping over all undefined text until the matched expression is found.
-       If include is set to true, the matched expression is also consumed.  The ignore
+       If include is set to true, the matched expression is also parsed (the skipped text
+       and matched expression are returned as a 2-element list).  The ignore
        argument is used to define grammars (typically quoted strings and comments) that
        might contain false matches.
     """
@@ -3288,13 +3300,13 @@ stringEnd   = StringEnd().setName("stringEnd")
 
 _escapedPunc = Word( _bslash, r"\[]-*.$+^?()~ ", exact=2 ).setParseAction(lambda s,l,t:t[0][1])
 _printables_less_backslash = "".join([ c for c in printables if c not in  r"\]" ])
-_escapedHexChar = Combine( Suppress(_bslash + "0x") + Word(hexnums) ).setParseAction(lambda s,l,t:chr(int(t[0],16)))
-_escapedOctChar = Combine( Suppress(_bslash) + Word("0","01234567") ).setParseAction(lambda s,l,t:chr(int(t[0],8)))
+_escapedHexChar = Combine( Suppress(_bslash + "0x") + Word(hexnums) ).setParseAction(lambda s,l,t:unichr(int(t[0],16)))
+_escapedOctChar = Combine( Suppress(_bslash) + Word("0","01234567") ).setParseAction(lambda s,l,t:unichr(int(t[0],8)))
 _singleChar = _escapedPunc | _escapedHexChar | _escapedOctChar | Word(_printables_less_backslash,exact=1)
 _charRange = Group(_singleChar + Suppress("-") + _singleChar)
 _reBracketExpr = Literal("[") + Optional("^").setResultsName("negate") + Group( OneOrMore( _charRange | _singleChar ) ).setResultsName("body") + "]"
 
-_expanded = lambda p: (isinstance(p,ParseResults) and ''.join([ chr(c) for c in range(ord(p[0]),ord(p[1])+1) ]) or p)
+_expanded = lambda p: (isinstance(p,ParseResults) and ''.join([ unichr(c) for c in range(ord(p[0]),ord(p[1])+1) ]) or p)
 
 def srange(s):
     r"""Helper to easily define string ranges for use in Word construction.  Borrows
