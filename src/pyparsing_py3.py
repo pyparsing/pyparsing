@@ -59,7 +59,7 @@ The pyparsing module handles some of the problems that are typically vexing when
 """
 
 __version__ = "1.5.2Py3"
-__versionTime__ = "18 February 2009 23:46"
+__versionTime__ = "29 March 2009 23:54"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -1404,7 +1404,7 @@ class ParserElement(object):
             f.close()
         try:
             return self.parseString(file_contents, parseAll)
-        except ParseBaseException, exc:
+        except ParseBaseException as exc:
             # catch and re-raise exception from here, clears out pyparsing internal stack trace
             raise exc
 
@@ -2862,7 +2862,7 @@ class SkipTo(ParseElementEnhance):
                     while 1:
                         try:
                             loc = self.ignoreExpr.tryParse(instring,loc)
-                            print "found ignoreExpr, advance to", loc
+                            print("found ignoreExpr, advance to", loc)
                         except ParseBaseException:
                             break
                 expr._parse( instring, loc, doActions=False, callPreParse=False )
