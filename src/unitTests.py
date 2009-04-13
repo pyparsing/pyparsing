@@ -8,6 +8,7 @@ import pprint
 import pdb
 
 TEST_USING_PACKRAT = True
+#~ TEST_USING_PACKRAT = False
 
 # simple utility for flattening nested lists
 def flatten(L):
@@ -282,18 +283,19 @@ class ParseIDLTest(ParseTestCase):
         import idlParse
 
         def test( strng, numToks, errloc=0 ):
-            #~ print strng
+            print strng
             try:
                 bnf = idlParse.CORBA_IDL_BNF()
-                tokens = flatten( bnf.parseString( strng ).asList() )
-                #~ print "tokens = "
-                #~ pprint.pprint( tokens.asList() )
-                #~ print len(tokens)
+                tokens = bnf.parseString( strng )
+                print "tokens = "
+                pprint.pprint( tokens.asList() )
+                tokens = flatten( tokens.asList() )
+                print len(tokens)
                 assert len(tokens) == numToks, "error matching IDL string, %s -> %s" % (strng, str(tokens) )
             except ParseException, err:
-                #~ print err.line
-                #~ print " "*(err.column-1) + "^"
-                #~ print err
+                print err.line
+                print " "*(err.column-1) + "^"
+                print err
                 assert numToks == 0, "unexpected ParseException while parsing %s, %s" % (strng, str(err) )
                 assert err.loc == errloc, "expected ParseException at %d, found exception at %d" % (errloc, err.loc)
             
@@ -1302,9 +1304,9 @@ class MiscellaneousParserTests(ParseTestCase):
             testGrammar.parseString("BC")
             testGrammar.parseString("BD")
         except pyparsing.ParseException, pe:
-            #~ print pe.pstr,"->",pe
+            print pe.pstr,"->",pe
             assert pe.pstr == "BD", "wrong test string failed to parse"
-            assert pe.loc == 1, "error in Optional matching"
+            assert pe.loc == 1, "error in Optional matching, pe.loc="+str(pe.loc)
 
         # test validate
         print "verify behavior of validate()"
@@ -1350,8 +1352,15 @@ class MiscellaneousParserTests(ParseTestCase):
         print names
         assert names==[None, 'B', 'B', 'A', 'B', 'B', 'A', 'B', 'C', 'B', 'A'], \
             "failure in getting names for tokens"
+
+        # test ParseResults.get() method
+        print "verify behavior of ParseResults.get()"
+        res = g1.parseString(teststring)
+        print res.get("A","A not found")[0]
+        print res.get("D","!D")
+        assert res.get("A","A not found")[0] == "a", "get on existing key failed"
+        assert res.get("D","!D") == "!D", "get on missing key failed"
         
-        # test Optional beyond end of string
         print "verify handling of Optional's beyond the end of string"
         testGrammar = "A" + pyparsing.Optional("B") + pyparsing.Optional("C") + pyparsing.Optional("D")
         testGrammar.parseString("A")
@@ -1597,51 +1606,63 @@ class VariableParseActionArgsTest(ParseTestCase):
             def __call__(self):
                 return 
         class CallableS3(object):
-            @staticmethod
+            #~ @staticmethod
             def __call__(s,l,t):
                 return t
+            __call__=staticmethod(__call__)
         class CallableS2(object):
-            @staticmethod
+            #~ @staticmethod
             def __call__(l,t):
                 return t
+            __call__=staticmethod(__call__)
         class CallableS1(object):
-            @staticmethod
+            #~ @staticmethod
             def __call__(t):
                 return t
+            __call__=staticmethod(__call__)
         class CallableS0(object):
-            @staticmethod
+            #~ @staticmethod
             def __call__():
                 return
+            __call__=staticmethod(__call__)
         class CallableC3(object):
-            @classmethod
+            #~ @classmethod
             def __call__(cls,s,l,t):
                 return t
+            __call__=classmethod(__call__)
         class CallableC2(object):
-            @classmethod
+            #~ @classmethod
             def __call__(cls,l,t):
                 return t
+            __call__=classmethod(__call__)
         class CallableC1(object):
-            @classmethod
+            #~ @classmethod
             def __call__(cls,t):
                 return t
+            __call__=classmethod(__call__)
         class CallableC0(object):
-            @classmethod
+            #~ @classmethod
             def __call__(cls):
                 return
+            __call__=classmethod(__call__)
         
         class parseActionHolder(object):
-            @staticmethod
+            #~ @staticmethod
             def pa3(s,l,t):
                 return t
-            @staticmethod
+            pa3=staticmethod(pa3)
+            #~ @staticmethod
             def pa2(l,t):
                 return t
-            @staticmethod
+            pa2=staticmethod(pa2)
+            #~ @staticmethod
             def pa1(t):
                 return t
-            @staticmethod
+            pa1=staticmethod(pa1)
+            #~ @staticmethod
             def pa0():
                 return
+            pa0=staticmethod(pa0)
                 
         def paArgs(*args):
             print args
@@ -1789,7 +1810,16 @@ class ParseResultsDelTest(ParseTestCase):
         
         grammar = OneOrMore(Word(nums))("ints") + OneOrMore(Word(alphas))("words")
         res = grammar.parseString("123 456 ABC DEF")
-        print res
+        print res.dump()
+        origInts = res.ints.asList()
+        origWords = res.words.asList()
+        del res[1]
+        del res["words"]
+        print res.dump()
+        assert res[1]=='ABC',"failed to delete 0'th element correctly"
+        assert res.ints.asList()==origInts, "updated named attributes, should have updated list only"
+        assert res.words=="", "failed to update named attribute correctly"
+        assert res[-1]=='DEF', "updated list, should have updated named attributes only"
         
 class WithAttributeParseActionTest(ParseTestCase):
     def runTest(self):
@@ -1935,8 +1965,26 @@ class NestedExpressionsTest(ParseTestCase):
         print result.dump()
         assert result.asList() == expected , "Lisp-ish comments (\";; <...> $\") and quoted strings didn't work. Expected: %s, got: %s" % (expected, result)
 
-
-
+class ParseAllTest(ParseTestCase):
+    def runTest(self):
+        from pyparsing import Word
+        
+        testExpr = Word("A")
+        
+        tests = [
+            ("AAAAA", False, True),
+            ("AAAAA", True, True),
+            ("AAABB", False, True),
+            ("AAABB", True, False),
+            ]
+        for s,parseAllFlag,shouldSucceed in tests:
+            try:
+                print "'%s' parseAll=%s (shouldSuceed=%s)" % (s, parseAllFlag, shouldSucceed)
+                testExpr.parseString(s,parseAllFlag)
+                assert shouldSucceed, "successfully parsed when should have failed"
+            except ParseException, pe:
+                assert not shouldSucceed, "failed to parse when should have succeeded"
+        
 class WordBoundaryExpressionsTest(ParseTestCase):
     def runTest(self):
         from pyparsing import WordEnd, WordStart, oneOf
@@ -2025,6 +2073,7 @@ def makeTestSuite():
     suite.addTest( OperatorPrecedenceGrammarTest4() )
     suite.addTest( ParseResultsPickleTest() )
     suite.addTest( ParseResultsWithNamedTupleTest() )
+    suite.addTest( ParseResultsDelTest() )
     suite.addTest( SingleArgExceptionTest() )
     suite.addTest( UpcaseDowncaseUnicode() )
     suite.addTest( KeepOriginalTextTest() )
@@ -2032,13 +2081,14 @@ def makeTestSuite():
     suite.addTest( WithAttributeParseActionTest() )
     suite.addTest( NestedExpressionsTest() )
     suite.addTest( WordBoundaryExpressionsTest() )
+    suite.addTest( ParseAllTest() )
     suite.addTest( MiscellaneousParserTests() )
 
     if TEST_USING_PACKRAT:
         # retest using packrat parsing (disable those tests that aren't compatible)
         suite.addTest( EnablePackratParsing() )
         
-        unpackrattables = [ EnablePackratParsing, ParseIDLTest, RepeaterTest, ]
+        unpackrattables = [ EnablePackratParsing, RepeaterTest, ]
         
         # add tests to test suite a second time, to run with packrat parsing
         # (leaving out those that we know wont work with packrat)

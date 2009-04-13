@@ -5,10 +5,10 @@ Using the pyparsing module
 :author: Paul McGuire
 :address: ptmcg@users.sourceforge.net
 
-:revision: 1.5.1
-:date: October, 2008
+:revision: 1.5.2
+:date: April, 2009
 
-:copyright: Copyright |copy| 2003-2008 Paul McGuire. 
+:copyright: Copyright |copy| 2003-2009 Paul McGuire. 
 
 .. |copy| unicode:: 0xA9
 
@@ -62,6 +62,13 @@ The parsed tokens are returned in the following form::
 
     ['Hello', ',', 'World', '!']
     
+
+New features in 1.5.2
+---------------------
+There are no new pyparsing features in this release, it is primarily a bug-fixing release.
+This release does include changes to support running pyparsing under IronPython 2.0.1, and
+a pyparsing_py3 module for use with Python 3.
+
 
 New features in 1.5.1
 ---------------------

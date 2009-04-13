@@ -2,10 +2,18 @@
 Change Log
 ==========
 
-Version 1.5.2 - February, 2009
+Version 1.5.2 - April, 2009
 ------------------------------
+- Added pyparsing_py3.py module, so that Python 3 users can use
+  pyparsing by changing their pyparsing import statement to:
+  
+      import pyparsing_py3
+
+  Thanks for help from Patrick Laban and his friend is Geremy 
+  Condra on the pyparsing wiki.
+  
 - Removed __slots__ declaration on ParseBaseException, for
-  compatibility with IronPython 2.0.1.  "Raised" by David
+  compatibility with IronPython 2.0.1.  Raised by David
   Lawler on the pyparsing wiki, thanks David!
   
 - Fixed bug in SkipTo/failOn handling - caught by eagle eye 
@@ -20,6 +28,10 @@ Version 1.5.2 - February, 2009
 - Simplified exception stack traces when reporting parse 
   exceptions back to caller of parseString or parseFile - thanks
   to a tip from Peter Otten on comp.lang.python.
+
+- Changed behavior of scanString to avoid infinitely looping on
+  expressions that match zero-length strings.  Prompted by a
+  question posted by ellisonbg on the wiki.
 
 - Enhanced classes that take a list of expressions (And, Or, 
   MatchFirst, and Each) to accept generator expressions also.
