@@ -9,7 +9,7 @@ Version 1.5.2 - April, 2009
   
       import pyparsing_py3
 
-  Thanks for help from Patrick Laban and his friend is Geremy 
+  Thanks for help from Patrick Laban and his friend Geremy 
   Condra on the pyparsing wiki.
   
 - Removed __slots__ declaration on ParseBaseException, for
@@ -45,6 +45,9 @@ Version 1.5.2 - April, 2009
       
   Based on a problem posed by Denis Spir on the Python tutor
   list.
+
+- Added new example eval_arith.py, which extends the example
+  simpleArith.py to actually evaluate the parsed expressions.
 
 
 Version 1.5.1 - October, 2008

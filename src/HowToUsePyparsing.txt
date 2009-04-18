@@ -789,18 +789,6 @@ Helper methods
 - ``dictOf( key, value )`` - convenience function for quickly declaring a 
   dictionary pattern of ``Dict( ZeroOrMore( Group( key + value ) ) )``.
 
-- ``nestedExpr(opener, closer, content, ignoreExpr)`` - helper method for defining 
-  nested lists enclosed in opening and closing delimiters ("(" and ")" are the default).
-
-  - opener - opening character for a nested list (default="("); can also be a pyparsing expression
-  
-  - closer - closing character for a nested list (default=")"); can also be a pyparsing expression
-  
-  - content - expression for items within the nested lists (default=None)
-  
-  - ignoreExpr - expression for ignoring opening and closing delimiters (default=quotedString)
-
-
 - ``makeHTMLTags( tagName )`` and ``makeXMLTags( tagName )`` - convenience
   functions to create definitions of opening and closing tag expressions.  Returns
   a pair of expressions, for the corresponding <tag> and </tag> strings.  Includes
