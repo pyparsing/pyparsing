@@ -5,6 +5,9 @@ from distutils.core import setup
 
 from pyparsing import __version__
 
+import sys
+_PY3K = sys.version_info[0] > 2
+
 setup(# Distribution meta-data
     name = "pyparsing",
     version = __version__,
@@ -14,7 +17,7 @@ setup(# Distribution meta-data
     url = "http://pyparsing.wikispaces.com/",
     download_url = "http://sourceforge.net/project/showfiles.php?group_id=97203",
     license = "MIT License",
-    py_modules = ["pyparsing", "pyparsing_py3"],
+    py_modules = [["pyparsing"], ["pyparsing_py3"]][_PY3K],
     classifiers=[
         'Development Status :: 5 - Production/Stable',
         'Intended Audience :: Developers',
