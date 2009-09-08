@@ -14,7 +14,7 @@ setup(# Distribution meta-data
     url = "http://pyparsing.wikispaces.com/",
     download_url = "http://sourceforge.net/project/showfiles.php?group_id=97203",
     license = "MIT License",
-    py_modules = ["pyparsing"],
+    py_modules = ["pyparsing", "pyparsing_py3"],
     classifiers=[
         'Development Status :: 5 - Production/Stable',
         'Intended Audience :: Developers',
