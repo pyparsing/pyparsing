@@ -2,6 +2,13 @@
 Change Log
 ==========
 
+Version 1.5.3 - April, 2009
+---------------------------
+- Fixed up setup.py to auto-detect Python version and install 
+  the correct version of pyparsing - suggested by Alex Martelli,
+  thanks, Alex!
+
+
 Version 1.5.2 - April, 2009
 ------------------------------
 - Added pyparsing_py3.py module, so that Python 3 users can use
