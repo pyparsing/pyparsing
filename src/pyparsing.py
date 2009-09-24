@@ -58,8 +58,8 @@ The pyparsing module handles some of the problems that are typically vexing when
  - embedded comments
 """
 
-__version__ = "1.5.2"
-__versionTime__ = "9 April 2009 12:21"
+__version__ = "1.5.3"
+__versionTime__ = "24 September 2009 02:18"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -105,6 +105,7 @@ if _PY3K:
     alphas = string.ascii_lowercase + string.ascii_uppercase
 else:
     _MAX_INT = sys.maxint
+    range = xrange
 
     def _ustr(obj):
         """Drop-in replacement for str(obj) that tries to be Unicode friendly. It first tries
@@ -1354,9 +1355,9 @@ class ParserElement(object):
         """
         if isinstance( other, Suppress ):
             if other not in self.ignoreExprs:
-                self.ignoreExprs.append( other )
+                self.ignoreExprs.append( other.copy() )
         else:
-            self.ignoreExprs.append( Suppress( other ) )
+            self.ignoreExprs.append( Suppress( other.copy() ) )
         return self
 
     def setDebugActions( self, startAction, successAction, exceptionAction ):
@@ -3285,7 +3286,7 @@ def originalTextFor(expr, asString=True):
        the expression passed to originalTextFor contains expressions with defined
        results names, you must set asString to False if you want to preserve those
        results name values."""
-    locMarker = Empty().setParseAction(lambda s,loc,t: loc)
+    locMarker = Empty().setParseAction(lambda s,loc,t: loc).leaveWhitespace()
     matchExpr = locMarker("_original_start") + expr + locMarker("_original_end")
     if asString:
         extractText = lambda s,l,t: s[t._original_start:t._original_end]
@@ -3542,7 +3543,7 @@ sglQuotedString = Regex(r"'(?:[^'\n\r\\]|(?:'')|(?:\\x[0-9a-fA-F]+)|(?:\\.))*'")
 quotedString = Regex(r'''(?:"(?:[^"\n\r\\]|(?:"")|(?:\\x[0-9a-fA-F]+)|(?:\\.))*")|(?:'(?:[^'\n\r\\]|(?:'')|(?:\\x[0-9a-fA-F]+)|(?:\\.))*')''').setName("quotedString using single or double quotes")
 unicodeString = Combine(_L('u') + quotedString.copy())
 
-def nestedExpr(opener="(", closer=")", content=None, ignoreExpr=quotedString):
+def nestedExpr(opener="(", closer=")", content=None, ignoreExpr=quotedString.copy()):
     """Helper method for defining nested lists enclosed in opening and closing
        delimiters ("(" and ")" are the default).
 
@@ -3573,7 +3574,7 @@ def nestedExpr(opener="(", closer=")", content=None, ignoreExpr=quotedString):
                                     CharsNotIn(opener+closer+ParserElement.DEFAULT_WHITE_CHARS,exact=1))
                                 ).setParseAction(lambda t:t[0].strip()))
                 else:
-                    content = (empty+CharsNotIn(opener+closer+ParserElement.DEFAULT_WHITE_CHARS
+                    content = (empty.copy()+CharsNotIn(opener+closer+ParserElement.DEFAULT_WHITE_CHARS
                                 ).setParseAction(lambda t:t[0].strip()))
             else:
                 if ignoreExpr is not None:
@@ -3668,7 +3669,7 @@ _noncomma = "".join( [ c for c in printables if c != "," ] )
 _commasepitem = Combine(OneOrMore(Word(_noncomma) +
                                   Optional( Word(" \t") +
                                             ~Literal(",") + ~LineEnd() ) ) ).streamline().setName("commaItem")
-commaSeparatedList = delimitedList( Optional( quotedString | _commasepitem, default="") ).setName("commaSeparatedList")
+commaSeparatedList = delimitedList( Optional( quotedString.copy() | _commasepitem, default="") ).setName("commaSeparatedList")
 
 
 if __name__ == "__main__":
