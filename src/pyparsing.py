@@ -360,7 +360,7 @@ class ParseResults(object):
     def __bool__(self): return len( self.__toklist ) > 0
     __nonzero__ = __bool__
     def __iter__( self ): return iter( self.__toklist )
-    def __reversed__( self ): return iter( reversed(self.__toklist) )
+    def __reversed__( self ): return iter( self.__toklist[::-1] )
     def keys( self ):
         """Returns all named result keys."""
         return self.__tokdict.keys()
@@ -2555,7 +2555,7 @@ class Each(ParseExpression):
             raise ParseException(instring,loc,"Missing one or more required elements (%s)" % missing )
 
         # add any unmatched Optionals, in case they have default values defined
-        matchOrder += list(e for e in self.exprs if isinstance(e,Optional) and e.expr in tmpOpt)
+        matchOrder += [e for e in self.exprs if isinstance(e,Optional) and e.expr in tmpOpt]
 
         resultlist = []
         for e in matchOrder:
@@ -3370,7 +3370,8 @@ def downcaseTokens(s,l,t):
     return [ tt.lower() for tt in map(_ustr,t) ]
 
 def keepOriginalText(s,startLoc,t):
-    """Helper parse action to preserve original parsed text,
+    """DEPRECATED - use new helper method 'originalTextFor'.
+       Helper parse action to preserve original parsed text,
        overriding any nested parse actions."""
     try:
         endloc = getTokensEndLoc()
