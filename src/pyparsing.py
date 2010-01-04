@@ -59,7 +59,7 @@ The pyparsing module handles some of the problems that are typically vexing when
 """
 
 __version__ = "1.5.3"
-__versionTime__ = "24 September 2009 02:18"
+__versionTime__ = "4 January 2010 02:23"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -266,7 +266,7 @@ class ParseResults(object):
        - by list index (results[0], results[1], etc.)
        - by attribute (results.<resultsName>)
        """
-    __slots__ = ( "__toklist", "__tokdict", "__doinit", "__name", "__parent", "__accumNames", "__weakref__" )
+    #~ __slots__ = ( "__toklist", "__tokdict", "__doinit", "__name", "__parent", "__accumNames", "__weakref__" )
     def __new__(cls, toklist, name=None, asList=True, modal=True ):
         if isinstance(toklist, cls):
             return toklist
@@ -276,7 +276,7 @@ class ParseResults(object):
 
     # Performance tuning: we construct a *lot* of these, so keep this
     # constructor as small and fast as possible
-    def __init__( self, toklist, name=None, asList=True, modal=True ):
+    def __init__( self, toklist, name=None, asList=True, modal=True, isinstance=isinstance ):
         if self.__doinit:
             self.__doinit = False
             self.__name = None
@@ -288,7 +288,7 @@ class ParseResults(object):
                 self.__toklist = [toklist]
             self.__tokdict = dict()
 
-        if name:
+        if name is not None and name:
             if not modal:
                 self.__accumNames[name] = 0
             if isinstance(name,int):
@@ -318,7 +318,7 @@ class ParseResults(object):
             else:
                 return ParseResults([ v[0] for v in self.__tokdict[i] ])
 
-    def __setitem__( self, k, v ):
+    def __setitem__( self, k, v, isinstance=isinstance ):
         if isinstance(v,_ParseResultsWithOffset):
             self.__tokdict[k] = self.__tokdict.get(k,list()) + [v]
             sub = v[0]
@@ -398,7 +398,7 @@ class ParseResults(object):
         return [ v[-1][0] for v in self.__tokdict.values() ]
 
     def __getattr__( self, name ):
-        if name not in self.__slots__:
+        if True: #name not in self.__slots__:
             if name in self.__tokdict:
                 if name not in self.__accumNames:
                     return self.__tokdict[name][-1][0]
@@ -3640,7 +3640,7 @@ def indentedBlock(blockStatementExpr, indentStack, indent=True):
     UNDENT = Empty().setParseAction(checkUnindent)
     if indent:
         smExpr = Group( Optional(NL) +
-            FollowedBy(blockStatementExpr) +
+            #~ FollowedBy(blockStatementExpr) +
             INDENT + (OneOrMore( PEER + Group(blockStatementExpr) + Optional(NL) )) + UNDENT)
     else:
         smExpr = Group( Optional(NL) +
