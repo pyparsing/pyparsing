@@ -5,10 +5,10 @@ Using the pyparsing module
 :author: Paul McGuire
 :address: ptmcg@users.sourceforge.net
 
-:revision: 1.5.2
-:date: April, 2009
+:revision: 1.5.3
+:date: January, 2010
 
-:copyright: Copyright |copy| 2003-2009 Paul McGuire. 
+:copyright: Copyright |copy| 2003-2010 Paul McGuire. 
 
 .. |copy| unicode:: 0xA9
 

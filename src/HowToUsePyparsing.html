@@ -6,8 +6,8 @@
 <meta name="generator" content="Docutils 0.5: http://docutils.sourceforge.net/" />
 <title>Using the pyparsing module</title>
 <meta name="author" content="Paul McGuire" />
-<meta name="date" content="October, 2008" />
-<meta name="copyright" content="Copyright © 2003-2008 Paul McGuire." />
+<meta name="date" content="January, 2010" />
+<meta name="copyright" content="Copyright © 2003-2010 Paul McGuire." />
 <style type="text/css">
 
 /*
@@ -301,11 +301,11 @@ ul.auto-toc {
 </pre>
 </td></tr>
 <tr><th class="docinfo-name">Revision:</th>
-<td>1.5.1</td></tr>
+<td>1.5.3</td></tr>
 <tr><th class="docinfo-name">Date:</th>
-<td>October, 2008</td></tr>
+<td>January, 2010</td></tr>
 <tr><th class="docinfo-name">Copyright:</th>
-<td>Copyright © 2003-2008 Paul McGuire.</td></tr>
+<td>Copyright © 2003-2010 Paul McGuire.</td></tr>
 </tbody>
 </table>
 <table class="docutils field-list" frame="void" rules="none">
@@ -326,27 +326,28 @@ extracting data from formatted reports.</td>
 <ul class="auto-toc simple">
 <li><a class="reference internal" href="#steps-to-follow" id="id1">1&nbsp;&nbsp;&nbsp;Steps to follow</a><ul class="auto-toc">
 <li><a class="reference internal" href="#hello-world" id="id2">1.1&nbsp;&nbsp;&nbsp;Hello, World!</a></li>
-<li><a class="reference internal" href="#new-features-in-1-5-1" id="id3">1.2&nbsp;&nbsp;&nbsp;New features in 1.5.1</a></li>
-<li><a class="reference internal" href="#new-features-in-1-5-0" id="id4">1.3&nbsp;&nbsp;&nbsp;New features in 1.5.0</a></li>
-<li><a class="reference internal" href="#usage-notes" id="id5">1.4&nbsp;&nbsp;&nbsp;Usage notes</a></li>
+<li><a class="reference internal" href="#new-features-in-1-5-2" id="id3">1.2&nbsp;&nbsp;&nbsp;New features in 1.5.2</a></li>
+<li><a class="reference internal" href="#new-features-in-1-5-1" id="id4">1.3&nbsp;&nbsp;&nbsp;New features in 1.5.1</a></li>
+<li><a class="reference internal" href="#new-features-in-1-5-0" id="id5">1.4&nbsp;&nbsp;&nbsp;New features in 1.5.0</a></li>
+<li><a class="reference internal" href="#usage-notes" id="id6">1.5&nbsp;&nbsp;&nbsp;Usage notes</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#classes" id="id6">2&nbsp;&nbsp;&nbsp;Classes</a><ul class="auto-toc">
-<li><a class="reference internal" href="#classes-in-the-pyparsing-module" id="id7">2.1&nbsp;&nbsp;&nbsp;Classes in the pyparsing module</a></li>
-<li><a class="reference internal" href="#basic-parserelement-subclasses" id="id8">2.2&nbsp;&nbsp;&nbsp;Basic ParserElement subclasses</a></li>
-<li><a class="reference internal" href="#expression-subclasses" id="id9">2.3&nbsp;&nbsp;&nbsp;Expression subclasses</a></li>
-<li><a class="reference internal" href="#expression-operators" id="id10">2.4&nbsp;&nbsp;&nbsp;Expression operators</a></li>
-<li><a class="reference internal" href="#positional-subclasses" id="id11">2.5&nbsp;&nbsp;&nbsp;Positional subclasses</a></li>
-<li><a class="reference internal" href="#converter-subclasses" id="id12">2.6&nbsp;&nbsp;&nbsp;Converter subclasses</a></li>
-<li><a class="reference internal" href="#special-subclasses" id="id13">2.7&nbsp;&nbsp;&nbsp;Special subclasses</a></li>
-<li><a class="reference internal" href="#other-classes" id="id14">2.8&nbsp;&nbsp;&nbsp;Other classes</a></li>
-<li><a class="reference internal" href="#exception-classes-and-troubleshooting" id="id15">2.9&nbsp;&nbsp;&nbsp;Exception classes and Troubleshooting</a></li>
+<li><a class="reference internal" href="#classes" id="id7">2&nbsp;&nbsp;&nbsp;Classes</a><ul class="auto-toc">
+<li><a class="reference internal" href="#classes-in-the-pyparsing-module" id="id8">2.1&nbsp;&nbsp;&nbsp;Classes in the pyparsing module</a></li>
+<li><a class="reference internal" href="#basic-parserelement-subclasses" id="id9">2.2&nbsp;&nbsp;&nbsp;Basic ParserElement subclasses</a></li>
+<li><a class="reference internal" href="#expression-subclasses" id="id10">2.3&nbsp;&nbsp;&nbsp;Expression subclasses</a></li>
+<li><a class="reference internal" href="#expression-operators" id="id11">2.4&nbsp;&nbsp;&nbsp;Expression operators</a></li>
+<li><a class="reference internal" href="#positional-subclasses" id="id12">2.5&nbsp;&nbsp;&nbsp;Positional subclasses</a></li>
+<li><a class="reference internal" href="#converter-subclasses" id="id13">2.6&nbsp;&nbsp;&nbsp;Converter subclasses</a></li>
+<li><a class="reference internal" href="#special-subclasses" id="id14">2.7&nbsp;&nbsp;&nbsp;Special subclasses</a></li>
+<li><a class="reference internal" href="#other-classes" id="id15">2.8&nbsp;&nbsp;&nbsp;Other classes</a></li>
+<li><a class="reference internal" href="#exception-classes-and-troubleshooting" id="id16">2.9&nbsp;&nbsp;&nbsp;Exception classes and Troubleshooting</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#miscellaneous-attributes-and-methods" id="id16">3&nbsp;&nbsp;&nbsp;Miscellaneous attributes and methods</a><ul class="auto-toc">
-<li><a class="reference internal" href="#helper-methods" id="id17">3.1&nbsp;&nbsp;&nbsp;Helper methods</a></li>
-<li><a class="reference internal" href="#helper-parse-actions" id="id18">3.2&nbsp;&nbsp;&nbsp;Helper parse actions</a></li>
-<li><a class="reference internal" href="#common-string-and-token-constants" id="id19">3.3&nbsp;&nbsp;&nbsp;Common string and token constants</a></li>
+<li><a class="reference internal" href="#miscellaneous-attributes-and-methods" id="id17">3&nbsp;&nbsp;&nbsp;Miscellaneous attributes and methods</a><ul class="auto-toc">
+<li><a class="reference internal" href="#helper-methods" id="id18">3.1&nbsp;&nbsp;&nbsp;Helper methods</a></li>
+<li><a class="reference internal" href="#helper-parse-actions" id="id19">3.2&nbsp;&nbsp;&nbsp;Helper parse actions</a></li>
+<li><a class="reference internal" href="#common-string-and-token-constants" id="id20">3.3&nbsp;&nbsp;&nbsp;Common string and token constants</a></li>
 </ul>
 </li>
 </ul>
@@ -385,8 +386,14 @@ print greeting
 ['Hello', ',', 'World', '!']
 </pre>
 </div>
+<div class="section" id="new-features-in-1-5-2">
+<h2><a class="toc-backref" href="#id3">1.2&nbsp;&nbsp;&nbsp;New features in 1.5.2</a></h2>
+<p>There are no new pyparsing features in this release, it is primarily a bug-fixing release.
+This release does include changes to support running pyparsing under IronPython 2.0.1, and
+a pyparsing_py3 module for use with Python 3.</p>
+</div>
 <div class="section" id="new-features-in-1-5-1">
-<h2><a class="toc-backref" href="#id3">1.2&nbsp;&nbsp;&nbsp;New features in 1.5.1</a></h2>
+<h2><a class="toc-backref" href="#id4">1.3&nbsp;&nbsp;&nbsp;New features in 1.5.1</a></h2>
 <p>Some of the significant features added in version 1.5.0 are:</p>
 <ul>
 <li><p class="first"><tt class="docutils literal"><span class="pre">originalTextFor</span></tt> helper method, to simplify grammar expressions that need to preserve
@@ -409,7 +416,7 @@ should not be included in the skipped text</p>
 </ul>
 </div>
 <div class="section" id="new-features-in-1-5-0">
-<h2><a class="toc-backref" href="#id4">1.3&nbsp;&nbsp;&nbsp;New features in 1.5.0</a></h2>
+<h2><a class="toc-backref" href="#id5">1.4&nbsp;&nbsp;&nbsp;New features in 1.5.0</a></h2>
 <p>Some of the significant features added in version 1.5.0 are:</p>
 <ul class="simple">
 <li><tt class="docutils literal"><span class="pre">indentedBlock</span></tt> helper method to define grammars using block indentation for grouping (like Python)</li>
@@ -421,7 +428,7 @@ input text</li>
 </ul>
 </div>
 <div class="section" id="usage-notes">
-<h2><a class="toc-backref" href="#id5">1.4&nbsp;&nbsp;&nbsp;Usage notes</a></h2>
+<h2><a class="toc-backref" href="#id6">1.5&nbsp;&nbsp;&nbsp;Usage notes</a></h2>
 <ul>
 <li><p class="first">The pyparsing module can be used to interpret simple command
 strings or algebraic expressions, or can be used to extract data
@@ -588,9 +595,9 @@ improvments have been in the 20-50% range.</p>
 </div>
 </div>
 <div class="section" id="classes">
-<h1><a class="toc-backref" href="#id6">2&nbsp;&nbsp;&nbsp;Classes</a></h1>
+<h1><a class="toc-backref" href="#id7">2&nbsp;&nbsp;&nbsp;Classes</a></h1>
 <div class="section" id="classes-in-the-pyparsing-module">
-<h2><a class="toc-backref" href="#id7">2.1&nbsp;&nbsp;&nbsp;Classes in the pyparsing module</a></h2>
+<h2><a class="toc-backref" href="#id8">2.1&nbsp;&nbsp;&nbsp;Classes in the pyparsing module</a></h2>
 <p><tt class="docutils literal"><span class="pre">ParserElement</span></tt> - abstract base class for all pyparsing classes;
 methods for code to use are:</p>
 <ul>
@@ -713,7 +720,7 @@ after importing pyparsing.</li>
 </ul>
 </div>
 <div class="section" id="basic-parserelement-subclasses">
-<h2><a class="toc-backref" href="#id8">2.2&nbsp;&nbsp;&nbsp;Basic ParserElement subclasses</a></h2>
+<h2><a class="toc-backref" href="#id9">2.2&nbsp;&nbsp;&nbsp;Basic ParserElement subclasses</a></h2>
 <ul class="simple">
 <li><tt class="docutils literal"><span class="pre">Literal</span></tt> - construct with a string to be matched exactly</li>
 <li><tt class="docutils literal"><span class="pre">CaselessLiteral</span></tt> - construct with a string to be matched, but
@@ -811,7 +818,7 @@ and for specialized grammars</li>
 </ul>
 </div>
 <div class="section" id="expression-subclasses">
-<h2><a class="toc-backref" href="#id9">2.3&nbsp;&nbsp;&nbsp;Expression subclasses</a></h2>
+<h2><a class="toc-backref" href="#id10">2.3&nbsp;&nbsp;&nbsp;Expression subclasses</a></h2>
 <ul>
 <li><p class="first"><tt class="docutils literal"><span class="pre">And</span></tt> - construct with a list of ParserElements, all of which must
 match for And to match; can also be created using the '+'
@@ -874,20 +881,27 @@ can also be created using the unary '~' operator</p>
 </ul>
 </div>
 <div class="section" id="expression-operators">
-<span id="operators"></span><h2><a class="toc-backref" href="#id10">2.4&nbsp;&nbsp;&nbsp;Expression operators</a></h2>
+<span id="operators"></span><h2><a class="toc-backref" href="#id11">2.4&nbsp;&nbsp;&nbsp;Expression operators</a></h2>
 <ul class="simple">
-<li><tt class="docutils literal"><span class="pre">+</span></tt> - consecutive sequence</li>
-<li><tt class="docutils literal"><span class="pre">|</span></tt> - match first alternative</li>
-<li><tt class="docutils literal"><span class="pre">^</span></tt> - match longest alternative</li>
-<li><tt class="docutils literal"><span class="pre">&amp;</span></tt> - match each alternative, in any order</li>
+<li><tt class="docutils literal"><span class="pre">~</span></tt> - creates NotAny using the expression after the operator</li>
+<li><tt class="docutils literal"><span class="pre">+</span></tt> - creates And using the expressions before and after the operator</li>
+<li><tt class="docutils literal"><span class="pre">|</span></tt> - creates MatchFirst (first left-to-right match) using the expressions before and after the operator</li>
+<li><tt class="docutils literal"><span class="pre">^</span></tt> - creates Or (longest match) using the expressions before and after the operator</li>
+<li><tt class="docutils literal"><span class="pre">&amp;</span></tt> - creates Each using the expressions before and after the operator</li>
+<li><tt class="docutils literal"><span class="pre">*</span></tt> - creates And by multiplying the expression by the integer operand; if
+expression is multiplied by a 2-tuple, creates an And of (min,max)
+expressions (similar to &quot;{min,max}&quot; form in regular expressions); if
+min is None, intepret as (0,max); if max is None, interpret as
+expr*min + ZeroOrMore(expr)</li>
 <li><tt class="docutils literal"><span class="pre">-</span></tt> - like <tt class="docutils literal"><span class="pre">+</span></tt> but with no backup and retry of alternatives</li>
 <li><tt class="docutils literal"><span class="pre">*</span></tt> - repetition of expression</li>
 <li><tt class="docutils literal"><span class="pre">==</span></tt> - matching expression to string; returns True if the string matches the given expression</li>
-<li><tt class="docutils literal"><span class="pre">&lt;&lt;</span></tt> - expression definition for Forward expressions</li>
+<li><tt class="docutils literal"><span class="pre">&lt;&lt;</span></tt> - inserts the expression following the operator as the body of the
+Forward expression before the operator</li>
 </ul>
 </div>
 <div class="section" id="positional-subclasses">
-<h2><a class="toc-backref" href="#id11">2.5&nbsp;&nbsp;&nbsp;Positional subclasses</a></h2>
+<h2><a class="toc-backref" href="#id12">2.5&nbsp;&nbsp;&nbsp;Positional subclasses</a></h2>
 <ul class="simple">
 <li><tt class="docutils literal"><span class="pre">StringStart</span></tt> - matches beginning of the text</li>
 <li><tt class="docutils literal"><span class="pre">StringEnd</span></tt> - matches the end of the text</li>
@@ -898,7 +912,7 @@ can also be created using the unary '~' operator</p>
 </ul>
 </div>
 <div class="section" id="converter-subclasses">
-<h2><a class="toc-backref" href="#id12">2.6&nbsp;&nbsp;&nbsp;Converter subclasses</a></h2>
+<h2><a class="toc-backref" href="#id13">2.6&nbsp;&nbsp;&nbsp;Converter subclasses</a></h2>
 <ul class="simple">
 <li><tt class="docutils literal"><span class="pre">Upcase</span></tt> - converts matched tokens to uppercase (deprecated -
 use <tt class="docutils literal"><span class="pre">upcaseTokens</span></tt> parse action instead)</li>
@@ -912,7 +926,7 @@ tokens (such as list delimiters)</li>
 </ul>
 </div>
 <div class="section" id="special-subclasses">
-<h2><a class="toc-backref" href="#id13">2.7&nbsp;&nbsp;&nbsp;Special subclasses</a></h2>
+<h2><a class="toc-backref" href="#id14">2.7&nbsp;&nbsp;&nbsp;Special subclasses</a></h2>
 <ul class="simple">
 <li><tt class="docutils literal"><span class="pre">Group</span></tt> - causes the matched tokens to be enclosed in a list;
 useful in repeated elements like <tt class="docutils literal"><span class="pre">ZeroOrMore</span></tt> and <tt class="docutils literal"><span class="pre">OneOrMore</span></tt> to
@@ -930,7 +944,7 @@ operator (see <tt class="docutils literal"><span class="pre">fourFn.py</span></t
 </ul>
 </div>
 <div class="section" id="other-classes">
-<h2><a class="toc-backref" href="#id14">2.8&nbsp;&nbsp;&nbsp;Other classes</a></h2>
+<h2><a class="toc-backref" href="#id15">2.8&nbsp;&nbsp;&nbsp;Other classes</a></h2>
 <ul id="parseresults">
 <li><p class="first"><tt class="docutils literal"><span class="pre">ParseResults</span></tt> - class used to contain and manage the lists of tokens
 created from parsing the input using the user-defined parse
@@ -991,7 +1005,7 @@ embedded items will be included, whether they have names or not.</li>
 </ul>
 </div>
 <div class="section" id="exception-classes-and-troubleshooting">
-<h2><a class="toc-backref" href="#id15">2.9&nbsp;&nbsp;&nbsp;Exception classes and Troubleshooting</a></h2>
+<h2><a class="toc-backref" href="#id16">2.9&nbsp;&nbsp;&nbsp;Exception classes and Troubleshooting</a></h2>
 <ul id="parseexception">
 <li><p class="first"><tt class="docutils literal"><span class="pre">ParseException</span></tt> - exception returned when a grammar parse fails;
 ParseExceptions have attributes loc, msg, line, lineno, and column; to view the
@@ -1026,9 +1040,9 @@ scanString().</p>
 </div>
 </div>
 <div class="section" id="miscellaneous-attributes-and-methods">
-<h1><a class="toc-backref" href="#id16">3&nbsp;&nbsp;&nbsp;Miscellaneous attributes and methods</a></h1>
+<h1><a class="toc-backref" href="#id17">3&nbsp;&nbsp;&nbsp;Miscellaneous attributes and methods</a></h1>
 <div class="section" id="helper-methods">
-<h2><a class="toc-backref" href="#id17">3.1&nbsp;&nbsp;&nbsp;Helper methods</a></h2>
+<h2><a class="toc-backref" href="#id18">3.1&nbsp;&nbsp;&nbsp;Helper methods</a></h2>
 <ul>
 <li><p class="first"><tt class="docutils literal"><span class="pre">delimitedList(</span> <span class="pre">expr,</span> <span class="pre">delim=',')</span></tt> - convenience function for
 matching one or more occurrences of expr, separated by delim.
@@ -1054,15 +1068,6 @@ will create an alternative set of CaselessLiteral tokens.</p>
 </li>
 <li><p class="first"><tt class="docutils literal"><span class="pre">dictOf(</span> <span class="pre">key,</span> <span class="pre">value</span> <span class="pre">)</span></tt> - convenience function for quickly declaring a
 dictionary pattern of <tt class="docutils literal"><span class="pre">Dict(</span> <span class="pre">ZeroOrMore(</span> <span class="pre">Group(</span> <span class="pre">key</span> <span class="pre">+</span> <span class="pre">value</span> <span class="pre">)</span> <span class="pre">)</span> <span class="pre">)</span></tt>.</p>
-</li>
-<li><p class="first"><tt class="docutils literal"><span class="pre">nestedExpr(opener,</span> <span class="pre">closer,</span> <span class="pre">content,</span> <span class="pre">ignoreExpr)</span></tt> - helper method for defining
-nested lists enclosed in opening and closing delimiters (&quot;(&quot; and &quot;)&quot; are the default).</p>
-<ul class="simple">
-<li>opener - opening character for a nested list (default=&quot;(&quot;); can also be a pyparsing expression</li>
-<li>closer - closing character for a nested list (default=&quot;)&quot;); can also be a pyparsing expression</li>
-<li>content - expression for items within the nested lists (default=None)</li>
-<li>ignoreExpr - expression for ignoring opening and closing delimiters (default=quotedString)</li>
-</ul>
 </li>
 <li><p class="first"><tt class="docutils literal"><span class="pre">makeHTMLTags(</span> <span class="pre">tagName</span> <span class="pre">)</span></tt> and <tt class="docutils literal"><span class="pre">makeXMLTags(</span> <span class="pre">tagName</span> <span class="pre">)</span></tt> - convenience
 functions to create definitions of opening and closing tag expressions.  Returns
@@ -1196,7 +1201,7 @@ each call, called arguments, and return value or exception</p>
 </ul>
 </div>
 <div class="section" id="helper-parse-actions">
-<h2><a class="toc-backref" href="#id18">3.2&nbsp;&nbsp;&nbsp;Helper parse actions</a></h2>
+<h2><a class="toc-backref" href="#id19">3.2&nbsp;&nbsp;&nbsp;Helper parse actions</a></h2>
 <ul>
 <li><p class="first"><tt class="docutils literal"><span class="pre">removeQuotes</span></tt> - removes the first and last characters of a quoted string;
 useful to remove the delimiting quotes from quoted strings</p>
@@ -1238,7 +1243,7 @@ tabular data</p>
 </ul>
 </div>
 <div class="section" id="common-string-and-token-constants">
-<h2><a class="toc-backref" href="#id19">3.3&nbsp;&nbsp;&nbsp;Common string and token constants</a></h2>
+<h2><a class="toc-backref" href="#id20">3.3&nbsp;&nbsp;&nbsp;Common string and token constants</a></h2>
 <ul>
 <li><p class="first"><tt class="docutils literal"><span class="pre">alphas</span></tt> - same as <tt class="docutils literal"><span class="pre">string.letters</span></tt></p>
 </li>
