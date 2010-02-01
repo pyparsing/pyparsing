@@ -7,6 +7,11 @@ import sys
 import pprint
 import pdb
 
+# see which Python implementation we are running
+CPYTHON_ENV = (sys.platform == "win32")
+IRON_PYTHON_ENV = (sys.platform == "cli")
+JYTHON_ENV = sys.platform.startswith("java")
+
 TEST_USING_PACKRAT = True
 #~ TEST_USING_PACKRAT = False
 
@@ -1261,120 +1266,6 @@ class ParseResultsWithNamedTupleTest(ParseTestCase):
         assert res.Achar == ("A","Z"), "Failed accessing named results containing a tuple, got " + res.Achar
 
 
-class MiscellaneousParserTests(ParseTestCase):
-    def runTest(self):
-        import pyparsing
-        
-        # test making oneOf with duplicate symbols
-        print "verify oneOf handles duplicate symbols"
-        try:
-            test1 = pyparsing.oneOf("a b c d a")
-        except RuntimeError:
-            assert False,"still have infinite loop in oneOf with duplicate symbols"
-        
-        # test MatchFirst bugfix
-        print "verify MatchFirst iterates properly"
-        results = pyparsing.quotedString.parseString("'this is a single quoted string'")
-        assert len(results) > 0, "MatchFirst error - not iterating over all choices"
-            
-        # verify streamline of subexpressions
-        print "verify proper streamline logic"
-        compound = pyparsing.Literal("A") + "B" + "C" + "D"
-        assert len(compound.exprs) == 2,"bad test setup"
-        print compound
-        compound.streamline()
-        print compound
-        assert len(compound.exprs) == 4,"streamline not working"
-        
-        # test for Optional with results name and no match
-        print "verify Optional's do not cause match failure if have results name"
-        testGrammar = pyparsing.Literal("A") + pyparsing.Optional("B").setResultsName("gotB") + pyparsing.Literal("C")
-        try:
-            testGrammar.parseString("ABC")
-            testGrammar.parseString("AC")
-        except pyparsing.ParseException, pe:
-            print pe.pstr,"->",pe
-            assert False, "error in Optional matching of string %s" % pe.pstr
-        
-        # test return of furthest exception
-        testGrammar = ( pyparsing.Literal("A") |
-                        ( pyparsing.Optional("B") + pyparsing.Literal("C") ) |
-                        pyparsing.Literal("D") )
-        try:
-            testGrammar.parseString("BC")
-            testGrammar.parseString("BD")
-        except pyparsing.ParseException, pe:
-            print pe.pstr,"->",pe
-            assert pe.pstr == "BD", "wrong test string failed to parse"
-            assert pe.loc == 1, "error in Optional matching, pe.loc="+str(pe.loc)
-
-        # test validate
-        print "verify behavior of validate()"
-        def testValidation( grmr, gnam, isValid ):
-            try:
-                grmr.validate()
-                assert isValid,"validate() accepted invalid grammar " + gnam
-            except pyparsing.RecursiveGrammarException,e:
-                assert not isValid, "validate() rejected valid grammar " + gnam
-            
-        fwd = pyparsing.Forward()
-        g1 = pyparsing.OneOrMore( ( pyparsing.Literal("A") + "B" + "C" ) | fwd )
-        g2 = pyparsing.ZeroOrMore("C" + g1)
-        fwd << pyparsing.Group(g2)
-        testValidation( fwd, "fwd", isValid=True )
-                    
-        fwd2 = pyparsing.Forward()
-        fwd2 << pyparsing.Group("A" | fwd2)
-        testValidation( fwd2, "fwd2", isValid=False )
-                
-        fwd3 = pyparsing.Forward()
-        fwd3 << pyparsing.Optional("A") + fwd3
-        testValidation( fwd3, "fwd3", isValid=False )
-
-        # test getName
-        print "verify behavior of getName()"
-        aaa = pyparsing.Group(pyparsing.Word("a")).setResultsName("A")
-        bbb = pyparsing.Group(pyparsing.Word("b")).setResultsName("B")
-        ccc = pyparsing.Group(":" + pyparsing.Word("c")).setResultsName("C")
-        g1 = "XXX" + pyparsing.ZeroOrMore( aaa | bbb | ccc )
-        teststring = "XXX b b a b b a b :c b a"
-        names = []
-        for t in g1.parseString(teststring):
-            #~ print t, repr(t)
-            try:
-                names.append( t[0].getName() )
-            except:
-                try:
-                    names.append( t.getName() )
-                except:
-                    names.append( None )
-        print teststring
-        print names
-        assert names==[None, 'B', 'B', 'A', 'B', 'B', 'A', 'B', 'C', 'B', 'A'], \
-            "failure in getting names for tokens"
-
-        # test ParseResults.get() method
-        print "verify behavior of ParseResults.get()"
-        res = g1.parseString(teststring)
-        print res.get("A","A not found")[0]
-        print res.get("D","!D")
-        assert res.get("A","A not found")[0] == "a", "get on existing key failed"
-        assert res.get("D","!D") == "!D", "get on missing key failed"
-        
-        print "verify handling of Optional's beyond the end of string"
-        testGrammar = "A" + pyparsing.Optional("B") + pyparsing.Optional("C") + pyparsing.Optional("D")
-        testGrammar.parseString("A")
-        testGrammar.parseString("AB")
-        
-        # test creating Literal with empty string
-        print 'verify non-fatal usage of Literal("")'
-        e = pyparsing.Literal("")
-        try:
-            e.parseString("SLJFD")
-        except Exception,e:
-            assert False, "Failed to handle empty Literal"
-
-            
 class ParseHTMLTagsTest(ParseTestCase):
     def runTest(self):
         import pyparsing
@@ -1433,24 +1324,24 @@ class UpcaseDowncaseUnicode(ParseTestCase):
 
         print uword.searchString(a)
 
+        if not IRON_PYTHON_ENV:
+            #test html data
+            html = "<TR class=maintxt bgColor=#ffffff> \
+                <TD vAlign=top>Производитель, модель</TD> \
+                <TD vAlign=top><STRONG>BenQ-Siemens CF61</STRONG></TD> \
+            ".decode('utf-8')
 
-        #test html data
-        html = "<TR class=maintxt bgColor=#ffffff> \
-            <TD vAlign=top>Производитель, модель</TD> \
-            <TD vAlign=top><STRONG>BenQ-Siemens CF61</STRONG></TD> \
-        ".decode('utf-8')
+            # u'Manufacturer, model
+            text_manuf = u'Производитель, модель'
+            manufacturer = pp.Literal(text_manuf)
 
-        # u'Manufacturer, model
-        text_manuf = u'Производитель, модель'
-        manufacturer = pp.Literal(text_manuf)
+            td_start, td_end = pp.makeHTMLTags("td")
+            manuf_body =  td_start.suppress() + manufacturer + pp.SkipTo(td_end).setResultsName("cells", True) + td_end.suppress()
 
-        td_start, td_end = pp.makeHTMLTags("td")
-        manuf_body =  td_start.suppress() + manufacturer + pp.SkipTo(td_end).setResultsName("cells", True) + td_end.suppress()
+            #~ manuf_body.setDebug()
 
-        #~ manuf_body.setDebug()
-
-        for tokens in manuf_body.scanString(html):
-            print tokens
+            for tokens in manuf_body.scanString(html):
+                print tokens
 
 class ParseUsingRegex(ParseTestCase):
     def runTest(self):
@@ -1851,9 +1742,9 @@ class WithAttributeParseActionTest(ParseTestCase):
         
         for attrib in [
             withAttribute(b="x"),
-            withAttribute(B="x"),
+            #withAttribute(B="x"),
             withAttribute(("b","x")),
-            withAttribute(("B","x"))
+            #withAttribute(("B","x")),
             ]:
           
           tagStart.setParseAction(attrib)
@@ -1984,7 +1875,41 @@ class ParseAllTest(ParseTestCase):
                 assert shouldSucceed, "successfully parsed when should have failed"
             except ParseException, pe:
                 assert not shouldSucceed, "failed to parse when should have succeeded"
+
+class GreedyQuotedStringsTest(ParseTestCase):
+    def runTest(self):
+        from pyparsing import QuotedString, sglQuotedString, dblQuotedString, quotedString, delimitedList
         
+        src = """\
+           "string1", "strin""g2"
+           'string1', 'string2'
+           ^string1^, ^string2^
+           <string1>, <string2>"""
+        
+        testExprs = (sglQuotedString, dblQuotedString, quotedString, 
+                    QuotedString('"', escQuote='""'), QuotedString("'", escQuote="''"),
+                    QuotedString("^"), QuotedString("<",endQuoteChar=">"))
+        for expr in testExprs:
+            strs = delimitedList(expr).searchString(src)
+            print strs
+            assert bool(strs), "no matches found for test expression '%s'"  % expr
+            for lst in strs:
+                assert len(lst) == 2, "invalid match found for test expression '%s'"  % expr
+                
+        from pyparsing import alphas, nums, Word
+        src = """'ms1',1,0,'2009-12-22','2009-12-22 10:41:22') ON DUPLICATE KEY UPDATE sent_count = sent_count + 1, mtime = '2009-12-22 10:41:22';"""
+        tok_sql_quoted_value = (
+            QuotedString("'", "\\", "''", True, False) ^ 
+            QuotedString('"', "\\", '""', True, False))
+        tok_sql_computed_value = Word(nums)
+        tok_sql_identifier = Word(alphas)
+        
+        val = tok_sql_quoted_value | tok_sql_computed_value | tok_sql_identifier
+        vals = delimitedList(val)
+        print vals.parseString(src)
+        assert len(vals.parseString(src)) == 5, "error in greedy quote escaping"
+
+
 class WordBoundaryExpressionsTest(ParseTestCase):
     def runTest(self):
         from pyparsing import WordEnd, WordStart, oneOf
@@ -2036,6 +1961,146 @@ class WordBoundaryExpressionsTest(ParseTestCase):
             assert results==expected,"Failed WordBoundaryTest, expected %s, got %s" % (expected,results)
             print
 
+class OptionalEachTest(ParseTestCase):
+    def runTest(self):
+        from pyparsing import Optional, Keyword
+        
+        the_input = "Major Tal Weiss"
+        parser1 = (Optional('Tal') + Optional('Weiss')) & Keyword('Major')
+        parser2 = Optional(Optional('Tal') + Optional('Weiss')) & Keyword('Major')
+        p1res = parser1.parseString( the_input)
+        p2res = parser2.parseString( the_input)
+        assert p1res.asList() == p2res.asList(), "Each failed to match with nested Optionals, " + \
+            str(p1res.asList()) + " should match " + str(p2res.asList())
+
+class MiscellaneousParserTests(ParseTestCase):
+    def runTest(self):
+        import pyparsing
+        
+        runtests = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+        if IRON_PYTHON_ENV:
+            runtests = "ABCDEGHIJKLMNOPQRSTUVWXYZ"
+        
+        # test making oneOf with duplicate symbols
+        if "A" in runtests:
+            print "verify oneOf handles duplicate symbols"
+            try:
+                test1 = pyparsing.oneOf("a b c d a")
+            except RuntimeError:
+                assert False,"still have infinite loop in oneOf with duplicate symbols"
+        
+        # test MatchFirst bugfix
+        if "B" in runtests:
+            print "verify MatchFirst iterates properly"
+            results = pyparsing.quotedString.parseString("'this is a single quoted string'")
+            assert len(results) > 0, "MatchFirst error - not iterating over all choices"
+            
+        # verify streamline of subexpressions
+        if "C" in runtests:
+            print "verify proper streamline logic"
+            compound = pyparsing.Literal("A") + "B" + "C" + "D"
+            assert len(compound.exprs) == 2,"bad test setup"
+            print compound
+            compound.streamline()
+            print compound
+            assert len(compound.exprs) == 4,"streamline not working"
+        
+        # test for Optional with results name and no match
+        if "D" in runtests:
+            print "verify Optional's do not cause match failure if have results name"
+            testGrammar = pyparsing.Literal("A") + pyparsing.Optional("B").setResultsName("gotB") + pyparsing.Literal("C")
+            try:
+                testGrammar.parseString("ABC")
+                testGrammar.parseString("AC")
+            except pyparsing.ParseException, pe:
+                print pe.pstr,"->",pe
+                assert False, "error in Optional matching of string %s" % pe.pstr
+        
+        # test return of furthest exception
+        if "E" in runtests:
+            testGrammar = ( pyparsing.Literal("A") |
+                            ( pyparsing.Optional("B") + pyparsing.Literal("C") ) |
+                            pyparsing.Literal("D") )
+            try:
+                testGrammar.parseString("BC")
+                testGrammar.parseString("BD")
+            except pyparsing.ParseException, pe:
+                print pe.pstr,"->",pe
+                assert pe.pstr == "BD", "wrong test string failed to parse"
+                assert pe.loc == 1, "error in Optional matching, pe.loc="+str(pe.loc)
+
+        # test validate
+        if "F" in runtests:
+            print "verify behavior of validate()"
+            def testValidation( grmr, gnam, isValid ):
+                try:
+                    grmr.validate()
+                    assert isValid,"validate() accepted invalid grammar " + gnam
+                except pyparsing.RecursiveGrammarException,e:
+                    assert not isValid, "validate() rejected valid grammar " + gnam
+                
+            fwd = pyparsing.Forward()
+            g1 = pyparsing.OneOrMore( ( pyparsing.Literal("A") + "B" + "C" ) | fwd )
+            g2 = pyparsing.ZeroOrMore("C" + g1)
+            fwd << pyparsing.Group(g2)
+            testValidation( fwd, "fwd", isValid=True )
+                        
+            fwd2 = pyparsing.Forward()
+            fwd2 << pyparsing.Group("A" | fwd2)
+            testValidation( fwd2, "fwd2", isValid=False )
+                    
+            fwd3 = pyparsing.Forward()
+            fwd3 << pyparsing.Optional("A") + fwd3
+            testValidation( fwd3, "fwd3", isValid=False )
+
+        # test getName
+        if "G" in runtests:
+            print "verify behavior of getName()"
+            aaa = pyparsing.Group(pyparsing.Word("a")).setResultsName("A")
+            bbb = pyparsing.Group(pyparsing.Word("b")).setResultsName("B")
+            ccc = pyparsing.Group(":" + pyparsing.Word("c")).setResultsName("C")
+            g1 = "XXX" + pyparsing.ZeroOrMore( aaa | bbb | ccc )
+            teststring = "XXX b b a b b a b :c b a"
+            names = []
+            print g1.parseString(teststring).dump()
+            for t in g1.parseString(teststring):
+                print t, repr(t)
+                try:
+                    names.append( t[0].getName() )
+                except:
+                    try:
+                        names.append( t.getName() )
+                    except:
+                        names.append( None )
+            print teststring
+            print names
+            assert names==[None, 'B', 'B', 'A', 'B', 'B', 'A', 'B', 'C', 'B', 'A'], \
+                "failure in getting names for tokens"
+
+        # test ParseResults.get() method
+        if "H" in runtests:
+            print "verify behavior of ParseResults.get()"
+            res = g1.parseString(teststring)
+            print res.get("A","A not found")[0]
+            print res.get("D","!D")
+            assert res.get("A","A not found")[0] == "a", "get on existing key failed"
+            assert res.get("D","!D") == "!D", "get on missing key failed"
+        
+        if "I" in runtests:
+            print "verify handling of Optional's beyond the end of string"
+            testGrammar = "A" + pyparsing.Optional("B") + pyparsing.Optional("C") + pyparsing.Optional("D")
+            testGrammar.parseString("A")
+            testGrammar.parseString("AB")
+        
+        # test creating Literal with empty string
+        if "J" in runtests:
+            print 'verify non-fatal usage of Literal("")'
+            e = pyparsing.Literal("")
+            try:
+                e.parseString("SLJFD")
+            except Exception,e:
+                assert False, "Failed to handle empty Literal"
+
 
 def makeTestSuite():
     suite = TestSuite()
@@ -2076,12 +2141,15 @@ def makeTestSuite():
     suite.addTest( ParseResultsDelTest() )
     suite.addTest( SingleArgExceptionTest() )
     suite.addTest( UpcaseDowncaseUnicode() )
-    suite.addTest( KeepOriginalTextTest() )
+    if not IRON_PYTHON_ENV:
+        suite.addTest( KeepOriginalTextTest() )
     suite.addTest( PackratParsingCacheCopyTest() )
     suite.addTest( WithAttributeParseActionTest() )
     suite.addTest( NestedExpressionsTest() )
     suite.addTest( WordBoundaryExpressionsTest() )
     suite.addTest( ParseAllTest() )
+    suite.addTest( GreedyQuotedStringsTest() )
+    suite.addTest( OptionalEachTest() )
     suite.addTest( MiscellaneousParserTests() )
 
     if TEST_USING_PACKRAT:
@@ -2098,13 +2166,25 @@ def makeTestSuite():
         
     return suite
     
+def makeTestSuiteTemp():
+    suite = TestSuite()
+    suite.addTest( PyparsingTestInit() )
+    suite.addTest( OptionalEachTest() )
+        
+    return suite
 
 console = False
-#~ console = True
+console = True
+
+#~ from line_profiler import LineProfiler
+#~ from pyparsing import ParseResults
+#~ lp = LineProfiler(ParseResults.__setitem__)
+
 if console:
     #~ # console mode
     testRunner = TextTestRunner()
     testRunner.run( makeTestSuite() )
+    #~ lp.run("testRunner.run( makeTestSuite() )")
 else:
     # HTML mode
     outfile = "testResults.html"
@@ -2114,4 +2194,6 @@ else:
     outstream.close()
 
     import os
-    os.system(outfile)
+    os.system(r'"C:\Program Files\Internet Explorer\iexplore.exe" file://' + outfile)
+
+#~ lp.print_stats()

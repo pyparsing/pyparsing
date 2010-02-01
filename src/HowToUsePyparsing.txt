@@ -404,7 +404,7 @@ methods for code to use are:
   enablePackrat before calling psyco.full().  If you do not do this,
   Python will crash.  For best results, call enablePackrat() immediately
   after importing pyparsing.
-
+     
 
 Basic ParserElement subclasses
 ------------------------------
@@ -584,21 +584,31 @@ Expression subclasses
 Expression operators
 --------------------
 
-- ``+`` - consecutive sequence
+- ``~`` - creates NotAny using the expression after the operator
 
-- ``|`` - match first alternative
+- ``+`` - creates And using the expressions before and after the operator
 
-- ``^`` - match longest alternative
+- ``|`` - creates MatchFirst (first left-to-right match) using the expressions before and after the operator
 
-- ``&`` - match each alternative, in any order
+- ``^`` - creates Or (longest match) using the expressions before and after the operator
 
+- ``&`` - creates Each using the expressions before and after the operator
+
+- ``*`` - creates And by multiplying the expression by the integer operand; if
+  expression is multiplied by a 2-tuple, creates an And of (min,max)
+  expressions (similar to "{min,max}" form in regular expressions); if
+  min is None, intepret as (0,max); if max is None, interpret as 
+  expr*min + ZeroOrMore(expr)
+    
 - ``-`` - like ``+`` but with no backup and retry of alternatives
 
 - ``*`` - repetition of expression
 
 - ``==`` - matching expression to string; returns True if the string matches the given expression
 
-- ``<<`` - expression definition for Forward expressions
+- ``<<`` - inserts the expression following the operator as the body of the 
+  Forward expression before the operator
+
 
 
 Positional subclasses
