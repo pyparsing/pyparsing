@@ -3,7 +3,17 @@
 """Setup script for the pyparsing module distribution."""
 from distutils.core import setup
 
-from pyparsing import __version__
+import sys
+_PY3 = sys.version_info[0] > 2
+
+# cleaned up for Py2/Py3 compatibility - thanks to Mark Roddy
+if _PY3:
+    from pyparsing_py3 import __version__
+    modules = ["pyparsing_py3",]
+else:
+    from pyparsing import __version__
+    modules = ["pyparsing",]
+
 
 setup(# Distribution meta-data
     name = "pyparsing",
@@ -14,7 +24,7 @@ setup(# Distribution meta-data
     url = "http://pyparsing.wikispaces.com/",
     download_url = "http://sourceforge.net/project/showfiles.php?group_id=97203",
     license = "MIT License",
-    py_modules = ["pyparsing"],
+    py_modules = modules,
     classifiers=[
         'Development Status :: 5 - Production/Stable',
         'Intended Audience :: Developers',

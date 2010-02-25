@@ -58,8 +58,8 @@ The pyparsing module handles some of the problems that are typically vexing when
  - embedded comments
 """
 
-__version__ = "1.5.2.Py3"
-__versionTime__ = "9 April 2009 12:21"
+__version__ = "1.5.3.Py3"
+__versionTime__ = "31 January 2010 20:15"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -265,7 +265,7 @@ class ParseResults(object):
        - by list index (results[0], results[1], etc.)
        - by attribute (results.<resultsName>)
        """
-    __slots__ = ( "__toklist", "__tokdict", "__doinit", "__name", "__parent", "__accumNames", "__weakref__" )
+    #~ __slots__ = ( "__toklist", "__tokdict", "__doinit", "__name", "__parent", "__accumNames", "__weakref__" )
     def __new__(cls, toklist, name=None, asList=True, modal=True ):
         if isinstance(toklist, cls):
             return toklist
@@ -275,7 +275,7 @@ class ParseResults(object):
 
     # Performance tuning: we construct a *lot* of these, so keep this
     # constructor as small and fast as possible
-    def __init__( self, toklist, name=None, asList=True, modal=True ):
+    def __init__( self, toklist, name=None, asList=True, modal=True, isinstance=isinstance ):
         if self.__doinit:
             self.__doinit = False
             self.__name = None
@@ -287,7 +287,7 @@ class ParseResults(object):
                 self.__toklist = [toklist]
             self.__tokdict = dict()
 
-        if name:
+        if name is not None and name:
             if not modal:
                 self.__accumNames[name] = 0
             if isinstance(name,int):
@@ -317,7 +317,7 @@ class ParseResults(object):
             else:
                 return ParseResults([ v[0] for v in self.__tokdict[i] ])
 
-    def __setitem__( self, k, v ):
+    def __setitem__( self, k, v, isinstance=isinstance ):
         if isinstance(v,_ParseResultsWithOffset):
             self.__tokdict[k] = self.__tokdict.get(k,list()) + [v]
             sub = v[0]
@@ -397,7 +397,7 @@ class ParseResults(object):
         return [ v[-1][0] for v in self.__tokdict.values() ]
 
     def __getattr__( self, name ):
-        if name not in self.__slots__:
+        if True: #name not in self.__slots__:
             if name in self.__tokdict:
                 if name not in self.__accumNames:
                     return self.__tokdict[name][-1][0]
@@ -1354,9 +1354,9 @@ class ParserElement(object):
         """
         if isinstance( other, Suppress ):
             if other not in self.ignoreExprs:
-                self.ignoreExprs.append( other )
+                self.ignoreExprs.append( other.copy() )
         else:
-            self.ignoreExprs.append( Suppress( other ) )
+            self.ignoreExprs.append( Suppress( other.copy() ) )
         return self
 
     def setDebugActions( self, startAction, successAction, exceptionAction ):
@@ -2520,7 +2520,9 @@ class Each(ParseExpression):
 
     def parseImpl( self, instring, loc, doActions=True ):
         if self.initExprGroups:
-            self.optionals = [ e.expr for e in self.exprs if isinstance(e,Optional) ]
+            opt1 = [ e.expr for e in self.exprs if isinstance(e,Optional) ]
+            opt2 = [ e for e in self.exprs if e.mayReturnEmpty and e not in opt1 ]
+            self.optionals = opt1 + opt2
             self.multioptionals = [ e.expr for e in self.exprs if isinstance(e,ZeroOrMore) ]
             self.multirequired = [ e.expr for e in self.exprs if isinstance(e,OneOrMore) ]
             self.required = [ e for e in self.exprs if not isinstance(e,(Optional,ZeroOrMore,OneOrMore)) ]
@@ -3285,7 +3287,7 @@ def originalTextFor(expr, asString=True):
        the expression passed to originalTextFor contains expressions with defined
        results names, you must set asString to False if you want to preserve those
        results name values."""
-    locMarker = Empty().setParseAction(lambda s,loc,t: loc)
+    locMarker = Empty().setParseAction(lambda s,loc,t: loc).leaveWhitespace()
     matchExpr = locMarker("_original_start") + expr + locMarker("_original_end")
     if asString:
         extractText = lambda s,l,t: s[t._original_start:t._original_end]
@@ -3369,7 +3371,8 @@ def downcaseTokens(s,l,t):
     return [ tt.lower() for tt in map(_ustr,t) ]
 
 def keepOriginalText(s,startLoc,t):
-    """Helper parse action to preserve original parsed text,
+    """DEPRECATED - use new helper method 'originalTextFor'.
+       Helper parse action to preserve original parsed text,
        overriding any nested parse actions."""
     try:
         endloc = getTokensEndLoc()
@@ -3542,7 +3545,7 @@ sglQuotedString = Regex(r"'(?:[^'\n\r\\]|(?:'')|(?:\\x[0-9a-fA-F]+)|(?:\\.))*'")
 quotedString = Regex(r'''(?:"(?:[^"\n\r\\]|(?:"")|(?:\\x[0-9a-fA-F]+)|(?:\\.))*")|(?:'(?:[^'\n\r\\]|(?:'')|(?:\\x[0-9a-fA-F]+)|(?:\\.))*')''').setName("quotedString using single or double quotes")
 unicodeString = Combine(_L('u') + quotedString.copy())
 
-def nestedExpr(opener="(", closer=")", content=None, ignoreExpr=quotedString):
+def nestedExpr(opener="(", closer=")", content=None, ignoreExpr=quotedString.copy()):
     """Helper method for defining nested lists enclosed in opening and closing
        delimiters ("(" and ")" are the default).
 
@@ -3573,7 +3576,7 @@ def nestedExpr(opener="(", closer=")", content=None, ignoreExpr=quotedString):
                                     CharsNotIn(opener+closer+ParserElement.DEFAULT_WHITE_CHARS,exact=1))
                                 ).setParseAction(lambda t:t[0].strip()))
                 else:
-                    content = (empty+CharsNotIn(opener+closer+ParserElement.DEFAULT_WHITE_CHARS
+                    content = (empty.copy()+CharsNotIn(opener+closer+ParserElement.DEFAULT_WHITE_CHARS
                                 ).setParseAction(lambda t:t[0].strip()))
             else:
                 if ignoreExpr is not None:
@@ -3638,7 +3641,7 @@ def indentedBlock(blockStatementExpr, indentStack, indent=True):
     UNDENT = Empty().setParseAction(checkUnindent)
     if indent:
         smExpr = Group( Optional(NL) +
-            FollowedBy(blockStatementExpr) +
+            #~ FollowedBy(blockStatementExpr) +
             INDENT + (OneOrMore( PEER + Group(blockStatementExpr) + Optional(NL) )) + UNDENT)
     else:
         smExpr = Group( Optional(NL) +
@@ -3668,7 +3671,7 @@ _noncomma = "".join( [ c for c in printables if c != "," ] )
 _commasepitem = Combine(OneOrMore(Word(_noncomma) +
                                   Optional( Word(" \t") +
                                             ~Literal(",") + ~LineEnd() ) ) ).streamline().setName("commaItem")
-commaSeparatedList = delimitedList( Optional( quotedString | _commasepitem, default="") ).setName("commaSeparatedList")
+commaSeparatedList = delimitedList( Optional( quotedString.copy() | _commasepitem, default="") ).setName("commaSeparatedList")
 
 
 if __name__ == "__main__":

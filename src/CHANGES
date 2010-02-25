@@ -2,13 +2,13 @@
 Change Log
 ==========
 
-Version 1.5.3 - September, 2010
--------------------------------
+Version 1.5.3 - February, 2010
+------------------------------
 - Fixed up setup.py to auto-detect Python version and install 
   the correct version of pyparsing - suggested by Alex Martelli,
-  thanks, Alex! (and my apologies to all those who struggled 
-  with those spurious installation errors caused by my earlier
-  fumblings!)
+  with refinements suggested by Mark Roddy - thanks, Alex and
+  Mark! (and my apologies to all those who struggled with those 
+  spurious installation errors caused by my earlier fumblings!)
 
 - Fixed subtle bug in originalTextFor, if followed by
   significant whitespace (like a newline) - discovered by
