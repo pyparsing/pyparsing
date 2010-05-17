@@ -1349,10 +1349,11 @@ class ParseUsingRegex(ParseTestCase):
         import re
         import pyparsing
         
-        signedInt = pyparsing.Regex('[-+][0-9]+')
-        unsignedInt = pyparsing.Regex('[0-9]+')
-        simpleString = pyparsing.Regex('("[^\"]*")|(\'[^\']*\')')
-        namedGrouping = pyparsing.Regex('("(?P<content>[^\"]*)")')
+        signedInt = pyparsing.Regex(r'[-+][0-9]+')
+        unsignedInt = pyparsing.Regex(r'[0-9]+')
+        simpleString = pyparsing.Regex(r'("[^\"]*")|(\'[^\']*\')')
+        namedGrouping = pyparsing.Regex(r'("(?P<content>[^\"]*)")')
+        compiledRE = pyparsing.Regex(re.compile(r'[A-Z]+'))
         
         def testMatch (expression, instring, shouldPass, expectedString=None):
             if shouldPass:
@@ -1396,7 +1397,10 @@ class ParseUsingRegex(ParseTestCase):
         assert testMatch(unsignedInt, '0 foo', True, '0'), "Re: (13) failed, expected pass"
         assert testMatch(simpleString, '"foo"', True, '"foo"'), "Re: (14) failed, expected pass"
         assert testMatch(simpleString, "'foo bar' baz", True, "'foo bar'"), "Re: (15) failed, expected pass"
-        
+
+        assert testMatch(compiledRE, 'blah', False), "Re: (16) passed, expected fail"
+        assert testMatch(compiledRE, 'BLAH', True, 'BLAH'), "Re: (17) failed, expected pass"
+
         # This one is going to match correctly, but fail to pull out the correct result
         #  (for now), as there is no actual handling for extracted named groups
         assert testMatch(namedGrouping, '"foo bar" baz', True, '"foo bar"'), "Re: (16) failed, expected pass"
@@ -1476,6 +1480,28 @@ class LineAndStringEndTest(ParseTestCase):
             res3 = bnf3.parseString(t[0])
             print repr(res3[1]),'=?',repr(t[0][len(res3[0])+1:])
             assert res3[1] == t[0][len(res3[0])+1:], "Failed lineEnd/stringEnd test (3): " +repr(t[0])+ " -> "+str(res3[1].asList())
+
+        from pyparsing import Regex
+        import re
+
+        k = Regex(r'a+',flags=re.S+re.M)
+        k = k.parseWithTabs()
+        k = k.leaveWhitespace()
+        
+        tests = [
+            (r'aaa',['aaa']),
+            (r'\naaa',None),
+            (r'a\naa',None),
+            (r'aaa\n',None),
+            ]
+        for i,(src,expected) in enumerate(tests):
+            print i, repr(src).replace('\\\\','\\'),
+            try:
+                res = k.parseString(src, parseAll=True).asList()
+            except ParseException, pe:
+                res = None
+            print res
+            assert res == expected, "Failed on parseAll=True test %d" % i
 
 class VariableParseActionArgsTest(ParseTestCase):
     def runTest(self):
@@ -1973,6 +1999,33 @@ class OptionalEachTest(ParseTestCase):
         assert p1res.asList() == p2res.asList(), "Each failed to match with nested Optionals, " + \
             str(p1res.asList()) + " should match " + str(p2res.asList())
 
+class SumParseResultsTest(ParseTestCase):
+    def runTest(self):
+
+        samplestr1 = "garbage;DOB 10-10-2010;more garbage\nID PARI12345678;more garbage"
+        samplestr2 = "garbage;ID PARI12345678;more garbage\nDOB 10-10-2010;more garbage"
+        samplestr3 = "garbage;DOB 10-10-2010"
+        samplestr4 = "garbage;ID PARI12345678;more garbage- I am cool"
+
+        res1 = "ID:PARI12345678 DOB:10-10-2010 INFO:"
+        res2 = "ID:PARI12345678 DOB:10-10-2010 INFO:"
+        res3 = "ID: DOB:10-10-2010 INFO:"
+        res4 = "ID:PARI12345678 DOB: INFO: I am cool"
+
+        from pyparsing import Regex, Word, alphanums, restOfLine
+        dob_ref = "DOB" + Regex(r"\d{2}-\d{2}-\d{4}")("dob")
+        id_ref = "ID" + Word(alphanums,exact=12)("id")
+        info_ref = "-" + restOfLine("info")
+
+        person_data = dob_ref | id_ref | info_ref
+
+        tests = (samplestr1,samplestr2,samplestr3,samplestr4,)
+        results = (res1, res2, res3, res4,)
+        for test,expected in zip(tests, results):
+            person = sum(person_data.searchString(test))
+            assert expected == "ID:%s DOB:%s INFO:%s" % (person.id, person.dob, person.info), \
+                "Failed to parse '%s' correctly" % test
+
 class MiscellaneousParserTests(ParseTestCase):
     def runTest(self):
         import pyparsing
@@ -2100,6 +2153,17 @@ class MiscellaneousParserTests(ParseTestCase):
                 e.parseString("SLJFD")
             except Exception,e:
                 assert False, "Failed to handle empty Literal"
+                
+        # test line() behavior when starting at 0 and the opening line is an \n
+        if "K" in runtests:
+            print 'verify correct line() behavior when first line is empty string'
+            assert pyparsing.line(0, "\nabc\ndef\n") == '', "Error in line() with empty first line in text"
+            txt = "\nabc\ndef\n"
+            results = [ pyparsing.line(i,txt) for i in range(len(txt)) ]
+            assert results == ['', 'abc', 'abc', 'abc', 'abc', 'def', 'def', 'def', 'def'], "Error in line() with empty first line in text"
+            txt = "abc\ndef\n"
+            results = [ pyparsing.line(i,txt) for i in range(len(txt)) ]
+            assert results == ['abc', 'abc', 'abc', 'abc', 'def', 'def', 'def', 'def'], "Error in line() with non-empty first line in text"
 
 
 def makeTestSuite():
@@ -2150,8 +2214,8 @@ def makeTestSuite():
     suite.addTest( ParseAllTest() )
     suite.addTest( GreedyQuotedStringsTest() )
     suite.addTest( OptionalEachTest() )
+    suite.addTest( SumParseResultsTest() )
     suite.addTest( MiscellaneousParserTests() )
-
     if TEST_USING_PACKRAT:
         # retest using packrat parsing (disable those tests that aren't compatible)
         suite.addTest( EnablePackratParsing() )

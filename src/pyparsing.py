@@ -59,7 +59,7 @@ The pyparsing module handles some of the problems that are typically vexing when
 """
 
 __version__ = "1.5.3"
-__versionTime__ = "31 January 2010 20:15"
+__versionTime__ = "14 May 2010 22:21"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -101,12 +101,13 @@ if _PY3K:
     basestring = str
     unichr = chr
     _ustr = str
-    _str2dict = set
     alphas = string.ascii_lowercase + string.ascii_uppercase
 else:
     _MAX_INT = sys.maxint
     range = xrange
-
+    set = lambda s : dict( [(c,0) for c in s] )
+    alphas = string.lowercase + string.uppercase
+    
     def _ustr(obj):
         """Drop-in replacement for str(obj) that tries to be Unicode friendly. It first tries
            str(obj). If that fails with a UnicodeEncodeError, then it tries unicode(obj). It
@@ -133,11 +134,6 @@ else:
             # Replace unprintables with question marks?
             #return unicode(obj).encode(sys.getdefaultencoding(), 'replace')
             # ...
-            
-    def _str2dict(strg):
-        return dict( [(c,0) for c in strg] )
-            
-    alphas = string.lowercase + string.uppercase
 
 
 def _xml_escape(data):
@@ -427,9 +423,12 @@ class ParseResults(object):
             
         self.__toklist += other.__toklist
         self.__accumNames.update( other.__accumNames )
-        del other
         return self
 
+    def __radd__(self, other):
+        if isinstance(other,int) and other == 0:
+            return self.copy()
+        
     def __repr__( self ):
         return "(%s, %s)" % ( repr( self.__toklist ), repr( self.__tokdict ) )
 
@@ -637,7 +636,7 @@ def line( loc, strg ):
        """
     lastCR = strg.rfind("\n", 0, loc)
     nextCR = strg.find("\n", loc)
-    if nextCR > 0:
+    if nextCR >= 0:
         return strg[lastCR+1:nextCR]
     else:
         return strg[lastCR+1:]
@@ -658,6 +657,7 @@ def nullDebugAction(*args):
 class ParserElement(object):
     """Abstract base level parser element class."""
     DEFAULT_WHITE_CHARS = " \n\t\r"
+    verbose_stacktrace = False
 
     def setDefaultWhitespaceChars( chars ):
         """Overrides the default whitespace chars
@@ -1067,12 +1067,16 @@ class ParserElement(object):
         try:
             loc, tokens = self._parse( instring, 0 )
             if parseAll:
-                loc = self.preParse( instring, loc )
-                StringEnd()._parse( instring, loc )
+                #loc = self.preParse( instring, loc )
+                se = StringEnd()
+                se._parse( instring, loc )
         except ParseBaseException:
-            exc = sys.exc_info()[1]
-            # catch and re-raise exception from here, clears out pyparsing internal stack trace
-            raise exc
+            if ParserElement.verbose_stacktrace:
+                raise
+            else:
+                # catch and re-raise exception from here, clears out pyparsing internal stack trace
+                exc = sys.exc_info()[1]
+                raise exc
         else:
             return tokens
 
@@ -1112,8 +1116,12 @@ class ParserElement(object):
                     else:
                         loc = preloc+1
         except ParseBaseException:
-            pe = sys.exc_info()[1]
-            raise pe
+            if ParserElement.verbose_stacktrace:
+                raise
+            else:
+                # catch and re-raise exception from here, clears out pyparsing internal stack trace
+                exc = sys.exc_info()[1]
+                raise exc
 
     def transformString( self, instring ):
         """Extension to scanString, to modify matching text with modified tokens that may
@@ -1141,8 +1149,12 @@ class ParserElement(object):
             out.append(instring[lastE:])
             return "".join(map(_ustr,out))
         except ParseBaseException:
-            pe = sys.exc_info()[1]
-            raise pe
+            if ParserElement.verbose_stacktrace:
+                raise
+            else:
+                # catch and re-raise exception from here, clears out pyparsing internal stack trace
+                exc = sys.exc_info()[1]
+                raise exc
 
     def searchString( self, instring, maxMatches=_MAX_INT ):
         """Another extension to scanString, simplifying the access to the tokens found
@@ -1152,8 +1164,12 @@ class ParserElement(object):
         try:
             return ParseResults([ t for t,s,e in self.scanString( instring, maxMatches ) ])
         except ParseBaseException:
-            pe = sys.exc_info()[1]
-            raise pe
+            if ParserElement.verbose_stacktrace:
+                raise
+            else:
+                # catch and re-raise exception from here, clears out pyparsing internal stack trace
+                exc = sys.exc_info()[1]
+                raise exc
 
     def __add__(self, other ):
         """Implementation of + operator - returns And"""
@@ -1446,7 +1462,7 @@ class ParserElement(object):
 
     def __rne__(self,other):
         return not (self == other)
-
+        
 
 class Token(ParserElement):
     """Abstract ParserElement subclass, for defining atomic matching patterns."""
@@ -1550,7 +1566,7 @@ class Keyword(Token):
         if caseless:
             self.caselessmatch = matchString.upper()
             identChars = identChars.upper()
-        self.identChars = _str2dict(identChars)
+        self.identChars = set(identChars)
 
     def parseImpl( self, instring, loc, doActions=True ):
         if self.caseless:
@@ -1629,13 +1645,13 @@ class Word(Token):
     def __init__( self, initChars, bodyChars=None, min=1, max=0, exact=0, asKeyword=False ):
         super(Word,self).__init__()
         self.initCharsOrig = initChars
-        self.initChars = _str2dict(initChars)
+        self.initChars = set(initChars)
         if bodyChars :
             self.bodyCharsOrig = bodyChars
-            self.bodyChars = _str2dict(bodyChars)
+            self.bodyChars = set(bodyChars)
         else:
             self.bodyCharsOrig = initChars
-            self.bodyChars = _str2dict(initChars)
+            self.bodyChars = set(initChars)
 
         self.maxSpecified = max > 0
 
@@ -1749,30 +1765,41 @@ class Regex(Token):
     """Token for matching strings that match a given regular expression.
        Defined with string specifying the regular expression in a form recognized by the inbuilt Python re module.
     """
+    compiledREtype = type(re.compile("[A-Z]"))
     def __init__( self, pattern, flags=0):
         """The parameters pattern and flags are passed to the re.compile() function as-is. See the Python re module for an explanation of the acceptable patterns and flags."""
         super(Regex,self).__init__()
 
-        if len(pattern) == 0:
-            warnings.warn("null string passed to Regex; use Empty() instead",
+        if isinstance(pattern, basestring):
+            if len(pattern) == 0:
+                warnings.warn("null string passed to Regex; use Empty() instead",
+                        SyntaxWarning, stacklevel=2)
+
+            self.pattern = pattern
+            self.flags = flags
+
+            try:
+                self.re = re.compile(self.pattern, self.flags)
+                self.reString = self.pattern
+            except sre_constants.error:
+                warnings.warn("invalid pattern (%s) passed to Regex" % pattern,
                     SyntaxWarning, stacklevel=2)
-
-        self.pattern = pattern
-        self.flags = flags
-
-        try:
-            self.re = re.compile(self.pattern, self.flags)
-            self.reString = self.pattern
-        except sre_constants.error:
-            warnings.warn("invalid pattern (%s) passed to Regex" % pattern,
-                SyntaxWarning, stacklevel=2)
-            raise
+                raise
+                
+        elif isinstance(pattern, Regex.compiledREtype):
+            self.re = pattern
+            self.pattern = \
+            self.reString = str(pattern)
+            self.flags = flags
+            
+        else:
+            raise ValueError("Regex may only be constructed with a string or a compiled RE object")
 
         self.name = _ustr(self)
         self.errmsg = "Expected " + self.name
         #self.myException.msg = self.errmsg
         self.mayIndexError = False
-        self.mayReturnEmpty = True
+        self.mayReturnEmpty = not not (self.re.match(""))
 
     def parseImpl( self, instring, loc, doActions=True ):
         result = self.re.match(instring,loc)
@@ -2046,7 +2073,7 @@ class White(Token):
 
         return loc, instring[start:loc]
 
-
+        
 class _PositionToken(Token):
     def __init__( self ):
         super(_PositionToken,self).__init__()
@@ -2179,7 +2206,7 @@ class WordStart(_PositionToken):
     """
     def __init__(self, wordChars = printables):
         super(WordStart,self).__init__()
-        self.wordChars = _str2dict(wordChars)
+        self.wordChars = set(wordChars)
         self.errmsg = "Not at the start of a word"
 
     def parseImpl(self, instring, loc, doActions=True ):
@@ -2201,7 +2228,7 @@ class WordEnd(_PositionToken):
     """
     def __init__(self, wordChars = printables):
         super(WordEnd,self).__init__()
-        self.wordChars = _str2dict(wordChars)
+        self.wordChars = set(wordChars)
         self.skipWhitespace = False
         self.errmsg = "Not at the end of a word"
 

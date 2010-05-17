@@ -2,26 +2,51 @@
 Change Log
 ==========
 
-Version 1.5.3 - February, 2010
-------------------------------
+Version 1.5.3 - May, 2010
+-------------------------
 - Fixed up setup.py to auto-detect Python version and install 
   the correct version of pyparsing - suggested by Alex Martelli,
-  with refinements suggested by Mark Roddy - thanks, Alex and
-  Mark! (and my apologies to all those who struggled with those 
-  spurious installation errors caused by my earlier fumblings!)
+  thanks, Alex! (and my apologies to all those who struggled 
+  with those spurious installation errors caused by my earlier
+  fumblings!)
 
 - Fixed subtle bug in originalTextFor, if followed by
   significant whitespace (like a newline) - discovered by
   Francis Vidal, thanks!
 
-- Included stateMachine2.py, a modified version of stateMachine.py
-  submitted by Matt Anderson, that is compatible with Python versions 2.7
-  and above - thanks so much, Matt!
-
 - Fixed very sneaky bug in Each, in which Optional elements were
   not completely recognized as optional - found by Tal Weiss, thanks
   for your patience.
   
+- Fixed off-by-1 bug in line() method when the first line of the
+  input text was an empty line. Thanks to John Krukoff for submitting
+  a patch!
+  
+- Added better support for summing ParseResults, see the new example,
+  parseResultsSumExample.py.
+  
+- Added support for composing a Regex using a compiled RE object; 
+  thanks to my new colleague, Mike Thornton!
+
+- In version 1.5.2, I changed the way exceptions are raised in order
+  to simplify the stacktraces reported during parsing.  An anonymous
+  user posted a bug report on SF that this behavior makes it difficult
+  to debug some complex parsers, or parsers nested within parsers. In
+  this release I've added a class attribute ParserElement.verbose_stacktrace,
+  with a default value of False. If you set this to True, pyparsing will 
+  report stacktraces using the pre-1.5.2 behavior.
+
+- New examples: 
+
+  . pymicko.py, a MicroC compiler submitted by Zarko Zivanov. 
+    (Note: this example is separately licensed under the GPLv3, 
+    and requires Python 2.6 or higher.)  Thank you, Zarko!
+
+  . stateMachine2.py, a modified version of stateMachine.py submitted 
+    by Matt Anderson, that is compatible with Python versions 2.7 and 
+    above - thanks so much, Matt!
+
+
 
 Version 1.5.2 - April, 2009
 ------------------------------
