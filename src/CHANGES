@@ -45,6 +45,15 @@ Version 1.5.3 - May, 2010
   . stateMachine2.py, a modified version of stateMachine.py submitted 
     by Matt Anderson, that is compatible with Python versions 2.7 and 
     above - thanks so much, Matt!
+    
+  . excelExpr.py, a *simplistic* first-cut at a parser for Excel 
+    expressions, which I originally posted on comp.lang.python in January, 
+    2010; beware, this parser omits many common Excel cases (addition of
+    numbers represented as strings, references to named ranges)
+    
+  . cpp_enum_parser.py, a nice little parser posted my Mark Tolonen on
+    comp.lang.python in August, 2009 (redistributed here with Mark's
+    permission).  Thanks a bunch, Mark!
 
 
 
