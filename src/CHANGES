@@ -46,6 +46,11 @@ Version 1.5.3 - May, 2010
     by Matt Anderson, that is compatible with Python versions 2.7 and 
     above - thanks so much, Matt!
     
+  . select_parser.py, a parser for reading SQLite SELECT statements, 
+    as specified at http://www.sqlite.org/lang_select.html; this goes
+    into much more detail than the simple SQL parser included in pyparsing's
+    source code
+    
   . excelExpr.py, a *simplistic* first-cut at a parser for Excel 
     expressions, which I originally posted on comp.lang.python in January, 
     2010; beware, this parser omits many common Excel cases (addition of
