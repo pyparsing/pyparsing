@@ -59,6 +59,11 @@ Version 1.5.3 - May, 2010
   . cpp_enum_parser.py, a nice little parser posted my Mark Tolonen on
     comp.lang.python in August, 2009 (redistributed here with Mark's
     permission).  Thanks a bunch, Mark!
+    
+  . partial_gene_match.py, a sample I posted to Stackoverflow.com,
+    implementing a special variation on Literal that does "close" matching,
+    up to a given number of allowed mismatches.  The application was to 
+    find matching gene sequences, with allowance for one or two mismatches.
 
 
 
