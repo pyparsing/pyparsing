@@ -59,7 +59,7 @@ The pyparsing module handles some of the problems that are typically vexing when
 """
 
 __version__ = "1.5.3.Py3"
-__versionTime__ = "14 May 2010 22:21"
+__versionTime__ = "25 May 2010 18:11"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -1075,8 +1075,8 @@ class ParserElement(object):
                 raise
             else:
                 # catch and re-raise exception from here, clears out pyparsing internal stack trace
-            exc = sys.exc_info()[1]
-            raise exc
+                exc = sys.exc_info()[1]
+                raise exc
         else:
             return tokens
 
