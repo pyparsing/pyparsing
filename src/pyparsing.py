@@ -59,7 +59,7 @@ The pyparsing module handles some of the problems that are typically vexing when
 """
 
 __version__ = "1.5.3"
-__versionTime__ = "14 May 2010 22:21"
+__versionTime__ = "15 Jun 2010 02:21"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -135,15 +135,21 @@ else:
             #return unicode(obj).encode(sys.getdefaultencoding(), 'replace')
             # ...
 
+# build list of single arg builtins, tolerant of Python version, that can be used as parse actions
+singleArgBuiltins = []
+import __builtin__
+for fname in "sum len enumerate sorted reversed list tuple set any all".split():
+    try:
+        singleArgBuiltins.append(getattr(__builtin__,fname))
+    except AttributeError:
+        continue
 
 def _xml_escape(data):
     """Escape &, <, >, ", ', etc. in a string of data."""
 
     # ampersand must be replaced first
-    from_symbols = '&><"\''
-    to_symbols = ['&'+s+';' for s in "amp gt lt quot apos".split()]
-    for from_,to_ in zip(from_symbols, to_symbols):
-        data = data.replace(from_, to_)
+    for from_,to_ in zip('&><"\'', "amp gt lt quot apos".split()):
+        data = data.replace(from_, '&'+to_+';')
     return data
 
 class _Constants(object):
@@ -741,59 +747,63 @@ class ParserElement(object):
            so that all parse actions can be called as f(s,l,t)."""
         STAR_ARGS = 4
 
-        try:
-            restore = None
-            if isinstance(f,type):
-                restore = f
-                f = f.__init__
-            if not _PY3K:
-                codeObj = f.func_code
-            else:
-                codeObj = f.code
-            if codeObj.co_flags & STAR_ARGS:
-                return f
-            numargs = codeObj.co_argcount
-            if not _PY3K:
-                if hasattr(f,"im_self"):
-                    numargs -= 1
-            else:
-                if hasattr(f,"__self__"):
-                    numargs -= 1
-            if restore:
-                f = restore
-        except AttributeError:
+        # special handling for single-argument builtins
+        if (f in singleArgBuiltins):
+            numargs = 1
+        else:
             try:
+                restore = None
+                if isinstance(f,type):
+                    restore = f
+                    f = f.__init__
                 if not _PY3K:
-                    call_im_func_code = f.__call__.im_func.func_code
+                    codeObj = f.func_code
                 else:
-                    call_im_func_code = f.__code__
-
-                # not a function, must be a callable object, get info from the
-                # im_func binding of its bound __call__ method
-                if call_im_func_code.co_flags & STAR_ARGS:
+                    codeObj = f.code
+                if codeObj.co_flags & STAR_ARGS:
                     return f
-                numargs = call_im_func_code.co_argcount
+                numargs = codeObj.co_argcount
                 if not _PY3K:
-                    if hasattr(f.__call__,"im_self"):
+                    if hasattr(f,"im_self"):
                         numargs -= 1
                 else:
-                    if hasattr(f.__call__,"__self__"):
-                        numargs -= 0
+                    if hasattr(f,"__self__"):
+                        numargs -= 1
+                if restore:
+                    f = restore
             except AttributeError:
-                if not _PY3K:
-                    call_func_code = f.__call__.func_code
-                else:
-                    call_func_code = f.__call__.__code__
-                # not a bound method, get info directly from __call__ method
-                if call_func_code.co_flags & STAR_ARGS:
-                    return f
-                numargs = call_func_code.co_argcount
-                if not _PY3K:
-                    if hasattr(f.__call__,"im_self"):
-                        numargs -= 1
-                else:
-                    if hasattr(f.__call__,"__self__"):
-                        numargs -= 1
+                try:
+                    if not _PY3K:
+                        call_im_func_code = f.__call__.im_func.func_code
+                    else:
+                        call_im_func_code = f.__code__
+
+                    # not a function, must be a callable object, get info from the
+                    # im_func binding of its bound __call__ method
+                    if call_im_func_code.co_flags & STAR_ARGS:
+                        return f
+                    numargs = call_im_func_code.co_argcount
+                    if not _PY3K:
+                        if hasattr(f.__call__,"im_self"):
+                            numargs -= 1
+                    else:
+                        if hasattr(f.__call__,"__self__"):
+                            numargs -= 0
+                except AttributeError:
+                    if not _PY3K:
+                        call_func_code = f.__call__.func_code
+                    else:
+                        call_func_code = f.__call__.__code__
+                    # not a bound method, get info directly from __call__ method
+                    if call_func_code.co_flags & STAR_ARGS:
+                        return f
+                    numargs = call_func_code.co_argcount
+                    if not _PY3K:
+                        if hasattr(f.__call__,"im_self"):
+                            numargs -= 1
+                    else:
+                        if hasattr(f.__call__,"__self__"):
+                            numargs -= 1
 
 
         #~ print ("adding function %s with %d args" % (f.func_name,numargs))
@@ -913,7 +923,7 @@ class ParserElement(object):
                 preloc = self.preParse( instring, loc )
             else:
                 preloc = loc
-            tokensStart = loc
+            tokensStart = preloc
             try:
                 try:
                     loc,tokens = self.parseImpl( instring, preloc, doActions )
@@ -935,7 +945,7 @@ class ParserElement(object):
                 preloc = self.preParse( instring, loc )
             else:
                 preloc = loc
-            tokensStart = loc
+            tokensStart = preloc
             if self.mayIndexError or loc >= len(instring):
                 try:
                     loc,tokens = self.parseImpl( instring, preloc, doActions )
@@ -1799,7 +1809,7 @@ class Regex(Token):
         self.errmsg = "Expected " + self.name
         #self.myException.msg = self.errmsg
         self.mayIndexError = False
-        self.mayReturnEmpty = not not (self.re.match(""))
+        self.mayReturnEmpty = True
 
     def parseImpl( self, instring, loc, doActions=True ):
         result = self.re.match(instring,loc)
@@ -3437,7 +3447,7 @@ def _makeTags(tagStr, xml):
     tagAttrName = Word(alphas,alphanums+"_-:")
     if (xml):
         tagAttrValue = dblQuotedString.copy().setParseAction( removeQuotes )
-        openTag = Suppress("<") + tagStr + \
+        openTag = Suppress("<") + tagStr("tag") + \
                 Dict(ZeroOrMore(Group( tagAttrName + Suppress("=") + tagAttrValue ))) + \
                 Optional("/",default=[False]).setResultsName("empty").setParseAction(lambda s,l,t:t[0]=='/') + Suppress(">")
     else:
@@ -3451,7 +3461,8 @@ def _makeTags(tagStr, xml):
 
     openTag = openTag.setResultsName("start"+"".join(resname.replace(":"," ").title().split())).setName("<%s>" % tagStr)
     closeTag = closeTag.setResultsName("end"+"".join(resname.replace(":"," ").title().split())).setName("</%s>" % tagStr)
-
+    openTag.tag = resname
+    closeTag.tag = resname
     return openTag, closeTag
 
 def makeHTMLTags(tagStr):
