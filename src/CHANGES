@@ -42,6 +42,9 @@ Version 1.5.3 - May, 2010
     (Note: this example is separately licensed under the GPLv3, 
     and requires Python 2.6 or higher.)  Thank you, Zarko!
 
+  . oc.py, a subset C parser, using the BNF from the 1996 Obfuscated C
+    Contest.
+
   . stateMachine2.py, a modified version of stateMachine.py submitted 
     by Matt Anderson, that is compatible with Python versions 2.7 and 
     above - thanks so much, Matt!
@@ -64,6 +67,9 @@ Version 1.5.3 - May, 2010
     implementing a special variation on Literal that does "close" matching,
     up to a given number of allowed mismatches.  The application was to 
     find matching gene sequences, with allowance for one or two mismatches.
+    
+  . tagCapture.py, a sample showing how to use a Forward placeholder to
+    enforce matching of text parsed in a previous expression.
 
 
 
