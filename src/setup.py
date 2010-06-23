@@ -4,20 +4,39 @@
 from distutils.core import setup
 
 import sys
+import os
+
 _PY3 = sys.version_info[0] > 2
 
-# cleaned up for Py2/Py3 compatibility - thanks to Mark Roddy
 if _PY3:
-    from pyparsing_py3 import __version__
-    modules = ["pyparsing_py3",]
+    from pyparsing_py3 import __version__ as pyparsing_version
 else:
-    from pyparsing import __version__
-    modules = ["pyparsing",]
+    from pyparsing_py2 import __version__ as pyparsing_version
+    
+modules = ["pyparsing",]
 
+# make sure that a pyparsing.py file exists - if not, copy the appropriate version
+def fileexists(fname):
+    try:
+        return bool(os.stat(fname))
+    except:
+        return False
+
+def copyfile(fromname, toname):
+    outf = file(toname,'w')
+    outf.write(file(fromname).read())
+    outf.close()
+    
+if "MAKING_PYPARSING_RELEASE" not in os.environ and not fileexists("pyparsing.py"):
+    if _PY3:
+        from_file = "pyparsing_py3.py"
+    else:
+        from_file = "pyparsing_py2.py"
+    copyfile(from_file, "pyparsing.py")
 
 setup(# Distribution meta-data
     name = "pyparsing",
-    version = __version__,
+    version = pyparsing_version,
     description = "Python parsing module",
     author = "Paul McGuire",
     author_email = "ptmcg@users.sourceforge.net",

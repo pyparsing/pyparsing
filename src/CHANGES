@@ -2,13 +2,20 @@
 Change Log
 ==========
 
-Version 1.5.3 - May, 2010
--------------------------
+Version 1.5.3 - June, 2010
+--------------------------
 - Fixed up setup.py to auto-detect Python version and install 
   the correct version of pyparsing - suggested by Alex Martelli,
   thanks, Alex! (and my apologies to all those who struggled 
   with those spurious installation errors caused by my earlier
   fumblings!)
+
+- NOTE:  API CHANGE!!!!!!!
+  With this release, and henceforward, the pyparsing module is 
+  imported as "pyparsing" on both Python 2.x and Python 3.x versions.
+
+- Fixed bug on Python3 when using parseFile, getting bytes instead of
+  a str from the input file.
 
 - Fixed subtle bug in originalTextFor, if followed by
   significant whitespace (like a newline) - discovered by
@@ -22,6 +29,9 @@ Version 1.5.3 - May, 2010
   input text was an empty line. Thanks to John Krukoff for submitting
   a patch!
   
+- Fixed bug in transformString if grammar contains Group expressions,
+  thanks to patch submitted by barnabas79, nice work!
+
 - Added better support for summing ParseResults, see the new example,
   parseResultsSumExample.py.
   
@@ -71,6 +81,8 @@ Version 1.5.3 - May, 2010
   . tagCapture.py, a sample showing how to use a Forward placeholder to
     enforce matching of text parsed in a previous expression.
 
+  . matchPreviousDemo.py, simple demo showing how the matchPreviousLiteral
+    helper method is used to match a previously parsed token.
 
 
 Version 1.5.2 - April, 2009

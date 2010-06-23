@@ -101,13 +101,12 @@ if _PY3K:
     basestring = str
     unichr = chr
     _ustr = str
+    _str2dict = set
     alphas = string.ascii_lowercase + string.ascii_uppercase
 else:
     _MAX_INT = sys.maxint
     range = xrange
-    set = lambda s : dict( [(c,0) for c in s] )
-    alphas = string.lowercase + string.uppercase
-    
+
     def _ustr(obj):
         """Drop-in replacement for str(obj) that tries to be Unicode friendly. It first tries
            str(obj). If that fails with a UnicodeEncodeError, then it tries unicode(obj). It
@@ -134,6 +133,11 @@ else:
             # Replace unprintables with question marks?
             #return unicode(obj).encode(sys.getdefaultencoding(), 'replace')
             # ...
+            
+    def _str2dict(strg):
+        return dict( [(c,0) for c in strg] )
+            
+    alphas = string.lowercase + string.uppercase
 
 # build list of single arg builtins, tolerant of Python version, that can be used as parse actions
 singleArgBuiltins = []
@@ -148,8 +152,10 @@ def _xml_escape(data):
     """Escape &, <, >, ", ', etc. in a string of data."""
 
     # ampersand must be replaced first
-    for from_,to_ in zip('&><"\'', "amp gt lt quot apos".split()):
-        data = data.replace(from_, '&'+to_+';')
+    from_symbols = '&><"\''
+    to_symbols = ['&'+s+';' for s in "amp gt lt quot apos".split()]
+    for from_,to_ in zip(from_symbols, to_symbols):
+        data = data.replace(from_, to_)
     return data
 
 class _Constants(object):
@@ -751,59 +757,59 @@ class ParserElement(object):
         if (f in singleArgBuiltins):
             numargs = 1
         else:
-            try:
-                restore = None
-                if isinstance(f,type):
-                    restore = f
-                    f = f.__init__
-                if not _PY3K:
-                    codeObj = f.func_code
-                else:
-                    codeObj = f.code
-                if codeObj.co_flags & STAR_ARGS:
-                    return f
-                numargs = codeObj.co_argcount
-                if not _PY3K:
-                    if hasattr(f,"im_self"):
-                        numargs -= 1
-                else:
-                    if hasattr(f,"__self__"):
-                        numargs -= 1
-                if restore:
-                    f = restore
-            except AttributeError:
-                try:
-                    if not _PY3K:
-                        call_im_func_code = f.__call__.im_func.func_code
-                    else:
-                        call_im_func_code = f.__code__
-
-                    # not a function, must be a callable object, get info from the
-                    # im_func binding of its bound __call__ method
-                    if call_im_func_code.co_flags & STAR_ARGS:
-                        return f
-                    numargs = call_im_func_code.co_argcount
-                    if not _PY3K:
-                        if hasattr(f.__call__,"im_self"):
-                            numargs -= 1
-                    else:
-                        if hasattr(f.__call__,"__self__"):
-                            numargs -= 0
-                except AttributeError:
-                    if not _PY3K:
-                        call_func_code = f.__call__.func_code
-                    else:
-                        call_func_code = f.__call__.__code__
-                    # not a bound method, get info directly from __call__ method
-                    if call_func_code.co_flags & STAR_ARGS:
-                        return f
-                    numargs = call_func_code.co_argcount
-                    if not _PY3K:
-                        if hasattr(f.__call__,"im_self"):
-                            numargs -= 1
-                    else:
-                        if hasattr(f.__call__,"__self__"):
-                            numargs -= 1
+	        try:
+	            restore = None
+	            if isinstance(f,type):
+	                restore = f
+	                f = f.__init__
+	            if not _PY3K:
+	                codeObj = f.func_code
+	            else:
+	                codeObj = f.code
+	            if codeObj.co_flags & STAR_ARGS:
+	                return f
+	            numargs = codeObj.co_argcount
+	            if not _PY3K:
+	                if hasattr(f,"im_self"):
+	                    numargs -= 1
+	            else:
+	                if hasattr(f,"__self__"):
+	                    numargs -= 1
+	            if restore:
+	                f = restore
+	        except AttributeError:
+	            try:
+	                if not _PY3K:
+	                    call_im_func_code = f.__call__.im_func.func_code
+	                else:
+	                    call_im_func_code = f.__code__
+	
+	                # not a function, must be a callable object, get info from the
+	                # im_func binding of its bound __call__ method
+	                if call_im_func_code.co_flags & STAR_ARGS:
+	                    return f
+	                numargs = call_im_func_code.co_argcount
+	                if not _PY3K:
+	                    if hasattr(f.__call__,"im_self"):
+	                        numargs -= 1
+	                else:
+	                    if hasattr(f.__call__,"__self__"):
+	                        numargs -= 0
+	            except AttributeError:
+	                if not _PY3K:
+	                    call_func_code = f.__call__.func_code
+	                else:
+	                    call_func_code = f.__call__.__code__
+	                # not a bound method, get info directly from __call__ method
+	                if call_func_code.co_flags & STAR_ARGS:
+	                    return f
+	                numargs = call_func_code.co_argcount
+	                if not _PY3K:
+	                    if hasattr(f.__call__,"im_self"):
+	                        numargs -= 1
+	                else:
+	                    if hasattr(f.__call__,"__self__"):
+	                        numargs -= 1
 
 
         #~ print ("adding function %s with %d args" % (f.func_name,numargs))
@@ -1086,7 +1092,7 @@ class ParserElement(object):
             else:
                 # catch and re-raise exception from here, clears out pyparsing internal stack trace
                 exc = sys.exc_info()[1]
-                raise exc
+            raise exc
         else:
             return tokens
 
@@ -1157,7 +1163,7 @@ class ParserElement(object):
                         out.append(t)
                 lastE = e
             out.append(instring[lastE:])
-            return "".join(map(_ustr,out))
+            return "".join(map(_ustr,_flatten(out)))
         except ParseBaseException:
             if ParserElement.verbose_stacktrace:
                 raise
@@ -1472,7 +1478,7 @@ class ParserElement(object):
 
     def __rne__(self,other):
         return not (self == other)
-        
+
 
 class Token(ParserElement):
     """Abstract ParserElement subclass, for defining atomic matching patterns."""
@@ -1576,7 +1582,7 @@ class Keyword(Token):
         if caseless:
             self.caselessmatch = matchString.upper()
             identChars = identChars.upper()
-        self.identChars = set(identChars)
+        self.identChars = _str2dict(identChars)
 
     def parseImpl( self, instring, loc, doActions=True ):
         if self.caseless:
@@ -1655,13 +1661,13 @@ class Word(Token):
     def __init__( self, initChars, bodyChars=None, min=1, max=0, exact=0, asKeyword=False ):
         super(Word,self).__init__()
         self.initCharsOrig = initChars
-        self.initChars = set(initChars)
+        self.initChars = _str2dict(initChars)
         if bodyChars :
             self.bodyCharsOrig = bodyChars
-            self.bodyChars = set(bodyChars)
+            self.bodyChars = _str2dict(bodyChars)
         else:
             self.bodyCharsOrig = initChars
-            self.bodyChars = set(initChars)
+            self.bodyChars = _str2dict(initChars)
 
         self.maxSpecified = max > 0
 
@@ -1781,21 +1787,21 @@ class Regex(Token):
         super(Regex,self).__init__()
 
         if isinstance(pattern, basestring):
-            if len(pattern) == 0:
-                warnings.warn("null string passed to Regex; use Empty() instead",
-                        SyntaxWarning, stacklevel=2)
+	        if len(pattern) == 0:
+	            warnings.warn("null string passed to Regex; use Empty() instead",
+	                    SyntaxWarning, stacklevel=2)
+	
+	        self.pattern = pattern
+	        self.flags = flags
+	
+	        try:
+	            self.re = re.compile(self.pattern, self.flags)
+	            self.reString = self.pattern
+	        except sre_constants.error:
+	            warnings.warn("invalid pattern (%s) passed to Regex" % pattern,
+	                SyntaxWarning, stacklevel=2)
+	            raise
 
-            self.pattern = pattern
-            self.flags = flags
-
-            try:
-                self.re = re.compile(self.pattern, self.flags)
-                self.reString = self.pattern
-            except sre_constants.error:
-                warnings.warn("invalid pattern (%s) passed to Regex" % pattern,
-                    SyntaxWarning, stacklevel=2)
-                raise
-                
         elif isinstance(pattern, Regex.compiledREtype):
             self.re = pattern
             self.pattern = \
@@ -2083,7 +2089,7 @@ class White(Token):
 
         return loc, instring[start:loc]
 
-        
+
 class _PositionToken(Token):
     def __init__( self ):
         super(_PositionToken,self).__init__()
@@ -2216,7 +2222,7 @@ class WordStart(_PositionToken):
     """
     def __init__(self, wordChars = printables):
         super(WordStart,self).__init__()
-        self.wordChars = set(wordChars)
+        self.wordChars = _str2dict(wordChars)
         self.errmsg = "Not at the start of a word"
 
     def parseImpl(self, instring, loc, doActions=True ):
@@ -2238,7 +2244,7 @@ class WordEnd(_PositionToken):
     """
     def __init__(self, wordChars = printables):
         super(WordEnd,self).__init__()
-        self.wordChars = set(wordChars)
+        self.wordChars = _str2dict(wordChars)
         self.skipWhitespace = False
         self.errmsg = "Not at the end of a word"
 
@@ -3039,6 +3045,7 @@ class Combine(TokenConverter):
         self.adjacent = adjacent
         self.skipWhitespace = True
         self.joinString = joinString
+        self.callPreparse = True
 
     def ignore( self, other ):
         if self.adjacent:
