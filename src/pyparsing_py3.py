@@ -34,7 +34,7 @@ provides a library of classes that you use to construct the grammar directly in 
 
 Here is a program to parse "Hello, World!" (or any greeting of the form "<salutation>, <addressee>!")::
 
-    from pyparsing import Word, alphas
+    from pyparsing_py3 import Word, alphas
 
     # define grammar of a greeting
     greet = Word( alphas ) + "," + Word( alphas ) + "!"
@@ -58,8 +58,8 @@ The pyparsing module handles some of the problems that are typically vexing when
  - embedded comments
 """
 
-__version__ = "1.5.3.Py3"
-__versionTime__ = "15 Jun 2010 02:21"
+__version__ = "1.5.3"
+__versionTime__ = "24 Jun 2010 06:06"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -101,11 +101,12 @@ if _PY3K:
     basestring = str
     unichr = chr
     _ustr = str
-    _str2dict = set
     alphas = string.ascii_lowercase + string.ascii_uppercase
 else:
     _MAX_INT = sys.maxint
     range = xrange
+    set = lambda s : dict( [(c,0) for c in s] )
+    alphas = string.lowercase + string.uppercase
 
     def _ustr(obj):
         """Drop-in replacement for str(obj) that tries to be Unicode friendly. It first tries
@@ -134,10 +135,6 @@ else:
             #return unicode(obj).encode(sys.getdefaultencoding(), 'replace')
             # ...
             
-    def _str2dict(strg):
-        return dict( [(c,0) for c in strg] )
-            
-    alphas = string.lowercase + string.uppercase
 
 # build list of single arg builtins, tolerant of Python version, that can be used as parse actions
 singleArgBuiltins = []
@@ -282,7 +279,7 @@ class ParseResults(object):
 
     # Performance tuning: we construct a *lot* of these, so keep this
     # constructor as small and fast as possible
-    def __init__( self, toklist, name=None, asList=True, modal=True, isinstance=isinstance ):
+    def __init__( self, toklist, name=None, asList=True, modal=True ):
         if self.__doinit:
             self.__doinit = False
             self.__name = None
@@ -324,7 +321,7 @@ class ParseResults(object):
             else:
                 return ParseResults([ v[0] for v in self.__tokdict[i] ])
 
-    def __setitem__( self, k, v, isinstance=isinstance ):
+    def __setitem__( self, k, v ):
         if isinstance(v,_ParseResultsWithOffset):
             self.__tokdict[k] = self.__tokdict.get(k,list()) + [v]
             sub = v[0]
@@ -1036,7 +1033,7 @@ class ParserElement(object):
 
            This speedup may break existing programs that use parse actions that
            have side-effects.  For this reason, packrat parsing is disabled when
-           you first import pyparsing.  To activate the packrat feature, your
+           you first import pyparsing_py3 as pyparsing.  To activate the packrat feature, your
            program must call the class method ParserElement.enablePackrat().  If
            your program uses psyco to "compile as you go", you must call
            enablePackrat before calling psyco.full().  If you do not do this,
@@ -1161,7 +1158,7 @@ class ParserElement(object):
                         out.append(t)
                 lastE = e
             out.append(instring[lastE:])
-            return "".join(map(_ustr,_flatten(out)))
+            return "".join(map(_ustr,out))
         except ParseBaseException:
             if ParserElement.verbose_stacktrace:
                 raise
@@ -1580,7 +1577,7 @@ class Keyword(Token):
         if caseless:
             self.caselessmatch = matchString.upper()
             identChars = identChars.upper()
-        self.identChars = _str2dict(identChars)
+        self.identChars = set(identChars)
 
     def parseImpl( self, instring, loc, doActions=True ):
         if self.caseless:
@@ -1659,13 +1656,13 @@ class Word(Token):
     def __init__( self, initChars, bodyChars=None, min=1, max=0, exact=0, asKeyword=False ):
         super(Word,self).__init__()
         self.initCharsOrig = initChars
-        self.initChars = _str2dict(initChars)
+        self.initChars = set(initChars)
         if bodyChars :
             self.bodyCharsOrig = bodyChars
-            self.bodyChars = _str2dict(bodyChars)
+            self.bodyChars = set(bodyChars)
         else:
             self.bodyCharsOrig = initChars
-            self.bodyChars = _str2dict(initChars)
+            self.bodyChars = set(initChars)
 
         self.maxSpecified = max > 0
 
@@ -2220,7 +2217,7 @@ class WordStart(_PositionToken):
     """
     def __init__(self, wordChars = printables):
         super(WordStart,self).__init__()
-        self.wordChars = _str2dict(wordChars)
+        self.wordChars = set(wordChars)
         self.errmsg = "Not at the start of a word"
 
     def parseImpl(self, instring, loc, doActions=True ):
@@ -2242,7 +2239,7 @@ class WordEnd(_PositionToken):
     """
     def __init__(self, wordChars = printables):
         super(WordEnd,self).__init__()
-        self.wordChars = _str2dict(wordChars)
+        self.wordChars = set(wordChars)
         self.skipWhitespace = False
         self.errmsg = "Not at the end of a word"
 
@@ -3043,7 +3040,6 @@ class Combine(TokenConverter):
         self.adjacent = adjacent
         self.skipWhitespace = True
         self.joinString = joinString
-        self.callPreparse = True
 
     def ignore( self, other ):
         if self.adjacent:
@@ -3330,8 +3326,10 @@ def originalTextFor(expr, asString=True):
        the expression passed to originalTextFor contains expressions with defined
        results names, you must set asString to False if you want to preserve those
        results name values."""
-    locMarker = Empty().setParseAction(lambda s,loc,t: loc).leaveWhitespace()
-    matchExpr = locMarker("_original_start") + expr + locMarker("_original_end")
+    locMarker = Empty().setParseAction(lambda s,loc,t: loc)
+    endlocMarker = locMarker.copy()
+    endlocMarker.callPreparse = False
+    matchExpr = locMarker("_original_start") + expr + endlocMarker("_original_end")
     if asString:
         extractText = lambda s,l,t: s[t._original_start:t._original_end]
     else:

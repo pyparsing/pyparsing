@@ -59,7 +59,7 @@ The pyparsing module handles some of the problems that are typically vexing when
 """
 
 __version__ = "1.5.3"
-__versionTime__ = "15 Jun 2010 02:21"
+__versionTime__ = "24 Jun 2010 06:06"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -3332,8 +3332,10 @@ def originalTextFor(expr, asString=True):
        the expression passed to originalTextFor contains expressions with defined
        results names, you must set asString to False if you want to preserve those
        results name values."""
-    locMarker = Empty().setParseAction(lambda s,loc,t: loc).leaveWhitespace()
-    matchExpr = locMarker("_original_start") + expr + locMarker("_original_end")
+    locMarker = Empty().setParseAction(lambda s,loc,t: loc)
+    endlocMarker = locMarker.copy()
+    endlocMarker.callPreparse = False
+    matchExpr = locMarker("_original_start") + expr + endlocMarker("_original_end")
     if asString:
         extractText = lambda s,l,t: s[t._original_start:t._original_end]
     else:
