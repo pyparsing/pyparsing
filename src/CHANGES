@@ -2,6 +2,14 @@
 Change Log
 ==========
 
+Version 1.5.4 - August, 2010
+----------------------------
+
+- Fixed __builtins__ and file references in Python 3 code, thanks to 
+  Greg Watson, saulspatz, sminos, and Mark Summerfield for reporting 
+  their Python 3 experiences.
+
+
 Version 1.5.3 - June, 2010
 --------------------------
 
