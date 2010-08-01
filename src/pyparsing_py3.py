@@ -69,6 +69,7 @@ import sys
 import warnings
 import re
 import sre_constants
+import collections
 #~ sys.stderr.write( "testing pyparsing module, version %s, %s\n" % (__version__,__versionTime__ ) )
 
 __all__ = [
@@ -138,10 +139,10 @@ else:
 
 # build list of single arg builtins, tolerant of Python version, that can be used as parse actions
 singleArgBuiltins = []
-import __builtin__
+import builtin
 for fname in "sum len enumerate sorted reversed list tuple set any all".split():
     try:
-        singleArgBuiltins.append(getattr(__builtin__,fname))
+        singleArgBuiltins.append(getattr(builtin,fname))
     except AttributeError:
         continue
 
@@ -613,6 +614,8 @@ class ParseResults(object):
 
     def __dir__(self):
         return dir(super(ParseResults,self)) + self.keys()
+
+collections.MutableMapping.register(ParseResults)
 
 def col (loc,strg):
     """Returns current column within a string, counting newlines as line separators.
