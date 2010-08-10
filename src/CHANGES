@@ -9,6 +9,12 @@ Version 1.5.4 - August, 2010
   Greg Watson, saulspatz, sminos, and Mark Summerfield for reporting 
   their Python 3 experiences.
 
+- Added new example, apicheck.py, as a sample of scanning a Tcl-like
+  language for functions with incorrect number of arguments (difficult
+  to track down in Tcl languages).  This example uses some interesting
+  methods for capturing exceptions while scanning through source
+  code.
+
 
 Version 1.5.3 - June, 2010
 --------------------------
