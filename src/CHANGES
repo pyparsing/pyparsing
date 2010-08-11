@@ -15,6 +15,9 @@ Version 1.5.4 - August, 2010
   methods for capturing exceptions while scanning through source
   code.
 
+- Added new example deltaTime.py, that takes everyday time references
+  like "an hour from now", "2 days ago", "next Sunday at 2pm".
+
 
 Version 1.5.3 - June, 2010
 --------------------------

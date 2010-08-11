@@ -20,5 +20,6 @@ python setup.py bdist_wininst --target-version=2.7
 copy/y pyparsing_py3.py pyparsing.py
 python setup.py bdist_wininst --target-version=3.0
 python setup.py bdist_wininst --target-version=3.1
+python setup.py bdist_wininst --target-version=3.2
 
 set MAKING_PYPARSING_RELEASE=
