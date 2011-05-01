@@ -1,5 +1,6 @@
 # -*- coding: UTF-8 -*-
 from unittest import TestCase, TestSuite, TextTestRunner
+import unittest
 from pyparsing import ParseException
 import HTMLTestRunner
 
@@ -616,14 +617,21 @@ class AsXMLTest(ParseTestCase):
 
 class AsXMLTest2(ParseTestCase):
     def runTest(self):
-        from pyparsing import Suppress,Optional,CharsNotIn,Combine,ZeroOrMore,Word,Group
+        from pyparsing import Suppress,Optional,CharsNotIn,Combine,ZeroOrMore,Word,\
+            Group,Literal,alphas,alphanums,delimitedList,OneOrMore
         
         EndOfLine = Word("\n").setParseAction(lambda s,l,t: [' '])
         whiteSpace=Word('\t ')
         Mexpr = Suppress(Optional(whiteSpace)) + CharsNotIn('\\"\t \n') + Optional(" ") + \
                 Suppress(Optional(whiteSpace))
         reducedString = Combine(Mexpr + ZeroOrMore(EndOfLine + Mexpr))
-        
+        _bslash = "\\"
+        _escapables = "tnrfbacdeghijklmopqsuvwxyz" + _bslash + "'" + '"'
+        _octDigits = "01234567"
+        _escapedChar = ( Word( _bslash, _escapables, exact=2 ) |
+                         Word( _bslash, _octDigits, min=2, max=4 ) )
+        _sglQuote = Literal("'")
+        _dblQuote = Literal('"')
         QuotedReducedString = Combine( Suppress(_dblQuote) + ZeroOrMore( reducedString |
                                                                          _escapedChar ) + \
                                        Suppress(_dblQuote )).streamline()
@@ -906,13 +914,13 @@ class CustomQuotesTest(ParseTestCase):
                     (quoteExpr,expected,quoteExpr.searchString(testString)[0])
         
         test(colonQuotes, r"sdf:jls:djf")
-        test(dashQuotes,  r"sdf:jls::-djf: sl")
-        test(hatQuotes,   r"sdf:jls")
-        test(hatQuotes1,  r"sdf:jls^--djf")
-        test(dblEqQuotes, r"sdf:j=ls::--djf: sl")
+        test(dashQuotes,  r"sdf\:jls::-djf: sl")
+        test(hatQuotes,   r"sdf\:jls")
+        test(hatQuotes1,  r"sdf\:jls^--djf")
+        test(dblEqQuotes, r"sdf\:j=ls::--djf: sl")
         test( QuotedString(':::'), 'jls::--djf: sl')
-        test( QuotedString('==',endQuoteChar='--'), 'sdf\:j=lz::')
-        test( QuotedString('^^^',multiline=True), """==sdf\:j=lz::--djf: sl=^^=kfsjf
+        test( QuotedString('==',endQuoteChar='--'), r'sdf\:j=lz::')
+        test( QuotedString('^^^',multiline=True), r"""==sdf\:j=lz::--djf: sl=^^=kfsjf
             sdlfjs ==sdf\:j=ls::--djf: sl==kfsjf""")
         try:
             bad1 = QuotedString('','\\')
@@ -927,7 +935,7 @@ class RepeaterTest(ParseTestCase):
 
         first = Word("abcdef").setName("word1")
         bridge = Word(nums).setName("number")
-        second = matchPreviousLiteral(first).setName("repeat(word1)")
+        second = matchPreviousLiteral(first).setName("repeat(word1Literal)")
 
         seq = first + bridge + second
 
@@ -948,14 +956,9 @@ class RepeaterTest(ParseTestCase):
                 print "No literal match in", tst
             assert found == result, "Failed repeater for test: %s, matching %s" % (tst, str(seq))
         print
-        seq = first + bridge + second
-        csFirst = seq.setName("word-num-word")
-        csSecond = matchPreviousLiteral(csFirst)
-        compoundSeq = csFirst + ":" + csSecond
-        
-        first = Word("abcdef").setName("word1")
-        bridge = Word(nums).setName("number")
-        second = matchPreviousExpr(first).setName("repeat(word1)")
+
+        # retest using matchPreviousExpr instead of matchPreviousLiteral
+        second = matchPreviousExpr(first).setName("repeat(word1expr)")
         seq = first + bridge + second
         
         tests = [
@@ -974,6 +977,10 @@ class RepeaterTest(ParseTestCase):
             assert found == result, "Failed repeater for test: %s, matching %s" % (tst, str(seq))
             
         print
+
+        first = Word("abcdef").setName("word1")
+        bridge = Word(nums).setName("number")
+        second = matchPreviousExpr(first).setName("repeat(word1)")
         seq = first + bridge + second
         csFirst = seq.setName("word-num-word")
         csSecond = matchPreviousExpr(csFirst)
@@ -987,11 +994,31 @@ class RepeaterTest(ParseTestCase):
             ( "abc12abc:abc12abcdef", False ),
             ]
 
+        #~ for tst,result in tests:
+            #~ print tst,
+            #~ try:
+                #~ compoundSeq.parseString(tst)
+                #~ print "MATCH"
+                #~ assert result, "matched when shouldn't have matched"
+            #~ except ParseException:
+                #~ print "NO MATCH"
+                #~ assert not result, "didnt match but should have"
+
+        #~ for tst,result in tests:
+            #~ print tst,
+            #~ if compoundSeq == tst:
+                #~ print "MATCH"
+                #~ assert result, "matched when shouldn't have matched"
+            #~ else:
+                #~ print "NO MATCH"
+                #~ assert not result, "didnt match but should have"
+
         for tst,result in tests:
             found = False
             for tokens,start,end in compoundSeq.scanString(tst):
-                print tokens.asList()
+                print "match:", tokens.asList()
                 found = True
+                break
             if not found:
                 print "No expression match in", tst
             assert found == result, "Failed repeater for test: %s, matching %s" % (tst, str(seq))
@@ -1237,19 +1264,30 @@ class OperatorPrecedenceGrammarTest4(ParseTestCase):
 
 class ParseResultsPickleTest(ParseTestCase):
     def runTest(self):
-        from pyparsing import makeHTMLTags
+        from pyparsing import makeHTMLTags, ParseResults
         import pickle
         
         body = makeHTMLTags("BODY")[0]
         result = body.parseString("<BODY BGCOLOR='#00FFBB' FGCOLOR=black>")
         print result.dump()
         print
-        
-        pickleString = pickle.dumps(result)
-        newresult = pickle.loads(pickleString)
-        print newresult.dump()
-        
-        assert result.dump() == newresult.dump(), "Error pickling ParseResults object"
+
+        # TODO - add support for protocols >= 2
+        #~ for protocol in range(pickle.HIGHEST_PROTOCOL+1):
+        for protocol in range(2):
+            print "Test pickle dump protocol", protocol
+            try:
+                pickleString = pickle.dumps(result, protocol)
+            except Exception, e:
+                print "dumps exception:", e
+                newresult = ParseResults([])
+            else:
+                newresult = pickle.loads(pickleString)
+                print newresult.dump()
+                
+            assert result.dump() == newresult.dump(), "Error pickling ParseResults object (protocol=%d)" % protocol
+            print
+
 
 class ParseResultsWithNamedTupleTest(ParseTestCase):
     def runTest(self):
@@ -1401,8 +1439,6 @@ class ParseUsingRegex(ParseTestCase):
         assert testMatch(compiledRE, 'blah', False), "Re: (16) passed, expected fail"
         assert testMatch(compiledRE, 'BLAH', True, 'BLAH'), "Re: (17) failed, expected pass"
 
-        # This one is going to match correctly, but fail to pull out the correct result
-        #  (for now), as there is no actual handling for extracted named groups
         assert testMatch(namedGrouping, '"foo bar" baz', True, '"foo bar"'), "Re: (16) failed, expected pass"
         ret = namedGrouping.parseString('"zork" blah')
         print ret.asList()
@@ -1509,7 +1545,7 @@ class VariableParseActionArgsTest(ParseTestCase):
         pa3 = lambda s,l,t: t
         pa2 = lambda l,t: t
         pa1 = lambda t: t
-        def pa0(): return
+        pa0 = lambda : None
         class Callable3(object):
             def __call__(self,s,l,t):
                 return t
@@ -1585,30 +1621,45 @@ class VariableParseActionArgsTest(ParseTestCase):
             print args
             return args[2]
 
-        def ClassAsPA0(object):
+        class ClassAsPA0(object):
             def __init__(self):
                 pass
             def __str__(self):
-                return "*"
+                return "A"
                 
-        def ClassAsPA1(object):
+        class ClassAsPA1(object):
             def __init__(self,t):
+                print "making a ClassAsPA1"
                 self.t = t
             def __str__(self):
-                return self.t
+                return self.t[0]
                 
-        def ClassAsPA2(object):
+        class ClassAsPA2(object):
             def __init__(self,l,t):
                 self.t = t
             def __str__(self):
-                return self.t
+                return self.t[0]
                 
-        def ClassAsPA3(object):
+        class ClassAsPA3(object):
             def __init__(self,s,l,t):
                 self.t = t
             def __str__(self):
-                return self.t
+                return self.t[0]
                 
+        class ClassAsPAStarNew(tuple):
+            def __new__(cls, *args):
+                print "make a ClassAsPAStarNew", args
+                return tuple.__new__(cls, *args[2].asList())
+            def __str__(self):
+                return ''.join(self)
+
+        #~ def ClassAsPANew(object):
+            #~ def __new__(cls, t):
+                #~ return object.__new__(cls, t)
+            #~ def __init__(self,t):
+                #~ self.t = t
+            #~ def __str__(self):
+                #~ return self.t
 
         from pyparsing import Literal,OneOrMore
         
@@ -1635,8 +1686,8 @@ class VariableParseActionArgsTest(ParseTestCase):
         U = Literal("U").setParseAction(parseActionHolder.pa0)
         V = Literal("V")
         
-        gg = OneOrMore( A | B | C | D | E | F | G | H |
-                        I | J | K | L | M | N | O | P | Q | R | S | T | U | V)
+        gg = OneOrMore( A | C | D | E | F | G | H |
+                        I | J | K | L | M | N | O | P | Q | R | S | U | V | B | T)
         testString = "VUTSRQPONMLKJIHGFEDCBA"
         res = gg.parseString(testString)
         print res.asList()
@@ -1646,6 +1697,7 @@ class VariableParseActionArgsTest(ParseTestCase):
         B = Literal("B").setParseAction(ClassAsPA1)
         C = Literal("C").setParseAction(ClassAsPA2)
         D = Literal("D").setParseAction(ClassAsPA3)
+        E = Literal("E").setParseAction(ClassAsPAStarNew)
         
         gg = OneOrMore( A | B | C | D | E | F | G | H |
                         I | J | K | L | M | N | O | P | Q | R | S | T | U | V)
@@ -1720,6 +1772,26 @@ class PackratParsingCacheCopyTest(ParseTestCase):
         results = program.parseString(input)
         print "Parsed '%s' as %s" % (input, results.asList())
         assert results.asList() == ['int', 'f', '(', ')', '{}'], "Error in packrat parsing"
+
+class PackratParsingCacheCopyTest2(ParseTestCase):
+    def runTest(self):
+        from pyparsing import Keyword,Word,Suppress,Forward,Optional,delimitedList,ParserElement,Group
+
+        DO,AA = map(Keyword, "DO AA".split())
+        LPAR,RPAR = map(Suppress,"()")
+        identifier = ~AA + Word("Z")
+
+        function_name = identifier.copy()
+        #~ function_name = ~AA + Word("Z")  #identifier.copy()
+        expr = Forward().setName("expr")
+        expr << (Group(function_name + LPAR + Optional(delimitedList(expr)) + RPAR).setName("functionCall") |
+                    identifier.setName("ident")#.setDebug()#.setBreak()
+                   )
+
+        stmt = DO + Group(delimitedList(identifier + ".*" | expr))
+        result = stmt.parseString("DO Z")
+        print result.asList()
+        assert len(result[1]) == 1, "packrat parsing is duplicating And term exprs"
 
 class ParseResultsDelTest(ParseTestCase):
     def runTest(self):
@@ -1884,7 +1956,7 @@ class NestedExpressionsTest(ParseTestCase):
 
 class ParseAllTest(ParseTestCase):
     def runTest(self):
-        from pyparsing import Word
+        from pyparsing import Word, cppStyleComment
         
         testExpr = Word("A")
         
@@ -1897,6 +1969,23 @@ class ParseAllTest(ParseTestCase):
         for s,parseAllFlag,shouldSucceed in tests:
             try:
                 print "'%s' parseAll=%s (shouldSuceed=%s)" % (s, parseAllFlag, shouldSucceed)
+                testExpr.parseString(s,parseAllFlag)
+                assert shouldSucceed, "successfully parsed when should have failed"
+            except ParseException, pe:
+                assert not shouldSucceed, "failed to parse when should have succeeded"
+
+        # add test for trailing comments
+        testExpr.ignore(cppStyleComment)
+
+        tests = [
+            ("AAAAA //blah", False, True),
+            ("AAAAA //blah", True, True),
+            ("AAABB //blah", False, True),
+            ("AAABB //blah", True, False),
+            ]
+        for s,parseAllFlag,shouldSucceed in tests:
+            try:
+                print "'%s' parseAll=%s (shouldSucceed=%s)" % (s, parseAllFlag, shouldSucceed)
                 testExpr.parseString(s,parseAllFlag)
                 assert shouldSucceed, "successfully parsed when should have failed"
             except ParseException, pe:
@@ -2023,8 +2112,15 @@ class SumParseResultsTest(ParseTestCase):
         results = (res1, res2, res3, res4,)
         for test,expected in zip(tests, results):
             person = sum(person_data.searchString(test))
-            assert expected == "ID:%s DOB:%s INFO:%s" % (person.id, person.dob, person.info), \
-                "Failed to parse '%s' correctly" % test
+            result = "ID:%s DOB:%s INFO:%s" % (person.id, person.dob, person.info)
+            print test
+            print expected
+            print result
+            for pd in person_data.searchString(test):
+                print pd.dump()
+            print
+            assert expected == result, \
+                "Failed to parse '%s' correctly, \nexpected '%s', got '%s'" % (test,expected,result)
 
 class MiscellaneousParserTests(ParseTestCase):
     def runTest(self):
@@ -2087,9 +2183,11 @@ class MiscellaneousParserTests(ParseTestCase):
             print "verify behavior of validate()"
             def testValidation( grmr, gnam, isValid ):
                 try:
+                    grmr.streamline()
                     grmr.validate()
                     assert isValid,"validate() accepted invalid grammar " + gnam
                 except pyparsing.RecursiveGrammarException,e:
+                    print grmr
                     assert not isValid, "validate() rejected valid grammar " + gnam
                 
             fwd = pyparsing.Forward()
@@ -2165,6 +2263,18 @@ class MiscellaneousParserTests(ParseTestCase):
             results = [ pyparsing.line(i,txt) for i in range(len(txt)) ]
             assert results == ['abc', 'abc', 'abc', 'abc', 'def', 'def', 'def', 'def'], "Error in line() with non-empty first line in text"
 
+        # test bugfix with repeated tokens when packrat parsing enabled
+        if "L" in runtests:
+            a = pyparsing.Literal("a")
+            b = pyparsing.Literal("b")
+            c = pyparsing.Literal("c")
+
+            abb = a + b + b
+            abc = a + b + c
+            aba = a + b + a
+            grammar = abb | abc | aba
+
+            assert ''.join(grammar.parseString( "aba" )) == 'aba', "Packrat ABA failure!"
 
 def makeTestSuite():
     suite = TestSuite()
@@ -2208,6 +2318,7 @@ def makeTestSuite():
     if not IRON_PYTHON_ENV:
         suite.addTest( KeepOriginalTextTest() )
     suite.addTest( PackratParsingCacheCopyTest() )
+    suite.addTest( PackratParsingCacheCopyTest2() )
     suite.addTest( WithAttributeParseActionTest() )
     suite.addTest( NestedExpressionsTest() )
     suite.addTest( WordBoundaryExpressionsTest() )
@@ -2248,6 +2359,7 @@ if console:
     #~ # console mode
     testRunner = TextTestRunner()
     testRunner.run( makeTestSuite() )
+    #~ testRunner.run( makeTestSuiteTemp() )
     #~ lp.run("testRunner.run( makeTestSuite() )")
 else:
     # HTML mode
