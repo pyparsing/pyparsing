@@ -58,8 +58,8 @@ The pyparsing module handles some of the problems that are typically vexing when
  - embedded comments
 """
 
-__version__ = "1.5.5"
-__versionTime__ = "12 Aug 2010 03:56"
+__version__ = "1.5.6"
+__versionTime__ = "1 May 2011 04:29"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -101,11 +101,12 @@ if _PY3K:
     basestring = str
     unichr = chr
     _ustr = str
-    _str2dict = set
     alphas = string.ascii_lowercase + string.ascii_uppercase
 else:
     _MAX_INT = sys.maxint
     range = xrange
+    set = lambda s : dict( [(c,0) for c in s] )
+    alphas = string.lowercase + string.uppercase
 
     def _ustr(obj):
         """Drop-in replacement for str(obj) that tries to be Unicode friendly. It first tries
@@ -133,9 +134,6 @@ else:
             # Replace unprintables with question marks?
             #return unicode(obj).encode(sys.getdefaultencoding(), 'replace')
             # ...
-            
-    def _str2dict(strg):
-        return dict( [(c,0) for c in strg] )
             
     alphas = string.lowercase + string.uppercase
 
@@ -667,6 +665,35 @@ def nullDebugAction(*args):
     """'Do-nothing' debug action, to suppress debugging output during parsing."""
     pass
 
+'decorator to trim function calls to match the arity of the target'
+if not _PY3K:
+    def _trim_arity(func, maxargs=2):
+        limit = [0]
+        def wrapper(*args):
+            while 1:
+                try:
+                    return func(*args[limit[0]:])
+                except TypeError:
+                    if limit[0] <= maxargs:
+                        limit[0] += 1
+                        continue
+                    raise
+        return wrapper
+else:
+    def _trim_arity(func, maxargs=2):
+        limit = maxargs
+        def wrapper(*args):
+            #~ nonlocal limit
+            while 1:
+                try:
+                    return func(*args[limit:])
+                except TypeError:
+                    if limit:
+                        limit -= 1
+                        continue
+                    raise
+        return wrapper
+    
 class ParserElement(object):
     """Abstract base level parser element class."""
     DEFAULT_WHITE_CHARS = " \n\t\r"
@@ -753,104 +780,6 @@ class ParserElement(object):
                 self._parse = self._parse._originalParseMethod
         return self
 
-    def _normalizeParseActionArgs( f ):
-        """Internal method used to decorate parse actions that take fewer than 3 arguments,
-           so that all parse actions can be called as C{f(s,l,t)}."""
-        STAR_ARGS = 4
-
-        # special handling for single-argument builtins
-        if (f in singleArgBuiltins):
-            numargs = 1
-        else:
-	        try:
-	            restore = None
-	            if isinstance(f,type):
-	                restore = f
-	                f = f.__init__
-	            if not _PY3K:
-	                codeObj = f.func_code
-	            else:
-	                codeObj = f.code
-	            if codeObj.co_flags & STAR_ARGS:
-	                return f
-	            numargs = codeObj.co_argcount
-	            if not _PY3K:
-	                if hasattr(f,"im_self"):
-	                    numargs -= 1
-	            else:
-	                if hasattr(f,"__self__"):
-	                    numargs -= 1
-	            if restore:
-	                f = restore
-	        except AttributeError:
-	            try:
-	                if not _PY3K:
-	                    call_im_func_code = f.__call__.im_func.func_code
-	                else:
-	                    call_im_func_code = f.__code__
-	
-	                # not a function, must be a callable object, get info from the
-	                # im_func binding of its bound __call__ method
-	                if call_im_func_code.co_flags & STAR_ARGS:
-	                    return f
-	                numargs = call_im_func_code.co_argcount
-	                if not _PY3K:
-	                    if hasattr(f.__call__,"im_self"):
-	                        numargs -= 1
-	                else:
-	                    if hasattr(f.__call__,"__self__"):
-	                        numargs -= 0
-	            except AttributeError:
-	                if not _PY3K:
-	                    call_func_code = f.__call__.func_code
-	                else:
-	                    call_func_code = f.__call__.__code__
-	                # not a bound method, get info directly from __call__ method
-	                if call_func_code.co_flags & STAR_ARGS:
-	                    return f
-	                numargs = call_func_code.co_argcount
-	                if not _PY3K:
-	                    if hasattr(f.__call__,"im_self"):
-	                        numargs -= 1
-	                else:
-	                    if hasattr(f.__call__,"__self__"):
-	                        numargs -= 1
-
-
-        #~ print ("adding function %s with %d args" % (f.func_name,numargs))
-        if numargs == 3:
-            return f
-        else:
-            if numargs > 3:
-                def tmp(s,l,t):
-                    return f(f.__call__.__self__, s,l,t)
-            if numargs == 2:
-                def tmp(s,l,t):
-                    return f(l,t)
-            elif numargs == 1:
-                def tmp(s,l,t):
-                    return f(t)
-            else: #~ numargs == 0:
-                def tmp(s,l,t):
-                    return f()
-            try:
-                tmp.__name__ = f.__name__
-            except (AttributeError,TypeError):
-                # no need for special handling if attribute doesnt exist
-                pass
-            try:
-                tmp.__doc__ = f.__doc__
-            except (AttributeError,TypeError):
-                # no need for special handling if attribute doesnt exist
-                pass
-            try:
-                tmp.__dict__.update(f.__dict__)
-            except (AttributeError,TypeError):
-                # no need for special handling if attribute doesnt exist
-                pass
-            return tmp
-    _normalizeParseActionArgs = staticmethod(_normalizeParseActionArgs)
-
     def setParseAction( self, *fns, **kwargs ):
         """Define action to perform when successfully matching parse element definition.
            Parse action fn is a callable method with 0-3 arguments, called as C{fn(s,loc,toks)},
@@ -868,13 +797,13 @@ class ParserElement(object):
            consistent view of the parsed string, the parse location, and line and column
            positions within the parsed string.
            """
-        self.parseAction = list(map(self._normalizeParseActionArgs, list(fns)))
+        self.parseAction = list(map(_trim_arity, list(fns)))
         self.callDuringTry = ("callDuringTry" in kwargs and kwargs["callDuringTry"])
         return self
 
     def addParseAction( self, *fns, **kwargs ):
         """Add parse action to expression's list of parse actions. See L{I{setParseAction}<setParseAction>}."""
-        self.parseAction += list(map(self._normalizeParseActionArgs, list(fns)))
+        self.parseAction += list(map(_trim_arity, list(fns)))
         self.callDuringTry = self.callDuringTry or ("callDuringTry" in kwargs and kwargs["callDuringTry"])
         return self
 
@@ -1014,7 +943,7 @@ class ParserElement(object):
             value = ParserElement._exprArgCache[ lookup ]
             if isinstance(value,Exception):
                 raise value
-            return value
+            return (value[0],value[1].copy())
         else:
             try:
                 value = self._parseNoCache( instring, loc, doActions, callPreParse )
@@ -1088,7 +1017,7 @@ class ParserElement(object):
         try:
             loc, tokens = self._parse( instring, 0 )
             if parseAll:
-                #loc = self.preParse( instring, loc )
+                loc = self.preParse( instring, loc )
                 se = StringEnd()
                 se._parse( instring, loc )
         except ParseBaseException:
@@ -1101,10 +1030,11 @@ class ParserElement(object):
         else:
             return tokens
 
-    def scanString( self, instring, maxMatches=_MAX_INT ):
+    def scanString( self, instring, maxMatches=_MAX_INT, overlap=False ):
         """Scan the input string for expression matches.  Each match will return the
            matching tokens, start location, and end location.  May be called with optional
-           C{maxMatches} argument, to clip scanning after 'n' matches are found.
+           C{maxMatches} argument, to clip scanning after 'n' matches are found.  If
+           C{overlap} is specified, then overlapping matches will be reported.
 
            Note that the start and end locations are reported relative to the string
            being parsed.  See L{I{parseString}<parseString>} for more information on parsing
@@ -1133,7 +1063,14 @@ class ParserElement(object):
                     if nextLoc > loc:
                         matches += 1
                         yield tokens, preloc, nextLoc
-                        loc = nextLoc
+                        if overlap:
+                            nextloc = preparseFn( instring, loc )
+                            if nextloc > loc:
+                                loc = nextLoc
+                            else:
+                                loc += 1
+                        else:
+                            loc = nextLoc
                     else:
                         loc = preloc+1
         except ParseBaseException:
@@ -1168,6 +1105,7 @@ class ParserElement(object):
                         out.append(t)
                 lastE = e
             out.append(instring[lastE:])
+            out = [o for o in out if o]
             return "".join(map(_ustr,_flatten(out)))
         except ParseBaseException:
             if ParserElement.verbose_stacktrace:
@@ -1372,8 +1310,14 @@ class ParserElement(object):
              userdata = Word(alphas).setResultsName("name") + Word(nums+"-").setResultsName("socsecno")
            could be written as::
              userdata = Word(alphas)("name") + Word(nums+"-")("socsecno")
+             
+           If C{name} is given with a trailing C{'*'} character, then C{listAllMatches} will be
+           passed as C{True}.
            """
-        return self.setResultsName(name)
+        if not name.endswith("*"):
+            return self.setResultsName(name)
+        else:
+            return self.setResultsName(name[:-1], listAllMatches=True)
 
     def suppress( self ):
         """Suppresses the output of this C{ParserElement}; useful to keep punctuation from
@@ -1398,9 +1342,9 @@ class ParserElement(object):
         return self
 
     def parseWithTabs( self ):
-        """Overrides default behavior to expand <TAB>s to spaces before parsing the input string.
+        """Overrides default behavior to expand C{<TAB>}s to spaces before parsing the input string.
            Must be called before C{parseString} when the input grammar contains elements that
-           match <TAB> characters."""
+           match C{<TAB>} characters."""
         self.keepTabs = True
         return self
 
@@ -1579,12 +1523,12 @@ _L = Literal
 class Keyword(Token):
     """Token to exactly match a specified string as a keyword, that is, it must be
        immediately followed by a non-keyword character.  Compare with C{Literal}::
-         Literal("if") will match the leading 'if' in 'ifAndOnlyIf'.
-         Keyword("if") will not; it will only match the leading 'if in 'if x=1', or 'if(y==2)'
+         Literal("if") will match the leading C{'if'} in C{'ifAndOnlyIf'}.
+         Keyword("if") will not; it will only match the leading C{'if'} in C{'if x=1'}, or C{'if(y==2)'}
        Accepts two optional constructor arguments in addition to the keyword string:
        C{identChars} is a string of characters that would be valid identifier characters,
        defaulting to all alphanumerics + "_" and "$"; C{caseless} allows case-insensitive
-       matching, default is False.
+       matching, default is C{False}.
     """
     DEFAULT_KEYWORD_CHARS = alphanums+"_$"
 
@@ -1606,7 +1550,7 @@ class Keyword(Token):
         if caseless:
             self.caselessmatch = matchString.upper()
             identChars = identChars.upper()
-        self.identChars = _str2dict(identChars)
+        self.identChars = set(identChars)
 
     def parseImpl( self, instring, loc, doActions=True ):
         if self.caseless:
@@ -1685,13 +1629,13 @@ class Word(Token):
     def __init__( self, initChars, bodyChars=None, min=1, max=0, exact=0, asKeyword=False ):
         super(Word,self).__init__()
         self.initCharsOrig = initChars
-        self.initChars = _str2dict(initChars)
+        self.initChars = set(initChars)
         if bodyChars :
             self.bodyCharsOrig = bodyChars
-            self.bodyChars = _str2dict(bodyChars)
+            self.bodyChars = set(bodyChars)
         else:
             self.bodyCharsOrig = initChars
-            self.bodyChars = _str2dict(initChars)
+            self.bodyChars = set(initChars)
 
         self.maxSpecified = max > 0
 
@@ -1807,7 +1751,7 @@ class Regex(Token):
     """
     compiledREtype = type(re.compile("[A-Z]"))
     def __init__( self, pattern, flags=0):
-        """The parameters pattern and flags are passed to the re.compile() function as-is. See the Python re module for an explanation of the acceptable patterns and flags."""
+        """The parameters C{pattern} and C{flags} are passed to the C{re.compile()} function as-is. See the Python C{re} module for an explanation of the acceptable patterns and flags."""
         super(Regex,self).__init__()
 
         if isinstance(pattern, basestring):
@@ -1929,7 +1873,8 @@ class QuotedString(Token):
             self.pattern += (r'|(?:%s)' % re.escape(escQuote))
         if escChar:
             self.pattern += (r'|(?:%s.)' % re.escape(escChar))
-            self.escCharReplacePattern = re.escape(self.escChar)+"(.)"
+            charset = ''.join(set(self.quoteChar[0]+self.endQuoteChar[0])).replace('^',r'\^').replace('-',r'\-')
+            self.escCharReplacePattern = re.escape(self.escChar)+("([%s])" % charset)
         self.pattern += (r')*%s' % re.escape(self.endQuoteChar))
 
         try:
@@ -2239,14 +2184,14 @@ class StringEnd(_PositionToken):
 
 class WordStart(_PositionToken):
     """Matches if the current position is at the beginning of a Word, and
-       is not preceded by any character in a given set of wordChars
+       is not preceded by any character in a given set of C{wordChars}
        (default=C{printables}). To emulate the C{\b} behavior of regular expressions,
        use C{WordStart(alphanums)}. C{WordStart} will also match at the beginning of
        the string being parsed, or at the beginning of a line.
     """
     def __init__(self, wordChars = printables):
         super(WordStart,self).__init__()
-        self.wordChars = _str2dict(wordChars)
+        self.wordChars = set(wordChars)
         self.errmsg = "Not at the start of a word"
 
     def parseImpl(self, instring, loc, doActions=True ):
@@ -2261,14 +2206,14 @@ class WordStart(_PositionToken):
 
 class WordEnd(_PositionToken):
     """Matches if the current position is at the end of a Word, and
-       is not followed by any character in a given set of wordChars
+       is not followed by any character in a given set of C{wordChars}
        (default=C{printables}). To emulate the C{\b} behavior of regular expressions,
        use C{WordEnd(alphanums)}. C{WordEnd} will also match at the end of
        the string being parsed, or at the end of a line.
     """
     def __init__(self, wordChars = printables):
         super(WordEnd,self).__init__()
-        self.wordChars = _str2dict(wordChars)
+        self.wordChars = set(wordChars)
         self.skipWhitespace = False
         self.errmsg = "Not at the end of a word"
 
@@ -2309,7 +2254,7 @@ class ParseExpression(ParserElement):
         return self
 
     def leaveWhitespace( self ):
-        """Extends leaveWhitespace defined in base class, and also invokes leaveWhitespace on
+        """Extends C{leaveWhitespace} defined in base class, and also invokes C{leaveWhitespace} on
            all contained expressions."""
         self.skipWhitespace = False
         self.exprs = [ e.copy() for e in self.exprs ]
@@ -2380,11 +2325,16 @@ class ParseExpression(ParserElement):
         for e in self.exprs:
             e.validate(tmp)
         self.checkRecursion( [] )
+        
+    def copy(self):
+        ret = super(ParseExpression,self).copy()
+        ret.exprs = [e.copy() for e in self.exprs]
+        return ret
 
 class And(ParseExpression):
-    """Requires all given C{ParseExpressions} to be found in the given order.
+    """Requires all given C{ParseExpression}s to be found in the given order.
        Expressions may be separated by whitespace.
-       May be constructed using the '+' operator.
+       May be constructed using the C{'+'} operator.
     """
 
     class _ErrorStop(Empty):
@@ -2453,7 +2403,7 @@ class And(ParseExpression):
 class Or(ParseExpression):
     """Requires that at least one C{ParseExpression} is found.
        If two expressions match, the expression that matches the longest string will be used.
-       May be constructed using the '^' operator.
+       May be constructed using the C{'^'} operator.
     """
     def __init__( self, exprs, savelist = False ):
         super(Or,self).__init__(exprs, savelist)
@@ -2515,7 +2465,7 @@ class Or(ParseExpression):
 class MatchFirst(ParseExpression):
     """Requires that at least one C{ParseExpression} is found.
        If two expressions match, the first one listed is the one that will match.
-       May be constructed using the '|' operator.
+       May be constructed using the C{'|'} operator.
     """
     def __init__( self, exprs, savelist = False ):
         super(MatchFirst,self).__init__(exprs, savelist)
@@ -2572,9 +2522,9 @@ class MatchFirst(ParseExpression):
 
 
 class Each(ParseExpression):
-    """Requires all given C{ParseExpressions} to be found, but in any order.
+    """Requires all given C{ParseExpression}s to be found, but in any order.
        Expressions may be separated by whitespace.
-       May be constructed using the '&' operator.
+       May be constructed using the C{'&'} operator.
     """
     def __init__( self, exprs, savelist = True ):
         super(Each,self).__init__(exprs, savelist)
@@ -3040,7 +2990,7 @@ class _ForwardNoRecurse(Forward):
         return "..."
 
 class TokenConverter(ParseElementEnhance):
-    """Abstract subclass of ParseExpression, for converting parsed results."""
+    """Abstract subclass of C{ParseExpression}, for converting parsed results."""
     def __init__( self, expr, savelist=False ):
         super(TokenConverter,self).__init__( expr )#, savelist )
         self.saveAsList = False
@@ -3089,7 +3039,7 @@ class Combine(TokenConverter):
             return retToks
 
 class Group(TokenConverter):
-    """Converter to return the matched tokens as a list - useful for returning tokens of ZeroOrMore and OneOrMore expressions."""
+    """Converter to return the matched tokens as a list - useful for returning tokens of C{ZeroOrMore} and C{OneOrMore} expressions."""
     def __init__( self, expr ):
         super(Group,self).__init__( expr )
         self.saveAsList = True
@@ -3143,7 +3093,7 @@ class Suppress(TokenConverter):
 class OnlyOnce(object):
     """Wrapper for parse actions, to ensure they are only called once."""
     def __init__(self, methodCall):
-        self.callable = ParserElement._normalizeParseActionArgs(methodCall)
+        self.callable = _trim_arity(methodCall)
         self.called = False
     def __call__(self,s,l,t):
         if not self.called:
@@ -3156,7 +3106,7 @@ class OnlyOnce(object):
 
 def traceParseAction(f):
     """Decorator for debugging parse actions."""
-    f = ParserElement._normalizeParseActionArgs(f)
+    f = _trim_arity(f)
     def z(*paArgs):
         thisFunc = f.func_name
         s,l,t = paArgs[-3:]
@@ -3194,7 +3144,7 @@ def delimitedList( expr, delim=",", combine=False ):
     else:
         return ( expr + ZeroOrMore( Suppress( delim ) + expr ) ).setName(dlName)
 
-def countedArray( expr ):
+def countedArray( expr, intExpr=None ):
     """Helper to define a counted list of expressions.
        This helper defines a pattern of the form::
            integer expr expr expr...
@@ -3203,15 +3153,25 @@ def countedArray( expr ):
     """
     arrayExpr = Forward()
     def countFieldParseAction(s,l,t):
-        n = int(t[0])
+        n = t[0]
         arrayExpr << (n and Group(And([expr]*n)) or Group(empty))
         return []
-    return ( Word(nums).setName("arrayLen").setParseAction(countFieldParseAction, callDuringTry=True) + arrayExpr )
+    if intExpr is None:
+        intExpr = Word(nums).setParseAction(lambda t:int(t[0]))
+    else:
+        intExpr = intExpr.copy()
+    intExpr.setName("arrayLen")
+    intExpr.addParseAction(countFieldParseAction, callDuringTry=True)
+    return ( intExpr + arrayExpr )
 
 def _flatten(L):
-    if type(L) is not list: return [L]
-    if L == []: return L
-    return _flatten(L[0]) + _flatten(L[1:])
+    ret = []
+    for i in L:
+        if isinstance(i,list):
+            ret.extend(_flatten(i))
+        else:
+            ret.append(i)
+    return ret
 
 def matchPreviousLiteral(expr):
     """Helper to define an expression that is indirectly defined from
@@ -3346,15 +3306,15 @@ def originalTextFor(expr, asString=True):
     """Helper to return the original, untokenized text for a given expression.  Useful to
        restore the parsed fields of an HTML start tag into the raw tag text itself, or to
        revert separate tokens with intervening whitespace back to the original matching
-       input text. Simpler to use than the parse action C{keepOriginalText}, and does not
+       input text. Simpler to use than the parse action C{L{keepOriginalText}}, and does not
        require the inspect module to chase up the call stack.  By default, returns a 
        string containing the original parsed text.  
        
-       If the optional C{asString} argument is passed as False, then the return value is a 
+       If the optional C{asString} argument is passed as C{False}, then the return value is a 
        C{ParseResults} containing any results names that were originally matched, and a 
        single token containing the original matched text from the input string.  So if 
-       the expression passed to C{originalTextFor} contains expressions with defined
-       results names, you must set C{asString} to False if you want to preserve those
+       the expression passed to C{L{originalTextFor}} contains expressions with defined
+       results names, you must set C{asString} to C{False} if you want to preserve those
        results name values."""
     locMarker = Empty().setParseAction(lambda s,loc,t: loc)
     endlocMarker = locMarker.copy()
@@ -3508,19 +3468,21 @@ def makeXMLTags(tagStr):
 
 def withAttribute(*args,**attrDict):
     """Helper to create a validating parse action to be used with start tags created
-       with makeXMLTags or makeHTMLTags. Use withAttribute to qualify a starting tag
+       with C{makeXMLTags} or C{makeHTMLTags}. Use C{withAttribute} to qualify a starting tag
        with a required attribute value, to avoid false matches on common tags such as
-       <TD> or <DIV>.
+       C{<TD>} or C{<DIV>}.
 
-       Call withAttribute with a series of attribute names and values. Specify the list
+       Call C{withAttribute} with a series of attribute names and values. Specify the list
        of filter attributes names and values as:
-        - keyword arguments, as in (class="Customer",align="right"), or
+        - keyword arguments, as in C{(align="right")}, or
+        - as an explicit dict with C{**} operator, when an attribute name is also a Python
+          reserved word, as in C{**{"class":"Customer", "align":"right"}}
         - a list of name-value tuples, as in ( ("ns1:class", "Customer"), ("ns2:align","right") )
        For attribute names with a namespace prefix, you must use the second form.  Attribute
        names are matched insensitive to upper/lower case.
 
        To verify that the attribute exists, but without specifying a value, pass
-       withAttribute.ANY_VALUE as the value.
+       C{withAttribute.ANY_VALUE} as the value.
        """
     if args:
         attrs = args[:]
@@ -3631,12 +3593,12 @@ def nestedExpr(opener="(", closer=")", content=None, ignoreExpr=quotedString.cop
        expression will capture all whitespace-delimited content between delimiters
        as a list of separate values.
 
-       Use the ignoreExpr argument to define expressions that may contain
+       Use the C{ignoreExpr} argument to define expressions that may contain
        opening or closing characters that should not be treated as opening
        or closing characters for nesting, such as quotedString or a comment
-       expression.  Specify multiple expressions using an Or or MatchFirst.
-       The default is quotedString, but if no expressions are to be ignored,
-       then pass None for this argument.
+       expression.  Specify multiple expressions using an C{L{Or}} or C{L{MatchFirst}}.
+       The default is L{quotedString}, but if no expressions are to be ignored,
+       then pass C{None} for this argument.
     """
     if opener == closer:
         raise ValueError("opening and closing strings cannot be the same")
@@ -3683,7 +3645,7 @@ def indentedBlock(blockStatementExpr, indentStack, indent=True):
             the current level; set to False for block of left-most statements
             (default=True)
 
-       A valid block must contain at least one blockStatement.
+       A valid block must contain at least one C{blockStatement}.
     """
     def checkPeerIndent(s,l,t):
         if l >= len(s): return
