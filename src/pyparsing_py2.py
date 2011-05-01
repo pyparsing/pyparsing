@@ -58,8 +58,8 @@ The pyparsing module handles some of the problems that are typically vexing when
  - embedded comments
 """
 
-__version__ = "1.5.4"
-__versionTime__ = "10 Aug 2010 09:19"
+__version__ = "1.5.5"
+__versionTime__ = "12 Aug 2010 03:56"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
