@@ -2,6 +2,64 @@
 Change Log
 ==========
 
+Version 1.5.6 - May, 2011
+----------------------------
+- Cleanup of parse action normalizing code, to be more version-tolerant,
+  and robust in the face of future Python versions - much thanks to 
+  Raymond Hettinger for this rewrite!
+
+- Removal of exception cacheing, addressing a memory leak condition
+  in Python 3. Thanks to Michael Droettboom and the Cape Town PUG for
+  their analysis and work on this problem!
+
+- Fixed bug when using packrat parsing, where a previously parsed
+  expression would duplicate subsequent tokens - reported by Frankie 
+  Ribery on stackoverflow, thanks!
+
+- Fixed bug in srange, which accepted escaped hex characters of the 
+  form '\0x##', but should be '\x##'.  Both forms will be supported
+  for backwards compatibility.
+
+- Enhancement to countedArray, accepting an optional expression to be
+  used for matching the leading integer count - proposed by Mathias on
+  the pyparsing mailing list, good idea!
+
+- Added the Verilog parser to the provided set of examples, under the
+  MIT license.  While this frees up this parser for any use, if you find
+  yourself using it in a commercial purpose, please consider making a
+  charitable donation as described in the parser's header.
+
+- Added other new examples:
+  . protobuf parser - parses Google's protobuf language
+  . btpyparse - a BibTex parser contributed by Matthew Brett,
+    with test suite test_bibparse.py (thanks, Matthew!)
+
+- Added optional overlap parameter to scanString, to return overlapping
+  matches found in the source text.
+
+- Updated oneOf internal regular expression generation, with improved
+  parse time performance.
+  
+- Slight performance improvement in transformString, removing empty
+  strings from the list of string fragments built while scanning the
+  source text, before calling ''.join.  Especially useful when using 
+  transformString to strip out selected text.
+
+- Enhanced form of using the "expr('name')" style of results naming,
+  in lieu of calling setResultsName.  If name ends with an '*', then
+  this is equivalent to expr.setResultsName('name',listAllMatches=True).
+
+- Fixed up internal list flattener to use iteration instead of recursion,
+  to avoid stack overflow when transforming large files.
+
+
+Version 1.5.5 - August, 2010
+----------------------------
+
+- Typo in Python3 version of pyparsing, "builtin" should be "builtins".
+  (sigh)
+
+
 Version 1.5.4 - August, 2010
 ----------------------------
 

@@ -1,6 +1,6 @@
 # module pyparsing.py
 #
-# Copyright (c) 2003-2010  Paul T. McGuire
+# Copyright (c) 2003-2011  Paul T. McGuire
 #
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
@@ -59,7 +59,7 @@ The pyparsing module handles some of the problems that are typically vexing when
 """
 
 __version__ = "1.5.6"
-__versionTime__ = "1 May 2011 04:29"
+__versionTime__ = "1 May 2011 23:41"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -941,7 +941,7 @@ class ParserElement(object):
         lookup = (self,instring,loc,callPreParse,doActions)
         if lookup in ParserElement._exprArgCache:
             value = ParserElement._exprArgCache[ lookup ]
-            if isinstance(value,Exception):
+            if isinstance(value, Exception):
                 raise value
             return (value[0],value[1].copy())
         else:
@@ -1687,7 +1687,7 @@ class Word(Token):
                 raise exc
 
             loc = result.end()
-            return loc,result.group()
+            return loc, result.group()
 
         if not(instring[ loc ] in self.initChars):
             #~ raise ParseException( instring, loc, self.errmsg )
@@ -1755,20 +1755,20 @@ class Regex(Token):
         super(Regex,self).__init__()
 
         if isinstance(pattern, basestring):
-	        if len(pattern) == 0:
-	            warnings.warn("null string passed to Regex; use Empty() instead",
-	                    SyntaxWarning, stacklevel=2)
-	
-	        self.pattern = pattern
-	        self.flags = flags
-	
-	        try:
-	            self.re = re.compile(self.pattern, self.flags)
-	            self.reString = self.pattern
-	        except sre_constants.error:
-	            warnings.warn("invalid pattern (%s) passed to Regex" % pattern,
-	                SyntaxWarning, stacklevel=2)
-	            raise
+            if len(pattern) == 0:
+                warnings.warn("null string passed to Regex; use Empty() instead",
+                        SyntaxWarning, stacklevel=2)
+
+            self.pattern = pattern
+            self.flags = flags
+
+            try:
+                self.re = re.compile(self.pattern, self.flags)
+                self.reString = self.pattern
+            except sre_constants.error:
+                warnings.warn("invalid pattern (%s) passed to Regex" % pattern,
+                    SyntaxWarning, stacklevel=2)
+                raise
 
         elif isinstance(pattern, Regex.compiledREtype):
             self.re = pattern
@@ -3340,8 +3340,8 @@ stringEnd   = StringEnd().setName("stringEnd")
 
 _escapedPunc = Word( _bslash, r"\[]-*.$+^?()~ ", exact=2 ).setParseAction(lambda s,l,t:t[0][1])
 _printables_less_backslash = "".join([ c for c in printables if c not in  r"\]" ])
-_escapedHexChar = Combine( Suppress(_bslash + "0x") + Word(hexnums) ).setParseAction(lambda s,l,t:unichr(int(t[0],16)))
-_escapedOctChar = Combine( Suppress(_bslash) + Word("0","01234567") ).setParseAction(lambda s,l,t:unichr(int(t[0],8)))
+_escapedHexChar = Regex(r"\\0?[xX][0-9a-fA-F]+").setParseAction(lambda s,l,t:unichr(int(t[0][1:],16)))
+_escapedOctChar = Regex(r"\\0[0-7]+").setParseAction(lambda s,l,t:unichr(int(t[0][1:],8)))
 _singleChar = _escapedPunc | _escapedHexChar | _escapedOctChar | Word(_printables_less_backslash,exact=1)
 _charRange = Group(_singleChar + Suppress("-") + _singleChar)
 _reBracketExpr = Literal("[") + Optional("^").setResultsName("negate") + Group( OneOrMore( _charRange | _singleChar ) ).setResultsName("body") + "]"
@@ -3359,7 +3359,8 @@ def srange(s):
        The values enclosed in the []'s may be::
           a single character
           an escaped character with a leading backslash (such as \- or \])
-          an escaped hex character with a leading '\0x' (\0x21, which is a '!' character)
+          an escaped hex character with a leading '\x' (\x21, which is a '!' character) 
+            (\0x## is also supported for backwards compatibility) 
           an escaped octal character with a leading '\0' (\041, which is a '!' character)
           a range of any of the above, separated by a dash ('a-z', etc.)
           any combination of the above ('aeiouy', 'a-zA-Z0-9_$', etc.)
