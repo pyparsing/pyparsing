@@ -1018,7 +1018,7 @@ class ParserElement(object):
             loc, tokens = self._parse( instring, 0 )
             if parseAll:
                 loc = self.preParse( instring, loc )
-                se = StringEnd()
+                se = Empty() + StringEnd()
                 se._parse( instring, loc )
         except ParseBaseException:
             if ParserElement.verbose_stacktrace:
@@ -3447,7 +3447,7 @@ def _makeTags(tagStr, xml):
     else:
         printablesLessRAbrack = "".join( [ c for c in printables if c not in ">" ] )
         tagAttrValue = quotedString.copy().setParseAction( removeQuotes ) | Word(printablesLessRAbrack)
-        openTag = Suppress("<") + tagStr + \
+        openTag = Suppress("<") + tagStr("tag") + \
                 Dict(ZeroOrMore(Group( tagAttrName.setParseAction(downcaseTokens) + \
                 Optional( Suppress("=") + tagAttrValue ) ))) + \
                 Optional("/",default=[False]).setResultsName("empty").setParseAction(lambda s,l,t:t[0]=='/') + Suppress(">")

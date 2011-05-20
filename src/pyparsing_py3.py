@@ -624,7 +624,7 @@ def nullDebugAction(*args):
 def _trim_arity(func, maxargs=2):
     limit = maxargs
     def wrapper(*args):
-        #~ nonlocal limit
+        nonlocal limit
         while 1:
             try:
                 return func(*args[limit:])
@@ -954,7 +954,7 @@ class ParserElement(object):
             loc, tokens = self._parse( instring, 0 )
             if parseAll:
                 loc = self.preParse( instring, loc )
-                se = StringEnd()
+                se = Empty() + StringEnd()
                 se._parse( instring, loc )
         except ParseBaseException as exc:
             if ParserElement.verbose_stacktrace:
