@@ -5,10 +5,10 @@ Using the pyparsing module
 :author: Paul McGuire
 :address: ptmcg@users.sourceforge.net
 
-:revision: 1.5.3
-:date: January, 2010
+:revision: 1.5.6
+:date: June, 2011
 
-:copyright: Copyright |copy| 2003-2010 Paul McGuire. 
+:copyright: Copyright |copy| 2003-2011 Paul McGuire. 
 
 .. |copy| unicode:: 0xA9
 
@@ -62,48 +62,6 @@ The parsed tokens are returned in the following form::
 
     ['Hello', ',', 'World', '!']
     
-
-New features in 1.5.2
----------------------
-There are no new pyparsing features in this release, it is primarily a bug-fixing release.
-This release does include changes to support running pyparsing under IronPython 2.0.1, and
-a pyparsing_py3 module for use with Python 3.
-
-
-New features in 1.5.1
----------------------
-Some of the significant features added in version 1.5.0 are:
-
-- ``originalTextFor`` helper method, to simplify grammar expressions that need to preserve
-  the original input text; should be used in place of the ``keepOriginalText`` parse action::  
-  
-      fullName = Word(alphas) + Word(alphas)
-      fullName.setParseAction(keepOriginalText)
-  
-  should now be written::
-  
-      fullName = originalTextFor(Word(alphas) + Word(alphas))
-  
-- added parameter ``parseAll`` to ``ParserElement.parseFile`` to
-  match the arguments for ``ParserElement.parseString``
-
-- new argument ``failOn`` for SkipTo expressions, to define literal strings or expressions that 
-  should not be included in the skipped text
-
-
-New features in 1.5.0
----------------------
-Some of the significant features added in version 1.5.0 are:
-
-- ``indentedBlock`` helper method to define grammars using block indentation for grouping (like Python)
-
-- new parameter ``parseAll`` in ``ParserElement.parseString``
-
-- operator '-' for combining ParserElements; similar to the '+' operator, but raises an immediate
-  ``ParseSyntaxException`` if an expression after the '-' operator fails to match; using '-' can 
-  provide error messages that are more useful for application users to find syntax errors in their
-  input text
-
 
 Usage notes
 -----------
@@ -324,7 +282,10 @@ methods for code to use are:
   the element; if multiple tokens within
   a repetition group (such as ``ZeroOrMore`` or ``delimitedList``) the
   default is to return only the last matching token - if listAllMatches
-  is set to True, then a list of matching tokens is returned. Note: 
+  is set to True, then a list of all the matching tokens is returned. 
+  (New in 1.5.6 - a results name with a trailing '*' character will be
+  interpreted as setting listAllMatches to True.)
+  Note: 
   ``setResultsName`` returns a *copy* of the element so that a single
   basic element can be referenced multiple times and given
   different names within a complex grammar.
@@ -459,6 +420,13 @@ Basic ParserElement subclasses
   - exact - indicating an exact length of matching characters
 
   If exact is specified, it will override any values for min or max.
+  
+  New in 1.5.6 - Sometimes you want to define a word using all 
+  characters in a range except for one or two of them; you can do this
+  with the new excludeChars argument. This is helpful if you want to define
+  a word with all printables except for a single delimiter character, such
+  as '.'. Previously, you would have to create a custom string to pass to Word.
+  With this change, you can just create ``Word(printables, excludeChars='.')``.
 
 - ``CharsNotIn`` - similar to Word_, but matches characters not
   in the given constructor string (accepts only one string for both
@@ -912,6 +880,10 @@ Helper methods
   was given in the input string is what is desired.  To do this, use ``originalTextFor``::
   
         fullName = originalTextFor(Word(alphas) + Word(alphas))
+
+- ``ungroup( expr )`` - function to "ungroup" returned tokens; useful
+  to undo the default behavior of And to always group the returned tokens, even
+  if there is only one in the list. (New in 1.5.6)
 
 - ``lineno( loc, string )`` - function to give the line number of the
   location within the string; the first line is line 1, newlines

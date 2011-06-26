@@ -59,7 +59,7 @@ The pyparsing module handles some of the problems that are typically vexing when
 """
 
 __version__ = "1.5.6"
-__versionTime__ = "1 May 2011 23:41"
+__versionTime__ = "26 June 2011 10:53"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -604,10 +604,10 @@ class ParseResults(object):
 
     def __setstate__(self,state):
         self.__toklist = state[0]
-        self.__tokdict, \
-        par, \
-        inAccumNames, \
-        self.__name = state[1]
+        (self.__tokdict,
+         par,
+         inAccumNames,
+         self.__name) = state[1]
         self.__accumNames = {}
         self.__accumNames.update(inAccumNames)
         if par is not None:
@@ -758,6 +758,9 @@ class ParserElement(object):
            see L{I{__call__}<__call__>}.
         """
         newself = self.copy()
+        if name.endswith("*"):
+            name = name[:-1]
+            listAllMatches=True
         newself.resultsName = name
         newself.modalResults = not listAllMatches
         return newself
@@ -1314,10 +1317,7 @@ class ParserElement(object):
            If C{name} is given with a trailing C{'*'} character, then C{listAllMatches} will be
            passed as C{True}.
            """
-        if not name.endswith("*"):
-            return self.setResultsName(name)
-        else:
-            return self.setResultsName(name[:-1], listAllMatches=True)
+        return self.setResultsName(name)
 
     def suppress( self ):
         """Suppresses the output of this C{ParserElement}; useful to keep punctuation from
@@ -1452,12 +1452,10 @@ class Token(ParserElement):
     """Abstract C{ParserElement} subclass, for defining atomic matching patterns."""
     def __init__( self ):
         super(Token,self).__init__( savelist=False )
-        #self.myException = ParseException("",0,"",self)
 
     def setName(self, name):
         s = super(Token,self).setName(name)
         self.errmsg = "Expected " + self.name
-        #s.myException.msg = self.errmsg
         return s
 
 
@@ -1478,7 +1476,6 @@ class NoMatch(Token):
         self.mayReturnEmpty = True
         self.mayIndexError = False
         self.errmsg = "Unmatchable token"
-        #self.myException.msg = self.errmsg
 
     def parseImpl( self, instring, loc, doActions=True ):
         exc = self.myException
@@ -1502,7 +1499,6 @@ class Literal(Token):
         self.name = '"%s"' % _ustr(self.match)
         self.errmsg = "Expected " + self.name
         self.mayReturnEmpty = False
-        #self.myException.msg = self.errmsg
         self.mayIndexError = False
 
     # Performance tuning: this routine gets called a *lot*
@@ -1544,7 +1540,6 @@ class Keyword(Token):
         self.name = '"%s"' % self.match
         self.errmsg = "Expected " + self.name
         self.mayReturnEmpty = False
-        #self.myException.msg = self.errmsg
         self.mayIndexError = False
         self.caseless = caseless
         if caseless:
@@ -1592,7 +1587,6 @@ class CaselessLiteral(Literal):
         self.returnString = matchString
         self.name = "'%s'" % self.returnString
         self.errmsg = "Expected " + self.name
-        #self.myException.msg = self.errmsg
 
     def parseImpl( self, instring, loc, doActions=True ):
         if instring[ loc:loc+self.matchLen ].upper() == self.match:
@@ -1624,10 +1618,17 @@ class Word(Token):
        defaults to the initial character set), and an optional minimum,
        maximum, and/or exact length.  The default value for C{min} is 1 (a
        minimum value < 1 is not valid); the default values for C{max} and C{exact}
-       are 0, meaning no maximum or exact length restriction.
+       are 0, meaning no maximum or exact length restriction. An optional
+       C{exclude} parameter can list characters that might be found in 
+       the input C{bodyChars} string; useful to define a word of all printables
+       except for one or two characters, for instance.
     """
-    def __init__( self, initChars, bodyChars=None, min=1, max=0, exact=0, asKeyword=False ):
+    def __init__( self, initChars, bodyChars=None, min=1, max=0, exact=0, asKeyword=False, excludeChars=None ):
         super(Word,self).__init__()
+        if excludeChars:
+            initChars = ''.join([c for c in initChars if c not in excludeChars])
+            if bodyChars:
+                bodyChars = ''.join([c for c in bodyChars if c not in excludeChars])
         self.initCharsOrig = initChars
         self.initChars = set(initChars)
         if bodyChars :
@@ -1655,7 +1656,6 @@ class Word(Token):
 
         self.name = _ustr(self)
         self.errmsg = "Expected " + self.name
-        #self.myException.msg = self.errmsg
         self.mayIndexError = False
         self.asKeyword = asKeyword
 
@@ -1781,7 +1781,6 @@ class Regex(Token):
 
         self.name = _ustr(self)
         self.errmsg = "Expected " + self.name
-        #self.myException.msg = self.errmsg
         self.mayIndexError = False
         self.mayReturnEmpty = True
 
@@ -1887,7 +1886,6 @@ class QuotedString(Token):
 
         self.name = _ustr(self)
         self.errmsg = "Expected " + self.name
-        #self.myException.msg = self.errmsg
         self.mayIndexError = False
         self.mayReturnEmpty = True
 
@@ -1959,7 +1957,6 @@ class CharsNotIn(Token):
         self.name = _ustr(self)
         self.errmsg = "Expected " + self.name
         self.mayReturnEmpty = ( self.minLen == 0 )
-        #self.myException.msg = self.errmsg
         self.mayIndexError = False
 
     def parseImpl( self, instring, loc, doActions=True ):
@@ -2022,7 +2019,6 @@ class White(Token):
         self.name = ("".join([White.whiteStrs[c] for c in self.matchWhite]))
         self.mayReturnEmpty = True
         self.errmsg = "Expected " + self.name
-        #self.myException.msg = self.errmsg
 
         self.minLen = min
 
@@ -2095,7 +2091,6 @@ class LineStart(_PositionToken):
         super(LineStart,self).__init__()
         self.setWhitespaceChars( ParserElement.DEFAULT_WHITE_CHARS.replace("\n","") )
         self.errmsg = "Expected start of line"
-        #self.myException.msg = self.errmsg
 
     def preParse( self, instring, loc ):
         preloc = super(LineStart,self).preParse(instring,loc)
@@ -2120,7 +2115,6 @@ class LineEnd(_PositionToken):
         super(LineEnd,self).__init__()
         self.setWhitespaceChars( ParserElement.DEFAULT_WHITE_CHARS.replace("\n","") )
         self.errmsg = "Expected end of line"
-        #self.myException.msg = self.errmsg
 
     def parseImpl( self, instring, loc, doActions=True ):
         if loc<len(instring):
@@ -2145,7 +2139,6 @@ class StringStart(_PositionToken):
     def __init__( self ):
         super(StringStart,self).__init__()
         self.errmsg = "Expected start of text"
-        #self.myException.msg = self.errmsg
 
     def parseImpl( self, instring, loc, doActions=True ):
         if loc != 0:
@@ -2163,7 +2156,6 @@ class StringEnd(_PositionToken):
     def __init__( self ):
         super(StringEnd,self).__init__()
         self.errmsg = "Expected end of text"
-        #self.myException.msg = self.errmsg
 
     def parseImpl( self, instring, loc, doActions=True ):
         if loc < len(instring):
@@ -2707,7 +2699,6 @@ class NotAny(ParseElementEnhance):
         self.skipWhitespace = False  # do NOT use self.leaveWhitespace(), don't want to propagate to exprs
         self.mayReturnEmpty = True
         self.errmsg = "Found unwanted token, "+_ustr(self.expr)
-        #self.myException = ParseException("",0,self.errmsg,self)
 
     def parseImpl( self, instring, loc, doActions=True ):
         try:
@@ -2866,7 +2857,6 @@ class SkipTo(ParseElementEnhance):
         else:
             self.failOn = failOn
         self.errmsg = "No match found for "+_ustr(self.expr)
-        #self.myException = ParseException("",0,self.errmsg,self)
 
     def parseImpl( self, instring, loc, doActions=True ):
         startLoc = loc
@@ -3330,7 +3320,12 @@ def originalTextFor(expr, asString=True):
             del t["_original_end"]
     matchExpr.setParseAction(extractText)
     return matchExpr
-    
+
+def ungroup(expr): 
+    """Helper to undo pyparsing's default grouping of And expressions, even
+       if all but one are non-empty."""
+    return TokenConverter(expr).setParseAction(lambda t:t[0])
+
 # convenience constants for positional expressions
 empty       = Empty().setName("empty")
 lineStart   = LineStart().setName("lineStart")

@@ -2,7 +2,7 @@
 Change Log
 ==========
 
-Version 1.5.6 - May, 2011
+Version 1.5.6 - June, 2011
 ----------------------------
 - Cleanup of parse action normalizing code, to be more version-tolerant,
   and robust in the face of future Python versions - much thanks to 
@@ -15,6 +15,11 @@ Version 1.5.6 - May, 2011
 - Fixed bug when using packrat parsing, where a previously parsed
   expression would duplicate subsequent tokens - reported by Frankie 
   Ribery on stackoverflow, thanks!
+
+- Added 'ungroup' helper method, to address token grouping done
+  implicitly by And expressions, even if only one expression in the
+  And actually returns any text - also inspired by stackoverflow
+  discussion with Frankie Ribery!
 
 - Fixed bug in srange, which accepted escaped hex characters of the 
   form '\0x##', but should be '\x##'.  Both forms will be supported
@@ -29,10 +34,9 @@ Version 1.5.6 - May, 2011
   yourself using it in a commercial purpose, please consider making a
   charitable donation as described in the parser's header.
 
-- Added other new examples:
-  . protobuf parser - parses Google's protobuf language
-  . btpyparse - a BibTex parser contributed by Matthew Brett,
-    with test suite test_bibparse.py (thanks, Matthew!)
+- Added the excludeChars argument to the Word class, to simplify defining
+  a word composed of all characters in a large range except for one or
+  two. Suggested by JesterEE on the pyparsing wiki.
 
 - Added optional overlap parameter to scanString, to return overlapping
   matches found in the source text.
@@ -51,6 +55,13 @@ Version 1.5.6 - May, 2011
 
 - Fixed up internal list flattener to use iteration instead of recursion,
   to avoid stack overflow when transforming large files.
+
+- Added other new examples:
+  . protobuf parser - parses Google's protobuf language
+  . btpyparse - a BibTex parser contributed by Matthew Brett,
+    with test suite test_bibparse.py (thanks, Matthew!)
+  . groupUsingListAllMatches.py - demo using trailing '*' for results 
+    names
 
 
 Version 1.5.5 - August, 2010

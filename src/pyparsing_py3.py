@@ -59,7 +59,7 @@ The pyparsing module handles some of the problems that are typically vexing when
 """
 
 __version__ = "1.5.6"
-__versionTime__ = "1 May 2011 23:41"
+__versionTime__ = "26 June 2011 10:53"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -105,8 +105,10 @@ def _xml_escape(data):
     """Escape &, <, >, ", ', etc. in a string of data."""
 
     # ampersand must be replaced first
-    for from_,to_ in zip('&><"\'', "amp gt lt quot apos".split()):
-        data = data.replace(from_, '&'+to_+';')
+    from_symbols = '&><"\''
+    to_symbols = ['&'+s+';' for s in "amp gt lt quot apos".split()]
+    for from_,to_ in zip(from_symbols, to_symbols):
+        data = data.replace(from_, to_)
     return data
 
 class _Constants(object):
@@ -557,10 +559,10 @@ class ParseResults(object):
 
     def __setstate__(self,state):
         self.__toklist = state[0]
-        self.__tokdict, \
-        par, \
-        inAccumNames, \
-        self.__name = state[1]
+        (self.__tokdict,
+         par,
+         inAccumNames,
+         self.__name) = state[1]
         self.__accumNames = {}
         self.__accumNames.update(inAccumNames)
         if par is not None:
@@ -699,6 +701,9 @@ class ParserElement(object):
            see L{I{__call__}<__call__>}.
         """
         newself = self.copy()
+        if name.endswith("*"):
+            name = name[:-1]
+            listAllMatches=True
         newself.resultsName = name
         newself.modalResults = not listAllMatches
         return newself
@@ -1246,10 +1251,7 @@ class ParserElement(object):
            If C{name} is given with a trailing C{'*'} character, then C{listAllMatches} will be
            passed as C{True}.
            """
-        if not name.endswith("*"):
-            return self.setResultsName(name)
-        else:
-            return self.setResultsName(name[:-1], listAllMatches=True)
+        return self.setResultsName(name)
 
     def suppress( self ):
         """Suppresses the output of this C{ParserElement}; useful to keep punctuation from
@@ -1523,10 +1525,17 @@ class Word(Token):
        defaults to the initial character set), and an optional minimum,
        maximum, and/or exact length.  The default value for C{min} is 1 (a
        minimum value < 1 is not valid); the default values for C{max} and C{exact}
-       are 0, meaning no maximum or exact length restriction.
+       are 0, meaning no maximum or exact length restriction. An optional
+       C{exclude} parameter can list characters that might be found in 
+       the input C{bodyChars} string; useful to define a word of all printables
+       except for one or two characters, for instance.
     """
-    def __init__( self, initChars, bodyChars=None, min=1, max=0, exact=0, asKeyword=False ):
+    def __init__( self, initChars, bodyChars=None, min=1, max=0, exact=0, asKeyword=False, excludeChars=None ):
         super(Word,self).__init__()
+        if excludeChars:
+            initChars = ''.join([c for c in initChars if c not in excludeChars])
+            if bodyChars:
+                bodyChars = ''.join([c for c in bodyChars if c not in excludeChars])
         self.initCharsOrig = initChars
         self.initChars = set(initChars)
         if bodyChars :
@@ -3149,7 +3158,12 @@ def originalTextFor(expr, asString=True):
             del t["_original_end"]
     matchExpr.setParseAction(extractText)
     return matchExpr
-    
+
+def ungroup(expr): 
+    """Helper to undo pyparsing's default grouping of And expressions, even
+       if all but one are non-empty."""
+    return TokenConverter(expr).setParseAction(lambda t:t[0])
+
 # convenience constants for positional expressions
 empty       = Empty().setName("empty")
 lineStart   = LineStart().setName("lineStart")
@@ -3266,7 +3280,7 @@ def _makeTags(tagStr, xml):
     else:
         printablesLessRAbrack = "".join( [ c for c in printables if c not in ">" ] )
         tagAttrValue = quotedString.copy().setParseAction( removeQuotes ) | Word(printablesLessRAbrack)
-        openTag = Suppress("<") + tagStr + \
+        openTag = Suppress("<") + tagStr("tag") + \
                 Dict(ZeroOrMore(Group( tagAttrName.setParseAction(downcaseTokens) + \
                 Optional( Suppress("=") + tagAttrValue ) ))) + \
                 Optional("/",default=[False]).setResultsName("empty").setParseAction(lambda s,l,t:t[0]=='/') + Suppress(">")
