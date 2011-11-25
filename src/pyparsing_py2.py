@@ -58,7 +58,7 @@ The pyparsing module handles some of the problems that are typically vexing when
  - embedded comments
 """
 
-__version__ = "1.5.6"
+__version__ = "1.5.7"
 __versionTime__ = "24 November 2011 10:03"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
@@ -695,7 +695,6 @@ class ParserElement(object):
     """Abstract base level parser element class."""
     DEFAULT_WHITE_CHARS = " \n\t\r"
     verbose_stacktrace = False
-    literalStringClass = Literal
 
     def setDefaultWhitespaceChars( chars ):
         """Overrides the default whitespace chars
@@ -1408,7 +1407,7 @@ class ParserElement(object):
         try:
             file_contents = file_or_filename.read()
         except AttributeError:
-            f = open(file_or_filename, "rb")
+            f = open(file_or_filename, "r")
             file_contents = f.read()
             f.close()
         try:
@@ -1520,6 +1519,7 @@ class Literal(Token):
         exc.pstr = instring
         raise exc
 _L = Literal
+ParserElement.literalStringClass = Literal
 
 class Keyword(Token):
     """Token to exactly match a specified string as a keyword, that is, it must be
@@ -2336,7 +2336,7 @@ class And(ParseExpression):
 
     class _ErrorStop(Empty):
         def __init__(self, *args, **kwargs):
-            super(Empty,self).__init__(*args, **kwargs)
+            super(And._ErrorStop,self).__init__(*args, **kwargs)
             self.leaveWhitespace()
 
     def __init__( self, exprs, savelist = True ):
