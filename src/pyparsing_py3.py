@@ -59,7 +59,7 @@ The pyparsing module handles some of the problems that are typically vexing when
 """
 
 __version__ = "1.5.6"
-__versionTime__ = "26 June 2011 10:53"
+__versionTime__ = "24 November 2011 10:03"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -89,7 +89,7 @@ __all__ = [
 'punc8bit', 'pythonStyleComment', 'quotedString', 'removeQuotes', 'replaceHTMLEntity', 
 'replaceWith', 'restOfLine', 'sglQuotedString', 'srange', 'stringEnd',
 'stringStart', 'traceParseAction', 'unicodeString', 'upcaseTokens', 'withAttribute',
-'indentedBlock', 'originalTextFor',
+'indentedBlock', 'originalTextFor', 'ungroup',
 ]
 
 _MAX_INT = sys.maxsize
@@ -399,16 +399,13 @@ class ParseResults(object):
         return "(%s, %s)" % ( repr( self.__toklist ), repr( self.__tokdict ) )
 
     def __str__( self ):
-        out = "["
-        sep = ""
+        out = []
         for i in self.__toklist:
             if isinstance(i, ParseResults):
-                out += sep + _ustr(i)
+                out.append(_ustr(i))
             else:
-                out += sep + repr(i)
-            sep = ", "
-        out += "]"
-        return out
+                out.append(repr(i))
+        return '[' + ', '.join(out) + ']'
 
     def _asStringList( self, sep='' ):
         out = []
@@ -641,12 +638,20 @@ class ParserElement(object):
     """Abstract base level parser element class."""
     DEFAULT_WHITE_CHARS = " \n\t\r"
     verbose_stacktrace = False
+    literalStringClass = Literal
 
     def setDefaultWhitespaceChars( chars ):
         """Overrides the default whitespace chars
         """
         ParserElement.DEFAULT_WHITE_CHARS = chars
     setDefaultWhitespaceChars = staticmethod(setDefaultWhitespaceChars)
+
+    def inlineLiteralsUsing(cls):
+        """
+        Set class to be used for inclusion of string literals into a parser.
+        """
+        ParserElement.literalStringClass = cls
+    inlineLiteralsUsing = staticmethod(inlineLiteralsUsing)
 
     def __init__( self, savelist=False ):
         self.parseAction = list()
@@ -1070,7 +1075,7 @@ class ParserElement(object):
     def __add__(self, other ):
         """Implementation of + operator - returns And"""
         if isinstance( other, basestring ):
-            other = Literal( other )
+            other = ParserElement.literalStringClass( other )
         if not isinstance( other, ParserElement ):
             warnings.warn("Cannot combine element of type %s with ParserElement" % type(other),
                     SyntaxWarning, stacklevel=2)
@@ -1080,7 +1085,7 @@ class ParserElement(object):
     def __radd__(self, other ):
         """Implementation of + operator when left operand is not a C{ParserElement}"""
         if isinstance( other, basestring ):
-            other = Literal( other )
+            other = ParserElement.literalStringClass( other )
         if not isinstance( other, ParserElement ):
             warnings.warn("Cannot combine element of type %s with ParserElement" % type(other),
                     SyntaxWarning, stacklevel=2)
@@ -1090,7 +1095,7 @@ class ParserElement(object):
     def __sub__(self, other):
         """Implementation of - operator, returns C{And} with error stop"""
         if isinstance( other, basestring ):
-            other = Literal( other )
+            other = ParserElement.literalStringClass( other )
         if not isinstance( other, ParserElement ):
             warnings.warn("Cannot combine element of type %s with ParserElement" % type(other),
                     SyntaxWarning, stacklevel=2)
@@ -1100,7 +1105,7 @@ class ParserElement(object):
     def __rsub__(self, other ):
         """Implementation of - operator when left operand is not a C{ParserElement}"""
         if isinstance( other, basestring ):
-            other = Literal( other )
+            other = ParserElement.literalStringClass( other )
         if not isinstance( other, ParserElement ):
             warnings.warn("Cannot combine element of type %s with ParserElement" % type(other),
                     SyntaxWarning, stacklevel=2)
@@ -1181,7 +1186,7 @@ class ParserElement(object):
     def __or__(self, other ):
         """Implementation of | operator - returns C{MatchFirst}"""
         if isinstance( other, basestring ):
-            other = Literal( other )
+            other = ParserElement.literalStringClass( other )
         if not isinstance( other, ParserElement ):
             warnings.warn("Cannot combine element of type %s with ParserElement" % type(other),
                     SyntaxWarning, stacklevel=2)
@@ -1191,7 +1196,7 @@ class ParserElement(object):
     def __ror__(self, other ):
         """Implementation of | operator when left operand is not a C{ParserElement}"""
         if isinstance( other, basestring ):
-            other = Literal( other )
+            other = ParserElement.literalStringClass( other )
         if not isinstance( other, ParserElement ):
             warnings.warn("Cannot combine element of type %s with ParserElement" % type(other),
                     SyntaxWarning, stacklevel=2)
@@ -1201,7 +1206,7 @@ class ParserElement(object):
     def __xor__(self, other ):
         """Implementation of ^ operator - returns C{Or}"""
         if isinstance( other, basestring ):
-            other = Literal( other )
+            other = ParserElement.literalStringClass( other )
         if not isinstance( other, ParserElement ):
             warnings.warn("Cannot combine element of type %s with ParserElement" % type(other),
                     SyntaxWarning, stacklevel=2)
@@ -1211,7 +1216,7 @@ class ParserElement(object):
     def __rxor__(self, other ):
         """Implementation of ^ operator when left operand is not a C{ParserElement}"""
         if isinstance( other, basestring ):
-            other = Literal( other )
+            other = ParserElement.literalStringClass( other )
         if not isinstance( other, ParserElement ):
             warnings.warn("Cannot combine element of type %s with ParserElement" % type(other),
                     SyntaxWarning, stacklevel=2)
@@ -1221,7 +1226,7 @@ class ParserElement(object):
     def __and__(self, other ):
         """Implementation of & operator - returns C{Each}"""
         if isinstance( other, basestring ):
-            other = Literal( other )
+            other = ParserElement.literalStringClass( other )
         if not isinstance( other, ParserElement ):
             warnings.warn("Cannot combine element of type %s with ParserElement" % type(other),
                     SyntaxWarning, stacklevel=2)
@@ -1231,7 +1236,7 @@ class ParserElement(object):
     def __rand__(self, other ):
         """Implementation of & operator when left operand is not a C{ParserElement}"""
         if isinstance( other, basestring ):
-            other = Literal( other )
+            other = ParserElement.literalStringClass( other )
         if not isinstance( other, ParserElement ):
             warnings.warn("Cannot combine element of type %s with ParserElement" % type(other),
                     SyntaxWarning, stacklevel=2)
@@ -2282,7 +2287,7 @@ class Or(ParseExpression):
 
     def __ixor__(self, other ):
         if isinstance( other, basestring ):
-            other = Literal( other )
+            other = ParserElement.literalStringClass( other )
         return self.append( other ) #Or( [ self, other ] )
 
     def __str__( self ):
@@ -2341,7 +2346,7 @@ class MatchFirst(ParseExpression):
 
     def __ior__(self, other ):
         if isinstance( other, basestring ):
-            other = Literal( other )
+            other = ParserElement.literalStringClass( other )
         return self.append( other ) #MatchFirst( [ self, other ] )
 
     def __str__( self ):
@@ -2761,7 +2766,7 @@ class Forward(ParseElementEnhance):
 
     def __lshift__( self, other ):
         if isinstance( other, basestring ):
-            other = Literal(other)
+            other = ParserElement.literalStringClass(other)
         self.expr = other
         self.mayReturnEmpty = other.mayReturnEmpty
         self.strRepr = None

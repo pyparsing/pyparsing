@@ -2,6 +2,18 @@
 Change Log
 ==========
 
+Version 1.5.7 - 
+-----------------
+- Fixed implementation of ParseResults.__str__ to use Pythonic
+  ''.join() instead of repeated string concatenation. This
+  purportedly has been a performance issue under PyPy.
+
+- Added ParserElement.inlineLiteralsUsing static method, to 
+  override pyparsing's default behavior of converting string
+  literals to Literal instances, to use other classes (such
+  as Suppress or CaselessLiteral).
+
+
 Version 1.5.6 - June, 2011
 ----------------------------
 - Cleanup of parse action normalizing code, to be more version-tolerant,
