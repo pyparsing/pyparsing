@@ -13,6 +13,13 @@ Version 1.5.7 -
   literals to Literal instances, to use other classes (such
   as Suppress or CaselessLiteral).
 
+- Added new operator '<<=', which will eventually replace '<<' for 
+  storing the contents of a Forward(). '<<=' does not have the same
+  operator precedence problems that '<<' does.
+  
+- Improved linking in generated docs, proposed on the pyparsing wiki
+  by techtonik, thanks!
+
 
 Version 1.5.6 - June, 2011
 ----------------------------
