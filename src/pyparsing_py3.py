@@ -59,7 +59,7 @@ The pyparsing module handles some of the problems that are typically vexing when
 """
 
 __version__ = "1.5.7"
-__versionTime__ = "23 December 2011 01:31"
+__versionTime__ = "23 December 2011 11:01"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -184,7 +184,7 @@ class ParseFatalException(ParseBaseException):
 
 class ParseSyntaxException(ParseFatalException):
     """just like C{L{ParseFatalException}}, but thrown internally when an
-       C{L{ErrorStop}} ('-' operator) indicates that parsing is to stop immediately because
+       C{L{ErrorStop<And._ErrorStop>}} ('-' operator) indicates that parsing is to stop immediately because
        an unbacktrackable syntax error has been found"""
     def __init__(self, pe):
         super(ParseSyntaxException, self).__init__(
@@ -3221,7 +3221,7 @@ def matchOnlyAtCol(n):
 
 def replaceWith(replStr):
     """Helper method for common parse actions that simply return a literal value.  Especially
-       useful when used with C{L{transformString}()}.
+       useful when used with C{L{transformString<ParserElement.transformString>}()}.
     """
     def _replFunc(*args):
         return [replStr]
