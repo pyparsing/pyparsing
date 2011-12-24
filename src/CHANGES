@@ -20,6 +20,13 @@ Version 1.5.7 -
 - Improved linking in generated docs, proposed on the pyparsing wiki
   by techtonik, thanks!
 
+- Fixed a bug in the definition of 'alphas', which was based on the 
+  string.uppercase and string.lowercase "constants", which in fact 
+  *aren't* constant, but vary with locale settings. This could make 
+  parsers locale-sensitive in a subtle way. Thanks to Kef Schecter for
+  his diligence in following through on reporting and monitoring 
+  this bugfix!
+
 
 Version 1.5.6 - June, 2011
 ----------------------------

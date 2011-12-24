@@ -59,7 +59,7 @@ The pyparsing module handles some of the problems that are typically vexing when
 """
 
 __version__ = "1.5.7"
-__versionTime__ = "23 December 2011 11:01"
+__versionTime__ = "24 December 2011 11:15"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -81,7 +81,7 @@ __all__ = [
 'White', 'Word', 'WordEnd', 'WordStart', 'ZeroOrMore',
 'alphanums', 'alphas', 'alphas8bit', 'anyCloseTag', 'anyOpenTag', 'cStyleComment', 'col',
 'commaSeparatedList', 'commonHTMLEntity', 'countedArray', 'cppStyleComment', 'dblQuotedString',
-'dblSlashComment', 'delimitedList', 'dictOf', 'downcaseTokens', 'empty', 'getTokensEndLoc', 'hexnums',
+'dblSlashComment', 'delimitedList', 'dictOf', 'downcaseTokens', 'empty', 'hexnums',
 'htmlComment', 'javaStyleComment', 'keepOriginalText', 'line', 'lineEnd', 'lineStart', 'lineno',
 'makeHTMLTags', 'makeXMLTags', 'matchOnlyAtCol', 'matchPreviousExpr', 'matchPreviousLiteral',
 'nestedExpr', 'nullDebugAction', 'nums', 'oneOf', 'opAssoc', 'operatorPrecedence', 'printables',
@@ -101,12 +101,10 @@ if _PY3K:
     basestring = str
     unichr = chr
     _ustr = str
-    alphas = string.ascii_lowercase + string.ascii_uppercase
 else:
     _MAX_INT = sys.maxint
     range = xrange
     set = lambda s : dict( [(c,0) for c in s] )
-    alphas = string.lowercase + string.uppercase
 
     def _ustr(obj):
         """Drop-in replacement for str(obj) that tries to be Unicode friendly. It first tries
@@ -134,8 +132,6 @@ else:
             # Replace unprintables with question marks?
             #return unicode(obj).encode(sys.getdefaultencoding(), 'replace')
             # ...
-            
-    alphas = string.lowercase + string.uppercase
 
 # build list of single arg builtins, tolerant of Python version, that can be used as parse actions
 singleArgBuiltins = []
@@ -159,7 +155,8 @@ def _xml_escape(data):
 class _Constants(object):
     pass
 
-nums       = string.digits
+alphas     = string.ascii_lowercase + string.ascii_uppercase
+nums       = "0123456789"
 hexnums    = nums + "ABCDEFabcdef"
 alphanums  = alphas + nums
 _bslash    = chr(92)

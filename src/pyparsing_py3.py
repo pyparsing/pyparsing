@@ -96,7 +96,6 @@ _MAX_INT = sys.maxsize
 basestring = str
 unichr = chr
 _ustr = str
-alphas = string.ascii_lowercase + string.ascii_uppercase
 
 # build list of single arg builtins, that can be used as parse actions
 singleArgBuiltins = [sum, len, enumerate, sorted, reversed, list, tuple, set, any, all]
@@ -114,7 +113,8 @@ def _xml_escape(data):
 class _Constants(object):
     pass
 
-nums       = string.digits
+alphas = string.ascii_lowercase + string.ascii_uppercase
+nums       = "0123456789"
 hexnums    = nums + "ABCDEFabcdef"
 alphanums  = alphas + nums
 _bslash    = chr(92)
