@@ -59,7 +59,7 @@ The pyparsing module handles some of the problems that are typically vexing when
 """
 
 __version__ = "1.5.7"
-__versionTime__ = "24 December 2011 11:15"
+__versionTime__ = "24 April 2012 11:15"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -136,7 +136,7 @@ else:
 # build list of single arg builtins, tolerant of Python version, that can be used as parse actions
 singleArgBuiltins = []
 import __builtin__
-for fname in "sum len enumerate sorted reversed list tuple set any all".split():
+for fname in "sum len enumerate sorted reversed list tuple set any all min max".split():
     try:
         singleArgBuiltins.append(getattr(__builtin__,fname))
     except AttributeError:
@@ -610,7 +610,7 @@ class ParseResults(object):
             self.__parent = None
 
     def __dir__(self):
-        return dir(super(ParseResults,self)) + self.keys()
+        return dir(super(ParseResults,self)) + list(self.keys())
 
 def col (loc,strg):
     """Returns current column within a string, counting newlines as line separators.
@@ -660,33 +660,20 @@ def nullDebugAction(*args):
     pass
 
 'decorator to trim function calls to match the arity of the target'
-if not _PY3K:
-    def _trim_arity(func, maxargs=2):
-        limit = [0]
-        def wrapper(*args):
-            while 1:
-                try:
-                    return func(*args[limit[0]:])
-                except TypeError:
-                    if limit[0] <= maxargs:
-                        limit[0] += 1
-                        continue
-                    raise
-        return wrapper
-else:
-    def _trim_arity(func, maxargs=2):
-        limit = maxargs
-        def wrapper(*args):
-            #~ nonlocal limit
-            while 1:
-                try:
-                    return func(*args[limit:])
-                except TypeError:
-                    if limit:
-                        limit -= 1
-                        continue
-                    raise
-        return wrapper
+def _trim_arity(func, maxargs=2):
+    if func in singleArgBuiltins:
+        return lambda s,l,t: func(t)
+    limit = [0]
+    def wrapper(*args):
+        while 1:
+            try:
+                return func(*args[limit[0]:])
+            except TypeError:
+                if limit[0] <= maxargs:
+                    limit[0] += 1
+                    continue
+                raise
+    return wrapper
     
 class ParserElement(object):
     """Abstract base level parser element class."""

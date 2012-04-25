@@ -59,7 +59,7 @@ The pyparsing module handles some of the problems that are typically vexing when
 """
 
 __version__ = "1.5.7"
-__versionTime__ = "23 December 2011 11:01"
+__versionTime__ = "24 April 2012 11:01"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -98,7 +98,7 @@ unichr = chr
 _ustr = str
 
 # build list of single arg builtins, that can be used as parse actions
-singleArgBuiltins = [sum, len, enumerate, sorted, reversed, list, tuple, set, any, all]
+singleArgBuiltins = [sum, len, enumerate, sorted, reversed, list, tuple, set, any, all, min, max]
 
 def _xml_escape(data):
     """Escape &, <, >, ", ', etc. in a string of data."""
@@ -568,7 +568,7 @@ class ParseResults(object):
             self.__parent = None
 
     def __dir__(self):
-        return dir(super(ParseResults,self)) + self.keys()
+        return dir(super(ParseResults,self)) + list(self.keys())
 
 collections.MutableMapping.register(ParseResults)
 
@@ -621,6 +621,8 @@ def nullDebugAction(*args):
 
 'decorator to trim function calls to match the arity of the target'
 def _trim_arity(func, maxargs=2):
+    if func in singleArgBuiltins:
+        return lambda s,l,t: func(t)
     limit = maxargs
     def wrapper(*args):
         nonlocal limit
