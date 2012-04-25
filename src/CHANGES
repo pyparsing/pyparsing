@@ -8,6 +8,9 @@ Version 1.5.7 -
   ''.join() instead of repeated string concatenation. This
   purportedly has been a performance issue under PyPy.
 
+- Fixed bug in ParseResults.__dir__ under Python 3, reported by
+  Thomas Kluyver, thank you Thomas!
+
 - Added ParserElement.inlineLiteralsUsing static method, to 
   override pyparsing's default behavior of converting string
   literals to Literal instances, to use other classes (such
@@ -16,7 +19,12 @@ Version 1.5.7 -
 - Added new operator '<<=', which will eventually replace '<<' for 
   storing the contents of a Forward(). '<<=' does not have the same
   operator precedence problems that '<<' does.
-  
+
+- Added support for using single argument builtin functions as parse 
+  actions.  Now you can write 'expr.setParseAction(len)' and get back
+  the length of the list of matched tokens.  Supported builtins are:
+  sum, len, sorted, reversed, list, tuple, set, any, all, min, and max.
+
 - Improved linking in generated docs, proposed on the pyparsing wiki
   by techtonik, thanks!
 

@@ -136,7 +136,7 @@ else:
 # build list of single arg builtins, tolerant of Python version, that can be used as parse actions
 singleArgBuiltins = []
 import __builtin__
-for fname in "sum len enumerate sorted reversed list tuple set any all min max".split():
+for fname in "sum len sorted reversed list tuple set any all min max".split():
     try:
         singleArgBuiltins.append(getattr(__builtin__,fname))
     except AttributeError:

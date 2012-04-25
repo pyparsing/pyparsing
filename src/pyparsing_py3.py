@@ -98,7 +98,7 @@ unichr = chr
 _ustr = str
 
 # build list of single arg builtins, that can be used as parse actions
-singleArgBuiltins = [sum, len, enumerate, sorted, reversed, list, tuple, set, any, all, min, max]
+singleArgBuiltins = [sum, len, sorted, reversed, list, tuple, set, any, all, min, max]
 
 def _xml_escape(data):
     """Escape &, <, >, ", ', etc. in a string of data."""
