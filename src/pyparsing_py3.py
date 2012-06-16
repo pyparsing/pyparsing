@@ -59,7 +59,7 @@ The pyparsing module handles some of the problems that are typically vexing when
 """
 
 __version__ = "1.5.7"
-__versionTime__ = "24 April 2012 11:01"
+__versionTime__ = "16 June 2012 03:08"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -897,7 +897,7 @@ class ParserElement(object):
                 ParserElement._exprArgCache[ lookup ] = (value[0],value[1].copy())
                 return value
             except ParseBaseException as pe:
-                exc.__traceback__ = None
+                pe.__traceback__ = None
                 ParserElement._exprArgCache[ lookup ] = pe
                 raise
 

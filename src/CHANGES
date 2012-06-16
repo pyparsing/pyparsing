@@ -35,6 +35,8 @@ Version 1.5.7 -
   his diligence in following through on reporting and monitoring 
   this bugfix!
 
+- Fixed a bug in the Py3 version of pyparsing, during exception
+  handling, reported by Catherine Devlin - thanks Catherine!
 
 Version 1.5.6 - June, 2011
 ----------------------------
