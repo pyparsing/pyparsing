@@ -36,7 +36,12 @@ Version 1.5.7 -
   this bugfix!
 
 - Fixed a bug in the Py3 version of pyparsing, during exception
-  handling, reported by Catherine Devlin - thanks Catherine!
+  handling with packrat parsing enabled, reported by Catherine 
+  Devlin - thanks Catherine!
+
+- Fixed typo in ParseBaseException.__dir__, reported anonymously on 
+  the SourceForge bug tracker, thank you Pyparsing User With No Name.
+
 
 Version 1.5.6 - June, 2011
 ----------------------------

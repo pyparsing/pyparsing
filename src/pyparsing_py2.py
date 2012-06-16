@@ -208,7 +208,7 @@ class ParseBaseException(Exception):
         return line_str.strip()
     def __dir__(self):
         return "loc msg pstr parserElement lineno col line " \
-               "markInputLine __str__ __repr__".split()
+               "markInputline __str__ __repr__".split()
 
 class ParseException(ParseBaseException):
     """exception thrown when parse expressions don't match class;
