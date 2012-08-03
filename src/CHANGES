@@ -4,6 +4,10 @@ Change Log
 
 Version 1.5.7 - 
 -----------------
+- An awesome new example is included in this release, submitted
+  by Luca DellOlio, for parsing ANTLR grammar definitions, nice
+  work Luca!
+
 - Fixed implementation of ParseResults.__str__ to use Pythonic
   ''.join() instead of repeated string concatenation. This
   purportedly has been a performance issue under PyPy.
@@ -41,6 +45,8 @@ Version 1.5.7 -
 
 - Fixed typo in ParseBaseException.__dir__, reported anonymously on 
   the SourceForge bug tracker, thank you Pyparsing User With No Name.
+
+- Fixed bug in srange when using '\x###' hex character codes.
 
 
 Version 1.5.6 - June, 2011
