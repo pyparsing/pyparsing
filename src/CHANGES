@@ -48,6 +48,12 @@ Version 1.5.7 -
 
 - Fixed bug in srange when using '\x###' hex character codes.
 
+- Addeed optional 'intExpr' argument to countedArray, so that you 
+  can define your own expression that will evaluate to an integer,
+  to be used as the count for the following elements. Allows you 
+  to define a countedArray with the count given in hex, for example,
+  by defining intExpr as "Word(hexnums).setParseAction(int(t[0],16))".
+
 
 Version 1.5.6 - June, 2011
 ----------------------------
