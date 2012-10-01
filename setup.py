@@ -23,8 +23,8 @@ def fileexists(fname):
         return False
 
 def copyfile(fromname, toname):
-    outf = open(toname,'w')
-    outf.write(open(fromname).read())
+    outf = file(toname,'w')
+    outf.write(file(fromname).read())
     outf.close()
     
 if "MAKING_PYPARSING_RELEASE" not in os.environ and not fileexists("pyparsing.py"):
@@ -51,6 +51,5 @@ setup(# Distribution meta-data
         'License :: OSI Approved :: MIT License',
         'Operating System :: OS Independent',
         'Programming Language :: Python',
-        'Programming Language :: Python :: 3',
         ]
     )
