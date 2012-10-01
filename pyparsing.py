@@ -58,8 +58,8 @@ The pyparsing module handles some of the problems that are typically vexing when
  - embedded comments
 """
 
-__version__ = "1.5.7"
-__versionTime__ = "3 August 2012 05:00"
+__version__ = "1.5.6"
+__versionTime__ = "26 June 2011 10:53"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -81,14 +81,14 @@ __all__ = [
 'White', 'Word', 'WordEnd', 'WordStart', 'ZeroOrMore',
 'alphanums', 'alphas', 'alphas8bit', 'anyCloseTag', 'anyOpenTag', 'cStyleComment', 'col',
 'commaSeparatedList', 'commonHTMLEntity', 'countedArray', 'cppStyleComment', 'dblQuotedString',
-'dblSlashComment', 'delimitedList', 'dictOf', 'downcaseTokens', 'empty', 'hexnums',
+'dblSlashComment', 'delimitedList', 'dictOf', 'downcaseTokens', 'empty', 'getTokensEndLoc', 'hexnums',
 'htmlComment', 'javaStyleComment', 'keepOriginalText', 'line', 'lineEnd', 'lineStart', 'lineno',
 'makeHTMLTags', 'makeXMLTags', 'matchOnlyAtCol', 'matchPreviousExpr', 'matchPreviousLiteral',
 'nestedExpr', 'nullDebugAction', 'nums', 'oneOf', 'opAssoc', 'operatorPrecedence', 'printables',
 'punc8bit', 'pythonStyleComment', 'quotedString', 'removeQuotes', 'replaceHTMLEntity', 
 'replaceWith', 'restOfLine', 'sglQuotedString', 'srange', 'stringEnd',
 'stringStart', 'traceParseAction', 'unicodeString', 'upcaseTokens', 'withAttribute',
-'indentedBlock', 'originalTextFor', 'ungroup',
+'indentedBlock', 'originalTextFor',
 ]
 
 """
@@ -101,10 +101,12 @@ if _PY3K:
     basestring = str
     unichr = chr
     _ustr = str
+    alphas = string.ascii_lowercase + string.ascii_uppercase
 else:
     _MAX_INT = sys.maxint
     range = xrange
     set = lambda s : dict( [(c,0) for c in s] )
+    alphas = string.lowercase + string.uppercase
 
     def _ustr(obj):
         """Drop-in replacement for str(obj) that tries to be Unicode friendly. It first tries
@@ -132,11 +134,13 @@ else:
             # Replace unprintables with question marks?
             #return unicode(obj).encode(sys.getdefaultencoding(), 'replace')
             # ...
+            
+    alphas = string.lowercase + string.uppercase
 
 # build list of single arg builtins, tolerant of Python version, that can be used as parse actions
 singleArgBuiltins = []
 import __builtin__
-for fname in "sum len sorted reversed list tuple set any all min max".split():
+for fname in "sum len enumerate sorted reversed list tuple set any all".split():
     try:
         singleArgBuiltins.append(getattr(__builtin__,fname))
     except AttributeError:
@@ -155,8 +159,7 @@ def _xml_escape(data):
 class _Constants(object):
     pass
 
-alphas     = string.ascii_lowercase + string.ascii_uppercase
-nums       = "0123456789"
+nums       = string.digits
 hexnums    = nums + "ABCDEFabcdef"
 alphanums  = alphas + nums
 _bslash    = chr(92)
@@ -208,7 +211,7 @@ class ParseBaseException(Exception):
         return line_str.strip()
     def __dir__(self):
         return "loc msg pstr parserElement lineno col line " \
-               "markInputline __str__ __repr__".split()
+               "markInputLine __str__ __repr__".split()
 
 class ParseException(ParseBaseException):
     """exception thrown when parse expressions don't match class;
@@ -225,8 +228,8 @@ class ParseFatalException(ParseBaseException):
     pass
 
 class ParseSyntaxException(ParseFatalException):
-    """just like C{L{ParseFatalException}}, but thrown internally when an
-       C{L{ErrorStop<And._ErrorStop>}} ('-' operator) indicates that parsing is to stop immediately because
+    """just like C{ParseFatalException}, but thrown internally when an
+       C{ErrorStop} ('-' operator) indicates that parsing is to stop immediately because
        an unbacktrackable syntax error has been found"""
     def __init__(self, pe):
         super(ParseSyntaxException, self).__init__(
@@ -441,13 +444,16 @@ class ParseResults(object):
         return "(%s, %s)" % ( repr( self.__toklist ), repr( self.__tokdict ) )
 
     def __str__( self ):
-        out = []
+        out = "["
+        sep = ""
         for i in self.__toklist:
             if isinstance(i, ParseResults):
-                out.append(_ustr(i))
+                out += sep + _ustr(i)
             else:
-                out.append(repr(i))
-        return '[' + ', '.join(out) + ']'
+                out += sep + repr(i)
+            sep = ", "
+        out += "]"
+        return out
 
     def _asStringList( self, sep='' ):
         out = []
@@ -610,7 +616,7 @@ class ParseResults(object):
             self.__parent = None
 
     def __dir__(self):
-        return dir(super(ParseResults,self)) + list(self.keys())
+        return dir(super(ParseResults,self)) + self.keys()
 
 def col (loc,strg):
     """Returns current column within a string, counting newlines as line separators.
@@ -618,7 +624,7 @@ def col (loc,strg):
 
    Note: the default parsing behavior is to expand tabs in the input string
    before starting the parsing process.  See L{I{ParserElement.parseString}<ParserElement.parseString>} for more information
-   on parsing strings containing C{<TAB>}s, and suggested methods to maintain a
+   on parsing strings containing <TAB>s, and suggested methods to maintain a
    consistent view of the parsed string, the parse location, and line and column
    positions within the parsed string.
    """
@@ -630,7 +636,7 @@ def lineno(loc,strg):
 
    Note: the default parsing behavior is to expand tabs in the input string
    before starting the parsing process.  See L{I{ParserElement.parseString}<ParserElement.parseString>} for more information
-   on parsing strings containing C{<TAB>}s, and suggested methods to maintain a
+   on parsing strings containing <TAB>s, and suggested methods to maintain a
    consistent view of the parsed string, the parse location, and line and column
    positions within the parsed string.
    """
@@ -660,20 +666,33 @@ def nullDebugAction(*args):
     pass
 
 'decorator to trim function calls to match the arity of the target'
-def _trim_arity(func, maxargs=2):
-    if func in singleArgBuiltins:
-        return lambda s,l,t: func(t)
-    limit = [0]
-    def wrapper(*args):
-        while 1:
-            try:
-                return func(*args[limit[0]:])
-            except TypeError:
-                if limit[0] <= maxargs:
-                    limit[0] += 1
-                    continue
-                raise
-    return wrapper
+if not _PY3K:
+    def _trim_arity(func, maxargs=2):
+        limit = [0]
+        def wrapper(*args):
+            while 1:
+                try:
+                    return func(*args[limit[0]:])
+                except TypeError:
+                    if limit[0] <= maxargs:
+                        limit[0] += 1
+                        continue
+                    raise
+        return wrapper
+else:
+    def _trim_arity(func, maxargs=2):
+        limit = maxargs
+        def wrapper(*args):
+            #~ nonlocal limit
+            while 1:
+                try:
+                    return func(*args[limit:])
+                except TypeError:
+                    if limit:
+                        limit -= 1
+                        continue
+                    raise
+        return wrapper
     
 class ParserElement(object):
     """Abstract base level parser element class."""
@@ -685,13 +704,6 @@ class ParserElement(object):
         """
         ParserElement.DEFAULT_WHITE_CHARS = chars
     setDefaultWhitespaceChars = staticmethod(setDefaultWhitespaceChars)
-
-    def inlineLiteralsUsing(cls):
-        """
-        Set class to be used for inclusion of string literals into a parser.
-        """
-        ParserElement.literalStringClass = cls
-    inlineLiteralsUsing = staticmethod(inlineLiteralsUsing)
 
     def __init__( self, savelist=False ):
         self.parseAction = list()
@@ -777,14 +789,14 @@ class ParserElement(object):
            C{fn(loc,toks)}, C{fn(toks)}, or just C{fn()}, where:
             - s   = the original string being parsed (see note below)
             - loc = the location of the matching substring
-            - toks = a list of the matched tokens, packaged as a C{L{ParseResults}} object
+            - toks = a list of the matched tokens, packaged as a ParseResults object
            If the functions in fns modify the tokens, they can return them as the return
            value from fn, and the modified list of tokens will replace the original.
            Otherwise, fn does not need to return any value.
 
            Note: the default parsing behavior is to expand tabs in the input string
            before starting the parsing process.  See L{I{parseString}<parseString>} for more information
-           on parsing strings containing C{<TAB>}s, and suggested methods to maintain a
+           on parsing strings containing <TAB>s, and suggested methods to maintain a
            consistent view of the parsed string, the parse location, and line and column
            positions within the parsed string.
            """
@@ -806,7 +818,7 @@ class ParserElement(object):
             - loc = location where expression match was attempted and failed
             - expr = the parse expression that failed
             - err = the exception thrown
-           The function returns no value.  It may throw C{L{ParseFatalException}}
+           The function returns no value.  It may throw C{ParseFatalException}
            if it is desired to stop parsing immediately."""
         self.failAction = fn
         return self
@@ -982,7 +994,7 @@ class ParserElement(object):
 
            If you want the grammar to require that the entire input string be
            successfully parsed, then set C{parseAll} to True (equivalent to ending
-           the grammar with C{L{StringEnd()}}).
+           the grammar with C{StringEnd()}).
 
            Note: C{parseString} implicitly calls C{expandtabs()} on the input string,
            in order to report proper column numbers in parse actions.
@@ -1073,7 +1085,7 @@ class ParserElement(object):
                 raise exc
 
     def transformString( self, instring ):
-        """Extension to C{L{scanString}}, to modify matching text with modified tokens that may
+        """Extension to C{scanString}, to modify matching text with modified tokens that may
            be returned from a parse action.  To use C{transformString}, define a grammar and
            attach a parse action to it that modifies the returned token list.
            Invoking C{transformString()} on a target string will then scan for matches,
@@ -1107,7 +1119,7 @@ class ParserElement(object):
                 raise exc
 
     def searchString( self, instring, maxMatches=_MAX_INT ):
-        """Another extension to C{L{scanString}}, simplifying the access to the tokens found
+        """Another extension to C{scanString}, simplifying the access to the tokens found
            to match the given parse expression.  May be called with optional
            C{maxMatches} argument, to clip searching after 'n' matches are found.
         """
@@ -1122,9 +1134,9 @@ class ParserElement(object):
                 raise exc
 
     def __add__(self, other ):
-        """Implementation of + operator - returns C{L{And}}"""
+        """Implementation of + operator - returns And"""
         if isinstance( other, basestring ):
-            other = ParserElement.literalStringClass( other )
+            other = Literal( other )
         if not isinstance( other, ParserElement ):
             warnings.warn("Cannot combine element of type %s with ParserElement" % type(other),
                     SyntaxWarning, stacklevel=2)
@@ -1132,9 +1144,9 @@ class ParserElement(object):
         return And( [ self, other ] )
 
     def __radd__(self, other ):
-        """Implementation of + operator when left operand is not a C{L{ParserElement}}"""
+        """Implementation of + operator when left operand is not a C{ParserElement}"""
         if isinstance( other, basestring ):
-            other = ParserElement.literalStringClass( other )
+            other = Literal( other )
         if not isinstance( other, ParserElement ):
             warnings.warn("Cannot combine element of type %s with ParserElement" % type(other),
                     SyntaxWarning, stacklevel=2)
@@ -1142,9 +1154,9 @@ class ParserElement(object):
         return other + self
 
     def __sub__(self, other):
-        """Implementation of - operator, returns C{L{And}} with error stop"""
+        """Implementation of - operator, returns C{And} with error stop"""
         if isinstance( other, basestring ):
-            other = ParserElement.literalStringClass( other )
+            other = Literal( other )
         if not isinstance( other, ParserElement ):
             warnings.warn("Cannot combine element of type %s with ParserElement" % type(other),
                     SyntaxWarning, stacklevel=2)
@@ -1152,9 +1164,9 @@ class ParserElement(object):
         return And( [ self, And._ErrorStop(), other ] )
 
     def __rsub__(self, other ):
-        """Implementation of - operator when left operand is not a C{L{ParserElement}}"""
+        """Implementation of - operator when left operand is not a C{ParserElement}"""
         if isinstance( other, basestring ):
-            other = ParserElement.literalStringClass( other )
+            other = Literal( other )
         if not isinstance( other, ParserElement ):
             warnings.warn("Cannot combine element of type %s with ParserElement" % type(other),
                     SyntaxWarning, stacklevel=2)
@@ -1167,12 +1179,12 @@ class ParserElement(object):
            tuple, similar to C{{min,max}} multipliers in regular expressions.  Tuples
            may also include C{None} as in:
             - C{expr*(n,None)} or C{expr*(n,)} is equivalent
-              to C{expr*n + L{ZeroOrMore}(expr)}
+              to C{expr*n + ZeroOrMore(expr)}
               (read as "at least n instances of C{expr}")
             - C{expr*(None,n)} is equivalent to C{expr*(0,n)}
               (read as "0 to n instances of C{expr}")
-            - C{expr*(None,None)} is equivalent to C{L{ZeroOrMore}(expr)}
-            - C{expr*(1,None)} is equivalent to C{L{OneOrMore}(expr)}
+            - C{expr*(None,None)} is equivalent to C{ZeroOrMore(expr)}
+            - C{expr*(1,None)} is equivalent to C{OneOrMore(expr)}
 
            Note that C{expr*(None,n)} does not raise an exception if
            more than n exprs exist in the input stream; that is,
@@ -1233,9 +1245,9 @@ class ParserElement(object):
         return self.__mul__(other)
 
     def __or__(self, other ):
-        """Implementation of | operator - returns C{L{MatchFirst}}"""
+        """Implementation of | operator - returns C{MatchFirst}"""
         if isinstance( other, basestring ):
-            other = ParserElement.literalStringClass( other )
+            other = Literal( other )
         if not isinstance( other, ParserElement ):
             warnings.warn("Cannot combine element of type %s with ParserElement" % type(other),
                     SyntaxWarning, stacklevel=2)
@@ -1243,9 +1255,9 @@ class ParserElement(object):
         return MatchFirst( [ self, other ] )
 
     def __ror__(self, other ):
-        """Implementation of | operator when left operand is not a C{L{ParserElement}}"""
+        """Implementation of | operator when left operand is not a C{ParserElement}"""
         if isinstance( other, basestring ):
-            other = ParserElement.literalStringClass( other )
+            other = Literal( other )
         if not isinstance( other, ParserElement ):
             warnings.warn("Cannot combine element of type %s with ParserElement" % type(other),
                     SyntaxWarning, stacklevel=2)
@@ -1253,9 +1265,9 @@ class ParserElement(object):
         return other | self
 
     def __xor__(self, other ):
-        """Implementation of ^ operator - returns C{L{Or}}"""
+        """Implementation of ^ operator - returns C{Or}"""
         if isinstance( other, basestring ):
-            other = ParserElement.literalStringClass( other )
+            other = Literal( other )
         if not isinstance( other, ParserElement ):
             warnings.warn("Cannot combine element of type %s with ParserElement" % type(other),
                     SyntaxWarning, stacklevel=2)
@@ -1263,9 +1275,9 @@ class ParserElement(object):
         return Or( [ self, other ] )
 
     def __rxor__(self, other ):
-        """Implementation of ^ operator when left operand is not a C{L{ParserElement}}"""
+        """Implementation of ^ operator when left operand is not a C{ParserElement}"""
         if isinstance( other, basestring ):
-            other = ParserElement.literalStringClass( other )
+            other = Literal( other )
         if not isinstance( other, ParserElement ):
             warnings.warn("Cannot combine element of type %s with ParserElement" % type(other),
                     SyntaxWarning, stacklevel=2)
@@ -1273,9 +1285,9 @@ class ParserElement(object):
         return other ^ self
 
     def __and__(self, other ):
-        """Implementation of & operator - returns C{L{Each}}"""
+        """Implementation of & operator - returns C{Each}"""
         if isinstance( other, basestring ):
-            other = ParserElement.literalStringClass( other )
+            other = Literal( other )
         if not isinstance( other, ParserElement ):
             warnings.warn("Cannot combine element of type %s with ParserElement" % type(other),
                     SyntaxWarning, stacklevel=2)
@@ -1283,9 +1295,9 @@ class ParserElement(object):
         return Each( [ self, other ] )
 
     def __rand__(self, other ):
-        """Implementation of & operator when left operand is not a C{L{ParserElement}}"""
+        """Implementation of & operator when left operand is not a C{ParserElement}"""
         if isinstance( other, basestring ):
-            other = ParserElement.literalStringClass( other )
+            other = Literal( other )
         if not isinstance( other, ParserElement ):
             warnings.warn("Cannot combine element of type %s with ParserElement" % type(other),
                     SyntaxWarning, stacklevel=2)
@@ -1293,11 +1305,11 @@ class ParserElement(object):
         return other & self
 
     def __invert__( self ):
-        """Implementation of ~ operator - returns C{L{NotAny}}"""
+        """Implementation of ~ operator - returns C{NotAny}"""
         return NotAny( self )
 
     def __call__(self, name):
-        """Shortcut for C{L{setResultsName}}, with C{listAllMatches=default}::
+        """Shortcut for C{setResultsName}, with C{listAllMatches=default}::
              userdata = Word(alphas).setResultsName("name") + Word(nums+"-").setResultsName("socsecno")
            could be written as::
              userdata = Word(alphas)("name") + Word(nums+"-")("socsecno")
@@ -1391,7 +1403,7 @@ class ParserElement(object):
         try:
             file_contents = file_or_filename.read()
         except AttributeError:
-            f = open(file_or_filename, "r")
+            f = open(file_or_filename, "rb")
             file_contents = f.read()
             f.close()
         try:
@@ -1503,11 +1515,10 @@ class Literal(Token):
         exc.pstr = instring
         raise exc
 _L = Literal
-ParserElement.literalStringClass = Literal
 
 class Keyword(Token):
     """Token to exactly match a specified string as a keyword, that is, it must be
-       immediately followed by a non-keyword character.  Compare with C{L{Literal}}::
+       immediately followed by a non-keyword character.  Compare with C{Literal}::
          Literal("if") will match the leading C{'if'} in C{'ifAndOnlyIf'}.
          Keyword("if") will not; it will only match the leading C{'if'} in C{'if x=1'}, or C{'if(y==2)'}
        Accepts two optional constructor arguments in addition to the keyword string:
@@ -1810,9 +1821,9 @@ class QuotedString(Token):
             - quoteChar - string of one or more characters defining the quote delimiting string
             - escChar - character to escape quotes, typically backslash (default=None)
             - escQuote - special quote sequence to escape an embedded quote string (such as SQL's "" to escape an embedded ") (default=None)
-            - multiline - boolean indicating whether quotes can span multiple lines (default=C{False})
-            - unquoteResults - boolean indicating whether the matched text should be unquoted (default=C{True})
-            - endQuoteChar - string of one or more characters defining the end of the quote delimited string (default=C{None} => same as quoteChar)
+            - multiline - boolean indicating whether quotes can span multiple lines (default=False)
+            - unquoteResults - boolean indicating whether the matched text should be unquoted (default=True)
+            - endQuoteChar - string of one or more characters defining the end of the quote delimited string (default=None => same as quoteChar)
         """
         super(QuotedString,self).__init__()
 
@@ -1992,7 +2003,7 @@ class White(Token):
        by pyparsing grammars.  This class is included when some whitespace structures
        are significant.  Define with a string containing the whitespace characters to be
        matched; default is C{" \\t\\r\\n"}.  Also takes optional C{min}, C{max}, and C{exact} arguments,
-       as defined for the C{L{Word}} class."""
+       as defined for the C{Word} class."""
     whiteStrs = {
         " " : "<SPC>",
         "\t": "<TAB>",
@@ -2320,7 +2331,7 @@ class And(ParseExpression):
 
     class _ErrorStop(Empty):
         def __init__(self, *args, **kwargs):
-            super(And._ErrorStop,self).__init__(*args, **kwargs)
+            super(Empty,self).__init__(*args, **kwargs)
             self.leaveWhitespace()
 
     def __init__( self, exprs, savelist = True ):
@@ -2425,7 +2436,7 @@ class Or(ParseExpression):
 
     def __ixor__(self, other ):
         if isinstance( other, basestring ):
-            other = ParserElement.literalStringClass( other )
+            other = Literal( other )
         return self.append( other ) #Or( [ self, other ] )
 
     def __str__( self ):
@@ -2484,7 +2495,7 @@ class MatchFirst(ParseExpression):
 
     def __ior__(self, other ):
         if isinstance( other, basestring ):
-            other = ParserElement.literalStringClass( other )
+            other = Literal( other )
         return self.append( other ) #MatchFirst( [ self, other ] )
 
     def __str__( self ):
@@ -2905,14 +2916,13 @@ class Forward(ParseElementEnhance):
        thereby leaving b and c out as parseable alternatives.  It is recommended that you
        explicitly group the values inserted into the C{Forward}::
           fwdExpr << (a | b | c)
-       Converting to use the '<<=' operator instead will avoid this problem.
     """
     def __init__( self, other=None ):
         super(Forward,self).__init__( other, savelist=False )
 
     def __lshift__( self, other ):
         if isinstance( other, basestring ):
-            other = ParserElement.literalStringClass(other)
+            other = Literal(other)
         self.expr = other
         self.mayReturnEmpty = other.mayReturnEmpty
         self.strRepr = None
@@ -2923,8 +2933,7 @@ class Forward(ParseElementEnhance):
         self.saveAsList = self.expr.saveAsList
         self.ignoreExprs.extend(self.expr.ignoreExprs)
         return None
-    __ilshift__ = __lshift__
-    
+
     def leaveWhitespace( self ):
         self.skipWhitespace = False
         return self
@@ -3020,7 +3029,7 @@ class Combine(TokenConverter):
             return retToks
 
 class Group(TokenConverter):
-    """Converter to return the matched tokens as a list - useful for returning tokens of C{L{ZeroOrMore}} and C{L{OneOrMore}} expressions."""
+    """Converter to return the matched tokens as a list - useful for returning tokens of C{ZeroOrMore} and C{OneOrMore} expressions."""
     def __init__( self, expr ):
         super(Group,self).__init__( expr )
         self.saveAsList = True
@@ -3115,7 +3124,7 @@ def delimitedList( expr, delim=",", combine=False ):
     """Helper to define a delimited list of expressions - the delimiter defaults to ','.
        By default, the list elements and delimiters can have intervening whitespace, and
        comments, but this can be overridden by passing C{combine=True} in the constructor.
-       If C{combine} is set to C{True}, the matching tokens are returned as a single token
+       If C{combine} is set to True, the matching tokens are returned as a single token
        string, with the delimiters included; otherwise, the matching tokens are returned
        as a list of tokens, with the delimiters suppressed.
     """
@@ -3217,7 +3226,7 @@ def _escapeRegexRangeChars(s):
 def oneOf( strs, caseless=False, useRegex=True ):
     """Helper to quickly define a set of alternative Literals, and makes sure to do
        longest-first testing when there is a conflict, regardless of the input order,
-       but returns a C{L{MatchFirst}} for best performance.
+       but returns a C{MatchFirst} for best performance.
 
        Parameters:
         - strs - a string of space-delimited literals, or a list of string literals
@@ -3275,7 +3284,7 @@ def oneOf( strs, caseless=False, useRegex=True ):
 
 def dictOf( key, value ):
     """Helper to easily and clearly define a dictionary by specifying the respective patterns
-       for the key and value.  Takes care of defining the C{L{Dict}}, C{L{ZeroOrMore}}, and C{L{Group}} tokens
+       for the key and value.  Takes care of defining the C{Dict}, C{ZeroOrMore}, and C{Group} tokens
        in the proper order.  The key pattern can include delimiting markers or punctuation,
        as long as they are suppressed, thereby leaving the significant key text.  The value
        pattern can include named results, so that the C{Dict} results can include named token
@@ -3292,7 +3301,7 @@ def originalTextFor(expr, asString=True):
        string containing the original parsed text.  
        
        If the optional C{asString} argument is passed as C{False}, then the return value is a 
-       C{L{ParseResults}} containing any results names that were originally matched, and a 
+       C{ParseResults} containing any results names that were originally matched, and a 
        single token containing the original matched text from the input string.  So if 
        the expression passed to C{L{originalTextFor}} contains expressions with defined
        results names, you must set C{asString} to C{False} if you want to preserve those
@@ -3326,7 +3335,7 @@ stringEnd   = StringEnd().setName("stringEnd")
 
 _escapedPunc = Word( _bslash, r"\[]-*.$+^?()~ ", exact=2 ).setParseAction(lambda s,l,t:t[0][1])
 _printables_less_backslash = "".join([ c for c in printables if c not in  r"\]" ])
-_escapedHexChar = Regex(r"\\0?[xX][0-9a-fA-F]+").setParseAction(lambda s,l,t:unichr(int(t[0].lstrip(r'\0x'),16)))
+_escapedHexChar = Regex(r"\\0?[xX][0-9a-fA-F]+").setParseAction(lambda s,l,t:unichr(int(t[0][1:],16)))
 _escapedOctChar = Regex(r"\\0[0-7]+").setParseAction(lambda s,l,t:unichr(int(t[0][1:],8)))
 _singleChar = _escapedPunc | _escapedHexChar | _escapedOctChar | Word(_printables_less_backslash,exact=1)
 _charRange = Group(_singleChar + Suppress("-") + _singleChar)
@@ -3367,7 +3376,7 @@ def matchOnlyAtCol(n):
 
 def replaceWith(replStr):
     """Helper method for common parse actions that simply return a literal value.  Especially
-       useful when used with C{L{transformString<ParserElement.transformString>}()}.
+       useful when used with C{transformString()}.
     """
     def _replFunc(*args):
         return [replStr]
@@ -3389,7 +3398,7 @@ def downcaseTokens(s,l,t):
     return [ tt.lower() for tt in map(_ustr,t) ]
 
 def keepOriginalText(s,startLoc,t):
-    """DEPRECATED - use new helper method C{L{originalTextFor}}.
+    """DEPRECATED - use new helper method C{originalTextFor}.
        Helper parse action to preserve original parsed text,
        overriding any nested parse actions."""
     try:
@@ -3455,7 +3464,7 @@ def makeXMLTags(tagStr):
 
 def withAttribute(*args,**attrDict):
     """Helper to create a validating parse action to be used with start tags created
-       with C{L{makeXMLTags}} or C{L{makeHTMLTags}}. Use C{withAttribute} to qualify a starting tag
+       with C{makeXMLTags} or C{makeHTMLTags}. Use C{withAttribute} to qualify a starting tag
        with a required attribute value, to avoid false matches on common tags such as
        C{<TD>} or C{<DIV>}.
 
@@ -3509,7 +3518,7 @@ def operatorPrecedence( baseExpr, opList ):
               be 1, 2, or 3)
            - rightLeftAssoc is the indicator whether the operator is
               right or left associative, using the pyparsing-defined
-              constants C{opAssoc.RIGHT} and C{opAssoc.LEFT}.
+              constants opAssoc.RIGHT and opAssoc.LEFT.
            - parseAction is the parse action to be associated with
               expressions matching this operator expression (the
               parse action tuple member may be omitted)
