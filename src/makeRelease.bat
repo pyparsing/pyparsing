@@ -1,9 +1,9 @@
 set MAKING_PYPARSING_RELEASE=1
 
-copy ../sourceforge/svn/trunk/src/CHANGES .
-copy ../sourceforge/svn/trunk/src/setup.py .
-copy ../sourceforge/svn/trunk/src/pyparsing_py2.py .
-copy ../sourceforge/svn/trunk/src/pyparsing_py3.py .
+copy ..\sourceforge\svn\trunk\src\CHANGES .
+copy ..\sourceforge\svn\trunk\src\setup.py .
+copy ..\sourceforge\svn\trunk\src\pyparsing_py2.py .
+copy ..\sourceforge\svn\trunk\src\pyparsing_py3.py .
 
 if exist pyparsing.py del pyparsing.py
 rmdir build
