@@ -30,6 +30,14 @@ Version 1.5.7 - October, 2012
   storing the contents of a Forward(). '<<=' does not have the same
   operator precedence problems that '<<' does.
 
+- 'operatorPrecedence' is being renamed 'infixNotation' as a better
+  description of what this helper function creates. 'operatorPrecedence'
+  is deprecated, and will be dropped entirely in a future release.
+
+- Added optional arguments lpar and rpar to operatorPrecedence, so that 
+  expressions that use it can override the default suppression of the
+  grouping characters.
+
 - Added support for using single argument builtin functions as parse 
   actions.  Now you can write 'expr.setParseAction(len)' and get back
   the length of the list of matched tokens.  Supported builtins are:
