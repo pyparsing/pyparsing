@@ -59,7 +59,7 @@ The pyparsing module handles some of the problems that are typically vexing when
 """
 
 __version__ = "1.5.7"
-__versionTime__ = "3 August 2012 05:00"
+__versionTime__ = "17 November 2012 16:18"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -89,7 +89,7 @@ __all__ = [
 'punc8bit', 'pythonStyleComment', 'quotedString', 'removeQuotes', 'replaceHTMLEntity', 
 'replaceWith', 'restOfLine', 'sglQuotedString', 'srange', 'stringEnd',
 'stringStart', 'traceParseAction', 'unicodeString', 'upcaseTokens', 'withAttribute',
-'indentedBlock', 'originalTextFor', 'ungroup',
+'indentedBlock', 'originalTextFor', 'ungroup', 'infixNotation',
 ]
 
 _MAX_INT = sys.maxsize
@@ -3346,7 +3346,7 @@ opAssoc = _Constants()
 opAssoc.LEFT = object()
 opAssoc.RIGHT = object()
 
-def operatorPrecedence( baseExpr, opList ):
+def infixNotation( baseExpr, opList, lpar=Suppress('('), rpar=Suppress(')') ):
     """Helper method for constructing grammars of expressions made up of
        operators working in a precedence hierarchy.  Operators may be unary or
        binary, left- or right-associative.  Parse actions can also be attached
@@ -3369,9 +3369,11 @@ def operatorPrecedence( baseExpr, opList ):
            - parseAction is the parse action to be associated with
               expressions matching this operator expression (the
               parse action tuple member may be omitted)
+        - lpar - expression for matching left-parentheses (default=Suppress('('))
+        - rpar - expression for matching right-parentheses (default=Suppress(')'))
     """
     ret = Forward()
-    lastExpr = baseExpr | ( Suppress('(') + ret + Suppress(')') )
+    lastExpr = baseExpr | ( lpar + ret + rpar )
     for i,operDef in enumerate(opList):
         opExpr,arity,rightLeftAssoc,pa = (operDef + (None,))[:4]
         if arity == 3:
@@ -3416,6 +3418,7 @@ def operatorPrecedence( baseExpr, opList ):
         lastExpr = thisExpr
     ret << lastExpr
     return ret
+operatorPrecedence = infixNotation
 
 dblQuotedString = Regex(r'"(?:[^"\n\r\\]|(?:"")|(?:\\x[0-9a-fA-F]+)|(?:\\.))*"').setName("string enclosed in double quotes")
 sglQuotedString = Regex(r"'(?:[^'\n\r\\]|(?:'')|(?:\\x[0-9a-fA-F]+)|(?:\\.))*'").setName("string enclosed in single quotes")
