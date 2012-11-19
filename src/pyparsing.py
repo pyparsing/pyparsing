@@ -58,7 +58,7 @@ The pyparsing module handles some of the problems that are typically vexing when
  - embedded comments
 """
 
-__version__ = "1.5.7"
+__version__ = "2.0.0"
 __versionTime__ = "17 November 2012 16:18"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
@@ -69,6 +69,7 @@ import sys
 import warnings
 import re
 import sre_constants
+import collections
 #~ sys.stderr.write( "testing pyparsing module, version %s, %s\n" % (__version__,__versionTime__ ) )
 
 __all__ = [
@@ -91,56 +92,13 @@ __all__ = [
 'indentedBlock', 'originalTextFor', 'ungroup', 'infixNotation',
 ]
 
-"""
-Detect if we are running version 3.X and make appropriate changes
-Robert A. Clark
-"""
-_PY3K = sys.version_info[0] > 2
-if _PY3K:
-    _MAX_INT = sys.maxsize
-    basestring = str
-    unichr = chr
-    _ustr = str
-else:
-    _MAX_INT = sys.maxint
-    range = xrange
-    set = lambda s : dict( [(c,0) for c in s] )
+_MAX_INT = sys.maxsize
+basestring = str
+unichr = chr
+_ustr = str
 
-    def _ustr(obj):
-        """Drop-in replacement for str(obj) that tries to be Unicode friendly. It first tries
-           str(obj). If that fails with a UnicodeEncodeError, then it tries unicode(obj). It
-           then < returns the unicode object | encodes it with the default encoding | ... >.
-        """
-        if isinstance(obj,unicode):
-            return obj
-
-        try:
-            # If this works, then _ustr(obj) has the same behaviour as str(obj), so
-            # it won't break any existing code.
-            return str(obj)
-
-        except UnicodeEncodeError:
-            # The Python docs (http://docs.python.org/ref/customization.html#l2h-182)
-            # state that "The return value must be a string object". However, does a
-            # unicode object (being a subclass of basestring) count as a "string
-            # object"?
-            # If so, then return a unicode object:
-            return unicode(obj)
-            # Else encode it... but how? There are many choices... :)
-            # Replace unprintables with escape codes?
-            #return unicode(obj).encode(sys.getdefaultencoding(), 'backslashreplace_errors')
-            # Replace unprintables with question marks?
-            #return unicode(obj).encode(sys.getdefaultencoding(), 'replace')
-            # ...
-
-# build list of single arg builtins, tolerant of Python version, that can be used as parse actions
-singleArgBuiltins = []
-import __builtin__
-for fname in "sum len sorted reversed list tuple set any all min max".split():
-    try:
-        singleArgBuiltins.append(getattr(__builtin__,fname))
-    except AttributeError:
-        continue
+# build list of single arg builtins, that can be used as parse actions
+singleArgBuiltins = [sum, len, sorted, reversed, list, tuple, set, any, all, min, max]
 
 def _xml_escape(data):
     """Escape &, <, >, ", ', etc. in a string of data."""
@@ -155,7 +113,7 @@ def _xml_escape(data):
 class _Constants(object):
     pass
 
-alphas     = string.ascii_lowercase + string.ascii_uppercase
+alphas = string.ascii_lowercase + string.ascii_uppercase
 nums       = "0123456789"
 hexnums    = nums + "ABCDEFabcdef"
 alphanums  = alphas + nums
@@ -612,6 +570,8 @@ class ParseResults(object):
     def __dir__(self):
         return dir(super(ParseResults,self)) + list(self.keys())
 
+collections.MutableMapping.register(ParseResults)
+
 def col (loc,strg):
     """Returns current column within a string, counting newlines as line separators.
    The first column is number 1.
@@ -663,14 +623,15 @@ def nullDebugAction(*args):
 def _trim_arity(func, maxargs=2):
     if func in singleArgBuiltins:
         return lambda s,l,t: func(t)
-    limit = [0]
+    limit = maxargs
     def wrapper(*args):
+        nonlocal limit
         while 1:
             try:
-                return func(*args[limit[0]:])
+                return func(*args[limit:])
             except TypeError:
-                if limit[0] <= maxargs:
-                    limit[0] += 1
+                if limit:
+                    limit -= 1
                     continue
                 raise
     return wrapper
@@ -860,15 +821,11 @@ class ParserElement(object):
                     loc,tokens = self.parseImpl( instring, preloc, doActions )
                 except IndexError:
                     raise ParseException( instring, len(instring), self.errmsg, self )
-            except ParseBaseException:
+            except ParseBaseException as err:
                 #~ print ("Exception raised:", err)
-                err = None
                 if self.debugActions[2]:
-                    err = sys.exc_info()[1]
                     self.debugActions[2]( instring, tokensStart, self, err )
                 if self.failAction:
-                    if err is None:
-                        err = sys.exc_info()[1]
                     self.failAction( instring, tokensStart, self, err )
                 raise
         else:
@@ -898,10 +855,9 @@ class ParserElement(object):
                                                       self.resultsName,
                                                       asList=self.saveAsList and isinstance(tokens,(ParseResults,list)),
                                                       modal=self.modalResults )
-                except ParseBaseException:
+                except ParseBaseException as err:
                     #~ print "Exception raised in user parse action:", err
                     if (self.debugActions[2] ):
-                        err = sys.exc_info()[1]
                         self.debugActions[2]( instring, tokensStart, self, err )
                     raise
             else:
@@ -940,8 +896,8 @@ class ParserElement(object):
                 value = self._parseNoCache( instring, loc, doActions, callPreParse )
                 ParserElement._exprArgCache[ lookup ] = (value[0],value[1].copy())
                 return value
-            except ParseBaseException:
-                pe = sys.exc_info()[1]
+            except ParseBaseException as pe:
+                pe.__traceback__ = None
                 ParserElement._exprArgCache[ lookup ] = pe
                 raise
 
@@ -1011,12 +967,11 @@ class ParserElement(object):
                 loc = self.preParse( instring, loc )
                 se = Empty() + StringEnd()
                 se._parse( instring, loc )
-        except ParseBaseException:
+        except ParseBaseException as exc:
             if ParserElement.verbose_stacktrace:
                 raise
             else:
                 # catch and re-raise exception from here, clears out pyparsing internal stack trace
-                exc = sys.exc_info()[1]
                 raise exc
         else:
             return tokens
@@ -1064,12 +1019,11 @@ class ParserElement(object):
                             loc = nextLoc
                     else:
                         loc = preloc+1
-        except ParseBaseException:
+        except ParseBaseException as exc:
             if ParserElement.verbose_stacktrace:
                 raise
             else:
                 # catch and re-raise exception from here, clears out pyparsing internal stack trace
-                exc = sys.exc_info()[1]
                 raise exc
 
     def transformString( self, instring ):
@@ -1098,12 +1052,11 @@ class ParserElement(object):
             out.append(instring[lastE:])
             out = [o for o in out if o]
             return "".join(map(_ustr,_flatten(out)))
-        except ParseBaseException:
+        except ParseBaseException as exc:
             if ParserElement.verbose_stacktrace:
                 raise
             else:
                 # catch and re-raise exception from here, clears out pyparsing internal stack trace
-                exc = sys.exc_info()[1]
                 raise exc
 
     def searchString( self, instring, maxMatches=_MAX_INT ):
@@ -1113,12 +1066,11 @@ class ParserElement(object):
         """
         try:
             return ParseResults([ t for t,s,e in self.scanString( instring, maxMatches ) ])
-        except ParseBaseException:
+        except ParseBaseException as exc:
             if ParserElement.verbose_stacktrace:
                 raise
             else:
                 # catch and re-raise exception from here, clears out pyparsing internal stack trace
-                exc = sys.exc_info()[1]
                 raise exc
 
     def __add__(self, other ):
@@ -1396,20 +1348,12 @@ class ParserElement(object):
             f.close()
         try:
             return self.parseString(file_contents, parseAll)
-        except ParseBaseException:
-            # catch and re-raise exception from here, clears out pyparsing internal stack trace
-            exc = sys.exc_info()[1]
-            raise exc
-
-    def getException(self):
-        return ParseException("",0,self.errmsg,self)
-
-    def __getattr__(self,aname):
-        if aname == "myException":
-            self.myException = ret = self.getException();
-            return ret;
-        else:
-            raise AttributeError("no such attribute " + aname)
+        except ParseBaseException as exc:
+            if ParserElement.verbose_stacktrace:
+                raise
+            else:
+                # catch and re-raise exception from here, clears out pyparsing internal stack trace
+                raise exc
 
     def __eq__(self,other):
         if isinstance(other, ParserElement):
@@ -1466,10 +1410,7 @@ class NoMatch(Token):
         self.errmsg = "Unmatchable token"
 
     def parseImpl( self, instring, loc, doActions=True ):
-        exc = self.myException
-        exc.loc = loc
-        exc.pstr = instring
-        raise exc
+        raise ParseException(instring, loc, self.errmsg, self)
 
 
 class Literal(Token):
@@ -1497,11 +1438,7 @@ class Literal(Token):
         if (instring[loc] == self.firstMatchChar and
             (self.matchLen==1 or instring.startswith(self.match,loc)) ):
             return loc+self.matchLen, self.match
-        #~ raise ParseException( instring, loc, self.errmsg )
-        exc = self.myException
-        exc.loc = loc
-        exc.pstr = instring
-        raise exc
+        raise ParseException(instring, loc, self.errmsg, self)
 _L = Literal
 ParserElement.literalStringClass = Literal
 
@@ -1548,11 +1485,7 @@ class Keyword(Token):
                 (loc >= len(instring)-self.matchLen or instring[loc+self.matchLen] not in self.identChars) and
                 (loc == 0 or instring[loc-1] not in self.identChars) ):
                 return loc+self.matchLen, self.match
-        #~ raise ParseException( instring, loc, self.errmsg )
-        exc = self.myException
-        exc.loc = loc
-        exc.pstr = instring
-        raise exc
+        raise ParseException(instring, loc, self.errmsg, self)
 
     def copy(self):
         c = super(Keyword,self).copy()
@@ -1580,11 +1513,7 @@ class CaselessLiteral(Literal):
     def parseImpl( self, instring, loc, doActions=True ):
         if instring[ loc:loc+self.matchLen ].upper() == self.match:
             return loc+self.matchLen, self.returnString
-        #~ raise ParseException( instring, loc, self.errmsg )
-        exc = self.myException
-        exc.loc = loc
-        exc.pstr = instring
-        raise exc
+        raise ParseException(instring, loc, self.errmsg, self)
 
 class CaselessKeyword(Keyword):
     def __init__( self, matchString, identChars=Keyword.DEFAULT_KEYWORD_CHARS ):
@@ -1594,11 +1523,7 @@ class CaselessKeyword(Keyword):
         if ( (instring[ loc:loc+self.matchLen ].upper() == self.caselessmatch) and
              (loc >= len(instring)-self.matchLen or instring[loc+self.matchLen].upper() not in self.identChars) ):
             return loc+self.matchLen, self.match
-        #~ raise ParseException( instring, loc, self.errmsg )
-        exc = self.myException
-        exc.loc = loc
-        exc.pstr = instring
-        raise exc
+        raise ParseException(instring, loc, self.errmsg, self)
 
 class Word(Token):
     """Token for matching words composed of allowed character sets.
@@ -1670,20 +1595,14 @@ class Word(Token):
         if self.re:
             result = self.re.match(instring,loc)
             if not result:
-                exc = self.myException
-                exc.loc = loc
-                exc.pstr = instring
-                raise exc
+                raise ParseException(instring, loc, self.errmsg, self)
 
             loc = result.end()
             return loc, result.group()
 
         if not(instring[ loc ] in self.initChars):
-            #~ raise ParseException( instring, loc, self.errmsg )
-            exc = self.myException
-            exc.loc = loc
-            exc.pstr = instring
-            raise exc
+            raise ParseException(instring, loc, self.errmsg, self)
+
         start = loc
         loc += 1
         instrlen = len(instring)
@@ -1703,11 +1622,7 @@ class Word(Token):
                 throwException = True
 
         if throwException:
-            #~ raise ParseException( instring, loc, self.errmsg )
-            exc = self.myException
-            exc.loc = loc
-            exc.pstr = instring
-            raise exc
+            raise ParseException(instring, loc, self.errmsg, self)
 
         return loc, instring[start:loc]
 
@@ -1776,10 +1691,7 @@ class Regex(Token):
     def parseImpl( self, instring, loc, doActions=True ):
         result = self.re.match(instring,loc)
         if not result:
-            exc = self.myException
-            exc.loc = loc
-            exc.pstr = instring
-            raise exc
+            raise ParseException(instring, loc, self.errmsg, self)
 
         loc = result.end()
         d = result.groupdict()
@@ -1881,10 +1793,7 @@ class QuotedString(Token):
     def parseImpl( self, instring, loc, doActions=True ):
         result = instring[loc] == self.firstQuoteChar and self.re.match(instring,loc) or None
         if not result:
-            exc = self.myException
-            exc.loc = loc
-            exc.pstr = instring
-            raise exc
+            raise ParseException(instring, loc, self.errmsg, self)
 
         loc = result.end()
         ret = result.group()
@@ -1950,11 +1859,7 @@ class CharsNotIn(Token):
 
     def parseImpl( self, instring, loc, doActions=True ):
         if instring[loc] in self.notChars:
-            #~ raise ParseException( instring, loc, self.errmsg )
-            exc = self.myException
-            exc.loc = loc
-            exc.pstr = instring
-            raise exc
+            raise ParseException(instring, loc, self.errmsg, self)
 
         start = loc
         loc += 1
@@ -1965,11 +1870,7 @@ class CharsNotIn(Token):
             loc += 1
 
         if loc - start < self.minLen:
-            #~ raise ParseException( instring, loc, self.errmsg )
-            exc = self.myException
-            exc.loc = loc
-            exc.pstr = instring
-            raise exc
+            raise ParseException(instring, loc, self.errmsg, self)
 
         return loc, instring[start:loc]
 
@@ -2022,11 +1923,7 @@ class White(Token):
 
     def parseImpl( self, instring, loc, doActions=True ):
         if not(instring[ loc ] in self.matchWhite):
-            #~ raise ParseException( instring, loc, self.errmsg )
-            exc = self.myException
-            exc.loc = loc
-            exc.pstr = instring
-            raise exc
+            raise ParseException(instring, loc, self.errmsg, self)
         start = loc
         loc += 1
         maxloc = start + self.maxLen
@@ -2035,11 +1932,7 @@ class White(Token):
             loc += 1
 
         if loc - start < self.minLen:
-            #~ raise ParseException( instring, loc, self.errmsg )
-            exc = self.myException
-            exc.loc = loc
-            exc.pstr = instring
-            raise exc
+            raise ParseException(instring, loc, self.errmsg, self)
 
         return loc, instring[start:loc]
 
@@ -2091,11 +1984,7 @@ class LineStart(_PositionToken):
         if not( loc==0 or
             (loc == self.preParse( instring, 0 )) or
             (instring[loc-1] == "\n") ): #col(loc, instring) != 1:
-            #~ raise ParseException( instring, loc, "Expected start of line" )
-            exc = self.myException
-            exc.loc = loc
-            exc.pstr = instring
-            raise exc
+            raise ParseException(instring, loc, self.errmsg, self)
         return loc, []
 
 class LineEnd(_PositionToken):
@@ -2110,18 +1999,11 @@ class LineEnd(_PositionToken):
             if instring[loc] == "\n":
                 return loc+1, "\n"
             else:
-                #~ raise ParseException( instring, loc, "Expected end of line" )
-                exc = self.myException
-                exc.loc = loc
-                exc.pstr = instring
-                raise exc
+                raise ParseException(instring, loc, self.errmsg, self)
         elif loc == len(instring):
             return loc+1, []
         else:
-            exc = self.myException
-            exc.loc = loc
-            exc.pstr = instring
-            raise exc
+            raise ParseException(instring, loc, self.errmsg, self)
 
 class StringStart(_PositionToken):
     """Matches if current position is at the beginning of the parse string"""
@@ -2133,11 +2015,7 @@ class StringStart(_PositionToken):
         if loc != 0:
             # see if entire string up to here is just whitespace and ignoreables
             if loc != self.preParse( instring, 0 ):
-                #~ raise ParseException( instring, loc, "Expected start of text" )
-                exc = self.myException
-                exc.loc = loc
-                exc.pstr = instring
-                raise exc
+                raise ParseException(instring, loc, self.errmsg, self)
         return loc, []
 
 class StringEnd(_PositionToken):
@@ -2148,20 +2026,13 @@ class StringEnd(_PositionToken):
 
     def parseImpl( self, instring, loc, doActions=True ):
         if loc < len(instring):
-            #~ raise ParseException( instring, loc, "Expected end of text" )
-            exc = self.myException
-            exc.loc = loc
-            exc.pstr = instring
-            raise exc
+            raise ParseException(instring, loc, self.errmsg, self)
         elif loc == len(instring):
             return loc+1, []
         elif loc > len(instring):
             return loc, []
         else:
-            exc = self.myException
-            exc.loc = loc
-            exc.pstr = instring
-            raise exc
+            raise ParseException(instring, loc, self.errmsg, self)
 
 class WordStart(_PositionToken):
     """Matches if the current position is at the beginning of a Word, and
@@ -2179,10 +2050,7 @@ class WordStart(_PositionToken):
         if loc != 0:
             if (instring[loc-1] in self.wordChars or
                 instring[loc] not in self.wordChars):
-                exc = self.myException
-                exc.loc = loc
-                exc.pstr = instring
-                raise exc
+                raise ParseException(instring, loc, self.errmsg, self)
         return loc, []
 
 class WordEnd(_PositionToken):
@@ -2203,11 +2071,7 @@ class WordEnd(_PositionToken):
         if instrlen>0 and loc<instrlen:
             if (instring[loc] in self.wordChars or
                 instring[loc-1] not in self.wordChars):
-                #~ raise ParseException( instring, loc, "Expected end of word" )
-                exc = self.myException
-                exc.loc = loc
-                exc.pstr = instring
-                raise exc
+                raise ParseException(instring, loc, self.errmsg, self)
         return loc, []
 
 
@@ -2348,8 +2212,8 @@ class And(ParseExpression):
                     loc, exprtokens = e._parse( instring, loc, doActions )
                 except ParseSyntaxException:
                     raise
-                except ParseBaseException:
-                    pe = sys.exc_info()[1]
+                except ParseBaseException as pe:
+                    pe.__traceback__ = None
                     raise ParseSyntaxException(pe)
                 except IndexError:
                     raise ParseSyntaxException( ParseException(instring, len(instring), self.errmsg, self) )
@@ -2401,8 +2265,8 @@ class Or(ParseExpression):
         for e in self.exprs:
             try:
                 loc2 = e.tryParse( instring, loc )
-            except ParseException:
-                err = sys.exc_info()[1]
+            except ParseException as err:
+                err.__traceback__ = None
                 if err.loc > maxExcLoc:
                     maxException = err
                     maxExcLoc = err.loc
@@ -2466,7 +2330,7 @@ class MatchFirst(ParseExpression):
             try:
                 ret = e._parse( instring, loc, doActions )
                 return ret
-            except ParseException, err:
+            except ParseException as err:
                 if err.loc > maxExcLoc:
                     maxException = err
                     maxExcLoc = err.loc
@@ -2695,11 +2559,7 @@ class NotAny(ParseElementEnhance):
         except (ParseException,IndexError):
             pass
         else:
-            #~ raise ParseException(instring, loc, self.errmsg )
-            exc = self.myException
-            exc.loc = loc
-            exc.pstr = instring
-            raise exc
+            raise ParseException(instring, loc, self.errmsg, self)
         return loc, []
 
     def __str__( self ):
@@ -2867,7 +2727,7 @@ class SkipTo(ParseElementEnhance):
                     while 1:
                         try:
                             loc = self.ignoreExpr.tryParse(instring,loc)
-                            # print "found ignoreExpr, advance to", loc
+                            # print("found ignoreExpr, advance to", loc)
                         except ParseBaseException:
                             break
                 expr._parse( instring, loc, doActions=False, callPreParse=False )
@@ -2887,10 +2747,7 @@ class SkipTo(ParseElementEnhance):
                     raise
                 else:
                     loc += 1
-        exc = self.myException
-        exc.loc = loc
-        exc.pstr = instring
-        raise exc
+        raise ParseException(instring, loc, self.errmsg, self)
 
 class Forward(ParseElementEnhance):
     """Forward declaration of an expression to be defined later -
@@ -2910,7 +2767,7 @@ class Forward(ParseElementEnhance):
     def __init__( self, other=None ):
         super(Forward,self).__init__( other, savelist=False )
 
-    def __lshift__( self, other ):
+    def __ilshift__( self, other ):
         if isinstance( other, basestring ):
             other = ParserElement.literalStringClass(other)
         self.expr = other
@@ -2923,7 +2780,11 @@ class Forward(ParseElementEnhance):
         self.saveAsList = self.expr.saveAsList
         self.ignoreExprs.extend(self.expr.ignoreExprs)
         return None
-    __ilshift__ = __lshift__
+        
+    def __lshift__(self, other):
+        warnings.warn("Operator '<<' is deprecated, use '<<=' instead",
+                       DeprecationWarning,stacklevel=2)
+        self <<= other
     
     def leaveWhitespace( self ):
         self.skipWhitespace = False
@@ -2984,7 +2845,7 @@ class Upcase(TokenConverter):
                        DeprecationWarning,stacklevel=2)
 
     def postParse( self, instring, loc, tokenlist ):
-        return list(map( string.upper, tokenlist ))
+        return list(map( str.upper, tokenlist ))
 
 
 class Combine(TokenConverter):
@@ -3096,8 +2957,7 @@ def traceParseAction(f):
         sys.stderr.write( ">>entering %s(line: '%s', %d, %s)\n" % (thisFunc,line(l,s),l,t) )
         try:
             ret = f(*paArgs)
-        except Exception:
-            exc = sys.exc_info()[1]
+        except Exception as exc:
             sys.stderr.write( "<<leaving %s (exception: %s)\n" % (thisFunc,exc) )
             raise
         sys.stderr.write( "<<leaving %s (ret: %s)\n" % (thisFunc,ret) )
@@ -3709,8 +3569,7 @@ if __name__ == "__main__":
             print ("tokens.columns = " + str(tokens.columns))
             print ("tokens.tables = "  + str(tokens.tables))
             print (tokens.asXML("SQL",True))
-        except ParseBaseException:
-            err = sys.exc_info()[1]
+        except ParseBaseException as err:
             print (teststring + "->")
             print (err.line)
             print (" "*(err.column-1) + "^")

@@ -2,11 +2,26 @@
 Change Log
 ==========
 
-Version 1.5.7 - October, 2012
+Version 2.0.0 - November, 2012
+------------------------------
+- Rather than release another combined Python 2.x/3.x release
+  I've decided to start a new major version that is only 
+  compatible with Python 3.x (and consequently Python 2.7 as
+  well due to backporting of key features). This version will
+  be the main development path from now on, with little follow-on
+  development on the 1.5.x path.
+
+- Operator '<<' is now deprecated, in favor of operator '<<=' for
+  attaching parsing expressions to Forward() expressions. This is
+  being done to address precedence of operations problems with '<<'.
+  Operator '<<' will be removed in a future version of pyparsing.
+
+
+Version 1.5.7 - November, 2012
 -----------------------------
 - NOTE: This is the last release of pyparsing that will try to 
   maintain compatibility with Python versions < 2.6. The next
-  release of pyparsing will be version 1.6.0, using new Python
+  release of pyparsing will be version 2.0.0, using new Python
   syntax that will not be compatible for Python version 2.5 or
   older.
 
