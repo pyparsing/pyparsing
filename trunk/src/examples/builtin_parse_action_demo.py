@@ -16,7 +16,7 @@ nums = OneOrMore(integer)
 
 
 test = "2 54 34 2 211 66 43 2 0"
-print test
+print(test)
 
 # try each of these builtins as parse actions
 for fn in (sum, max, min, len, sorted, reversed, list, tuple, set, any, all):
@@ -26,4 +26,4 @@ for fn in (sum, max, min, len, sorted, reversed, list, tuple, set, any, all):
         fn = lambda x : list(reversed(x))
 
     # show how each builtin works as a free-standing parse action
-    print fn_name, nums.setParseAction(fn).parseString(test)
+    print(fn_name, nums.setParseAction(fn).parseString(test))

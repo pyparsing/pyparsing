@@ -361,8 +361,8 @@ class SymbolTable(object):
         attr_name = "Attribute"
         attr_len = max(max(len(i.attribute_str()) for i in self.table),len(attr_name))
         #print table header
-        print "{0:3s} | {1:^{2}s} | {3:^{4}s} | {5:^{6}s} | {7:^{8}} | {9:s}".format(" No", sym_name, sym_len, kind_name, kind_len, type_name, type_len, attr_name, attr_len, "Parameters")
-        print "-----------------------------" + "-" * (sym_len + kind_len + type_len + attr_len)
+        print("{0:3s} | {1:^{2}s} | {3:^{4}s} | {5:^{6}s} | {7:^{8}} | {9:s}".format(" No", sym_name, sym_len, kind_name, kind_len, type_name, type_len, attr_name, attr_len, "Parameters"))
+        print("-----------------------------" + "-" * (sym_len + kind_len + type_len + attr_len))
         #print symbol table
         for i,sym in enumerate(self.table):
             parameters = ""
@@ -371,7 +371,7 @@ class SymbolTable(object):
                     parameters = "{0}".format(SharedData.TYPES[p])
                 else:
                     parameters += ", {0}".format(SharedData.TYPES[p])
-            print "{0:3d} | {1:^{2}s} | {3:^{4}s} | {5:^{6}s} | {7:^{8}} | ({9})".format(i, sym.name, sym_len, SharedData.KINDS[sym.kind], kind_len, SharedData.TYPES[sym.type], type_len, sym.attribute_str(), attr_len, parameters)
+            print("{0:3d} | {1:^{2}s} | {3:^{4}s} | {5:^{6}s} | {7:^{8}} | ({9})".format(i, sym.name, sym_len, SharedData.KINDS[sym.kind], kind_len, SharedData.TYPES[sym.type], type_len, sym.attribute_str(), attr_len, parameters))
 
     def insert_symbol(self, sname, skind, stype):
         """Inserts new symbol at the end of the symbol table.
@@ -392,7 +392,7 @@ class SymbolTable(object):
             self.error()
         self.table_len = len(self.table)
 
-    def lookup_symbol(self, sname, skind=SharedData.KINDS.keys(), stype=SharedData.TYPES.keys()):
+    def lookup_symbol(self, sname, skind=list(SharedData.KINDS.keys()), stype=list(SharedData.TYPES.keys())):
         """Searches for symbol, from the end to the begining.
            Returns symbol index or None
            sname - symbol name
@@ -548,7 +548,7 @@ class CodeGenerator(object):
         #suffix for label definition
         self.definition = ":"
         #list of free working registers
-        self.free_registers = range(SharedData.FUNCTION_REGISTER, -1, -1)
+        self.free_registers = list(range(SharedData.FUNCTION_REGISTER, -1, -1))
         #list of used working registers
         self.used_registers = []
         #list of used registers needed when function call is inside of a function call
@@ -923,7 +923,7 @@ class MicroC(object):
         msg += ": %s" % message
         if print_location and (exshared.location != None):
             msg += "\n%s" % wtext
-        print msg
+        print(msg)
         
 
     def data_begin_action(self):
@@ -938,7 +938,7 @@ class MicroC(object):
         """Code executed after recognising a global variable"""
         exshared.setpos(loc, text)
         if DEBUG > 0:
-            print "GLOBAL_VAR:",var
+            print("GLOBAL_VAR:",var)
             if DEBUG == 2: self.symtab.display()
             if DEBUG > 2: return
         index = self.symtab.insert_global_var(var.name, var.type)
@@ -949,7 +949,7 @@ class MicroC(object):
         """Code executed after recognising a local variable"""
         exshared.setpos(loc, text)
         if DEBUG > 0:
-            print "LOCAL_VAR:",var, var.name, var.type
+            print("LOCAL_VAR:",var, var.name, var.type)
             if DEBUG == 2: self.symtab.display()
             if DEBUG > 2: return
         index = self.symtab.insert_local_var(var.name, var.type, self.shared.function_vars)
@@ -960,7 +960,7 @@ class MicroC(object):
         """Code executed after recognising a parameter"""
         exshared.setpos(loc, text)
         if DEBUG > 0:
-            print "PARAM:",par
+            print("PARAM:",par)
             if DEBUG == 2: self.symtab.display()
             if DEBUG > 2: return
         index = self.symtab.insert_parameter(par.name, par.type)
@@ -971,7 +971,7 @@ class MicroC(object):
         """Code executed after recognising a constant"""
         exshared.setpos(loc, text)
         if DEBUG > 0:
-            print "CONST:",const
+            print("CONST:",const)
             if DEBUG == 2: self.symtab.display()
             if DEBUG > 2: return
         return self.symtab.insert_constant(const[0], const[1])
@@ -980,7 +980,7 @@ class MicroC(object):
         """Code executed after recognising a function definition (type and function name)"""
         exshared.setpos(loc, text)
         if DEBUG > 0:
-            print "FUN_BEGIN:",fun
+            print("FUN_BEGIN:",fun)
             if DEBUG == 2: self.symtab.display()
             if DEBUG > 2: return
         self.shared.function_index = self.symtab.insert_function(fun.name, fun.type)
@@ -993,7 +993,7 @@ class MicroC(object):
         """Code executed after recognising the beginning of function's body"""
         exshared.setpos(loc, text)
         if DEBUG > 0:
-            print "FUN_BODY:",fun
+            print("FUN_BODY:",fun)
             if DEBUG == 2: self.symtab.display()
             if DEBUG > 2: return
         self.codegen.function_body()
@@ -1001,7 +1001,7 @@ class MicroC(object):
     def function_end_action(self, text, loc, fun):
         """Code executed at the end of function definition"""
         if DEBUG > 0:
-            print "FUN_END:",fun
+            print("FUN_END:",fun)
             if DEBUG == 2: self.symtab.display()
             if DEBUG > 2: return
         #set function's attribute to number of function parameters
@@ -1014,7 +1014,7 @@ class MicroC(object):
         """Code executed after recognising a return statement"""
         exshared.setpos(loc, text)
         if DEBUG > 0:
-            print "RETURN:",ret
+            print("RETURN:",ret)
             if DEBUG == 2: self.symtab.display()
             if DEBUG > 2: return
         if not self.symtab.same_types(self.shared.function_index, ret.exp[0]):
@@ -1031,7 +1031,7 @@ class MicroC(object):
         """Code executed after recognising an identificator in expression"""
         exshared.setpos(loc, text)
         if DEBUG > 0:
-            print "EXP_VAR:",var
+            print("EXP_VAR:",var)
             if DEBUG == 2: self.symtab.display()
             if DEBUG > 2: return
         var_index = self.symtab.lookup_symbol(var.name, [SharedData.KINDS.GLOBAL_VAR, SharedData.KINDS.PARAMETER, SharedData.KINDS.LOCAL_VAR])
@@ -1043,7 +1043,7 @@ class MicroC(object):
         """Code executed after recognising an assignment statement"""
         exshared.setpos(loc, text)
         if DEBUG > 0:
-            print "ASSIGN:",assign
+            print("ASSIGN:",assign)
             if DEBUG == 2: self.symtab.display()
             if DEBUG > 2: return
         var_index = self.symtab.lookup_symbol(assign.var, [SharedData.KINDS.GLOBAL_VAR, SharedData.KINDS.PARAMETER, SharedData.KINDS.LOCAL_VAR])
@@ -1057,7 +1057,7 @@ class MicroC(object):
         """Code executed after recognising a mulexp expression (something *|/ something)"""
         exshared.setpos(loc, text)
         if DEBUG > 0:
-            print "MUL_EXP:",mul
+            print("MUL_EXP:",mul)
             if DEBUG == 2: self.symtab.display()
             if DEBUG > 2: return
         #iterate through all multiplications/divisions
@@ -1074,7 +1074,7 @@ class MicroC(object):
         """Code executed after recognising a numexp expression (something +|- something)"""
         exshared.setpos(loc, text)
         if DEBUG > 0:
-            print "NUM_EXP:",num
+            print("NUM_EXP:",num)
             if DEBUG == 2: self.symtab.display()
             if DEBUG > 2: return
         #iterate through all additions/substractions
@@ -1091,7 +1091,7 @@ class MicroC(object):
         """Code executed after recognising a function call (type and function name)"""
         exshared.setpos(loc, text)
         if DEBUG > 0:
-            print "FUN_PREP:",fun
+            print("FUN_PREP:",fun)
             if DEBUG == 2: self.symtab.display()
             if DEBUG > 2: return
         index = self.symtab.lookup_symbol(fun.name, SharedData.KINDS.FUNCTION)
@@ -1108,7 +1108,7 @@ class MicroC(object):
         """Code executed after recognising each of function's arguments"""
         exshared.setpos(loc, text)
         if DEBUG > 0:
-            print "ARGUMENT:",arg.exp
+            print("ARGUMENT:",arg.exp)
             if DEBUG == 2: self.symtab.display()
             if DEBUG > 2: return
         arg_ordinal = len(self.function_arguments)
@@ -1121,7 +1121,7 @@ class MicroC(object):
         """Code executed after recognising the whole function call"""
         exshared.setpos(loc, text)
         if DEBUG > 0:
-            print "FUN_CALL:",fun
+            print("FUN_CALL:",fun)
             if DEBUG == 2: self.symtab.display()
             if DEBUG > 2: return
         #check number of arguments
@@ -1143,7 +1143,7 @@ class MicroC(object):
     def relexp_action(self, text, loc, arg):
         """Code executed after recognising a relexp expression (something relop something)"""
         if DEBUG > 0:
-            print "REL_EXP:",arg
+            print("REL_EXP:",arg)
             if DEBUG == 2: self.symtab.display()
             if DEBUG > 2: return
         exshared.setpos(loc, text)
@@ -1158,7 +1158,7 @@ class MicroC(object):
         """Code executed after recognising a andexp expression (something and something)"""
         exshared.setpos(loc, text)
         if DEBUG > 0:
-            print "AND+EXP:",arg
+            print("AND+EXP:",arg)
             if DEBUG == 2: self.symtab.display()
             if DEBUG > 2: return
         label = self.codegen.label("false{0}".format(self.false_label_number), True, False)
@@ -1170,7 +1170,7 @@ class MicroC(object):
         """Code executed after recognising logexp expression (something or something)"""
         exshared.setpos(loc, text)
         if DEBUG > 0:
-            print "LOG_EXP:",arg
+            print("LOG_EXP:",arg)
             if DEBUG == 2: self.symtab.display()
             if DEBUG > 2: return
         label = self.codegen.label("true{0}".format(self.label_number), True, False)
@@ -1182,7 +1182,7 @@ class MicroC(object):
         """Code executed after recognising an if statement (if keyword)"""
         exshared.setpos(loc, text)
         if DEBUG > 0:
-            print "IF_BEGIN:",arg
+            print("IF_BEGIN:",arg)
             if DEBUG == 2: self.symtab.display()
             if DEBUG > 2: return
         self.false_label_number += 1
@@ -1193,7 +1193,7 @@ class MicroC(object):
         """Code executed after recognising if statement's body"""
         exshared.setpos(loc, text)
         if DEBUG > 0:
-            print "IF_BODY:",arg
+            print("IF_BODY:",arg)
             if DEBUG == 2: self.symtab.display()
             if DEBUG > 2: return
         #generate conditional jump (based on last compare)
@@ -1209,7 +1209,7 @@ class MicroC(object):
         """Code executed after recognising if statement's else body"""
         exshared.setpos(loc, text)
         if DEBUG > 0:
-            print "IF_ELSE:",arg
+            print("IF_ELSE:",arg)
             if DEBUG == 2: self.symtab.display()
             if DEBUG > 2: return
         #jump to exit after all statements for true condition are executed
@@ -1224,7 +1224,7 @@ class MicroC(object):
         """Code executed after recognising a whole if statement"""
         exshared.setpos(loc, text)
         if DEBUG > 0:
-            print "IF_END:",arg
+            print("IF_END:",arg)
             if DEBUG == 2: self.symtab.display()
             if DEBUG > 2: return
         self.codegen.newline_label("exit{0}".format(self.label_stack.pop()), True, True)
@@ -1233,7 +1233,7 @@ class MicroC(object):
         """Code executed after recognising a while statement (while keyword)"""
         exshared.setpos(loc, text)
         if DEBUG > 0:
-            print "WHILE_BEGIN:",arg
+            print("WHILE_BEGIN:",arg)
             if DEBUG == 2: self.symtab.display()
             if DEBUG > 2: return
         self.false_label_number += 1
@@ -1244,7 +1244,7 @@ class MicroC(object):
         """Code executed after recognising while statement's body"""
         exshared.setpos(loc, text)
         if DEBUG > 0:
-            print "WHILE_BODY:",arg
+            print("WHILE_BODY:",arg)
             if DEBUG == 2: self.symtab.display()
             if DEBUG > 2: return
         #generate conditional jump (based on last compare)
@@ -1259,7 +1259,7 @@ class MicroC(object):
         """Code executed after recognising a whole while statement"""
         exshared.setpos(loc, text)
         if DEBUG > 0:
-            print "WHILE_END:",arg
+            print("WHILE_END:",arg)
             if DEBUG == 2: self.symtab.display()
             if DEBUG > 2: return
         #jump to condition checking after while statement body
@@ -1274,7 +1274,7 @@ class MicroC(object):
         """Checks if there is a 'main' function and the type of 'main' function"""
         exshared.setpos(loc, text)
         if DEBUG > 0:
-            print "PROGRAM_END:",arg
+            print("PROGRAM_END:",arg)
             if DEBUG == 2: self.symtab.display()
             if DEBUG > 2: return
         index = self.symtab.lookup_symbol("main",SharedData.KINDS.FUNCTION)
@@ -1287,22 +1287,22 @@ class MicroC(object):
         """Parse string (helper function)"""
         try:
             return self.rProgram.ignore(cStyleComment).parseString(text, parseAll=True)
-        except SemanticException, err:
-            print err
+        except SemanticException as err:
+            print(err)
             exit(3)
-        except ParseException, err:
-            print err
+        except ParseException as err:
+            print(err)
             exit(3)
 
     def parse_file(self,filename):
         """Parse file (helper function)"""
         try:
             return self.rProgram.ignore(cStyleComment).parseFile(filename, parseAll=True)
-        except SemanticException, err:
-            print err
+        except SemanticException as err:
+            print(err)
             exit(3)
-        except ParseException, err:
-            print err
+        except ParseException as err:
+            print(err)
             exit(3)
 
 ##########################################################################################
@@ -1323,12 +1323,12 @@ if 0:
         usage = """Usage: {0} [input_file [output_file]]
     If output file is omitted, output.asm is used
     If input file is omitted, stdin is used""".format(argv[0])
-        print usage
+        print(usage)
         exit(1)
     try:
         parse = stdin if input_file == stdin else open(input_file,'r')
     except Exception:
-        print "Input file '%s' open error" % input_file
+        print("Input file '%s' open error" % input_file)
         exit(2)
     mc.parse_file(parse)
     #if you want to see the final symbol table, uncomment next line
@@ -1338,7 +1338,7 @@ if 0:
         out.write(mc.codegen.code)
         out.close
     except Exception:
-        print "Output file '%s' open error" % output_file
+        print("Output file '%s' open error" % output_file)
         exit(2)
 
 ##########################################################################################
@@ -1384,4 +1384,4 @@ if __name__ == "__main__":
 
     mc = MicroC()
     mc.parse_text(test_program_example)
-    print mc.codegen.code
+    print(mc.codegen.code)

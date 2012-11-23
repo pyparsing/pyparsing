@@ -18,6 +18,6 @@ testData = [
     ]
 
 for line in testData:
-    print commaSeparatedList.parseString(line)
-    print line.split(",")
-    print
+    print(commaSeparatedList.parseString(line))
+    print(line.split(","))
+    print()

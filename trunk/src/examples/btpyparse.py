@@ -125,4 +125,4 @@ Some introductory text
   number = {2}
 }
 """
-    print '\n\n'.join(defn.dump() for defn in parse_str(txt))
+    print('\n\n'.join(defn.dump() for defn in parse_str(txt)))

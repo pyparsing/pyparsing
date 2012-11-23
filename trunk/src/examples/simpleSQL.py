@@ -10,17 +10,17 @@ from pyparsing import Literal, CaselessLiteral, Word, Upcase, delimitedList, Opt
     ZeroOrMore, restOfLine, Keyword
 
 def test( str ):
-    print str,"->"
+    print(str,"->")
     try:
         tokens = simpleSQL.parseString( str )
-        print "tokens = ",        tokens
-        print "tokens.columns =", tokens.columns
-        print "tokens.tables =",  tokens.tables
-        print "tokens.where =", tokens.where
-    except ParseException, err:
-        print " "*err.loc + "^\n" + err.msg
-        print err
-    print
+        print("tokens = ",        tokens)
+        print("tokens.columns =", tokens.columns)
+        print("tokens.tables =",  tokens.tables)
+        print("tokens.where =", tokens.where)
+    except ParseException as err:
+        print(" "*err.loc + "^\n" + err.msg)
+        print(err)
+    print()
 
 
 # define SQL tokens

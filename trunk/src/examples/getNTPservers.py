@@ -6,7 +6,7 @@
 # Copyright 2004, by Paul McGuire
 #
 from pyparsing import Word, Combine, Suppress, CharsNotIn, nums
-import urllib
+import urllib.request, urllib.parse, urllib.error
 
 integer = Word(nums)
 ipAddress = Combine( integer + "." + integer + "." + integer + "." + integer )
@@ -17,13 +17,13 @@ timeServerPattern =  tdStart + ipAddress.setResultsName("ipAddr") + tdEnd + \
 
 # get list of time servers
 nistTimeServerURL = "http://www.boulder.nist.gov/timefreq/service/time-servers.html"
-serverListPage = urllib.urlopen( nistTimeServerURL )
+serverListPage = urllib.request.urlopen( nistTimeServerURL )
 serverListHTML = serverListPage.read()
 serverListPage.close()
 
 addrs = {}
 for srvr,startloc,endloc in timeServerPattern.scanString( serverListHTML ):
-    print srvr.ipAddr, "-", srvr.loc
+    print(srvr.ipAddr, "-", srvr.loc)
     addrs[srvr.ipAddr] = srvr.loc
     # or do this:
     #~ addr,loc = srvr

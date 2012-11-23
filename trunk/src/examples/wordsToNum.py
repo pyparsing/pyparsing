@@ -5,6 +5,7 @@
 #
 from pyparsing import *
 from operator import mul
+from functools import reduce
 
 def makeLit(s,val):
     ret = CaselessLiteral(s).setName(s)
@@ -79,17 +80,17 @@ numWords.ignore(CaselessLiteral("and"))
 def test(s,expected):
     try:
         val = numWords.parseString(s)[0]
-    except ParseException, pe:
-        print "Parsing failed:"
-        print s
-        print "%s^" % (' '*(pe.col-1))
-        print pe.msg
+    except ParseException as pe:
+        print("Parsing failed:")
+        print(s)
+        print("%s^" % (' '*(pe.col-1)))
+        print(pe.msg)
     else:
-        print "'%s' -> %d" % (s, val),
+        print("'%s' -> %d" % (s, val), end=' ')
         if val == expected:
-            print "CORRECT"
+            print("CORRECT")
         else:
-            print "***WRONG***, expected %d" % expected
+            print("***WRONG***, expected %d" % expected)
 
 test("one hundred twenty hundred", 120)
 test("one hundred and twennty", 120)

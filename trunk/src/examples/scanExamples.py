@@ -20,34 +20,34 @@ CORBA::initORB("xyzzy", USERNAME, PASSWORD );
 """
 
 #################
-print "Example of an extractor"
-print "----------------------"
+print("Example of an extractor")
+print("----------------------")
 
 # simple grammar to match #define's
 ident = Word(alphas, alphanums+"_")
 macroDef = Literal("#define") + ident.setResultsName("name") + "=" + restOfLine.setResultsName("value")
 for t,s,e in macroDef.scanString( testData ):
-    print t.name,":", t.value
+    print(t.name,":", t.value)
     
 # or a quick way to make a dictionary of the names and values 
 # (return only key and value tokens, and construct dict from key-value pairs)
 # - empty ahead of restOfLine advances past leading whitespace, does implicit lstrip during parsing
 macroDef = Suppress("#define") + ident + Suppress("=") + empty + restOfLine
 macros = dict(list(macroDef.searchString(testData)))
-print "macros =", macros
-print
+print("macros =", macros)
+print()
 
 
 #################
-print "Examples of a transformer"
-print "----------------------"
+print("Examples of a transformer")
+print("----------------------")
 
 # convert C++ namespaces to mangled C-compatible names
 scopedIdent = ident + OneOrMore( Literal("::").suppress() + ident )
 scopedIdent.setParseAction(lambda t: "_".join(t))
 
-print "(replace namespace-scoped names with C-compatible names)"
-print scopedIdent.transformString( testData )
+print("(replace namespace-scoped names with C-compatible names)")
+print(scopedIdent.transformString( testData ))
     
     
 # or a crude pre-processor (use parse actions to replace matching text)
@@ -57,14 +57,14 @@ def substituteMacro(s,l,t):
 ident.setParseAction( substituteMacro )
 ident.ignore(macroDef)
 
-print "(simulate #define pre-processor)"
-print ident.transformString( testData )
+print("(simulate #define pre-processor)")
+print(ident.transformString( testData ))
 
 
 
 #################
-print "Example of a stripper"
-print "----------------------"
+print("Example of a stripper")
+print("----------------------")
 
 from pyparsing import dblQuotedString, LineStart
 
@@ -72,4 +72,4 @@ from pyparsing import dblQuotedString, LineStart
 stringMacroDef = Literal("#define") + ident + "=" + dblQuotedString + LineStart()
 stringMacroDef.setParseAction( replaceWith("") )
 
-print stringMacroDef.transformString( testData )
+print(stringMacroDef.transformString( testData ))

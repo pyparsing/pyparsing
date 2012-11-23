@@ -71,7 +71,7 @@ rvalue << (funcCall | identifier | Word(nums))
 assignment = Group(identifier + "=" + rvalue)
 stmt << ( funcDef | assignment | identifier )
 
-print data
+print(data)
 parseTree = suite.parseString(data)
 
 import pprint

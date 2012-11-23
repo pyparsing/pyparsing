@@ -48,7 +48,7 @@ object_name = identifier
 object_type = identifier
 
 # Integer and floating point values are converted to Python longs and floats, respectively.
-int_value = Combine(Optional("-") + Word(nums)).setParseAction(lambda s,l,t: [ long(t[0]) ] )
+int_value = Combine(Optional("-") + Word(nums)).setParseAction(lambda s,l,t: [ int(t[0]) ] )
 float_value = Combine(Optional("-") + Optional(Word(nums)) + "." + Word(nums)).setParseAction(lambda s,l,t: [ float(t[0]) ] )
 number_value = float_value | int_value
 
@@ -121,7 +121,7 @@ nested_object << Group(object_definition)
 #################
 
 def printer(s, loc, tok):
-    print tok,
+    print(tok, end=' ')
     return tok
 
 def get_filename_list(tf):
@@ -162,12 +162,12 @@ def main(testfiles=None, action=printer):
             failures.append(f)
 
     if failures:
-        print '\nfailed while processing %s' % ', '.join(failures)
-    print '\nsucceeded on %d of %d files' %(success, len(testfiles))
+        print('\nfailed while processing %s' % ', '.join(failures))
+    print('\nsucceeded on %d of %d files' %(success, len(testfiles)))
 
     if len(retval) == 1 and len(testfiles) == 1:
         # if only one file is parsed, return the parseResults directly
-        return retval[retval.keys()[0]]
+        return retval[list(retval.keys())[0]]
 
     # else, return a dictionary of parseResults
     return retval

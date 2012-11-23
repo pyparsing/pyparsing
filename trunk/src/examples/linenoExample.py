@@ -18,11 +18,11 @@ of their country."""
 def reportLongWords(st,locn,toks):
     word = toks[0]
     if len(word) > 3:
-        print "Found '%s' on line %d at column %d" % (word, lineno(locn,st), col(locn,st))
-        print "The full line of text was:"
-        print "'%s'" % line(locn,st)
-        print (" "*col(locn,st))+" ^"
-        print 
+        print("Found '%s' on line %d at column %d" % (word, lineno(locn,st), col(locn,st)))
+        print("The full line of text was:")
+        print("'%s'" % line(locn,st))
+        print((" "*col(locn,st))+" ^")
+        print() 
         
 wd = Word(alphas).setParseAction( reportLongWords )
 OneOrMore(wd).parseString(data)
@@ -46,4 +46,4 @@ def createTokenObject(st,locn,toks):
 wd = Word(alphas).setParseAction( createTokenObject )
 
 for tokenObj in OneOrMore(wd).parseString(data):
-    print tokenObj
+    print(tokenObj)

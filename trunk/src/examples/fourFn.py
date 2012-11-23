@@ -116,14 +116,14 @@ if __name__ == "__main__":
             results = BNF().parseString( s, parseAll=True )
             val = evaluateStack( exprStack[:] )
         except ParseException as e:
-            print s, "failed parse:", str(pe)
+            print(s, "failed parse:", str(pe))
         except Exception as e:
-            print s, "failed eval:", str(e)
+            print(s, "failed eval:", str(e))
         else:
             if val == expVal:
-                print s, "=", val, results, "=>", exprStack
+                print(s, "=", val, results, "=>", exprStack)
             else:
-                print s+"!!!", val, "!=", expVal, results, "=>", exprStack
+                print(s+"!!!", val, "!=", expVal, results, "=>", exprStack)
   
     test( "9", 9 )
     test( "-9", -9 )

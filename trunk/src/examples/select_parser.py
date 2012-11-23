@@ -127,9 +127,9 @@ tests = """\
 for t in tests:
     t = t.strip()
     if not t: continue
-    print t
+    print(t)
     try:
-        print select_stmt.parseString(t).dump()
-    except ParseException, pe:
-        print pe.msg
-    print
+        print(select_stmt.parseString(t).dump())
+    except ParseException as pe:
+        print(pe.msg)
+    print()

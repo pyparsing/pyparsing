@@ -8,7 +8,7 @@
 #
 from pyparsing import (Word, Combine, Suppress, SkipTo, nums, makeHTMLTags,
                         delimitedList, alphas, alphanums)
-import urllib
+import urllib.request, urllib.parse, urllib.error
 
 integer = Word(nums)
 ipAddress = Combine( integer + "." + integer + "." + integer + "." + integer )
@@ -20,11 +20,11 @@ timeServerPattern =  (tdStart + hostname("hostname") + tdEnd +
 
 # get list of time servers
 nistTimeServerURL = "http://tf.nist.gov/tf-cgi/servers.cgi#"
-serverListPage = urllib.urlopen( nistTimeServerURL )
+serverListPage = urllib.request.urlopen( nistTimeServerURL )
 serverListHTML = serverListPage.read()
 serverListPage.close()
 
 addrs = {}
 for srvr,startloc,endloc in timeServerPattern.scanString( serverListHTML ):
-    print "%s (%s) - %s" % (srvr.ipAddr, srvr.hostname.strip(), srvr.loc.strip())
+    print("%s (%s) - %s" % (srvr.ipAddr, srvr.hostname.strip(), srvr.loc.strip()))
     addrs[srvr.ipAddr] = srvr.loc

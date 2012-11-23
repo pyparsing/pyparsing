@@ -61,7 +61,7 @@ test = ["9 + 2 + 3",
         "M*(X + B)",
         "1+2*-3^4*5+-+-6",]
 for t in test:
-    print t
-    print expr.parseString(t)
-    print 
+    print(t)
+    print(expr.parseString(t))
+    print() 
 

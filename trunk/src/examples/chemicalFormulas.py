@@ -16,14 +16,14 @@ atomicWeight = {
     
 def test( bnf, strg, fn=None ):
     try:
-        print strg,"->", bnf.parseString( strg ),
-    except ParseException, pe:
-        print pe
+        print(strg,"->", bnf.parseString( strg ), end=' ')
+    except ParseException as pe:
+        print(pe)
     else:
         if fn != None:
-            print fn( bnf.parseString( strg ) )
+            print(fn( bnf.parseString( strg ) ))
         else:
-            print
+            print()
 
 digits = "0123456789"
 
@@ -41,7 +41,7 @@ fn = lambda elemList : sum( [ atomicWeight[elem]*int(qty) for elem,qty in elemLi
 test( formula, "H2O", fn )
 test( formula, "C6H5OH", fn )
 test( formula, "NaCl", fn )
-print
+print()
 
 # Version 2 - access parsed items by field name
 elementRef = Group( element("symbol") + Optional( Word( digits ), default="1" )("qty") )
@@ -51,7 +51,7 @@ fn = lambda elemList : sum( [ atomicWeight[elem.symbol]*int(elem.qty) for elem i
 test( formula, "H2O", fn )
 test( formula, "C6H5OH", fn )
 test( formula, "NaCl", fn )
-print
+print()
 
 # Version 3 - convert integers during parsing process
 integer = Word( digits ).setParseAction(lambda t:int(t[0]))

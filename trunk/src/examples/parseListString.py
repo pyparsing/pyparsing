@@ -18,7 +18,7 @@ listStr = lbrack + delimitedList(listItem) + rbrack
 
 test = "['a', 100, 3.14]"
 
-print listStr.parseString(test)
+print(listStr.parseString(test))
 
 
 # second pass, cleanup and add converters
@@ -35,7 +35,7 @@ listStr = lbrack + delimitedList(listItem) + rbrack
 
 test = "['a', 100, 3.14]"
 
-print listStr.parseString(test)
+print(listStr.parseString(test))
 
 # third pass, add nested list support, and tuples, too!
 cvtInt = lambda s,l,toks: int(toks[0])
@@ -54,7 +54,7 @@ tupleStr.setParseAction( lambda t:tuple(t.asList()) )
 listStr << lbrack + delimitedList(listItem) + Optional(Suppress(",")) + rbrack
 
 test = "['a', 100, ('A', [101,102]), 3.14, [ +2.718, 'xyzzy', -1.414] ]"
-print listStr.parseString(test)
+print(listStr.parseString(test))
 
 # fourth pass, just parsing tuples of numbers
 #~ from pyparsing import *
@@ -97,4 +97,4 @@ listStr << lbrack + delimitedList(listItem) + Optional(Suppress(",")) + rbrack
 dictStr << rbrace + delimitedList( Group( listItem + colon + listItem ) ) + rbrace
 test = "['a', 100, ('A', [101,102]), 3.14, [ +2.718, 'xyzzy', -1.414] ]"
 test = '[{0: [2], 1: []}, {0: [], 1: [], 2: []}, {0: [1, 2]}]'
-print listStr.parseString(test)
+print(listStr.parseString(test))

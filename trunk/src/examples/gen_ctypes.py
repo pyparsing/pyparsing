@@ -132,36 +132,36 @@ for en_,_,_ in enum_def.scanString(c_header):
     for ev in en_.evalues:
         enum_constants.append( (ev.name, ev.value) )
 
-print "from ctypes import *"
-print "%s = CDLL('%s.dll')" % (module, module)
-print
-print "# user defined types"
+print("from ctypes import *")
+print("%s = CDLL('%s.dll')" % (module, module))
+print()
+print("# user defined types")
 for tdname,tdtyp in typedefs:
-    print "%s = %s" % (tdname, typemap[tdtyp])
+    print("%s = %s" % (tdname, typemap[tdtyp]))
 for fntd in fn_typedefs:
-    print "%s = CFUNCTYPE(%s)" % (fntd.fn_name,
-        ',\n    '.join(typeAsCtypes(a.argtype) for a in fntd.fn_args))
+    print("%s = CFUNCTYPE(%s)" % (fntd.fn_name,
+        ',\n    '.join(typeAsCtypes(a.argtype) for a in fntd.fn_args)))
 for udtype in user_defined_types:
-    print "class %s(Structure): pass" % typemap[udtype]
+    print("class %s(Structure): pass" % typemap[udtype])
 
-print
-print "# constant definitions"
+print()
+print("# constant definitions")
 for en,ev in enum_constants:
-    print "%s = %s" % (en,ev)
+    print("%s = %s" % (en,ev))
 
-print
-print "# functions"
+print()
+print("# functions")
 for fn in functions:
     prefix = "%s.%s" % (module, fn.fn_name)
     
-    print "%s.restype = %s" % (prefix, typeAsCtypes(fn.fn_type))
+    print("%s.restype = %s" % (prefix, typeAsCtypes(fn.fn_type)))
     if fn.varargs:
-        print "# warning - %s takes variable argument list" % prefix
+        print("# warning - %s takes variable argument list" % prefix)
         del fn.fn_args[-1]
 
     if fn.fn_args.asList() != [['void']]:
-        print "%s.argtypes = (%s,)" % (prefix, ','.join(typeAsCtypes(a.argtype) for a in fn.fn_args))
+        print("%s.argtypes = (%s,)" % (prefix, ','.join(typeAsCtypes(a.argtype) for a in fn.fn_args)))
     else:
-        print "%s.argtypes = ()" % (prefix)
+        print("%s.argtypes = ()" % (prefix))
         
 

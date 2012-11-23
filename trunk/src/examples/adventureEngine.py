@@ -59,16 +59,16 @@ class Room(object):
         self.inv.remove(it)
         
     def describe(self):
-        print self.desc
+        print(self.desc)
         visibleItems = [ it for it in self.inv if it.isVisible ]
         if random.random() > 0.5:
             if len(visibleItems) > 1:
                 is_form = "are"
             else:
                 is_form = "is"
-            print "There %s %s here." % (is_form, enumerateItems(visibleItems))
+            print("There %s %s here." % (is_form, enumerateItems(visibleItems)))
         else:
-            print "You see %s." % (enumerateItems(visibleItems))
+            print("You see %s." % (enumerateItems(visibleItems)))
             
 
 class Exit(Room):
@@ -100,7 +100,7 @@ class Item(object):
         
     def breakItem(self):
         if not self.isBroken:
-            print "<Crash!>"
+            print("<Crash!>")
             self.desc = "broken " + self.desc
             self.isBroken = True
 
@@ -157,7 +157,7 @@ class Command(object):
         pass
     
     def __call__(self, player ):
-        print self.verbProg.capitalize()+"..."
+        print(self.verbProg.capitalize()+"...")
         self._doCommand(player)
 
 
@@ -184,7 +184,7 @@ class MoveCommand(Command):
         if nextRoom:
             player.moveTo( nextRoom )
         else:
-            print "Can't go that way."
+            print("Can't go that way.")
 
 
 class TakeCommand(Command):
@@ -204,9 +204,9 @@ class TakeCommand(Command):
                 rm.removeItem(subj)
                 player.take(subj)
             else:
-                print subj.cantTakeMessage
+                print(subj.cantTakeMessage)
         else:
-            print "There is no %s here." % subj
+            print("There is no %s here." % subj)
 
 
 class DropCommand(Command):
@@ -225,7 +225,7 @@ class DropCommand(Command):
             rm.addItem(subj)
             player.drop(subj)
         else:
-            print "You don't have %s." % (aOrAn(subj))
+            print("You don't have %s." % (aOrAn(subj)))
 
 class InventoryCommand(Command):
     def __init__(self, quals):
@@ -236,7 +236,7 @@ class InventoryCommand(Command):
         return "INVENTORY or INV or I - lists what items you have"
         
     def _doCommand(self, player):
-        print "You have %s." % enumerateItems( player.inv )
+        print("You have %s." % enumerateItems( player.inv ))
 
 class LookCommand(Command):
     def __init__(self, quals):
@@ -272,7 +272,7 @@ class DoorsCommand(Command):
             #~ print doorNames
             reply += enumerateDoors( doorNames )
             reply += "."
-            print reply
+            print(reply)
 
 class UseCommand(Command):
     def __init__(self, quals):
@@ -294,9 +294,9 @@ class UseCommand(Command):
             if self.subject.isUsable( player, self.target ):
                 self.subject.useItem( player, self.target )
             else:
-                print "You can't use that here."
+                print("You can't use that here.")
         else:
-            print "There is no %s here to use." % self.subject
+            print("There is no %s here to use." % self.subject)
 
 class OpenCommand(Command):
     def __init__(self, quals):
@@ -315,11 +315,11 @@ class OpenCommand(Command):
                 if not self.subject.isOpened:
                     self.subject.openItem( player )
                 else:
-                    print "It's already open."
+                    print("It's already open.")
             else:
-                print "You can't open that."
+                print("You can't open that.")
         else:
-            print "There is no %s here to open." % self.subject
+            print("There is no %s here to open." % self.subject)
 
 class CloseCommand(Command):
     def __init__(self, quals):
@@ -338,11 +338,11 @@ class CloseCommand(Command):
                 if self.subject.isOpened:
                     self.subject.closeItem( player )
                 else:
-                    print "You can't close that, it's not open."
+                    print("You can't close that, it's not open.")
             else:
-                print "You can't close that."
+                print("You can't close that.")
         else:
-            print "There is no %s here to close." % self.subject
+            print("There is no %s here to close." % self.subject)
 
 class QuitCommand(Command):
     def __init__(self, quals):
@@ -353,7 +353,7 @@ class QuitCommand(Command):
         return "QUIT or Q - ends the game"
         
     def _doCommand(self, player):
-        print "Ok...."
+        print("Ok....")
         player.gameOver = True
 
 class HelpCommand(Command):
@@ -365,7 +365,7 @@ class HelpCommand(Command):
         return "HELP or H or ? - displays this help message"
         
     def _doCommand(self, player):
-        print "Enter any of the following commands (not case sensitive):"
+        print("Enter any of the following commands (not case sensitive):")
         for cmd in [
             InventoryCommand,
             DropCommand,
@@ -379,8 +379,8 @@ class HelpCommand(Command):
             QuitCommand,
             HelpCommand,
             ]:
-            print "  - %s" % cmd.helpDescription()
-        print
+            print("  - %s" % cmd.helpDescription())
+        print()
 
 class AppParseException(ParseException):
     pass
@@ -460,14 +460,14 @@ class Parser(object):
         try:
             ret = self.bnf.parseString(cmdstr)
             return ret
-        except AppParseException, pe:
-            print pe.msg
-        except ParseException, pe:
-            print random.choice([ "Sorry, I don't understand that.",
+        except AppParseException as pe:
+            print(pe.msg)
+        except ParseException as pe:
+            print(random.choice([ "Sorry, I don't understand that.",
                                    "Huh?",
                                    "Excuse me?",
                                    "???",
-                                   "What?" ] )
+                                   "What?" ] ))
     
 class Player(object):
     def __init__(self, name):
@@ -481,13 +481,13 @@ class Player(object):
         if self.gameOver:
             if rm.desc:
                 rm.describe()
-            print "Game over!"
+            print("Game over!")
         else:
             rm.describe()
     
     def take(self,it):
         if it.isDeadly:
-            print "Aaaagh!...., the %s killed me!" % it
+            print("Aaaagh!...., the %s killed me!" % it)
             self.gameOver = True
         else:
             self.inv.append(it)
@@ -553,7 +553,7 @@ def createRooms( rm ):
 
 # put items in rooms
 def putItemInRoom(i,r):
-    if isinstance(r,basestring):
+    if isinstance(r,str):
         r = rooms[r]
     r.addItem( Item.items[i] )
 
@@ -562,14 +562,14 @@ def playGame(p,startRoom):
     parser = Parser()
     p.moveTo( startRoom )
     while not p.gameOver:
-        cmdstr = raw_input(">> ")
+        cmdstr = input(">> ")
         cmd = parser.parseCmd(cmdstr)
         if cmd is not None:
             cmd.command( p )
-    print
-    print "You ended the game with:"
+    print()
+    print("You ended the game with:")
     for i in p.inv:
-        print " -", aOrAn(i)
+        print(" -", aOrAn(i))
 
 
 #====================
@@ -617,7 +617,7 @@ Item.items["shovel"].useAction = useShovel
 
 Item.items["telescope"].isTakeable = False
 def useTelescope(p,subj,target):
-    print "You don't see anything."
+    print("You don't see anything.")
 Item.items["telescope"].useAction = useTelescope
 
 OpenableItem("treasure chest", Item.items["gold bar"])

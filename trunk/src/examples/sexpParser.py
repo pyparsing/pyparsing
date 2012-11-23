@@ -156,12 +156,12 @@ t = None
 alltests = [ locals()[t] for t in sorted(locals()) if t.startswith("test") ]
 
 for t in alltests:
-    print '-'*50
-    print t
+    print('-'*50)
+    print(t)
     try:
         sexpr = sexp.parseString(t, parseAll=True)
         pprint.pprint(sexpr.asList())
-    except ParseFatalException, pfe:
-        print "Error:", pfe.msg
-        print pfe.markInputline('^')
-    print
+    except ParseFatalException as pfe:
+        print("Error:", pfe.msg)
+        print(pfe.markInputline('^'))
+    print()

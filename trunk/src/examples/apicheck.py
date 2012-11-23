@@ -42,11 +42,11 @@ test = """[ procname1  $par1 $par2 ]
 api_scanner = apiRef.scanString(test)
 while 1:
     try:
-        t,s,e = api_scanner.next()
-        print "found %s on line %d" % (t.procname, lineno(s,test))
-    except ParseSyntaxException, pe:
-        print "invalid arg count on line", pe.lineno
-        print pe.lineno,':',pe.line
+        t,s,e = next(api_scanner)
+        print("found %s on line %d" % (t.procname, lineno(s,test)))
+    except ParseSyntaxException as pe:
+        print("invalid arg count on line", pe.lineno)
+        print(pe.lineno,':',pe.line)
         # reset api scanner to start after this exception location
         test = "\n"*(pe.lineno-1)+test[pe.loc+1:]
         api_scanner = apiRef.scanString(test)

@@ -35,7 +35,7 @@ def operatorOperands(tokenlist):
     it = iter(tokenlist)
     while 1:
         try:
-            yield (it.next(), it.next())
+            yield (next(it), next(it))
         except StopIteration:
             break
             
@@ -210,18 +210,18 @@ def main():
     for test,expected in tests:
         ret = comp_expr.parseString(test)[0]
         parsedvalue = ret.eval()
-        print test, expected, parsedvalue,
+        print(test, expected, parsedvalue, end=' ')
         if parsedvalue != expected:
-            print "<<< FAIL"
+            print("<<< FAIL")
             failed += 1
         else:
-            print
+            print()
             
-    print
+    print()
     if failed:
-        print failed, "tests FAILED"
+        print(failed, "tests FAILED")
     else:
-        print "all tests PASSED"
+        print("all tests PASSED")
 
 if __name__=='__main__': 
     main()

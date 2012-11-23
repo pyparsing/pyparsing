@@ -316,15 +316,15 @@ failtests = r"""
     """.splitlines()
     
 allpass = True
-for t in filter(None,map(str.strip,tests)):
-    print t
+for t in [_f for _f in map(str.strip,tests) if _f]:
+    print(t)
     try:
         #~ expression.parseString(t,parseAll=True)
-        print expression.parseString(t,parseAll=True)
-    except ParseException, pe:
-        print t
-        print pe
+        print(expression.parseString(t,parseAll=True))
+    except ParseException as pe:
+        print(t)
+        print(pe)
         allpass = False
-    print
+    print()
     
-print ("OK", "FAIL")[not allpass]
+print(("OK", "FAIL")[not allpass])

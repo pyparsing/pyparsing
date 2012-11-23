@@ -13,8 +13,8 @@ koreanWord = Word(koreanChars,min=2)
 greet = koreanWord + "," + koreanWord + "!"
 
 # input string
-hello = u'\uc548\ub155, \uc5ec\ub7ec\ubd84!' #"Hello, World!" in Korean
+hello = '\uc548\ub155, \uc5ec\ub7ec\ubd84!' #"Hello, World!" in Korean
 
 # parse input string
-print greet.parseString( hello )
+print(greet.parseString( hello ))
 

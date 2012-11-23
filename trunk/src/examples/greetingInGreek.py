@@ -7,12 +7,12 @@
 from pyparsing import Word 
 
 # define grammar
-alphas = u''.join(unichr(x) for x in xrange(0x386, 0x3ce)) 
-greet = Word(alphas) + u',' + Word(alphas) + u'!' 
+alphas = ''.join(chr(x) for x in range(0x386, 0x3ce)) 
+greet = Word(alphas) + ',' + Word(alphas) + '!' 
 
 # input string
 hello = "Καλημέρα, κόσμε!".decode('utf-8') 
 
 # parse input string
-print greet.parseString( hello )
+print(greet.parseString( hello ))
 

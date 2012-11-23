@@ -1,9 +1,9 @@
-import urllib
+import urllib.request, urllib.parse, urllib.error
 
 from pyparsing import makeHTMLTags, SkipTo
 
 # read HTML from a web page
-serverListPage = urllib.urlopen( "http://www.yahoo.com" )
+serverListPage = urllib.request.urlopen( "http://www.yahoo.com" )
 htmlText = serverListPage.read()
 serverListPage.close()
 
@@ -18,4 +18,4 @@ anchor = anchorStart + SkipTo(anchorEnd)("body") + anchorEnd
 # (note the href attribute of the opening A tag is available
 # as an attribute in the returned parse results)
 for tokens,start,end in anchor.scanString(htmlText):
-    print tokens.body,'->',tokens.href
+    print(tokens.body,'->',tokens.href)

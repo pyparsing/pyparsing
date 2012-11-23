@@ -5,10 +5,10 @@
 #  mismatches
 from pyparsing import *
 
-import urllib
+import urllib.request, urllib.parse, urllib.error
 
 # read in a bunch of genomic data
-datafile = urllib.urlopen("http://toxodb.org/common/downloads/release-6.0/Tgondii/TgondiiApicoplastORFsNAs_ToxoDB-6.0.fasta")
+datafile = urllib.request.urlopen("http://toxodb.org/common/downloads/release-6.0/Tgondii/TgondiiApicoplastORFsNAs_ToxoDB-6.0.fasta")
 fastasrc = datafile.read()
 datafile.close()
 
@@ -72,17 +72,17 @@ class CloseMatch(Token):
 # using the genedata extracted above, look for close matches of a gene sequence
 searchseq = CloseMatch("TTAAATCTAGAAGAT", 3)
 for g in genedata: 
-    print "%s (%d)" % (g.id, g.genelen) 
-    print "-"*24 
+    print("%s (%d)" % (g.id, g.genelen)) 
+    print("-"*24) 
     for t,startLoc,endLoc in searchseq.scanString(g.gene, overlap=True): 
         matched, mismatches = t[0] 
-        print "MATCH:", searchseq.sequence 
-        print "FOUND:", matched 
+        print("MATCH:", searchseq.sequence) 
+        print("FOUND:", matched) 
         if mismatches: 
-            print "      ", ''.join(' ' if i not in mismatches else '*'  
-                            for i,c in enumerate(searchseq.sequence)) 
+            print("      ", ''.join(' ' if i not in mismatches else '*'  
+                            for i,c in enumerate(searchseq.sequence))) 
         else: 
-            print "<exact match>" 
-        print "at location", startLoc 
-        print 
-    print 
+            print("<exact match>") 
+        print("at location", startLoc) 
+        print() 
+    print() 

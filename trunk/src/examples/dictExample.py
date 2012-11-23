@@ -34,8 +34,8 @@ datatable = heading + Dict( ZeroOrMore(rowData) ) + trailing
 
 # now parse data and print results
 data = datatable.parseString(testData)
-print data
+print(data)
 pprint.pprint(data.asList())
-print "data keys=", data.keys()
-print "data['min']=", data['min']
-print "data.max", data.max
+print("data keys=", list(data.keys()))
+print("data['min']=", data['min'])
+print("data.max", data.max)

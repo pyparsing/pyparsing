@@ -18,9 +18,9 @@ person_data = dob_ref | id_ref | info_ref
 
 for test in (samplestr1,samplestr2,samplestr3,samplestr4,):
     person = sum(person_data.searchString(test))
-    print person.id
-    print person.dump()
-    print
+    print(person.id)
+    print(person.dump())
+    print()
 
     
     

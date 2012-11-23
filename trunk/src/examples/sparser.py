@@ -85,11 +85,11 @@ def debug(ftn, txt):
 def fatal(ftn, txt):
     """If can't continue."""
     msg = "%s.%s:FATAL:%s\n" % (modname, ftn, txt)
-    raise SystemExit, msg
+    raise SystemExit(msg)
  
 def usage():
     """Prints the docstring."""
-    print __doc__
+    print(__doc__)
 
 
 
@@ -140,18 +140,18 @@ class ParseFileLineByLine:
         definition file is available __init__ will then create some pyparsing
         helper variables.  """
         if mode not in ['r', 'w', 'a']:
-            raise IOError, (0, 'Illegal mode: ' + repr(mode))
+            raise IOError(0, 'Illegal mode: ' + repr(mode))
 
         if string.find(filename, ':/') > 1: # URL
             if mode == 'w':
-                raise IOError, "can't write to a URL"
-            import urllib
-            self.file = urllib.urlopen(filename)
+                raise IOError("can't write to a URL")
+            import urllib.request, urllib.parse, urllib.error
+            self.file = urllib.request.urlopen(filename)
         else:
             filename = os.path.expanduser(filename)
             if mode == 'r' or mode == 'a':
                 if not os.path.exists(filename):
-                    raise IOError, (2, 'No such file or directory: ' + filename)
+                    raise IOError(2, 'No such file or directory: ' + filename)
             filen, file_extension = os.path.splitext(filename)
             command_dict = {
               ('.Z', 'r'): 
@@ -174,8 +174,8 @@ class ParseFileLineByLine:
                 "raise IOError, (0, 'Can\'t append to .bz2 files')",
                            }
 
-            exec command_dict.get((file_extension, mode), 
-                                  'self.file = open(filename, mode)')
+            exec(command_dict.get((file_extension, mode), 
+                                  'self.file = open(filename, mode)'))
 
         self.grammar = None
 
@@ -259,7 +259,7 @@ class ParseFileLineByLine:
 
         # Now that 'integer', 'real', and 'qString' have been assigned I can
         # execute the definition file.  
-        execfile(self.parsedef)
+        exec(compile(open(self.parsedef).read(), self.parsedef, 'exec'))
 
         # Build the grammar, combination of the 'integer', 'real, 'qString',
         # and '*_junk' variables assigned above in the order specified in the
@@ -335,7 +335,7 @@ def main(pargs):
     input_file = sys.argv[1]
     fp = ParseFileLineByLine(input_file)
     for i in fp:
-        print i
+        print(i)
 
     
 #-------------------------
@@ -345,11 +345,11 @@ if __name__ == '__main__':
                  ['help', 'version', 'debug', 'bb='])
     for opt in opts:
         if opt[0] == '-h' or opt[0] == '--help':
-            print modname+": version="+__version__
+            print(modname+": version="+__version__)
             usage()
             sys.exit(0)
         elif opt[0] == '-v' or opt[0] == '--version':
-            print modname+": version="+__version__
+            print(modname+": version="+__version__)
             sys.exit(0)
         elif opt[0] == '-d' or opt[0] == '--debug':
             debug_p = 1

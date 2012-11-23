@@ -234,17 +234,17 @@ def main():
     for t in tests:
         t = t.strip()
         if not t: continue
-        print '-'*50
-        print t
+        print('-'*50)
+        print(t)
         try:
-            print count(invert(t))
+            print(count(invert(t)))
             for s in invert(t):
-                print s
-        except ParseFatalException,pfe:
-            print pfe.msg
-            print
+                print(s)
+        except ParseFatalException as pfe:
+            print(pfe.msg)
+            print()
             continue
-        print
+        print()
 
 if __name__ == "__main__":
     main()

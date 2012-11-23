@@ -13,4 +13,4 @@ cExpr = Word("C", nums)
 grammar = ZeroOrMore(aExpr("A*") | bExpr("B*") | cExpr("C*"))
 
 results = grammar.parseString("A1 B1 A2 C1 B2 A3")
-print results.dump()
+print(results.dump())

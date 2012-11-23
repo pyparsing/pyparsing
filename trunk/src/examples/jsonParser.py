@@ -58,7 +58,7 @@ def convertNumbers(s,l,toks):
     n = toks[0]
     try:
         return int(n)
-    except ValueError, ve:
+    except ValueError as ve:
         return float(n)
         
 jsonNumber.setParseAction( convertNumbers )
@@ -97,10 +97,10 @@ if __name__ == "__main__":
     import pprint
     results = jsonObject.parseString(testdata)
     pprint.pprint( results.asList() )
-    print
+    print()
     def testPrint(x):
-        print type(x),repr(x)
-    print results.glossary.GlossDiv.GlossList.keys()
+        print(type(x),repr(x))
+    print(list(results.glossary.GlossDiv.GlossList.keys()))
     testPrint( results.glossary.title )
     testPrint( results.glossary.GlossDiv.GlossList.ID )
     testPrint( results.glossary.GlossDiv.GlossList.FalseValue )

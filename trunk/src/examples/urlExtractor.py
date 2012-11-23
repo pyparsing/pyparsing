@@ -2,7 +2,7 @@
 # Copyright 2004, Paul McGuire
 from pyparsing import Literal,Suppress,CharsNotIn,CaselessLiteral,\
         Word,dblQuotedString,alphanums,SkipTo
-import urllib
+import urllib.request, urllib.parse, urllib.error
 import pprint
 
 # Define the pyparsing grammar for a URL, that is:
@@ -18,7 +18,7 @@ linkCloseTag = Literal("<") + "/" + CaselessLiteral("a") + ">"
 link = linkOpenTag + SkipTo(linkCloseTag) + linkCloseTag.suppress()
 
 # Go get some HTML with some links in it.
-serverListPage = urllib.urlopen( "http://www.yahoo.com" )
+serverListPage = urllib.request.urlopen( "http://www.yahoo.com" )
 htmlText = serverListPage.read()
 serverListPage.close()
 
@@ -26,7 +26,7 @@ serverListPage.close()
 # match yields the tokens and start and end locations (for this application, we are
 # not interested in the start and end values).
 for toks,strt,end in link.scanString(htmlText):
-    print toks.asList()
+    print(toks.asList())
 
 # Rerun scanString, but this time create a dict of text:URL key-value pairs.
 # Need to reverse the tokens returned by link, using a parse action.

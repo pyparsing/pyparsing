@@ -56,12 +56,12 @@ tests = """['a', 100, ('A', [101,102]), 3.14, [ +2.718, 'xyzzy', -1.414] ]
            'a quoted string'""".split("\n")
 
 for test in tests:
-    print "Test:", test.strip()
+    print("Test:", test.strip())
     result = listItem.parseString(test)[0]
-    print "Result:", result
+    print("Result:", result)
     try:
         for dd in result:
-            if isinstance(dd,dict): print dd.items()
-    except TypeError,te:
+            if isinstance(dd,dict): print(list(dd.items()))
+    except TypeError as te:
         pass
-    print
+    print()

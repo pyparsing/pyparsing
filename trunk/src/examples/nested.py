@@ -22,9 +22,9 @@ data = """
 
 # use {}'s for nested lists
 nestedItems = nestedExpr("{", "}")
-print( (nestedItems+stringEnd).parseString(data).asList() )
+print(( (nestedItems+stringEnd).parseString(data).asList() ))
 
 # use default delimiters of ()'s
 mathExpr = nestedExpr()
-print( mathExpr.parseString( "((( ax + by)*C) *(Z | (E^F) & D))") )
+print(( mathExpr.parseString( "((( ax + by)*C) *(Z | (E^F) & D))") ))
 

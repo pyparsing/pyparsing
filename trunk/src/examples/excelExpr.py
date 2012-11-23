@@ -65,8 +65,8 @@ test3 = "=if(Sum(A1:A25)>42,Min(B1:B25), " \
 test3a = "=sum(a1:a25,10,min(b1,c2,d3))"
 
 import pprint
-tests = [locals()[t] for t in locals().keys() if t.startswith("test")]
+tests = [locals()[t] for t in list(locals().keys()) if t.startswith("test")]
 for test in tests:
-    print test
+    print(test)
     pprint.pprint( (EQ + expr).parseString(test,parseAll=True).asList() )
-    print 
+    print() 

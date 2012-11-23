@@ -27,6 +27,6 @@ urlRef = QuotedString("{{",endQuoteChar="}}").setParseAction(convertToHTML_A)
 
 wikiMarkup = urlRef | boldItalicized | bolded | italicized
 
-print wikiInput
-print
-print wikiMarkup.transformString(wikiInput)
+print(wikiInput)
+print()
+print(wikiMarkup.transformString(wikiInput))
