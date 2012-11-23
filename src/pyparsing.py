@@ -91,47 +91,36 @@ __all__ = [
 'indentedBlock', 'originalTextFor', 'ungroup', 'infixNotation',
 ]
 
-"""
-Detect if we are running version 3.X and make appropriate changes
-Robert A. Clark
-"""
-_PY3K = sys.version_info[0] > 2
-if _PY3K:
-    _MAX_INT = sys.maxsize
-    basestring = str
-    unichr = chr
-    _ustr = str
-else:
-    _MAX_INT = sys.maxint
-    range = xrange
-    set = lambda s : dict( [(c,0) for c in s] )
+_MAX_INT = sys.maxint
+range = xrange
+set = lambda s : dict( [(c,0) for c in s] )
 
-    def _ustr(obj):
-        """Drop-in replacement for str(obj) that tries to be Unicode friendly. It first tries
-           str(obj). If that fails with a UnicodeEncodeError, then it tries unicode(obj). It
-           then < returns the unicode object | encodes it with the default encoding | ... >.
-        """
-        if isinstance(obj,unicode):
-            return obj
+def _ustr(obj):
+    """Drop-in replacement for str(obj) that tries to be Unicode friendly. It first tries
+       str(obj). If that fails with a UnicodeEncodeError, then it tries unicode(obj). It
+       then < returns the unicode object | encodes it with the default encoding | ... >.
+    """
+    if isinstance(obj,unicode):
+        return obj
 
-        try:
-            # If this works, then _ustr(obj) has the same behaviour as str(obj), so
-            # it won't break any existing code.
-            return str(obj)
+    try:
+        # If this works, then _ustr(obj) has the same behaviour as str(obj), so
+        # it won't break any existing code.
+        return str(obj)
 
-        except UnicodeEncodeError:
-            # The Python docs (http://docs.python.org/ref/customization.html#l2h-182)
-            # state that "The return value must be a string object". However, does a
-            # unicode object (being a subclass of basestring) count as a "string
-            # object"?
-            # If so, then return a unicode object:
-            return unicode(obj)
-            # Else encode it... but how? There are many choices... :)
-            # Replace unprintables with escape codes?
-            #return unicode(obj).encode(sys.getdefaultencoding(), 'backslashreplace_errors')
-            # Replace unprintables with question marks?
-            #return unicode(obj).encode(sys.getdefaultencoding(), 'replace')
-            # ...
+    except UnicodeEncodeError:
+        # The Python docs (http://docs.python.org/ref/customization.html#l2h-182)
+        # state that "The return value must be a string object". However, does a
+        # unicode object (being a subclass of basestring) count as a "string
+        # object"?
+        # If so, then return a unicode object:
+        return unicode(obj)
+        # Else encode it... but how? There are many choices... :)
+        # Replace unprintables with escape codes?
+        #return unicode(obj).encode(sys.getdefaultencoding(), 'backslashreplace_errors')
+        # Replace unprintables with question marks?
+        #return unicode(obj).encode(sys.getdefaultencoding(), 'replace')
+        # ...
 
 # build list of single arg builtins, tolerant of Python version, that can be used as parse actions
 singleArgBuiltins = []
@@ -860,15 +849,12 @@ class ParserElement(object):
                     loc,tokens = self.parseImpl( instring, preloc, doActions )
                 except IndexError:
                     raise ParseException( instring, len(instring), self.errmsg, self )
-            except ParseBaseException:
+            except ParseBaseException, err:
                 #~ print ("Exception raised:", err)
                 err = None
                 if self.debugActions[2]:
-                    err = sys.exc_info()[1]
                     self.debugActions[2]( instring, tokensStart, self, err )
                 if self.failAction:
-                    if err is None:
-                        err = sys.exc_info()[1]
                     self.failAction( instring, tokensStart, self, err )
                 raise
         else:
@@ -898,10 +884,9 @@ class ParserElement(object):
                                                       self.resultsName,
                                                       asList=self.saveAsList and isinstance(tokens,(ParseResults,list)),
                                                       modal=self.modalResults )
-                except ParseBaseException:
+                except ParseBaseException, err:
                     #~ print "Exception raised in user parse action:", err
                     if (self.debugActions[2] ):
-                        err = sys.exc_info()[1]
                         self.debugActions[2]( instring, tokensStart, self, err )
                     raise
             else:
@@ -940,8 +925,7 @@ class ParserElement(object):
                 value = self._parseNoCache( instring, loc, doActions, callPreParse )
                 ParserElement._exprArgCache[ lookup ] = (value[0],value[1].copy())
                 return value
-            except ParseBaseException:
-                pe = sys.exc_info()[1]
+            except ParseBaseException, pe:
                 ParserElement._exprArgCache[ lookup ] = pe
                 raise
 
@@ -1011,12 +995,11 @@ class ParserElement(object):
                 loc = self.preParse( instring, loc )
                 se = Empty() + StringEnd()
                 se._parse( instring, loc )
-        except ParseBaseException:
+        except ParseBaseException, exc:
             if ParserElement.verbose_stacktrace:
                 raise
             else:
                 # catch and re-raise exception from here, clears out pyparsing internal stack trace
-                exc = sys.exc_info()[1]
                 raise exc
         else:
             return tokens
@@ -1064,12 +1047,11 @@ class ParserElement(object):
                             loc = nextLoc
                     else:
                         loc = preloc+1
-        except ParseBaseException:
+        except ParseBaseException, exc:
             if ParserElement.verbose_stacktrace:
                 raise
             else:
                 # catch and re-raise exception from here, clears out pyparsing internal stack trace
-                exc = sys.exc_info()[1]
                 raise exc
 
     def transformString( self, instring ):
@@ -1098,12 +1080,11 @@ class ParserElement(object):
             out.append(instring[lastE:])
             out = [o for o in out if o]
             return "".join(map(_ustr,_flatten(out)))
-        except ParseBaseException:
+        except ParseBaseException, exc:
             if ParserElement.verbose_stacktrace:
                 raise
             else:
                 # catch and re-raise exception from here, clears out pyparsing internal stack trace
-                exc = sys.exc_info()[1]
                 raise exc
 
     def searchString( self, instring, maxMatches=_MAX_INT ):
@@ -1113,12 +1094,11 @@ class ParserElement(object):
         """
         try:
             return ParseResults([ t for t,s,e in self.scanString( instring, maxMatches ) ])
-        except ParseBaseException:
+        except ParseBaseException, exc:
             if ParserElement.verbose_stacktrace:
                 raise
             else:
                 # catch and re-raise exception from here, clears out pyparsing internal stack trace
-                exc = sys.exc_info()[1]
                 raise exc
 
     def __add__(self, other ):
@@ -1396,10 +1376,12 @@ class ParserElement(object):
             f.close()
         try:
             return self.parseString(file_contents, parseAll)
-        except ParseBaseException:
-            # catch and re-raise exception from here, clears out pyparsing internal stack trace
-            exc = sys.exc_info()[1]
-            raise exc
+        except ParseBaseException, exc:
+            if ParserElement.verbose_stacktrace:
+                raise
+            else:
+                # catch and re-raise exception from here, clears out pyparsing internal stack trace
+                raise exc
 
     def getException(self):
         return ParseException("",0,self.errmsg,self)
@@ -2348,8 +2330,7 @@ class And(ParseExpression):
                     loc, exprtokens = e._parse( instring, loc, doActions )
                 except ParseSyntaxException:
                     raise
-                except ParseBaseException:
-                    pe = sys.exc_info()[1]
+                except ParseBaseException, pe:
                     raise ParseSyntaxException(pe)
                 except IndexError:
                     raise ParseSyntaxException( ParseException(instring, len(instring), self.errmsg, self) )
@@ -2401,8 +2382,7 @@ class Or(ParseExpression):
         for e in self.exprs:
             try:
                 loc2 = e.tryParse( instring, loc )
-            except ParseException:
-                err = sys.exc_info()[1]
+            except ParseException, err:
                 if err.loc > maxExcLoc:
                     maxException = err
                     maxExcLoc = err.loc
@@ -2984,7 +2964,7 @@ class Upcase(TokenConverter):
                        DeprecationWarning,stacklevel=2)
 
     def postParse( self, instring, loc, tokenlist ):
-        return list(map( string.upper, tokenlist ))
+        return list(map( str.upper, tokenlist ))
 
 
 class Combine(TokenConverter):
@@ -3096,8 +3076,7 @@ def traceParseAction(f):
         sys.stderr.write( ">>entering %s(line: '%s', %d, %s)\n" % (thisFunc,line(l,s),l,t) )
         try:
             ret = f(*paArgs)
-        except Exception:
-            exc = sys.exc_info()[1]
+        except Exception, exc:
             sys.stderr.write( "<<leaving %s (exception: %s)\n" % (thisFunc,exc) )
             raise
         sys.stderr.write( "<<leaving %s (ret: %s)\n" % (thisFunc,ret) )
@@ -3709,8 +3688,7 @@ if __name__ == "__main__":
             print ("tokens.columns = " + str(tokens.columns))
             print ("tokens.tables = "  + str(tokens.tables))
             print (tokens.asXML("SQL",True))
-        except ParseBaseException:
-            err = sys.exc_info()[1]
+        except ParseBaseException, err:
             print (teststring + "->")
             print (err.line)
             print (" "*(err.column-1) + "^")
