@@ -633,7 +633,7 @@ def _trim_arity(func, maxargs=3):
                 if limit == maxargs:
                     raise
                 limit += 1
-                    continue
+                continue
     return wrapper
     
 class ParserElement(object):
