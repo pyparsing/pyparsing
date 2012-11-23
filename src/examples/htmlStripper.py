@@ -7,7 +7,7 @@
 # Copyright (c) 2006, Paul McGuire
 #
 from pyparsing import *
-import urllib
+import urllib.request, urllib.parse, urllib.error
 
 removeText = replaceWith("")
 scriptOpen,scriptClose = makeHTMLTags("script")
@@ -23,7 +23,7 @@ commonHTMLEntity.setParseAction(replaceHTMLEntity)
 
 # get some HTML
 targetURL = "http://wiki.python.org/moin/PythonDecoratorLibrary"
-targetPage = urllib.urlopen( targetURL )
+targetPage = urllib.request.urlopen( targetURL )
 targetHTML = targetPage.read()
 targetPage.close()
 
@@ -36,4 +36,4 @@ repeatedNewlines = LineEnd() + OneOrMore(LineEnd())
 repeatedNewlines.setParseAction(replaceWith("\n\n"))
 secondPass = repeatedNewlines.transformString(firstPass)
 
-print secondPass
+print(secondPass)

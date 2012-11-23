@@ -36,25 +36,25 @@ datatable = heading + Dict( ZeroOrMore(rowData) ) + trailing
 
 # now parse data and print results
 data = datatable.parseString(testData)
-print data
-print data.asXML("DATA")
+print(data)
+print(data.asXML("DATA"))
 pprint.pprint(data.asList())
-print "data keys=", data.keys()
-print "data['min']=", data['min']
-print "sum(data['min']) =", sum(data['min'])
-print "data.max =", data.max
-print "sum(data.max) =", sum(data.max)
+print("data keys=", list(data.keys()))
+print("data['min']=", data['min'])
+print("sum(data['min']) =", sum(data['min']))
+print("data.max =", data.max)
+print("sum(data.max) =", sum(data.max))
 
 # now print transpose of data table, using column labels read from table header and 
 # values from data lists
-print 
-print " " * 5,
+print() 
+print(" " * 5, end=' ')
 for i in range(1,len(data)):
-    print "|%5s" % data[i][0],
-print
-print ("-" * 6) + ("+------" * (len(data)-1))
+    print("|%5s" % data[i][0], end=' ')
+print()
+print(("-" * 6) + ("+------" * (len(data)-1)))
 for i in range(len(data.columns)):
-    print "%5s" % data.columns[i],
+    print("%5s" % data.columns[i], end=' ')
     for j in range(len(data) - 1):
-        print '|%5s' % data[j + 1][i + 1],
-    print 
+        print('|%5s' % data[j + 1][i + 1], end=' ')
+    print() 

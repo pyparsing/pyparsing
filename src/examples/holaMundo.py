@@ -1,3 +1,5 @@
+# -*- coding: UTF-8 -*-
+
 # escrito por Marco Alfonso, 2004 Noviembre
 
 # importamos el modulo 
@@ -14,7 +16,7 @@ tokens = saludo.parseString("Hola, Mundo !")
 # el metodo parseString, nos devuelve una lista con los tokens 
 # encontrados, en caso de no haber errores... 
 for i in range(len(tokens)):
-    print "Token %d -> %s" % (i,tokens[i]) 
+    print ("Token %d -> %s" % (i,tokens[i]))
 
 #imprimimos cada uno de los tokens Y listooo!!, he aquí la salida 
 # Token 0—> Hola Token 1—> , Token 2—> Mundo Token 3—> ! 
@@ -23,6 +25,6 @@ for i in range(len(tokens)):
 numimag = Word(nums) + 'i' 
 numreal = Word(nums) 
 numcomplex = numreal + '+' + numimag 
-print numcomplex.parseString("3+5i") 
- 
+print (numcomplex.parseString("3+5i"))
+
 # Excelente!!, bueno, los dejo, me voy a seguir tirando código…

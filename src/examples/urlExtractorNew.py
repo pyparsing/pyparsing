@@ -2,7 +2,7 @@
 # Copyright 2004, Paul McGuire
 from pyparsing import Literal,Suppress,CharsNotIn,CaselessLiteral,\
         Word,dblQuotedString,alphanums,SkipTo,makeHTMLTags
-import urllib
+import urllib.request, urllib.parse, urllib.error
 import pprint
 
 # Define the pyparsing grammar for a URL, that is:
@@ -15,7 +15,7 @@ linkOpenTag,linkCloseTag = makeHTMLTags("a")
 link = linkOpenTag + SkipTo(linkCloseTag).setResultsName("body") + linkCloseTag.suppress()
 
 # Go get some HTML with some links in it.
-serverListPage = urllib.urlopen( "http://www.google.com" )
+serverListPage = urllib.request.urlopen( "http://www.google.com" )
 htmlText = serverListPage.read()
 serverListPage.close()
 
@@ -23,7 +23,7 @@ serverListPage.close()
 # match yields the tokens and start and end locations (for this application, we are
 # not interested in the start and end values).
 for toks,strt,end in link.scanString(htmlText):
-    print toks.startA.href,"->",toks.body
+    print(toks.startA.href,"->",toks.body)
 
 # Create dictionary from list comprehension, assembled from each pair of tokens returned 
 # from a matched URL.

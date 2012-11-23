@@ -28,8 +28,8 @@ def matchingCloseTag(other):
 for m in originalTextFor(anyOpenTag + SkipTo(matchingCloseTag(anyOpenTag), 
                                               include=True,
                                               failOn=anyOpenTag) ).searchString(src):
-    print m.dump()
+    print(m.dump())
 
 for m in originalTextFor(anyOpenTag + SkipTo(matchingCloseTag(anyOpenTag), 
                                               include=True) ).searchString(src):
-    print m.dump()
+    print(m.dump())

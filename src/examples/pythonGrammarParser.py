@@ -138,7 +138,7 @@ class SemanticGroup(object):
         
     def __str__(self):
         return "%s(%s)" % (self.label, 
-                " ".join([isinstance(c,basestring) and c or str(c) for c in self.contents]) )
+                " ".join([isinstance(c,str) and c or str(c) for c in self.contents]) )
         
 class OrList(SemanticGroup):
     label = "OR"
@@ -158,7 +158,7 @@ class Atom(SemanticGroup):
             self.rep = contents[1]
         else:
             self.rep = ""
-        if isinstance(contents,basestring):
+        if isinstance(contents,str):
             self.contents = contents
         else:
             self.contents = contents[0]
@@ -212,9 +212,9 @@ assert len(bnfDefs) == expected, \
 
 # list out defns in order they were parsed (to verify accuracy of parsing)
 for k,v in bnfDefs:
-    print k,"=",v
-print
+    print(k,"=",v)
+print()
 
 # list out parsed grammar defns (demonstrates dictionary access to parsed tokens)
-for k in bnfDefs.keys():
-    print k,"=",bnfDefs[k]
+for k in list(bnfDefs.keys()):
+    print(k,"=",bnfDefs[k])

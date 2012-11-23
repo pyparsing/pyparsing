@@ -29,7 +29,7 @@ macros = {}
 def processMacroDefn(s,l,t):
     macroVal = macroExpander.transformString(t.value)
     macros[t.macro] = macroVal
-    macroExpr << MatchFirst( map(Keyword,macros.keys()) )
+    macroExpr << MatchFirst( list(map(Keyword,list(macros.keys()))) )
     return "#def " + t.macro + " " + macroVal
 
 # parse action to replace macro references with their respective definition
@@ -55,5 +55,5 @@ testString = """
     typedef char[ALEN] Acharbuf;
     """
 
-print macroExpander.transformString(testString)
-print macros
+print(macroExpander.transformString(testString))
+print(macros)

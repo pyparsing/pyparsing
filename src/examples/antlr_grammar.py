@@ -159,13 +159,13 @@ def antlrConverter(antlrGrammarTree):
     antlrTokens = {}
     for antlrToken in antlrGrammarTree.tokens:
         antlrTokens[antlrToken.token_ref] = antlrToken.lit
-    for antlrTokenName, antlrToken in antlrTokens.items():
+    for antlrTokenName, antlrToken in list(antlrTokens.items()):
         pyparsingRules[antlrTokenName] = Literal(antlrToken)
     antlrRules = {}
     for antlrRule in antlrGrammarTree.rules:
         antlrRules[antlrRule.ruleName] = antlrRule
         pyparsingRules[antlrRule.ruleName] = Forward() # antlr is a top down grammar
-    for antlrRuleName, antlrRule in antlrRules.items():
+    for antlrRuleName, antlrRule in list(antlrRules.items()):
         pyparsingRule = __antlrRuleConverter(pyparsingRules, antlrRule)
         assert pyparsingRule != None
         pyparsingRules[antlrRuleName] << pyparsingRule 
@@ -211,8 +211,8 @@ fragment DIGIT    : '0'..'9' ;
     
     grammar().validate()
     antlrGrammarTree = grammar().parseString(text)
-    print antlrGrammarTree.asXML("antlrGrammarTree")
+    print(antlrGrammarTree.asXML("antlrGrammarTree"))
     pyparsingRules = antlrConverter(antlrGrammarTree)
     pyparsingRule = pyparsingRules["expr"]
     pyparsingTree = pyparsingRule.parseString("2 - 5 * 42 + 7 / 25")
-    print pyparsingTree.asXML("pyparsingTree")
+    print(pyparsingTree.asXML("pyparsingTree"))

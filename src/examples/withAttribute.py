@@ -21,4 +21,4 @@ patt = tdS + fontS + NBSP + realNum("value") + NBSP + fontE + tdE
 
 tdS.setParseAction( withAttribute(align="right",width="80") )
 for s in patt.searchString(data):
-    print s.value
+    print(s.value)

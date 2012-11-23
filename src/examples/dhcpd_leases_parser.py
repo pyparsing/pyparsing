@@ -82,6 +82,6 @@ leaseDef = "lease" + ipAddress("ipaddress") + LBRACE + \
                             Dict(ZeroOrMore(Group(leaseStatement))) + RBRACE
 
 for lease in leaseDef.searchString(sample):
-    print lease.dump()
-    print lease.ipaddress,'->',lease.hardware.mac
-    print
+    print(lease.dump())
+    print(lease.ipaddress,'->',lease.hardware.mac)
+    print()

@@ -1,7 +1,7 @@
-print 'Importing pyparsing...'
+print('Importing pyparsing...')
 from pyparsing import *
 
-print 'Constructing EBNF parser with pyparsing...'
+print('Constructing EBNF parser with pyparsing...')
 import ebnf
 import sets
 
@@ -34,7 +34,7 @@ table['terminal_string'] = sglQuotedString
 table['meta_identifier'] = Word(alphas+"_", alphas+"_"+nums)
 table['integer'] = Word(nums)
 
-print 'Parsing EBNF grammar with EBNF parser...'
+print('Parsing EBNF grammar with EBNF parser...')
 parsers = ebnf.parse(grammar, table)
 ebnf_parser = parsers['syntax']
 
@@ -44,7 +44,7 @@ def tallyCommentChars(s,l,t):
     global commentcharcount,commentlocs
     # only count this comment if we haven't seen it before
     if l not in commentlocs:
-        charCount = ( len(t[0]) - len(filter(str.isspace, t[0])) )
+        charCount = ( len(t[0]) - len(list(filter(str.isspace, t[0]))) )
         commentcharcount += charCount
         commentlocs.add(l)
     return l,t
@@ -53,14 +53,14 @@ def tallyCommentChars(s,l,t):
 ebnf.ebnfComment.setParseAction( tallyCommentChars )
 ebnf_parser.ignore( ebnf.ebnfComment )
 
-print 'Parsing EBNF grammar with generated EBNF parser...\n'
+print('Parsing EBNF grammar with generated EBNF parser...\n')
 parsed_chars = ebnf_parser.parseString(grammar)
 parsed_char_len = len(parsed_chars)
 
-print "],\n".join(str( parsed_chars.asList() ).split("],"))
+print("],\n".join(str( parsed_chars.asList() ).split("],")))
 
 #~ grammar_length = len(grammar) - len(filter(str.isspace, grammar))-commentcharcount
 
 #~ assert parsed_char_len == grammar_length
 
-print 'Ok!'
+print('Ok!')

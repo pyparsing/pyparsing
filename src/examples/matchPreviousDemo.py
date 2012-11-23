@@ -30,4 +30,4 @@ classDefn = classHead + classBody + classEnd
 # classDefn = classHead + classBody - classEnd
 
 for tokens in classDefn.searchString(src):
-    print tokens.classname
+    print(tokens.classname)

@@ -56,13 +56,13 @@ tests = " ".join([makeRomanNumeral(i) for i in range(1,5000+1)])
 expected = 1
 for t,s,e in romanNumeral.scanString(tests):
     if t[0] != expected:
-        print "==>",
-        print t,tests[s:e]
+        print("==>", end=' ')
+        print(t,tests[s:e])
     expected += 1
-print
+print()
 
 def test(rn):
-    print rn,romanNumeral.parseString(rn)
+    print(rn,romanNumeral.parseString(rn))
 test("XVI")
 test("XXXIX")
 test("XIV")

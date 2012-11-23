@@ -8,7 +8,7 @@
 
 from pyparsing import \
         Literal, Word, ZeroOrMore, Group, Dict, Optional, \
-        printables, ParseException, restOfLine
+        printables, ParseException, restOfLine, empty
 import pprint
 
 
@@ -30,7 +30,11 @@ def inifile_BNF():
         nonequals = "".join( [ c for c in printables if c != "=" ] ) + " \t"
         
         sectionDef = lbrack + Word( nonrbrack ) + rbrack
-        keyDef = ~lbrack + Word( nonequals ) + equals + restOfLine
+        keyDef = ~lbrack + Word( nonequals ) + equals + empty + restOfLine
+        # strip any leading or trailing blanks from key
+        def stripKey(tokens):
+            tokens[0] = tokens[0].strip()
+        keyDef.setParseAction(stripKey)
         
         # using Dict will allow retrieval of named data fields as attributes of the parsed results
         inibnf = Dict( ZeroOrMore( Group( sectionDef + Dict( ZeroOrMore( Group( keyDef ) ) ) ) ) )
@@ -43,26 +47,26 @@ def inifile_BNF():
 pp = pprint.PrettyPrinter(2)
 
 def test( strng ):
-    print strng
+    print(strng)
     try:
-        iniFile = file(strng)
+        iniFile = open(strng)
         iniData = "".join( iniFile.readlines() )
         bnf = inifile_BNF()
         tokens = bnf.parseString( iniData )
         pp.pprint( tokens.asList() )
 
-    except ParseException, err:
-        print err.line
-        print " "*(err.column-1) + "^"
-        print err
+    except ParseException as err:
+        print(err.line)
+        print(" "*(err.column-1) + "^")
+        print(err)
     
     iniFile.close()
-    print
+    print()
     return tokens
     
 
 ini = test("setup.ini")
-print "ini['Startup']['modemid'] =", ini['Startup']['modemid'] 
-print "ini.Startup =", ini.Startup
-print "ini.Startup.modemid =", ini.Startup.modemid
+print("ini['Startup']['modemid'] =", ini['Startup']['modemid']) 
+print("ini.Startup =", ini.Startup)
+print("ini.Startup.modemid =", ini.Startup.modemid)
 

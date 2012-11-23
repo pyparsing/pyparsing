@@ -13,7 +13,7 @@ listStr = lbrack + delimitedList(listItem) + rbrack
 
 test = "['a', 100, 3.14]"
 
-print listStr.parseString(test)
+print(listStr.parseString(test))
 
 
 # second pass, cleanup and add converters
@@ -30,7 +30,7 @@ listStr = lbrack + delimitedList(listItem) + rbrack
 
 test = "['a', 100, 3.14]"
 
-print listStr.parseString(test)
+print(listStr.parseString(test))
 
 # third pass, add nested list support
 cvtInt = lambda s,l,toks: int(toks[0])
@@ -47,4 +47,4 @@ listItem = real | integer | quotedString.setParseAction(removeQuotes) | Group(li
 listStr << lbrack + delimitedList(listItem) + rbrack
 
 test = "['a', 100, 3.14, [ +2.718, 'xyzzy', -1.414] ]"
-print listStr.parseString(test)
+print(listStr.parseString(test))

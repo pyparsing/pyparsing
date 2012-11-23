@@ -86,9 +86,9 @@ class TAPSummary(object):
         self.bonusTests = []
         self.bail = False
         if results.plan:
-            expected = range(1, int(results.plan.ubound)+1)
+            expected = list(range(1, int(results.plan.ubound)+1))
         else:
-            expected = range(1,len(results.tests)+1)
+            expected = list(range(1,len(results.tests)+1))
         
         for i,res in enumerate(results.tests):
             # test for bail out
@@ -104,7 +104,7 @@ class TAPSummary(object):
             testnum = i+1
             if res.testNumber != "":
                 if testnum != int(res.testNumber):
-                    print "ERROR! test %(testNumber)s out of sequence" % res
+                    print("ERROR! test %(testNumber)s out of sequence" % res)
                 testnum = int(res.testNumber)
             res["testNumber"] = testnum
 
@@ -211,7 +211,7 @@ if __name__ == "__main__":
         """
 
     for test in (test1,test2,test3,test4,test5,test6):
-        print test
+        print(test)
         tapResult = tapOutputParser.parseString(test)[0]
-        print tapResult.summary(showAll=True)
-        print
+        print(tapResult.summary(showAll=True))
+        print()

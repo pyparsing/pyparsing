@@ -1908,10 +1908,10 @@ data = jsonObject.parseString(s)
 #~ pprint( data[0].asList() )
 #~ print
 #~ print data.dump()
-print data.phedex.call_time
-print data.phedex.instance
-print data.phedex.request_call
-print len(data.phedex.request)
+print(data.phedex.call_time)
+print(data.phedex.instance)
+print(data.phedex.request_call)
+print(len(data.phedex.request))
 for req in data.phedex.request[:10]:
     #~ print req.dump()
-    print "-", req.id, req.last_update
+    print("-", req.id, req.last_update)

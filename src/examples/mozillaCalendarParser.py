@@ -1,4 +1,3 @@
-# -*- coding: UTF-8 -*-
 from pyparsing import Optional, oneOf, Dict, Literal, Word, printables, Group, OneOrMore, ZeroOrMore
 
 """
@@ -17,7 +16,7 @@ License:   Free for any use
 
 BEGIN      =   Literal("BEGIN:").suppress()
 END        =   Literal("END:").suppress()
-str        =   printables + "‰ˆÂ÷ƒ≈"
+str        =   printables + "\xe4\xf6\xe5\xd6\xc4\xc5"
 valstr     =   str + " "
 
 EQ         =   Literal("=").suppress()
@@ -71,7 +70,7 @@ calendars  =   OneOrMore(calendar)
 
 def gotEvent(s,loc,toks):
    for event in toks:
-      print event['summary'], "from", event["begin"], "to", event["end"]
+      print (event['summary'], "from", event["begin"], "to", event["end"])
 
 event.setParseAction(gotEvent)
 

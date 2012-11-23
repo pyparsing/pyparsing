@@ -247,14 +247,14 @@ class ParserTest(SearchQueryParser):
     }
 
     def GetWord(self, word):
-        if (self.index.has_key(word)):
+        if (word in self.index):
             return self.index[word]
         else:
             return Set()
 
     def GetWordWildcard(self, word):
         result = Set()
-        for item in self.index.keys():
+        for item in list(self.index.keys()):
             if word == item[0:len(word)]:
                 result = result.union(self.index[item])
         return result
@@ -267,27 +267,27 @@ class ParserTest(SearchQueryParser):
         return result
     
     def GetNot(self, not_set):
-        all = Set(self.docs.keys())
+        all = Set(list(self.docs.keys()))
         return all.difference(not_set)
 
     def Test(self):
         all_ok = True
-        for item in self.tests.keys():
-            print item
+        for item in list(self.tests.keys()):
+            print(item)
             r = self.Parse(item)
             e = self.tests[item]
-            print 'Result: %s' % r
-            print 'Expect: %s' % e
+            print('Result: %s' % r)
+            print('Expect: %s' % e)
             if e == r:
-                print 'Test OK'
+                print('Test OK')
             else:
                 all_ok = False
-                print '>>>>>>>>>>>>>>>>>>>>>>Test ERROR<<<<<<<<<<<<<<<<<<<<<'
-            print ''
+                print('>>>>>>>>>>>>>>>>>>>>>>Test ERROR<<<<<<<<<<<<<<<<<<<<<')
+            print('')
         return all_ok
             
 if __name__=='__main__':
     if ParserTest().Test():
-        print 'All tests OK'
+        print('All tests OK')
     else:
-        print 'One or more tests FAILED'
+        print('One or more tests FAILED')

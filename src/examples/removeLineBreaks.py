@@ -38,7 +38,7 @@ test = """
     the aid of their
     country.
 """
-print para.transformString(test)
+print(para.transformString(test))
 
 # process an entire file
 z = para.transformString(file("Successful Methods of Public Speaking.txt").read())

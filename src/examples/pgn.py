@@ -61,10 +61,10 @@ pgnGrammar = Suppress(ZeroOrMore(tag))  + ZeroOrMore(move) + Optional(Suppress(g
 def parsePGN( pgn, bnf=pgnGrammar, fn=None ):
   try:
     return bnf.parseString( pgn )
-  except ParseException, err:
-    print err.line
-    print " "*(err.column-1) + "^"
-    print err
+  except ParseException as err:
+    print(err.line)
+    print(" "*(err.column-1) + "^")
+    print(err)
 
 if __name__ == "__main__":
   # input string
@@ -91,4 +91,4 @@ Bxe5 Rxe5 21. Rg5 Rxe1# {Black wins} 0-1
 """
   # parse input string
   tokens = parsePGN(pgn, pgnGrammar)
-  print "tokens = ", tokens
+  print("tokens = ", tokens)

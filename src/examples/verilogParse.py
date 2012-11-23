@@ -93,7 +93,7 @@ if usePsyco:
         import psyco
         psyco.full()
     except:
-        print "failed to import psyco Python optimizer"
+        print("failed to import psyco Python optimizer")
     else:
         psycoOn = True
 
@@ -614,10 +614,10 @@ def test( strng ):
     tokens = []
     try:
         tokens = Verilog_BNF().parseString( strng )
-    except ParseException, err:
-        print err.line
-        print " "*(err.column-1) + "^"
-        print err
+    except ParseException as err:
+        print(err.line)
+        print(" "*(err.column-1) + "^")
+        print(err)
     return tokens
 
 
@@ -634,12 +634,12 @@ if 0:
 
 else:
     def main():
-        print "Verilog parser test (V %s)" % __version__
-        print " - using pyparsing version", pyparsing.__version__
-        print " - using Python version", sys.version
-        if packratOn: print " - using packrat parsing"
-        if psycoOn: print " - using psyco runtime optimization"
-        print
+        print("Verilog parser test (V %s)" % __version__)
+        print(" - using pyparsing version", pyparsing.__version__)
+        print(" - using Python version", sys.version)
+        if packratOn: print(" - using packrat parsing")
+        if psycoOn: print(" - using psyco runtime optimization")
+        print()
 
         import os
         import gc
@@ -652,7 +652,7 @@ else:
         #~ fileDir = "verilog/new"
         #~ fileDir = "verilog/new2"
         #~ fileDir = "verilog/new3"
-        allFiles = filter( lambda f : f.endswith(".v"), os.listdir(fileDir) )
+        allFiles = [f for f in os.listdir(fileDir) if f.endswith(".v")]
         #~ allFiles = [ "list_path_delays_test.v" ]
         #~ allFiles = [ "escapedIdent.v" ]
         #~ allFiles = filter( lambda f : f.startswith("a") and f.endswith(".v"), os.listdir(fileDir) )
@@ -664,10 +664,10 @@ else:
         for vfile in allFiles:
             gc.collect()
             fnam = fileDir + "/"+vfile
-            infile = file(fnam)
+            infile = open(fnam)
             filelines = infile.readlines()
             infile.close()
-            print fnam, len(filelines),
+            print(fnam, len(filelines), end=' ')
             numlines += len(filelines)
             teststr = "".join(filelines)
             time1 = time.clock()
@@ -676,13 +676,13 @@ else:
             elapsed = time2-time1
             totalTime += elapsed
             if ( len( tokens ) ):
-                print "OK", elapsed
+                print("OK", elapsed)
                 #~ print "tokens="
                 #~ pp.pprint( tokens.asList() )
                 #~ print
 
                 ofnam = fileDir + "/parseOutput/" + vfile + ".parsed.txt"
-                outfile = file(ofnam,"w")
+                outfile = open(ofnam,"w")
                 outfile.write( teststr )
                 outfile.write("\n")
                 outfile.write("\n")
@@ -690,18 +690,18 @@ else:
                 outfile.write("\n")
                 outfile.close()
             else:
-                print "failed", elapsed
+                print("failed", elapsed)
                 failCount += 1
                 for i,line in enumerate(filelines,1):
-                    print "%4d: %s" % (i,line.rstrip())
+                    print("%4d: %s" % (i,line.rstrip()))
         endTime = time.clock()
-        print "Total parse time:", totalTime
-        print "Total source lines:", numlines
-        print "Average lines/sec:", ( "%.1f" % (float(numlines)/(totalTime+.05 ) ) )
+        print("Total parse time:", totalTime)
+        print("Total source lines:", numlines)
+        print("Average lines/sec:", ( "%.1f" % (float(numlines)/(totalTime+.05 ) ) ))
         if failCount:
-            print "FAIL - %d files failed to parse" % failCount
+            print("FAIL - %d files failed to parse" % failCount)
         else:
-            print "SUCCESS - all files parsed"
+            print("SUCCESS - all files parsed")
 
         return 0
 

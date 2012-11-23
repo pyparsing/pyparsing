@@ -23,9 +23,9 @@ class BoolOperand(object):
     
 class BoolAnd(BoolOperand):
     reprsymbol = '&'
-    def __nonzero__(self):
+    def __bool__(self):
         for a in self.args:
-            if isinstance(a,basestring):
+            if isinstance(a,str):
                 v = eval(a)
             else:
                 v = bool(a)
@@ -35,9 +35,9 @@ class BoolAnd(BoolOperand):
 
 class BoolOr(BoolOperand):
     reprsymbol = '|'    
-    def __nonzero__(self):
+    def __bool__(self):
         for a in self.args:
-            if isinstance(a,basestring):
+            if isinstance(a,str):
                 v = eval(a)
             else:
                 v = bool(a)
@@ -50,8 +50,8 @@ class BoolNot(BoolOperand):
         self.arg = t[0][1]
     def __str__(self):
         return "~" + str(self.arg)
-    def __nonzero__(self):
-        if isinstance(self.arg,basestring):
+    def __bool__(self):
+        if isinstance(self.arg,str):
             v = eval(self.arg)
         else:
             v = bool(self.arg)
@@ -78,11 +78,11 @@ test = ["p and not q",
 p = True
 q = False
 r = True
-print "p =", p
-print "q =", q
-print "r =", r
-print
+print("p =", p)
+print("q =", q)
+print("r =", r)
+print()
 for t in test:
     res = boolExpr.parseString(t)[0]
-    print t,'\n', res, '=', bool(res),'\n'
+    print(t,'\n', res, '=', bool(res),'\n')
     

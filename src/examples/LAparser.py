@@ -74,7 +74,7 @@ targetvar = None    # Holds variable name to left of '=' sign in LA equation.
 
 
 def _pushFirst( str, loc, toks ):
-    if debug_flag: print "pushing ", toks[0], "str is ", str
+    if debug_flag: print("pushing ", toks[0], "str is ", str)
     exprStack.append( toks[0] )
 
 def _assignVar( str, loc, toks ):
@@ -235,7 +235,7 @@ def _evaluateStack( s ):
     op2 = _evaluateStack( s )
     op1 = _evaluateStack( s )
     result = opn[op]( op1, op2 )
-    if debug_flag: print result
+    if debug_flag: print(result)
     return result
   else: 
     return op
@@ -260,43 +260,43 @@ def parse(input_string):
       # try parsing the input string
       try:
         L=equation.parseString( input_string )
-      except ParseException,err:
-        print >>sys.stderr, 'Parse Failure'
-        print >>sys.stderr, err.line
-        print >>sys.stderr, " "*(err.column-1) + "^"
-        print >>sys.stderr, err
+      except ParseException as err:
+        print('Parse Failure', file=sys.stderr)
+        print(err.line, file=sys.stderr)
+        print(" "*(err.column-1) + "^", file=sys.stderr)
+        print(err, file=sys.stderr)
         raise
       
       # show result of parsing the input string
       if debug_flag: 
-        print input_string, "->", L
-        print "exprStack=", exprStack
+        print(input_string, "->", L)
+        print("exprStack=", exprStack)
   
       # Evaluate the stack of parsed operands, emitting C code.
       try: 
         result=_evaluateStack(exprStack)
       except TypeError:
-        print >>sys.stderr,"Unsupported operation on right side of '%s'.\nCheck for missing or incorrect tags on non-scalar operands."%input_string
+        print("Unsupported operation on right side of '%s'.\nCheck for missing or incorrect tags on non-scalar operands."%input_string, file=sys.stderr)
         raise
       except UnaryUnsupportedError:
-        print >>sys.stderr,"Unary negation is not supported for vectors and matrices: '%s'"%input_string
+        print("Unary negation is not supported for vectors and matrices: '%s'"%input_string, file=sys.stderr)
         raise
   
       # Create final assignment and print it. 
-      if debug_flag: print "var=",targetvar
+      if debug_flag: print("var=",targetvar)
       if targetvar != None:
           try:
             result = _assignfunc(targetvar,result)
           except TypeError:
-            print >>sys.stderr,"Left side tag does not match right side of '%s'"%input_string
+            print("Left side tag does not match right side of '%s'"%input_string, file=sys.stderr)
             raise
           except UnaryUnsupportedError:
-            print >>sys.stderr,"Unary negation is not supported for vectors and matrices: '%s'"%input_string
+            print("Unary negation is not supported for vectors and matrices: '%s'"%input_string, file=sys.stderr)
             raise
 
           return  result
       else:
-        print >>sys.stderr, "Empty left side in '%s'"%input_string
+        print("Empty left side in '%s'"%input_string, file=sys.stderr)
         raise TypeError
 
 ##-----------------------------------------------------------------------------------
@@ -331,7 +331,7 @@ def test():
    an AssertError if the output is not what is expected. Prints the
    input, expected output, and actual output for all tests.
    """
-   print "Testing LAParser"
+   print("Testing LAParser")
    testcases = [
      ("Scalar addition","a = b+c","a=(b+c)"),
      ("Vector addition","V3_a = V3_b + V3_c","vCopy(a,vAdd(b,c))"),
@@ -362,18 +362,18 @@ def test():
    
    for t in testcases:
       name,input,expected = t
-      print name
-      print "   %s input"%input
-      print "   %s expected"%expected
+      print(name)
+      print("   %s input"%input)
+      print("   %s expected"%expected)
       result = parse(input)
-      print "   %s received"%result
-      print ""
+      print("   %s received"%result)
+      print("")
       assert expected == result
     
    ##TODO: Write testcases with invalid expressions and test that the expected
    ## exceptions are raised.
 
-   print "Tests completed!"
+   print("Tests completed!")
 ##----------------------------------------------------------------------------
 ## The following is executed only when this module is executed as 
 ## command line script.  It runs a small test suite (see above)
@@ -394,8 +394,8 @@ if __name__ == '__main__':
   Type 'debug on' to print parsing details as each string is processed.
   Type 'debug off' to stop printing parsing details
   """
-  print interactiveusage
-  input_string = raw_input("> ")
+  print(interactiveusage)
+  input_string = input("> ")
   
   while input_string != 'quit':
     if input_string == "debug on":
@@ -404,14 +404,14 @@ if __name__ == '__main__':
        debug_flag = False
     else:
       try:
-        print parse(input_string)
+        print(parse(input_string))
       except:
         pass 
 
     # obtain new input string
-    input_string = raw_input("> ")
+    input_string = input("> ")
   
   # if user types 'quit' then say goodbye
-  print "Good bye!"
+  print("Good bye!")
 
 
