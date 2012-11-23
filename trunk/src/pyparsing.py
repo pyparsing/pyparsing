@@ -40,7 +40,7 @@ Here is a program to parse "Hello, World!" (or any greeting of the form C{"<salu
     greet = Word( alphas ) + "," + Word( alphas ) + "!"
 
     hello = "Hello, World!"
-    print hello, "->", greet.parseString( hello )
+    print (hello, "->", greet.parseString( hello ))
 
 The program outputs the following::
 
@@ -105,7 +105,7 @@ def _xml_escape(data):
 
     # ampersand must be replaced first
     from_symbols = '&><"\''
-    to_symbols = ['&'+s+';' for s in "amp gt lt quot apos".split()]
+    to_symbols = ('&'+s+';' for s in "amp gt lt quot apos".split())
     for from_,to_ in zip(from_symbols, to_symbols):
         data = data.replace(from_, to_)
     return data
@@ -118,7 +118,7 @@ nums       = "0123456789"
 hexnums    = nums + "ABCDEFabcdef"
 alphanums  = alphas + nums
 _bslash    = chr(92)
-printables = "".join( [ c for c in string.printable if c not in string.whitespace ] )
+printables = "".join(c for c in string.printable if c not in string.whitespace)
 
 class ParseBaseException(Exception):
     """base exception class for all parsing runtime exceptions"""
@@ -161,8 +161,8 @@ class ParseBaseException(Exception):
         line_str = self.line
         line_column = self.column - 1
         if markerString:
-            line_str = "".join( [line_str[:line_column],
-                                markerString, line_str[line_column:]])
+            line_str = "".join(line_str[:line_column],
+                                markerString, line_str[line_column:])
         return line_str.strip()
     def __dir__(self):
         return "loc msg pstr parserElement lineno col line " \
@@ -445,8 +445,8 @@ class ParseResults(object):
         """Returns the parse results as XML. Tags are created for tokens and lists that have defined results names."""
         nl = "\n"
         out = []
-        namedItems = dict( [ (v[1],k) for (k,vlist) in self.__tokdict.items()
-                                                            for v in vlist ] )
+        namedItems = dict((v[1],k) for (k,vlist) in self.__tokdict.items()
+                                                            for v in vlist)
         nextLevelIndent = indent + "  "
 
         # collapse out indents if formatting is not desired
@@ -607,7 +607,7 @@ def line( loc, strg ):
         return strg[lastCR+1:]
 
 def _defaultStartDebugAction( instring, loc, expr ):
-    print ("Match " + _ustr(expr) + " at loc " + _ustr(loc) + "(%d,%d)" % ( lineno(loc,instring), col(loc,instring) ))
+    print (("Match " + _ustr(expr) + " at loc " + _ustr(loc) + "(%d,%d)" % ( lineno(loc,instring), col(loc,instring) )))
 
 def _defaultSuccessDebugAction( instring, startloc, endloc, expr, toks ):
     print ("Matched " + _ustr(expr) + " -> " + str(toks.asList()))
@@ -620,20 +620,20 @@ def nullDebugAction(*args):
     pass
 
 'decorator to trim function calls to match the arity of the target'
-def _trim_arity(func, maxargs=2):
+def _trim_arity(func, maxargs=3):
     if func in singleArgBuiltins:
         return lambda s,l,t: func(t)
-    limit = maxargs
+    limit = 0
     def wrapper(*args):
         nonlocal limit
         while 1:
             try:
                 return func(*args[limit:])
             except TypeError:
-                if limit:
-                    limit -= 1
+                if limit == maxargs:
+                    raise
+                limit += 1
                     continue
-                raise
     return wrapper
     
 class ParserElement(object):
@@ -1540,9 +1540,9 @@ class Word(Token):
     def __init__( self, initChars, bodyChars=None, min=1, max=0, exact=0, asKeyword=False, excludeChars=None ):
         super(Word,self).__init__()
         if excludeChars:
-            initChars = ''.join([c for c in initChars if c not in excludeChars])
+            initChars = ''.join(c for c in initChars if c not in excludeChars)
             if bodyChars:
-                bodyChars = ''.join([c for c in bodyChars if c not in excludeChars])
+                bodyChars = ''.join(c for c in bodyChars if c not in excludeChars)
         self.initCharsOrig = initChars
         self.initChars = set(initChars)
         if bodyChars :
@@ -1765,9 +1765,9 @@ class QuotedString(Token):
                   (escChar is not None and _escapeRegexRangeChars(escChar) or '') )
         if len(self.endQuoteChar) > 1:
             self.pattern += (
-                '|(?:' + ')|(?:'.join(["%s[^%s]" % (re.escape(self.endQuoteChar[:i]),
+                '|(?:' + ')|(?:'.join("%s[^%s]" % (re.escape(self.endQuoteChar[:i]),
                                                _escapeRegexRangeChars(self.endQuoteChar[i]))
-                                    for i in range(len(self.endQuoteChar)-1,0,-1)]) + ')'
+                                    for i in range(len(self.endQuoteChar)-1,0,-1)) + ')'
                 )
         if escQuote:
             self.pattern += (r'|(?:%s)' % re.escape(escQuote))
@@ -1904,9 +1904,9 @@ class White(Token):
     def __init__(self, ws=" \t\r\n", min=1, max=0, exact=0):
         super(White,self).__init__()
         self.matchWhite = ws
-        self.setWhitespaceChars( "".join([c for c in self.whiteChars if c not in self.matchWhite]) )
+        self.setWhitespaceChars( "".join(c for c in self.whiteChars if c not in self.matchWhite) )
         #~ self.leaveWhitespace()
-        self.name = ("".join([White.whiteStrs[c] for c in self.matchWhite]))
+        self.name = ("".join(White.whiteStrs[c] for c in self.matchWhite))
         self.mayReturnEmpty = True
         self.errmsg = "Expected " + self.name
 
@@ -2240,7 +2240,7 @@ class And(ParseExpression):
             return self.name
 
         if self.strRepr is None:
-            self.strRepr = "{" + " ".join( [ _ustr(e) for e in self.exprs ] ) + "}"
+            self.strRepr = "{" + " ".join(_ustr(e) for e in self.exprs) + "}"
 
         return self.strRepr
 
@@ -2297,7 +2297,7 @@ class Or(ParseExpression):
             return self.name
 
         if self.strRepr is None:
-            self.strRepr = "{" + " ^ ".join( [ _ustr(e) for e in self.exprs ] ) + "}"
+            self.strRepr = "{" + " ^ ".join(_ustr(e) for e in self.exprs) + "}"
 
         return self.strRepr
 
@@ -2356,7 +2356,7 @@ class MatchFirst(ParseExpression):
             return self.name
 
         if self.strRepr is None:
-            self.strRepr = "{" + " | ".join( [ _ustr(e) for e in self.exprs ] ) + "}"
+            self.strRepr = "{" + " | ".join(_ustr(e) for e in self.exprs) + "}"
 
         return self.strRepr
 
@@ -2415,7 +2415,7 @@ class Each(ParseExpression):
                 keepMatching = False
 
         if tmpReqd:
-            missing = ", ".join( [ _ustr(e) for e in tmpReqd ] )
+            missing = ", ".join(_ustr(e) for e in tmpReqd)
             raise ParseException(instring,loc,"Missing one or more required elements (%s)" % missing )
 
         # add any unmatched Optionals, in case they have default values defined
@@ -2444,7 +2444,7 @@ class Each(ParseExpression):
             return self.name
 
         if self.strRepr is None:
-            self.strRepr = "{" + " & ".join( [ _ustr(e) for e in self.exprs ] ) + "}"
+            self.strRepr = "{" + " & ".join(_ustr(e) for e in self.exprs) + "}"
 
         return self.strRepr
 
@@ -3122,9 +3122,9 @@ def oneOf( strs, caseless=False, useRegex=True ):
         #~ print (strs,"->", "|".join( [ _escapeRegexChars(sym) for sym in symbols] ))
         try:
             if len(symbols)==len("".join(symbols)):
-                return Regex( "[%s]" % "".join( [ _escapeRegexRangeChars(sym) for sym in symbols] ) )
+                return Regex( "[%s]" % "".join(_escapeRegexRangeChars(sym) for sym in symbols) )
             else:
-                return Regex( "|".join( [ re.escape(sym) for sym in symbols] ) )
+                return Regex( "|".join(re.escape(sym) for sym in symbols) )
         except:
             warnings.warn("Exception creating Regex for oneOf, building MatchFirst",
                     SyntaxWarning, stacklevel=2)
@@ -3185,14 +3185,13 @@ stringStart = StringStart().setName("stringStart")
 stringEnd   = StringEnd().setName("stringEnd")
 
 _escapedPunc = Word( _bslash, r"\[]-*.$+^?()~ ", exact=2 ).setParseAction(lambda s,l,t:t[0][1])
-_printables_less_backslash = "".join([ c for c in printables if c not in  r"\]" ])
 _escapedHexChar = Regex(r"\\0?[xX][0-9a-fA-F]+").setParseAction(lambda s,l,t:unichr(int(t[0].lstrip(r'\0x'),16)))
 _escapedOctChar = Regex(r"\\0[0-7]+").setParseAction(lambda s,l,t:unichr(int(t[0][1:],8)))
-_singleChar = _escapedPunc | _escapedHexChar | _escapedOctChar | Word(_printables_less_backslash,exact=1)
+_singleChar = _escapedPunc | _escapedHexChar | _escapedOctChar | Word(printables, excludeChars=r'\]', exact=1)
 _charRange = Group(_singleChar + Suppress("-") + _singleChar)
 _reBracketExpr = Literal("[") + Optional("^").setResultsName("negate") + Group( OneOrMore( _charRange | _singleChar ) ).setResultsName("body") + "]"
 
-_expanded = lambda p: (isinstance(p,ParseResults) and ''.join([ unichr(c) for c in range(ord(p[0]),ord(p[1])+1) ]) or p)
+_expanded = lambda p: (isinstance(p,ParseResults) and ''.join(unichr(c) for c in range(ord(p[0]),ord(p[1])+1)) or p)
 
 def srange(s):
     r"""Helper to easily define string ranges for use in Word construction.  Borrows
@@ -3212,7 +3211,7 @@ def srange(s):
           any combination of the above ('aeiouy', 'a-zA-Z0-9_$', etc.)
     """
     try:
-        return "".join([_expanded(part) for part in _reBracketExpr.parseString(s).body])
+        return "".join(_expanded(part) for part in _reBracketExpr.parseString(s).body)
     except:
         return ""
 
@@ -3291,7 +3290,7 @@ def _makeTags(tagStr, xml):
                 Dict(ZeroOrMore(Group( tagAttrName + Suppress("=") + tagAttrValue ))) + \
                 Optional("/",default=[False]).setResultsName("empty").setParseAction(lambda s,l,t:t[0]=='/') + Suppress(">")
     else:
-        printablesLessRAbrack = "".join( [ c for c in printables if c not in ">" ] )
+        printablesLessRAbrack = "".join(c for c in printables if c not in ">")
         tagAttrValue = quotedString.copy().setParseAction( removeQuotes ) | Word(printablesLessRAbrack)
         openTag = Suppress("<") + tagStr("tag") + \
                 Dict(ZeroOrMore(Group( tagAttrName.setParseAction(downcaseTokens) + \
@@ -3551,8 +3550,7 @@ cppStyleComment = Regex(r"/(?:\*(?:[^*]*\*+)+?/|/[^\n]*(?:\n[^\n]*)*?(?:(?<!\\)|
 
 javaStyleComment = cppStyleComment
 pythonStyleComment = Regex(r"#.*").setName("Python style comment")
-_noncomma = "".join( [ c for c in printables if c != "," ] )
-_commasepitem = Combine(OneOrMore(Word(_noncomma) +
+_commasepitem = Combine(OneOrMore(Word(printables, excludeChars=',') +
                                   Optional( Word(" \t") +
                                             ~Literal(",") + ~LineEnd() ) ) ).streamline().setName("commaItem")
 commaSeparatedList = delimitedList( Optional( quotedString.copy() | _commasepitem, default="") ).setName("commaSeparatedList")
