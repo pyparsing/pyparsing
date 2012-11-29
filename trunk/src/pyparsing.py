@@ -2185,6 +2185,7 @@ class And(ParseExpression):
     class _ErrorStop(Empty):
         def __init__(self, *args, **kwargs):
             super(And._ErrorStop,self).__init__(*args, **kwargs)
+            self.name = '-'
             self.leaveWhitespace()
 
     def __init__( self, exprs, savelist = True ):
