@@ -653,12 +653,15 @@ def _trim_arity(func, maxargs=2):
     if func in singleArgBuiltins:
         return lambda s,l,t: func(t)
     limit = [0]
+    foundArity = [False]
     def wrapper(*args):
         while 1:
             try:
-                return func(*args[limit[0]:])
+                ret = func(*args[limit[0]:])
+                foundArity[0] = True
+                return ret
             except TypeError:
-                if limit[0] <= maxargs:
+                if limit[0] <= maxargs and not foundArity[0]:
                     limit[0] += 1
                     continue
                 raise
