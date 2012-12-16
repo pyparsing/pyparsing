@@ -624,13 +624,16 @@ def _trim_arity(func, maxargs=3):
     if func in singleArgBuiltins:
         return lambda s,l,t: func(t)
     limit = 0
+    foundArity = False
     def wrapper(*args):
-        nonlocal limit
+        nonlocal limit,foundArity
         while 1:
             try:
-                return func(*args[limit:])
+                ret = func(*args[limit:])
+                foundArity = True
+                return ret
             except TypeError:
-                if limit == maxargs:
+                if limit == maxargs or foundArity:
                     raise
                 limit += 1
                 continue
