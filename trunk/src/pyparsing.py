@@ -1,6 +1,6 @@
 # module pyparsing.py
 #
-# Copyright (c) 2003-2011  Paul T. McGuire
+# Copyright (c) 2003-2013  Paul T. McGuire
 #
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
@@ -21,7 +21,6 @@
 # TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 # SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #
-#from __future__ import generators
 
 __doc__ = \
 """
@@ -105,7 +104,6 @@ if PY_3:
 else:
     _MAX_INT = sys.maxint
     range = xrange
-    set = lambda s : dict( [(c,0) for c in s] )
 
     def _ustr(obj):
         """Drop-in replacement for str(obj) that tries to be Unicode friendly. It first tries

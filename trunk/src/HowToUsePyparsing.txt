@@ -5,10 +5,10 @@ Using the pyparsing module
 :author: Paul McGuire
 :address: ptmcg@users.sourceforge.net
 
-:revision: 1.5.6
-:date: June, 2011
+:revision: 2.0.1
+:date: July, 2013
 
-:copyright: Copyright |copy| 2003-2011 Paul McGuire. 
+:copyright: Copyright |copy| 2003-2013 Paul McGuire. 
 
 .. |copy| unicode:: 0xA9
 
@@ -413,60 +413,60 @@ Basic ParserElement subclasses
   A Word may
   also be constructed with any of the following optional parameters:
   
-  - min - indicating a minimum length of matching characters
+  - ``min`` - indicating a minimum length of matching characters
   
-  - max - indicating a maximum length of matching characters
+  - ``max`` - indicating a maximum length of matching characters
   
-  - exact - indicating an exact length of matching characters
+  - ``exact`` - indicating an exact length of matching characters
 
-  If exact is specified, it will override any values for min or max.
+  If ``exact`` is specified, it will override any values for ``min`` or ``max``.
   
   New in 1.5.6 - Sometimes you want to define a word using all 
   characters in a range except for one or two of them; you can do this
-  with the new excludeChars argument. This is helpful if you want to define
+  with the new ``excludeChars`` argument. This is helpful if you want to define
   a word with all printables except for a single delimiter character, such
   as '.'. Previously, you would have to create a custom string to pass to Word.
   With this change, you can just create ``Word(printables, excludeChars='.')``.
 
 - ``CharsNotIn`` - similar to Word_, but matches characters not
   in the given constructor string (accepts only one string for both
-  initial and body characters); also supports min, max, and exact
+  initial and body characters); also supports ``min``, ``max``, and ``exact``
   optional parameters.
 
 - ``Regex`` - a powerful construct, that accepts a regular expression
   to be matched at the current parse position; accepts an optional
-  flags parameter, corresponding to the flags parameter in the re.compile
+  ``flags`` parameter, corresponding to the flags parameter in the re.compile
   method; if the expression includes named sub-fields, they will be 
   represented in the returned ParseResults_
 
 - ``QuotedString`` - supports the definition of custom quoted string
-  formats, in addition to pyparsing's built-in dblQuotedString and
-  sglQuotedString.  QuotedString allows you to specify the following 
+  formats, in addition to pyparsing's built-in ``dblQuotedString`` and
+  ``sglQuotedString``.  ``QuotedString`` allows you to specify the following 
   parameters:
   
-  - quoteChar - string of one or more characters defining the quote delimiting string
+  - ``quoteChar`` - string of one or more characters defining the quote delimiting string
   
-  - escChar - character to escape quotes, typically backslash (default=None)
+  - ``escChar`` - character to escape quotes, typically backslash (default=None)
   
-  - escQuote - special quote sequence to escape an embedded quote string (such as SQL's "" to escape an embedded ") (default=None)
+  - ``escQuote`` - special quote sequence to escape an embedded quote string (such as SQL's "" to escape an embedded ") (default=None)
   
-  - multiline - boolean indicating whether quotes can span multiple lines (default=False)
+  - ``multiline`` - boolean indicating whether quotes can span multiple lines (default=False)
   
-  - unquoteResults - boolean indicating whether the matched text should be unquoted (default=True)
+  - ``unquoteResults`` - boolean indicating whether the matched text should be unquoted (default=True)
   
-  - endQuoteChar - string of one or more characters defining the end of the quote delimited string (default=None => same as quoteChar)
+  - ``endQuoteChar`` - string of one or more characters defining the end of the quote delimited string (default=None => same as quoteChar)
     
 - ``SkipTo`` - skips ahead in the input string, accepting any
   characters up to the specified pattern; may be constructed with 
   the following optional parameters:
   
-  - include - if set to true, also consumes the match expression
+  - ``include`` - if set to true, also consumes the match expression
     (default is false)
   
-  - ignore - allows the user to specify patterns to not be matched,
+  - ``ignore`` - allows the user to specify patterns to not be matched,
     to prevent false matches
   
-  - failOn - if a literal string or expression is given for this argument, it defines an expression that
+  - ``failOn`` - if a literal string or expression is given for this argument, it defines an expression that
     should cause the ``SkipTo`` expression to fail, and not skip over that expression
 
 .. _White:
@@ -574,7 +574,7 @@ Expression operators
 
 - ``==`` - matching expression to string; returns True if the string matches the given expression
 
-- ``<<`` - inserts the expression following the operator as the body of the 
+- ``<<=`` - inserts the expression following the operator as the body of the 
   Forward expression before the operator
 
 
@@ -693,11 +693,11 @@ Other classes
   possible, results will be tagged using the results names defined for the respective
   ParseExpressions.  ``asXML()`` takes two optional arguments:
   
-  - doctagname - for ParseResults that do not have a defined name, this argument
+  - ``doctagname`` - for ParseResults that do not have a defined name, this argument
     will wrap the resulting XML in a set of opening and closing tags ``<doctagname>``
     and ``</doctagname>``.
 
-  - namedItemsOnly (default=False) - flag to indicate if the generated XML should 
+  - ``namedItemsOnly`` (default=``False``) - flag to indicate if the generated XML should 
     skip items that do not have defined names.  If a nested group item is named, then all
     embedded items will be included, whether they have names or not.
 
@@ -721,7 +721,7 @@ Exception classes and Troubleshooting
   
     badGrammar = Forward()
     goodToken = Literal("A")
-    badGrammar << Optional(goodToken) + badGrammar
+    badGrammar <<= Optional(goodToken) + badGrammar
 
 - ``ParseFatalException`` - exception that parse actions can raise to stop parsing
   immediately.  Should be used when a semantic error is found in the input text, such
@@ -774,37 +774,37 @@ Helper methods
   are returned as keyed tokens in the returned ParseResults.  ``makeHTMLTags`` is less
   restrictive than ``makeXMLTags``, especially with respect to case sensitivity.
 
-- ``operatorPrecedence(baseOperand, operatorList)`` - convenience function to define a 
-  grammar for parsing
-  expressions with a hierarchical precedence of operators. To use the operatorPrecedence 
+- ``infixNotation(baseOperand, operatorList)`` - (formerly named ``operatorPrecedence``) convenience function to define a 
+  grammar for parsing infix notation 
+  expressions with a hierarchical precedence of operators. To use the ``infixNotation`` 
   helper:
   
   1.  Define the base "atom" operand term of the grammar.
       For this simple grammar, the smallest operand is either
       and integer or a variable.  This will be the first argument
-      to the operatorPrecedence method.
+      to the ``infixNotation`` method.
       
   2.  Define a list of tuples for each level of operator
       precendence.  Each tuple is of the form
       ``(opExpr, numTerms, rightLeftAssoc, parseAction)``, where:
       
-      - opExpr is the pyparsing expression for the operator;
+      - ``opExpr`` - the pyparsing expression for the operator;
         may also be a string, which will be converted to a Literal; if
         None, indicates an empty operator, such as the implied
         multiplication operation between 'm' and 'x' in "y = mx + b".
       
-      - numTerms is the number of terms for this operator (must
-        be 1 or 2)
+      - ``numTerms`` - the number of terms for this operator (must
+        be 1, 2, or 3)
       
-      - rightLeftAssoc is the indicator whether the operator is
+      - ``rightLeftAssoc`` is the indicator whether the operator is
         right or left associative, using the pyparsing-defined
         constants ``opAssoc.RIGHT`` and ``opAssoc.LEFT``.
       
-      - parseAction is the parse action to be associated with 
+      - ``parseAction`` is the parse action to be associated with 
         expressions matching this operator expression (the
-        parse action tuple member may be omitted)
+        ``parseAction`` tuple member may be omitted)
         
-  3.  Call operatorPrecedence passing the operand expression and
+  3.  Call ``infixNotation`` passing the operand expression and
       the operator precedence list, and save the returned value
       as the generated pyparsing expression.  You can then use
       this expression to parse input strings, or incorporate it
@@ -831,13 +831,13 @@ Helper methods
 - ``nestedExpr(opener, closer, content=None, ignoreExpr=quotedString)`` - method for defining nested 
   lists enclosed in opening and closing delimiters.
 
-  - opener - opening character for a nested list (default="("); can also be a pyparsing expression
+  - ``opener`` - opening character for a nested list (default="("); can also be a pyparsing expression
     
-  - closer - closing character for a nested list (default=")"); can also be a pyparsing expression
+  - ``closer`` - closing character for a nested list (default=")"); can also be a pyparsing expression
     
-  - content - expression for items within the nested lists (default=None)
+  - ``content`` - expression for items within the nested lists (default=None)
     
-  - ignoreExpr - expression for ignoring opening and closing delimiters (default=quotedString)
+  - ``ignoreExpr`` - expression for ignoring opening and closing delimiters (default=quotedString)
 
   If an expression is not provided for the content argument, the nested
   expression will capture all whitespace-delimited content between delimiters
@@ -855,19 +855,19 @@ Helper methods
   function to define an indented block of statements, similar to 
   indentation-based blocking in Python source code:
   
-  - statementExpr is the expression defining a statement that
-    will be found in the indented block; a valid indentedBlock
-    must contain at least 1 matching statementExpr
-       
-  - indentationStackVar is a Python list variable; this variable
+  - ``statementExpr`` - the expression defining a statement that
+    will be found in the indented block; a valid ``indentedBlock``
+    must contain at least 1 matching ``statementExpr``
+
+  - ``indentationStackVar`` - a Python list variable; this variable
     should be common to all ``indentedBlock`` expressions defined
     within the same grammar, and should be reinitialized to [1]
     each time the grammar is to be used
         
-  - indent is a boolean flag indicating whether the expressions
+  - ``indent`` - a boolean flag indicating whether the expressions
     within the block must be indented from the current parse
-    location; if using indentedBlock to define the left-most
-    statements (all starting in column 1), set indent to False
+    location; if using ``indentedBlock`` to define the left-most
+    statements (all starting in column 1), set ``indent`` to False
 
 .. _originalTextFor:
 
