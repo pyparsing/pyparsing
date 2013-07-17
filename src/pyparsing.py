@@ -58,8 +58,8 @@ The pyparsing module handles some of the problems that are typically vexing when
  - embedded comments
 """
 
-__version__ = "2.0.0"
-__versionTime__ = "17 November 2012 16:18"
+__version__ = "2.0.1"
+__versionTime__ = "16 July 2013 22:22"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -92,13 +92,57 @@ __all__ = [
 'indentedBlock', 'originalTextFor', 'ungroup', 'infixNotation',
 ]
 
-_MAX_INT = sys.maxsize
-basestring = str
-unichr = chr
-_ustr = str
+PY_3 = sys.version.startswith('3')
+if PY_3:
+    _MAX_INT = sys.maxsize
+    basestring = str
+    unichr = chr
+    _ustr = str
 
-# build list of single arg builtins, that can be used as parse actions
-singleArgBuiltins = [sum, len, sorted, reversed, list, tuple, set, any, all, min, max]
+    # build list of single arg builtins, that can be used as parse actions
+    singleArgBuiltins = [sum, len, sorted, reversed, list, tuple, set, any, all, min, max]
+
+else:
+    _MAX_INT = sys.maxint
+    range = xrange
+    set = lambda s : dict( [(c,0) for c in s] )
+
+    def _ustr(obj):
+        """Drop-in replacement for str(obj) that tries to be Unicode friendly. It first tries
+           str(obj). If that fails with a UnicodeEncodeError, then it tries unicode(obj). It
+           then < returns the unicode object | encodes it with the default encoding | ... >.
+        """
+        if isinstance(obj,unicode):
+            return obj
+
+        try:
+            # If this works, then _ustr(obj) has the same behaviour as str(obj), so
+            # it won't break any existing code.
+            return str(obj)
+
+        except UnicodeEncodeError:
+            # The Python docs (http://docs.python.org/ref/customization.html#l2h-182)
+            # state that "The return value must be a string object". However, does a
+            # unicode object (being a subclass of basestring) count as a "string
+            # object"?
+            # If so, then return a unicode object:
+            return unicode(obj)
+            # Else encode it... but how? There are many choices... :)
+            # Replace unprintables with escape codes?
+            #return unicode(obj).encode(sys.getdefaultencoding(), 'backslashreplace_errors')
+            # Replace unprintables with question marks?
+            #return unicode(obj).encode(sys.getdefaultencoding(), 'replace')
+            # ...
+
+    # build list of single arg builtins, tolerant of Python version, that can be used as parse actions
+    singleArgBuiltins = []
+    import __builtin__
+    for fname in "sum len sorted reversed list tuple set any all min max".split():
+        try:
+            singleArgBuiltins.append(getattr(__builtin__,fname))
+        except AttributeError:
+            continue
+
 
 def _xml_escape(data):
     """Escape &, <, >, ", ', etc. in a string of data."""
@@ -619,26 +663,47 @@ def nullDebugAction(*args):
     """'Do-nothing' debug action, to suppress debugging output during parsing."""
     pass
 
+# Only works on Python 3.x - nonlocal is toxic to Python 2 installs
+#~ 'decorator to trim function calls to match the arity of the target'
+#~ def _trim_arity(func, maxargs=3):
+    #~ if func in singleArgBuiltins:
+        #~ return lambda s,l,t: func(t)
+    #~ limit = 0
+    #~ foundArity = False
+    #~ def wrapper(*args):
+        #~ nonlocal limit,foundArity
+        #~ while 1:
+            #~ try:
+                #~ ret = func(*args[limit:])
+                #~ foundArity = True
+                #~ return ret
+            #~ except TypeError:
+                #~ if limit == maxargs or foundArity:
+                    #~ raise
+                #~ limit += 1
+                #~ continue
+    #~ return wrapper
+
+# this version is Python 2.x-3.x cross-compatible
 'decorator to trim function calls to match the arity of the target'
-def _trim_arity(func, maxargs=3):
+def _trim_arity(func, maxargs=2):
     if func in singleArgBuiltins:
         return lambda s,l,t: func(t)
-    limit = 0
-    foundArity = False
+    limit = [0]
+    foundArity = [False]
     def wrapper(*args):
-        nonlocal limit,foundArity
         while 1:
             try:
-                ret = func(*args[limit:])
-                foundArity = True
+                ret = func(*args[limit[0]:])
+                foundArity[0] = True
                 return ret
             except TypeError:
-                if limit == maxargs or foundArity:
-                    raise
-                limit += 1
-                continue
+                if limit[0] <= maxargs and not foundArity[0]:
+                    limit[0] += 1
+                    continue
+                raise
     return wrapper
-    
+ 
 class ParserElement(object):
     """Abstract base level parser element class."""
     DEFAULT_WHITE_CHARS = " \n\t\r"
@@ -2783,12 +2848,13 @@ class Forward(ParseElementEnhance):
         self.skipWhitespace = self.expr.skipWhitespace
         self.saveAsList = self.expr.saveAsList
         self.ignoreExprs.extend(self.expr.ignoreExprs)
-        return None
+        return self
         
     def __lshift__(self, other):
         warnings.warn("Operator '<<' is deprecated, use '<<=' instead",
                        DeprecationWarning,stacklevel=2)
         self <<= other
+        return None
     
     def leaveWhitespace( self ):
         self.skipWhitespace = False
