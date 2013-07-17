@@ -3,6 +3,9 @@ set MAKING_PYPARSING_RELEASE=1
 copy ..\sourceforge\svn\trunk\src\CHANGES .
 copy ..\sourceforge\svn\trunk\src\setup.py .
 copy ..\sourceforge\svn\trunk\src\pyparsing.py .
+copy ..\sourceforge\svn\trunk\src\MANIFEST.in_bdist .
+copy ..\sourceforge\svn\trunk\src\MANIFEST.in_src .
+
 
 rmdir build
 rmdir dist

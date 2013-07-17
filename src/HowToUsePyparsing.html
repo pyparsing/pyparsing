@@ -331,11 +331,11 @@ ul.auto-toc {
 </pre>
 </td></tr>
 <tr><th class="docinfo-name">Revision:</th>
-<td>1.5.6</td></tr>
+<td>2.0.1</td></tr>
 <tr><th class="docinfo-name">Date:</th>
-<td>June, 2011</td></tr>
+<td>July, 2013</td></tr>
 <tr><th class="docinfo-name">Copyright:</th>
-<td>Copyright © 2003-2011 Paul McGuire.</td></tr>
+<td>Copyright © 2003-2013 Paul McGuire.</td></tr>
 </tbody>
 </table>
 <table class="docutils field-list" frame="void" rules="none">
@@ -750,16 +750,16 @@ underscores, use:</p>
 <p>A Word may
 also be constructed with any of the following optional parameters:</p>
 <ul class="simple">
-<li>min - indicating a minimum length of matching characters</li>
-<li>max - indicating a maximum length of matching characters</li>
-<li>exact - indicating an exact length of matching characters</li>
+<li><tt class="docutils literal">min</tt> - indicating a minimum length of matching characters</li>
+<li><tt class="docutils literal">max</tt> - indicating a maximum length of matching characters</li>
+<li><tt class="docutils literal">exact</tt> - indicating an exact length of matching characters</li>
 </ul>
 <p>If exact is specified, it will override any values for min or max.</p>
 <p>New in 1.5.6 - Sometimes you want to define a word using all
 characters in a range except for one or two of them; you can do this
-with the new excludeChars argument. This is helpful if you want to define
+with the new <tt class="docutils literal">excludeChars</tt> argument. This is helpful if you want to define
 a word with all printables except for a single delimiter character, such
-as '.'. Previously, you would have to create a custom string to pass to Word.
+as '.'. Previously, you would have to create a custom string to pass to <tt class="docutils literal">Word</tt>.
 With this change, you can just create <tt class="docutils literal">Word(printables, <span class="pre">excludeChars='.')</span></tt>.</p>
 </li>
 <li><p class="first"><tt class="docutils literal">CharsNotIn</tt> - similar to <a class="reference internal" href="#word">Word</a>, but matches characters not
@@ -778,23 +778,23 @@ formats, in addition to pyparsing's built-in dblQuotedString and
 sglQuotedString.  QuotedString allows you to specify the following
 parameters:</p>
 <ul class="simple">
-<li>quoteChar - string of one or more characters defining the quote delimiting string</li>
-<li>escChar - character to escape quotes, typically backslash (default=None)</li>
-<li>escQuote - special quote sequence to escape an embedded quote string (such as SQL's &quot;&quot; to escape an embedded &quot;) (default=None)</li>
-<li>multiline - boolean indicating whether quotes can span multiple lines (default=False)</li>
-<li>unquoteResults - boolean indicating whether the matched text should be unquoted (default=True)</li>
-<li>endQuoteChar - string of one or more characters defining the end of the quote delimited string (default=None =&gt; same as quoteChar)</li>
+<li><tt class="docutils literal">quoteChar</tt> - string of one or more characters defining the quote delimiting string</li>
+<li><tt class="docutils literal">escChar</tt> - character to escape quotes, typically backslash (default=None)</li>
+<li><tt class="docutils literal">escQuote</tt> - special quote sequence to escape an embedded quote string (such as SQL's &quot;&quot; to escape an embedded &quot;) (default=None)</li>
+<li><tt class="docutils literal">multiline</tt> - boolean indicating whether quotes can span multiple lines (default=<tt class="docutils literal">False</tt>)</li>
+<li><tt class="docutils literal">unquoteResults</tt> - boolean indicating whether the matched text should be unquoted (default=<tt class="docutils literal">True</tt>)</li>
+<li><tt class="docutils literal">endQuoteChar</tt> - string of one or more characters defining the end of the quote delimited string (default=None =&gt; same as quoteChar)</li>
 </ul>
 </li>
 <li><p class="first"><tt class="docutils literal">SkipTo</tt> - skips ahead in the input string, accepting any
 characters up to the specified pattern; may be constructed with
 the following optional parameters:</p>
 <ul class="simple">
-<li>include - if set to true, also consumes the match expression
-(default is false)</li>
-<li>ignore - allows the user to specify patterns to not be matched,
+<li><tt class="docutils literal">include</tt> - if set to true, also consumes the match expression
+(default is <tt class="docutils literal">False</tt>)</li>
+<li><tt class="docutils literal">ignore</tt> - allows the user to specify patterns to not be matched,
 to prevent false matches</li>
-<li>failOn - if a literal string or expression is given for this argument, it defines an expression that
+<li><tt class="docutils literal">failOn</tt> - if a literal string or expression is given for this argument, it defines an expression that
 should cause the <tt class="docutils literal">SkipTo</tt> expression to fail, and not skip over that expression</li>
 </ul>
 </li>
@@ -891,8 +891,8 @@ expr*min + ZeroOrMore(expr)</li>
 <li><tt class="docutils literal">-</tt> - like <tt class="docutils literal">+</tt> but with no backup and retry of alternatives</li>
 <li><tt class="docutils literal">*</tt> - repetition of expression</li>
 <li><tt class="docutils literal">==</tt> - matching expression to string; returns True if the string matches the given expression</li>
-<li><tt class="docutils literal">&lt;&lt;</tt> - inserts the expression following the operator as the body of the
-Forward expression before the operator</li>
+<li><tt class="docutils literal">&lt;&lt;=</tt> - inserts the expression following the operator as the body of the
+Forward expression before the operator (formerly &lt;&lt;, which is now deprecated)</li>
 </ul>
 </div>
 <div class="section" id="positional-subclasses">
@@ -934,7 +934,7 @@ up until the given pattern is found to match; useful for specifying
 incomplete grammars</li>
 <li><tt class="docutils literal">Forward</tt> - placeholder token used to define recursive token
 patterns; when defining the actual expression later in the
-program, insert it into the <tt class="docutils literal">Forward</tt> object using the <tt class="docutils literal">&lt;&lt;</tt>
+program, insert it into the <tt class="docutils literal">Forward</tt> object using the <tt class="docutils literal">&lt;&lt;=</tt>
 operator (see <tt class="docutils literal">fourFn.py</tt> for an example).</li>
 </ul>
 </div>
@@ -989,10 +989,10 @@ given by <tt class="docutils literal">asList()</tt>.)</p>
 possible, results will be tagged using the results names defined for the respective
 ParseExpressions.  <tt class="docutils literal">asXML()</tt> takes two optional arguments:</p>
 <ul class="simple">
-<li>doctagname - for ParseResults that do not have a defined name, this argument
+<li><tt class="docutils literal">doctagname</tt> - for ParseResults that do not have a defined name, this argument
 will wrap the resulting XML in a set of opening and closing tags <tt class="docutils literal">&lt;doctagname&gt;</tt>
 and <tt class="docutils literal">&lt;/doctagname&gt;</tt>.</li>
-<li>namedItemsOnly (default=False) - flag to indicate if the generated XML should
+<li><tt class="docutils literal">namedItemsOnly</tt> (default=<tt class="docutils literal">False</tt>) - flag to indicate if the generated XML should
 skip items that do not have defined names.  If a nested group item is named, then all
 embedded items will be included, whether they have names or not.</li>
 </ul>
@@ -1017,7 +1017,7 @@ the grammar contains a recursive infinite loop, such as:</p>
 <pre class="literal-block">
 badGrammar = Forward()
 goodToken = Literal(&quot;A&quot;)
-badGrammar &lt;&lt; Optional(goodToken) + badGrammar
+badGrammar &lt;&lt;= Optional(goodToken) + badGrammar
 </pre>
 </li>
 <li><p class="first"><tt class="docutils literal">ParseFatalException</tt> - exception that parse actions can raise to stop parsing
@@ -1071,33 +1071,34 @@ support for attributes in the opening tag, such as &lt;tag attr1=&quot;abc&quot;
 are returned as keyed tokens in the returned ParseResults.  <tt class="docutils literal">makeHTMLTags</tt> is less
 restrictive than <tt class="docutils literal">makeXMLTags</tt>, especially with respect to case sensitivity.</p>
 </li>
-<li><p class="first"><tt class="docutils literal">operatorPrecedence(baseOperand, operatorList)</tt> - convenience function to define a
-grammar for parsing
-expressions with a hierarchical precedence of operators. To use the operatorPrecedence
+<li><p class="first"><tt class="docutils literal">infixNotation(baseOperand, operatorList)</tt> - (formerly named <tt class="docutils literal">operatorPrecedence</tt>) convenience function to define a
+grammar for parsing infix notation
+expressions with a hierarchical precedence of operators. To use the <tt class="docutils literal">infixNotation</tt>
 helper:</p>
 <ol class="arabic simple">
 <li>Define the base &quot;atom&quot; operand term of the grammar.
 For this simple grammar, the smallest operand is either
 and integer or a variable.  This will be the first argument
-to the operatorPrecedence method.</li>
+to the <tt class="docutils literal">infixNotation</tt> method.</li>
 <li>Define a list of tuples for each level of operator
 precendence.  Each tuple is of the form
 <tt class="docutils literal">(opExpr, numTerms, rightLeftAssoc, parseAction)</tt>, where:<ul>
-<li>opExpr is the pyparsing expression for the operator;
+<li><tt class="docutils literal">opExpr</tt> is the pyparsing expression for the operator;
 may also be a string, which will be converted to a Literal; if
 None, indicates an empty operator, such as the implied
-multiplication operation between 'm' and 'x' in &quot;y = mx + b&quot;.</li>
-<li>numTerms is the number of terms for this operator (must
-be 1 or 2)</li>
-<li>rightLeftAssoc is the indicator whether the operator is
+multiplication operation between 'm' and 'x' in &quot;y = mx + b&quot;.
+If <tt class="docutils literal">numTerms</tt> parameter is 3, this must be a 2-tuple containing the 2 delimiting operators.</li>
+<li><tt class="docutils literal">numTerms</tt> is the number of terms for this operator (must
+be 1,2, or 3)</li>
+<li><tt class="docutils literal">rightLeftAssoc</tt> is the indicator whether the operator is
 right or left associative, using the pyparsing-defined
 constants <tt class="docutils literal">opAssoc.RIGHT</tt> and <tt class="docutils literal">opAssoc.LEFT</tt>.</li>
-<li>parseAction is the parse action to be associated with
+<li><tt class="docutils literal">parseAction</tt> is the parse action to be associated with
 expressions matching this operator expression (the
 parse action tuple member may be omitted)</li>
 </ul>
 </li>
-<li>Call operatorPrecedence passing the operand expression and
+<li>Call <tt class="docutils literal">infixNotation</tt> passing the operand expression and
 the operator precedence list, and save the returned value
 as the generated pyparsing expression.  You can then use
 this expression to parse input strings, or incorporate it
@@ -1124,15 +1125,15 @@ evaluated first, and then compared, so &quot;1&quot; is compared with &quot;10&q
 <li><p class="first"><tt class="docutils literal">nestedExpr(opener, closer, content=None, ignoreExpr=quotedString)</tt> - method for defining nested
 lists enclosed in opening and closing delimiters.</p>
 <ul class="simple">
-<li>opener - opening character for a nested list (default=&quot;(&quot;); can also be a pyparsing expression</li>
-<li>closer - closing character for a nested list (default=&quot;)&quot;); can also be a pyparsing expression</li>
-<li>content - expression for items within the nested lists (default=None)</li>
-<li>ignoreExpr - expression for ignoring opening and closing delimiters (default=quotedString)</li>
+<li><tt class="docutils literal">opener</tt> - opening character for a nested list (default=&quot;(&quot;); can also be a pyparsing expression</li>
+<li><tt class="docutils literal">closer</tt> - closing character for a nested list (default=&quot;)&quot;); can also be a pyparsing expression</li>
+<li><tt class="docutils literal">content</tt> - expression for items within the nested lists (default=None)</li>
+<li><tt class="docutils literal">ignoreExpr</tt> - expression for ignoring opening and closing delimiters (default=quotedString)</li>
 </ul>
 <p>If an expression is not provided for the content argument, the nested
 expression will capture all whitespace-delimited content between delimiters
 as a list of separate values.</p>
-<p>Use the ignoreExpr argument to define expressions that may contain
+<p>Use the <tt class="docutils literal">ignoreExpr</tt> argument to define expressions that may contain
 opening or closing characters that should not be treated as opening
 or closing characters for nesting, such as quotedString or a comment
 expression.  Specify multiple expressions using an Or or MatchFirst.
@@ -1143,14 +1144,14 @@ then pass None for this argument.</p>
 function to define an indented block of statements, similar to
 indentation-based blocking in Python source code:</p>
 <ul class="simple">
-<li>statementExpr is the expression defining a statement that
+<li><tt class="docutils literal">statementExpr</tt> - the expression defining a statement that
 will be found in the indented block; a valid indentedBlock
 must contain at least 1 matching statementExpr</li>
-<li>indentationStackVar is a Python list variable; this variable
+<li><tt class="docutils literal">indentationStackVar</tt> - a Python list variable; this variable
 should be common to all <tt class="docutils literal">indentedBlock</tt> expressions defined
 within the same grammar, and should be reinitialized to [1]
 each time the grammar is to be used</li>
-<li>indent is a boolean flag indicating whether the expressions
+<li><tt class="docutils literal">indent</tt> - a boolean flag indicating whether the expressions
 within the block must be indented from the current parse
 location; if using indentedBlock to define the left-most
 statements (all starting in column 1), set indent to False</li>
