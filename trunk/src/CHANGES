@@ -2,6 +2,19 @@
 Change Log
 ==========
 
+Version 2.0.1 - July, 2013
+--------------------------
+- Removed use of "nonlocal" that prevented using this version of 
+  pyparsing with Python 2.6 and 2.7. This will make it easier to 
+  install for packages that depend on pyparsing, under Python 
+  versions 2.6 and later. Those using older versions of Python
+  will have to manually install pyparsing 1.5.7.
+
+- Fixed implementation of <<= operator to return self; reported by
+  Luc J. Bourhis, with patch fix by Mathias Mamsch - thanks, Luc
+  and Mathias!
+
+
 Version 2.0.0 - November, 2012
 ------------------------------
 - Rather than release another combined Python 2.x/3.x release
