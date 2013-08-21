@@ -57,8 +57,8 @@ The pyparsing module handles some of the problems that are typically vexing when
  - embedded comments
 """
 
-__version__ = "2.0.1"
-__versionTime__ = "16 July 2013 22:22"
+__version__ = "2.0.2"
+__versionTime__ = "21 August 2013 22:22"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -1314,7 +1314,7 @@ class ParserElement(object):
         """Implementation of ~ operator - returns C{L{NotAny}}"""
         return NotAny( self )
 
-    def __call__(self, name):
+    def __call__(self, name=None):
         """Shortcut for C{L{setResultsName}}, with C{listAllMatches=default}::
              userdata = Word(alphas).setResultsName("name") + Word(nums+"-").setResultsName("socsecno")
            could be written as::
@@ -1322,8 +1322,13 @@ class ParserElement(object):
              
            If C{name} is given with a trailing C{'*'} character, then C{listAllMatches} will be
            passed as C{True}.
+           
+           If C{name} is omitted, same as calling C{L{copy}}.
            """
-        return self.setResultsName(name)
+        if name is not None:
+            return self.setResultsName(name)
+        else:
+            return self.copy()
 
     def suppress( self ):
         """Suppresses the output of this C{ParserElement}; useful to keep punctuation from
