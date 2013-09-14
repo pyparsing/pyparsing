@@ -58,7 +58,7 @@ The pyparsing module handles some of the problems that are typically vexing when
 """
 
 __version__ = "2.0.2"
-__versionTime__ = "21 August 2013 22:22"
+__versionTime__ = "14 September 2013 07:34"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -88,7 +88,7 @@ __all__ = [
 'punc8bit', 'pythonStyleComment', 'quotedString', 'removeQuotes', 'replaceHTMLEntity', 
 'replaceWith', 'restOfLine', 'sglQuotedString', 'srange', 'stringEnd',
 'stringStart', 'traceParseAction', 'unicodeString', 'upcaseTokens', 'withAttribute',
-'indentedBlock', 'originalTextFor', 'ungroup', 'infixNotation',
+'indentedBlock', 'originalTextFor', 'ungroup', 'infixNotation','locatedExpr',
 ]
 
 PY_3 = sys.version.startswith('3')
@@ -140,7 +140,6 @@ else:
             singleArgBuiltins.append(getattr(__builtin__,fname))
         except AttributeError:
             continue
-
 
 def _xml_escape(data):
     """Escape &, <, >, ", ', etc. in a string of data."""
@@ -2839,7 +2838,7 @@ class Forward(ParseElementEnhance):
     def __init__( self, other=None ):
         super(Forward,self).__init__( other, savelist=False )
 
-    def __ilshift__( self, other ):
+    def __lshift__( self, other ):
         if isinstance( other, basestring ):
             other = ParserElement.literalStringClass(other)
         self.expr = other
@@ -2853,11 +2852,8 @@ class Forward(ParseElementEnhance):
         self.ignoreExprs.extend(self.expr.ignoreExprs)
         return self
         
-    def __lshift__(self, other):
-        warnings.warn("Operator '<<' is deprecated, use '<<=' instead",
-                       DeprecationWarning,stacklevel=2)
-        self <<= other
-        return None
+    def __ilshift__(self, other):
+        return self << other
     
     def leaveWhitespace( self ):
         self.skipWhitespace = False
@@ -3249,6 +3245,12 @@ def ungroup(expr):
     """Helper to undo pyparsing's default grouping of And expressions, even
        if all but one are non-empty."""
     return TokenConverter(expr).setParseAction(lambda t:t[0])
+
+def locatedExpr(expr):
+    """Helper to decorate a returned token with its location in the input string"""
+    locator = Empty().setParseAction(lambda s,l,t: l)
+    return Group(locator("location") + expr("value"))
+
 
 # convenience constants for positional expressions
 empty       = Empty().setName("empty")
