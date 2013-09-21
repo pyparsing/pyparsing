@@ -87,7 +87,7 @@ fn  = { "sin" : math.sin,
         "abs" : abs,
         "trunc" : lambda a: int(a),
         "round" : round,
-        "sgn" : lambda a: abs(a)>epsilon and cmp(a,0) or 0}
+        "sgn" : lambda a: (a > epsilon) - (a < -epsilon) }
 def evaluateStack( s ):
     op = s.pop()
     if op == 'unary -':
