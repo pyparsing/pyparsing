@@ -64,9 +64,9 @@ def test( strng ):
     print()
     return tokens
     
-
-ini = test("setup.ini")
-print("ini['Startup']['modemid'] =", ini['Startup']['modemid']) 
-print("ini.Startup =", ini.Startup)
-print("ini.Startup.modemid =", ini.Startup.modemid)
+if __name__ == "__main__":
+	ini = test("setup.ini")
+	print("ini['Startup']['modemid'] =", ini['Startup']['modemid']) 
+	print("ini.Startup =", ini.Startup)
+	print("ini.Startup.modemid =", ini.Startup.modemid)
 
