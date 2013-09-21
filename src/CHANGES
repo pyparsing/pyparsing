@@ -15,6 +15,35 @@ Version 2.0.2 -
   for cases whre '<<=' operator is not suitable (such as in defining
   lambda expressions).
 
+- Expanded argument compatibility for classes and functions that
+  take list arguments, to now accept generators as well.
+
+- Extended list-like behavior of ParseResults, adding support for
+  append and extend. NOTE: if you have existing applications using
+  these names as results names, you will have to access them using
+  dict-style syntax: res["append"] and res["extend"]
+
+- ParseResults emulates the change in list vs. iterator semantics for
+  methods like keys(), values(), and items(). Under Python 2.x, these
+  methods will return lists, under Python 3.x, these methods will 
+  return iterators.
+
+- ParseResults now has a method haskeys() which returns True or False
+  depending on whether any results names have been defined. This simplifies
+  testing for the existence of results names under Python 3.x, which 
+  returns keys() as an iterator, not a list.
+
+- ParseResults now supports both list and dict semantics for pop().
+  If passed no argument or an integer argument, it will use list semantics
+  and pop tokens from the list of parsed tokens. If passed a non-integer
+  argument (most likely a string), it will use dict semantics and 
+  pop the corresponding value from any defined results names. A
+  second default return value argument is supported, just as in 
+  dict.pop().
+
+- Cleaned up my unit test environment, now runs with Python 2.6 and 
+  3.3.
+
 
 Version 2.0.1 - July, 2013
 --------------------------
