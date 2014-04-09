@@ -2153,6 +2153,24 @@ class SumParseResultsTest(ParseTestCase):
             assert expected == result, \
                 "Failed to parse '%s' correctly, \nexpected '%s', got '%s'" % (test,expected,result)
 
+class MarkInputLineTest(ParseTestCase):
+    def runTest(self):
+
+        samplestr1 = "DOB 100-10-2010;more garbage\nID PARI12345678;more garbage"
+        
+        from pyparsing import Regex, Word, alphanums, restOfLine
+        dob_ref = "DOB" + Regex(r"\d{2}-\d{2}-\d{4}")("dob")
+
+        try:
+            res = dob_ref.parseString(samplestr1)
+        except ParseException as pe:
+            outstr = pe.markInputline()
+            print_(outstr)
+            assert outstr == "DOB >!<100-10-2010;more garbage", "did not properly create marked input line"
+        else:
+            assert False, "test construction failed - should have raised an exception"
+
+
 class MiscellaneousParserTests(ParseTestCase):
     def runTest(self):
         import pyparsing
@@ -2358,6 +2376,7 @@ def makeTestSuite():
     suite.addTest( OptionalEachTest() )
     suite.addTest( SumParseResultsTest() )
     suite.addTest( WordExcludeTest() )
+    suite.addTest( MarkInputLineTest() )
     suite.addTest( MiscellaneousParserTests() )
     if TEST_USING_PACKRAT:
         # retest using packrat parsing (disable those tests that aren't compatible)
@@ -2377,7 +2396,8 @@ def makeTestSuiteTemp():
     suite = TestSuite()
     suite.addTest( PyparsingTestInit() )
     #~ suite.addTest( OptionalEachTest() )
-    suite.addTest( RepeaterTest() )
+    #~ suite.addTest( RepeaterTest() )
+    suite.addTest( MarkInputLineTest() )
         
     return suite
 
