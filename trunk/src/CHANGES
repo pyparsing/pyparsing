@@ -2,8 +2,8 @@
 Change Log
 ==========
 
-Version 2.0.2 - 
------------------------
+Version 2.0.2 - April, 2014
+---------------------------
 - Extended "expr(name)" shortcut (same as "expr.setResultsName(name)")
   to accept "expr()" as a shortcut for "expr.copy()".
 
@@ -40,6 +40,8 @@ Version 2.0.2 -
   pop the corresponding value from any defined results names. A
   second default return value argument is supported, just as in 
   dict.pop().
+
+- Fixed bug in markInputline, thanks for reporting this, Matt Grant!
 
 - Cleaned up my unit test environment, now runs with Python 2.6 and 
   3.3.

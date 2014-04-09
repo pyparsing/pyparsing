@@ -58,7 +58,7 @@ The pyparsing module handles some of the problems that are typically vexing when
 """
 
 __version__ = "2.0.2"
-__versionTime__ = "21 September 2013 10:45"
+__versionTime__ = "8 April 2014 08:55"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -204,8 +204,8 @@ class ParseBaseException(Exception):
         line_str = self.line
         line_column = self.column - 1
         if markerString:
-            line_str = "".join(line_str[:line_column],
-                                markerString, line_str[line_column:])
+            line_str = "".join((line_str[:line_column],
+                                markerString, line_str[line_column:]))
         return line_str.strip()
     def __dir__(self):
         return "loc msg pstr parserElement lineno col line " \
@@ -2948,7 +2948,7 @@ class Forward(ParseElementEnhance):
             return super(Forward,self).copy()
         else:
             ret = Forward()
-            ret << self
+            ret <<= self
             return ret
 
 class _ForwardNoRecurse(Forward):
@@ -3179,7 +3179,7 @@ def matchPreviousExpr(expr):
     """
     rep = Forward()
     e2 = expr.copy()
-    rep << e2
+    rep <<= e2
     def copyTokenToRepeater(s,l,t):
         matchTokens = _flatten(t.asList())
         def mustMatchTheseTokens(s,l,t):
@@ -3548,9 +3548,9 @@ def infixNotation( baseExpr, opList, lpar=Suppress('('), rpar=Suppress(')') ):
             raise ValueError("operator must indicate right or left associativity")
         if pa:
             matchExpr.setParseAction( pa )
-        thisExpr << ( matchExpr | lastExpr )
+        thisExpr <<= ( matchExpr | lastExpr )
         lastExpr = thisExpr
-    ret << lastExpr
+    ret <<= lastExpr
     return ret
 operatorPrecedence = infixNotation
 
@@ -3606,9 +3606,9 @@ def nestedExpr(opener="(", closer=")", content=None, ignoreExpr=quotedString.cop
             raise ValueError("opening and closing arguments must be strings if no content expression is given")
     ret = Forward()
     if ignoreExpr is not None:
-        ret << Group( Suppress(opener) + ZeroOrMore( ignoreExpr | ret | content ) + Suppress(closer) )
+        ret <<= Group( Suppress(opener) + ZeroOrMore( ignoreExpr | ret | content ) + Suppress(closer) )
     else:
-        ret << Group( Suppress(opener) + ZeroOrMore( ret | content )  + Suppress(closer) )
+        ret <<= Group( Suppress(opener) + ZeroOrMore( ret | content )  + Suppress(closer) )
     return ret
 
 def indentedBlock(blockStatementExpr, indentStack, indent=True):
