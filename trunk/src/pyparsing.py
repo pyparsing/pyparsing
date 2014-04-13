@@ -58,7 +58,7 @@ The pyparsing module handles some of the problems that are typically vexing when
 """
 
 __version__ = "2.0.2"
-__versionTime__ = "8 April 2014 08:55"
+__versionTime__ = "13 April 2014 11:10"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -69,6 +69,7 @@ import warnings
 import re
 import sre_constants
 import collections
+import pprint
 #~ sys.stderr.write( "testing pyparsing module, version %s, %s\n" % (__version__,__versionTime__ ) )
 
 __all__ = [
@@ -648,6 +649,9 @@ class ParseResults(object):
             else:
                 out.append(_ustr(v))
         return "".join(out)
+
+    def pprint(self, *args, **kwargs):
+        pprint.pprint(self.asList(), *args, **kwargs)
 
     # add support for pickle protocol
     def __getstate__(self):

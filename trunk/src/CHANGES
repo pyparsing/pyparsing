@@ -10,6 +10,14 @@ Version 2.0.2 - April, 2014
 - Added "locatedExpr(expr)" helper, to decorate any returned tokens
   with their location within the input string.
 
+- Added "pprint()" method to ParseResults, to simplify troubleshooting
+  and prettified output. Now instead of importing the pprint module
+  and then writing "pprint.pprint(result)", you can just write
+  "result.pprint()".  This method also accepts addtional positional and
+  keyword arguments (such as indent, width, etc.), which get passed 
+  through directly to the pprint method 
+  (see http://docs.python.org/2/library/pprint.html#pprint.pprint).
+
 - Removed deprecation warnings when using '<<' for Forward expression
   assignment. '<<=' is still preferred, but '<<' will be retained
   for cases whre '<<=' operator is not suitable (such as in defining
