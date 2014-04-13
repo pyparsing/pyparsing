@@ -4,7 +4,6 @@ copy ..\sourceforge\svn\trunk\src\pyparsing.py .
 copy ..\sourceforge\svn\trunk\src\MANIFEST.in_bdist .
 copy ..\sourceforge\svn\trunk\src\MANIFEST.in_src .
 copy ..\sourceforge\svn\trunk\src\examples\* .\examples\
-del .\examples\*.pyc
 
 rmdir build
 rmdir dist
@@ -22,4 +21,5 @@ python setup.py bdist_wininst --target-version=3.0 --plat-name=win32
 python setup.py bdist_wininst --target-version=3.1 --plat-name=win32
 python setup.py bdist_wininst --target-version=3.2 --plat-name=win32
 python setup.py bdist_wininst --target-version=3.3 --plat-name=win32
+python setup.py bdist_wininst --target-version=3.4 --plat-name=win32
 
