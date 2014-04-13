@@ -8,7 +8,8 @@ Version 2.0.2 - April, 2014
   to accept "expr()" as a shortcut for "expr.copy()".
 
 - Added "locatedExpr(expr)" helper, to decorate any returned tokens
-  with their location within the input string.
+  with their location within the input string. Adds the results names
+  locn_start and locn_end to the output parse results.
 
 - Added "pprint()" method to ParseResults, to simplify troubleshooting
   and prettified output. Now instead of importing the pprint module
