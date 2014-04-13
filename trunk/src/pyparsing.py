@@ -58,7 +58,7 @@ The pyparsing module handles some of the problems that are typically vexing when
 """
 
 __version__ = "2.0.2"
-__versionTime__ = "13 April 2014 11:10"
+__versionTime__ = "13 April 2014 12:10"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -399,6 +399,8 @@ class ParseResults(object):
             return list(self.iteritems())
 
     def haskeys( self ):
+        """Since keys() returns an iterator, this method is helpful in bypassing
+           code that looks for the existence of any defined results names."""
         return bool(self.__tokdict)
         
     def pop( self, *args, **kwargs):
@@ -651,6 +653,9 @@ class ParseResults(object):
         return "".join(out)
 
     def pprint(self, *args, **kwargs):
+        """Pretty-printer for parsed results as a list, using the C{pprint} module.
+           Accepts additional positional or keyword args as defined for the 
+           C{pprint.pprint} method. (U{http://docs.python.org/3/library/pprint.html#pprint.pprint})"""
         pprint.pprint(self.asList(), *args, **kwargs)
 
     # add support for pickle protocol
@@ -3308,9 +3313,17 @@ def ungroup(expr):
     return TokenConverter(expr).setParseAction(lambda t:t[0])
 
 def locatedExpr(expr):
-    """Helper to decorate a returned token with its location in the input string"""
+    """Helper to decorate a returned token with its starting and ending locations in the input string.
+       This helper adds the following results names:
+        - locn_start = location where matched expression begins
+        - locn_end = location where matched expression ends
+        - value = the actual parsed results
+
+       Be careful if the input text contains C{<TAB>} characters, you may want to call
+       C{L{ParserElement.parseWithTabs}}
+    """
     locator = Empty().setParseAction(lambda s,l,t: l)
-    return Group(locator("location") + expr("value"))
+    return Group(locator("locn_start") + expr("value") + locator.copy().leaveWhitespace()("locn_end"))
 
 
 # convenience constants for positional expressions

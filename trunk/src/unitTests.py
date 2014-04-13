@@ -2170,6 +2170,19 @@ class MarkInputLineTest(ParseTestCase):
         else:
             assert False, "test construction failed - should have raised an exception"
 
+class LocatedExprTest(ParseTestCase):
+    def runTest(self):
+
+        #             012345678901234567890123456789012345678901234567890
+        samplestr1 = "DOB 10-10-2010;more garbage;ID PARI12345678  ;more garbage"
+        
+        from pyparsing import Regex, Word, alphanums, restOfLine, locatedExpr
+        id_ref = locatedExpr("ID" + Word(alphanums,exact=12)("id"))
+
+        res = id_ref.searchString(samplestr1)[0][0]
+        print_(res.dump())
+        assert samplestr1[res.locn_start:res.locn_end] == 'ID PARI12345678', "incorrect location calculation"
+
 
 class MiscellaneousParserTests(ParseTestCase):
     def runTest(self):
@@ -2377,6 +2390,7 @@ def makeTestSuite():
     suite.addTest( SumParseResultsTest() )
     suite.addTest( WordExcludeTest() )
     suite.addTest( MarkInputLineTest() )
+    suite.addTest( LocatedExprTest() )
     suite.addTest( MiscellaneousParserTests() )
     if TEST_USING_PACKRAT:
         # retest using packrat parsing (disable those tests that aren't compatible)
@@ -2397,7 +2411,7 @@ def makeTestSuiteTemp():
     suite.addTest( PyparsingTestInit() )
     #~ suite.addTest( OptionalEachTest() )
     #~ suite.addTest( RepeaterTest() )
-    suite.addTest( MarkInputLineTest() )
+    suite.addTest( LocatedExprTest() )
         
     return suite
 
