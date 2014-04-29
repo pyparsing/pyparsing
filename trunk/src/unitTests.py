@@ -927,15 +927,17 @@ class CustomQuotesTest(ParseTestCase):
             print_(quoteExpr.pattern)
             print_(quoteExpr.searchString(testString))
             print_(quoteExpr.searchString(testString)[0][0])
+            print_(expected)
             assert quoteExpr.searchString(testString)[0][0] == expected, \
                     "failed to match %s, expected '%s', got '%s'" % \
                     (quoteExpr,expected,quoteExpr.searchString(testString)[0])
+            print_()
         
         test(colonQuotes, r"sdf:jls:djf")
-        test(dashQuotes,  r"sdf\:jls::-djf: sl")
-        test(hatQuotes,   r"sdf\:jls")
-        test(hatQuotes1,  r"sdf\:jls^--djf")
-        test(dblEqQuotes, r"sdf\:j=ls::--djf: sl")
+        test(dashQuotes,  r"sdf:jls::-djf: sl")
+        test(hatQuotes,   r"sdf:jls")
+        test(hatQuotes1,  r"sdf:jls^--djf")
+        test(dblEqQuotes, r"sdf:j=ls::--djf: sl")
         test( QuotedString(':::'), 'jls::--djf: sl')
         test( QuotedString('==',endQuoteChar='--'), r'sdf\:j=lz::')
         test( QuotedString('^^^',multiline=True), r"""==sdf\:j=lz::--djf: sl=^^=kfsjf
@@ -2411,7 +2413,8 @@ def makeTestSuiteTemp():
     suite.addTest( PyparsingTestInit() )
     #~ suite.addTest( OptionalEachTest() )
     #~ suite.addTest( RepeaterTest() )
-    suite.addTest( LocatedExprTest() )
+    #~ suite.addTest( LocatedExprTest() )
+    suite.addTest( CustomQuotesTest() )
         
     return suite
 
@@ -2427,8 +2430,8 @@ console = True
 if console:
     #~ # console mode
     testRunner = TextTestRunner()
-    testRunner.run( makeTestSuite() )
-    #~ testRunner.run( makeTestSuiteTemp() )
+    #~ testRunner.run( makeTestSuite() )
+    testRunner.run( makeTestSuiteTemp() )
     #~ lp.run("testRunner.run( makeTestSuite() )")
 else:
     # HTML mode
