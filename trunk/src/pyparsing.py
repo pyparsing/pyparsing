@@ -58,7 +58,7 @@ The pyparsing module handles some of the problems that are typically vexing when
 """
 
 __version__ = "2.0.3"
-__versionTime__ = "28 April 2014 17:10"
+__versionTime__ = "8 May 2014 08:51"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
