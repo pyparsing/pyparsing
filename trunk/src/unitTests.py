@@ -2186,6 +2186,41 @@ class LocatedExprTest(ParseTestCase):
         assert samplestr1[res.locn_start:res.locn_end] == 'ID PARI12345678', "incorrect location calculation"
 
 
+class PopTest(ParseTestCase):
+    def runTest(self):
+        from pyparsing import Word, alphas, nums
+
+        source = "AAA 123 456 789 234"
+        patt = Word(alphas)("name") + Word(nums)*(1,)
+
+        result = patt.parseString(source)
+        tests = [
+            (0, 'AAA', ['123', '456', '789', '234']),
+            (None, '234', ['123', '456', '789']),
+            ('name', 'AAA', ['123', '456', '789']),
+            (-1, '789', ['123', '456']),
+            ]
+        for test in tests:
+            idx, val, remaining = test
+            if idx is not None:
+                ret = result.pop(idx)
+            else:
+                ret = result.pop()
+            print_("EXP:", val, remaining)
+            print_("GOT:", ret, result.asList())
+            print_(ret, result.asList())
+            assert ret == val, "wrong value returned, got %r, expected %r" % (ret, val)
+            assert remaining == result.asList(), "list is in wrong state after pop, got %r, expected %r" % (result.asList(), remaining)
+            print_()
+
+        prevlist = result.asList()
+        ret = result.pop('name', default="noname")
+        print_(ret)
+        print_(result.asList())
+        assert ret == "noname", "default value not successfully returned, got %r, expected %r" % (ret, "noname")
+        assert result.asList() == prevlist, "list is in wrong state after pop, got %r, expected %r" % (result.asList(), remaining)
+
+
 class MiscellaneousParserTests(ParseTestCase):
     def runTest(self):
         import pyparsing
@@ -2393,6 +2428,7 @@ def makeTestSuite():
     suite.addTest( WordExcludeTest() )
     suite.addTest( MarkInputLineTest() )
     suite.addTest( LocatedExprTest() )
+    suite.addTest( PopTest() )
     suite.addTest( MiscellaneousParserTests() )
     if TEST_USING_PACKRAT:
         # retest using packrat parsing (disable those tests that aren't compatible)
@@ -2414,7 +2450,7 @@ def makeTestSuiteTemp():
     #~ suite.addTest( OptionalEachTest() )
     #~ suite.addTest( RepeaterTest() )
     #~ suite.addTest( LocatedExprTest() )
-    suite.addTest( CustomQuotesTest() )
+    suite.addTest( PopTest() )
         
     return suite
 
@@ -2430,8 +2466,8 @@ console = True
 if console:
     #~ # console mode
     testRunner = TextTestRunner()
-    #~ testRunner.run( makeTestSuite() )
-    testRunner.run( makeTestSuiteTemp() )
+    testRunner.run( makeTestSuite() )
+    #~ testRunner.run( makeTestSuiteTemp() )
     #~ lp.run("testRunner.run( makeTestSuite() )")
 else:
     # HTML mode

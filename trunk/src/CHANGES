@@ -9,6 +9,10 @@ Version 2.0.3 -
   constructor) would be escaped. Now all escaped characters will be
   escaped, and the escaping backslashes will be removed.
 
+- Fixed regression in ParseResults.pop() - pop() was pretty much
+  broken after I added *improvements* in 2.0.2. Reported by Iain
+  Shelvington, thanks Iain!
+
 
 Version 2.0.2 - April, 2014
 ---------------------------
