@@ -414,11 +414,15 @@ class ParseResults(object):
            supported, just as in dict.pop()."""
         if not args:
             args = [-1]
-        if 'default' in kwargs:
-            args.append(kwargs['default'])
+        for k,v in kwargs.items():
+            if k == 'default':
+                args = (args[0], v)
+            else:
+                raise TypeError("pop() got an unexpected keyword argument '%s'" % k)
         if (isinstance(args[0], int) or 
                         len(args) == 1 or 
                         args[0] in self):
+            index = args[0]
             ret = self[index]
             del self[index]
             return ret
