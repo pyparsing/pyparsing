@@ -58,7 +58,7 @@ The pyparsing module handles some of the problems that are typically vexing when
 """
 
 __version__ = "2.0.3"
-__versionTime__ = "8 May 2014 08:51"
+__versionTime__ = "22 May 2014 02:47"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -2341,8 +2341,8 @@ class And(ParseExpression):
     def __init__( self, exprs, savelist = True ):
         super(And,self).__init__(exprs, savelist)
         self.mayReturnEmpty = all(e.mayReturnEmpty for e in self.exprs)
-        self.setWhitespaceChars( exprs[0].whiteChars )
-        self.skipWhitespace = exprs[0].skipWhitespace
+        self.setWhitespaceChars( self.exprs[0].whiteChars )
+        self.skipWhitespace = self.exprs[0].skipWhitespace
         self.callPreparse = True
 
     def parseImpl( self, instring, loc, doActions=True ):

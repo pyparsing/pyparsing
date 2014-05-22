@@ -13,6 +13,8 @@ Version 2.0.3 -
   broken after I added *improvements* in 2.0.2. Reported by Iain
   Shelvington, thanks Iain!
 
+- Fixed bug in And class when initializing using a generator.
+
 
 Version 2.0.2 - April, 2014
 ---------------------------
