@@ -3231,6 +3231,7 @@ def oneOf( strs, caseless=False, useRegex=True ):
         masks = ( lambda a,b: b.startswith(a) )
         parseElementClass = Literal
 
+    symbols = []
     if isinstance(strs,basestring):
         symbols = strs.split()
     elif isinstance(strs, collections.Sequence):
@@ -3240,6 +3241,8 @@ def oneOf( strs, caseless=False, useRegex=True ):
     else:
         warnings.warn("Invalid argument to oneOf, expected string or list",
                 SyntaxWarning, stacklevel=2)
+    if not symbols:
+        return NoMatch()
 
     i = 0
     while i < len(symbols)-1:
