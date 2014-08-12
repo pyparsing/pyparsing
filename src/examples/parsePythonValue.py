@@ -10,6 +10,7 @@ cvtInt = lambda toks: int(toks[0])
 cvtReal = lambda toks: float(toks[0])
 cvtTuple = lambda toks : tuple(toks.asList())
 cvtDict = lambda toks: dict(toks.asList())
+cvtList = lambda toks: [toks.asList()]
 
 # define punctuation as suppressed literals
 lparen,rparen,lbrack,rbrack,lbrace,rbrace,colon = \
@@ -39,6 +40,7 @@ tupleStr.setParseAction( cvtTuple )
 
 listStr << (lbrack + Optional(delimitedList(listItem) + 
             Optional(Suppress(","))) + rbrack)
+listStr.setParseAction( cvtList, lambda t: t[0] )
 
 dictEntry = Group( listItem + colon + listItem )
 dictStr << (lbrace + Optional(delimitedList(dictEntry) + \
