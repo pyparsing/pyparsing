@@ -15,6 +15,9 @@ Version 2.0.3 -
 
 - Fixed bug in And class when initializing using a generator.
 
+- Enhanced ParseResults.dump() method to list out nested ParseResults that
+  are unnamed arrays of sub-structures.
+
 - Fixed UnboundLocalError under Python 3.4 in oneOf method, reported
   on Sourceforge by aldanor, thanks!
 

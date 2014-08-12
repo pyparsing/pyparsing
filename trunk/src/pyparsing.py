@@ -641,15 +641,25 @@ class ParseResults(object):
            Accepts an optional C{indent} argument so that this string can be embedded
            in a nested display of other data."""
         out = []
+        NL = '\n'
         out.append( indent+_ustr(self.asList()) )
         items = sorted(self.items())
         for k,v in items:
             if out:
-                out.append('\n')
+                out.append(NL)
             out.append( "%s%s- %s: " % (indent,('  '*depth), k) )
             if isinstance(v,ParseResults):
-                if v.haskeys():
-                    out.append( v.dump(indent,depth+1) )
+                if v:
+                    if v.haskeys():
+                        out.append( v.dump(indent,depth+1) )
+                    elif any(isinstance(vv,ParseResults) for vv in v):
+                        for i,vv in enumerate(v):
+                            if isinstance(vv,ParseResults):
+                                out.append("\n%s%s[%d]:\n%s%s%s" % (indent,('  '*(depth+1)),i,indent,('  '*(depth+2)),vv.dump(indent,depth+2) ))
+                            else:
+                                out.append("\n%s%s[%d]:\n%s%s%s" % (indent,('  '*(depth+1)),i,indent,('  '*(depth+2)),_ustr(vv)))
+                    else:
+                        out.append(_ustr(v))
                 else:
                     out.append(_ustr(v))
             else:
