@@ -21,6 +21,10 @@ Version 2.0.3 -
 - Fixed UnboundLocalError under Python 3.4 in oneOf method, reported
   on Sourceforge by aldanor, thanks!
 
+- Fixed bug in ParseResults __init__ method, when returning non-ParseResults
+  types from parse actions that implement __eq__. Raised during discussion 
+  on the pyparsing wiki with cyrfer.
+
 
 Version 2.0.2 - April, 2014
 ---------------------------
