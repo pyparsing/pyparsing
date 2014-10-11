@@ -2,8 +2,9 @@
 #
 # Copyright, 2006, by Paul McGuire
 #
-
+from __future__ import print_function
 from pyparsing import *
+
 
 cvtBool = lambda t:t[0]=='True'
 cvtInt = lambda toks: int(toks[0])
@@ -40,7 +41,7 @@ tupleStr.setParseAction( cvtTuple )
 
 listStr << (lbrack + Optional(delimitedList(listItem) + 
             Optional(Suppress(","))) + rbrack)
-listStr.setParseAction( cvtList, lambda t: t[0] )
+listStr.setParseAction(cvtList, lambda t: t[0])
 
 dictEntry = Group( listItem + colon + listItem )
 dictStr << (lbrace + Optional(delimitedList(dictEntry) + \
