@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 """Setup script for the pyparsing module distribution."""
-from distutils.core import setup
+from setuptools import setup
 
 import sys
 import os
