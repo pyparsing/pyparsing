@@ -854,6 +854,8 @@ class ReStringRangeTest(ParseTestCase):
             (r"[A-]"),
             (r"[-A]"),
             (r"[\x21]"),
+            #(r"[а-яА-ЯёЁA-Z$_\041α-ω]".decode('utf-8')),
+            (u'[\u0430-\u044f\u0410-\u042f\u0451\u0401ABCDEFGHIJKLMNOPQRSTUVWXYZ$_\041\u03b1-\u03c9]'),
             )
         expectedResults = (
             "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
@@ -877,12 +879,13 @@ class ReStringRangeTest(ParseTestCase):
             "A-",
             "-A",
             "!",
+            u"абвгдежзийклмнопрстуфхцчшщъыьэюяАБВГДЕЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯёЁABCDEFGHIJKLMNOPQRSTUVWXYZ$_!αβγδεζηθικλμνξοπρςστυφχψω",
             )
         for test in zip( testCases, expectedResults ):
             t,exp = test
             res = pyparsing.srange(t)
-            #~ print t,"->",res
-            assert res == exp, "srange error, srange(%s)->'%r', expected '%r'" % (t, res, exp)
+            #print_(t,"->",res)
+            assert res == exp, "srange error, srange(%r)->'%r', expected '%r'" % (t, res, exp)
 
 class SkipToParserTests(ParseTestCase):
     def runTest(self):
@@ -1376,8 +1379,8 @@ class UpcaseDowncaseUnicode(ParseTestCase):
             from __builtin__ import unichr
 
         a = '\u00bfC\u00f3mo esta usted?'
-        ualphas = "".join( [ unichr(i) for i in range(sys.maxunicode)
-                            if unichr(i).isalpha() ] )
+        ualphas = "".join( unichr(i) for i in range(sys.maxunicode)
+                            if unichr(i).isalpha() )
         uword = pp.Word(ualphas).setParseAction(pp.upcaseTokens)
 
         print_ = lambda *args: None
