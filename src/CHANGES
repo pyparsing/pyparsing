@@ -10,6 +10,11 @@ Version 2.0.4 -
 
 - Enhanced implementation of replaceWith
 
+- Fixed enhanced ParseResults.dump() method when the results consists
+  only of an unnamed array of sub-structure results. Reported by Robin
+  Siebler, thanks for your patience and persistence, Robin!
+
+
 
 Version 2.0.3 - 
 ---------------------------
