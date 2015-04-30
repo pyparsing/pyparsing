@@ -57,8 +57,8 @@ The pyparsing module handles some of the problems that are typically vexing when
  - embedded comments
 """
 
-__version__ = "2.0.3"
-__versionTime__ = "16 Aug 2014 00:12"
+__version__ = "2.0.4"
+__versionTime__ = "29 Apr 2015 22:10"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -646,27 +646,29 @@ class ParseResults(object):
         out = []
         NL = '\n'
         out.append( indent+_ustr(self.asList()) )
-        items = sorted(self.items())
-        for k,v in items:
-            if out:
-                out.append(NL)
-            out.append( "%s%s- %s: " % (indent,('  '*depth), k) )
-            if isinstance(v,ParseResults):
-                if v:
-                    if v.haskeys():
+        if self.haskeys():
+            items = sorted(self.items())
+            for k,v in items:
+                if out:
+                    out.append(NL)
+                out.append( "%s%s- %s: " % (indent,('  '*depth), k) )
+                if isinstance(v,ParseResults):
+                    if v:
                         out.append( v.dump(indent,depth+1) )
-                    elif any(isinstance(vv,ParseResults) for vv in v):
-                        for i,vv in enumerate(v):
-                            if isinstance(vv,ParseResults):
-                                out.append("\n%s%s[%d]:\n%s%s%s" % (indent,('  '*(depth+1)),i,indent,('  '*(depth+2)),vv.dump(indent,depth+2) ))
-                            else:
-                                out.append("\n%s%s[%d]:\n%s%s%s" % (indent,('  '*(depth+1)),i,indent,('  '*(depth+2)),_ustr(vv)))
                     else:
                         out.append(_ustr(v))
                 else:
                     out.append(_ustr(v))
-            else:
-                out.append(_ustr(v))
+        elif any(isinstance(vv,ParseResults) for vv in self):
+            v = self
+            for i,vv in enumerate(v):
+                if isinstance(vv,ParseResults):
+                    out.append("\n%s%s[%d]:\n%s%s%s" % (indent,('  '*(depth)),i,indent,('  '*(depth+1)),vv.dump(indent,depth+1) ))
+                else:
+                    out.append("\n%s%s[%d]:\n%s%s%s" % (indent,('  '*(depth)),i,indent,('  '*(depth+1)),_ustr(vv)))
+        else:
+            out.append(_ustr(self))
+            
         return "".join(out)
 
     def pprint(self, *args, **kwargs):
