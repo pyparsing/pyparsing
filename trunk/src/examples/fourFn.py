@@ -10,7 +10,7 @@
 # Copyright 2003-2009 by Paul McGuire
 #
 from pyparsing import Literal,CaselessLiteral,Word,Group,Optional,\
-    ZeroOrMore,Forward,nums,alphas,Regex,ParseException
+    ZeroOrMore,Forward,nums,alphas,Regex,ParseException,CaselessKeyword
 import math
 import operator
 
@@ -42,7 +42,11 @@ def BNF():
     global bnf
     if not bnf:
         point = Literal( "." )
-        e     = CaselessLiteral( "E" )
+        # use CaselessKeyword for e and pi, to avoid accidentally matching
+        # functions that start with 'e' or 'pi' (such as 'exp'); Keyword
+        # and CaselessKeyword only match whole words
+        e     = CaselessKeyword( "E" )
+        pi    = CaselessKeyword( "PI" )
         #~ fnumber = Combine( Word( "+-"+nums, nums ) + 
                            #~ Optional( point + Optional( Word( nums ) ) ) +
                            #~ Optional( e + Word( "+-"+nums, nums ) ) )
@@ -58,7 +62,6 @@ def BNF():
         addop  = plus | minus
         multop = mult | div
         expop = Literal( "^" )
-        pi    = CaselessLiteral( "PI" )
         
         expr = Forward()
         atom = ((0,None)*minus + ( pi | e | fnumber | ident + lpar + expr + rpar | ident ).setParseAction( pushFirst ) | 
@@ -84,6 +87,7 @@ opn = { "+" : operator.add,
 fn  = { "sin" : math.sin,
         "cos" : math.cos,
         "tan" : math.tan,
+        "exp" : math.exp,
         "abs" : abs,
         "trunc" : lambda a: int(a),
         "round" : round,
@@ -149,6 +153,8 @@ if __name__ == "__main__":
     test( "round(E)", round(math.e) )
     test( "round(-E)", round(-math.e) )
     test( "E^PI", math.e**math.pi )
+    test( "exp(0)", 1 )
+    test( "exp(1)", math.e )
     test( "2^3^2", 2**3**2 )
     test( "2^3+2", 2**3+2 )
     test( "2^3+5", 2**3+5 )
