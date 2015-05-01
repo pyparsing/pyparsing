@@ -14,6 +14,10 @@ Version 2.0.4 -
   only of an unnamed array of sub-structure results. Reported by Robin
   Siebler, thanks for your patience and persistence, Robin!
 
+- Fixed bug in fourFn.py example code, where pi and e were defined using
+  CaselessLiteral instead of CaselessKeyword. This was not a problem until
+  adding a new function 'exp', and the leading 'e' of 'exp' was accidentally
+  parsed as the mathematical constant 'e'. Nice catch, Tom Grydeland - thanks!
 
 
 Version 2.0.3 - 
