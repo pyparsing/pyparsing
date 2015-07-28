@@ -57,8 +57,8 @@ The pyparsing module handles some of the problems that are typically vexing when
  - embedded comments
 """
 
-__version__ = "2.0.4"
-__versionTime__ = "29 Apr 2015 22:10"
+__version__ = "2.0.5"
+__versionTime__ = "28 Jul 2015 07:55"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -905,13 +905,25 @@ class ParserElement(object):
            positions within the parsed string.
            """
         self.parseAction = list(map(_trim_arity, list(fns)))
-        self.callDuringTry = ("callDuringTry" in kwargs and kwargs["callDuringTry"])
+        self.callDuringTry = kwargs.get("callDuringTry", False)
         return self
 
     def addParseAction( self, *fns, **kwargs ):
         """Add parse action to expression's list of parse actions. See L{I{setParseAction}<setParseAction>}."""
         self.parseAction += list(map(_trim_arity, list(fns)))
-        self.callDuringTry = self.callDuringTry or ("callDuringTry" in kwargs and kwargs["callDuringTry"])
+        self.callDuringTry = self.callDuringTry or kwargs.get("callDuringTry", False)
+        return self
+
+    def addCondition(self, *fns, **kwargs):
+        """Add a boolean predicate function to expression's list of parse actions. See L{I{setParseAction}<setParseAction>}."""
+        msg = kwargs.get("message") or "failed user-defined condition"
+        for fn in fns:
+            def pa(s,l,t):
+                if not bool(_trim_arity(fn)(s,l,t)):
+                    raise ParseException(s,l,msg)
+                return t
+            self.parseAction.append(pa)
+        self.callDuringTry = self.callDuringTry or kwargs.get("callDuringTry", False)
         return self
 
     def setFailAction( self, fn ):
@@ -3768,3 +3780,8 @@ if __name__ == "__main__":
     test( "Select" )
     test( "Select ^^^ frox Sys.dual" )
     test( "Select A, B, C from Sys.dual, Table2   " )
+
+"""
+CHANGES
+UnitTests.py
+"""

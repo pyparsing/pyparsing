@@ -2224,6 +2224,20 @@ class PopTest(ParseTestCase):
         assert result.asList() == prevlist, "list is in wrong state after pop, got %r, expected %r" % (result.asList(), remaining)
 
 
+class AddConditionTest(ParseTestCase):
+    def runTest(self):
+        from pyparsing import Word, alphas, nums
+
+        numParser = Word(nums)
+        numParser.addParseAction(lambda s,l,t: int(t[0]))
+        numParser.addCondition(lambda s,l,t: t[0] % 2)
+        numParser.addCondition(lambda s,l,t: t[0] >= 7)
+        
+        result = numParser.searchString("1 2 3 4 5 6 7 8 9 10")
+        print result.asList()
+        assert result.asList() == [[7],[9]], "failed to properly process conditions"
+
+
 class MiscellaneousParserTests(ParseTestCase):
     def runTest(self):
         import pyparsing
@@ -2432,6 +2446,7 @@ def makeTestSuite():
     suite.addTest( MarkInputLineTest() )
     suite.addTest( LocatedExprTest() )
     suite.addTest( PopTest() )
+    suite.addTest( AddConditionTest() )
     suite.addTest( MiscellaneousParserTests() )
     if TEST_USING_PACKRAT:
         # retest using packrat parsing (disable those tests that aren't compatible)
@@ -2453,7 +2468,7 @@ def makeTestSuiteTemp():
     #~ suite.addTest( OptionalEachTest() )
     #~ suite.addTest( RepeaterTest() )
     #~ suite.addTest( LocatedExprTest() )
-    suite.addTest( PopTest() )
+    suite.addTest( AddConditionTest() )
         
     return suite
 
@@ -2469,8 +2484,8 @@ console = True
 if console:
     #~ # console mode
     testRunner = TextTestRunner()
-    testRunner.run( makeTestSuite() )
-    #~ testRunner.run( makeTestSuiteTemp() )
+    #~ testRunner.run( makeTestSuite() )
+    testRunner.run( makeTestSuiteTemp() )
     #~ lp.run("testRunner.run( makeTestSuite() )")
 else:
     # HTML mode
