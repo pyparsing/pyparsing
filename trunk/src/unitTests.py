@@ -2484,8 +2484,8 @@ console = True
 if console:
     #~ # console mode
     testRunner = TextTestRunner()
-    #~ testRunner.run( makeTestSuite() )
-    testRunner.run( makeTestSuiteTemp() )
+    testRunner.run( makeTestSuite() )
+    #~ testRunner.run( makeTestSuiteTemp() )
     #~ lp.run("testRunner.run( makeTestSuite() )")
 else:
     # HTML mode
