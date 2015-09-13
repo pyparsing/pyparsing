@@ -2,17 +2,14 @@
 Change Log
 ==========
 
-Version 2.0.5 - 
+Version 2.0.4 -
 ---------------------------
 - Added ParserElement.addCondition, to simplify adding parse actions 
   that act primarily as filters. If the given condition evaluates False,
   pyparsing will raise a ParseException. The condition should be a method
-  with the same interface as a parse action. Suggested by Victor Porton,
-  nice idea Victor, thanks!
+  with the same method signature as a parse action, but should return a
+  boolean. Suggested by Victor Porton, nice idea Victor, thanks!
 
-
-Version 2.0.4 -
----------------------------
 - Slight mod to srange to accept unicode literals for the input string,
   such as "[а-яА-Я]" instead of "[\u0430-\u044f\u0410-\u042f]". Thanks 
   to Alexandr Suchkov for the patch!
@@ -27,6 +24,10 @@ Version 2.0.4 -
   CaselessLiteral instead of CaselessKeyword. This was not a problem until
   adding a new function 'exp', and the leading 'e' of 'exp' was accidentally
   parsed as the mathematical constant 'e'. Nice catch, Tom Grydeland - thanks!
+
+- Adopt new-fangled Python features, like decorators and ternary expressions, 
+  per suggestions from Williamzjc - thanks William! (Oh yeah, I'm not
+  supporting Python 2.3 with this code any more...)
 
 
 Version 2.0.3 - 

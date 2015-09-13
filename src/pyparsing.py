@@ -1,6 +1,6 @@
 # module pyparsing.py
 #
-# Copyright (c) 2003-2013  Paul T. McGuire
+# Copyright (c) 2003-2015  Paul T. McGuire
 #
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
@@ -57,8 +57,8 @@ The pyparsing module handles some of the problems that are typically vexing when
  - embedded comments
 """
 
-__version__ = "2.0.5"
-__versionTime__ = "28 Jul 2015 07:55"
+__version__ = "2.0.4"
+__versionTime__ = "13 Sep 2015 14:58"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -354,8 +354,12 @@ class ParseResults(object):
             removed = list(range(*i.indices(mylen)))
             removed.reverse()
             # fixup indices in token dictionary
-            for name in self.__tokdict:
-                occurrences = self.__tokdict[name]
+            #~ for name in self.__tokdict:
+                #~ occurrences = self.__tokdict[name]
+                #~ for j in removed:
+                    #~ for k, (value, position) in enumerate(occurrences):
+                        #~ occurrences[k] = _ParseResultsWithOffset(value, position - (position > j))
+            for name,occurrences in self.__tokdict.items():
                 for j in removed:
                     for k, (value, position) in enumerate(occurrences):
                         occurrences[k] = _ParseResultsWithOffset(value, position - (position > j))
@@ -446,8 +450,11 @@ class ParseResults(object):
         """Inserts new element at location index in the list of parsed tokens."""
         self.__toklist.insert(index, insStr)
         # fixup indices in token dictionary
-        for name in self.__tokdict:
-            occurrences = self.__tokdict[name]
+        #~ for name in self.__tokdict:
+            #~ occurrences = self.__tokdict[name]
+            #~ for k, (value, position) in enumerate(occurrences):
+                #~ occurrences[k] = _ParseResultsWithOffset(value, position + (position > index))
+        for name,occurrences in self.__tokdict.items():
             for k, (value, position) in enumerate(occurrences):
                 occurrences[k] = _ParseResultsWithOffset(value, position + (position > index))
 
@@ -489,7 +496,7 @@ class ParseResults(object):
     def __iadd__( self, other ):
         if other.__tokdict:
             offset = len(self.__toklist)
-            addoffset = ( lambda a: (a<0 and offset) or (a+offset) )
+            addoffset = lambda a: offset if a<0 else a+offset
             otheritems = other.__tokdict.items()
             otherdictitems = [(k, _ParseResultsWithOffset(v[0],addoffset(v[1])) )
                                 for (k,vlist) in otheritems for v in vlist]
@@ -510,13 +517,7 @@ class ParseResults(object):
         return "(%s, %s)" % ( repr( self.__toklist ), repr( self.__tokdict ) )
 
     def __str__( self ):
-        out = []
-        for i in self.__toklist:
-            if isinstance(i, ParseResults):
-                out.append(_ustr(i))
-            else:
-                out.append(repr(i))
-        return '[' + ', '.join(out) + ']'
+        return '[' + ', '.join(_ustr(i) if isinstance(i, ParseResults) else repr(i) for i in self.__toklist) + ']'
 
     def _asStringList( self, sep='' ):
         out = []
@@ -531,13 +532,7 @@ class ParseResults(object):
 
     def asList( self ):
         """Returns the parse results as a nested list of matching tokens, all converted to strings."""
-        out = []
-        for res in self.__toklist:
-            if isinstance(res,ParseResults):
-                out.append( res.asList() )
-            else:
-                out.append( res )
-        return out
+        return [res.asList() if isinstance(res,ParseResults) else res for res in self.__toklist]
 
     def asDict( self ):
         """Returns the named parse results as dictionary."""
@@ -584,8 +579,7 @@ class ParseResults(object):
 
         out += [ nl, indent, "<", selfTag, ">" ]
 
-        worklist = self.__toklist
-        for i,res in enumerate(worklist):
+        for i,res in enumerate(self.__toklist):
             if isinstance(res,ParseResults):
                 if i in namedItems:
                     out += [ res.asXML(namedItems[i],
@@ -713,7 +707,8 @@ def col (loc,strg):
    consistent view of the parsed string, the parse location, and line and column
    positions within the parsed string.
    """
-    return (loc<len(strg) and strg[loc] == '\n') and 1 or loc - strg.rfind("\n", 0, loc)
+    s = strg
+    return 1 if loc<len(s) and s[loc] == '\n' else loc - s.rfind("\n", 0, loc)
 
 def lineno(loc,strg):
     """Returns current line number within a string, counting newlines as line separators.
@@ -796,18 +791,18 @@ class ParserElement(object):
     DEFAULT_WHITE_CHARS = " \n\t\r"
     verbose_stacktrace = False
 
+    @staticmethod
     def setDefaultWhitespaceChars( chars ):
         """Overrides the default whitespace chars
         """
         ParserElement.DEFAULT_WHITE_CHARS = chars
-    setDefaultWhitespaceChars = staticmethod(setDefaultWhitespaceChars)
 
+    @staticmethod
     def inlineLiteralsUsing(cls):
         """
         Set class to be used for inclusion of string literals into a parser.
         """
         ParserElement.literalStringClass = cls
-    inlineLiteralsUsing = staticmethod(inlineLiteralsUsing)
 
     def __init__( self, savelist=False ):
         self.parseAction = list()
@@ -1072,11 +1067,12 @@ class ParserElement(object):
 
     # argument cache for optimizing repeated calls when backtracking through recursive expressions
     _exprArgCache = {}
+    @staticmethod
     def resetCache():
         ParserElement._exprArgCache.clear()
-    resetCache = staticmethod(resetCache)
 
     _packratEnabled = False
+    @staticmethod
     def enablePackrat():
         """Enables "packrat" parsing, which adds memoizing to the parsing logic.
            Repeated parse attempts at the same string location (which happens
@@ -1096,7 +1092,6 @@ class ParserElement(object):
         if not ParserElement._packratEnabled:
             ParserElement._packratEnabled = True
             ParserElement._parse = ParserElement._parseCache
-    enablePackrat = staticmethod(enablePackrat)
 
     def parseString( self, instring, parseAll=False ):
         """Execute the parse expression with the given string.
@@ -1664,11 +1659,11 @@ class Keyword(Token):
         c.identChars = Keyword.DEFAULT_KEYWORD_CHARS
         return c
 
+    @staticmethod
     def setDefaultKeywordChars( chars ):
         """Overrides the default Keyword chars
         """
         Keyword.DEFAULT_KEYWORD_CHARS = chars
-    setDefaultKeywordChars = staticmethod(setDefaultKeywordChars)
 
 class CaselessLiteral(Literal):
     """Token to match a specified string, ignoring case of letters.
