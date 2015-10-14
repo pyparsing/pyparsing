@@ -58,7 +58,7 @@ The pyparsing module handles some of the problems that are typically vexing when
 """
 
 __version__ = "2.0.4"
-__versionTime__ = "13 Sep 2015 14:58"
+__versionTime__ = "14 Oct 2015 03:33"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -1546,7 +1546,25 @@ class ParserElement(object):
     def __rne__(self,other):
         return not (self == other)
 
+    def runTests(self, tests):
+        """Execute the parse expression on a series of test strings, showing each
+           test, the parsed results or where the parse failed. Quick and easy way to
+           run a parse expression against a list of sample strings.
+        """
+        for t in tests:
+            print t
+            try:
+                print self.parseString(t).dump()
+            except ParseException as pe:
+                if '\n' in t:
+                    print line(pe.loc, t)
+                    print ' '*(col(pe.loc,t)-1) + '^'
+                else:
+                    print ' '*pe.loc + '^'
+                print pe
+            print
 
+        
 class Token(ParserElement):
     """Abstract C{ParserElement} subclass, for defining atomic matching patterns."""
     def __init__( self ):
