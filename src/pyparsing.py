@@ -910,7 +910,9 @@ class ParserElement(object):
         return self
 
     def addCondition(self, *fns, **kwargs):
-        """Add a boolean predicate function to expression's list of parse actions. See L{I{setParseAction}<setParseAction>}."""
+        """Add a boolean predicate function to expression's list of parse actions. See 
+        L{I{setParseAction}<setParseAction>}. Optional keyword argument C{message} can
+        be used to define a custom message to be used in the raised exception."""
         msg = kwargs.get("message") or "failed user-defined condition"
         for fn in fns:
             def pa(s,l,t):
