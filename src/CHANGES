@@ -14,7 +14,7 @@ Version 2.0.4 -
   such as "[а-яА-Я]" instead of "[\u0430-\u044f\u0410-\u042f]". Thanks 
   to Alexandr Suchkov for the patch!
 
-- Enhanced implementation of replaceWith
+- Enhanced implementation of replaceWith.
 
 - Fixed enhanced ParseResults.dump() method when the results consists
   only of an unnamed array of sub-structure results. Reported by Robin
@@ -33,6 +33,10 @@ Version 2.0.4 -
   an expression against a list of sample input strings. Basically, I got 
   tired of writing the same test code over and over, and finally added it
   as a test point method on ParserElement.
+
+- Added withClass helper method, a simplified version of withAttribute for
+  the common but annoying case when defining a filter on a div's class - 
+  made difficult because 'class' is a Python reserved word.
 
 
 Version 2.0.3 - 

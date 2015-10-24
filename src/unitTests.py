@@ -1851,7 +1851,7 @@ class WithAttributeParseActionTest(ParseTestCase):
         (Unit test written by voigts as part of the Google Highly Open Participation Contest)
         """
         
-        from pyparsing import makeHTMLTags, Word, withAttribute, nums
+        from pyparsing import makeHTMLTags, Word, withAttribute, withClass, nums
         
         data = """
         <a>1</a>
@@ -1859,25 +1859,32 @@ class WithAttributeParseActionTest(ParseTestCase):
         <a B="x">3</a>
         <a b="X">4</a>
         <a b="y">5</a>
+        <a class="boo">8</a>
         """
         tagStart, tagEnd = makeHTMLTags("a")
         
         expr = tagStart + Word(nums).setResultsName("value") + tagEnd
           
-        expected = [['a', ['b', 'x'], False, '2', '</a>'], ['a', ['b', 'x'], False, '3', '</a>']]
+        expected = ([['a', ['b', 'x'], False, '2', '</a>'], 
+                     ['a', ['b', 'x'], False, '3', '</a>']],
+                    [['a', ['b', 'x'], False, '2', '</a>'], 
+                     ['a', ['b', 'x'], False, '3', '</a>']],
+                    [['a', ['class', 'boo'], False, '8', '</a>']],
+                    )
         
-        for attrib in [
+        for attrib, exp in zip([
             withAttribute(b="x"),
             #withAttribute(B="x"),
             withAttribute(("b","x")),
             #withAttribute(("B","x")),
-            ]:
+            withClass("boo"),
+            ], expected):
           
-          tagStart.setParseAction(attrib)
-          result = expr.searchString(data)
+            tagStart.setParseAction(attrib)
+            result = expr.searchString(data)
           
-          print_(result.dump())
-          assert result.asList() == expected, "Failed test, expected %s, got %s" % (expected, result.asList())
+            print_(result.dump())
+            assert result.asList() == exp, "Failed test, expected %s, got %s" % (expected, result.asList())
 
 class NestedExpressionsTest(ParseTestCase):
     def runTest(self):
@@ -2468,7 +2475,8 @@ def makeTestSuiteTemp():
     #~ suite.addTest( OptionalEachTest() )
     #~ suite.addTest( RepeaterTest() )
     #~ suite.addTest( LocatedExprTest() )
-    suite.addTest( AddConditionTest() )
+    #~ suite.addTest( AddConditionTest() )
+    suite.addTest( WithAttributeParseActionTest() )
         
     return suite
 
@@ -2484,8 +2492,8 @@ console = True
 if console:
     #~ # console mode
     testRunner = TextTestRunner()
-    testRunner.run( makeTestSuite() )
-    #~ testRunner.run( makeTestSuiteTemp() )
+    #~ testRunner.run( makeTestSuite() )
+    testRunner.run( makeTestSuiteTemp() )
     #~ lp.run("testRunner.run( makeTestSuite() )")
 else:
     # HTML mode

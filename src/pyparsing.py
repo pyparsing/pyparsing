@@ -58,7 +58,7 @@ The pyparsing module handles some of the problems that are typically vexing when
 """
 
 __version__ = "2.0.4"
-__versionTime__ = "14 Oct 2015 03:33"
+__versionTime__ = "24 Oct 2015 16:26"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -92,7 +92,7 @@ __all__ = [
 'punc8bit', 'pythonStyleComment', 'quotedString', 'removeQuotes', 'replaceHTMLEntity', 
 'replaceWith', 'restOfLine', 'sglQuotedString', 'srange', 'stringEnd',
 'stringStart', 'traceParseAction', 'unicodeString', 'upcaseTokens', 'withAttribute',
-'indentedBlock', 'originalTextFor', 'ungroup', 'infixNotation','locatedExpr',
+'indentedBlock', 'originalTextFor', 'ungroup', 'infixNotation','locatedExpr', 'withClass',
 ]
 
 PY_3 = sys.version.startswith('3')
@@ -3523,6 +3523,8 @@ def withAttribute(*args,**attrDict):
         - a list of name-value tuples, as in ( ("ns1:class", "Customer"), ("ns2:align","right") )
        For attribute names with a namespace prefix, you must use the second form.  Attribute
        names are matched insensitive to upper/lower case.
+       
+       If just testing for C{class} (with or without a namespace), use C{L{withClass}}.
 
        To verify that the attribute exists, but without specifying a value, pass
        C{withAttribute.ANY_VALUE} as the value.
@@ -3541,6 +3543,16 @@ def withAttribute(*args,**attrDict):
                                             (attrName, tokens[attrName], attrValue))
     return pa
 withAttribute.ANY_VALUE = object()
+
+def withClass(classname, namespace=''):
+    """Simplified version of C{L{withAttribute}} when matching on a div class - made
+       difficult because C{class} is a reserved word in Python.
+       """
+    if namespace:
+        key = "%s:class" % namespace
+    else:
+        key = "class"
+    return withAttribute(**{key : classname})        
 
 opAssoc = _Constants()
 opAssoc.LEFT = object()
