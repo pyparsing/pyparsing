@@ -58,7 +58,7 @@ The pyparsing module handles some of the problems that are typically vexing when
 """
 
 __version__ = "2.0.4"
-__versionTime__ = "24 Oct 2015 16:26"
+__versionTime__ = "28 Oct 2015 21:50"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -1572,11 +1572,6 @@ class Token(ParserElement):
     def __init__( self ):
         super(Token,self).__init__( savelist=False )
 
-    def setName(self, name):
-        s = super(Token,self).setName(name)
-        self.errmsg = "Expected " + self.name
-        return s
-
 
 class Empty(Token):
     """An empty token, will always match."""
@@ -1763,7 +1758,7 @@ class Word(Token):
         if ' ' not in self.initCharsOrig+self.bodyCharsOrig and (min==1 and max==0 and exact==0):
             if self.bodyCharsOrig == self.initCharsOrig:
                 self.reString = "[%s]+" % _escapeRegexRangeChars(self.initCharsOrig)
-            elif len(self.bodyCharsOrig) == 1:
+            elif len(self.initCharsOrig) == 1:
                 self.reString = "%s[%s]*" % \
                                       (re.escape(self.initCharsOrig),
                                       _escapeRegexRangeChars(self.bodyCharsOrig),)
@@ -3548,11 +3543,8 @@ def withClass(classname, namespace=''):
     """Simplified version of C{L{withAttribute}} when matching on a div class - made
        difficult because C{class} is a reserved word in Python.
        """
-    if namespace:
-        key = "%s:class" % namespace
-    else:
-        key = "class"
-    return withAttribute(**{key : classname})        
+    classattr = "%s:class" % namespace if namespace else "class"
+    return withAttribute(**{classattr : classname})        
 
 opAssoc = _Constants()
 opAssoc.LEFT = object()

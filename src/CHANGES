@@ -27,7 +27,8 @@ Version 2.0.4 -
 
 - Adopt new-fangled Python features, like decorators and ternary expressions, 
   per suggestions from Williamzjc - thanks William! (Oh yeah, I'm not
-  supporting Python 2.3 with this code any more...)
+  supporting Python 2.3 with this code any more...) Plus, some additional
+  code fixes/cleanup - thanks again!
 
 - Added ParserElement.runTests, a little test bench for quickly running
   an expression against a list of sample input strings. Basically, I got 
