@@ -2241,7 +2241,7 @@ class AddConditionTest(ParseTestCase):
         numParser.addCondition(lambda s,l,t: t[0] >= 7)
         
         result = numParser.searchString("1 2 3 4 5 6 7 8 9 10")
-        print result.asList()
+        print_(result.asList())
         assert result.asList() == [[7],[9]], "failed to properly process conditions"
 
 
