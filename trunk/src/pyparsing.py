@@ -57,8 +57,8 @@ The pyparsing module handles some of the problems that are typically vexing when
  - embedded comments
 """
 
-__version__ = "2.0.4"
-__versionTime__ = "28 Oct 2015 21:50"
+__version__ = "2.0.5"
+__versionTime__ = "29 Oct 2015 08:08"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -1553,18 +1553,20 @@ class ParserElement(object):
            test, the parsed results or where the parse failed. Quick and easy way to
            run a parse expression against a list of sample strings.
         """
+        if isinstance(tests, basestring):
+            tests = map(str.strip, tests.splitlines())
         for t in tests:
-            print t
+            print (t)
             try:
-                print self.parseString(t).dump()
+                print (self.parseString(t).dump())
             except ParseException as pe:
                 if '\n' in t:
-                    print line(pe.loc, t)
-                    print ' '*(col(pe.loc,t)-1) + '^'
+                    print (line(pe.loc, t))
+                    print (' '*(col(pe.loc,t)-1) + '^')
                 else:
-                    print ' '*pe.loc + '^'
-                print pe
-            print
+                    print (' '*pe.loc + '^')
+                print (pe)
+            print()
 
         
 class Token(ParserElement):
@@ -3759,22 +3761,6 @@ commaSeparatedList = delimitedList( Optional( quotedString.copy() | _commasepite
 
 if __name__ == "__main__":
 
-    def test( teststring ):
-        try:
-            tokens = simpleSQL.parseString( teststring )
-            tokenlist = tokens.asList()
-            print (teststring + "->"   + str(tokenlist))
-            print ("tokens = "         + str(tokens))
-            print ("tokens.columns = " + str(tokens.columns))
-            print ("tokens.tables = "  + str(tokens.tables))
-            print (tokens.asXML("SQL",True))
-        except ParseBaseException as err:
-            print (teststring + "->")
-            print (err.line)
-            print (" "*(err.column-1) + "^")
-            print (err)
-        print()
-
     selectToken    = CaselessLiteral( "select" )
     fromToken      = CaselessLiteral( "from" )
 
@@ -3788,19 +3774,16 @@ if __name__ == "__main__":
                      fromToken + \
                      tableNameList.setResultsName( "tables" ) )
 
-    test( "SELECT * from XYZZY, ABC" )
-    test( "select * from SYS.XYZZY" )
-    test( "Select A from Sys.dual" )
-    test( "Select AA,BB,CC from Sys.dual" )
-    test( "Select A, B, C from Sys.dual" )
-    test( "Select A, B, C from Sys.dual" )
-    test( "Xelect A, B, C from Sys.dual" )
-    test( "Select A, B, C frox Sys.dual" )
-    test( "Select" )
-    test( "Select ^^^ frox Sys.dual" )
-    test( "Select A, B, C from Sys.dual, Table2   " )
-
-"""
-CHANGES
-UnitTests.py
-"""
+    simpleSQL.runTests("""\
+          SELECT * from XYZZY, ABC
+          select * from SYS.XYZZY
+          Select A from Sys.dual
+          Select AA,BB,CC from Sys.dual
+          Select A, B, C from Sys.dual
+          Select A, B, C from Sys.dual
+          Xelect A, B, C from Sys.dual
+          Select A, B, C frox Sys.dual
+          Select
+          Select ^^^ frox Sys.dual
+          Select A, B, C from Sys.dual, Table2""")
+    
