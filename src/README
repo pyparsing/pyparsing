@@ -50,7 +50,15 @@ Do the usual:
 
     python setup.py install
     
-(pyparsing requires Python 2.3.2 or later.)
+(pyparsing requires Python 2.6 or later.)
+
+Or corresponding commands using pip, easy_install, or wheel:
+
+    pip install pyparsing
+    
+    easy_install pyparsing
+    
+    wheel install pyparsing
 
 
 Documentation
