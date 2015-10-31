@@ -2120,7 +2120,7 @@ class WordBoundaryExpressionsTest(ParseTestCase):
             print_()
 
 class OptionalEachTest(ParseTestCase):
-    def runTest(self):
+    def runTest1(self):
         from pyparsing import Optional, Keyword
         
         the_input = "Major Tal Weiss"
@@ -2130,6 +2130,22 @@ class OptionalEachTest(ParseTestCase):
         p2res = parser2.parseString( the_input)
         assert p1res.asList() == p2res.asList(), "Each failed to match with nested Optionals, " + \
             str(p1res.asList()) + " should match " + str(p2res.asList())
+
+
+    def runTest2(self):
+        from pyparsing import Word, alphanums, Suppress, OneOrMore, Group, Regex, Optional
+
+        word = Word(alphanums + '_').setName("word")
+        with_stmt = 'with' + OneOrMore(Group(word('key') + '=' + word('value')))('overrides')
+        using_stmt = 'using' + Regex('id-[0-9a-f]{8}')('id')
+        modifiers = Optional(with_stmt('with_stmt')) & Optional(using_stmt('using_stmt'))
+
+        assert modifiers == "with foo=bar bing=baz using id-deadbeef"
+        assert not modifiers == "with foo=bar bing=baz using id-deadbeef using id-feedfeed"
+    
+    def runTest(self):
+        self.runTest1()
+        self.runTest2()
 
 class SumParseResultsTest(ParseTestCase):
     def runTest(self):

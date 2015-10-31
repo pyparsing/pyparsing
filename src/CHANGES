@@ -2,6 +2,24 @@
 Change Log
 ==========
 
+Version 2.0.6 - 
+---------------------------
+- Fixed a bug in Each when multiple Optional elements are present.
+  Thanks for reporting this, whereswalden on SO.
+
+- Added optional parseAll argument to runTests, whether tests should
+  require the entire input string to be parsed or not (similar to 
+  parseAll argument to parseString). Plus a little neaten-up of the
+  output on Python 2 (no stray ()'s).
+
+- Modified exception messages from MatchFirst and Or expressions. These
+  were formerly misleading as they would only give the first or longest
+  exception mismatch error message. Now the error message includes all
+  the alternatives that were possible matches. Originally proposed by 
+  a pyparsing user, but I've lost the email thread - finally figured out
+  a fairly clean way to do this.
+
+
 Version 2.0.5 -
 ---------------------------
 - (&$(@#&$(@!!!!  Some "print" statements snuck into pyparsing v2.0.4,
