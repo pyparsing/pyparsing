@@ -57,8 +57,8 @@ The pyparsing module handles some of the problems that are typically vexing when
  - embedded comments
 """
 
-__version__ = "2.0.5"
-__versionTime__ = "29 Oct 2015 08:08"
+__version__ = "2.0.6"
+__versionTime__ = "31 Oct 2015 12:41"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -1548,25 +1548,30 @@ class ParserElement(object):
     def __rne__(self,other):
         return not (self == other)
 
-    def runTests(self, tests):
+    def runTests(self, tests, parseAll=False):
         """Execute the parse expression on a series of test strings, showing each
            test, the parsed results or where the parse failed. Quick and easy way to
            run a parse expression against a list of sample strings.
+           
+           Parameters:
+            - tests - a list of separate test strings, or a multiline string of test strings
+            - parseAll - (default=False) - flag to pass to C{L{parseString}} when running tests           
         """
         if isinstance(tests, basestring):
             tests = map(str.strip, tests.splitlines())
         for t in tests:
-            print (t)
+            out = [t]
             try:
-                print (self.parseString(t).dump())
+                out.append(self.parseString(t, parseAll=parseAll).dump())
             except ParseException as pe:
                 if '\n' in t:
-                    print (line(pe.loc, t))
-                    print (' '*(col(pe.loc,t)-1) + '^')
+                    out.append(line(pe.loc, t))
+                    out.append(' '*(col(pe.loc,t)-1) + '^')
                 else:
-                    print (' '*pe.loc + '^')
-                print (pe)
-            print()
+                    out.append(' '*pe.loc + '^')
+                out.append(str(pe))
+            out.append('')
+            print('\n'.join(out))
 
         
 class Token(ParserElement):
@@ -2348,6 +2353,8 @@ class ParseExpression(ParserElement):
                 self.mayReturnEmpty |= other.mayReturnEmpty
                 self.mayIndexError  |= other.mayIndexError
 
+        self.errmsg = "Expected " + str(self)
+        
         return self
 
     def setResultsName( self, name, listAllMatches=False ):
@@ -2466,6 +2473,7 @@ class Or(ParseExpression):
 
         if maxMatchLoc < 0:
             if maxException is not None:
+                maxException.msg = self.errmsg
                 raise maxException
             else:
                 raise ParseException(instring, loc, "no defined alternatives to match", self)
@@ -2523,6 +2531,7 @@ class MatchFirst(ParseExpression):
         # only got here if no expression matched, raise exception for match that made it the furthest
         else:
             if maxException is not None:
+                maxException.msg = self.errmsg
                 raise maxException
             else:
                 raise ParseException(instring, loc, "no defined alternatives to match", self)
@@ -2561,7 +2570,7 @@ class Each(ParseExpression):
     def parseImpl( self, instring, loc, doActions=True ):
         if self.initExprGroups:
             opt1 = [ e.expr for e in self.exprs if isinstance(e,Optional) ]
-            opt2 = [ e for e in self.exprs if e.mayReturnEmpty and e not in opt1 ]
+            opt2 = [ e for e in self.exprs if e.mayReturnEmpty and not isinstance(e,Optional)]
             self.optionals = opt1 + opt2
             self.multioptionals = [ e.expr for e in self.exprs if isinstance(e,ZeroOrMore) ]
             self.multirequired = [ e.expr for e in self.exprs if isinstance(e,OneOrMore) ]
@@ -3766,9 +3775,9 @@ if __name__ == "__main__":
 
     ident          = Word( alphas, alphanums + "_$" )
     columnName     = delimitedList( ident, ".", combine=True ).setParseAction( upcaseTokens )
-    columnNameList = Group( delimitedList( columnName ) )#.setName("columns")
+    columnNameList = Group( delimitedList( columnName ) ).setName("columns")
     tableName      = delimitedList( ident, ".", combine=True ).setParseAction( upcaseTokens )
-    tableNameList  = Group( delimitedList( tableName ) )#.setName("tables")
+    tableNameList  = Group( delimitedList( tableName ) ).setName("tables")
     simpleSQL      = ( selectToken + \
                      ( '*' | columnNameList ).setResultsName( "columns" ) + \
                      fromToken + \
