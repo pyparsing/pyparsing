@@ -58,7 +58,7 @@ The pyparsing module handles some of the problems that are typically vexing when
 """
 
 __version__ = "2.0.6"
-__versionTime__ = "31 Oct 2015 12:41"
+__versionTime__ = "31 Oct 2015 23:41"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -660,8 +660,6 @@ class ParseResults(object):
                     out.append("\n%s%s[%d]:\n%s%s%s" % (indent,('  '*(depth)),i,indent,('  '*(depth+1)),vv.dump(indent,depth+1) ))
                 else:
                     out.append("\n%s%s[%d]:\n%s%s%s" % (indent,('  '*(depth)),i,indent,('  '*(depth+1)),_ustr(vv)))
-        else:
-            out.append(_ustr(self))
             
         return "".join(out)
 
