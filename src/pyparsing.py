@@ -58,7 +58,7 @@ The pyparsing module handles some of the problems that are typically vexing when
 """
 
 __version__ = "2.0.6"
-__versionTime__ = "31 Oct 2015 23:41"
+__versionTime__ = "4 Nov 2015 02:26"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -2450,8 +2450,8 @@ class Or(ParseExpression):
 
     def parseImpl( self, instring, loc, doActions=True ):
         maxExcLoc = -1
-        maxMatchLoc = -1
         maxException = None
+        matches = []
         for e in self.exprs:
             try:
                 loc2 = e.tryParse( instring, loc )
@@ -2465,18 +2465,26 @@ class Or(ParseExpression):
                     maxException = ParseException(instring,len(instring),e.errmsg,self)
                     maxExcLoc = len(instring)
             else:
-                if loc2 > maxMatchLoc:
-                    maxMatchLoc = loc2
-                    maxMatchExp = e
+                # save match among all matches, to retry longest to shortest
+                matches.append((loc2, e))
 
-        if maxMatchLoc < 0:
-            if maxException is not None:
-                maxException.msg = self.errmsg
-                raise maxException
-            else:
-                raise ParseException(instring, loc, "no defined alternatives to match", self)
+        if matches:
+            matches.sort(key=lambda x: -x[0])
+            for _,e in matches:
+                try:
+                    return e._parse( instring, loc, doActions )
+                except ParseException as err:
+                    err.__traceback__ = None
+                    if err.loc > maxExcLoc:
+                        maxException = err
+                        maxExcLoc = err.loc
 
-        return maxMatchExp._parse( instring, loc, doActions )
+        if maxException is not None:
+            maxException.msg = self.errmsg
+            raise maxException
+        else:
+            raise ParseException(instring, loc, "no defined alternatives to match", self)
+
 
     def __ixor__(self, other ):
         if isinstance( other, basestring ):
