@@ -2261,6 +2261,35 @@ class AddConditionTest(ParseTestCase):
         assert result.asList() == [[7],[9]], "failed to properly process conditions"
 
 
+class PatientOrTest(ParseTestCase):
+    def runTest(self):
+        import pyparsing as pp
+
+        # Two expressions and a input string which could - syntactically - be matched against 
+        # both expressions. The "Literal" expression is considered invalid though, so this PE 
+        # should always detect the "Word" expression.
+        def validate(token):
+            if token[0] == "def":
+                raise pp.ParseException("signalling invalid token")
+            return token
+
+        a = pp.Word("de").setName("Word")#.setDebug()
+        b = pp.Literal("def").setName("Literal").setParseAction(validate)#.setDebug()
+        c = pp.Literal("d").setName("d")#.setDebug()
+
+        # The "Literal" expressions's ParseAction is not executed directly after syntactically 
+        # detecting the "Literal" Expression but only after the Or-decision has been made 
+        # (which is too late)... 
+        try:
+            result = (a ^ b ^ c).parseString("def")
+            assert result.asList() == ['de'], "failed to select longest match, chose %s" % result
+        except ParseException:
+            failed = True
+        else:
+            failed = False
+        assert not failed, "invalid logic in Or, fails on longest match with exception in parse action"
+
+
 class MiscellaneousParserTests(ParseTestCase):
     def runTest(self):
         import pyparsing
@@ -2470,6 +2499,7 @@ def makeTestSuite():
     suite.addTest( LocatedExprTest() )
     suite.addTest( PopTest() )
     suite.addTest( AddConditionTest() )
+    suite.addTest( PatientOrTest() )
     suite.addTest( MiscellaneousParserTests() )
     if TEST_USING_PACKRAT:
         # retest using packrat parsing (disable those tests that aren't compatible)
@@ -2492,7 +2522,8 @@ def makeTestSuiteTemp():
     #~ suite.addTest( RepeaterTest() )
     #~ suite.addTest( LocatedExprTest() )
     #~ suite.addTest( AddConditionTest() )
-    suite.addTest( WithAttributeParseActionTest() )
+    #~ suite.addTest( WithAttributeParseActionTest() )
+    suite.addTest( PatientOrTest() )
         
     return suite
 

@@ -19,6 +19,10 @@ Version 2.0.6 -
   a pyparsing user, but I've lost the email thread - finally figured out
   a fairly clean way to do this.
 
+- Fixed a bug in Or, when a parse action on an alternative raises an 
+  exception, other potentially matching alternatives were not always tried.
+  Reported by TheVeryOmni on the pyparsing wiki, thanks!
+
 - Fixed a bug to dump() introduced in 2.0.4, where list values were shown
   in duplicate.
 
