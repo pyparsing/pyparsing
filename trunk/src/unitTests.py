@@ -2289,6 +2289,13 @@ class PatientOrTest(ParseTestCase):
             failed = False
         assert not failed, "invalid logic in Or, fails on longest match with exception in parse action"
 
+class EachWithOptionalWithResultsNameTest(ParseTestCase):
+    def runTest(self):
+        from pyparsing import Optional
+        
+        result = (Optional('foo')('one') & Optional('bar')('two')).parseString('bar foo')
+        print_(result.dump())
+        assert sorted(result.keys()) == ['one','two']
 
 class MiscellaneousParserTests(ParseTestCase):
     def runTest(self):
@@ -2523,7 +2530,8 @@ def makeTestSuiteTemp():
     #~ suite.addTest( LocatedExprTest() )
     #~ suite.addTest( AddConditionTest() )
     #~ suite.addTest( WithAttributeParseActionTest() )
-    suite.addTest( PatientOrTest() )
+    #~ suite.addTest( PatientOrTest() )
+    suite.addTest( EachWithOptionalWithResultsNameTest() )
         
     return suite
 
