@@ -2507,6 +2507,7 @@ def makeTestSuite():
     suite.addTest( PopTest() )
     suite.addTest( AddConditionTest() )
     suite.addTest( PatientOrTest() )
+    suite.addTest( EachWithOptionalWithResultsNameTest() )
     suite.addTest( MiscellaneousParserTests() )
     if TEST_USING_PACKRAT:
         # retest using packrat parsing (disable those tests that aren't compatible)
