@@ -7,6 +7,9 @@ Version 2.0.6 -
 - Fixed a bug in Each when multiple Optional elements are present.
   Thanks for reporting this, whereswalden on SO.
 
+- Fixed another bug in Each, when Optional elements have results names
+  or parse actions, reported by Max Rothman - thank you, Max!
+
 - Added optional parseAll argument to runTests, whether tests should
   require the entire input string to be parsed or not (similar to 
   parseAll argument to parseString). Plus a little neaten-up of the

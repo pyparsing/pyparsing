@@ -58,7 +58,7 @@ The pyparsing module handles some of the problems that are typically vexing when
 """
 
 __version__ = "2.0.6"
-__versionTime__ = "4 Nov 2015 02:26"
+__versionTime__ = "9 Nov 2015 19:03"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -2575,6 +2575,7 @@ class Each(ParseExpression):
 
     def parseImpl( self, instring, loc, doActions=True ):
         if self.initExprGroups:
+            self.opt1map = dict((id(e.expr),e) for e in self.exprs if isinstance(e,Optional))
             opt1 = [ e.expr for e in self.exprs if isinstance(e,Optional) ]
             opt2 = [ e for e in self.exprs if e.mayReturnEmpty and not isinstance(e,Optional)]
             self.optionals = opt1 + opt2
@@ -2598,7 +2599,7 @@ class Each(ParseExpression):
                 except ParseException:
                     failed.append(e)
                 else:
-                    matchOrder.append(e)
+                    matchOrder.append(self.opt1map.get(id(e),e))
                     if e in tmpReqd:
                         tmpReqd.remove(e)
                     elif e in tmpOpt:
