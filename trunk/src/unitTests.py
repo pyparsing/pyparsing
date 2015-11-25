@@ -2297,6 +2297,18 @@ class EachWithOptionalWithResultsNameTest(ParseTestCase):
         print_(result.dump())
         assert sorted(result.keys()) == ['one','two']
 
+class UnicodeExpressionTest(ParseTestCase):
+    def runTest(self):
+        from pyparsing import Literal, ParseException
+        
+        z = 'a' | Literal(u'\u1111')
+        z.streamline()
+        try:
+            z.parseString('b')
+        except ParseException as pe:
+            if not PY_3:
+                assert pe.msg == r'''Expected {"a" | "\u1111"}''', "Invalid error message raised, got %r" % pe.msg
+
 class MiscellaneousParserTests(ParseTestCase):
     def runTest(self):
         import pyparsing
@@ -2508,6 +2520,7 @@ def makeTestSuite():
     suite.addTest( AddConditionTest() )
     suite.addTest( PatientOrTest() )
     suite.addTest( EachWithOptionalWithResultsNameTest() )
+    suite.addTest( UnicodeExpressionTest() )
     suite.addTest( MiscellaneousParserTests() )
     if TEST_USING_PACKRAT:
         # retest using packrat parsing (disable those tests that aren't compatible)
