@@ -57,8 +57,8 @@ The pyparsing module handles some of the problems that are typically vexing when
  - embedded comments
 """
 
-__version__ = "2.0.6"
-__versionTime__ = "9 Nov 2015 19:03"
+__version__ = "2.0.7"
+__versionTime__ = "25 Nov 2015 09:02"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -2998,7 +2998,9 @@ class Forward(ParseElementEnhance):
     def __str__( self ):
         if hasattr(self,"name"):
             return self.name
+        return self.__class__.__name__ + ": ..."
 
+        # stubbed out for now - creates awful memory and perf issues
         self._revertClass = self.__class__
         self.__class__ = _ForwardNoRecurse
         try:
