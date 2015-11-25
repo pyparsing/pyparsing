@@ -2,6 +2,12 @@
 Change Log
 ==========
 
+Version 2.0.7 - 
+---------------------------
+- Simplified string representation of Forward class, to avoid memory
+  and performance errors while building ParseException messages.
+
+
 Version 2.0.6 - 
 ---------------------------
 - Fixed a bug in Each when multiple Optional elements are present.
