@@ -5,7 +5,13 @@ Change Log
 Version 2.0.7 - 
 ---------------------------
 - Simplified string representation of Forward class, to avoid memory
-  and performance errors while building ParseException messages.
+  and performance errors while building ParseException messages. Thanks,
+  Will McGugan, Andrea Censi, and Martijn Vermaat for the bug reports and
+  test code.
+
+- Cleaned up additional issues from enhancing the error messages for
+  Or and MatchFirst, handling Unicode values in expressions. Fixes Unicode
+  encoding issues in Python 2, thanks to Evan Hubinger for the bug report.
 
 
 Version 2.0.6 - 

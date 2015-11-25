@@ -123,18 +123,11 @@ else:
             return str(obj)
 
         except UnicodeEncodeError:
-            # The Python docs (http://docs.python.org/ref/customization.html#l2h-182)
-            # state that "The return value must be a string object". However, does a
-            # unicode object (being a subclass of basestring) count as a "string
-            # object"?
-            # If so, then return a unicode object:
-            return unicode(obj)
-            # Else encode it... but how? There are many choices... :)
-            # Replace unprintables with escape codes?
-            #return unicode(obj).encode(sys.getdefaultencoding(), 'backslashreplace_errors')
-            # Replace unprintables with question marks?
-            #return unicode(obj).encode(sys.getdefaultencoding(), 'replace')
-            # ...
+            # Else encode it
+            ret = unicode(obj).encode(sys.getdefaultencoding(), 'xmlcharrefreplace')
+            xmlcharref = Regex('&#\d+;')
+            xmlcharref.setParseAction(lambda t: '\\u' + hex(int(t[0][2:-1]))[2:])
+            return xmlcharref.transformString(ret)
 
     # build list of single arg builtins, tolerant of Python version, that can be used as parse actions
     singleArgBuiltins = []
@@ -2351,7 +2344,7 @@ class ParseExpression(ParserElement):
                 self.mayReturnEmpty |= other.mayReturnEmpty
                 self.mayIndexError  |= other.mayIndexError
 
-        self.errmsg = "Expected " + str(self)
+        self.errmsg = "Expected " + _ustr(self)
         
         return self
 
