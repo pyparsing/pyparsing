@@ -2957,7 +2957,6 @@ class Forward(ParseElementEnhance):
         if isinstance( other, basestring ):
             other = ParserElement.literalStringClass(other)
         self.expr = other
-        self.mayReturnEmpty = other.mayReturnEmpty
         self.strRepr = None
         self.mayIndexError = self.expr.mayIndexError
         self.mayReturnEmpty = self.expr.mayReturnEmpty
