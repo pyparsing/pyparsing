@@ -13,6 +13,9 @@ Version 2.0.7 -
   Or and MatchFirst, handling Unicode values in expressions. Fixes Unicode
   encoding issues in Python 2, thanks to Evan Hubinger for the bug report.
 
+- Fixed implementation of dir() for ParseResults - was leaving out all the
+  defined methods and just adding the custom results names.
+
 
 Version 2.0.6 - 
 ---------------------------
