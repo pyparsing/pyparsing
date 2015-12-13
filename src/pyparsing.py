@@ -58,7 +58,7 @@ The pyparsing module handles some of the problems that are typically vexing when
 """
 
 __version__ = "2.0.7"
-__versionTime__ = "25 Nov 2015 09:02"
+__versionTime__ = "13 Dec 2015 13:09"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -205,8 +205,7 @@ class ParseBaseException(Exception):
                                 markerString, line_str[line_column:]))
         return line_str.strip()
     def __dir__(self):
-        return "loc msg pstr parserElement lineno col line " \
-               "markInputline __str__ __repr__".split()
+        return "lineno col line".split() + dir(type(self))
 
 class ParseException(ParseBaseException):
     """exception thrown when parse expressions don't match class;
@@ -684,7 +683,7 @@ class ParseResults(object):
             self.__parent = None
 
     def __dir__(self):
-        return dir(super(ParseResults,self)) + list(self.keys())
+        return (dir(type(self)) + list(self.keys()))
 
 collections.MutableMapping.register(ParseResults)
 
