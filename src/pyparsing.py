@@ -58,7 +58,7 @@ The pyparsing module handles some of the problems that are typically vexing when
 """
 
 __version__ = "2.0.7"
-__versionTime__ = "13 Dec 2015 13:09"
+__versionTime__ = "17 Dec 2015 04:11"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -1452,9 +1452,12 @@ class ParserElement(object):
            matching; may be called repeatedly, to define multiple comment or other
            ignorable patterns.
         """
+        if isinstance(other, basestring):
+            other = Suppress(other)
+
         if isinstance( other, Suppress ):
             if other not in self.ignoreExprs:
-                self.ignoreExprs.append( other.copy() )
+                self.ignoreExprs.append(other)
         else:
             self.ignoreExprs.append( Suppress( other.copy() ) )
         return self
