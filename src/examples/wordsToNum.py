@@ -38,7 +38,7 @@ unitDefinitions = [
     ("eighteen",  18),
     ("nineteen",  19),
     ]
-units = Or( [ makeLit(s,v) for s,v in unitDefinitions ] )
+units = Or(makeLit(s,v) for s,v in unitDefinitions)
 
 tensDefinitions = [
     ("ten",     10),
@@ -52,7 +52,7 @@ tensDefinitions = [
     ("eighty",  80),
     ("ninety",  90),
     ]
-tens = Or( [ makeLit(s,v) for s,v in tensDefinitions ] )
+tens = Or(makeLit(s,v) for s,v in tensDefinitions)
 
 hundreds = makeLit("hundred", 100)
 
@@ -64,7 +64,7 @@ majorDefinitions = [
     ("quadrillion", int(1e15)),
     ("quintillion", int(1e18)),
     ]
-mag = Or( [ makeLit(s,v) for s,v in majorDefinitions ] )
+mag = Or(makeLit(s,v) for s,v in majorDefinitions)
 
 wordprod = lambda t: reduce(mul,t)
 wordsum = lambda t: sum(t)
@@ -74,26 +74,15 @@ numPart = (((( units + Optional(hundreds) ).setParseAction(wordprod) +
                + Optional(units) ).setParseAction(wordsum)
 numWords = OneOrMore( (numPart + Optional(mag)).setParseAction(wordprod) 
                     ).setParseAction(wordsum) + StringEnd()
-numWords.ignore("-")
+numWords.ignore(Literal("-"))
 numWords.ignore(CaselessLiteral("and"))
 
 def test(s,expected):
-    try:
-        val = numWords.parseString(s)[0]
-    except ParseException as pe:
-        print("Parsing failed:")
-        print(s)
-        print("%s^" % (' '*(pe.col-1)))
-        print(pe.msg)
-    else:
-        print("'%s' -> %d" % (s, val), end=' ')
-        if val == expected:
-            print("CORRECT")
-        else:
-            print("***WRONG***, expected %d" % expected)
+    print ("Expecting %s" % expected)
+    numWords.runTests(s)
 
-test("one hundred twenty hundred", 120)
-test("one hundred and twennty", 120)
+test("one hundred twenty hundred", None)
+test("one hundred and twennty", None)
 test("one hundred and twenty", 120)
 test("one hundred and three", 103)
 test("one hundred twenty-three", 123)
