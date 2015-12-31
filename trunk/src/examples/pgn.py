@@ -26,8 +26,8 @@ file_coord = oneOf("a b c d e f g h")
 rank_coord = oneOf("1 2 3 4 5 6 7 8")
 capture = oneOf("x :")
 promote = Literal("=")
-castle_queenside = Literal("O-O-O") | Literal("0-0-0") | Literal("o-o-o")
-castle_kingside = Literal("O-O") | Literal("0-0") | Literal("o-o")
+castle_queenside = oneOf("O-O-O 0-0-0 o-o-o")
+castle_kingside = oneOf("O-O 0-0 o-o")
 
 move_number = Optional(comment) + Word(nums) + dot
 m1 = file_coord + rank_coord # pawn move e.g. d4
@@ -91,4 +91,4 @@ Bxe5 Rxe5 21. Rg5 Rxe1# {Black wins} 0-1
 """
   # parse input string
   tokens = parsePGN(pgn, pgnGrammar)
-  print("tokens = ", tokens)
+  print(tokens.dump())

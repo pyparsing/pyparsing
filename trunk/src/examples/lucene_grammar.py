@@ -325,6 +325,6 @@ for t in [_f for _f in map(str.strip,tests) if _f]:
         print(t)
         print(pe)
         allpass = False
-    print()
+    print('')
     
-print(("OK", "FAIL")[not allpass])
+print(("FAIL", "OK")[allpass])

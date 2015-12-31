@@ -31,4 +31,4 @@ tests = """\
 for t in tests:
     print(t.strip())
     print(parser.Parse(t))
-    print()
+    print('')

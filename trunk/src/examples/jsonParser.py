@@ -45,7 +45,7 @@ jsonNumber = Combine( Optional('-') + ( '0' | Word('123456789',nums) ) +
 jsonObject = Forward()
 jsonValue = Forward()
 jsonElements = delimitedList( jsonValue )
-jsonArray = Group(Suppress('[') + Optional(jsonElements) + Suppress(']') )
+jsonArray = Group(Suppress('[') + Optional(jsonElements, []) + Suppress(']') )
 jsonValue << ( jsonString | jsonNumber | Group(jsonObject)  | jsonArray | TRUE | FALSE | NULL )
 memberDef = Group( jsonString + Suppress(':') + jsonValue )
 jsonMembers = delimitedList( memberDef )

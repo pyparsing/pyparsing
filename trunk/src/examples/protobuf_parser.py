@@ -7,7 +7,7 @@
 
 from pyparsing import (Word, alphas, alphanums, Regex, Suppress, Forward,
     Group, oneOf, ZeroOrMore, Optional, delimitedList, Keyword,
-    restOfLine, quotedString)
+    restOfLine, quotedString, Dict)
 
 ident = Word(alphas+"_",alphanums+"_").setName("identifier")
 integer = Regex(r"[+-]?\d+")
@@ -31,7 +31,7 @@ fieldDefn = (( REQUIRED_ | OPTIONAL_ | REPEATED_ )("fieldQualifier") -
               typespec("typespec") + ident("ident") + EQ + integer("fieldint") + ZeroOrMore(fieldDirective) + SEMI)
 
 # enumDefn ::= 'enum' ident '{' { ident '=' integer ';' }* '}'
-enumDefn = ENUM_ - ident + LBRACE + ZeroOrMore( Group(ident + EQ + integer + SEMI) ) + RBRACE
+enumDefn = ENUM_("typespec") - ident('name') + LBRACE + Dict( ZeroOrMore( Group(ident + EQ + integer + SEMI) ))('values') + RBRACE
 
 # extensionsDefn ::= 'extensions' integer 'to' integer ';'
 extensionsDefn = EXTENSIONS_ - integer + TO_ + integer + SEMI
@@ -97,7 +97,4 @@ message AddressBook {
   repeated Person person = 1;
 }"""
 
-from pprint import pprint
-#~ print parser.parseString(test2, parseAll=True).dump()
-pprint( parser.parseString(test2, parseAll=True).asList())
-
+parser.runTests([test1, test2])

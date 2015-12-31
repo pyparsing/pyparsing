@@ -31,9 +31,8 @@ romanNumeral = OneOrMore(numeral).setParseAction( lambda s,l,t : sum(t) )
 # unit tests
 def makeRomanNumeral(n):
     def addDigit(n,limit,c,s):
-        if n >= limit:
-            n -= limit
-            s += c
+        n -= limit
+        s += c
         return n,s
     
     ret = ""
@@ -51,18 +50,16 @@ def makeRomanNumeral(n):
     while n >=    4: n,ret = addDigit(n,   4,"IV",ret)
     while n >=    1: n,ret = addDigit(n,   1,"I",ret)
     return ret
-tests = " ".join([makeRomanNumeral(i) for i in range(1,5000+1)])
+tests = " ".join(makeRomanNumeral(i) for i in range(1,5000+1))
 
 expected = 1
 for t,s,e in romanNumeral.scanString(tests):
     if t[0] != expected:
-        print("==>", end=' ')
-        print(t,tests[s:e])
+        print("{} {} {}".format("==>", t, tests[s:e]))
     expected += 1
-print()
 
 def test(rn):
-    print(rn,romanNumeral.parseString(rn))
+    print("{} -> {}".format(rn, romanNumeral.parseString(rn)[0]))
 test("XVI")
 test("XXXIX")
 test("XIV")
