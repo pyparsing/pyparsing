@@ -57,8 +57,8 @@ The pyparsing module handles some of the problems that are typically vexing when
  - embedded comments
 """
 
-__version__ = "2.0.7"
-__versionTime__ = "17 Dec 2015 04:11"
+__version__ = "2.0.8"
+__versionTime__ = "31 Dec 2015 06:02"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -3190,7 +3190,7 @@ def countedArray( expr, intExpr=None ):
         intExpr = intExpr.copy()
     intExpr.setName("arrayLen")
     intExpr.addParseAction(countFieldParseAction, callDuringTry=True)
-    return ( intExpr + arrayExpr )
+    return ( intExpr + arrayExpr ).setName('(len) ' + _ustr(expr) + '...')
 
 def _flatten(L):
     ret = []
@@ -3221,10 +3221,11 @@ def matchPreviousLiteral(expr):
             else:
                 # flatten t tokens
                 tflat = _flatten(t.asList())
-                rep << And( [ Literal(tt) for tt in tflat ] )
+                rep << And(Literal(tt) for tt in tflat)
         else:
             rep << Empty()
     expr.addParseAction(copyTokenToRepeater, callDuringTry=True)
+    rep.setName('(prev) ' + _ustr(expr))
     return rep
 
 def matchPreviousExpr(expr):
@@ -3251,6 +3252,7 @@ def matchPreviousExpr(expr):
                 raise ParseException("",0,"")
         rep.setParseAction( mustMatchTheseTokens, callDuringTry=True )
     expr.addParseAction(copyTokenToRepeater, callDuringTry=True)
+    rep.setName('(prev) ' + _ustr(expr))
     return rep
 
 def _escapeRegexRangeChars(s):
@@ -3314,16 +3316,16 @@ def oneOf( strs, caseless=False, useRegex=True ):
         #~ print (strs,"->", "|".join( [ _escapeRegexChars(sym) for sym in symbols] ))
         try:
             if len(symbols)==len("".join(symbols)):
-                return Regex( "[%s]" % "".join(_escapeRegexRangeChars(sym) for sym in symbols) )
+                return Regex( "[%s]" % "".join(_escapeRegexRangeChars(sym) for sym in symbols) ).setName(' | '.join(symbols))
             else:
-                return Regex( "|".join(re.escape(sym) for sym in symbols) )
+                return Regex( "|".join(re.escape(sym) for sym in symbols) ).setName(' | '.join(symbols))
         except:
             warnings.warn("Exception creating Regex for oneOf, building MatchFirst",
                     SyntaxWarning, stacklevel=2)
 
 
     # last resort, just use MatchFirst
-    return MatchFirst( [ parseElementClass(sym) for sym in symbols ] )
+    return MatchFirst(parseElementClass(sym) for sym in symbols).setName(' | '.join(symbols))
 
 def dictOf( key, value ):
     """Helper to easily and clearly define a dictionary by specifying the respective patterns
@@ -3504,8 +3506,8 @@ def _makeTags(tagStr, xml):
                 Optional("/",default=[False]).setResultsName("empty").setParseAction(lambda s,l,t:t[0]=='/') + Suppress(">")
     closeTag = Combine(_L("</") + tagStr + ">")
 
-    openTag = openTag.setResultsName("start"+"".join(resname.replace(":"," ").title().split())).setName("<%s>" % tagStr)
-    closeTag = closeTag.setResultsName("end"+"".join(resname.replace(":"," ").title().split())).setName("</%s>" % tagStr)
+    openTag = openTag.setResultsName("start"+"".join(resname.replace(":"," ").title().split())).setName("<%s>" % resname)
+    closeTag = closeTag.setResultsName("end"+"".join(resname.replace(":"," ").title().split())).setName("</%s>" % resname)
     openTag.tag = resname
     closeTag.tag = resname
     return openTag, closeTag
@@ -3641,7 +3643,7 @@ operatorPrecedence = infixNotation
 dblQuotedString = Regex(r'"(?:[^"\n\r\\]|(?:"")|(?:\\x[0-9a-fA-F]+)|(?:\\.))*"').setName("string enclosed in double quotes")
 sglQuotedString = Regex(r"'(?:[^'\n\r\\]|(?:'')|(?:\\x[0-9a-fA-F]+)|(?:\\.))*'").setName("string enclosed in single quotes")
 quotedString = Regex(r'''(?:"(?:[^"\n\r\\]|(?:"")|(?:\\x[0-9a-fA-F]+)|(?:\\.))*")|(?:'(?:[^'\n\r\\]|(?:'')|(?:\\x[0-9a-fA-F]+)|(?:\\.))*')''').setName("quotedString using single or double quotes")
-unicodeString = Combine(_L('u') + quotedString.copy())
+unicodeString = Combine(_L('u') + quotedString.copy()).setName("unicode string literal")
 
 def nestedExpr(opener="(", closer=")", content=None, ignoreExpr=quotedString.copy()):
     """Helper method for defining nested lists enclosed in opening and closing
@@ -3693,6 +3695,7 @@ def nestedExpr(opener="(", closer=")", content=None, ignoreExpr=quotedString.cop
         ret <<= Group( Suppress(opener) + ZeroOrMore( ignoreExpr | ret | content ) + Suppress(closer) )
     else:
         ret <<= Group( Suppress(opener) + ZeroOrMore( ret | content )  + Suppress(closer) )
+    ret.setName('nested %s%s expression' % (opener,closer))
     return ret
 
 def indentedBlock(blockStatementExpr, indentStack, indent=True):
@@ -3734,9 +3737,9 @@ def indentedBlock(blockStatementExpr, indentStack, indent=True):
         indentStack.pop()
 
     NL = OneOrMore(LineEnd().setWhitespaceChars("\t ").suppress())
-    INDENT = Empty() + Empty().setParseAction(checkSubIndent)
-    PEER   = Empty().setParseAction(checkPeerIndent)
-    UNDENT = Empty().setParseAction(checkUnindent)
+    INDENT = (Empty() + Empty().setParseAction(checkSubIndent)).setName('INDENT')
+    PEER   = Empty().setParseAction(checkPeerIndent).setName('')
+    UNDENT = Empty().setParseAction(checkUnindent).setName('UNINDENT')
     if indent:
         smExpr = Group( Optional(NL) +
             #~ FollowedBy(blockStatementExpr) +
@@ -3745,21 +3748,23 @@ def indentedBlock(blockStatementExpr, indentStack, indent=True):
         smExpr = Group( Optional(NL) +
             (OneOrMore( PEER + Group(blockStatementExpr) + Optional(NL) )) )
     blockStatementExpr.ignore(_bslash + LineEnd())
-    return smExpr
+    return smExpr.setName('indented block')
 
 alphas8bit = srange(r"[\0xc0-\0xd6\0xd8-\0xf6\0xf8-\0xff]")
 punc8bit = srange(r"[\0xa1-\0xbf\0xd7\0xf7]")
 
-anyOpenTag,anyCloseTag = makeHTMLTags(Word(alphas,alphanums+"_:"))
-commonHTMLEntity = Combine(_L("&") + oneOf("gt lt amp nbsp quot").setResultsName("entity") +";").streamline()
-_htmlEntityMap = dict(zip("gt lt amp nbsp quot".split(),'><& "'))
-replaceHTMLEntity = lambda t : t.entity in _htmlEntityMap and _htmlEntityMap[t.entity] or None
+anyOpenTag,anyCloseTag = makeHTMLTags(Word(alphas,alphanums+"_:").setName('any tag'))
+_htmlEntityMap = dict(zip("gt lt amp nbsp quot apos".split(),'><& "\''))
+commonHTMLEntity = Regex('&(?P<entity>' + '|'.join(_htmlEntityMap.keys()) +");").setName("common HTML entity")
+def replaceHTMLEntity(t):
+    """Helper parser action to replace common HTML entities with their special characters"""
+    return _htmlEntityMap.get(t.entity)
 
 # it's easy to get these comment structures wrong - they're very common, so may as well make them available
 cStyleComment = Regex(r"/\*(?:[^*]*\*+)+?/").setName("C style comment")
 
-htmlComment = Regex(r"<!--[\s\S]*?-->")
-restOfLine = Regex(r".*").leaveWhitespace()
+htmlComment = Regex(r"<!--[\s\S]*?-->").setName("HTML comment")
+restOfLine = Regex(r".*").leaveWhitespace().setName("rest of line")
 dblSlashComment = Regex(r"\/\/(\\\n|.)*").setName("// comment")
 cppStyleComment = Regex(r"/(?:\*(?:[^*]*\*+)+?/|/[^\n]*(?:\n[^\n]*)*?(?:(?<!\\)|\Z))").setName("C++ style comment")
 
