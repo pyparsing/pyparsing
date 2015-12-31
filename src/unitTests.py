@@ -2309,6 +2309,51 @@ class UnicodeExpressionTest(ParseTestCase):
             if not PY_3:
                 assert pe.msg == r'''Expected {"a" | "\u1111"}''', "Invalid error message raised, got %r" % pe.msg
 
+class SetNameTest(ParseTestCase):
+    def runTest(self):
+        from pyparsing import (oneOf,infixNotation,Word,nums,opAssoc,delimitedList,countedArray,
+            nestedExpr,makeHTMLTags,anyOpenTag,anyCloseTag,commonHTMLEntity,replaceHTMLEntity)
+        
+        a = oneOf("a b c")
+        b = oneOf("d e f")
+        arith_expr = infixNotation(Word(nums),
+                        [
+                        (oneOf('* /'),2,opAssoc.LEFT),
+                        (oneOf('+ -'),2,opAssoc.LEFT),
+                        ])
+
+        tests = [
+            a,
+            b,
+            (a | b),
+            arith_expr,
+            delimitedList(Word(nums).setName("int")),
+            countedArray(Word(nums).setName("int")),
+            nestedExpr(),
+            makeHTMLTags('Z'),
+            (anyOpenTag,anyCloseTag),
+            commonHTMLEntity,
+            commonHTMLEntity.setParseAction(replaceHTMLEntity).transformString("lsdjkf &lt;lsdjkf&gt;&amp;&apos;&quot;&xyzzy;"),
+            ]
+        
+        expected = map(str.strip, """\
+            a | b | c
+            d | e | f
+            {a | b | c | d | e | f}
+            Forward: ...
+            int [, int]...
+            (len) int...
+            nested () expression
+            (<Z>, </Z>)
+            (<any tag>, </any tag>)
+            common HTML entity
+            lsdjkf <lsdjkf>&'"&xyzzy;""".splitlines())
+            
+        for t,e in zip(tests, expected):
+            tname = str(t)
+            assert tname==e, "expression name mismatch, expected {} got {}".format(e, tname)
+
+
 class MiscellaneousParserTests(ParseTestCase):
     def runTest(self):
         import pyparsing
@@ -2521,6 +2566,7 @@ def makeTestSuite():
     suite.addTest( PatientOrTest() )
     suite.addTest( EachWithOptionalWithResultsNameTest() )
     suite.addTest( UnicodeExpressionTest() )
+    suite.addTest( SetNameTest() )
     suite.addTest( MiscellaneousParserTests() )
     if TEST_USING_PACKRAT:
         # retest using packrat parsing (disable those tests that aren't compatible)
@@ -2536,17 +2582,10 @@ def makeTestSuite():
         
     return suite
     
-def makeTestSuiteTemp():
+def makeTestSuiteTemp(cls):
     suite = TestSuite()
     suite.addTest( PyparsingTestInit() )
-    #~ suite.addTest( OptionalEachTest() )
-    #~ suite.addTest( RepeaterTest() )
-    #~ suite.addTest( LocatedExprTest() )
-    #~ suite.addTest( AddConditionTest() )
-    #~ suite.addTest( WithAttributeParseActionTest() )
-    #~ suite.addTest( PatientOrTest() )
-    suite.addTest( EachWithOptionalWithResultsNameTest() )
-        
+    suite.addTest( cls() )
     return suite
 
 console = False
@@ -2555,6 +2594,7 @@ console = True
 #~ from line_profiler import LineProfiler
 #~ from pyparsing import ParseResults
 #~ lp = LineProfiler(ParseResults.__setitem__)
+lp = None
 
 #~ if __name__ == '__main__':
     #~ unittest.main() 
@@ -2562,8 +2602,12 @@ if console:
     #~ # console mode
     testRunner = TextTestRunner()
     testRunner.run( makeTestSuite() )
-    #~ testRunner.run( makeTestSuiteTemp() )
-    #~ lp.run("testRunner.run( makeTestSuite() )")
+    
+    #~ testclass = SetNameTest
+    #~ if lp is None:
+        #~ testRunner.run( makeTestSuiteTemp(testclass) )
+    #~ else:
+        #~ lp.run("testRunner.run( makeTestSuite(%s) )" % testclass.__name__)
 else:
     # HTML mode
     outfile = "testResults.html"
