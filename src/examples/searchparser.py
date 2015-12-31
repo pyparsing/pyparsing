@@ -58,7 +58,6 @@ TODO:
 - add more kinds of wildcards ('*' at the beginning and '*' inside a word)?
 """
 from pyparsing import Word, alphanums, Keyword, Group, Combine, Forward, Suppress, Optional, OneOrMore, oneOf
-from sets import Set
 
 class SearchQueryParser:
 
@@ -144,7 +143,7 @@ class SearchQueryParser:
         function GetQuoted to only return the subset of ID's that contain the
         literal string.
         """
-        r = Set()
+        r = set()
         search_terms = []
         for item in argument:
             search_terms.append(item[0])
@@ -168,16 +167,16 @@ class SearchQueryParser:
         return self.evaluate(self._parser(query)[0])
 
     def GetWord(self, word):
-        return Set()
+        return set()
 
     def GetWordWildcard(self, word):
-        return Set()
+        return set()
 
     def GetQuotes(self, search_string, tmp_result):
-        return Set()
+        return set()
 
     def GetNot(self, not_set):
-        return Set().difference(not_set)
+        return set().difference(not_set)
 
 
 class ParserTest(SearchQueryParser):
@@ -185,40 +184,40 @@ class ParserTest(SearchQueryParser):
     tests containts a dictionary with tests and expected results.
     """
     tests = {
-        'help': Set([1, 2, 4, 5]),
-        'help or hulp': Set([1, 2, 3, 4, 5]),
-        'help and hulp': Set([2]),
-        'help hulp': Set([2]),
-        'help and hulp or hilp': Set([2, 3, 4]),
-        'help or hulp and hilp': Set([1, 2, 3, 4, 5]),
-        'help or hulp or hilp or halp': Set([1, 2, 3, 4, 5, 6]),
-        '(help or hulp) and (hilp or halp)': Set([3, 4, 5]),
-        'help and (hilp or halp)': Set([4, 5]),
-        '(help and (hilp or halp)) or hulp': Set([2, 3, 4, 5]),
-        'not help': Set([3, 6, 7, 8]),
-        'not hulp and halp': Set([5, 6]),
-        'not (help and halp)': Set([1, 2, 3, 4, 6, 7, 8]),
-        '"help me please"': Set([2]),
-        '"help me please" or hulp': Set([2, 3]),
-        '"help me please" or (hulp and halp)': Set([2]),
-        'help*': Set([1, 2, 4, 5, 8]),
-        'help or hulp*': Set([1, 2, 3, 4, 5]),
-        'help* and hulp': Set([2]),
-        'help and hulp* or hilp': Set([2, 3, 4]),
-        'help* or hulp or hilp or halp': Set([1, 2, 3, 4, 5, 6, 8]),
-        '(help or hulp*) and (hilp* or halp)': Set([3, 4, 5]),
-        'help* and (hilp* or halp*)': Set([4, 5]),
-        '(help and (hilp* or halp)) or hulp*': Set([2, 3, 4, 5]),
-        'not help* and halp': Set([6]),
-        'not (help* and helpe*)': Set([1, 2, 3, 4, 5, 6, 7]),
-        '"help* me please"': Set([2]),
-        '"help* me* please" or hulp*': Set([2, 3]),
-        '"help me please*" or (hulp and halp)': Set([2]),
-        '"help me please" not (hulp and halp)': Set([2]),
-        '"help me please" hulp': Set([2]),
-        'help and hilp and not holp': Set([4]),
-        'help hilp not holp': Set([4]),
-        'help hilp and not holp': Set([4]),
+        'help': set([1, 2, 4, 5]),
+        'help or hulp': set([1, 2, 3, 4, 5]),
+        'help and hulp': set([2]),
+        'help hulp': set([2]),
+        'help and hulp or hilp': set([2, 3, 4]),
+        'help or hulp and hilp': set([1, 2, 3, 4, 5]),
+        'help or hulp or hilp or halp': set([1, 2, 3, 4, 5, 6]),
+        '(help or hulp) and (hilp or halp)': set([3, 4, 5]),
+        'help and (hilp or halp)': set([4, 5]),
+        '(help and (hilp or halp)) or hulp': set([2, 3, 4, 5]),
+        'not help': set([3, 6, 7, 8]),
+        'not hulp and halp': set([5, 6]),
+        'not (help and halp)': set([1, 2, 3, 4, 6, 7, 8]),
+        '"help me please"': set([2]),
+        '"help me please" or hulp': set([2, 3]),
+        '"help me please" or (hulp and halp)': set([2]),
+        'help*': set([1, 2, 4, 5, 8]),
+        'help or hulp*': set([1, 2, 3, 4, 5]),
+        'help* and hulp': set([2]),
+        'help and hulp* or hilp': set([2, 3, 4]),
+        'help* or hulp or hilp or halp': set([1, 2, 3, 4, 5, 6, 8]),
+        '(help or hulp*) and (hilp* or halp)': set([3, 4, 5]),
+        'help* and (hilp* or halp*)': set([4, 5]),
+        '(help and (hilp* or halp)) or hulp*': set([2, 3, 4, 5]),
+        'not help* and halp': set([6]),
+        'not (help* and helpe*)': set([1, 2, 3, 4, 5, 6, 7]),
+        '"help* me please"': set([2]),
+        '"help* me* please" or hulp*': set([2, 3]),
+        '"help me please*" or (hulp and halp)': set([2]),
+        '"help me please" not (hulp and halp)': set([2]),
+        '"help me please" hulp': set([2]),
+        'help and hilp and not holp': set([4]),
+        'help hilp not holp': set([4]),
+        'help hilp and not holp': set([4]),
     }
 
     docs = {
@@ -233,41 +232,41 @@ class ParserTest(SearchQueryParser):
     }
         
     index = {
-        'help': Set((1, 2, 4, 5)),
-        'me': Set((2,)),
-        'please': Set((2,)),
-        'hulp': Set((2, 3,)),
-        'hilp': Set((3, 4,)),
-        'halp': Set((5, 6,)),
-        'thinks': Set((5,)),
-        'he': Set((5, 6,)),
-        'needs': Set((5, 6,)),
-        'nothing': Set((7,)),
-        'helper': Set((8,)),
+        'help': set((1, 2, 4, 5)),
+        'me': set((2,)),
+        'please': set((2,)),
+        'hulp': set((2, 3,)),
+        'hilp': set((3, 4,)),
+        'halp': set((5, 6,)),
+        'thinks': set((5,)),
+        'he': set((5, 6,)),
+        'needs': set((5, 6,)),
+        'nothing': set((7,)),
+        'helper': set((8,)),
     }
 
     def GetWord(self, word):
         if (word in self.index):
             return self.index[word]
         else:
-            return Set()
+            return set()
 
     def GetWordWildcard(self, word):
-        result = Set()
+        result = set()
         for item in list(self.index.keys()):
             if word == item[0:len(word)]:
                 result = result.union(self.index[item])
         return result
 
     def GetQuotes(self, search_string, tmp_result):
-        result = Set()
+        result = set()
         for item in tmp_result:
             if self.docs[item].count(search_string):
                 result.add(item)
         return result
     
     def GetNot(self, not_set):
-        all = Set(list(self.docs.keys()))
+        all = set(list(self.docs.keys()))
         return all.difference(not_set)
 
     def Test(self):

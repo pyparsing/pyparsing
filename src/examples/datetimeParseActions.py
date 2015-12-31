@@ -10,7 +10,7 @@ from pyparsing import *
 
 # define an integer string, and a parse action to convert it
 # to an integer at parse time
-integer = Word(nums)
+integer = Word(nums).setName("integer")
 def convertToInt(tokens):
     # no need to test for validity - we can't get here
     # unless tokens[0] contains all numeric digits
@@ -20,28 +20,24 @@ integer.setParseAction(convertToInt)
 #integer = Word(nums).setParseAction(lambda t: int(t[0]))
 
 # define a pattern for a year/month/day date
-date = integer('year') + '/' + integer('month') + '/' + integer('day')
+date_expr = integer('year') + '/' + integer('month') + '/' + integer('day')
 
 def convertToDatetime(s,loc,tokens):
     try:
         # note that the year, month, and day fields were already
         # converted to ints from strings by the parse action defined
         # on the integer expression above
-        return datetime(tokens.year, tokens.month, tokens.day)
+        return datetime(tokens.year, tokens.month, tokens.day).date()
     except Exception as ve:
         errmsg = "'%d/%d/%d' is not a valid date, %s" % \
             (tokens.year, tokens.month, tokens.day, ve)
         raise ParseException(s, loc, errmsg)
-date.setParseAction(convertToDatetime)
+date_expr.setParseAction(convertToDatetime)
 
 
-def test(s):
-    try:
-        print(date.parseString(s))
-    except ParseException as pe:
-        print(pe)
-
-test("2000/1/1")
-test("2000/13/1") # invalid month
-test("1900/2/29") # 1900 was not a leap year
-test("2000/2/29") # but 2000 was
+date_expr.runTests("""\
+    2000/1/1 
+    2000/13/1  # invalid month
+    1900/2/29  # 1900 was not a leap year
+    2000/2/29  # but 2000 was
+    """)

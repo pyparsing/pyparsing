@@ -19,6 +19,12 @@ Version 2.0.7 -
 - Fixed bug in ignore() that was introduced in pyparsing 1.5.3, that would
   not accept a string literal as the ignore expression.
 
+- Added new example parseTabularData.py to illustrate parsing of data 
+  formatted in columns, with detection of empty cells.
+
+- Updated a number of examples to more current Python and pyparsing 
+  forms.
+
 
 Version 2.0.6 - 
 ---------------------------

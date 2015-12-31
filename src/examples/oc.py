@@ -190,6 +190,4 @@ main()
 """
 
 ast = program.parseString(test,parseAll=True)
-
-import pprint
-pprint.pprint(ast.asList())
+ast.pprint()
