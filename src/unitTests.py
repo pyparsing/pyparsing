@@ -2313,7 +2313,7 @@ class SetNameTest(ParseTestCase):
     def runTest(self):
         from pyparsing import (oneOf,infixNotation,Word,nums,opAssoc,delimitedList,countedArray,
             nestedExpr,makeHTMLTags,anyOpenTag,anyCloseTag,commonHTMLEntity,replaceHTMLEntity)
-        
+
         a = oneOf("a b c")
         b = oneOf("d e f")
         arith_expr = infixNotation(Word(nums),
@@ -2321,12 +2321,19 @@ class SetNameTest(ParseTestCase):
                         (oneOf('* /'),2,opAssoc.LEFT),
                         (oneOf('+ -'),2,opAssoc.LEFT),
                         ])
+        arith_expr2 = infixNotation(Word(nums),
+                        [
+                        (('?',':'),3,opAssoc.LEFT),
+                        ])
 
         tests = [
             a,
             b,
             (a | b),
             arith_expr,
+            arith_expr.expr,
+            arith_expr2,
+            arith_expr2.expr,
             delimitedList(Word(nums).setName("int")),
             countedArray(Word(nums).setName("int")),
             nestedExpr(),
@@ -2341,6 +2348,9 @@ class SetNameTest(ParseTestCase):
             d | e | f
             {a | b | c | d | e | f}
             Forward: ...
+            + | - term
+            Forward: ...
+            ?: term
             int [, int]...
             (len) int...
             nested () expression
