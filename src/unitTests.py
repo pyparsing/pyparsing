@@ -2363,6 +2363,19 @@ class SetNameTest(ParseTestCase):
             tname = str(t)
             assert tname==e, "expression name mismatch, expected {} got {}".format(e, tname)
 
+class TrimArityExceptionMaskingTest(ParseTestCase):
+    def runTest(self):
+        from pyparsing import Word
+        
+        invalid_message = [
+            "<lambda>() takes exactly 1 argument (0 given)",
+            "<lambda>() missing 1 required positional argument: 't'"
+            ][PY_3]
+        try:
+            Word('a').setParseAction(lambda t: t[0]+1).parseString('aaa')
+        except Exception as e:
+            exc_msg = str(e)
+        assert exc_msg != invalid_message, "failed to catch TypeError thrown in _trim_arity"
 
 class MiscellaneousParserTests(ParseTestCase):
     def runTest(self):
@@ -2577,6 +2590,7 @@ def makeTestSuite():
     suite.addTest( EachWithOptionalWithResultsNameTest() )
     suite.addTest( UnicodeExpressionTest() )
     suite.addTest( SetNameTest() )
+    suite.addTest( TrimArityExceptionMaskingTest() )
     suite.addTest( MiscellaneousParserTests() )
     if TEST_USING_PACKRAT:
         # retest using packrat parsing (disable those tests that aren't compatible)
@@ -2613,7 +2627,7 @@ if console:
     testRunner = TextTestRunner()
     testRunner.run( makeTestSuite() )
     
-    #~ testclass = SetNameTest
+    #~ testclass = TrimArityExceptionMaskingTest
     #~ if lp is None:
         #~ testRunner.run( makeTestSuiteTemp(testclass) )
     #~ else:
