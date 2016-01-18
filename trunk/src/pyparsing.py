@@ -58,7 +58,7 @@ The pyparsing module handles some of the problems that are typically vexing when
 """
 
 __version__ = "2.0.8"
-__versionTime__ = "31 Dec 2015 19:10"
+__versionTime__ = "17 Jan 2016 21:22"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -72,6 +72,7 @@ import collections
 import pprint
 import functools
 import itertools
+import traceback
 
 #~ sys.stderr.write( "testing pyparsing module, version %s, %s\n" % (__version__,__versionTime__ ) )
 
@@ -766,16 +767,28 @@ def _trim_arity(func, maxargs=2):
     def wrapper(*args):
         while 1:
             try:
-                ret = func(*args[limit[0]:])
+                ret = func(*args[limit[0]:]) #~@$^*)+_(&%#!=-`~;:"[]{}
                 foundArity[0] = True
                 return ret
             except TypeError:
-                if limit[0] <= maxargs and not foundArity[0]:
+                # re-raise TypeErrors if they did not come from our arity testing
+                if foundArity[0]:
+                    raise
+                else:
+                    try:
+                        tb = sys.exc_info()[-1]
+                        exc_source_line = traceback.extract_tb(tb)[-1][-1]
+                        if not exc_source_line.endswith('#~@$^*)+_(&%#!=-`~;:"[]{}'):
+                            raise
+                    finally:
+                        del tb
+
+                if limit[0] <= maxargs:
                     limit[0] += 1
                     continue
                 raise
     return wrapper
- 
+
 class ParserElement(object):
     """Abstract base level parser element class."""
     DEFAULT_WHITE_CHARS = " \n\t\r"
@@ -1715,7 +1728,7 @@ class Word(Token):
        maximum, and/or exact length.  The default value for C{min} is 1 (a
        minimum value < 1 is not valid); the default values for C{max} and C{exact}
        are 0, meaning no maximum or exact length restriction. An optional
-       C{exclude} parameter can list characters that might be found in 
+       C{excludeChars} parameter can list characters that might be found in 
        the input C{bodyChars} string; useful to define a word of all printables
        except for one or two characters, for instance.
     """
@@ -3804,4 +3817,3 @@ if __name__ == "__main__":
           Select
           Select ^^^ frox Sys.dual
           Select A, B, C from Sys.dual, Table2""")
-    

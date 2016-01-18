@@ -4,6 +4,15 @@ Change Log
 
 Version 2.0.8 - 
 ---------------------------
+- Modified the internal _trim_arity method to distinguish between 
+  TypeError's raised while trying to determine parse action arity and
+  those raised within the parse action itself. This will clear up those
+  confusing "<lambda>() takes exactly 1 argument (0 given)" error 
+  messages when there is an actual TypeError in the body of the parse
+  action. Thanks to all who have raised this issue in the past, and
+  most recently to Michael Cohen, who sent in a proposed patch, and got
+  me to finally tackle this problem.
+
 - Added expression names for many internal and builtin expressions, to 
   reduce name and error message overhead during parsing.
 
