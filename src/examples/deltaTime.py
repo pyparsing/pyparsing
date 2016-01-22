@@ -110,11 +110,17 @@ ago = CL("ago").setParseAction(replaceWith(-1))
 next_ = CL("next").setParseAction(replaceWith(1))
 last_ = CL("last").setParseAction(replaceWith(-1))
 at_ = CL("at")
+on_ = CL("on")
 
 couple = (Optional(CL("a")) + CL("couple") + Optional(CL("of"))).setParseAction(replaceWith(2))
 a_qty = CL("a").setParseAction(replaceWith(1))
 integer = Word(nums).setParseAction(lambda t:int(t[0]))
 int4 = Group(Word(nums,exact=4).setParseAction(lambda t: [int(t[0][:2]),int(t[0][2:])] ))
+def fill_timefields(t):
+    t[0]['HH'] = t[0][0]
+    t[0]['MM'] = t[0][1]
+    t[0]['ampm'] = ('am','pm')[t[0].HH >= 12]
+int4.addParseAction(fill_timefields)
 qty = integer | couple | a_qty
 dayName = oneOf( list(calendar.day_name) )
  
@@ -132,13 +138,15 @@ dayTimeSpec.setParseAction(calculateTime)
  
 relativeTimeUnit = (week | day | hour | minute | second)
  
-timespec = Group(int4("miltime") |
+timespec = Group(ungroup(int4) |
                  integer("HH") + 
-                 Optional(COLON + integer("MM")) + 
-                 Optional(COLON + integer("SS")) + (am | pm)("ampm")
+                 ungroup(Optional(COLON + integer,[0]))("MM") + 
+                 ungroup(Optional(COLON + integer,[0]))("SS") + 
+                 (am | pm)("ampm")
                  )
+
 absTimeSpec = ((noon | midnight | now | timespec("timeparts"))("timeOfDay") + 
-                Optional(dayRef)("dayRef") |
+                Optional(on_) + Optional(dayRef)("dayRef") |
                 dayRef("dayRef") + at_ + 
                 (noon | midnight | now | timespec("timeparts"))("timeOfDay"))
 absTimeSpec.setParseAction(convertToAbsTime,calculateTime)
@@ -155,51 +163,53 @@ nlTimeExpression = (absTimeSpec + Optional(dayTimeSpec) |
                     dayTimeSpec + Optional(Optional(at_) + absTimeSpec) | 
                     relTimeSpec + Optional(absTimeSpec))
  
-# test grammar
-tests = """\
-today
-tomorrow
-yesterday
-in a couple of days
-a couple of days from now
-a couple of days from today
-in a day
-3 days ago
-3 days from now
-a day ago
-in 2 weeks
-in 3 days at 5pm
-now
-10 minutes ago
-10 minutes from now
-in 10 minutes
-in a minute
-in a couple of minutes
-20 seconds ago
-in 30 seconds
-20 seconds before noon
-20 seconds before noon tomorrow
-noon
-midnight
-noon tomorrow
-6am tomorrow
-0800 yesterday
-12:15 AM today
-3pm 2 days from today
-a week from today
-a week from now
-3 weeks ago
-noon next Sunday
-noon Sunday
-noon last Sunday
-2pm next Sunday
-next Sunday at 2pm""".splitlines()
- 
-for t in tests:
-    print(t, "(relative to %s)" % datetime.now())
-    res = nlTimeExpression.parseString(t)
-    if "calculatedTime" in res:
-        print(res.calculatedTime)
-    else:
-        print("???")
-    print()
+if __name__ == "__main__":
+    # test grammar
+    tests = """\
+    today
+    tomorrow
+    yesterday
+    in a couple of days
+    a couple of days from now
+    a couple of days from today
+    in a day
+    3 days ago
+    3 days from now
+    a day ago
+    in 2 weeks
+    in 3 days at 5pm
+    now
+    10 minutes ago
+    10 minutes from now
+    in 10 minutes
+    in a minute
+    in a couple of minutes
+    20 seconds ago
+    in 30 seconds
+    20 seconds before noon
+    20 seconds before noon tomorrow
+    noon
+    midnight
+    noon tomorrow
+    6am tomorrow
+    0800 yesterday
+    12:15 AM today
+    3pm 2 days from today
+    a week from today
+    a week from now
+    3 weeks ago
+    noon next Sunday
+    noon Sunday
+    noon last Sunday
+    2pm next Sunday
+    next Sunday at 2pm""".splitlines()
+     
+    for t in tests:
+        t = t.strip()
+        print(t, "(relative to %s)" % datetime.now())
+        res = nlTimeExpression.parseString(t)
+        if "calculatedTime" in res:
+            print(res.calculatedTime)
+        else:
+            print("???")
+        print('')
