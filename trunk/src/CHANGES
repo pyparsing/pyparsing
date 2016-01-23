@@ -19,6 +19,9 @@ Version 2.0.8 -
 - Converted helper lambdas to functions to refactor and add docstring
   support.
 
+- Fixed ParseResults.asDict() to correctly convert nested ParseResults
+  values to dicts.
+
 
 Version 2.0.7 - 
 ---------------------------

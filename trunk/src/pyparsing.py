@@ -58,7 +58,7 @@ The pyparsing module handles some of the problems that are typically vexing when
 """
 
 __version__ = "2.0.8"
-__versionTime__ = "17 Jan 2016 21:22"
+__versionTime__ = "23 Jan 2016 01:33"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -504,7 +504,11 @@ class ParseResults(object):
 
     def __radd__(self, other):
         if isinstance(other,int) and other == 0:
+            # useful for merging many ParseResults using sum() builtin
             return self.copy()
+        else:
+            # this may raise a TypeError - so be it
+            return other + self
         
     def __repr__( self ):
         return "(%s, %s)" % ( repr( self.__toklist ), repr( self.__tokdict ) )
@@ -528,11 +532,12 @@ class ParseResults(object):
         return [res.asList() if isinstance(res,ParseResults) else res for res in self.__toklist]
 
     def asDict( self ):
-        """Returns the named parse results as dictionary."""
+        """Returns the named parse results as a nested dictionary."""
         if PY_3:
-            return dict( self.items() )
+            item_fn = self.items
         else:
-            return dict( self.iteritems() )
+            item_fn = self.iteritems
+        return dict((k,v.asDict()) if isinstance(v, ParseResults) else (k,v) for k,v in item_fn())
 
     def copy( self ):
         """Returns a new copy of a C{ParseResults} object."""
