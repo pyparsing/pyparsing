@@ -10,7 +10,8 @@
 # Copyright 2003-2009 by Paul McGuire
 #
 from pyparsing import Literal,CaselessLiteral,Word,Group,Optional,\
-    ZeroOrMore,Forward,nums,alphas,Regex,ParseException,CaselessKeyword
+    ZeroOrMore,Forward,nums,alphas,alphanums,Regex,ParseException,\
+    CaselessKeyword, Suppress
 import math
 import operator
 
@@ -50,15 +51,11 @@ def BNF():
         #~ fnumber = Combine( Word( "+-"+nums, nums ) + 
                            #~ Optional( point + Optional( Word( nums ) ) ) +
                            #~ Optional( e + Word( "+-"+nums, nums ) ) )
-        fnumber = Regex(r"[+-]?\d+(:?\.\d*)?(:?[eE][+-]?\d+)?")
-        ident = Word(alphas, alphas+nums+"_$")
+        fnumber = Regex(r"[+-]?\d+(?:\.\d*)?(?:[eE][+-]?\d+)?")
+        ident = Word(alphas, alphanums+"_$")
      
-        plus  = Literal( "+" )
-        minus = Literal( "-" )
-        mult  = Literal( "*" )
-        div   = Literal( "/" )
-        lpar  = Literal( "(" ).suppress()
-        rpar  = Literal( ")" ).suppress()
+        plus, minus, mult, div = map(Literal, "+-*/")
+        lpar, rpar = map(Suppress, "()")
         addop  = plus | minus
         multop = mult | div
         expop = Literal( "^" )
@@ -115,7 +112,7 @@ if __name__ == "__main__":
     
     def test( s, expVal ):
         global exprStack
-        exprStack = []
+        exprStack[:] = []
         try:
             results = BNF().parseString( s, parseAll=True )
             val = evaluateStack( exprStack[:] )
@@ -161,7 +158,7 @@ if __name__ == "__main__":
     test( "2^9", 2**9 )
     test( "sgn(-2)", -1 )
     test( "sgn(0)", 0 )
-    test( "foo(0.1)", 1 )
+    test( "foo(0.1)", None )
     test( "sgn(0.1)", 1 )
 
 

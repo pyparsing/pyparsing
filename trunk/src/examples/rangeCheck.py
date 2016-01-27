@@ -52,22 +52,11 @@ maxdate = datetime.now().date()
 dateExpr = ranged_value(dateExpr, mindate, maxdate)
 
 
-tests = """
+dateExpr.runTests("""
     2011/5/8
     2001/1/1
     2004/2/29
-    2004/2/30
     2004/2
-    1999/12/31
-    """.splitlines()
-for t in tests:
-    t = t.strip()
-    if not t: continue
-    print(t)
-    try:
-        print(dateExpr.parseString(t)[0])
-    except Exception as e:
-        print(str(e))
-    print('')
+    1999/12/31""")
 
 
