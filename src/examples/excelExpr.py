@@ -7,7 +7,8 @@
 from pyparsing import (CaselessKeyword, Suppress, Word, alphas, 
     alphanums, nums, Optional, Group, oneOf, Forward, Regex, 
     operatorPrecedence, opAssoc, dblQuotedString, delimitedList, 
-    Combine, Literal, QuotedString)
+    Combine, Literal, QuotedString, ParserElement)
+ParserElement.enablePackrat()
 
 EQ,EXCL,LPAR,RPAR,COLON,COMMA = map(Suppress, '=!():,')
 EXCL, DOLLAR = map(Literal,"!$")
@@ -28,10 +29,10 @@ condExpr = expr + COMPARISON_OP + expr
 ifFunc = (CaselessKeyword("if") + 
           LPAR + 
           Group(condExpr)("condition") + 
-          COMMA + expr("if_true") + 
-          COMMA + expr("if_false") + RPAR)
+          COMMA + Group(expr)("if_true") + 
+          COMMA + Group(expr)("if_false") + RPAR)
 
-statFunc = lambda name : CaselessKeyword(name) + LPAR + delimitedList(expr) + RPAR
+statFunc = lambda name : Group(CaselessKeyword(name) + Group(LPAR + delimitedList(expr) + RPAR))
 sumFunc = statFunc("sum")
 minFunc = statFunc("min")
 maxFunc = statFunc("max")
@@ -53,20 +54,15 @@ textExpr = operatorPrecedence(textOperand,
     [
     ('&', 2, opAssoc.LEFT),
     ])
+
 expr << (arithExpr | textExpr)
 
 
-test1 = "=3*A7+5"
-test2 = "=3*Sheet1!$A$7+5"
-test2a ="=3*'Sheet 1'!$A$7+5" 
-test2b ="=3*'O''Reilly''s sheet'!$A$7+5" 
-test3 = "=if(Sum(A1:A25)>42,Min(B1:B25), " \
-     "if(Sum(C1:C25)>3.14, (Min(C1:C25)+3)*18,Max(B1:B25)))"
-test3a = "=sum(a1:a25,10,min(b1,c2,d3))"
-
-import pprint
-tests = [locals()[t] for t in list(locals().keys()) if t.startswith("test")]
-for test in tests:
-    print(test)
-    pprint.pprint( (EQ + expr).parseString(test,parseAll=True).asList() )
-    print() 
+(EQ + expr).runTests("""\
+    =3*A7+5"
+    =3*Sheet1!$A$7+5"
+    =3*'Sheet 1'!$A$7+5" 
+    =3*'O''Reilly''s sheet'!$A$7+5" 
+    =if(Sum(A1:A25)>42,Min(B1:B25),if(Sum(C1:C25)>3.14, (Min(C1:C25)+3)*18,Max(B1:B25)))"
+    =sum(a1:a25,10,min(b1,c2,d3))
+""")

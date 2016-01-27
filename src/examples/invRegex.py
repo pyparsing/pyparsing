@@ -150,7 +150,7 @@ def parser():
     global _parser
     if _parser is None:
         ParserElement.setDefaultWhitespaceChars("")
-        lbrack,rbrack,lbrace,rbrace,lparen,rparen = map(Literal,"[]{}()")
+        lbrack,rbrack,lbrace,rbrace,lparen,rparen,colon,qmark = map(Literal,"[]{}():?")
 
         reMacro = Combine("\\" + oneOf(list("dws")))
         escapedChar = ~reMacro + Combine("\\" + oneOf(list(printables)))
@@ -158,6 +158,7 @@ def parser():
 
         reRange = Combine(lbrack + SkipTo(rbrack,ignore=escapedChar) + rbrack)
         reLiteral = ( escapedChar | oneOf(list(reLiteralChar)) )
+        reNonCaptureGroup = Suppress("?:")
         reDot = Literal(".")
         repetition = (
             ( lbrace + Word(nums).setResultsName("count") + rbrace ) |
@@ -170,7 +171,7 @@ def parser():
         reMacro.setParseAction(handleMacro)
         reDot.setParseAction(handleDot)
         
-        reTerm = ( reLiteral | reRange | reMacro | reDot )
+        reTerm = ( reLiteral | reRange | reMacro | reDot | reNonCaptureGroup)
         reExpr = operatorPrecedence( reTerm,
             [
             (repetition, 1, opAssoc.LEFT, handleRepetition),
@@ -184,10 +185,7 @@ def parser():
 
 def count(gen):
     """Simple function to count the number of elements returned by a generator."""
-    i = 0
-    for s in gen:
-        i += 1
-    return i
+    return sum(1 for _ in gen)
 
 def invert(regex):
     """Call this routine as a generator to return all the strings that
@@ -212,6 +210,7 @@ def main():
     fooba[rz]{2}
     (foobar){2}
     ([01]\d)|(2[0-5])
+    (?:[01]\d)|(2[0-5])
     ([01]\d\d)|(2[0-4]\d)|(25[0-5])
     [A-C]{1,2}
     [A-C]{0,3}
@@ -229,6 +228,9 @@ def main():
     A[cglmrstu]|B[aehikr]?|C[adeflmorsu]?|D[bsy]|E[rsu]|F[emr]?|G[ade]|H[efgos]?|I[nr]?|Kr?|L[airu]|M[dgnot]|N[abdeiop]?|Os?|P[abdmortu]?|R[abefghnu]|S[bcegimnr]?|T[abcehilm]|Uu[bhopqst]|U|V|W|Xe|Yb?|Z[nr]
     (a|b)|(x|y)
     (a|b) (x|y)
+    [ABCDEFG](?:#|##|b|bb)?(?:maj|min|m|sus|aug|dim)?[0-9]?(?:/[ABCDEFG](?:#|##|b|bb)?)?
+    (Fri|Mon|S(atur|un)|T(hur|ue)s|Wednes)day
+    A(pril|ugust)|((Dec|Nov|Sept)em|Octo)ber|(Febr|Jan)uary|Ju(ly|ne)|Ma(rch|y)
     """.split('\n')
     
     for t in tests:
@@ -237,14 +239,19 @@ def main():
         print('-'*50)
         print(t)
         try:
-            print(count(invert(t)))
+            num = count(invert(t))
+            print(num)
+            maxprint = 30
             for s in invert(t):
                 print(s)
+                maxprint -= 1
+                if not maxprint:
+                    break
         except ParseFatalException as pfe:
             print(pfe.msg)
-            print()
+            print('')
             continue
-        print()
+        print('')
 
 if __name__ == "__main__":
     main()
