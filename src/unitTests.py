@@ -1283,6 +1283,11 @@ class OperatorPrecedenceGrammarTest4(ParseTestCase):
             print_(results)
             assert str(results) == expected, "failed to match expected results, got '%s'" % str(results)
             print_()
+
+class Greeting():
+    def __init__(self, toks):
+        self.salutation = toks[0]
+        self.greetee = toks[1]
         
 
 class ParseResultsPickleTest(ParseTestCase):
@@ -1295,9 +1300,7 @@ class ParseResultsPickleTest(ParseTestCase):
         print_(result.dump())
         print_()
 
-        # TODO - add support for protocols >= 2
-        #~ for protocol in range(pickle.HIGHEST_PROTOCOL+1):
-        for protocol in range(2):
+        for protocol in range(pickle.HIGHEST_PROTOCOL+1):
             print_("Test pickle dump protocol", protocol)
             try:
                 pickleString = pickle.dumps(result, protocol)
@@ -1310,6 +1313,35 @@ class ParseResultsPickleTest(ParseTestCase):
                 
             assert result.dump() == newresult.dump(), "Error pickling ParseResults object (protocol=%d)" % protocol
             print_()
+
+        import pyparsing as pp
+        import pickle
+
+
+        word = pp.Word(pp.alphas+"'.")
+        salutation = pp.OneOrMore(word)
+        comma = pp.Literal(",")
+        greetee = pp.OneOrMore(word)
+        endpunc = pp.oneOf("! ?")
+        greeting = salutation + pp.Suppress(comma) + greetee + pp.Suppress(endpunc)
+        greeting.setParseAction(Greeting)
+
+        string = 'Good morning, Miss Crabtree!'
+
+        result = greeting.parseString(string)
+        
+        for protocol in range(pickle.HIGHEST_PROTOCOL+1):
+            print_("Test pickle dump protocol", protocol)
+            pkl = "pickle_test_protocol_%d.pkl" % protocol
+            try:
+                pickleString = pickle.dumps(result, protocol)
+            except Exception as e:
+                print_("dumps exception:", e)
+                newresult = ParseResults([])
+            else:
+                newresult = pickle.loads(pickleString)
+                print_(newresult.dump())
+
 
 
 class ParseResultsWithNamedTupleTest(ParseTestCase):
@@ -2627,7 +2659,7 @@ if console:
     testRunner = TextTestRunner()
     testRunner.run( makeTestSuite() )
     
-    #~ testclass = TrimArityExceptionMaskingTest
+    #~ testclass = ParseResultsPickleTest
     #~ if lp is None:
         #~ testRunner.run( makeTestSuiteTemp(testclass) )
     #~ else:
