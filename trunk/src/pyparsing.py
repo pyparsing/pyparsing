@@ -58,7 +58,7 @@ The pyparsing module handles some of the problems that are typically vexing when
 """
 
 __version__ = "2.0.8"
-__versionTime__ = "23 Jan 2016 01:33"
+__versionTime__ = "6 Feb 2016 13:47"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -282,6 +282,8 @@ class ParseResults(object):
             self.__name = None
             self.__parent = None
             self.__accumNames = {}
+            self.__asList = asList
+            self.__modal = modal
             if isinstance(toklist, list):
                 self.__toklist = toklist[:]
             elif isinstance(toklist, _generatorType):
@@ -687,6 +689,9 @@ class ParseResults(object):
             self.__parent = wkref(par)
         else:
             self.__parent = None
+
+    def __getnewargs__(self):
+        return self.__toklist, self.__name, self.__asList, self.__modal
 
     def __dir__(self):
         return (dir(type(self)) + list(self.keys()))

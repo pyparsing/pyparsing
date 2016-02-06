@@ -13,6 +13,13 @@ Version 2.0.8 -
   most recently to Michael Cohen, who sent in a proposed patch, and got
   me to finally tackle this problem.
 
+- Added compatibility for pickle protocols 2-4 when pickling ParseResults. 
+  In Python 2.x, protocol 0 was the default, and protocol 2 did not work.
+  In Python 3.x, protocol 3 is the default, so explicitly naming 
+  protocol 0 or 1 was required to pickle ParseResults. With this release,
+  all protocols 0-4 are supported. Thanks for reporting this on StackOverflow,
+  Arne Wolframm, and for providing a nice simple test case!
+
 - Added expression names for many internal and builtin expressions, to 
   reduce name and error message overhead during parsing.
 
