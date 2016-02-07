@@ -6,7 +6,7 @@
 # Copyright (c) 2003, Paul McGuire
 #
 
-from pyparsing import Literal, CaselessLiteral, Word, Upcase, OneOrMore, ZeroOrMore, \
+from pyparsing import Literal, CaselessLiteral, Word, OneOrMore, ZeroOrMore, \
         Forward, NotAny, delimitedList, oneOf, Group, Optional, Combine, alphas, nums, restOfLine, cStyleComment, \
         alphanums, printables, empty, quotedString, ParseException, ParseResults, Keyword, Regex
 import pprint

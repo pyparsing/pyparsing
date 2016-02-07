@@ -63,7 +63,7 @@ expr_term = (
     )
 
 UNARY,BINARY,TERNARY=1,2,3
-expr << operatorPrecedence(expr_term,
+expr << infixNotation(expr_term,
     [
     (oneOf('- + ~') | NOT, UNARY, opAssoc.RIGHT),
     (ISNULL | NOTNULL | NOT + NULL, UNARY, opAssoc.LEFT),

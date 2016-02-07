@@ -14,7 +14,7 @@
 __all__ = ["count","invert"]
 
 from pyparsing import (Literal, oneOf, printables, ParserElement, Combine, 
-    SkipTo, operatorPrecedence, ParseFatalException, Word, nums, opAssoc,
+    SkipTo, infixNotation, ParseFatalException, Word, nums, opAssoc,
     Suppress, ParseResults, srange)
 
 class CharacterRangeEmitter(object):
@@ -172,7 +172,7 @@ def parser():
         reDot.setParseAction(handleDot)
         
         reTerm = ( reLiteral | reRange | reMacro | reDot | reNonCaptureGroup)
-        reExpr = operatorPrecedence( reTerm,
+        reExpr = infixNotation( reTerm,
             [
             (repetition, 1, opAssoc.LEFT, handleRepetition),
             (None, 2, opAssoc.LEFT, handleSequence),

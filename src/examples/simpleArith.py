@@ -2,7 +2,7 @@
 # simpleArith.py
 #
 # Example of defining an arithmetic expression parser using
-# the operatorPrecedence helper method in pyparsing.
+# the infixNotation helper method in pyparsing.
 #
 # Copyright 2006, by Paul McGuire
 #
@@ -19,11 +19,11 @@ multop = oneOf('* /')
 plusop = oneOf('+ -')
 factop = Literal('!')
 
-# To use the operatorPrecedence helper:
+# To use the infixNotation helper:
 #   1.  Define the "atom" operand term of the grammar.
 #       For this simple grammar, the smallest operand is either
 #       and integer or a variable.  This will be the first argument
-#       to the operatorPrecedence method.
+#       to the infixNotation method.
 #   2.  Define a list of tuples for each level of operator
 #       precendence.  Each tuple is of the form
 #       (opExpr, numTerms, rightLeftAssoc, parseAction), where
@@ -37,13 +37,13 @@ factop = Literal('!')
 #       - parseAction is the parse action to be associated with 
 #          expressions matching this operator expression (the
 #          parse action tuple member may be omitted)
-#   3.  Call operatorPrecedence passing the operand expression and
+#   3.  Call infixNotation passing the operand expression and
 #       the operator precedence list, and save the returned value
 #       as the generated pyparsing expression.  You can then use
 #       this expression to parse input strings, or incorporate it
 #       into a larger, more complex grammar.
 #       
-expr = operatorPrecedence( operand,
+expr = infixNotation( operand,
     [("!", 1, opAssoc.LEFT),
      ("^", 2, opAssoc.RIGHT),
      (signop, 1, opAssoc.RIGHT),
@@ -63,5 +63,5 @@ test = ["9 + 2 + 3",
 for t in test:
     print(t)
     print(expr.parseString(t))
-    print() 
+    print('') 
 

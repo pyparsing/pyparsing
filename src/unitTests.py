@@ -1084,9 +1084,9 @@ class RecursiveCombineTest(ParseTestCase):
         
         assert "".join(testVal) == "".join(expected), "Failed to process Combine with recursive content"
 
-class OperatorPrecedenceGrammarTest1(ParseTestCase):
+class InfixNotationGrammarTest1(ParseTestCase):
     def runTest(self):
-        from pyparsing import Word,nums,alphas,Literal,oneOf,operatorPrecedence,opAssoc
+        from pyparsing import Word,nums,alphas,Literal,oneOf,infixNotation,opAssoc
         
         integer = Word(nums).setParseAction(lambda t:int(t[0]))
         variable = Word(alphas,exact=1)
@@ -1098,7 +1098,7 @@ class OperatorPrecedenceGrammarTest1(ParseTestCase):
         plusop = oneOf('+ -')
         factop = Literal('!')
 
-        expr = operatorPrecedence( operand,
+        expr = infixNotation( operand,
             [("!", 1, opAssoc.LEFT),
              ("^", 2, opAssoc.RIGHT),
              (signop, 1, opAssoc.RIGHT),
@@ -1131,12 +1131,12 @@ class OperatorPrecedenceGrammarTest1(ParseTestCase):
         expected = [eval(x) for x in expected]
         for t,e in zip(test,expected):
             print_(t,"->",e, "got", expr.parseString(t).asList())
-            assert expr.parseString(t).asList() == e,"mismatched results for operatorPrecedence: got %s, expected %s" % (expr.parseString(t).asList(),e)
+            assert expr.parseString(t).asList() == e,"mismatched results for infixNotation: got %s, expected %s" % (expr.parseString(t).asList(),e)
 
-class OperatorPrecedenceGrammarTest2(ParseTestCase):
+class InfixNotationGrammarTest2(ParseTestCase):
     def runTest(self):
 
-        from pyparsing import operatorPrecedence, Word, alphas, oneOf, opAssoc
+        from pyparsing import infixNotation, Word, alphas, oneOf, opAssoc
         
         boolVars = { "True":True, "False":False }
         class BoolOperand(object):
@@ -1183,7 +1183,7 @@ class OperatorPrecedenceGrammarTest2(ParseTestCase):
                 return not v
 
         boolOperand = Word(alphas,max=1) | oneOf("True False")
-        boolExpr = operatorPrecedence( boolOperand,
+        boolExpr = infixNotation( boolOperand,
             [
             ("not", 1, opAssoc.RIGHT, BoolNot),
             ("and", 2, opAssoc.LEFT,  BoolAnd),
@@ -1212,10 +1212,10 @@ class OperatorPrecedenceGrammarTest2(ParseTestCase):
             print_(t,'\n', res, '=', bool(res),'\n')
 
         
-class OperatorPrecedenceGrammarTest3(ParseTestCase):
+class InfixNotationGrammarTest3(ParseTestCase):
     def runTest(self):
 
-        from pyparsing import operatorPrecedence, Word, alphas, oneOf, opAssoc, nums, Literal
+        from pyparsing import infixNotation, Word, alphas, oneOf, opAssoc, nums, Literal
         
         global count
         count = 0
@@ -1237,7 +1237,7 @@ class OperatorPrecedenceGrammarTest3(ParseTestCase):
         plusop = oneOf('+ -')
         factop = Literal('!')
 
-        expr = operatorPrecedence( operand,
+        expr = infixNotation( operand,
             [
             ("!", 1, opAssoc.LEFT),
             ("^", 2, opAssoc.RIGHT),
@@ -1252,7 +1252,7 @@ class OperatorPrecedenceGrammarTest3(ParseTestCase):
             print_("%s => %s" % (t, expr.parseString(t)))
             assert count == 1, "count evaluated too many times!"
 
-class OperatorPrecedenceGrammarTest4(ParseTestCase):
+class InfixNotationGrammarTest4(ParseTestCase):
     def runTest(self):
 
         import pyparsing
@@ -1269,7 +1269,7 @@ class OperatorPrecedenceGrammarTest4(ParseTestCase):
                 (pyparsing.oneOf("= !="), 2, pyparsing.opAssoc.LEFT, ),
                 (supLiteral("&"), 2, pyparsing.opAssoc.LEFT,  lambda s, l, t: ["&", t[0]]),
                 (supLiteral("|"), 2, pyparsing.opAssoc.LEFT,  lambda s, l, t: ["|", t[0]])]
-            return pyparsing.operatorPrecedence(atom, ops)
+            return pyparsing.infixNotation(atom, ops)
 
         f = booleanExpr(word) + pyparsing.StringEnd()
 
@@ -1786,14 +1786,14 @@ class SingleArgExceptionTest(ParseTestCase):
         assert raisedMsg == testMessage, "Failed to get correct exception message"
 
 
-class KeepOriginalTextTest(ParseTestCase):
+class OriginalTextForTest(ParseTestCase):
     def runTest(self):
-        from pyparsing import makeHTMLTags, keepOriginalText
+        from pyparsing import makeHTMLTags, originalTextFor
         
         def rfn(t):
             return "%s:%d" % (t.src, len("".join(t)))
 
-        makeHTMLStartTag = lambda tag: makeHTMLTags(tag)[0].setParseAction(keepOriginalText)
+        makeHTMLStartTag = lambda tag: originalTextFor(makeHTMLTags(tag)[0], asString=False)
             
         # use the lambda, Luke
         #~ start, imge = makeHTMLTags('IMG')  
@@ -2593,17 +2593,17 @@ def makeTestSuite():
     suite.addTest( VariableParseActionArgsTest() )
     suite.addTest( RepeaterTest() )
     suite.addTest( RecursiveCombineTest() )
-    suite.addTest( OperatorPrecedenceGrammarTest1() )
-    suite.addTest( OperatorPrecedenceGrammarTest2() )
-    suite.addTest( OperatorPrecedenceGrammarTest3() )
-    suite.addTest( OperatorPrecedenceGrammarTest4() )
+    suite.addTest( InfixNotationGrammarTest1() )
+    suite.addTest( InfixNotationGrammarTest2() )
+    suite.addTest( InfixNotationGrammarTest3() )
+    suite.addTest( InfixNotationGrammarTest4() )
     suite.addTest( ParseResultsPickleTest() )
     suite.addTest( ParseResultsWithNamedTupleTest() )
     suite.addTest( ParseResultsDelTest() )
     suite.addTest( SingleArgExceptionTest() )
     suite.addTest( UpcaseDowncaseUnicode() )
     if not IRON_PYTHON_ENV:
-        suite.addTest( KeepOriginalTextTest() )
+        suite.addTest( OriginalTextForTest() )
     suite.addTest( PackratParsingCacheCopyTest() )
     suite.addTest( PackratParsingCacheCopyTest2() )
     suite.addTest( WithAttributeParseActionTest() )
