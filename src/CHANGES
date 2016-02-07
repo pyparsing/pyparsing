@@ -20,6 +20,30 @@ Version 2.1.0 - February, 2016
   all protocols 0-4 are supported. Thanks for reporting this on StackOverflow,
   Arne Wolframm, and for providing a nice simple test case!
 
+- Added optional 'stopOn' argument to ZeroOrMore and OneOrMore, to
+  simplify breaking on stop tokens that would match the repetition 
+  expression. 
+  
+  It is a common problem to fail to look ahead when matching repetitive 
+  tokens if the sentinel at the end also matches the repetition
+  expression, as when parsing "BEGIN aaa bbb ccc END" with:
+  
+    "BEGIN" + OneOrMore(Word(alphas)) + "END"
+
+  Since "END" matches the repetition expression "Word(alphas)", it will
+  never get parsed as the terminating sentinel. Up until now, this has 
+  to be resolved by the user inserting their own negative lookahead:
+  
+    "BEGIN" + OneOrMore(~Literal("END") + Word(alphas)) + "END"
+  
+  Using stopOn, they can more easily write:
+  
+    "BEGIN" + OneOrMore(Word(alphas), stopOn="END") + "END"
+  
+  The stopOn argument can be a literal string or a pyparsing expression.
+  Inspired by a question by Lamakaha on StackOverflow (and many previous
+  questions with the same negative-lookahead resolution).
+
 - Added expression names for many internal and builtin expressions, to 
   reduce name and error message overhead during parsing.
 
