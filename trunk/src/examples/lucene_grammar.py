@@ -8,7 +8,7 @@
 #
 
 from pyparsing import (Literal, CaselessKeyword, Forward, Regex, QuotedString, Suppress,
-    Optional, Group, FollowedBy, operatorPrecedence, opAssoc, ParseException, ParserElement)
+    Optional, Group, FollowedBy, infixNotation, opAssoc, ParseException, ParserElement)
 ParserElement.enablePackrat()
 
 COLON,LBRACK,RBRACK,LBRACE,RBRACE,TILDE,CARAT = map(Literal,":[]{}~^")
@@ -49,7 +49,7 @@ term << (Optional(field_name("field") + COLON) +
          Optional(boost))
 term.setParseAction(lambda t:[t] if 'field' in t or 'boost' in t else None)
     
-expression << operatorPrecedence(term,
+expression << infixNotation(term,
     [
     (required_modifier | prohibit_modifier, 1, opAssoc.RIGHT),
     ((not_ | '!').setParseAction(lambda:"NOT"), 1, opAssoc.RIGHT),

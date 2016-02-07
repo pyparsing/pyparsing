@@ -82,12 +82,12 @@ __all__ = [
 'MatchFirst', 'NoMatch', 'NotAny', 'OneOrMore', 'OnlyOnce', 'Optional', 'Or',
 'ParseBaseException', 'ParseElementEnhance', 'ParseException', 'ParseExpression', 'ParseFatalException',
 'ParseResults', 'ParseSyntaxException', 'ParserElement', 'QuotedString', 'RecursiveGrammarException',
-'Regex', 'SkipTo', 'StringEnd', 'StringStart', 'Suppress', 'Token', 'TokenConverter', 'Upcase',
+'Regex', 'SkipTo', 'StringEnd', 'StringStart', 'Suppress', 'Token', 'TokenConverter', 
 'White', 'Word', 'WordEnd', 'WordStart', 'ZeroOrMore',
 'alphanums', 'alphas', 'alphas8bit', 'anyCloseTag', 'anyOpenTag', 'cStyleComment', 'col',
 'commaSeparatedList', 'commonHTMLEntity', 'countedArray', 'cppStyleComment', 'dblQuotedString',
 'dblSlashComment', 'delimitedList', 'dictOf', 'downcaseTokens', 'empty', 'hexnums',
-'htmlComment', 'javaStyleComment', 'keepOriginalText', 'line', 'lineEnd', 'lineStart', 'lineno',
+'htmlComment', 'javaStyleComment', 'line', 'lineEnd', 'lineStart', 'lineno',
 'makeHTMLTags', 'makeXMLTags', 'matchOnlyAtCol', 'matchPreviousExpr', 'matchPreviousLiteral',
 'nestedExpr', 'nullDebugAction', 'nums', 'oneOf', 'opAssoc', 'operatorPrecedence', 'printables',
 'punc8bit', 'pythonStyleComment', 'quotedString', 'removeQuotes', 'replaceHTMLEntity', 
@@ -3047,17 +3047,6 @@ class TokenConverter(ParseElementEnhance):
         super(TokenConverter,self).__init__( expr )#, savelist )
         self.saveAsList = False
 
-class Upcase(TokenConverter):
-    """Converter to upper case all matching tokens."""
-    def __init__(self, *args):
-        super(Upcase,self).__init__(*args)
-        warnings.warn("Upcase class is deprecated, use upcaseTokens parse action instead",
-                       DeprecationWarning,stacklevel=2)
-
-    def postParse( self, instring, loc, tokenlist ):
-        return list(map( str.upper, tokenlist ))
-
-
 class Combine(TokenConverter):
     """Converter to concatenate all matching tokens to a single string.
        By default, the matching patterns must also be contiguous in the input string;
@@ -3364,9 +3353,7 @@ def originalTextFor(expr, asString=True):
     """Helper to return the original, untokenized text for a given expression.  Useful to
        restore the parsed fields of an HTML start tag into the raw tag text itself, or to
        revert separate tokens with intervening whitespace back to the original matching
-       input text. Simpler to use than the parse action C{L{keepOriginalText}}, and does not
-       require the inspect module to chase up the call stack.  By default, returns a 
-       string containing the original parsed text.  
+       input text. By default, returns astring containing the original parsed text.  
        
        If the optional C{asString} argument is passed as C{False}, then the return value is a 
        C{L{ParseResults}} containing any results names that were originally matched, and a 
@@ -3477,18 +3464,6 @@ def upcaseTokens(s,l,t):
 def downcaseTokens(s,l,t):
     """Helper parse action to convert tokens to lower case."""
     return [ tt.lower() for tt in map(_ustr,t) ]
-
-def keepOriginalText(s,startLoc,t):
-    """DEPRECATED - use new helper method C{L{originalTextFor}}.
-       Helper parse action to preserve original parsed text,
-       overriding any nested parse actions."""
-    try:
-        endloc = getTokensEndLoc()
-    except ParseException:
-        raise ParseFatalException("incorrect usage of keepOriginalText - may only be called as a parse action")
-    del t[:]
-    t += ParseResults(s[startLoc:endloc])
-    return t
 
 def getTokensEndLoc():
     """Method to be called from within a parse action to determine the end

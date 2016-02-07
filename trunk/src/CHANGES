@@ -32,6 +32,13 @@ Version 2.1.0 - February, 2016
 - Cleaned up some examples, fixed typo in fourFn.py identified by
   aristotle2600 on reddit.
 
+- Removed keepOriginalText helper method, which was deprecated ages ago.
+  Superceded by originalTextFor.
+
+- Same for the Upcase class, which was long ago deprecated and replaced
+  with the upcaseTokens method.
+
+
 
 Version 2.0.7 - December, 2015
 ------------------------------

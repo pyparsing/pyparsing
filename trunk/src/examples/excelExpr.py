@@ -6,7 +6,7 @@
 #
 from pyparsing import (CaselessKeyword, Suppress, Word, alphas, 
     alphanums, nums, Optional, Group, oneOf, Forward, Regex, 
-    operatorPrecedence, opAssoc, dblQuotedString, delimitedList, 
+    infixNotation, opAssoc, dblQuotedString, delimitedList, 
     Combine, Literal, QuotedString, ParserElement)
 ParserElement.enablePackrat()
 
@@ -43,14 +43,14 @@ multOp = oneOf("* /")
 addOp = oneOf("+ -")
 numericLiteral = Regex(r"\-?\d+(\.\d+)?")
 operand = numericLiteral | funcCall | cellRange | cellRef 
-arithExpr = operatorPrecedence(operand,
+arithExpr = infixNotation(operand,
     [
     (multOp, 2, opAssoc.LEFT),
     (addOp, 2, opAssoc.LEFT),
     ])
 
 textOperand = dblQuotedString | cellRef
-textExpr = operatorPrecedence(textOperand,
+textExpr = infixNotation(textOperand,
     [
     ('&', 2, opAssoc.LEFT),
     ])

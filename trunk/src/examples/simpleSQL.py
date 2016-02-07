@@ -5,12 +5,12 @@
 #
 # Copyright (c) 2003, Paul McGuire
 #
-from pyparsing import Literal, CaselessLiteral, Word, Upcase, delimitedList, Optional, \
+from pyparsing import Literal, CaselessLiteral, Word, delimitedList, Optional, \
     Combine, Group, alphas, nums, alphanums, ParseException, Forward, oneOf, quotedString, \
-    ZeroOrMore, restOfLine, Keyword
+    ZeroOrMore, restOfLine, Keyword, upcaseTokens
 
 def test( str ):
-    print(str,"->")
+    print(str + " ->")
     try:
         tokens = simpleSQL.parseString( str )
         print("tokens = ",        tokens)
@@ -18,9 +18,9 @@ def test( str ):
         print("tokens.tables =",  tokens.tables)
         print("tokens.where =", tokens.where)
     except ParseException as err:
-        print(" "*err.loc + "^\n" + err.msg)
+        print(" "*err.loc + "^")
         print(err)
-    print()
+    print('')
 
 
 # define SQL tokens
@@ -29,9 +29,9 @@ selectToken = Keyword("select", caseless=True)
 fromToken   = Keyword("from", caseless=True)
 
 ident          = Word( alphas, alphanums + "_$" ).setName("identifier")
-columnName     = Upcase( delimitedList( ident, ".", combine=True ) )
+columnName     = ( delimitedList( ident, ".", combine=True ) ).addParseAction(upcaseTokens)
 columnNameList = Group( delimitedList( columnName ) )
-tableName      = Upcase( delimitedList( ident, ".", combine=True ) )
+tableName      = ( delimitedList( ident, ".", combine=True ) ).addParseAction(upcaseTokens)
 tableNameList  = Group( delimitedList( tableName ) )
 
 whereExpression = Forward()

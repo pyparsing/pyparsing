@@ -9,7 +9,7 @@
 # operands
 #
 from pyparsing import Word, nums, alphas, Combine, oneOf, \
-    opAssoc, operatorPrecedence, Literal
+    opAssoc, infixNotation, Literal
 
 class EvalConstant(object):
     "Class to evaluate a parsed constant or variable"
@@ -120,7 +120,7 @@ expop = Literal('**')
 
 # use parse actions to attach EvalXXX constructors to sub-expressions
 operand.setParseAction(EvalConstant)
-arith_expr = operatorPrecedence(operand,
+arith_expr = infixNotation(operand,
     [
      (signop, 1, opAssoc.RIGHT, EvalSignOp),
      (expop, 2, opAssoc.LEFT, EvalPowerOp),
@@ -129,7 +129,7 @@ arith_expr = operatorPrecedence(operand,
     ])
 
 comparisonop = oneOf("< <= > >= != = <> LT GT LE GE EQ NE")
-comp_expr = operatorPrecedence(arith_expr,
+comp_expr = infixNotation(arith_expr,
     [
     (comparisonop, 2, opAssoc.LEFT, EvalComparisonOp),
     ])
@@ -210,14 +210,14 @@ def main():
     for test,expected in tests:
         ret = comp_expr.parseString(test)[0]
         parsedvalue = ret.eval()
-        print(test, expected, parsedvalue, end=' ')
+        print(test, expected, parsedvalue)
         if parsedvalue != expected:
             print("<<< FAIL")
             failed += 1
         else:
-            print()
+            print('')
             
-    print()
+    print('')
     if failed:
         print(failed, "tests FAILED")
     else:

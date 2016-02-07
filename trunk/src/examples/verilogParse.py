@@ -68,7 +68,7 @@ import sys
 
 __version__ = "1.0.11"
 
-from pyparsing import Literal, CaselessLiteral, Keyword, Word, Upcase, OneOrMore, ZeroOrMore, \
+from pyparsing import Literal, CaselessLiteral, Keyword, Word, OneOrMore, ZeroOrMore, \
         Forward, NotAny, delimitedList, Group, Optional, Combine, alphas, nums, restOfLine, cStyleComment, \
         alphanums, printables, dblQuotedString, empty, ParseException, ParseResults, MatchFirst, oneOf, GoToColumn, \
         ParseResults,StringEnd, FollowedBy, ParserElement, And, Regex, cppStyleComment#,__version__

@@ -92,7 +92,7 @@ TYPE = Group((INT | CHAR) + ZeroOrMore("*"))
 
 expr = Forward()
 operand = NAME | integer | char | string_
-expr << (operatorPrecedence(operand, 
+expr << (infixNotation(operand, 
     [
     (oneOf('! - *'), 1, opAssoc.RIGHT),
     (oneOf('++ --'), 1, opAssoc.RIGHT),
