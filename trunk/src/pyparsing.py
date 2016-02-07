@@ -58,7 +58,7 @@ The pyparsing module handles some of the problems that are typically vexing when
 """
 
 __version__ = "2.1.0"
-__versionTime__ = "6 Feb 2016 18:52"
+__versionTime__ = "7 Feb 2016 14:09"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -154,7 +154,7 @@ def _xml_escape(data):
 class _Constants(object):
     pass
 
-alphas = string.ascii_lowercase + string.ascii_uppercase
+alphas     = string.ascii_uppercase + string.ascii_lowercase
 nums       = "0123456789"
 hexnums    = nums + "ABCDEFabcdef"
 alphanums  = alphas + nums
@@ -267,7 +267,7 @@ class ParseResults(object):
        - by list index (C{results[0], results[1]}, etc.)
        - by attribute (C{results.<resultsName>})
        """
-    def __new__(cls, toklist, name=None, asList=True, modal=True ):
+    def __new__(cls, toklist=None, name=None, asList=True, modal=True ):
         if isinstance(toklist, cls):
             return toklist
         retobj = object.__new__(cls)
@@ -276,7 +276,7 @@ class ParseResults(object):
 
     # Performance tuning: we construct a *lot* of these, so keep this
     # constructor as small and fast as possible
-    def __init__( self, toklist, name=None, asList=True, modal=True, isinstance=isinstance ):
+    def __init__( self, toklist=None, name=None, asList=True, modal=True, isinstance=isinstance ):
         if self.__doinit:
             self.__doinit = False
             self.__name = None
@@ -284,6 +284,8 @@ class ParseResults(object):
             self.__accumNames = {}
             self.__asList = asList
             self.__modal = modal
+            if toklist is None:
+                toklist = []
             if isinstance(toklist, list):
                 self.__toklist = toklist[:]
             elif isinstance(toklist, _generatorType):
@@ -365,7 +367,7 @@ class ParseResults(object):
         return k in self.__tokdict
 
     def __len__( self ): return len( self.__toklist )
-    def __bool__(self): return len( self.__toklist ) > 0
+    def __bool__(self): return ( not not self.__toklist )
     __nonzero__ = __bool__
     def __iter__( self ): return iter( self.__toklist )
     def __reversed__( self ): return iter( self.__toklist[::-1] )
@@ -1058,6 +1060,14 @@ class ParserElement(object):
             return self._parse( instring, loc, doActions=False )[0]
         except ParseFatalException:
             raise ParseException( instring, loc, self.errmsg, self)
+    
+    def canParseNext(self, instring, loc):
+        try:
+            self.tryParse(instring, loc)
+        except (ParseException, IndexError):
+            return False
+        else:
+            return True
 
     # this method gets repeatedly called during backtracking with the same arguments -
     # we can cache these arguments and save ourselves the trouble of re-parsing the contained expression
@@ -1864,7 +1874,7 @@ class Regex(Token):
         super(Regex,self).__init__()
 
         if isinstance(pattern, basestring):
-            if len(pattern) == 0:
+            if not pattern:
                 warnings.warn("null string passed to Regex; use Empty() instead",
                         SyntaxWarning, stacklevel=2)
 
@@ -1935,7 +1945,7 @@ class QuotedString(Token):
 
         # remove white space from quote chars - wont work anyway
         quoteChar = quoteChar.strip()
-        if len(quoteChar) == 0:
+        if not quoteChar:
             warnings.warn("quoteChar cannot be the empty string",SyntaxWarning,stacklevel=2)
             raise SyntaxError()
 
@@ -1943,7 +1953,7 @@ class QuotedString(Token):
             endQuoteChar = quoteChar
         else:
             endQuoteChar = endQuoteChar.strip()
-            if len(endQuoteChar) == 0:
+            if not endQuoteChar:
                 warnings.warn("endQuoteChar cannot be the empty string",SyntaxWarning,stacklevel=2)
                 raise SyntaxError()
 
@@ -2612,16 +2622,14 @@ class Each(ParseExpression):
             tmpExprs = tmpReqd + tmpOpt + self.multioptionals + self.multirequired
             failed = []
             for e in tmpExprs:
-                try:
-                    tmpLoc = e.tryParse( instring, tmpLoc )
-                except ParseException:
-                    failed.append(e)
-                else:
+                if e.canParseNext(instring, tmpLoc):
                     matchOrder.append(self.opt1map.get(id(e),e))
                     if e in tmpReqd:
                         tmpReqd.remove(e)
                     elif e in tmpOpt:
                         tmpOpt.remove(e)
+                else:
+                    failed.append(e)
             if len(failed) == len(tmpExprs):
                 keepMatching = False
 
@@ -2637,7 +2645,7 @@ class Each(ParseExpression):
             loc,results = e._parse(instring,loc,doActions)
             resultlist.append(results)
 
-        finalResults = ParseResults([])
+        finalResults = ParseResults()
         for r in resultlist:
             dups = {}
             for k in r.keys():
@@ -2765,11 +2773,7 @@ class NotAny(ParseElementEnhance):
         self.errmsg = "Found unwanted token, "+_ustr(self.expr)
 
     def parseImpl( self, instring, loc, doActions=True ):
-        try:
-            self.expr.tryParse( instring, loc )
-        except (ParseException,IndexError):
-            pass
-        else:
+        if self.expr.canParseNext(instring, loc):
             raise ParseException(instring, loc, self.errmsg, self)
         return loc, []
 
@@ -2783,58 +2787,44 @@ class NotAny(ParseElementEnhance):
         return self.strRepr
 
 
-class ZeroOrMore(ParseElementEnhance):
-    """Optional repetition of zero or more of the given expression."""
-    def __init__( self, expr ):
-        super(ZeroOrMore,self).__init__(expr)
-        self.mayReturnEmpty = True
-
-    def parseImpl( self, instring, loc, doActions=True ):
-        tokens = []
-        try:
-            loc, tokens = self.expr._parse( instring, loc, doActions, callPreParse=False )
-            hasIgnoreExprs = ( len(self.ignoreExprs) > 0 )
-            while 1:
-                if hasIgnoreExprs:
-                    preloc = self._skipIgnorables( instring, loc )
-                else:
-                    preloc = loc
-                loc, tmptokens = self.expr._parse( instring, preloc, doActions )
-                if tmptokens or tmptokens.haskeys():
-                    tokens += tmptokens
-        except (ParseException,IndexError):
-            pass
-
-        return loc, tokens
-
-    def __str__( self ):
-        if hasattr(self,"name"):
-            return self.name
-
-        if self.strRepr is None:
-            self.strRepr = "[" + _ustr(self.expr) + "]..."
-
-        return self.strRepr
-
-    def setResultsName( self, name, listAllMatches=False ):
-        ret = super(ZeroOrMore,self).setResultsName(name,listAllMatches)
-        ret.saveAsList = True
-        return ret
-
-
 class OneOrMore(ParseElementEnhance):
-    """Repetition of one or more of the given expression."""
+    """Repetition of one or more of the given expression.
+    
+       Parameters:
+        - expr - expression that must match one or more times
+        - stopOn - (default=None) - expression for a terminating sentinel
+          (only required if the sentinel would ordinarily match the repetition 
+          expression)          
+    """
+    def __init__( self, expr, stopOn=None):
+        super(OneOrMore, self).__init__(expr)
+        ender = stopOn
+        if isinstance(ender, basestring):
+            ender = Literal(ender)
+        self.not_ender = ~ender if ender is not None else None
+
     def parseImpl( self, instring, loc, doActions=True ):
-        # must be at least one
-        loc, tokens = self.expr._parse( instring, loc, doActions, callPreParse=False )
+        self_expr_parse = self.expr._parse
+        self_skip_ignorables = self._skipIgnorables
+        check_ender = self.not_ender is not None
+        if check_ender:
+            try_not_ender = self.not_ender.tryParse
+        
+        # must be at least one (but first see if we are the stopOn sentinel;
+        # if so, fail)
+        if check_ender:
+            try_not_ender(instring, loc)
+        loc, tokens = self_expr_parse( instring, loc, doActions, callPreParse=False )
         try:
-            hasIgnoreExprs = ( len(self.ignoreExprs) > 0 )
+            hasIgnoreExprs = (not not self.ignoreExprs)
             while 1:
+                if check_ender:
+                    try_not_ender(instring, loc)
                 if hasIgnoreExprs:
-                    preloc = self._skipIgnorables( instring, loc )
+                    preloc = self_skip_ignorables( instring, loc )
                 else:
                     preloc = loc
-                loc, tmptokens = self.expr._parse( instring, preloc, doActions )
+                loc, tmptokens = self_expr_parse( instring, preloc, doActions )
                 if tmptokens or tmptokens.haskeys():
                     tokens += tmptokens
         except (ParseException,IndexError):
@@ -2856,6 +2846,34 @@ class OneOrMore(ParseElementEnhance):
         ret.saveAsList = True
         return ret
 
+class ZeroOrMore(OneOrMore):
+    """Optional repetition of zero or more of the given expression.
+    
+       Parameters:
+        - expr - expression that must match zero or more times
+        - stopOn - (default=None) - expression for a terminating sentinel
+          (only required if the sentinel would ordinarily match the repetition 
+          expression)          
+    """
+    def __init__( self, expr, stopOn=None):
+        super(ZeroOrMore,self).__init__(expr, stopOn=stopOn)
+        self.mayReturnEmpty = True
+        
+    def parseImpl( self, instring, loc, doActions=True ):
+        try:
+            return super(ZeroOrMore, self).parseImpl(instring, loc, doActions)
+        except (ParseException,IndexError):
+            return loc, []
+
+    def __str__( self ):
+        if hasattr(self,"name"):
+            return self.name
+
+        if self.strRepr is None:
+            self.strRepr = "[" + _ustr(self.expr) + "]..."
+
+        return self.strRepr
+
 class _NullToken(object):
     def __bool__(self):
         return False
@@ -2866,8 +2884,11 @@ class _NullToken(object):
 _optionalNotMatched = _NullToken()
 class Optional(ParseElementEnhance):
     """Optional matching of the given expression.
-       A default return string can also be specified, if the optional expression
-       is not found.
+
+       Parameters:
+        - expr - expression that must match zero or more times
+        - default (optional) - value to be returned if the optional expression
+          is not found.
     """
     def __init__( self, expr, default=_optionalNotMatched ):
         super(Optional,self).__init__( expr, savelist=False )
@@ -2897,13 +2918,18 @@ class Optional(ParseElementEnhance):
 
         return self.strRepr
 
-
 class SkipTo(ParseElementEnhance):
     """Token for skipping over all undefined text until the matched expression is found.
-       If C{include} is set to true, the matched expression is also parsed (the skipped text
-       and matched expression are returned as a 2-element list).  The C{ignore}
-       argument is used to define grammars (typically quoted strings and comments) that
-       might contain false matches.
+
+       Parameters:
+        - expr - target expression marking the end of the data to be skipped
+        - include - (default=False) if True, the target expression is also parsed 
+          (the skipped text and target expression are returned as a 2-element list).
+        - ignore - (default=None) used to define grammars (typically quoted strings and 
+          comments) that might contain false matches to the target expression
+        - failOn - (default=None) define expressions that are not allowed to be 
+          included in the skipped test; if found before the target expression is found, 
+          the SkipTo is not a match
     """
     def __init__( self, other, include=False, ignore=None, failOn=None ):
         super( SkipTo, self ).__init__( other )
@@ -2919,46 +2945,51 @@ class SkipTo(ParseElementEnhance):
         self.errmsg = "No match found for "+_ustr(self.expr)
 
     def parseImpl( self, instring, loc, doActions=True ):
-        startLoc = loc
+        startloc = loc
         instrlen = len(instring)
         expr = self.expr
-        failParse = False
-        while loc <= instrlen:
-            try:
-                if self.failOn:
+        expr_parse = self.expr._parse
+        self_failOn_canParseNext = self.failOn.canParseNext if self.failOn is not None else None
+        self_ignoreExpr_tryParse = self.ignoreExpr.tryParse if self.ignoreExpr is not None else None
+        
+        tmploc = loc
+        while tmploc <= instrlen:
+            if self_failOn_canParseNext is not None:
+                # break if failOn expression matches
+                if self_failOn.canParseNext(instring, tmploc):
+                    break
+                    
+            if self_ignoreExpr_tryParse is not None:
+                # advance past ignore expressions
+                while 1:
                     try:
-                        self.failOn.tryParse(instring, loc)
+                        tmploc = self_ignoreExpr_tryParse(instring, tmploc)
                     except ParseBaseException:
-                        pass
-                    else:
-                        failParse = True
-                        raise ParseException(instring, loc, "Found expression " + str(self.failOn))
-                    failParse = False
-                if self.ignoreExpr is not None:
-                    while 1:
-                        try:
-                            loc = self.ignoreExpr.tryParse(instring,loc)
-                            # print("found ignoreExpr, advance to", loc)
-                        except ParseBaseException:
-                            break
-                expr._parse( instring, loc, doActions=False, callPreParse=False )
-                skipText = instring[startLoc:loc]
-                if self.includeMatch:
-                    loc,mat = expr._parse(instring,loc,doActions,callPreParse=False)
-                    if mat:
-                        skipRes = ParseResults( skipText )
-                        skipRes += mat
-                        return loc, [ skipRes ]
-                    else:
-                        return loc, [ skipText ]
-                else:
-                    return loc, [ skipText ]
-            except (ParseException,IndexError):
-                if failParse:
-                    raise
-                else:
-                    loc += 1
-        raise ParseException(instring, loc, self.errmsg, self)
+                        break
+            
+            try:
+                expr_parse(instring, tmploc, doActions=False, callPreParse=False)
+            except (ParseException, IndexError):
+                # no match, advance loc in string
+                tmploc += 1
+            else:
+                # matched skipto expr, done
+                break
+
+        else:
+            # ran off the end of the input string without matching skipto expr, fail
+            raise ParseException(instring, loc, self.errmsg, self)
+
+        # build up return values
+        loc = tmploc
+        skiptext = instring[startloc:loc]
+        skipresult = ParseResults(skiptext)
+        
+        if self.includeMatch:
+            loc, mat = expr_parse(instring,loc,doActions,callPreParse=False)
+            skipresult += mat
+
+        return loc, skipresult
 
 class Forward(ParseElementEnhance):
     """Forward declaration of an expression to be defined later -
