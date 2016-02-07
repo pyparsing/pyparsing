@@ -28,6 +28,9 @@ JYTHON_ENV = sys.platform.startswith("java")
 TEST_USING_PACKRAT = True
 #~ TEST_USING_PACKRAT = False
 
+VERBOSE = False
+#~ VERBOSE = True
+
 # simple utility for flattening nested lists
 def flatten(L):
     if type(L) is not list: return [L]
@@ -1284,21 +1287,27 @@ class InfixNotationGrammarTest4(ParseTestCase):
             assert str(results) == expected, "failed to match expected results, got '%s'" % str(results)
             print_()
 
-class Greeting():
+
+class PickleTest_Greeting():
     def __init__(self, toks):
         self.salutation = toks[0]
         self.greetee = toks[1]
         
-
+    def __repr__(self):
+        return "%s: {%s}" % (self.__class__.__name__, 
+            ', '.join('%r: %r' % (k, getattr(self,k)) for k in sorted(self.__dict__)))
+        
 class ParseResultsPickleTest(ParseTestCase):
     def runTest(self):
         from pyparsing import makeHTMLTags, ParseResults
         import pickle
         
+        # test 1
         body = makeHTMLTags("BODY")[0]
         result = body.parseString("<BODY BGCOLOR='#00FFBB' FGCOLOR=black>")
-        print_(result.dump())
-        print_()
+        if VERBOSE:
+            print_(result.dump())
+            print_()
 
         for protocol in range(pickle.HIGHEST_PROTOCOL+1):
             print_("Test pickle dump protocol", protocol)
@@ -1306,17 +1315,17 @@ class ParseResultsPickleTest(ParseTestCase):
                 pickleString = pickle.dumps(result, protocol)
             except Exception as e:
                 print_("dumps exception:", e)
-                newresult = ParseResults([])
+                newresult = ParseResults()
             else:
                 newresult = pickle.loads(pickleString)
-                print_(newresult.dump())
-                
+                if VERBOSE:
+                    print_(newresult.dump())
+                    print_()
+
             assert result.dump() == newresult.dump(), "Error pickling ParseResults object (protocol=%d)" % protocol
-            print_()
 
+        # test 2
         import pyparsing as pp
-        import pickle
-
 
         word = pp.Word(pp.alphas+"'.")
         salutation = pp.OneOrMore(word)
@@ -1324,7 +1333,7 @@ class ParseResultsPickleTest(ParseTestCase):
         greetee = pp.OneOrMore(word)
         endpunc = pp.oneOf("! ?")
         greeting = salutation + pp.Suppress(comma) + greetee + pp.Suppress(endpunc)
-        greeting.setParseAction(Greeting)
+        greeting.setParseAction(PickleTest_Greeting)
 
         string = 'Good morning, Miss Crabtree!'
 
@@ -1332,15 +1341,15 @@ class ParseResultsPickleTest(ParseTestCase):
         
         for protocol in range(pickle.HIGHEST_PROTOCOL+1):
             print_("Test pickle dump protocol", protocol)
-            pkl = "pickle_test_protocol_%d.pkl" % protocol
             try:
                 pickleString = pickle.dumps(result, protocol)
             except Exception as e:
                 print_("dumps exception:", e)
-                newresult = ParseResults([])
+                newresult = ParseResults()
             else:
                 newresult = pickle.loads(pickleString)
-                print_(newresult.dump())
+            print_(newresult.dump())
+            assert newresult.dump() == result.dump(), "failed to pickle/unpickle ParseResults: expected %r, got %r" % (result, newresult)
 
 
 
@@ -1552,12 +1561,32 @@ class CountedArrayTest2(ParseTestCase):
         assert r.asList() == [[5,7],[0,1,2,3,4,5],[],[5,4,3]], \
                 "Failed matching countedArray, got " + str(r.asList())
 
+class CountedArrayTest3(ParseTestCase):
+    # test case where counter is not a decimal integer
+    def runTest(self):
+        from pyparsing import Word,nums,OneOrMore,countedArray,alphas
+        int_chars = "_"+alphas
+        array_counter = Word(int_chars).setParseAction(lambda t: int_chars.index(t[0]))
+        
+        #             123456789012345678901234567890
+        testString = "B 5 7 F 0 1 2 3 4 5 _ C 5 4 3"
+
+        integer = Word(nums).setParseAction(lambda t: int(t[0]))
+        countedField = countedArray(integer, intExpr=array_counter)
+        
+        r = OneOrMore(countedField).parseString( testString )
+        print_(testString)
+        print_(r.asList())
+        
+        assert r.asList() == [[5,7],[0,1,2,3,4,5],[],[5,4,3]], \
+                "Failed matching countedArray, got " + str(r.asList())
+
 class LineAndStringEndTest(ParseTestCase):
     def runTest(self):
         from pyparsing import OneOrMore,lineEnd,alphanums,Word,stringEnd,delimitedList,SkipTo
 
-        les = OneOrMore(lineEnd)
-        bnf1 = delimitedList(Word(alphanums).leaveWhitespace(),les)
+        NLs = OneOrMore(lineEnd)
+        bnf1 = delimitedList(Word(alphanums).leaveWhitespace(), NLs)
         bnf2 = Word(alphanums) + stringEnd
         bnf3 = Word(alphanums) + SkipTo(stringEnd)
         tests = [
@@ -1566,16 +1595,22 @@ class LineAndStringEndTest(ParseTestCase):
             ("a", ['a']),
              ]
 
-        for t in tests:
-            res1 = bnf1.parseString(t[0])
-            print_(res1,'=?',t[1])
-            assert res1.asList() == t[1], "Failed lineEnd/stringEnd test (1): "+repr(t[0])+ " -> "+str(res1.asList())
-            res2 = bnf2.searchString(t[0])
-            print_(res2[0].asList(),'=?',t[1][-1:])
-            assert res2[0].asList() == t[1][-1:], "Failed lineEnd/stringEnd test (2): "+repr(t[0])+ " -> "+str(res2[0].asList())
-            res3 = bnf3.parseString(t[0])
-            print_(repr(res3[1]),'=?',repr(t[0][len(res3[0])+1:]))
-            assert res3[1] == t[0][len(res3[0])+1:], "Failed lineEnd/stringEnd test (3): " +repr(t[0])+ " -> "+str(res3[1].asList())
+        for test,expected in tests:
+            res1 = bnf1.parseString(test)
+            print_(res1,'=?',expected)
+            assert res1.asList() == expected, "Failed lineEnd/stringEnd test (1): "+repr(test)+ " -> "+str(res1.asList())
+
+            res2 = bnf2.searchString(test)[0]
+            print_(res2.asList(),'=?',expected[-1:])
+            assert res2.asList() == expected[-1:], "Failed lineEnd/stringEnd test (2): "+repr(test)+ " -> "+str(res2.asList())
+
+            res3 = bnf3.parseString(test)
+            first = res3[0]
+            rest = res3[1]
+            #~ print res3.dump()
+            print_(repr(rest),'=?',repr(test[len(first)+1:]))
+            assert rest == test[len(first)+1:]#, "Failed lineEnd/stringEnd test (3): " +repr(test)+ " -> "+str(res3[1].asList())
+            print_()
 
         from pyparsing import Regex
         import re
@@ -2409,6 +2444,35 @@ class TrimArityExceptionMaskingTest(ParseTestCase):
             exc_msg = str(e)
         assert exc_msg != invalid_message, "failed to catch TypeError thrown in _trim_arity"
 
+class OneOrMoreStopTest(ParseTestCase):
+    def runTest(self):
+        from pyparsing import (Word, OneOrMore, alphas, Keyword, CaselessKeyword,
+            nums, alphanums)
+        
+        test = "BEGIN aaa bbb ccc END"
+        BEGIN,END = map(Keyword, "BEGIN,END".split(','))
+        body_word = Word(alphas).setName("word")
+        for ender in (END, "END", CaselessKeyword("END")):
+            expr = BEGIN + OneOrMore(body_word, stopOn=ender) + END
+            assert test == expr, "Did not successfully stop on ending expression %r" % ender
+        
+        number = Word(nums+',.()').setName("number with optional commas")
+        parser= (OneOrMore(Word(alphanums+'-/.'), stopOn=number)('id').setParseAction(' '.join) 
+                    + number('data'))
+        result = parser.parseString('        XXX Y/123          1,234.567890')
+        assert result.asList() == ['XXX Y/123', '1,234.567890'], "Did not successfully stop on ending expression %r" % number
+
+class ZeroOrMoreStopTest(ParseTestCase):
+    def runTest(self):
+        from pyparsing import (Word, ZeroOrMore, alphas, Keyword, CaselessKeyword)
+        
+        test = "BEGIN END"
+        BEGIN,END = map(Keyword, "BEGIN,END".split(','))
+        body_word = Word(alphas).setName("word")
+        for ender in (END, "END", CaselessKeyword("END")):
+            expr = BEGIN + ZeroOrMore(body_word, stopOn=ender) + END
+            assert test == expr, "Did not successfully stop on ending expression %r" % ender
+        
 class MiscellaneousParserTests(ParseTestCase):
     def runTest(self):
         import pyparsing
@@ -2589,6 +2653,7 @@ def makeTestSuite():
     suite.addTest( SkipToParserTests() )
     suite.addTest( CountedArrayTest() )
     suite.addTest( CountedArrayTest2() )
+    suite.addTest( CountedArrayTest3() )
     suite.addTest( LineAndStringEndTest() )
     suite.addTest( VariableParseActionArgsTest() )
     suite.addTest( RepeaterTest() )
@@ -2623,6 +2688,8 @@ def makeTestSuite():
     suite.addTest( UnicodeExpressionTest() )
     suite.addTest( SetNameTest() )
     suite.addTest( TrimArityExceptionMaskingTest() )
+    suite.addTest( OneOrMoreStopTest() )
+    suite.addTest( ZeroOrMoreStopTest() )
     suite.addTest( MiscellaneousParserTests() )
     if TEST_USING_PACKRAT:
         # retest using packrat parsing (disable those tests that aren't compatible)
@@ -2638,10 +2705,11 @@ def makeTestSuite():
         
     return suite
     
-def makeTestSuiteTemp(cls):
+def makeTestSuiteTemp(classes):
     suite = TestSuite()
     suite.addTest( PyparsingTestInit() )
-    suite.addTest( cls() )
+    for cls in classes:
+        suite.addTest( cls() )
     return suite
 
 console = False
@@ -2657,13 +2725,16 @@ lp = None
 if console:
     #~ # console mode
     testRunner = TextTestRunner()
-    testRunner.run( makeTestSuite() )
-    
-    #~ testclass = ParseResultsPickleTest
-    #~ if lp is None:
-        #~ testRunner.run( makeTestSuiteTemp(testclass) )
-    #~ else:
-        #~ lp.run("testRunner.run( makeTestSuite(%s) )" % testclass.__name__)
+
+    testclasses = []
+    #~ testclasses.append(put_test_class_here)
+    if not testclasses:
+        testRunner.run( makeTestSuite() )
+    else:
+        if lp is None:
+            testRunner.run( makeTestSuiteTemp(testclasses) )
+        else:
+            lp.run("testRunner.run( makeTestSuite(%s) )" % testclass.__name__)
 else:
     # HTML mode
     outfile = "testResults.html"
