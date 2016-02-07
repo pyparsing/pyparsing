@@ -2,8 +2,8 @@
 Change Log
 ==========
 
-Version 2.0.8 - 
----------------------------
+Version 2.1.0 - February, 2016
+------------------------------
 - Modified the internal _trim_arity method to distinguish between 
   TypeError's raised while trying to determine parse action arity and
   those raised within the parse action itself. This will clear up those
@@ -33,8 +33,8 @@ Version 2.0.8 -
   aristotle2600 on reddit.
 
 
-Version 2.0.7 - 
----------------------------
+Version 2.0.7 - December, 2015
+------------------------------
 - Simplified string representation of Forward class, to avoid memory
   and performance errors while building ParseException messages. Thanks,
   Will McGugan, Andrea Censi, and Martijn Vermaat for the bug reports and
@@ -57,8 +57,8 @@ Version 2.0.7 -
   forms.
 
 
-Version 2.0.6 - 
----------------------------
+Version 2.0.6 - November, 2015
+------------------------------
 - Fixed a bug in Each when multiple Optional elements are present.
   Thanks for reporting this, whereswalden on SO.
 
@@ -85,14 +85,14 @@ Version 2.0.6 -
   in duplicate.
 
 
-Version 2.0.5 -
----------------------------
+Version 2.0.5 - October, 2015
+-----------------------------
 - (&$(@#&$(@!!!!  Some "print" statements snuck into pyparsing v2.0.4,
   breaking Python 3 compatibility! Fixed. Reported by jenshn, thanks!
   
 
-Version 2.0.4 -
----------------------------
+Version 2.0.4 - October, 2015
+-----------------------------
 - Added ParserElement.addCondition, to simplify adding parse actions 
   that act primarily as filters. If the given condition evaluates False,
   pyparsing will raise a ParseException. The condition should be a method
@@ -129,8 +129,8 @@ Version 2.0.4 -
   made difficult because 'class' is a Python reserved word.
 
 
-Version 2.0.3 - 
----------------------------
+Version 2.0.3 - October, 2014
+-----------------------------
 - Fixed escaping behavior in QuotedString. Formerly, only quotation
   marks (or characters designated as quotation marks in the QuotedString
   constructor) would be escaped. Now all escaped characters will be
