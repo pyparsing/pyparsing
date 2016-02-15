@@ -57,8 +57,8 @@ The pyparsing module handles some of the problems that are typically vexing when
  - embedded comments
 """
 
-__version__ = "2.1.0"
-__versionTime__ = "7 Feb 2016 14:09"
+__version__ = "2.1.1"
+__versionTime__ = "14 Feb 2016 18:34"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -328,7 +328,7 @@ class ParseResults(object):
         if isinstance(v,_ParseResultsWithOffset):
             self.__tokdict[k] = self.__tokdict.get(k,list()) + [v]
             sub = v[0]
-        elif isinstance(k,int):
+        elif isinstance(k,(int,slice)):
             self.__toklist[k] = v
             sub = v
         else:
@@ -3400,10 +3400,7 @@ def originalTextFor(expr, asString=True):
         extractText = lambda s,l,t: s[t._original_start:t._original_end]
     else:
         def extractText(s,l,t):
-            del t[:]
-            t.insert(0, s[t._original_start:t._original_end])
-            del t["_original_start"]
-            del t["_original_end"]
+            t[:] = [s[t.pop('_original_start'):t.pop('_original_end')]]
     matchExpr.setParseAction(extractText)
     return matchExpr
 
