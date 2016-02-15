@@ -2,6 +2,11 @@
 Change Log
 ==========
 
+Version 2.1.1 - 
+------------------------------
+- Added support for assigning to ParseResults using slices.
+
+
 Version 2.1.0 - February, 2016
 ------------------------------
 - Modified the internal _trim_arity method to distinguish between 

@@ -1843,9 +1843,16 @@ class OriginalTextForTest(ParseTestCase):
         text = '''_<img src="images/cal.png"
             alt="cal image" width="16" height="15">_'''
         s = start.transformString(text)
-        print_(s)
+        if VERBOSE:
+            print_(s)
         assert s.startswith("_images/cal.png:"), "failed to preserve input s properly"
         assert s.endswith("77_"),"failed to return full original text properly"
+        
+        tag_fields = makeHTMLStartTag("IMG").searchString(text)[0]
+        if VERBOSE:
+            print_(sorted(tag_fields.keys()))
+        assert sorted(tag_fields.keys()) == ['alt', 'empty', 'height', 'src', 'startImg', 'tag', 'width'], 'failed to preserve results names in originalTextFor'
+        
 
 class PackratParsingCacheCopyTest(ParseTestCase):
     def runTest(self):
@@ -2728,6 +2735,7 @@ if console:
 
     testclasses = []
     #~ testclasses.append(put_test_class_here)
+    testclasses.append(OriginalTextForTest)
     if not testclasses:
         testRunner.run( makeTestSuite() )
     else:
