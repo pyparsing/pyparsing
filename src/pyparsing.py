@@ -58,7 +58,7 @@ The pyparsing module handles some of the problems that are typically vexing when
 """
 
 __version__ = "2.1.1"
-__versionTime__ = "14 Feb 2016 18:34"
+__versionTime__ = "15 Feb 2016 23:22"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -3473,10 +3473,7 @@ def replaceWith(replStr):
     """Helper method for common parse actions that simply return a literal value.  Especially
        useful when used with C{L{transformString<ParserElement.transformString>}()}.
     """
-    #def _replFunc(*args):
-    #    return [replStr]
-    #return _replFunc
-    return functools.partial(next, itertools.repeat([replStr]))
+    return lambda s,l,t: [replStr]
 
 def removeQuotes(s,l,t):
     """Helper parse action for removing quotation marks from parsed quoted strings.
@@ -3492,22 +3489,6 @@ def upcaseTokens(s,l,t):
 def downcaseTokens(s,l,t):
     """Helper parse action to convert tokens to lower case."""
     return [ tt.lower() for tt in map(_ustr,t) ]
-
-def getTokensEndLoc():
-    """Method to be called from within a parse action to determine the end
-       location of the parsed tokens."""
-    import inspect
-    fstack = inspect.stack()
-    try:
-        # search up the stack (through intervening argument normalizers) for correct calling routine
-        for f in fstack[2:]:
-            if f[3] == "_parseNoCache":
-                endloc = f[0].f_locals["loc"]
-                return endloc
-        else:
-            raise ParseFatalException("incorrect usage of getTokensEndLoc - may only be called from within a parse action")
-    finally:
-        del fstack
 
 def _makeTags(tagStr, xml):
     """Internal helper to construct opening and closing tag expressions, given a tag name"""

@@ -6,6 +6,10 @@ Version 2.1.1 -
 ------------------------------
 - Added support for assigning to ParseResults using slices.
 
+- Removed use of functools.partial in replaceWith, as this creates
+  an ambiguous signature for the generated parse action, which fails in 
+  PyPy. Reported by Evan Hubinger, thanks Evan!
+
 
 Version 2.1.0 - February, 2016
 ------------------------------
