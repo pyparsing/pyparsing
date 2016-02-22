@@ -893,23 +893,28 @@ class ReStringRangeTest(ParseTestCase):
 class SkipToParserTests(ParseTestCase):
     def runTest(self):
         
-        from pyparsing import Literal, SkipTo, NotAny, cStyleComment
+        from pyparsing import Literal, SkipTo, NotAny, cStyleComment, ParseBaseException
         
         thingToFind = Literal('working')
-        testExpr = SkipTo(Literal(';'), True, cStyleComment) + thingToFind
+        testExpr = SkipTo(Literal(';'), include=True, ignore=cStyleComment) + thingToFind
         
-        def tryToParse (someText):
+        def tryToParse (someText, fail_expected=False):
             try:
                 print_(testExpr.parseString(someText))
+                assert not fail_expected, "expected failure but no exception raised"
             except Exception as e:
                 print_("Exception %s while parsing string %s" % (e,repr(someText)))
-                assert False, "Exception %s while parsing string %s" % (e,repr(someText))
+                assert fail_expected and isinstance(e,ParseBaseException), "Exception %s while parsing string %s" % (e,repr(someText))
     
         # This first test works, as the SkipTo expression is immediately following the ignore expression (cStyleComment)
         tryToParse('some text /* comment with ; in */; working')
-        # This second test fails, as there is text following the ignore expression, and before the SkipTo expression.
+        # This second test previously failed, as there is text following the ignore expression, and before the SkipTo expression.
         tryToParse('some text /* comment with ; in */some other stuff; working')
 
+        # tests for optional failOn argument
+        testExpr = SkipTo(Literal(';'), include=True, ignore=cStyleComment, failOn='other') + thingToFind
+        tryToParse('some text /* comment with ; in */; working')
+        tryToParse('some text /* comment with ; in */some other stuff; working', fail_expected=True)
 
 class CustomQuotesTest(ParseTestCase):
     def runTest(self):
@@ -2735,7 +2740,6 @@ if console:
 
     testclasses = []
     #~ testclasses.append(put_test_class_here)
-    testclasses.append(OriginalTextForTest)
     if not testclasses:
         testRunner.run( makeTestSuite() )
     else:
