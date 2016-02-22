@@ -6,6 +6,8 @@ Version 2.1.1 -
 ------------------------------
 - Added support for assigning to ParseResults using slices.
 
+- Fixed bug in SkipTo when using failOn, reported by robyschek, thanks!
+
 - Removed use of functools.partial in replaceWith, as this creates
   an ambiguous signature for the generated parse action, which fails in 
   PyPy. Reported by Evan Hubinger, thanks Evan!

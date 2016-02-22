@@ -58,7 +58,7 @@ The pyparsing module handles some of the problems that are typically vexing when
 """
 
 __version__ = "2.1.1"
-__versionTime__ = "15 Feb 2016 23:22"
+__versionTime__ = "21 Feb 2016 19:41"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -1552,7 +1552,7 @@ class ParserElement(object):
 
     def __eq__(self,other):
         if isinstance(other, ParserElement):
-            return self is other or self.__dict__ == other.__dict__
+            return self is other or vars(self) == vars(other)
         elif isinstance(other, basestring):
             try:
                 self.parseString(_ustr(other), parseAll=True)
@@ -2938,7 +2938,7 @@ class SkipTo(ParseElementEnhance):
         self.mayIndexError = False
         self.includeMatch = include
         self.asList = False
-        if failOn is not None and isinstance(failOn, basestring):
+        if isinstance(failOn, basestring):
             self.failOn = Literal(failOn)
         else:
             self.failOn = failOn
@@ -2956,7 +2956,7 @@ class SkipTo(ParseElementEnhance):
         while tmploc <= instrlen:
             if self_failOn_canParseNext is not None:
                 # break if failOn expression matches
-                if self_failOn.canParseNext(instring, tmploc):
+                if self_failOn_canParseNext(instring, tmploc):
                     break
                     
             if self_ignoreExpr_tryParse is not None:
