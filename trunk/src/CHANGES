@@ -8,6 +8,9 @@ Version 2.1.1 -
 
 - Fixed bug in SkipTo when using failOn, reported by robyschek, thanks!
 
+- Fixed bug in Each introduced in 2.1.0, reported by AND patch and
+  unit test submitted by robyschek, well done!
+
 - Removed use of functools.partial in replaceWith, as this creates
   an ambiguous signature for the generated parse action, which fails in 
   PyPy. Reported by Evan Hubinger, thanks Evan!

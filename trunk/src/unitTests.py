@@ -2198,6 +2198,25 @@ class WordBoundaryExpressionsTest(ParseTestCase):
             assert results==expected,"Failed WordBoundaryTest, expected %s, got %s" % (expected,results)
             print_()
 
+class RequiredEachTest(ParseTestCase):
+    def runTest(self):
+        from pyparsing import Keyword
+
+        parser = Keyword('bam') & Keyword('boo')
+        try:
+            res1 = parser.parseString('bam boo')
+            print_(res1.asList())
+            res2 = parser.parseString('boo bam')
+            print_(res2.asList())
+        except ParseException:
+            failed = True
+        else:
+            failed = False
+        assert not failed, "invalid logic in Each"
+        
+        assert set(res1) == set(res2), "Failed RequiredEachTest, expected " + \
+           str(res1.asList()) + " and " + str(res2.asList()) + "to contain same words in any order" 
+
 class OptionalEachTest(ParseTestCase):
     def runTest1(self):
         from pyparsing import Optional, Keyword
@@ -2688,6 +2707,7 @@ def makeTestSuite():
     suite.addTest( WordBoundaryExpressionsTest() )
     suite.addTest( ParseAllTest() )
     suite.addTest( GreedyQuotedStringsTest() )
+    suite.addTest( RequiredEachTest() )
     suite.addTest( OptionalEachTest() )
     suite.addTest( SumParseResultsTest() )
     suite.addTest( WordExcludeTest() )
@@ -2740,6 +2760,7 @@ if console:
 
     testclasses = []
     #~ testclasses.append(put_test_class_here)
+    #~ testclasses.append(RequiredEachTest)
     if not testclasses:
         testRunner.run( makeTestSuite() )
     else:

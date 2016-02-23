@@ -58,7 +58,7 @@ The pyparsing module handles some of the problems that are typically vexing when
 """
 
 __version__ = "2.1.1"
-__versionTime__ = "21 Feb 2016 19:41"
+__versionTime__ = "23 Feb 2016 16:16"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -2622,14 +2622,16 @@ class Each(ParseExpression):
             tmpExprs = tmpReqd + tmpOpt + self.multioptionals + self.multirequired
             failed = []
             for e in tmpExprs:
-                if e.canParseNext(instring, tmpLoc):
+                try:
+                    tmpLoc = e.tryParse( instring, tmpLoc )
+                except ParseException:
+                    failed.append(e)
+                else:
                     matchOrder.append(self.opt1map.get(id(e),e))
                     if e in tmpReqd:
                         tmpReqd.remove(e)
                     elif e in tmpOpt:
                         tmpOpt.remove(e)
-                else:
-                    failed.append(e)
             if len(failed) == len(tmpExprs):
                 keepMatching = False
 
