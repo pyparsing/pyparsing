@@ -6,6 +6,10 @@ Version 2.1.1 -
 ------------------------------
 - Added support for assigning to ParseResults using slices.
 
+- Fixed bug in ParseResults.toDict(), in which dict values were always
+  converted to dicts, even if they were just unkeyed lists of tokens.
+  Reported on SO by Gerald Thibault, thanks Gerald!
+
 - Fixed bug in SkipTo when using failOn, reported by robyschek, thanks!
 
 - Fixed bug in Each introduced in 2.1.0, reported by AND patch and

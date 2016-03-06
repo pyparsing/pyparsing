@@ -2504,6 +2504,40 @@ class ZeroOrMoreStopTest(ParseTestCase):
             expr = BEGIN + ZeroOrMore(body_word, stopOn=ender) + END
             assert test == expr, "Did not successfully stop on ending expression %r" % ender
         
+class NestedAsDictTest(ParseTestCase):
+    def runTest(self):
+        from pyparsing import Literal, Forward, alphanums, Group, delimitedList, Dict, Word, Optional
+
+        equals = Literal("=").suppress()
+        lbracket = Literal("[").suppress()
+        rbracket = Literal("]").suppress()
+        lbrace = Literal("{").suppress()
+        rbrace = Literal("}").suppress()
+
+        value_dict          = Forward()
+        value_list          = Forward()
+        value_string        = Word(alphanums + "@. ")
+
+        value               = value_list ^ value_dict ^ value_string
+        values              = Group(delimitedList(value, ","))
+        #~ values              = delimitedList(value, ",").setParseAction(lambda toks: [toks.asList()])
+
+        value_list          << lbracket + values + rbracket
+
+        identifier          = Word(alphanums + "_.")
+
+        assignment          = Group(identifier + equals + Optional(value))
+        assignments         = Dict(delimitedList(assignment, ';'))
+        value_dict          << lbrace + assignments + rbrace
+
+        response = assignments
+
+        rsp = 'username=goat; errors={username=[already taken, too short]}; empty_field='
+        result_dict = response.parseString(rsp).asDict()
+        print(result_dict)
+        assert result_dict['username'] == 'goat', "failed to process string in ParseResults correctly"
+        assert result_dict['errors']['username'] == ['already taken', 'too short'], "failed to process nested ParseResults correctly"
+
 class MiscellaneousParserTests(ParseTestCase):
     def runTest(self):
         import pyparsing
@@ -2722,6 +2756,7 @@ def makeTestSuite():
     suite.addTest( TrimArityExceptionMaskingTest() )
     suite.addTest( OneOrMoreStopTest() )
     suite.addTest( ZeroOrMoreStopTest() )
+    suite.addTest( NestedAsDictTest() )
     suite.addTest( MiscellaneousParserTests() )
     if TEST_USING_PACKRAT:
         # retest using packrat parsing (disable those tests that aren't compatible)
