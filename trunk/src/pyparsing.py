@@ -58,7 +58,7 @@ The pyparsing module handles some of the problems that are typically vexing when
 """
 
 __version__ = "2.1.1"
-__versionTime__ = "23 Feb 2016 16:16"
+__versionTime__ = "5 Mar 2016 23:42"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -541,7 +541,17 @@ class ParseResults(object):
             item_fn = self.items
         else:
             item_fn = self.iteritems
-        return dict((k,v.asDict()) if isinstance(v, ParseResults) else (k,v) for k,v in item_fn())
+            
+        def toItem(obj):
+            if isinstance(obj, ParseResults):
+                if obj.haskeys():
+                    return obj.asDict()
+                else:
+                    return [toItem(v) for v in obj]
+            else:
+                return obj
+                
+        return dict((k,toItem(v)) for k,v in item_fn())
 
     def copy( self ):
         """Returns a new copy of a C{ParseResults} object."""
