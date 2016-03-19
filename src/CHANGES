@@ -19,6 +19,10 @@ Version 2.1.1 -
   an ambiguous signature for the generated parse action, which fails in 
   PyPy. Reported by Evan Hubinger, thanks Evan!
 
+- Added default behavior to QuotedString to convert embedded '\t', '\n',
+  etc. characters to their whitespace counterparts. Found during Q&A
+  exchange on SO with Maxim.
+
 
 Version 2.1.0 - February, 2016
 ------------------------------
