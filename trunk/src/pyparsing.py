@@ -58,7 +58,7 @@ The pyparsing module handles some of the problems that are typically vexing when
 """
 
 __version__ = "2.1.1"
-__versionTime__ = "5 Mar 2016 23:42"
+__versionTime__ = "19 Mar 2016 22:48 UTC"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -1941,7 +1941,7 @@ class Regex(Token):
 class QuotedString(Token):
     """Token for matching strings that are delimited by quoting characters.
     """
-    def __init__( self, quoteChar, escChar=None, escQuote=None, multiline=False, unquoteResults=True, endQuoteChar=None):
+    def __init__( self, quoteChar, escChar=None, escQuote=None, multiline=False, unquoteResults=True, endQuoteChar=None, convertWhitespaceEscapes=True):
         """
            Defined with the following parameters:
             - quoteChar - string of one or more characters defining the quote delimiting string
@@ -1950,6 +1950,7 @@ class QuotedString(Token):
             - multiline - boolean indicating whether quotes can span multiple lines (default=C{False})
             - unquoteResults - boolean indicating whether the matched text should be unquoted (default=C{True})
             - endQuoteChar - string of one or more characters defining the end of the quote delimited string (default=C{None} => same as quoteChar)
+            - convertWhitespaceEscapes - convert escaped whitespace ('\t', '\n', etc.) to actual whitespace (default=C{True})
         """
         super(QuotedString,self).__init__()
 
@@ -1975,6 +1976,7 @@ class QuotedString(Token):
         self.escChar = escChar
         self.escQuote = escQuote
         self.unquoteResults = unquoteResults
+        self.convertWhitespaceEscapes = convertWhitespaceEscapes
 
         if multiline:
             self.flags = re.MULTILINE | re.DOTALL
@@ -2028,6 +2030,17 @@ class QuotedString(Token):
             ret = ret[self.quoteCharLen:-self.endQuoteCharLen]
 
             if isinstance(ret,basestring):
+                # replace escaped whitespace
+                if '\\' in ret and self.convertWhitespaceEscapes:
+                    ws_map = {
+                        r'\t' : '\t',
+                        r'\n' : '\n',
+                        r'\f' : '\f',
+                        r'\r' : '\r',
+                    }
+                    for wslit,wschar in ws_map.items():
+                        ret = ret.replace(wslit, wschar)
+
                 # replace escaped characters
                 if self.escChar:
                     ret = re.sub(self.escCharReplacePattern,"\g<1>",ret)
