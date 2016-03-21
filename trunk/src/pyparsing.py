@@ -1942,15 +1942,14 @@ class QuotedString(Token):
     """Token for matching strings that are delimited by quoting characters.
     """
     def __init__( self, quoteChar, escChar=None, escQuote=None, multiline=False, unquoteResults=True, endQuoteChar=None, convertWhitespaceEscapes=True):
-        """
-           Defined with the following parameters:
+        r"""Defined with the following parameters:
             - quoteChar - string of one or more characters defining the quote delimiting string
             - escChar - character to escape quotes, typically backslash (default=None)
             - escQuote - special quote sequence to escape an embedded quote string (such as SQL's "" to escape an embedded ") (default=None)
             - multiline - boolean indicating whether quotes can span multiple lines (default=C{False})
             - unquoteResults - boolean indicating whether the matched text should be unquoted (default=C{True})
             - endQuoteChar - string of one or more characters defining the end of the quote delimited string (default=C{None} => same as quoteChar)
-            - convertWhitespaceEscapes - convert escaped whitespace ('\t', '\n', etc.) to actual whitespace (default=C{True})
+            - convertWhitespaceEscapes - convert escaped whitespace (C{'\t'}, C{'\n'}, etc.) to actual whitespace (default=C{True})
         """
         super(QuotedString,self).__init__()
 
