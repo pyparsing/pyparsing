@@ -2,8 +2,14 @@
 Change Log
 ==========
 
-Version 2.1.1 - 
+Version 2.1.2 - 
 ------------------------------
+- Fixed bug in _trim_arity when pyparsing code is included in a
+  PyInstaller, reported by maluwa.
+
+
+Version 2.1.1 - March, 2016
+---------------------------
 - Added support for assigning to ParseResults using slices.
 
 - Fixed bug in ParseResults.toDict(), in which dict values were always
