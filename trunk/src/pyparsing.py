@@ -57,8 +57,8 @@ The pyparsing module handles some of the problems that are typically vexing when
  - embedded comments
 """
 
-__version__ = "2.1.1"
-__versionTime__ = "21 Mar 2016 05:04 UTC"
+__version__ = "2.1.2"
+__versionTime__ = "22 Apr 2016 09:25 UTC"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -786,10 +786,32 @@ def _trim_arity(func, maxargs=2):
         return lambda s,l,t: func(t)
     limit = [0]
     foundArity = [False]
+    
+    if PY_3:
+        def extract_stack():
+            frame_summary = traceback.extract_stack()[-3]
+            return [(frame_summary.filename, frame_summary.lineno)]
+        def extract_tb(tb):
+            frames = traceback.extract_tb(tb)
+            frame_summary = frames[-1]
+            return [(frame_summary.filename, frame_summary.lineno)]
+    else:
+        extract_stack = traceback.extract_stack
+        extract_tb = traceback.extract_tb
+    
+    # synthesize what would be returned by traceback.extract_stack at the call to 
+    # user's parse action 'func', so that we don't incur call penalty at parse time
+    
+    # IF ANY CODE CHANGES, EVEN JUST COMMENTS OR BLANK LINES, BETWEEN THE NEXT LINE AND 
+    # THE CALL TO FUNC INSIDE WRAPPER, THE CONSTANT ADDED TO 'this_line[1]' BELOW 
+    # MUST BE MODIFIED!!!!
+    this_line = extract_stack()[-1]
+    pa_call_line_synth = (this_line[0], this_line[1]+6)
+
     def wrapper(*args):
         while 1:
             try:
-                ret = func(*args[limit[0]:]) #~@$^*)+_(&%#!=-`~;:"[]{}
+                ret = func(*args[limit[0]:])
                 foundArity[0] = True
                 return ret
             except TypeError:
@@ -799,8 +821,7 @@ def _trim_arity(func, maxargs=2):
                 else:
                     try:
                         tb = sys.exc_info()[-1]
-                        exc_source_line = traceback.extract_tb(tb)[-1][-1]
-                        if not exc_source_line.endswith('#~@$^*)+_(&%#!=-`~;:"[]{}'):
+                        if not extract_tb(tb)[-1][:2] == pa_call_line_synth:
                             raise
                     finally:
                         del tb
