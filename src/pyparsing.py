@@ -58,7 +58,7 @@ The pyparsing module handles some of the problems that are typically vexing when
 """
 
 __version__ = "2.1.2"
-__versionTime__ = "28 Apr 2016 22:32 UTC"
+__versionTime__ = "29 Apr 2016 15:10 UTC"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -3815,12 +3815,12 @@ def replaceHTMLEntity(t):
     return _htmlEntityMap.get(t.entity)
 
 # it's easy to get these comment structures wrong - they're very common, so may as well make them available
-cStyleComment = Regex(r"/\*(?:[^*]*\*+)+?/").setName("C style comment")
+cStyleComment = Combine(Regex(r"/\*(?:[^*]|\*(?!/))*") + '*/').setName("C style comment")
 
 htmlComment = Regex(r"<!--[\s\S]*?-->").setName("HTML comment")
 restOfLine = Regex(r".*").leaveWhitespace().setName("rest of line")
-dblSlashComment = Regex(r"\/\/(\\\n|.)*").setName("// comment")
-cppStyleComment = Regex(r"/(?:\*(?:[^*]*\*+)+?/|/[^\n]*(?:\n[^\n]*)*?(?:(?<!\\)|\Z))").setName("C++ style comment")
+dblSlashComment = Regex(r"//(?:\\\n|[^\n])*").setName("// comment")
+cppStyleComment = Combine(Regex(r"/\*(?:[^*]|\*(?!/))*") + '*/'| dblSlashComment).setName("C++ style comment")
 
 javaStyleComment = cppStyleComment
 pythonStyleComment = Regex(r"#.*").setName("Python style comment")
