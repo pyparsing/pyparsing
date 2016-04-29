@@ -7,6 +7,11 @@ Version 2.1.2 -
 - Fixed bug in _trim_arity when pyparsing code is included in a
   PyInstaller, reported by maluwa.
 
+- Fixed catastrophic regex backtracking in implementation of the
+  quoted string expressions (dblQuotedString, sglQuotedString, and
+  quotedString). Reported on the pyparsing wiki by webpentest,
+  good catch!  
+
 
 Version 2.1.1 - March, 2016
 ---------------------------
