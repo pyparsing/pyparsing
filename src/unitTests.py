@@ -475,7 +475,7 @@ class ScanStringTest(ParseTestCase):
             
 class QuotedStringsTest(ParseTestCase):
     def runTest(self):
-        from pyparsing import sglQuotedString,dblQuotedString,quotedString
+        from pyparsing import sglQuotedString,dblQuotedString,quotedString,QuotedString
         testData = \
             """
                 'a valid single quoted string'
@@ -537,6 +537,21 @@ class QuotedStringsTest(ParseTestCase):
         assert len(allStrings) == 2 and (allStrings[0][1]==17 and allStrings[0][2]==66 and
                                           allStrings[1][1]==83 and allStrings[1][2]==132), \
             "quoted string escaped quote failure (%s)" % ([str(s[0]) for s in allStrings])
+
+        print_("testing catastrophic RE backtracking in implementation of dblQuotedString")
+        for expr, test_string in [
+            (dblQuotedString, '"' + '\\xff' * 500),
+            (sglQuotedString, "'" + '\\xff' * 500),
+            (quotedString, '"' + '\\xff' * 500),
+            (quotedString, "'" + '\\xff' * 500),
+            (QuotedString('"'), '"' + '\\xff' * 500),
+            (QuotedString("'"), "'" + '\\xff' * 500),
+            ]:
+            expr.parseString(test_string+test_string[0])
+            try:
+                expr.parseString(test_string)
+            except Exception:
+                continue
         
 class CaselessOneOfTest(ParseTestCase):
     def runTest(self):
