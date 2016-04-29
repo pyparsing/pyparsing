@@ -10,7 +10,9 @@ Version 2.1.2 -
 - Fixed catastrophic regex backtracking in implementation of the
   quoted string expressions (dblQuotedString, sglQuotedString, and
   quotedString). Reported on the pyparsing wiki by webpentest,
-  good catch!  
+  good catch! (Also tuned up some other expressions susceptible to the 
+  same backtracking problem, such as cStyleComment, cppStyleComment, 
+  etc.)
 
 
 Version 2.1.1 - March, 2016
