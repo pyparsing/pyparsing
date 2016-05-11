@@ -57,8 +57,8 @@ The pyparsing module handles some of the problems that are typically vexing when
  - embedded comments
 """
 
-__version__ = "2.1.2"
-__versionTime__ = "29 Apr 2016 15:10 UTC"
+__version__ = "2.1.3"
+__versionTime__ = "11 May 2016 14:19 UTC"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -787,7 +787,8 @@ def _trim_arity(func, maxargs=2):
     limit = [0]
     foundArity = [False]
     
-    if PY_3:
+    # traceback return data structure changed in Py3.5 - normalize back to plain tuples
+    if tuple(sys.version_info) >= (3,5):
         def extract_stack():
             frame_summary = traceback.extract_stack()[-3]
             return [(frame_summary.filename, frame_summary.lineno)]
@@ -802,11 +803,11 @@ def _trim_arity(func, maxargs=2):
     # synthesize what would be returned by traceback.extract_stack at the call to 
     # user's parse action 'func', so that we don't incur call penalty at parse time
     
+    LINE_DIFF = 6
     # IF ANY CODE CHANGES, EVEN JUST COMMENTS OR BLANK LINES, BETWEEN THE NEXT LINE AND 
-    # THE CALL TO FUNC INSIDE WRAPPER, THE CONSTANT ADDED TO 'this_line[1]' BELOW 
-    # MUST BE MODIFIED!!!!
+    # THE CALL TO FUNC INSIDE WRAPPER, LINE_DIFF MUST BE MODIFIED!!!!
     this_line = extract_stack()[-1]
-    pa_call_line_synth = (this_line[0], this_line[1]+6)
+    pa_call_line_synth = (this_line[0], this_line[1]+LINE_DIFF)
 
     def wrapper(*args):
         while 1:
