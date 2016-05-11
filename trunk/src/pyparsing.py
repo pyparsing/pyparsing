@@ -788,9 +788,12 @@ def _trim_arity(func, maxargs=2):
     foundArity = [False]
     
     # traceback return data structure changed in Py3.5 - normalize back to plain tuples
-    if tuple(sys.version_info) >= (3,5):
+    ver = tuple(sys.version_info)[:3]
+    if ver[:2] >= (3,5):
         def extract_stack():
-            frame_summary = traceback.extract_stack()[-3]
+            # special handling for Python 3.5.0 - extra deep call stack by 1
+            offset = -3 if ver == (3,5,0) else -2
+            frame_summary = traceback.extract_stack()[offset]
             return [(frame_summary.filename, frame_summary.lineno)]
         def extract_tb(tb):
             frames = traceback.extract_tb(tb)
