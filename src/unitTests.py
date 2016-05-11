@@ -178,7 +178,7 @@ class ParseConfigFileTest(ParseTestCase):
         
         def test(fnam,numToks,resCheckList):
             print_("Parsing",fnam,"...", end=' ')
-            iniFileLines = "\n".join([ lin for lin in open(fnam) ])
+            iniFileLines = "\n".join(open(fnam).read().splitlines())
             iniData = configParse.inifile_BNF().parseString( iniFileLines )
             print_(len(flatten(iniData.asList())))
             #~ pprint.pprint( iniData.asList() )
@@ -198,7 +198,7 @@ class ParseConfigFileTest(ParseTestCase):
                   ("users.mod_scheme","'QPSK'"),
                   ("users.Na", "K+2") ]
                   )
-        test("examples/setup.ini", 125, 
+        test("examples/Setup.ini", 125, 
                 [ ("Startup.audioinf", "M3i"),
                   ("Languages.key1", "0x0003"),
                   ("test.foo","bar") ] )
