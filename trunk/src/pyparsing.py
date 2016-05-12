@@ -57,8 +57,8 @@ The pyparsing module handles some of the problems that are typically vexing when
  - embedded comments
 """
 
-__version__ = "2.1.3"
-__versionTime__ = "11 May 2016 15:17 UTC"
+__version__ = "2.1.4"
+__versionTime__ = "12 May 2016 18:38 UTC"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -94,9 +94,11 @@ __all__ = [
 'replaceWith', 'restOfLine', 'sglQuotedString', 'srange', 'stringEnd',
 'stringStart', 'traceParseAction', 'unicodeString', 'upcaseTokens', 'withAttribute',
 'indentedBlock', 'originalTextFor', 'ungroup', 'infixNotation','locatedExpr', 'withClass',
+'pyparsing_common',
 ]
 
-PY_3 = sys.version.startswith('3')
+system_version = tuple(sys.version_info)[:3]
+PY_3 = system_version[0] == 3
 if PY_3:
     _MAX_INT = sys.maxsize
     basestring = str
@@ -788,11 +790,10 @@ def _trim_arity(func, maxargs=2):
     foundArity = [False]
     
     # traceback return data structure changed in Py3.5 - normalize back to plain tuples
-    ver = tuple(sys.version_info)[:3]
-    if ver[:2] >= (3,5):
+    if system_version[:2] >= (3,5):
         def extract_stack():
             # special handling for Python 3.5.0 - extra deep call stack by 1
-            offset = -3 if ver == (3,5,0) else -2
+            offset = -3 if system_version == (3,5,0) else -2
             frame_summary = traceback.extract_stack()[offset]
             return [(frame_summary.filename, frame_summary.lineno)]
         def extract_tb(tb):
@@ -1589,11 +1590,7 @@ class ParserElement(object):
         if isinstance(other, ParserElement):
             return self is other or vars(self) == vars(other)
         elif isinstance(other, basestring):
-            try:
-                self.parseString(_ustr(other), parseAll=True)
-                return True
-            except ParseBaseException:
-                return False
+            return self.matches(other)
         else:
             return super(ParserElement,self)==other
 
@@ -1609,7 +1606,23 @@ class ParserElement(object):
     def __rne__(self,other):
         return not (self == other)
 
-    def runTests(self, tests, parseAll=False):
+    def matches(self, s, parseAll=True):
+        """Method for quick testing of a parser against a test string. Good for simple 
+           inline microtests of sub expressions while building up larger parser, as in:
+           
+           expr = Word(nums)
+           assert expr.matches("100")
+           
+           Parameters:
+            - testString - string 
+        """
+        try:
+            self.parseString(_ustr(s), parseAll=parseAll)
+            return True
+        except ParseBaseException:
+            return False
+                
+    def runTests(self, tests, parseAll=False, comment='#'):
         """Execute the parse expression on a series of test strings, showing each
            test, the parsed results or where the parse failed. Quick and easy way to
            run a parse expression against a list of sample strings.
@@ -1617,11 +1630,22 @@ class ParserElement(object):
            Parameters:
             - tests - a list of separate test strings, or a multiline string of test strings
             - parseAll - (default=False) - flag to pass to C{L{parseString}} when running tests           
+            - comment - (default='#') - expression for indicating embedded comments in the test string;
+              pass None to disable comment filtering
         """
         if isinstance(tests, basestring):
-            tests = map(str.strip, tests.splitlines())
+            tests = list(map(str.strip, tests.splitlines()))
+        if isinstance(comment, basestring):
+            comment = Literal(comment)
+        comments = []
         for t in tests:
-            out = [t]
+            if comment is not None and comment.matches(t, False) or comments and not t:
+                comments.append(t)
+                continue
+            if not t:
+                continue
+            out = comments + [t]
+            comments = []
             try:
                 out.append(self.parseString(t, parseAll=parseAll).dump())
             except ParseException as pe:
@@ -3833,31 +3857,99 @@ _commasepitem = Combine(OneOrMore(Word(printables, excludeChars=',') +
                                             ~Literal(",") + ~LineEnd() ) ) ).streamline().setName("commaItem")
 commaSeparatedList = delimitedList( Optional( quotedString.copy() | _commasepitem, default="") ).setName("commaSeparatedList")
 
+# some other useful expressions - using lower-case class name since we are really using this as a namespace
+class pyparsing_common:
+    """
+    Here are some common low-level expressions that may be useful in jump-starting your parser development:
+     - numeric forms (integers, reals, scientific notation)
+     - parse actions for converting numeric strings to Python int and/or float types
+     - common programming identifiers
+    """
+
+    def convertToInteger(t):
+        """
+        Parse action for converting parsed integers to Python int
+        """
+        return int(t[0])
+
+    def convertToFloat(t):
+        """
+        Parse action for converting parsed numbers to Python float
+        """
+        return float(t[0])
+
+    integer = Word(nums).setName("integer").setParseAction(convertToInteger)
+    signedInteger = Regex(r'[+-]?\d+').setName("signed integer").setParseAction(convertToInteger)
+    real = Regex(r'[+-]?\d+\.\d*').setName("real number").setParseAction(convertToFloat)
+    sciReal = Regex(r'[+-]?\d+([eE][+-]?\d+|\.\d*([eE][+-]?\d+)?)').setName("real number with scientfic notation").setParseAction(convertToFloat)
+
+    # streamlining this expression makes the docs nicer-looking
+    numeric = (sciReal | real | signedInteger).streamline()
+
+    # any int or real number, returned as float
+    number = Regex(r'[+-]?\d+\.?\d*([eE][+-]?\d+)?').setName("number").setParseAction(convertToFloat)
+    
+    # typical code identifiers
+    identifier = Word(alphas+'_', alphanums+'_').setName("identifier")
+
 
 if __name__ == "__main__":
 
-    selectToken    = CaselessLiteral( "select" )
-    fromToken      = CaselessLiteral( "from" )
+    selectToken    = CaselessLiteral("select")
+    fromToken      = CaselessLiteral("from")
 
-    ident          = Word( alphas, alphanums + "_$" )
-    columnName     = delimitedList( ident, ".", combine=True ).setParseAction( upcaseTokens )
-    columnNameList = Group( delimitedList( columnName ) ).setName("columns")
-    tableName      = delimitedList( ident, ".", combine=True ).setParseAction( upcaseTokens )
-    tableNameList  = Group( delimitedList( tableName ) ).setName("tables")
-    simpleSQL      = ( selectToken + \
-                     ( '*' | columnNameList ).setResultsName( "columns" ) + \
-                     fromToken + \
-                     tableNameList.setResultsName( "tables" ) )
+    ident          = Word(alphas, alphanums + "_$")
 
-    simpleSQL.runTests("""\
-          SELECT * from XYZZY, ABC
-          select * from SYS.XYZZY
-          Select A from Sys.dual
-          Select AA,BB,CC from Sys.dual
-          Select A, B, C from Sys.dual
-          Select A, B, C from Sys.dual
-          Xelect A, B, C from Sys.dual
-          Select A, B, C frox Sys.dual
-          Select
-          Select ^^^ frox Sys.dual
-          Select A, B, C from Sys.dual, Table2""")
+    columnName     = delimitedList(ident, ".", combine=True).setParseAction(upcaseTokens)
+    columnNameList = Group(delimitedList(columnName)).setName("columns")
+    columnSpec     = ('*' | columnNameList)
+
+    tableName      = delimitedList(ident, ".", combine=True).setParseAction(upcaseTokens)
+    tableNameList  = Group(delimitedList(tableName)).setName("tables")
+    
+    simpleSQL      = selectToken("command") + columnSpec("columns") + fromToken + tableNameList("tables")
+
+    # demo runTests method, including embedded comments in test string
+    simpleSQL.runTests("""
+        # '*' as column list and dotted table name
+        select * from SYS.XYZZY
+
+        # caseless match on "SELECT", and casts back to "select"
+        SELECT * from XYZZY, ABC
+
+        # list of column names, and mixed case SELECT keyword
+        Select AA,BB,CC from Sys.dual
+
+        # multiple tables
+        Select A, B, C from Sys.dual, Table2
+
+        # invalid SELECT keyword - should fail
+        Xelect A, B, C from Sys.dual
+
+        # incomplete command - should fail
+        Select
+
+        # invalid column name - should fail
+        Select ^^^ frox Sys.dual
+
+        """)
+
+    pyparsing_common.numeric.runTests("""
+        100
+        -100
+        +100
+        3.14159
+        6.02e23
+        1e-12
+        """)
+    
+    # any int or real number, returned as float
+    pyparsing_common.number.runTests("""
+        100
+        -100
+        +100
+        3.14159
+        6.02e23
+        1e-12
+        """)
+    
