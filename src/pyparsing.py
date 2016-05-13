@@ -58,7 +58,7 @@ The pyparsing module handles some of the problems that are typically vexing when
 """
 
 __version__ = "2.1.4"
-__versionTime__ = "13 May 2016 08:50 UTC"
+__versionTime__ = "13 May 2016 09:04 UTC"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -3263,7 +3263,7 @@ def traceParseAction(f):
     """Decorator for debugging parse actions."""
     f = _trim_arity(f)
     def z(*paArgs):
-        thisFunc = f.func_name
+        thisFunc = f.__name__
         s,l,t = paArgs[-3:]
         if len(paArgs)>3:
             thisFunc = paArgs[0].__class__.__name__ + '.' + thisFunc
