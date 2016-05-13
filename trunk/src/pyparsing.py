@@ -58,7 +58,7 @@ The pyparsing module handles some of the problems that are typically vexing when
 """
 
 __version__ = "2.1.4"
-__versionTime__ = "13 May 2016 09:04 UTC"
+__versionTime__ = "13 May 2016 18:25 UTC"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -953,6 +953,9 @@ class ParserElement(object):
            If the functions in fns modify the tokens, they can return them as the return
            value from fn, and the modified list of tokens will replace the original.
            Otherwise, fn does not need to return any value.
+           
+           Optional keyword arguments::
+            - callDuringTry = (default=False) indicate if parse action should be run during lookaheads and alternate testing
 
            Note: the default parsing behavior is to expand tabs in the input string
            before starting the parsing process.  See L{I{parseString}<parseString>} for more information
@@ -972,14 +975,19 @@ class ParserElement(object):
 
     def addCondition(self, *fns, **kwargs):
         """Add a boolean predicate function to expression's list of parse actions. See 
-        L{I{setParseAction}<setParseAction>}. Optional keyword argument C{message} can
-        be used to define a custom message to be used in the raised exception."""
-        msg = kwargs.get("message") or "failed user-defined condition"
+        L{I{setParseAction}<setParseAction>} for function call signatures. Unlike C{setParseAction}, 
+        functions passed to C{addCondition} need to return boolean success/fail of the condition.
+
+        Optional keyword arguments::
+         - message = define a custom message to be used in the raised exception
+         - fatal   = if True, will raise ParseFatalException to stop parsing immediately; otherwise will raise ParseException
+        """
+        msg = kwargs.get("message", "failed user-defined condition")
+        exc_type = ParseFatalException if kwargs.get("fatal", False) else ParseException
         for fn in fns:
             def pa(s,l,t):
                 if not bool(_trim_arity(fn)(s,l,t)):
-                    raise ParseException(s,l,msg)
-                return t
+                    raise exc_type(s,l,msg)
             self.parseAction.append(pa)
         self.callDuringTry = self.callDuringTry or kwargs.get("callDuringTry", False)
         return self
@@ -1632,7 +1640,7 @@ class ParserElement(object):
         except ParseBaseException:
             return False
                 
-    def runTests(self, tests, parseAll=False, comment='#'):
+    def runTests(self, tests, parseAll=False, comment='#', printResults=True):
         """Execute the parse expression on a series of test strings, showing each
            test, the parsed results or where the parse failed. Quick and easy way to
            run a parse expression against a list of sample strings.
@@ -1640,33 +1648,48 @@ class ParserElement(object):
            Parameters:
             - tests - a list of separate test strings, or a multiline string of test strings
             - parseAll - (default=False) - flag to pass to C{L{parseString}} when running tests           
-            - comment - (default='#') - expression for indicating embedded comments in the test string;
-              pass None to disable comment filtering
+            - comment - (default='#') - expression for indicating embedded comments in the test 
+              string; pass None to disable comment filtering
+            - printResults - (default=True) prints test output to stdout; if False, returns a 
+              (success, results) tuple, where success indicates that all tests succeeded, and the
+              results contain a list of lines of each test's output as it would have been 
+              printed to stdout
         """
         if isinstance(tests, basestring):
             tests = list(map(str.strip, tests.splitlines()))
         if isinstance(comment, basestring):
             comment = Literal(comment)
+        allResults = []
         comments = []
+        success = True
         for t in tests:
             if comment is not None and comment.matches(t, False) or comments and not t:
                 comments.append(t)
                 continue
             if not t:
                 continue
-            out = comments + [t]
+            out = ['\n'.join(comments), t]
             comments = []
             try:
                 out.append(self.parseString(t, parseAll=parseAll).dump())
-            except ParseException as pe:
+            except ParseBaseException as pe:
+                fatal = "(FATAL)" if isinstance(pe, ParseFatalException) else ""
                 if '\n' in t:
                     out.append(line(pe.loc, t))
-                    out.append(' '*(col(pe.loc,t)-1) + '^')
+                    out.append(' '*(col(pe.loc,t)-1) + '^' + fatal)
                 else:
-                    out.append(' '*pe.loc + '^')
-                out.append(str(pe))
-            out.append('')
-            print('\n'.join(out))
+                    out.append(' '*pe.loc + '^' + fatal)
+                out.append("FAIL: " + str(pe))
+                success = False
+
+            if printResults:
+                out.append('')
+                print('\n'.join(out))
+            else:
+                allResults.append(out)
+        
+        if not printResults:
+            return success, allResults
 
         
 class Token(ParserElement):
