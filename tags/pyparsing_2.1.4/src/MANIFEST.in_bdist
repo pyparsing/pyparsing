@@ -1,0 +1,7 @@
+include pyparsing.py
+include HowToUsePyparsing.html pyparsingClassDiagram.*
+include README CHANGES LICENSE
+include examples/*.py examples/Setup.ini examples/*.dfm examples/*.ics examples/*.html
+include htmldoc/*.*
+include docs/*.*
+include robots.txt
