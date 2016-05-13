@@ -3860,7 +3860,7 @@ commaSeparatedList = delimitedList( Optional( quotedString.copy() | _commasepite
 # some other useful expressions - using lower-case class name since we are really using this as a namespace
 class pyparsing_common:
     """
-    Here are some common low-level expressions that may be useful in jump-starting your parser development:
+    Here are some common low-level expressions that may be useful in jump-starting parser development:
      - numeric forms (integers, reals, scientific notation)
      - parse actions for converting numeric strings to Python int and/or float types
      - common programming identifiers
@@ -3879,18 +3879,26 @@ class pyparsing_common:
         return float(t[0])
 
     integer = Word(nums).setName("integer").setParseAction(convertToInteger)
+    """expression that parses an unsigned integer and returns an int"""
+
     signedInteger = Regex(r'[+-]?\d+').setName("signed integer").setParseAction(convertToInteger)
+    """expression that parses an integer with optional leading sign and returns an int"""
+
     real = Regex(r'[+-]?\d+\.\d*').setName("real number").setParseAction(convertToFloat)
+    """expression that parses a floating point number and returns a float"""
+
     sciReal = Regex(r'[+-]?\d+([eE][+-]?\d+|\.\d*([eE][+-]?\d+)?)').setName("real number with scientfic notation").setParseAction(convertToFloat)
+    """expression that parses a floating point number with optional scientfic notation and returns a float"""
 
     # streamlining this expression makes the docs nicer-looking
     numeric = (sciReal | real | signedInteger).streamline()
+    """any numeric expression, returns the corresponding Python type"""
 
-    # any int or real number, returned as float
     number = Regex(r'[+-]?\d+\.?\d*([eE][+-]?\d+)?').setName("number").setParseAction(convertToFloat)
+    """any int or real number, returned as float"""
     
-    # typical code identifiers
     identifier = Word(alphas+'_', alphanums+'_').setName("identifier")
+    """typical code identifier"""
 
 
 if __name__ == "__main__":
