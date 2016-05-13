@@ -2553,6 +2553,23 @@ class NestedAsDictTest(ParseTestCase):
         assert result_dict['username'] == 'goat', "failed to process string in ParseResults correctly"
         assert result_dict['errors']['username'] == ['already taken', 'too short'], "failed to process nested ParseResults correctly"
 
+class TraceParseActionDecoratorTest(ParseTestCase):
+    def runTest(self):
+        from pyparsing import traceParseAction, Word, nums
+
+        @traceParseAction
+        def convert_to_int(t):
+            return int(t[0])
+
+        class Z(object):
+            def __call__(self, other):
+                return other[0] * 1000
+
+        integer = Word(nums).addParseAction(convert_to_int)
+        integer.addParseAction(traceParseAction(lambda t: t[0]*10))
+        integer.addParseAction(traceParseAction(Z()))
+        integer.parseString("132")
+
 class MiscellaneousParserTests(ParseTestCase):
     def runTest(self):
         import pyparsing
@@ -2710,69 +2727,16 @@ class MiscellaneousParserTests(ParseTestCase):
 def makeTestSuite():
     suite = TestSuite()
     suite.addTest( PyparsingTestInit() )
-    suite.addTest( ParseIDLTest() )
-    #suite.addTest( ParseASMLTest() )
-    suite.addTest( ParseFourFnTest() )
-    suite.addTest( ParseSQLTest() )
-    suite.addTest( ParseConfigFileTest() )
-    suite.addTest( ParseJSONDataTest() )
-    suite.addTest( ParseCommaSeparatedValuesTest() )
-    suite.addTest( ParseEBNFTest() )
-    suite.addTest( ScanStringTest() )
-    suite.addTest( QuotedStringsTest() )
-    suite.addTest( CustomQuotesTest() )
-    suite.addTest( CaselessOneOfTest() )
-    suite.addTest( AsXMLTest() )
-    suite.addTest( CommentParserTest() )
-    suite.addTest( ParseExpressionResultsTest() )
-    suite.addTest( ParseExpressionResultsAccumulateTest() )
-    suite.addTest( ReStringRangeTest() )
-    suite.addTest( ParseKeywordTest() )
-    suite.addTest( ParseHTMLTagsTest() )
-    suite.addTest( ParseUsingRegex() )
-    suite.addTest( SkipToParserTests() )
-    suite.addTest( CountedArrayTest() )
-    suite.addTest( CountedArrayTest2() )
-    suite.addTest( CountedArrayTest3() )
-    suite.addTest( LineAndStringEndTest() )
-    suite.addTest( VariableParseActionArgsTest() )
-    suite.addTest( RepeaterTest() )
-    suite.addTest( RecursiveCombineTest() )
-    suite.addTest( InfixNotationGrammarTest1() )
-    suite.addTest( InfixNotationGrammarTest2() )
-    suite.addTest( InfixNotationGrammarTest3() )
-    suite.addTest( InfixNotationGrammarTest4() )
-    suite.addTest( ParseResultsPickleTest() )
-    suite.addTest( ParseResultsWithNamedTupleTest() )
-    suite.addTest( ParseResultsDelTest() )
-    suite.addTest( SingleArgExceptionTest() )
-    suite.addTest( UpcaseDowncaseUnicode() )
-    if not IRON_PYTHON_ENV:
-        suite.addTest( OriginalTextForTest() )
-    suite.addTest( PackratParsingCacheCopyTest() )
-    suite.addTest( PackratParsingCacheCopyTest2() )
-    suite.addTest( WithAttributeParseActionTest() )
-    suite.addTest( NestedExpressionsTest() )
-    suite.addTest( WordBoundaryExpressionsTest() )
-    suite.addTest( ParseAllTest() )
-    suite.addTest( GreedyQuotedStringsTest() )
-    suite.addTest( RequiredEachTest() )
-    suite.addTest( OptionalEachTest() )
-    suite.addTest( SumParseResultsTest() )
-    suite.addTest( WordExcludeTest() )
-    suite.addTest( MarkInputLineTest() )
-    suite.addTest( LocatedExprTest() )
-    suite.addTest( PopTest() )
-    suite.addTest( AddConditionTest() )
-    suite.addTest( PatientOrTest() )
-    suite.addTest( EachWithOptionalWithResultsNameTest() )
-    suite.addTest( UnicodeExpressionTest() )
-    suite.addTest( SetNameTest() )
-    suite.addTest( TrimArityExceptionMaskingTest() )
-    suite.addTest( OneOrMoreStopTest() )
-    suite.addTest( ZeroOrMoreStopTest() )
-    suite.addTest( NestedAsDictTest() )
-    suite.addTest( MiscellaneousParserTests() )
+
+    test_case_classes = ParseTestCase.__subclasses__()
+    test_case_classes.remove(PyparsingTestInit)
+    test_case_classes.remove(ParseASMLTest)
+    test_case_classes.remove(EnablePackratParsing)
+    if IRON_PYTHON_ENV:
+        test_case_classes.remove(OriginalTextForTest)
+
+    suite.addTests(T() for T in test_case_classes)
+    
     if TEST_USING_PACKRAT:
         # retest using packrat parsing (disable those tests that aren't compatible)
         suite.addTest( EnablePackratParsing() )

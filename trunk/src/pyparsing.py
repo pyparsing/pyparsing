@@ -58,7 +58,7 @@ The pyparsing module handles some of the problems that are typically vexing when
 """
 
 __version__ = "2.1.4"
-__versionTime__ = "12 May 2016 18:38 UTC"
+__versionTime__ = "13 May 2016 08:50 UTC"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -835,6 +835,16 @@ def _trim_arity(func, maxargs=2):
                     limit[0] += 1
                     continue
                 raise
+
+    # copy func name to wrapper for sensible debug output
+    func_name = "<parse action>"
+    try:
+        func_name = getattr(func, '__name__', 
+                            getattr(func, '__class__').__name__)
+    except Exception:
+        func_name = str(func)
+    wrapper.__name__ = func_name
+
     return wrapper
 
 class ParserElement(object):
