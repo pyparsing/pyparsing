@@ -2362,7 +2362,7 @@ class PopTest(ParseTestCase):
 
 class AddConditionTest(ParseTestCase):
     def runTest(self):
-        from pyparsing import Word, alphas, nums
+        from pyparsing import Word, alphas, nums, Suppress, ParseFatalException
 
         numParser = Word(nums)
         numParser.addParseAction(lambda s,l,t: int(t[0]))
@@ -2373,6 +2373,26 @@ class AddConditionTest(ParseTestCase):
         print_(result.asList())
         assert result.asList() == [[7],[9]], "failed to properly process conditions"
 
+        numParser = Word(nums)
+        numParser.addParseAction(lambda s,l,t: int(t[0]))
+        rangeParser = (numParser("from_") + Suppress('-') + numParser("to"))
+
+        result = rangeParser.searchString("1-4 2-4 4-3 5 6 7 8 9 10")
+        print_(result.asList())
+        assert result.asList() == [[1, 4], [2, 4], [4, 3]], "failed to properly process conditions"
+
+        rangeParser.addCondition(lambda t: t.to > t.from_, message="from must be <= to", fatal=False)
+        result = rangeParser.searchString("1-4 2-4 4-3 5 6 7 8 9 10")
+        print_(result.asList())
+        assert result.asList() == [[1, 4], [2, 4]], "failed to properly process conditions"
+        
+        rangeParser = (numParser("from_") + Suppress('-') + numParser("to"))
+        rangeParser.addCondition(lambda t: t.to > t.from_, message="from must be <= to", fatal=True)
+        try:
+            result = rangeParser.searchString("1-4 2-4 4-3 5 6 7 8 9 10")
+            assert False, "failed to interrupt parsing on fatal condition failure"
+        except ParseFatalException:
+            print_("detected fatal condition")
 
 class PatientOrTest(ParseTestCase):
     def runTest(self):
@@ -2569,6 +2589,42 @@ class TraceParseActionDecoratorTest(ParseTestCase):
         integer.addParseAction(traceParseAction(lambda t: t[0]*10))
         integer.addParseAction(traceParseAction(Z()))
         integer.parseString("132")
+
+class RunTestsTest(ParseTestCase):
+    def runTest(self):
+        from pyparsing import Word, nums, delimitedList
+
+        integer = Word(nums).setParseAction(lambda t : int(t[0]))
+        intrange = integer("start") + '-' + integer("end")
+        intrange.addCondition(lambda t: t.end > t.start, message="invalid range, start must be <= end", fatal=True)
+        intrange.addParseAction(lambda t: list(range(t.start, t.end+1)))
+
+        indices = delimitedList(intrange | integer)
+        indices.addParseAction(lambda t: sorted(set(t)))
+
+        tests = """\
+            # normal data
+            1-3,2-4,6,8-10,16
+            
+            # invalid range
+            1-2, 3-1, 4-6, 7, 12
+            
+            # lone integer
+            11"""
+        results = indices.runTests(tests, printResults=False)[1]
+        #~ import pprint
+        #~ pprint.pprint(results)
+        
+        expectedResults = [
+            ['# normal data', '1-3,2-4,6,8-10,16', '[1, 2, 3, 4, 6, 8, 9, 10, 16]'],
+            ['# invalid range',
+            '1-2, 3-1, 4-6, 7, 12',
+            '     ^(FATAL)',
+            'FAIL: invalid range, start must be <= end (at char 5), (line:1, col:6)'],
+            ['# lone integer', '11', '[11]']]
+
+        for res,expected in zip(results, expectedResults):
+            assert res == expected, "failed test: " + expected[0][2:]
 
 class MiscellaneousParserTests(ParseTestCase):
     def runTest(self):
