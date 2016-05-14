@@ -57,8 +57,8 @@ The pyparsing module handles some of the problems that are typically vexing when
  - embedded comments
 """
 
-__version__ = "2.1.4"
-__versionTime__ = "13 May 2016 18:25 UTC"
+__version__ = "2.1.5"
+__versionTime__ = "14 May 2016 02:36 UTC"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -954,7 +954,7 @@ class ParserElement(object):
            value from fn, and the modified list of tokens will replace the original.
            Otherwise, fn does not need to return any value.
            
-           Optional keyword arguments::
+           Optional keyword arguments:
             - callDuringTry = (default=False) indicate if parse action should be run during lookaheads and alternate testing
 
            Note: the default parsing behavior is to expand tabs in the input string
@@ -978,7 +978,7 @@ class ParserElement(object):
         L{I{setParseAction}<setParseAction>} for function call signatures. Unlike C{setParseAction}, 
         functions passed to C{addCondition} need to return boolean success/fail of the condition.
 
-        Optional keyword arguments::
+        Optional keyword arguments:
          - message = define a custom message to be used in the raised exception
          - fatal   = if True, will raise ParseFatalException to stop parsing immediately; otherwise will raise ParseException
         """
@@ -1624,18 +1624,19 @@ class ParserElement(object):
     def __rne__(self,other):
         return not (self == other)
 
-    def matches(self, s, parseAll=True):
+    def matches(self, testString, parseAll=True):
         """Method for quick testing of a parser against a test string. Good for simple 
-           inline microtests of sub expressions while building up larger parser, as in:
+           inline microtests of sub expressions while building up larger parser, as in::
            
-           expr = Word(nums)
-           assert expr.matches("100")
+               expr = Word(nums)
+               assert expr.matches("100")
            
            Parameters:
-            - testString - string 
+            - testString - to test against this expression for a match
+            - parseAll - (default=True) - flag to pass to C{L{parseString}} when running tests           
         """
         try:
-            self.parseString(_ustr(s), parseAll=parseAll)
+            self.parseString(_ustr(testString), parseAll=parseAll)
             return True
         except ParseBaseException:
             return False
