@@ -161,8 +161,8 @@ def parser():
         reNonCaptureGroup = Suppress("?:")
         reDot = Literal(".")
         repetition = (
-            ( lbrace + Word(nums).setResultsName("count") + rbrace ) |
-            ( lbrace + Word(nums).setResultsName("minCount")+","+ Word(nums).setResultsName("maxCount") + rbrace ) |
+            ( lbrace + Word(nums)("count") + rbrace ) |
+            ( lbrace + Word(nums)("minCount")+","+ Word(nums)("maxCount") + rbrace ) |
             oneOf(list("*+?")) 
             )
 

@@ -12,7 +12,7 @@ import pprint
 # that it is not necessary to explicitly show this in the pyparsing grammar; by default,
 # pyparsing skips over whitespace between tokens.
 linkOpenTag,linkCloseTag = makeHTMLTags("a")
-link = linkOpenTag + SkipTo(linkCloseTag).setResultsName("body") + linkCloseTag.suppress()
+link = linkOpenTag + SkipTo(linkCloseTag)("body") + linkCloseTag.suppress()
 
 # Go get some HTML with some links in it.
 serverListPage = urllib.request.urlopen( "http://www.google.com" )

@@ -6,7 +6,7 @@
 #
 # Copyright (c) 2004, Paul McGuire
 #
-from pyparsing import Literal, Word, Group, Dict, ZeroOrMore, alphas, nums, delimitedList
+from pyparsing import Literal, Word, Group, Dict, ZeroOrMore, alphas, nums, delimitedList, pyparsing_common
 import pprint
 
 testData = """
@@ -22,13 +22,14 @@ testData = """
 
 # define grammar for datatable
 underline = Word("-=")
-number = Word(nums).setParseAction( lambda t : int(t[0]) )
+number = pyparsing_common.integer
+
 vert = Literal("|").suppress()
 
 rowDelim = ("+" + ZeroOrMore( underline + "+" ) ).suppress()
 columnHeader = Group(vert + vert + delimitedList(Word(alphas + nums), "|") + vert)
 
-heading = rowDelim + columnHeader.setResultsName("columns") + rowDelim
+heading = rowDelim + columnHeader("columns") + rowDelim
 rowData = Group( vert + Word(alphas) + vert + delimitedList(number,"|") + vert )
 trailing = rowDelim
 
@@ -36,9 +37,7 @@ datatable = heading + Dict( ZeroOrMore(rowData) ) + trailing
 
 # now parse data and print results
 data = datatable.parseString(testData)
-print(data)
-print(data.asXML("DATA"))
-pprint.pprint(data.asList())
+print(data.dump())
 print("data keys=", list(data.keys()))
 print("data['min']=", data['min'])
 print("sum(data['min']) =", sum(data['min']))
