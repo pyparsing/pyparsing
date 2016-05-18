@@ -8,7 +8,12 @@
 #
 from pyparsing import (Word, Combine, Suppress, SkipTo, nums, makeHTMLTags,
                         delimitedList, alphas, alphanums)
-import urllib.request, urllib.parse, urllib.error
+try:
+    import urllib.request
+    urlopen = urllib.request.urlopen
+except ImportError:
+    import urllib
+    urlopen = urllib.urlopen
 
 integer = Word(nums)
 ipAddress = Combine( integer + "." + integer + "." + integer + "." + integer )
@@ -20,8 +25,8 @@ timeServerPattern =  (tdStart + hostname("hostname") + tdEnd +
 
 # get list of time servers
 nistTimeServerURL = "http://tf.nist.gov/tf-cgi/servers.cgi#"
-serverListPage = urllib.request.urlopen( nistTimeServerURL )
-serverListHTML = serverListPage.read()
+serverListPage = urlopen( nistTimeServerURL )
+serverListHTML = serverListPage.read().decode("UTF-8")
 serverListPage.close()
 
 addrs = {}
