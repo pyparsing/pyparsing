@@ -2,7 +2,16 @@
 Change Log
 ==========
 
-Version 2.1.4 - 
+Verison 2.1.5 - 
+------------------------------
+- Added more expressions to pyparsing_common:
+  . IPv4 and IPv6 addresses (including long, short, and mixed forms
+    of IPv6
+  . MAC address
+  . ISO8601 date and date time strings
+
+
+Version 2.1.4 - May, 2016
 ------------------------------
 - Split out the '==' behavior in ParserElement, now implemented
   as the ParserElement.matches() method. Using '==' for string test 
