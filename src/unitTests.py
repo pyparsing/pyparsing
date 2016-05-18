@@ -2708,6 +2708,7 @@ class CommonExpressionsTest(ParseTestCase):
             """, parseAll=True, printResults=False)[0]
         assert success, "error in parsing valid iso8601_datetime"
         
+        assert pyparsing_common.uuid.matches("123e4567-e89b-12d3-a456-426655440000"), "failed to parse valid uuid"
             
 class MiscellaneousParserTests(ParseTestCase):
     def runTest(self):

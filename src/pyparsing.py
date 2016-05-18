@@ -58,7 +58,7 @@ The pyparsing module handles some of the problems that are typically vexing when
 """
 
 __version__ = "2.1.5"
-__versionTime__ = "18 May 2016 05:17 UTC"
+__versionTime__ = "18 May 2016 06:01 UTC"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -3932,7 +3932,7 @@ class pyparsing_common:
     """any int or real number, returned as float"""
     
     identifier = Word(alphas+'_', alphanums+'_').setName("identifier")
-    """typical code identifier"""
+    """typical code identifier (leading alpha or '_', followed by 0 or more alphas, nums, or '_')"""
     
     ipv4_address = Regex(r'(25[0-5]|2[0-4][0-9]|1?[0-9]{1,2})(\.(25[0-5]|2[0-4][0-9]|1?[0-9]{1,2})){3}').setName("IPv4 address")
     "IPv4 address (C{0.0.0.0 - 255.255.255.255})"
@@ -3954,6 +3954,8 @@ class pyparsing_common:
     iso8601_datetime = Regex(r'\d{4}-\d\d-\d\dT\d\d:\d\d(:\d\d(\.\d*)?)?(Z|[+-]\d\d:?\d\d)?').setName("ISO8601 datetime")
     "ISO8601 datetime (C{yyyy-mm-ddThh:mm:ss.s(Z|+-00:00)})"
 
+    uuid = Regex(r'[0-9a-fA-F]{8}(-[0-9a-fA-F]{4}){3}-[0-9a-fA-F]{12}').setName("UUID")
+    "UUID (C{xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx})"
 
 if __name__ == "__main__":
 
