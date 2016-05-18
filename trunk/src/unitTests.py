@@ -2626,6 +2626,89 @@ class RunTestsTest(ParseTestCase):
         for res,expected in zip(results, expectedResults):
             assert res == expected, "failed test: " + expected[0][2:]
 
+class CommonExpressionsTest(ParseTestCase):
+    def runTest(self):
+        from pyparsing import pyparsing_common
+        
+        success = pyparsing_common.mac_address.runTests("""
+            AA:BB:CC:DD:EE:FF
+            AA.BB.CC.DD.EE.FF
+            AA-BB-CC-DD-EE-FF
+            """, printResults=False)[0]
+        assert success, "error in parsing valid MAC address"
+
+        success = pyparsing_common.mac_address.runTests("""
+            AA.BB:CC:DD:EE:FF
+            """, printResults=False)[0]
+        assert not success, "error in detecting invalid mac address"
+        
+        success = pyparsing_common.ipv4_address.runTests("""
+            0.0.0.0
+            1.1.1.1
+            127.0.0.1
+            1.10.100.199
+            255.255.255.255
+            """, printResults=False)[0]
+        assert success, "error in parsing valid IPv4 address"
+        
+        success = pyparsing_common.ipv4_address.runTests("""
+            256.255.255.255
+            """, printResults=False)[0]
+        assert not success, "error in detecting invalid IPv4 address"
+
+        success = pyparsing_common.ipv6_address.runTests("""
+            2001:0db8:85a3:0000:0000:8a2e:0370:7334
+            2134::1234:4567:2468:1236:2444:2106
+            0:0:0:0:0:0:A00:1
+            1080::8:800:200C:417A
+            ::A00:1
+            ::1
+            ::
+            ::ffff:192.168.0.1
+            """, parseAll=True, printResults=False)[0]
+        assert success, "error in parsing valid IPv6 address"
+
+        success = pyparsing_common.ipv6_address.runTests("""
+            1080:0:0:0:8:800:200C
+            """, parseAll=True, printResults=False)[0]
+        assert not success, "error in detecting invalid IPv6 address"
+
+        success = pyparsing_common.numeric.runTests("""
+            100
+            -100
+            +100
+            3.14159
+            6.02e23
+            1e-12
+            """, parseAll=True, printResults=False)[0]
+        assert success, "error in parsing valid numerics"
+
+        # any int or real number, returned as float
+        success, results = pyparsing_common.number.runTests("""
+            100
+            -100
+            +100
+            3.14159
+            6.02e23
+            1e-12
+            """, parseAll=True, printResults=False)
+        assert success, "error in parsing valid numerics"
+
+        success = pyparsing_common.iso8601_date.runTests("""
+            1997
+            1997-07
+            1997-07-16
+            """, parseAll=True, printResults=False)[0]
+        assert success, "error in parsing valid iso8601_date"
+ 
+        success = pyparsing_common.iso8601_datetime.runTests("""
+            1997-07-16T19:20+01:00
+            1997-07-16T19:20:30+01:00
+            1997-07-16T19:20:30.45+01:00
+            """, parseAll=True, printResults=False)[0]
+        assert success, "error in parsing valid iso8601_datetime"
+        
+            
 class MiscellaneousParserTests(ParseTestCase):
     def runTest(self):
         import pyparsing

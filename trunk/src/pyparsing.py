@@ -58,7 +58,7 @@ The pyparsing module handles some of the problems that are typically vexing when
 """
 
 __version__ = "2.1.5"
-__versionTime__ = "14 May 2016 02:36 UTC"
+__versionTime__ = "18 May 2016 05:17 UTC"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -3933,6 +3933,26 @@ class pyparsing_common:
     
     identifier = Word(alphas+'_', alphanums+'_').setName("identifier")
     """typical code identifier"""
+    
+    ipv4_address = Regex(r'(25[0-5]|2[0-4][0-9]|1?[0-9]{1,2})(\.(25[0-5]|2[0-4][0-9]|1?[0-9]{1,2})){3}').setName("IPv4 address")
+    "IPv4 address (C{0.0.0.0 - 255.255.255.255})"
+
+    _ipv6_part = Regex(r'[0-9a-fA-F]{1,4}')
+    _full_ipv6_address = _ipv6_part + (':' + _ipv6_part)*7
+    _short_ipv6_address = Optional(_ipv6_part + (':' + _ipv6_part)*(0,7)) + "::" + Optional(_ipv6_part + (':' + _ipv6_part)*(0,7))
+    _short_ipv6_address.addCondition(lambda t: sum(1 for tt in t if pyparsing_common._ipv6_part.matches(tt)) < 8)
+    _mixed_ipv6_address = "::ffff:" + ipv4_address
+    ipv6_address = Combine(_full_ipv6_address | _mixed_ipv6_address | _short_ipv6_address).setName("IPv6 address")
+    "IPv6 address (long, short, or mixed form)"
+    
+    mac_address = Regex(r'[0-9a-fA-F]{2}([:.-])[0-9a-fA-F]{2}(?:\1[0-9a-fA-F]{2}){4}').setName("MAC address")
+    "MAC address xx:xx:xx:xx:xx (may also have '-' or '.' delimiters)"
+
+    iso8601_date = Regex(r'\d{4}(?:-\d\d(?:-\d\d)?)?').setName("ISO8601 date")
+    "ISO8601 date (C{yyyy-mm-dd})"
+
+    iso8601_datetime = Regex(r'\d{4}-\d\d-\d\dT\d\d:\d\d(:\d\d(\.\d*)?)?(Z|[+-]\d\d:?\d\d)?').setName("ISO8601 datetime")
+    "ISO8601 datetime (C{yyyy-mm-ddThh:mm:ss.s(Z|+-00:00)})"
 
 
 if __name__ == "__main__":
@@ -3984,7 +4004,7 @@ if __name__ == "__main__":
         6.02e23
         1e-12
         """)
-    
+
     # any int or real number, returned as float
     pyparsing_common.number.runTests("""
         100
@@ -3994,4 +4014,4 @@ if __name__ == "__main__":
         6.02e23
         1e-12
         """)
-    
+
