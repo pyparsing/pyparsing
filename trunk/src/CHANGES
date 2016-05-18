@@ -9,6 +9,7 @@ Verison 2.1.5 -
     of IPv6
   . MAC address
   . ISO8601 date and date time strings
+  . UUID (xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx)
 
 
 Version 2.1.4 - May, 2016
