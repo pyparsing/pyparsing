@@ -58,7 +58,7 @@ The pyparsing module handles some of the problems that are typically vexing when
 """
 
 __version__ = "2.1.5"
-__versionTime__ = "18 May 2016 13:24 UTC"
+__versionTime__ = "18 May 2016 22:03 UTC"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -3900,6 +3900,9 @@ class pyparsing_common:
      - numeric forms (integers, reals, scientific notation)
      - parse actions for converting numeric strings to Python int and/or float types
      - common programming identifiers
+     - network addresses (MAC, IPv4, IPv6)
+     - ISO8601 dates and datetimes
+     - UUID
     """
 
     def convertToInteger(t):

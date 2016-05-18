@@ -6,10 +6,11 @@ Verison 2.1.5 -
 ------------------------------
 - Added more expressions to pyparsing_common:
   . IPv4 and IPv6 addresses (including long, short, and mixed forms
-    of IPv6
+    of IPv6)
   . MAC address
   . ISO8601 date and date time strings
   . UUID (xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx)
+  . hex integer (returned as int)
 
 - runTests now returns a two-tuple: success if all tests succeed,
   and an output list of each test and its output lines.
