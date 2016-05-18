@@ -11,6 +11,14 @@ Verison 2.1.5 -
   . ISO8601 date and date time strings
   . UUID (xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx)
 
+- runTests now returns a two-tuple: success if all tests succeed,
+  and an output list of each test and its output lines.
+
+- Added failureTests argument (default=False) to runTests, so that
+  tests can be run that are expected failures, and if all tests fail
+  as expected, the runTests' success value will return True. Also,
+  parseAll now default to True.
+
 
 Version 2.1.4 - May, 2016
 ------------------------------
