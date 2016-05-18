@@ -3917,6 +3917,9 @@ class pyparsing_common:
     integer = Word(nums).setName("integer").setParseAction(convertToInteger)
     """expression that parses an unsigned integer and returns an int"""
 
+    hex_integer = Word(hexnums).setName("hex integer").setParseAction(lambda t: int(t[0], 16))
+    """expression that parses a hexadecimal integer and returns an int"""
+
     signedInteger = Regex(r'[+-]?\d+').setName("signed integer").setParseAction(convertToInteger)
     """expression that parses an integer with optional leading sign and returns an int"""
 
