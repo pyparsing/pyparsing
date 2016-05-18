@@ -58,7 +58,7 @@ The pyparsing module handles some of the problems that are typically vexing when
 """
 
 __version__ = "2.1.5"
-__versionTime__ = "18 May 2016 06:01 UTC"
+__versionTime__ = "18 May 2016 13:24 UTC"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -1641,20 +1641,22 @@ class ParserElement(object):
         except ParseBaseException:
             return False
                 
-    def runTests(self, tests, parseAll=False, comment='#', printResults=True):
+    def runTests(self, tests, parseAll=True, comment='#', printResults=True, failureTests=False):
         """Execute the parse expression on a series of test strings, showing each
            test, the parsed results or where the parse failed. Quick and easy way to
            run a parse expression against a list of sample strings.
            
            Parameters:
             - tests - a list of separate test strings, or a multiline string of test strings
-            - parseAll - (default=False) - flag to pass to C{L{parseString}} when running tests           
+            - parseAll - (default=True) - flag to pass to C{L{parseString}} when running tests           
             - comment - (default='#') - expression for indicating embedded comments in the test 
               string; pass None to disable comment filtering
-            - printResults - (default=True) prints test output to stdout; if False, returns a 
-              (success, results) tuple, where success indicates that all tests succeeded, and the
-              results contain a list of lines of each test's output as it would have been 
-              printed to stdout
+            - printResults - (default=True) prints test output to stdout
+            - failureTests - (default=False) indicates if these tests are expected to fail parsing
+            
+            Returns: a (success, results) tuple, where success indicates that all tests succeeded
+              (or failed if C{failureTest} is True), 
+              and the results contain a list of lines of each test's output
         """
         if isinstance(tests, basestring):
             tests = list(map(str.strip, tests.splitlines()))
@@ -1673,6 +1675,7 @@ class ParserElement(object):
             comments = []
             try:
                 out.append(self.parseString(t, parseAll=parseAll).dump())
+                success = success and not failureTests
             except ParseBaseException as pe:
                 fatal = "(FATAL)" if isinstance(pe, ParseFatalException) else ""
                 if '\n' in t:
@@ -1681,7 +1684,7 @@ class ParserElement(object):
                 else:
                     out.append(' '*pe.loc + '^' + fatal)
                 out.append("FAIL: " + str(pe))
-                success = False
+                success = success and failureTests
 
             if printResults:
                 out.append('')
@@ -1689,8 +1692,7 @@ class ParserElement(object):
             else:
                 allResults.append(out)
         
-        if not printResults:
-            return success, allResults
+        return success, allResults
 
         
 class Token(ParserElement):
@@ -3937,12 +3939,12 @@ class pyparsing_common:
     ipv4_address = Regex(r'(25[0-5]|2[0-4][0-9]|1?[0-9]{1,2})(\.(25[0-5]|2[0-4][0-9]|1?[0-9]{1,2})){3}').setName("IPv4 address")
     "IPv4 address (C{0.0.0.0 - 255.255.255.255})"
 
-    _ipv6_part = Regex(r'[0-9a-fA-F]{1,4}')
-    _full_ipv6_address = _ipv6_part + (':' + _ipv6_part)*7
-    _short_ipv6_address = Optional(_ipv6_part + (':' + _ipv6_part)*(0,7)) + "::" + Optional(_ipv6_part + (':' + _ipv6_part)*(0,7))
+    _ipv6_part = Regex(r'[0-9a-fA-F]{1,4}').setName("hex_integer")
+    _full_ipv6_address = (_ipv6_part + (':' + _ipv6_part)*7).setName("full IPv6 address")
+    _short_ipv6_address = (Optional(_ipv6_part + (':' + _ipv6_part)*(0,6)) + "::" + Optional(_ipv6_part + (':' + _ipv6_part)*(0,6))).setName("short IPv6 address")
     _short_ipv6_address.addCondition(lambda t: sum(1 for tt in t if pyparsing_common._ipv6_part.matches(tt)) < 8)
-    _mixed_ipv6_address = "::ffff:" + ipv4_address
-    ipv6_address = Combine(_full_ipv6_address | _mixed_ipv6_address | _short_ipv6_address).setName("IPv6 address")
+    _mixed_ipv6_address = ("::ffff:" + ipv4_address).setName("mixed IPv6 address")
+    ipv6_address = Combine((_full_ipv6_address | _mixed_ipv6_address | _short_ipv6_address).setName("IPv6 address")).setName("IPv6 address")
     "IPv6 address (long, short, or mixed form)"
     
     mac_address = Regex(r'[0-9a-fA-F]{2}([:.-])[0-9a-fA-F]{2}(?:\1[0-9a-fA-F]{2}){4}').setName("MAC address")

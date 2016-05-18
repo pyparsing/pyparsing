@@ -2634,13 +2634,14 @@ class CommonExpressionsTest(ParseTestCase):
             AA:BB:CC:DD:EE:FF
             AA.BB.CC.DD.EE.FF
             AA-BB-CC-DD-EE-FF
-            """, printResults=False)[0]
+            """)[0]
         assert success, "error in parsing valid MAC address"
 
         success = pyparsing_common.mac_address.runTests("""
+            # mixed delimiters
             AA.BB:CC:DD:EE:FF
-            """, printResults=False)[0]
-        assert not success, "error in detecting invalid mac address"
+            """, failureTests=True)[0]
+        assert success, "error in detecting invalid mac address"
         
         success = pyparsing_common.ipv4_address.runTests("""
             0.0.0.0
@@ -2648,13 +2649,14 @@ class CommonExpressionsTest(ParseTestCase):
             127.0.0.1
             1.10.100.199
             255.255.255.255
-            """, printResults=False)[0]
+            """)[0]
         assert success, "error in parsing valid IPv4 address"
         
         success = pyparsing_common.ipv4_address.runTests("""
+            # out of range value
             256.255.255.255
-            """, printResults=False)[0]
-        assert not success, "error in detecting invalid IPv4 address"
+            """, failureTests=True)[0]
+        assert success, "error in detecting invalid IPv4 address"
 
         success = pyparsing_common.ipv6_address.runTests("""
             2001:0db8:85a3:0000:0000:8a2e:0370:7334
@@ -2662,16 +2664,26 @@ class CommonExpressionsTest(ParseTestCase):
             0:0:0:0:0:0:A00:1
             1080::8:800:200C:417A
             ::A00:1
+            
+            # loopback address
             ::1
+            
+            # the null address
             ::
+            
+            # ipv4 compatibility form
             ::ffff:192.168.0.1
-            """, parseAll=True, printResults=False)[0]
+            """)[0]
         assert success, "error in parsing valid IPv6 address"
 
         success = pyparsing_common.ipv6_address.runTests("""
+            # too few values
             1080:0:0:0:8:800:200C
-            """, parseAll=True, printResults=False)[0]
-        assert not success, "error in detecting invalid IPv6 address"
+            
+            # too many ::'s, only 1 allowed
+            2134::1234:4567::2444:2106
+            """, failureTests=True)[0]
+        assert success, "error in detecting invalid IPv6 address"
 
         success = pyparsing_common.numeric.runTests("""
             100
@@ -2680,35 +2692,38 @@ class CommonExpressionsTest(ParseTestCase):
             3.14159
             6.02e23
             1e-12
-            """, parseAll=True, printResults=False)[0]
+            """)[0]
         assert success, "error in parsing valid numerics"
 
         # any int or real number, returned as float
-        success, results = pyparsing_common.number.runTests("""
+        success = pyparsing_common.number.runTests("""
             100
             -100
             +100
             3.14159
             6.02e23
             1e-12
-            """, parseAll=True, printResults=False)
+            """)[0]
         assert success, "error in parsing valid numerics"
 
         success = pyparsing_common.iso8601_date.runTests("""
             1997
             1997-07
             1997-07-16
-            """, parseAll=True, printResults=False)[0]
+            """)[0]
         assert success, "error in parsing valid iso8601_date"
  
         success = pyparsing_common.iso8601_datetime.runTests("""
             1997-07-16T19:20+01:00
             1997-07-16T19:20:30+01:00
             1997-07-16T19:20:30.45+01:00
-            """, parseAll=True, printResults=False)[0]
+            """)[0]
         assert success, "error in parsing valid iso8601_datetime"
         
-        assert pyparsing_common.uuid.matches("123e4567-e89b-12d3-a456-426655440000"), "failed to parse valid uuid"
+        success = pyparsing_common.uuid.runTests("""
+            123e4567-e89b-12d3-a456-426655440000
+            """)[0]
+        assert success, "failed to parse valid uuid"
             
 class MiscellaneousParserTests(ParseTestCase):
     def runTest(self):
