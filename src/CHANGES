@@ -4,6 +4,31 @@ Change Log
 
 Verison 2.1.5 - 
 ------------------------------
+- Added a new parse action construction helper tokenMap, which will
+  apply a function and optional arguments to each element in a 
+  ParseResults. So this parse action:
+  
+      def lowercase_all(tokens):
+          return [str(t).lower() for t in tokens]
+      OneOrMore(Word(alphas)).setParseAction(lowercase_all)
+
+  can now be written:
+  
+      OneOrMore(Word(alphas)).setParseAction(tokenMap(str.lower))
+
+  Also simplifies writing conversion parse actions like:
+  
+      integer = Word(nums).setParseAction(lambda t: int(t[0]))
+
+  to just:
+  
+      integer = Word(nums).setParseAction(tokenMap(int))
+
+  If additional arguments are necessary, they can be included in the
+  call to tokenMap, as in:
+  
+      hex_integer = Word(hexnums).setParseAction(tokenMap(int, 16))
+
 - Added more expressions to pyparsing_common:
   . IPv4 and IPv6 addresses (including long, short, and mixed forms
     of IPv6)
@@ -16,9 +41,9 @@ Verison 2.1.5 -
   and an output list of each test and its output lines.
 
 - Added failureTests argument (default=False) to runTests, so that
-  tests can be run that are expected failures, and if all tests fail
-  as expected, the runTests' success value will return True. Also,
-  parseAll now default to True.
+  tests can be run that are expected failures, and runTests' success 
+  value will return True only if all tests *fail* as expected. Also,
+  parseAll now defaults to True.
 
 
 Version 2.1.4 - May, 2016

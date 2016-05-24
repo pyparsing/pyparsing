@@ -2724,7 +2724,18 @@ class CommonExpressionsTest(ParseTestCase):
             123e4567-e89b-12d3-a456-426655440000
             """)[0]
         assert success, "failed to parse valid uuid"
-            
+
+class TokenMapTest(ParseTestCase):
+    def runTest(self):
+        from pyparsing import tokenMap, Word, hexnums, OneOrMore
+        
+        parser = OneOrMore(Word(hexnums)).setParseAction(tokenMap(int, 16))
+        success, results = parser.runTests("""
+            00 11 22 aa FF 0a 0d 1a
+            """, printResults=False)
+        assert success, "failed to parse hex integers"
+        assert results[0][-1] == '[0, 17, 34, 170, 255, 10, 13, 26]', "tokenMap parse action failed"
+        
 class MiscellaneousParserTests(ParseTestCase):
     def runTest(self):
         import pyparsing
