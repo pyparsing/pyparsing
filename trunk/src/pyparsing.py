@@ -58,7 +58,7 @@ The pyparsing module handles some of the problems that are typically vexing when
 """
 
 __version__ = "2.1.5"
-__versionTime__ = "18 May 2016 22:03 UTC"
+__versionTime__ = "24 May 2016 04:18 UTC"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -94,7 +94,7 @@ __all__ = [
 'replaceWith', 'restOfLine', 'sglQuotedString', 'srange', 'stringEnd',
 'stringStart', 'traceParseAction', 'unicodeString', 'upcaseTokens', 'withAttribute',
 'indentedBlock', 'originalTextFor', 'ungroup', 'infixNotation','locatedExpr', 'withClass',
-'pyparsing_common',
+'tokenMap', 'pyparsing_common',
 ]
 
 system_version = tuple(sys.version_info)[:3]
@@ -373,35 +373,48 @@ class ParseResults(object):
     __nonzero__ = __bool__
     def __iter__( self ): return iter( self.__toklist )
     def __reversed__( self ): return iter( self.__toklist[::-1] )
-    def iterkeys( self ):
-        """Returns all named result keys."""
+    def _iterkeys( self ):
         if hasattr(self.__tokdict, "iterkeys"):
             return self.__tokdict.iterkeys()
         else:
             return iter(self.__tokdict)
 
-    def itervalues( self ):
-        """Returns all named result values."""
-        return (self[k] for k in self.iterkeys())
+    def _itervalues( self ):
+        return (self[k] for k in self._iterkeys())
             
-    def iteritems( self ):
-        return ((k, self[k]) for k in self.iterkeys())
+    def _iteritems( self ):
+        return ((k, self[k]) for k in self._iterkeys())
 
     if PY_3:
-        keys = iterkeys
-        values = itervalues
-        items = iteritems
+        keys = _iterkeys       
+        """Returns an iterator of all named result keys (Python 3.x only)."""
+
+        values = _itervalues
+        """Returns an iterator of all named result values (Python 3.x only)."""
+
+        items = _iteritems
+        """Returns an iterator of all named result key-value tuples (Python 3.x only)."""
+
     else:
+        iterkeys = _iterkeys
+        """Returns an iterator of all named result keys (Python 2.x only)."""
+
+        itervalues = _itervalues
+        """Returns an iterator of all named result values (Python 2.x only)."""
+
+        iteritems = _iteritems
+        """Returns an iterator of all named result key-value tuples (Python 2.x only)."""
+
         def keys( self ):
-            """Returns all named result keys."""
+            """Returns all named result keys (as a list in Python 2.x, as an iterator in Python 3.x)."""
             return list(self.iterkeys())
 
         def values( self ):
-            """Returns all named result values."""
+            """Returns all named result values (as a list in Python 2.x, as an iterator in Python 3.x)."""
             return list(self.itervalues())
                 
         def items( self ):
-            """Returns all named result keys and values as a list of tuples."""
+            """Returns all named result key-values (as a list of tuples in Python 2.x, as an iterator in Python 3.x)."""
             return list(self.iteritems())
 
     def haskeys( self ):
@@ -863,7 +876,7 @@ class ParserElement(object):
         """
         Set class to be used for inclusion of string literals into a parser.
         """
-        ParserElement.literalStringClass = cls
+        ParserElement._literalStringClass = cls
 
     def __init__( self, savelist=False ):
         self.parseAction = list()
@@ -1317,7 +1330,7 @@ class ParserElement(object):
     def __add__(self, other ):
         """Implementation of + operator - returns C{L{And}}"""
         if isinstance( other, basestring ):
-            other = ParserElement.literalStringClass( other )
+            other = ParserElement._literalStringClass( other )
         if not isinstance( other, ParserElement ):
             warnings.warn("Cannot combine element of type %s with ParserElement" % type(other),
                     SyntaxWarning, stacklevel=2)
@@ -1327,7 +1340,7 @@ class ParserElement(object):
     def __radd__(self, other ):
         """Implementation of + operator when left operand is not a C{L{ParserElement}}"""
         if isinstance( other, basestring ):
-            other = ParserElement.literalStringClass( other )
+            other = ParserElement._literalStringClass( other )
         if not isinstance( other, ParserElement ):
             warnings.warn("Cannot combine element of type %s with ParserElement" % type(other),
                     SyntaxWarning, stacklevel=2)
@@ -1337,7 +1350,7 @@ class ParserElement(object):
     def __sub__(self, other):
         """Implementation of - operator, returns C{L{And}} with error stop"""
         if isinstance( other, basestring ):
-            other = ParserElement.literalStringClass( other )
+            other = ParserElement._literalStringClass( other )
         if not isinstance( other, ParserElement ):
             warnings.warn("Cannot combine element of type %s with ParserElement" % type(other),
                     SyntaxWarning, stacklevel=2)
@@ -1347,7 +1360,7 @@ class ParserElement(object):
     def __rsub__(self, other ):
         """Implementation of - operator when left operand is not a C{L{ParserElement}}"""
         if isinstance( other, basestring ):
-            other = ParserElement.literalStringClass( other )
+            other = ParserElement._literalStringClass( other )
         if not isinstance( other, ParserElement ):
             warnings.warn("Cannot combine element of type %s with ParserElement" % type(other),
                     SyntaxWarning, stacklevel=2)
@@ -1428,7 +1441,7 @@ class ParserElement(object):
     def __or__(self, other ):
         """Implementation of | operator - returns C{L{MatchFirst}}"""
         if isinstance( other, basestring ):
-            other = ParserElement.literalStringClass( other )
+            other = ParserElement._literalStringClass( other )
         if not isinstance( other, ParserElement ):
             warnings.warn("Cannot combine element of type %s with ParserElement" % type(other),
                     SyntaxWarning, stacklevel=2)
@@ -1438,7 +1451,7 @@ class ParserElement(object):
     def __ror__(self, other ):
         """Implementation of | operator when left operand is not a C{L{ParserElement}}"""
         if isinstance( other, basestring ):
-            other = ParserElement.literalStringClass( other )
+            other = ParserElement._literalStringClass( other )
         if not isinstance( other, ParserElement ):
             warnings.warn("Cannot combine element of type %s with ParserElement" % type(other),
                     SyntaxWarning, stacklevel=2)
@@ -1448,7 +1461,7 @@ class ParserElement(object):
     def __xor__(self, other ):
         """Implementation of ^ operator - returns C{L{Or}}"""
         if isinstance( other, basestring ):
-            other = ParserElement.literalStringClass( other )
+            other = ParserElement._literalStringClass( other )
         if not isinstance( other, ParserElement ):
             warnings.warn("Cannot combine element of type %s with ParserElement" % type(other),
                     SyntaxWarning, stacklevel=2)
@@ -1458,7 +1471,7 @@ class ParserElement(object):
     def __rxor__(self, other ):
         """Implementation of ^ operator when left operand is not a C{L{ParserElement}}"""
         if isinstance( other, basestring ):
-            other = ParserElement.literalStringClass( other )
+            other = ParserElement._literalStringClass( other )
         if not isinstance( other, ParserElement ):
             warnings.warn("Cannot combine element of type %s with ParserElement" % type(other),
                     SyntaxWarning, stacklevel=2)
@@ -1468,7 +1481,7 @@ class ParserElement(object):
     def __and__(self, other ):
         """Implementation of & operator - returns C{L{Each}}"""
         if isinstance( other, basestring ):
-            other = ParserElement.literalStringClass( other )
+            other = ParserElement._literalStringClass( other )
         if not isinstance( other, ParserElement ):
             warnings.warn("Cannot combine element of type %s with ParserElement" % type(other),
                     SyntaxWarning, stacklevel=2)
@@ -1478,7 +1491,7 @@ class ParserElement(object):
     def __rand__(self, other ):
         """Implementation of & operator when left operand is not a C{L{ParserElement}}"""
         if isinstance( other, basestring ):
-            other = ParserElement.literalStringClass( other )
+            other = ParserElement._literalStringClass( other )
         if not isinstance( other, ParserElement ):
             warnings.warn("Cannot combine element of type %s with ParserElement" % type(other),
                     SyntaxWarning, stacklevel=2)
@@ -1655,11 +1668,11 @@ class ParserElement(object):
             - failureTests - (default=False) indicates if these tests are expected to fail parsing
             
             Returns: a (success, results) tuple, where success indicates that all tests succeeded
-              (or failed if C{failureTest} is True), 
-              and the results contain a list of lines of each test's output
+            (or failed if C{failureTest} is True), and the results contain a list of lines of each 
+            test's output
         """
         if isinstance(tests, basestring):
-            tests = list(map(str.strip, tests.splitlines()))
+            tests = list(map(str.strip, tests.rstrip().splitlines()))
         if isinstance(comment, basestring):
             comment = Literal(comment)
         allResults = []
@@ -1750,17 +1763,17 @@ class Literal(Token):
             return loc+self.matchLen, self.match
         raise ParseException(instring, loc, self.errmsg, self)
 _L = Literal
-ParserElement.literalStringClass = Literal
+ParserElement._literalStringClass = Literal
 
 class Keyword(Token):
     """Token to exactly match a specified string as a keyword, that is, it must be
-       immediately followed by a non-keyword character.  Compare with C{L{Literal}}::
-         Literal("if") will match the leading C{'if'} in C{'ifAndOnlyIf'}.
-         Keyword("if") will not; it will only match the leading C{'if'} in C{'if x=1'}, or C{'if(y==2)'}
+       immediately followed by a non-keyword character.  Compare with C{L{Literal}}:
+        - C{Literal("if")} will match the leading C{'if'} in C{'ifAndOnlyIf'}.
+        - C{Keyword("if")} will not; it will only match the leading C{'if'} in C{'if x=1'}, or C{'if(y==2)'}
        Accepts two optional constructor arguments in addition to the keyword string:
-       C{identChars} is a string of characters that would be valid identifier characters,
-       defaulting to all alphanumerics + "_" and "$"; C{caseless} allows case-insensitive
-       matching, default is C{False}.
+        - C{identChars} is a string of characters that would be valid identifier characters,
+          defaulting to all alphanumerics + "_" and "$"
+        - C{caseless} allows case-insensitive matching, default is C{False}.
     """
     DEFAULT_KEYWORD_CHARS = alphanums+"_$"
 
@@ -2404,11 +2417,11 @@ class ParseExpression(ParserElement):
             exprs = list(exprs)
 
         if isinstance( exprs, basestring ):
-            self.exprs = [ Literal( exprs ) ]
+            self.exprs = [ ParserElement._literalStringClass( exprs ) ]
         elif isinstance( exprs, collections.Sequence ):
             # if sequence of strings provided, wrap with Literal
             if all(isinstance(expr, basestring) for expr in exprs):
-                exprs = map(Literal, exprs)
+                exprs = map(ParserElement._literalStringClass, exprs)
             self.exprs = list(exprs)
         else:
             try:
@@ -2509,6 +2522,7 @@ class And(ParseExpression):
     """Requires all given C{ParseExpression}s to be found in the given order.
        Expressions may be separated by whitespace.
        May be constructed using the C{'+'} operator.
+       May also be constructed using the C{'-'} operator, which will suppress backtracking.
     """
 
     class _ErrorStop(Empty):
@@ -2551,7 +2565,7 @@ class And(ParseExpression):
 
     def __iadd__(self, other ):
         if isinstance( other, basestring ):
-            other = Literal( other )
+            other = ParserElement._literalStringClass( other )
         return self.append( other ) #And( [ self, other ] )
 
     def checkRecursion( self, parseElementList ):
@@ -2623,7 +2637,7 @@ class Or(ParseExpression):
 
     def __ixor__(self, other ):
         if isinstance( other, basestring ):
-            other = ParserElement.literalStringClass( other )
+            other = ParserElement._literalStringClass( other )
         return self.append( other ) #Or( [ self, other ] )
 
     def __str__( self ):
@@ -2679,7 +2693,7 @@ class MatchFirst(ParseExpression):
 
     def __ior__(self, other ):
         if isinstance( other, basestring ):
-            other = ParserElement.literalStringClass( other )
+            other = ParserElement._literalStringClass( other )
         return self.append( other ) #MatchFirst( [ self, other ] )
 
     def __str__( self ):
@@ -2787,7 +2801,7 @@ class ParseElementEnhance(ParserElement):
     def __init__( self, expr, savelist=False ):
         super(ParseElementEnhance,self).__init__(savelist)
         if isinstance( expr, basestring ):
-            expr = Literal(expr)
+            expr = ParserElement._literalStringClass(expr)
         self.expr = expr
         self.strRepr = None
         if expr is not None:
@@ -2909,7 +2923,7 @@ class OneOrMore(ParseElementEnhance):
         super(OneOrMore, self).__init__(expr)
         ender = stopOn
         if isinstance(ender, basestring):
-            ender = Literal(ender)
+            ender = ParserElement._literalStringClass(ender)
         self.not_ender = ~ender if ender is not None else None
 
     def parseImpl( self, instring, loc, doActions=True ):
@@ -3048,7 +3062,7 @@ class SkipTo(ParseElementEnhance):
         self.includeMatch = include
         self.asList = False
         if isinstance(failOn, basestring):
-            self.failOn = Literal(failOn)
+            self.failOn = ParserElement._literalStringClass(failOn)
         else:
             self.failOn = failOn
         self.errmsg = "No match found for "+_ustr(self.expr)
@@ -3120,7 +3134,7 @@ class Forward(ParseElementEnhance):
 
     def __lshift__( self, other ):
         if isinstance( other, basestring ):
-            other = ParserElement.literalStringClass(other)
+            other = ParserElement._literalStringClass(other)
         self.expr = other
         self.strRepr = None
         self.mayIndexError = self.expr.mayIndexError
@@ -3591,14 +3605,30 @@ def removeQuotes(s,l,t):
     """
     return t[0][1:-1]
 
-def upcaseTokens(s,l,t):
-    """Helper parse action to convert tokens to upper case."""
-    return [ tt.upper() for tt in map(_ustr,t) ]
+def tokenMap(func, *args):
+    """Helper to define a parse action by mapping a function to all elements of a ParseResults list.If any additional 
+       args are passed, they are forwarded to the given function as additional arguments after
+       the token, as in C{hex_integer = Word(hexnums).setParseAction(tokenMap(int, 16))}, which will convert the
+       parsed data to an integer using base 16.
+    """
+    def pa(s,l,t):
+        t[:] = [func(tokn, *args) for tokn in t]
 
-def downcaseTokens(s,l,t):
-    """Helper parse action to convert tokens to lower case."""
-    return [ tt.lower() for tt in map(_ustr,t) ]
+    try:
+        func_name = getattr(func, '__name__', 
+                            getattr(func, '__class__').__name__)
+    except Exception:
+        func_name = str(func)
+    pa.__name__ = func_name
 
+    return pa
+
+upcaseTokens = tokenMap(lambda t: _ustr(t).upper())
+"""Helper parse action to convert tokens to upper case."""
+
+downcaseTokens = tokenMap(lambda t: _ustr(t).lower())
+"""Helper parse action to convert tokens to lower case."""
+    
 def _makeTags(tagStr, xml):
     """Internal helper to construct opening and closing tag expressions, given a tag name"""
     if isinstance(tagStr,basestring):
@@ -3755,7 +3785,9 @@ def infixNotation( baseExpr, opList, lpar=Suppress('('), rpar=Suppress(')') ):
         lastExpr = thisExpr
     ret <<= lastExpr
     return ret
+
 operatorPrecedence = infixNotation
+"""(Deprecated) Former name of C{L{infixNotation}}, will be dropped in a future release."""
 
 dblQuotedString = Combine(Regex(r'"(?:[^"\n\r\\]|(?:"")|(?:\\(?:[^x]|x[0-9a-fA-F]+)))*')+'"').setName("string enclosed in double quotes")
 sglQuotedString = Combine(Regex(r"'(?:[^'\n\r\\]|(?:'')|(?:\\(?:[^x]|x[0-9a-fA-F]+)))*")+"'").setName("string enclosed in single quotes")
@@ -3880,18 +3912,29 @@ def replaceHTMLEntity(t):
 
 # it's easy to get these comment structures wrong - they're very common, so may as well make them available
 cStyleComment = Combine(Regex(r"/\*(?:[^*]|\*(?!/))*") + '*/').setName("C style comment")
+"Comment of the form C{/* ... */}"
 
 htmlComment = Regex(r"<!--[\s\S]*?-->").setName("HTML comment")
+"Comment of the form C{<!-- ... -->}"
+
 restOfLine = Regex(r".*").leaveWhitespace().setName("rest of line")
 dblSlashComment = Regex(r"//(?:\\\n|[^\n])*").setName("// comment")
+"Comment of the form C{// ... (to end of line)}"
+
 cppStyleComment = Combine(Regex(r"/\*(?:[^*]|\*(?!/))*") + '*/'| dblSlashComment).setName("C++ style comment")
+"Comment of either form C{L{cStyleComment}} or C{L{dblSlashComment}}"
 
 javaStyleComment = cppStyleComment
+"Same as C{L{cppStyleComment}}"
+
 pythonStyleComment = Regex(r"#.*").setName("Python style comment")
+"Comment of the form C{# ... (to end of line)}"
+
 _commasepitem = Combine(OneOrMore(Word(printables, excludeChars=',') +
                                   Optional( Word(" \t") +
                                             ~Literal(",") + ~LineEnd() ) ) ).streamline().setName("commaItem")
 commaSeparatedList = delimitedList( Optional( quotedString.copy() | _commasepitem, default="") ).setName("commaSeparatedList")
+"""Predefined expression of 1 or more printable words or quoted strings, separated by commas."""
 
 # some other useful expressions - using lower-case class name since we are really using this as a namespace
 class pyparsing_common:
@@ -3905,22 +3948,20 @@ class pyparsing_common:
      - UUID
     """
 
-    def convertToInteger(t):
-        """
-        Parse action for converting parsed integers to Python int
-        """
-        return int(t[0])
+    convertToInteger = tokenMap(int)
+    """
+    Parse action for converting parsed integers to Python int
+    """
 
-    def convertToFloat(t):
-        """
-        Parse action for converting parsed numbers to Python float
-        """
-        return float(t[0])
+    convertToFloat = tokenMap(float)
+    """
+    Parse action for converting parsed numbers to Python float
+    """
 
     integer = Word(nums).setName("integer").setParseAction(convertToInteger)
     """expression that parses an unsigned integer and returns an int"""
 
-    hex_integer = Word(hexnums).setName("hex integer").setParseAction(lambda t: int(t[0], 16))
+    hex_integer = Word(hexnums).setName("hex integer").setParseAction(tokenMap(int,16))
     """expression that parses a hexadecimal integer and returns an int"""
 
     signedInteger = Regex(r'[+-]?\d+').setName("signed integer").setParseAction(convertToInteger)
@@ -4025,3 +4066,13 @@ if __name__ == "__main__":
         1e-12
         """)
 
+    pyparsing_common.hex_integer.runTests("""
+        100
+        FF
+        """)
+
+    import uuid
+    pyparsing_common.uuid.setParseAction(tokenMap(uuid.UUID))
+    pyparsing_common.uuid.runTests("""
+        12345678-1234-5678-1234-567812345678
+        """)
