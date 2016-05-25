@@ -45,6 +45,13 @@ Verison 2.1.5 -
   value will return True only if all tests *fail* as expected. Also,
   parseAll now defaults to True.
 
+- New example numerics.py, shows samples of parsing integer and real
+  numbers using locale-dependent formats:
+
+    4.294.967.295,000 
+    4 294 967 295,000  
+    4,294,967,295.000  
+  
 
 Version 2.1.4 - May, 2016
 ------------------------------
