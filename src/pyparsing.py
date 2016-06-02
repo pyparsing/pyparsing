@@ -58,7 +58,7 @@ The pyparsing module handles some of the problems that are typically vexing when
 """
 
 __version__ = "2.1.5"
-__versionTime__ = "24 May 2016 04:18 UTC"
+__versionTime__ = "02 Jun 2016 12:25 UTC"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -3940,12 +3940,15 @@ commaSeparatedList = delimitedList( Optional( quotedString.copy() | _commasepite
 class pyparsing_common:
     """
     Here are some common low-level expressions that may be useful in jump-starting parser development:
-     - numeric forms (integers, reals, scientific notation)
-     - parse actions for converting numeric strings to Python int and/or float types
-     - common programming identifiers
-     - network addresses (MAC, IPv4, IPv6)
-     - ISO8601 dates and datetimes
-     - UUID
+     - numeric forms (L{integers<integer>}, L{reals<real>}, L{scientific notation<sciReal>})
+     - common L{programming identifiers<identifier>}
+     - network addresses (L{MAC<mac_address>}, L{IPv4<ipv4_address>}, L{IPv6<ipv6_address>})
+     - ISO8601 L{dates<iso8601_date>} and L{datetime<iso8601_datetime>}
+     - L{UUID<uuid>}
+    Parse actions:
+     - C{L{convertToInteger}}
+     - C{L{convertToFloat}}
+     - C{L{stripHTMLTags}}
     """
 
     convertToInteger = tokenMap(int)
@@ -4005,6 +4008,11 @@ class pyparsing_common:
 
     uuid = Regex(r'[0-9a-fA-F]{8}(-[0-9a-fA-F]{4}){3}-[0-9a-fA-F]{12}').setName("UUID")
     "UUID (C{xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx})"
+    
+    _html_stripper = anyOpenTag.suppress() | anyCloseTag.suppress()
+    def stripHTMLTags(s,l,tokens):
+        """Parse action to remove HTML tags from web page HTML source"""
+        return _html_stripper.transformString(tokens[0])
 
 if __name__ == "__main__":
 

@@ -2,7 +2,7 @@
 Change Log
 ==========
 
-Verison 2.1.5 - 
+Verison 2.1.5 - June, 2016
 ------------------------------
 - Added a new parse action construction helper tokenMap, which will
   apply a function and optional arguments to each element in a 
@@ -36,6 +36,7 @@ Verison 2.1.5 -
   . ISO8601 date and date time strings
   . UUID (xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx)
   . hex integer (returned as int)
+  . stripHTMLTags (parse action to remove tags from HTML source)
 
 - runTests now returns a two-tuple: success if all tests succeed,
   and an output list of each test and its output lines.
