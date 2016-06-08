@@ -3962,19 +3962,27 @@ class pyparsing_common:
     """
 
     integer = Word(nums).setName("integer").setParseAction(convertToInteger)
-    """expression that parses an unsigned integer and returns an int"""
+    """expression that parses an unsigned integer, returns an int"""
 
     hex_integer = Word(hexnums).setName("hex integer").setParseAction(tokenMap(int,16))
-    """expression that parses a hexadecimal integer and returns an int"""
+    """expression that parses a hexadecimal integer, returns an int"""
 
     signedInteger = Regex(r'[+-]?\d+').setName("signed integer").setParseAction(convertToInteger)
-    """expression that parses an integer with optional leading sign and returns an int"""
+    """expression that parses an integer with optional leading sign, returns an int"""
+
+    fraction = signedInteger.addParseAction(convertToFloat) + '/' + signedInteger.addParseAction(convertToFloat)
+    """fractional expression of an integer divided by an integer, returns a float"""
+    fraction.addParseAction(lambda t: t[0]/t[-1])
+
+    mixed_integer = fraction | integer + Optional(Optional('-').suppress() + fraction)
+    """mixed integer of the form 'integer - fraction', with optional leading integer, returns float"""
+    mixed_integer.addParseAction(lambda t: sum(t))
 
     real = Regex(r'[+-]?\d+\.\d*').setName("real number").setParseAction(convertToFloat)
     """expression that parses a floating point number and returns a float"""
 
-    sciReal = Regex(r'[+-]?\d+([eE][+-]?\d+|\.\d*([eE][+-]?\d+)?)').setName("real number with scientfic notation").setParseAction(convertToFloat)
-    """expression that parses a floating point number with optional scientfic notation and returns a float"""
+    sciReal = Regex(r'[+-]?\d+([eE][+-]?\d+|\.\d*([eE][+-]?\d+)?)').setName("real number with scientific notation").setParseAction(convertToFloat)
+    """expression that parses a floating point number with optional scientific notation and returns a float"""
 
     # streamlining this expression makes the docs nicer-looking
     numeric = (sciReal | real | signedInteger).streamline()
