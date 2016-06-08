@@ -36,6 +36,8 @@ Verison 2.1.5 - June, 2016
   . ISO8601 date and date time strings
   . UUID (xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx)
   . hex integer (returned as int)
+  . fraction (integer '/' integer, returned as float)
+  . mixed integer (integer '-' fraction, or just fraction, returned as float)
   . stripHTMLTags (parse action to remove tags from HTML source)
 
 - runTests now returns a two-tuple: success if all tests succeed,

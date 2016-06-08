@@ -70,7 +70,7 @@ class PyparsingTestInit(ParseTestCase):
         print_("Python version", sys.version)
     def tearDown(self):
         pass
-        
+
 class ParseASMLTest(ParseTestCase):
     def runTest(self):
         import parseASML
@@ -86,7 +86,7 @@ class ParseASMLTest(ParseTestCase):
             #~ pprint.pprint( results.asList() )
             #~ pprint.pprint( results.batchData.asList() )
             #~ print results.batchData.keys()
-                    
+
             allToks = flatten( results.asList() )
             assert len(allToks) == numToks, \
                 "wrong number of tokens parsed (%s), got %d, expected %d" % (testFile, len(allToks),numToks)
@@ -1006,7 +1006,7 @@ class RepeaterTest(ParseTestCase):
         # retest using matchPreviousExpr instead of matchPreviousLiteral
         second = matchPreviousExpr(first).setName("repeat(word1expr)")
         seq = first + bridge + second
-        
+
         tests = [
             ( "abc12abc", True ),
             ( "abc12cba", False ),
@@ -1021,7 +1021,7 @@ class RepeaterTest(ParseTestCase):
             if not found:
                 print_("No expression match in", tst)
             assert found == result, "Failed repeater for test: %s, matching %s" % (tst, str(seq))
-            
+
         print_()
 
         first = Word("abcdef").setName("word1")
@@ -1033,7 +1033,7 @@ class RepeaterTest(ParseTestCase):
         compoundSeq = csFirst + ":" + csSecond
         compoundSeq.streamline()
         print_(compoundSeq)
-        
+
         tests = [
             ( "abc12abc:abc12abc", True ),
             ( "abc12cba:abc12abc", False ),
@@ -1068,17 +1068,17 @@ class RepeaterTest(ParseTestCase):
             if not found:
                 print_("No expression match in", tst)
             assert found == result, "Failed repeater for test: %s, matching %s" % (tst, str(seq))
-            
+
         print_()
         eFirst = Word(nums)
         eSecond = matchPreviousExpr(eFirst)
         eSeq = eFirst + ":" + eSecond
-        
+
         tests = [
             ( "1:1A", True ),
             ( "1:10", False ),
             ]
-        
+
         for tst,result in tests:
             found = False
             for tokens,start,end in eSeq.scanString(tst):
@@ -2724,6 +2724,27 @@ class CommonExpressionsTest(ParseTestCase):
             123e4567-e89b-12d3-a456-426655440000
             """)[0]
         assert success, "failed to parse valid uuid"
+
+
+        success = pyparsing_common.fraction.runTests("""
+            1/2
+            -15/16
+            -3/-4
+            """)[0]
+        assert success, "failed to parse valid fraction"
+
+
+        success = pyparsing_common.mixed_integer.runTests("""
+            1/2
+            -15/16
+            -3/-4
+            1 1/2
+            2 -15/16
+            0 -3/-4
+            12
+            """)[0]
+        assert success, "failed to parse valid mixed integer"
+
 
 class TokenMapTest(ParseTestCase):
     def runTest(self):
