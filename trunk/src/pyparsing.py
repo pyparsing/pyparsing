@@ -3970,13 +3970,13 @@ class pyparsing_common:
     signedInteger = Regex(r'[+-]?\d+').setName("signed integer").setParseAction(convertToInteger)
     """expression that parses an integer with optional leading sign, returns an int"""
 
-    fraction = signedInteger.addParseAction(convertToFloat) + '/' + signedInteger.addParseAction(convertToFloat)
+    fraction = signedInteger.addParseAction(convertToFloat) + '/' + signedInteger.addParseAction(convertToFloat).setName("fraction")
     """fractional expression of an integer divided by an integer, returns a float"""
     fraction.addParseAction(lambda t: t[0]/t[-1])
 
-    mixed_integer = fraction | integer + Optional(Optional('-').suppress() + fraction)
+    mixed_integer = fraction | integer + Optional(Optional('-').suppress() + fraction).setName("fraction or mixed integer-fraction")
     """mixed integer of the form 'integer - fraction', with optional leading integer, returns float"""
-    mixed_integer.addParseAction(lambda t: sum(t))
+    mixed_integer.addParseAction(sum)
 
     real = Regex(r'[+-]?\d+\.\d*').setName("real number").setParseAction(convertToFloat)
     """expression that parses a floating point number and returns a float"""
