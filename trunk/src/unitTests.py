@@ -2803,7 +2803,7 @@ class ParseFileTest(ParseTestCase):
         results = OneOrMore(integer).parseFile(input_file)
         print_(results)
 
-        results = OneOrMore(integer).parseFile('test\parsefiletest_input_file.txt')
+        results = OneOrMore(integer).parseFile('test/parsefiletest_input_file.txt')
         print_(results)
 
 
