@@ -3972,11 +3972,11 @@ class pyparsing_common:
     signedInteger = Regex(r'[+-]?\d+').setName("signed integer").setParseAction(convertToInteger)
     """expression that parses an integer with optional leading sign, returns an int"""
 
-    fraction = signedInteger.addParseAction(convertToFloat) + '/' + signedInteger.addParseAction(convertToFloat).setName("fraction")
+    fraction = (signedInteger.addParseAction(convertToFloat) + '/' + signedInteger.addParseAction(convertToFloat)).setName("fraction")
     """fractional expression of an integer divided by an integer, returns a float"""
     fraction.addParseAction(lambda t: t[0]/t[-1])
 
-    mixed_integer = fraction | integer + Optional(Optional('-').suppress() + fraction).setName("fraction or mixed integer-fraction")
+    mixed_integer = (fraction | integer + Optional(Optional('-').suppress() + fraction)).setName("fraction or mixed integer-fraction")
     """mixed integer of the form 'integer - fraction', with optional leading integer, returns float"""
     mixed_integer.addParseAction(sum)
 
@@ -4016,7 +4016,7 @@ class pyparsing_common:
         Helper to create a parse action for converting parsed date string to Python datetime.date
 
         Params -
-         - fmt - format to be passed to datetime.strptime (default="%Y-%m-%d")
+         - fmt - format to be passed to datetime.strptime (default=C{"%Y-%m-%d"})
         """
         return lambda s,l,t: datetime.strptime(t[0], fmt).date()
 
@@ -4026,7 +4026,7 @@ class pyparsing_common:
         Helper to create a parse action for converting parsed datetime string to Python datetime.datetime
 
         Params -
-         - fmt - format to be passed to datetime.strptime (default="%Y-%m-%dT%H:%M:%S.%f")
+         - fmt - format to be passed to datetime.strptime (default=C{"%Y-%m-%dT%H:%M:%S.%f"})
         """
         return lambda s,l,t: datetime.strptime(t[0], fmt)
 
@@ -4034,7 +4034,7 @@ class pyparsing_common:
     "ISO8601 date (C{yyyy-mm-dd})"
 
     iso8601_datetime = Regex(r'(?P<year>\d{4})-(?P<month>\d\d)-(?P<day>\d\d)[T ](?P<hour>\d\d):(?P<minute>\d\d)(:(?P<second>\d\d(\.\d*)?)?)?(?P<tz>Z|[+-]\d\d:?\d\d)?').setName("ISO8601 datetime")
-    "ISO8601 datetime (C{yyyy-mm-ddThh:mm:ss.s(Z|+-00:00)}) - trailing seconds and timezone optional"
+    "ISO8601 datetime (C{yyyy-mm-ddThh:mm:ss.s(Z|+-00:00)}) - trailing seconds, milliseconds, and timezone optional; accepts separating C{'T'} or C{' '}"
 
     uuid = Regex(r'[0-9a-fA-F]{8}(-[0-9a-fA-F]{4}){3}-[0-9a-fA-F]{12}').setName("UUID")
     "UUID (C{xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx})"
