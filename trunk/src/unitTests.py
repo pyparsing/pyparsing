@@ -1,6 +1,8 @@
 # -*- coding: UTF-8 -*-
 from unittest import TestCase, TestSuite, TextTestRunner
 import unittest
+import datetime
+
 from pyparsing import ParseException
 #~ import HTMLTestRunner
 
@@ -12,6 +14,8 @@ PY_3 = sys.version.startswith('3')
 if PY_3:
     import builtins
     print_ = getattr(builtins, "print")
+
+    from io import StringIO
 else:
     def _print(*args, **kwargs):
         if 'end' in kwargs:
@@ -19,6 +23,8 @@ else:
         else:
             sys.stdout.write(' '.join(map(str,args)) + '\n')
     print_ = _print
+    from cStringIO import StringIO
+
 
 # see which Python implementation we are running
 CPYTHON_ENV = (sys.platform == "win32")
@@ -71,42 +77,43 @@ class PyparsingTestInit(ParseTestCase):
     def tearDown(self):
         pass
 
-class ParseASMLTest(ParseTestCase):
-    def runTest(self):
-        import parseASML
-        files = [ ("A52759.txt", 2150, True, True, 0.38, 25, "21:47:17", "22:07:32", 235),
-                  ("24141506_P5107RM59_399A1457N1_PHS04", 373,True, True, 0.5, 1, "11:35:25", "11:37:05", 183),
-                  ("24141506_P5107RM59_399A1457N1_PHS04B", 373, True, True, 0.5, 1, "01:02:54", "01:04:49", 186),
-                  ("24157800_P5107RM74_399A1828M1_PHS04", 1141, True, False, 0.5, 13, "00:00:54", "23:59:48", 154) ]
-        for testFile,numToks,trkInpUsed,trkOutpUsed,maxDelta,numWafers,minProcBeg,maxProcEnd,maxLevStatsIV in files:
-            print_("Parsing",testFile,"...", end=' ')
-            #~ text = "\n".join( [ line for line in file(testFile) ] )
-            #~ results = parseASML.BNF().parseString( text )
-            results = parseASML.BNF().parseFile( testFile )
-            #~ pprint.pprint( results.asList() )
-            #~ pprint.pprint( results.batchData.asList() )
-            #~ print results.batchData.keys()
+if 0:
+    class ParseASMLTest(ParseTestCase):
+        def runTest(self):
+            import parseASML
+            files = [ ("A52759.txt", 2150, True, True, 0.38, 25, "21:47:17", "22:07:32", 235),
+                      ("24141506_P5107RM59_399A1457N1_PHS04", 373,True, True, 0.5, 1, "11:35:25", "11:37:05", 183),
+                      ("24141506_P5107RM59_399A1457N1_PHS04B", 373, True, True, 0.5, 1, "01:02:54", "01:04:49", 186),
+                      ("24157800_P5107RM74_399A1828M1_PHS04", 1141, True, False, 0.5, 13, "00:00:54", "23:59:48", 154) ]
+            for testFile,numToks,trkInpUsed,trkOutpUsed,maxDelta,numWafers,minProcBeg,maxProcEnd,maxLevStatsIV in files:
+                print_("Parsing",testFile,"...", end=' ')
+                #~ text = "\n".join( [ line for line in file(testFile) ] )
+                #~ results = parseASML.BNF().parseString( text )
+                results = parseASML.BNF().parseFile( testFile )
+                #~ pprint.pprint( results.asList() )
+                #~ pprint.pprint( results.batchData.asList() )
+                #~ print results.batchData.keys()
 
-            allToks = flatten( results.asList() )
-            assert len(allToks) == numToks, \
-                "wrong number of tokens parsed (%s), got %d, expected %d" % (testFile, len(allToks),numToks)
-            assert results.batchData.trackInputUsed == trkInpUsed, "error evaluating results.batchData.trackInputUsed"
-            assert results.batchData.trackOutputUsed == trkOutpUsed, "error evaluating results.batchData.trackOutputUsed"
-            assert results.batchData.maxDelta == maxDelta,"error evaluating results.batchData.maxDelta"
-            assert len(results.waferData) == numWafers, "did not read correct number of wafers"
-            assert min([wd.procBegin for wd in results.waferData]) == minProcBeg, "error reading waferData.procBegin"
-            assert max([results.waferData[k].procEnd for k in range(len(results.waferData))]) == maxProcEnd, "error reading waferData.procEnd"
-            assert sum(results.levelStatsIV['MAX']) == maxLevStatsIV, "error reading levelStatsIV"
-            assert sum(results.levelStatsIV.MAX) == maxLevStatsIV, "error reading levelStatsIV"
-            print_("OK")
-            print_(testFile,len(allToks))
-            #~ print "results.batchData.trackInputUsed =",results.batchData.trackInputUsed
-            #~ print "results.batchData.trackOutputUsed =",results.batchData.trackOutputUsed
-            #~ print "results.batchData.maxDelta =",results.batchData.maxDelta
-            #~ print len(results.waferData)," wafers"
-            #~ print min([wd.procBegin for wd in results.waferData])
-            #~ print max([results.waferData[k].procEnd for k in range(len(results.waferData))])
-            #~ print sum(results.levelStatsIV['MAX.'])
+                allToks = flatten( results.asList() )
+                assert len(allToks) == numToks, \
+                    "wrong number of tokens parsed (%s), got %d, expected %d" % (testFile, len(allToks),numToks)
+                assert results.batchData.trackInputUsed == trkInpUsed, "error evaluating results.batchData.trackInputUsed"
+                assert results.batchData.trackOutputUsed == trkOutpUsed, "error evaluating results.batchData.trackOutputUsed"
+                assert results.batchData.maxDelta == maxDelta,"error evaluating results.batchData.maxDelta"
+                assert len(results.waferData) == numWafers, "did not read correct number of wafers"
+                assert min([wd.procBegin for wd in results.waferData]) == minProcBeg, "error reading waferData.procBegin"
+                assert max([results.waferData[k].procEnd for k in range(len(results.waferData))]) == maxProcEnd, "error reading waferData.procEnd"
+                assert sum(results.levelStatsIV['MAX']) == maxLevStatsIV, "error reading levelStatsIV"
+                assert sum(results.levelStatsIV.MAX) == maxLevStatsIV, "error reading levelStatsIV"
+                print_("OK")
+                print_(testFile,len(allToks))
+                #~ print "results.batchData.trackInputUsed =",results.batchData.trackInputUsed
+                #~ print "results.batchData.trackOutputUsed =",results.batchData.trackOutputUsed
+                #~ print "results.batchData.maxDelta =",results.batchData.maxDelta
+                #~ print len(results.waferData)," wafers"
+                #~ print min([wd.procBegin for wd in results.waferData])
+                #~ print max([results.waferData[k].procEnd for k in range(len(results.waferData))])
+                #~ print sum(results.levelStatsIV['MAX.'])
         
 
 class ParseFourFnTest(ParseTestCase):
@@ -977,7 +984,11 @@ class CustomQuotesTest(ParseTestCase):
 
 class RepeaterTest(ParseTestCase):
     def runTest(self):
-        from pyparsing import matchPreviousLiteral,matchPreviousExpr, Forward, Literal, Word, alphas, nums
+        from pyparsing import matchPreviousLiteral,matchPreviousExpr, Forward, Literal, Word, alphas, nums, ParserElement
+
+        if ParserElement._packratEnabled:
+            print_("skipping this test, not compatible with packratting")
+            return
 
         first = Word("abcdef").setName("word1")
         bridge = Word(nums).setName("number")
@@ -2569,7 +2580,7 @@ class NestedAsDictTest(ParseTestCase):
 
         rsp = 'username=goat; errors={username=[already taken, too short]}; empty_field='
         result_dict = response.parseString(rsp).asDict()
-        print(result_dict)
+        print_(result_dict)
         assert result_dict['username'] == 'goat', "failed to process string in ParseResults correctly"
         assert result_dict['errors']['username'] == ['already taken', 'too short'], "failed to process nested ParseResults correctly"
 
@@ -2606,25 +2617,26 @@ class RunTestsTest(ParseTestCase):
             # normal data
             1-3,2-4,6,8-10,16
             
-            # invalid range
-            1-2, 3-1, 4-6, 7, 12
-            
             # lone integer
             11"""
         results = indices.runTests(tests, printResults=False)[1]
-        #~ import pprint
-        #~ pprint.pprint(results)
-        
-        expectedResults = [
-            ['# normal data', '1-3,2-4,6,8-10,16', '[1, 2, 3, 4, 6, 8, 9, 10, 16]'],
-            ['# invalid range',
-            '1-2, 3-1, 4-6, 7, 12',
-            '     ^(FATAL)',
-            'FAIL: invalid range, start must be <= end (at char 5), (line:1, col:6)'],
-            ['# lone integer', '11', '[11]']]
 
+        expectedResults = [
+            [1, 2, 3, 4, 6, 8, 9, 10, 16],
+            [11],
+            ]
         for res,expected in zip(results, expectedResults):
-            assert res == expected, "failed test: " + expected[0][2:]
+            print_(res[1].asList())
+            print_(expected)
+            assert res[1].asList() == expected, "failed test: " + expected[0][2:]
+
+
+        tests = """\
+            # invalid range
+            1-2, 3-1, 4-6, 7, 12
+            """
+        success = indices.runTests(tests, printResults=False, failureTests=True)[0]
+        assert success, "failed to raise exception on improper range test"
 
 class CommonExpressionsTest(ParseTestCase):
     def runTest(self):
@@ -2706,20 +2718,40 @@ class CommonExpressionsTest(ParseTestCase):
             """)[0]
         assert success, "error in parsing valid numerics"
 
-        success = pyparsing_common.iso8601_date.runTests("""
+        success, results = pyparsing_common.iso8601_date.runTests("""
             1997
             1997-07
             1997-07-16
-            """)[0]
+            """)
         assert success, "error in parsing valid iso8601_date"
- 
-        success = pyparsing_common.iso8601_datetime.runTests("""
+        expected = [
+            ('1997', None, None),
+            ('1997', '07', None),
+            ('1997', '07', '16'),
+        ]
+        for r,exp in zip(results, expected):
+            assert (r[1].year,r[1].month,r[1].day,) == exp, "failed to parse date into fields"
+
+        success, results = pyparsing_common.iso8601_date().addParseAction(pyparsing_common.convertToDate()).runTests("""
+            1997-07-16
+            """)
+        assert success, "error in parsing valid iso8601_date with parse action"
+        assert results[0][1][0] == datetime.date(1997, 7, 16)
+
+        success, results = pyparsing_common.iso8601_datetime.runTests("""
             1997-07-16T19:20+01:00
             1997-07-16T19:20:30+01:00
-            1997-07-16T19:20:30.45+01:00
-            """)[0]
+            1997-07-16T19:20:30.45Z
+            1997-07-16 19:20:30.45
+            """)
         assert success, "error in parsing valid iso8601_datetime"
-        
+
+        success, results = pyparsing_common.iso8601_datetime().addParseAction(pyparsing_common.convertToDatetime()).runTests("""
+            1997-07-16T19:20:30.45
+            """)
+        assert success, "error in parsing valid iso8601_datetime"
+        assert results[0][1][0] == datetime.datetime(1997, 7, 16, 19, 20, 30, 450000)
+
         success = pyparsing_common.uuid.runTests("""
             123e4567-e89b-12d3-a456-426655440000
             """)[0]
@@ -2755,8 +2787,42 @@ class TokenMapTest(ParseTestCase):
             00 11 22 aa FF 0a 0d 1a
             """, printResults=False)
         assert success, "failed to parse hex integers"
-        assert results[0][-1] == '[0, 17, 34, 170, 255, 10, 13, 26]', "tokenMap parse action failed"
-        
+        print_(results)
+        assert results[0][-1].asList() == [0, 17, 34, 170, 255, 10, 13, 26], "tokenMap parse action failed"
+
+
+class ParseFileTest(ParseTestCase):
+    def runTest(self):
+        from pyparsing import pyparsing_common, OneOrMore
+        s = """
+        123 456 789
+        """
+        input_file = StringIO(s)
+        integer = pyparsing_common.integer
+
+        results = OneOrMore(integer).parseFile(input_file)
+        print_(results)
+
+        results = OneOrMore(integer).parseFile('test\parsefiletest_input_file.txt')
+        print_(results)
+
+
+class HTMLStripperTest(ParseTestCase):
+    def runTest(self):
+        from pyparsing import pyparsing_common, originalTextFor, OneOrMore, Word, printables
+
+        sample = """
+        <html>
+        Here is some sample <i>HTML</i> text.
+        </html>
+        """
+        read_everything = originalTextFor(OneOrMore(Word(printables)))
+        read_everything.addParseAction(pyparsing_common.stripHTMLTags)
+
+        result = read_everything.parseString(sample)
+        assert result[0].strip() == 'Here is some sample HTML text.'
+
+
 class MiscellaneousParserTests(ParseTestCase):
     def runTest(self):
         import pyparsing
@@ -2917,27 +2983,27 @@ def makeTestSuite():
 
     test_case_classes = ParseTestCase.__subclasses__()
     test_case_classes.remove(PyparsingTestInit)
-    test_case_classes.remove(ParseASMLTest)
+    # test_case_classes.remove(ParseASMLTest)
     test_case_classes.remove(EnablePackratParsing)
     if IRON_PYTHON_ENV:
         test_case_classes.remove(OriginalTextForTest)
 
     suite.addTests(T() for T in test_case_classes)
-    
+
     if TEST_USING_PACKRAT:
         # retest using packrat parsing (disable those tests that aren't compatible)
         suite.addTest( EnablePackratParsing() )
-        
+
         unpackrattables = [ EnablePackratParsing, RepeaterTest, ]
-        
+
         # add tests to test suite a second time, to run with packrat parsing
         # (leaving out those that we know wont work with packrat)
         packratTests = [t.__class__() for t in suite._tests
                             if t.__class__ not in unpackrattables]
         suite.addTests( packratTests )
-        
+
     return suite
-    
+
 def makeTestSuiteTemp(classes):
     suite = TestSuite()
     suite.addTest( PyparsingTestInit() )
@@ -2954,7 +3020,7 @@ console = True
 lp = None
 
 #~ if __name__ == '__main__':
-    #~ unittest.main() 
+    #~ unittest.main()
 if console:
     #~ # console mode
     testRunner = TextTestRunner()

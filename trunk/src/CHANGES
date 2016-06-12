@@ -33,12 +33,14 @@ Verison 2.1.5 - June, 2016
   . IPv4 and IPv6 addresses (including long, short, and mixed forms
     of IPv6)
   . MAC address
-  . ISO8601 date and date time strings
+  . ISO8601 date and date time strings (with named fields for year, month, etc.)
   . UUID (xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx)
   . hex integer (returned as int)
   . fraction (integer '/' integer, returned as float)
   . mixed integer (integer '-' fraction, or just fraction, returned as float)
   . stripHTMLTags (parse action to remove tags from HTML source)
+  . parse action helpers convertToDate and convertToDatetime to do custom parse
+    time conversions of parsed ISO8601 strings
 
 - runTests now returns a two-tuple: success if all tests succeed,
   and an output list of each test and its output lines.
