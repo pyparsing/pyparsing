@@ -58,7 +58,7 @@ The pyparsing module handles some of the problems that are typically vexing when
 """
 
 __version__ = "2.1.5"
-__versionTime__ = "08 Jun 2016 21:53 UTC"
+__versionTime__ = "12 Jun 2016 21:53 UTC"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -70,9 +70,8 @@ import re
 import sre_constants
 import collections
 import pprint
-import functools
-import itertools
 import traceback
+from datetime import datetime
 
 #~ sys.stderr.write( "testing pyparsing module, version %s, %s\n" % (__version__,__versionTime__ ) )
 
@@ -1605,9 +1604,8 @@ class ParserElement(object):
         try:
             file_contents = file_or_filename.read()
         except AttributeError:
-            f = open(file_or_filename, "r")
-            file_contents = f.read()
-            f.close()
+            with open(file_or_filename, "r") as f:
+                file_contents = f.read()
         try:
             return self.parseString(file_contents, parseAll)
         except ParseBaseException as exc:
@@ -1666,7 +1664,7 @@ class ParserElement(object):
               string; pass None to disable comment filtering
             - printResults - (default=True) prints test output to stdout
             - failureTests - (default=False) indicates if these tests are expected to fail parsing
-            
+
             Returns: a (success, results) tuple, where success indicates that all tests succeeded
             (or failed if C{failureTest} is True), and the results contain a list of lines of each 
             test's output
@@ -1687,7 +1685,8 @@ class ParserElement(object):
             out = ['\n'.join(comments), t]
             comments = []
             try:
-                out.append(self.parseString(t, parseAll=parseAll).dump())
+                result = self.parseString(t, parseAll=parseAll)
+                out.append(result.dump())
                 success = success and not failureTests
             except ParseBaseException as pe:
                 fatal = "(FATAL)" if isinstance(pe, ParseFatalException) else ""
@@ -1698,12 +1697,13 @@ class ParserElement(object):
                     out.append(' '*pe.loc + '^' + fatal)
                 out.append("FAIL: " + str(pe))
                 success = success and failureTests
+                result = pe
 
             if printResults:
                 out.append('')
                 print('\n'.join(out))
-            else:
-                allResults.append(out)
+
+            allResults.append((t, result))
         
         return success, allResults
 
@@ -3948,6 +3948,8 @@ class pyparsing_common:
     Parse actions:
      - C{L{convertToInteger}}
      - C{L{convertToFloat}}
+     - C{L{convertToDate}}
+     - C{L{convertToDatetime}}
      - C{L{stripHTMLTags}}
     """
 
@@ -4008,19 +4010,40 @@ class pyparsing_common:
     mac_address = Regex(r'[0-9a-fA-F]{2}([:.-])[0-9a-fA-F]{2}(?:\1[0-9a-fA-F]{2}){4}').setName("MAC address")
     "MAC address xx:xx:xx:xx:xx (may also have '-' or '.' delimiters)"
 
-    iso8601_date = Regex(r'\d{4}(?:-\d\d(?:-\d\d)?)?').setName("ISO8601 date")
+    @staticmethod
+    def convertToDate(fmt="%Y-%m-%d"):
+        """
+        Helper to create a parse action for converting parsed date string to Python datetime.date
+
+        Params -
+        - fmt - format to be passed to datetime.strptime (default="%Y-%m-%d")
+        """
+        return lambda s,l,t: datetime.strptime(t[0], fmt).date()
+
+    @staticmethod
+    def convertToDatetime(fmt="%Y-%m-%dT%H:%M:%S.%f"):
+        """
+        Helper to create a parse action for converting parsed datetime string to Python datetime.datetime
+
+        Params -
+        - fmt - format to be passed to datetime.strptime (default="%Y-%m-%dT%H:%M:%S.%f")
+        """
+        return lambda s,l,t: datetime.strptime(t[0], fmt)
+
+    iso8601_date = Regex(r'(?P<year>\d{4})(?:-(?P<month>\d\d)(?:-(?P<day>\d\d))?)?').setName("ISO8601 date")
     "ISO8601 date (C{yyyy-mm-dd})"
 
-    iso8601_datetime = Regex(r'\d{4}-\d\d-\d\dT\d\d:\d\d(:\d\d(\.\d*)?)?(Z|[+-]\d\d:?\d\d)?').setName("ISO8601 datetime")
-    "ISO8601 datetime (C{yyyy-mm-ddThh:mm:ss.s(Z|+-00:00)})"
+    iso8601_datetime = Regex(r'(?P<year>\d{4})-(?P<month>\d\d)-(?P<day>\d\d)[T ](?P<hour>\d\d):(?P<minute>\d\d)(:(?P<second>\d\d(\.\d*)?)?)?(?P<tz>Z|[+-]\d\d:?\d\d)?').setName("ISO8601 datetime")
+    "ISO8601 datetime (C{yyyy-mm-ddThh:mm:ss.s(Z|+-00:00)}) - trailing seconds and timezone optional"
 
     uuid = Regex(r'[0-9a-fA-F]{8}(-[0-9a-fA-F]{4}){3}-[0-9a-fA-F]{12}').setName("UUID")
     "UUID (C{xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx})"
-    
+
     _html_stripper = anyOpenTag.suppress() | anyCloseTag.suppress()
-    def stripHTMLTags(s,l,tokens):
+    @staticmethod
+    def stripHTMLTags(s, l, tokens):
         """Parse action to remove HTML tags from web page HTML source"""
-        return _html_stripper.transformString(tokens[0])
+        return pyparsing_common._html_stripper.transformString(tokens[0])
 
 if __name__ == "__main__":
 
