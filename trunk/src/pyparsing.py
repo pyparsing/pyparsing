@@ -4016,7 +4016,7 @@ class pyparsing_common:
         Helper to create a parse action for converting parsed date string to Python datetime.date
 
         Params -
-        - fmt - format to be passed to datetime.strptime (default="%Y-%m-%d")
+         - fmt - format to be passed to datetime.strptime (default="%Y-%m-%d")
         """
         return lambda s,l,t: datetime.strptime(t[0], fmt).date()
 
@@ -4026,7 +4026,7 @@ class pyparsing_common:
         Helper to create a parse action for converting parsed datetime string to Python datetime.datetime
 
         Params -
-        - fmt - format to be passed to datetime.strptime (default="%Y-%m-%dT%H:%M:%S.%f")
+         - fmt - format to be passed to datetime.strptime (default="%Y-%m-%dT%H:%M:%S.%f")
         """
         return lambda s,l,t: datetime.strptime(t[0], fmt)
 
