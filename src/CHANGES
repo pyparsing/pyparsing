@@ -4,6 +4,11 @@ Change Log
 
 Verison 2.1.5 - June, 2016
 ------------------------------
+- Added ParserElement.split() generator method, similar to re.split(). 
+  Includes optional arguments maxsplit (to limit the number of splits),
+  and includeSeparators (to include the separating matched text in the 
+  returned output, default=False).
+
 - Added a new parse action construction helper tokenMap, which will
   apply a function and optional arguments to each element in a 
   ParseResults. So this parse action:

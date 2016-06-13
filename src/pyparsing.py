@@ -58,7 +58,7 @@ The pyparsing module handles some of the problems that are typically vexing when
 """
 
 __version__ = "2.1.5"
-__versionTime__ = "12 Jun 2016 21:53 UTC"
+__versionTime__ = "13 Jun 2016 19:59 UTC"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -1325,6 +1325,21 @@ class ParserElement(object):
             else:
                 # catch and re-raise exception from here, clears out pyparsing internal stack trace
                 raise exc
+
+    def split(self, instring, maxsplit=_MAX_INT, includeSeparators=False):
+        """Generator method to split a string using the given expression as a separator.
+           May be called with optional C{maxsplit} argument, to limit the number of splits;
+           and the optional C{includeSeparators} argument (default=C{False}), if the separating
+           matching text should be included in the split results.
+        """
+        splits = 0
+        last = 0
+        for t,s,e in self.scanString(instring, maxMatches=maxsplit):
+            yield instring[last:s]
+            if includeSeparators:
+                yield t[0]
+            last = e
+        yield instring[last:]
 
     def __add__(self, other ):
         """Implementation of + operator - returns C{L{And}}"""
@@ -3525,6 +3540,7 @@ def originalTextFor(expr, asString=True):
         def extractText(s,l,t):
             t[:] = [s[t.pop('_original_start'):t.pop('_original_end')]]
     matchExpr.setParseAction(extractText)
+    matchExpr.ignoreExprs = expr.ignoreExprs
     return matchExpr
 
 def ungroup(expr): 

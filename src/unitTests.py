@@ -2822,6 +2822,102 @@ class HTMLStripperTest(ParseTestCase):
         result = read_everything.parseString(sample)
         assert result[0].strip() == 'Here is some sample HTML text.'
 
+class ExprSplitterTest(ParseTestCase):
+    def runTest(self):
+        
+        from pyparsing import Literal, quotedString, pythonStyleComment, Empty
+        
+        expr = Literal(';') + Empty()
+        expr.ignore(quotedString)
+        expr.ignore(pythonStyleComment)
+        
+        
+        sample = """
+        def main():
+            this_semi_does_nothing();
+            neither_does_this_but_there_are_spaces_afterward();   
+            a = "a;b"; return a # this is a comment; it has a semicolon!
+
+        def b():
+            if False:
+                z=1000;b("; in quotes");  c=200;return z
+            return ';'
+
+        class Foo(object):
+            def bar(self):
+                '''a docstring; with a semicolon'''
+                a = 10; b = 11; c = 12
+                
+                # this comment; has several; semicolons
+                if self.spam:
+                    x = 12; return x # so; does; this; one
+                    x = 15;;; y += x; return y
+
+            def baz(self):
+                return self.bar
+        """
+        expected = [
+            ['            this_semi_does_nothing()', ''],
+            ['            neither_does_this_but_there_are_spaces_afterward()', ''],
+            ['            a = "a;b"', 'return a # this is a comment; it has a semicolon!'],
+            ['                z=1000', 'b("; in quotes")', 'c=200', 'return z'],
+            ["            return ';'"],
+            ["                '''a docstring; with a semicolon'''"],
+            ['                a = 10', 'b = 11', 'c = 12'],
+            ['                # this comment; has several; semicolons'],
+            ['                    x = 12', 'return x # so; does; this; one'],
+            ['                    x = 15', '', '', 'y += x', 'return y'],
+            ]
+
+        exp_iter = iter(expected)
+        for line in filter(lambda ll: ';' in ll, sample.splitlines()):
+            print_(str(list(expr.split(line)))+',')
+            assert list(expr.split(line)) == next(exp_iter), "invalid split on expression"
+
+        print_()
+
+        expected = [
+            ['            this_semi_does_nothing()', ';', ''],
+            ['            neither_does_this_but_there_are_spaces_afterward()', ';', ''],
+            ['            a = "a;b"', ';', 'return a # this is a comment; it has a semicolon!'],
+            ['                z=1000', ';', 'b("; in quotes")', ';', 'c=200', ';', 'return z'],
+            ["            return ';'"],
+            ["                '''a docstring; with a semicolon'''"],
+            ['                a = 10', ';', 'b = 11', ';', 'c = 12'],
+            ['                # this comment; has several; semicolons'],
+            ['                    x = 12', ';', 'return x # so; does; this; one'],
+            ['                    x = 15', ';', '', ';', '', ';', 'y += x', ';', 'return y'],
+            ]
+        exp_iter = iter(expected)
+        for line in filter(lambda ll: ';' in ll, sample.splitlines()):
+            print_(str(list(expr.split(line, includeSeparators=True)))+',')
+            assert list(expr.split(line, includeSeparators=True)) == next(exp_iter), "invalid split on expression"
+
+        print_()
+
+
+        expected = [
+            ['            this_semi_does_nothing()', ''],
+            ['            neither_does_this_but_there_are_spaces_afterward()', ''],
+            ['            a = "a;b"', 'return a # this is a comment; it has a semicolon!'],
+            ['                z=1000', 'b("; in quotes");  c=200;return z'],
+            ['                a = 10', 'b = 11; c = 12'],
+            ['                    x = 12', 'return x # so; does; this; one'],
+            ['                    x = 15', ';; y += x; return y'],
+            ]
+        exp_iter = iter(expected)
+        for line in sample.splitlines():
+            pieces = list(expr.split(line, maxsplit=1))
+            print_(str(pieces)+',')
+            if len(pieces) == 2:
+                exp = next(exp_iter)
+                assert pieces == exp, "invalid split on expression with maxSplits=1"
+            elif len(pieces) == 1:
+                assert len(expr.searchString(line)) == 0, "invalid split with maxSplits=1 when expr not present"
+            else:
+                print_("\n>>> " + line)
+                assert False, "invalid split on expression with maxSplits=1, corner case"
+
 
 class MiscellaneousParserTests(ParseTestCase):
     def runTest(self):
