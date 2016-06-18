@@ -2777,6 +2777,18 @@ class CommonExpressionsTest(ParseTestCase):
             """)[0]
         assert success, "failed to parse valid mixed integer"
 
+        success, results = pyparsing_common.numeric.runTests("""
+            100
+            -3
+            1.732
+            -3.14159
+            6.02e23""")
+        assert success, "failed to parse numerics"
+        for test,result in results:
+            expected = eval(test)
+            assert result[0] == expected, "numeric parse failed (wrong value) (%s should be %s)" % (result[0], expected)
+            assert type(result[0]) == type(expected), "numeric parse failed (wrong type) (%s should be %s)" % (type(result[0]), type(expected))
+            
 
 class TokenMapTest(ParseTestCase):
     def runTest(self):
