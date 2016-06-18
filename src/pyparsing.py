@@ -57,8 +57,8 @@ The pyparsing module handles some of the problems that are typically vexing when
  - embedded comments
 """
 
-__version__ = "2.1.5"
-__versionTime__ = "13 Jun 2016 19:59 UTC"
+__version__ = "2.1.6"
+__versionTime__ = "18 Jun 2016 12:49 UTC"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -3988,7 +3988,7 @@ class pyparsing_common:
     signedInteger = Regex(r'[+-]?\d+').setName("signed integer").setParseAction(convertToInteger)
     """expression that parses an integer with optional leading sign, returns an int"""
 
-    fraction = (signedInteger.addParseAction(convertToFloat) + '/' + signedInteger.addParseAction(convertToFloat)).setName("fraction")
+    fraction = (signedInteger().setParseAction(convertToFloat) + '/' + signedInteger().setParseAction(convertToFloat)).setName("fraction")
     """fractional expression of an integer divided by an integer, returns a float"""
     fraction.addParseAction(lambda t: t[0]/t[-1])
 
