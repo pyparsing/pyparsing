@@ -3086,10 +3086,14 @@ class MiscellaneousParserTests(ParseTestCase):
             assert ''.join(grammar.parseString( "aba" )) == 'aba', "Packrat ABA failure!"
 
 def makeTestSuite():
+    import inspect
     suite = TestSuite()
     suite.addTest( PyparsingTestInit() )
 
     test_case_classes = ParseTestCase.__subclasses__()
+    # put classes in order as they are listed in the source code
+    test_case_classes.sort(key=lambda cls: inspect.getsourcelines(cls)[1])
+
     test_case_classes.remove(PyparsingTestInit)
     # test_case_classes.remove(ParseASMLTest)
     test_case_classes.remove(EnablePackratParsing)
