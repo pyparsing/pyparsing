@@ -58,7 +58,7 @@ The pyparsing module handles some of the problems that are typically vexing when
 """
 
 __version__ = "2.1.6"
-__versionTime__ = "18 Jun 2016 12:49 UTC"
+__versionTime__ = "26 Jul 2016 23:50 UTC"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -72,6 +72,11 @@ import collections
 import pprint
 import traceback
 from datetime import datetime
+
+try:
+    from _thread import RLock
+except ImportError:
+    from threading import RLock
 
 #~ sys.stderr.write( "testing pyparsing module, version %s, %s\n" % (__version__,__versionTime__ ) )
 
@@ -859,6 +864,59 @@ def _trim_arity(func, maxargs=2):
 
     return wrapper
 
+# argument cache for optimizing repeated calls when backtracking through recursive expressions
+class _TTLCache(object):
+    
+    @classmethod
+    def get_cache(cls, maxsize):
+        if maxsize is None:
+            return _UnboundedTTLCache(maxsize)
+        if maxsize == 0:
+            return _DisabledTTLCache(maxsize)
+        return cls(maxsize)
+
+    def __init__(self, maxsize=None):
+        self.lookup = {}
+        self.maxsize = maxsize
+        self.key_ttl_queue = collections.deque(maxlen=maxsize)
+        self.clear()
+
+    def clear(self):
+        self.lookup.clear()
+        self.key_ttl_queue.clear()
+        self.isfull = isinstance(self.maxsize, int) and len(self.key_ttl_queue) >= self.maxsize
+
+    def __contains__(self, key):
+        return key in self.lookup
+
+    def __len__(self):
+        return len(self.lookup)
+
+    def __getitem__(self, key, default=None):
+        return self.lookup.get(key, default)
+    
+    def __setitem__(self, key, value):
+        # once we are full, we stay full until we are reset
+        if not self.isfull:
+            self.isfull = len(self) >= self.maxsize
+
+        self.lookup[key] = value
+        self.key_ttl_queue.append(key)
+
+        if self.isfull:
+            self.lookup.pop(self.key_ttl_queue.popleft())
+
+class _UnboundedTTLCache(_TTLCache):
+    def __setitem__(self, key, value):
+        # unbounded cache, just add new item
+        self.lookup[key] = value
+        self.key_ttl_queue.append(key)
+        
+class _DisabledTTLCache(_TTLCache):
+    def __setitem__(self, key, value):
+        # cacheing is effectively disabled, do nothing
+        pass
+
 class ParserElement(object):
     """Abstract base level parser element class."""
     DEFAULT_WHITE_CHARS = " \n\t\r"
@@ -1135,42 +1193,57 @@ class ParserElement(object):
         else:
             return True
 
+    packrat_cache = _TTLCache()
+    packrat_cache_stats = [0, 0, 0]
+    packrat_cache_lock = RLock()
+    
     # this method gets repeatedly called during backtracking with the same arguments -
     # we can cache these arguments and save ourselves the trouble of re-parsing the contained expression
     def _parseCache( self, instring, loc, doActions=True, callPreParse=True ):
-        lookup = (self,instring,loc,callPreParse,doActions)
-        if lookup in ParserElement._exprArgCache:
-            value = ParserElement._exprArgCache[ lookup ]
-            if isinstance(value, Exception):
-                raise value
-            return (value[0],value[1].copy())
-        else:
-            try:
-                value = self._parseNoCache( instring, loc, doActions, callPreParse )
-                ParserElement._exprArgCache[ lookup ] = (value[0],value[1].copy())
-                return value
-            except ParseBaseException as pe:
-                pe.__traceback__ = None
-                ParserElement._exprArgCache[ lookup ] = pe
-                raise
+        SIZE, HIT, MISS = 0, 1, 2
+        lookup = (self, instring, loc, callPreParse, doActions)
+        with ParserElement.packrat_cache_lock:
+            if lookup in ParserElement.packrat_cache:
+                ParserElement.packrat_cache_stats[HIT] += 1
+                value = ParserElement.packrat_cache[lookup]
+                if isinstance(value, Exception):
+                    raise value
+                return (value[0], value[1].copy())
+            else:
+                ParserElement.packrat_cache_stats[MISS] += 1
+                try:
+                    value = self._parseNoCache( instring, loc, doActions, callPreParse )
+                    ParserElement.packrat_cache[lookup] = (value[0], value[1].copy())
+                    ParserElement.packrat_cache_stats[SIZE] = len(ParserElement.packrat_cache)
+                    return value
+                except ParseBaseException as pe:
+                    pe.__traceback__ = None
+                    ParserElement.packrat_cache[lookup] = pe
+                    ParserElement.packrat_cache_stats[SIZE] = len(ParserElement.packrat_cache)
+                    raise
 
     _parse = _parseNoCache
 
-    # argument cache for optimizing repeated calls when backtracking through recursive expressions
-    _exprArgCache = {}
     @staticmethod
     def resetCache():
-        ParserElement._exprArgCache.clear()
+        ParserElement.packrat_cache.clear()
+        ParserElement.packrat_cache_stats[:] = [0] * len(ParserElement.packrat_cache_stats)
 
     _packratEnabled = False
     @staticmethod
-    def enablePackrat():
+    def enablePackrat(cache_size_limit=128):
         """Enables "packrat" parsing, which adds memoizing to the parsing logic.
            Repeated parse attempts at the same string location (which happens
            often in many complex grammars) can immediately return a cached value,
            instead of re-executing parsing/validating code.  Memoizing is done of
            both valid results and parsing exceptions.
-
+           
+           Parameters:
+            - cache_size_limit - (default=128) - if an integer value is provided
+              will limit the size of the packrat cache; if None is passed, then
+              the cache size will be unbounded; if 0 is passed, the cache will
+              be effectively disabled
+            
            This speedup may break existing programs that use parse actions that
            have side-effects.  For this reason, packrat parsing is disabled when
            you first import pyparsing.  To activate the packrat feature, your
@@ -1182,6 +1255,7 @@ class ParserElement(object):
         """
         if not ParserElement._packratEnabled:
             ParserElement._packratEnabled = True
+            ParserElement.packrat_cache = _TTLCache.get_cache(cache_size_limit)
             ParserElement._parse = ParserElement._parseCache
 
     def parseString( self, instring, parseAll=False ):
