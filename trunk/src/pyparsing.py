@@ -58,7 +58,7 @@ The pyparsing module handles some of the problems that are typically vexing when
 """
 
 __version__ = "2.1.6"
-__versionTime__ = "26 Jul 2016 23:50 UTC"
+__versionTime__ = "27 Jul 2016 06:06 UTC"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -892,7 +892,10 @@ class _TTLCache(object):
     def __len__(self):
         return len(self.lookup)
 
-    def __getitem__(self, key, default=None):
+    def __getitem__(self, key):
+        return self.lookup.get(key)
+
+    def get(self, key, default=None):
         return self.lookup.get(key, default)
     
     def __setitem__(self, key, value):
@@ -900,11 +903,11 @@ class _TTLCache(object):
         if not self.isfull:
             self.isfull = len(self) >= self.maxsize
 
+        if self.isfull:
+            self.lookup.pop(self.key_ttl_queue.popleft(), None)
+
         self.lookup[key] = value
         self.key_ttl_queue.append(key)
-
-        if self.isfull:
-            self.lookup.pop(self.key_ttl_queue.popleft())
 
 class _UnboundedTTLCache(_TTLCache):
     def __setitem__(self, key, value):
@@ -1203,9 +1206,9 @@ class ParserElement(object):
         SIZE, HIT, MISS = 0, 1, 2
         lookup = (self, instring, loc, callPreParse, doActions)
         with ParserElement.packrat_cache_lock:
-            if lookup in ParserElement.packrat_cache:
+            value = ParserElement.packrat_cache.get(lookup, None)
+            if value is not None:
                 ParserElement.packrat_cache_stats[HIT] += 1
-                value = ParserElement.packrat_cache[lookup]
                 if isinstance(value, Exception):
                     raise value
                 return (value[0], value[1].copy())
