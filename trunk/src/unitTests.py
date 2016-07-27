@@ -1450,8 +1450,12 @@ class UpcaseDowncaseUnicode(ParseTestCase):
             from __builtin__ import unichr
 
         a = '\u00bfC\u00f3mo esta usted?'
-        ualphas = "".join( unichr(i) for i in range(sys.maxunicode)
-                            if unichr(i).isalpha() )
+        if not JYTHON_ENV:
+            ualphas = "".join( unichr(i) for i in range(sys.maxunicode)
+                                if unichr(i).isalpha() )
+        else:
+            ualphas = "".join( unichr(i) for i in itertools.chain(range(0xd800), range(0xe00,sys.maxunicode))
+                                if unichr(i).isalpha() )
         uword = pp.Word(ualphas).setParseAction(pp.upcaseTokens)
 
         print_ = lambda *args: None
