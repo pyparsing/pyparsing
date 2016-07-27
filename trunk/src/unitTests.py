@@ -7,7 +7,6 @@ from pyparsing import ParseException
 #~ import HTMLTestRunner
 
 import sys
-import pprint
 import pdb
 
 PY_3 = sys.version.startswith('3')
@@ -228,7 +227,7 @@ class ParseJSONDataTest(ParseTestCase):
         for t,exp in zip((test1,test2,test3,test4,test5),expected):
             result = jsonObject.parseString(t)
 ##            print result.dump()
-            pprint.pprint(result.asList())
+            result.pprint()
             print_()
 ##            if result.asList() != exp:
 ##                print "Expected %s, parsed results as %s" % (exp, result.asList())
@@ -320,7 +319,7 @@ class ParseIDLTest(ParseTestCase):
                 bnf = idlParse.CORBA_IDL_BNF()
                 tokens = bnf.parseString( strng )
                 print_("tokens = ")
-                pprint.pprint( tokens.asList() )
+                tokens.pprint()
                 tokens = flatten( tokens.asList() )
                 print_(len(tokens))
                 assert len(tokens) == numToks, "error matching IDL string, %s -> %s" % (strng, str(tokens) )
