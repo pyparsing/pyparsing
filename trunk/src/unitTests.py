@@ -1454,7 +1454,7 @@ class UpcaseDowncaseUnicode(ParseTestCase):
             ualphas = "".join( unichr(i) for i in range(sys.maxunicode)
                                 if unichr(i).isalpha() )
         else:
-            ualphas = "".join( unichr(i) for i in itertools.chain(range(0xd800), range(0xe00,sys.maxunicode))
+            ualphas = "".join( unichr(i) for i in list(range(0xd800)) + list(range(0xe00,sys.maxunicode))
                                 if unichr(i).isalpha() )
         uword = pp.Word(ualphas).setParseAction(pp.upcaseTokens)
 
