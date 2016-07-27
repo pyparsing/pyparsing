@@ -189,6 +189,7 @@ class ParseBaseException(Exception):
             self.msg = msg
             self.pstr = pstr
         self.parserElement = elem
+        self.args = (pstr, loc, msg)
 
     def __getattr__( self, aname ):
         """supported attributes by name are:
