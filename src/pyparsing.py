@@ -58,7 +58,7 @@ The pyparsing module handles some of the problems that are typically vexing when
 """
 
 __version__ = "2.1.6"
-__versionTime__ = "27 Jul 2016 08:16 UTC"
+__versionTime__ = "27 Jul 2016 19:13 UTC"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -1150,46 +1150,27 @@ class ParserElement(object):
             return True
 
 
-    class DictCache(object):
-        def __init__(self, size=None):
-            self._cache = {}
-            self.maxsize = None
-        
-        def get(self, key, default=None):
-            return self._cache.get(key, default)
-        
-        def set(self, key, value):
-            self._cache[key] = value
-            
-        def clear(self):
-            self._cache.clear()
-        
-        def stats(self):
-            return [0, 0]
-    
-    class LruDictCache(object):
+    # argument cache for optimizing repeated calls when backtracking through recursive expressions
+    packrat_cache = {}  # default to ordinary dict in case lru_cache not available
+    packrat_cache_lock = RLock()
+    packrat_cache_stats = [0, 0]
+
+    class _LruDictCache(object):
+        """wrapper class, to make lru_cache look like a dict
+        """
         def __init__(self, size=None):
             self._cache = _lru_cache(size)(lambda arg: list())
             self.maxsize = size
-        
-        def get(self, key, default=None):
-            ret = self._cache(key)
-            return ret[0] if ret else ret
-        
-        def set(self, key, value):
-            ret = self._cache(key)
-            ret[:] = [value]
-            
+
+        def setdefault(self, key, default):
+            return self._cache(key)
+
         def clear(self):
             self._cache.cache_clear()
-        
+
         def stats(self):
             return self._cache.cache_info()
-            
-    # argument cache for optimizing repeated calls when backtracking through recursive expressions
-    packrat_cache = DictCache()
-    packrat_cache_lock = RLock()
-    packrat_cache_stats = [0, 0]
+
 
     # this method gets repeatedly called during backtracking with the same arguments -
     # we can cache these arguments and save ourselves the trouble of re-parsing the contained expression
@@ -1197,21 +1178,28 @@ class ParserElement(object):
         HIT, MISS = 0, 1
         lookup = (self, instring, loc, callPreParse, doActions)
         with ParserElement.packrat_cache_lock:
-            value = ParserElement.packrat_cache.get(lookup)
-            if value:
+            container = ParserElement.packrat_cache.setdefault(lookup, [])
+            if container:
+                # retrieved non-empty container from cache, so this is a cache hit
+                # get values or exception from container
+                value = container[0]
                 ParserElement.packrat_cache_stats[HIT] += 1
                 if isinstance(value, Exception):
                     raise value
                 return (value[0], value[1].copy())
             else:
+                # retrieved container is empty, so this is a cache miss (first
+                # occurrence of this lookup key); must populate the container
                 ParserElement.packrat_cache_stats[MISS] += 1
                 try:
                     value = self._parseNoCache(instring, loc, doActions, callPreParse)
-                    ParserElement.packrat_cache.set(lookup, (value[0], value[1].copy()))
+                    # saved parsed value into cached container
+                    container.append((value[0], value[1].copy()))
                     return value
                 except ParseBaseException as pe:
-                    value = pe.__class__(*pe.args)
-                    ParserElement.packrat_cache.set(lookup, value)
+                    # construct copy of exception for cacheing (omit traceback)
+                    exc_value = pe.__class__(*pe.args)
+                    container.append(exc_value)
                     raise
 
     _parse = _parseNoCache
@@ -1234,7 +1222,7 @@ class ParserElement(object):
             - cache_size_limit - (default=128) - if an integer value is provided
               will limit the size of the packrat cache; if None is passed, then
               the cache size will be unbounded; if 0 is passed, the cache will
-              be effectively disabled
+              be effectively disabled.
             
            This speedup may break existing programs that use parse actions that
            have side-effects.  For this reason, packrat parsing is disabled when
@@ -1248,9 +1236,7 @@ class ParserElement(object):
         if not ParserElement._packratEnabled:
             ParserElement._packratEnabled = True
             if _lru_cache:
-                ParserElement.packrat_cache = ParserElement.LruDictCache(cache_size_limit)
-            else:
-                ParserElement.packrat_cache = ParserElement.DictCache()
+                ParserElement.packrat_cache = ParserElement._LruDictCache(cache_size_limit)
             ParserElement._parse = ParserElement._parseCache
 
     def parseString( self, instring, parseAll=False ):
