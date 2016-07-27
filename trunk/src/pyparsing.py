@@ -58,7 +58,7 @@ The pyparsing module handles some of the problems that are typically vexing when
 """
 
 __version__ = "2.1.6"
-__versionTime__ = "27 Jul 2016 06:06 UTC"
+__versionTime__ = "27 Jul 2016 08:16 UTC"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -77,6 +77,15 @@ try:
     from _thread import RLock
 except ImportError:
     from threading import RLock
+
+try:
+    from functools import lru_cache as _lru_cache
+except ImportError:
+    try:
+        from functools32 import lru_cache as _lru_cache
+    except ImportError:
+        _lru_cache = None
+
 
 #~ sys.stderr.write( "testing pyparsing module, version %s, %s\n" % (__version__,__versionTime__ ) )
 
@@ -864,62 +873,6 @@ def _trim_arity(func, maxargs=2):
 
     return wrapper
 
-# argument cache for optimizing repeated calls when backtracking through recursive expressions
-class _TTLCache(object):
-    
-    @classmethod
-    def get_cache(cls, maxsize):
-        if maxsize is None:
-            return _UnboundedTTLCache(maxsize)
-        if maxsize == 0:
-            return _DisabledTTLCache(maxsize)
-        return cls(maxsize)
-
-    def __init__(self, maxsize=None):
-        self.lookup = {}
-        self.maxsize = maxsize
-        self.key_ttl_queue = collections.deque(maxlen=maxsize)
-        self.clear()
-
-    def clear(self):
-        self.lookup.clear()
-        self.key_ttl_queue.clear()
-        self.isfull = isinstance(self.maxsize, int) and len(self.key_ttl_queue) >= self.maxsize
-
-    def __contains__(self, key):
-        return key in self.lookup
-
-    def __len__(self):
-        return len(self.lookup)
-
-    def __getitem__(self, key):
-        return self.lookup.get(key)
-
-    def get(self, key, default=None):
-        return self.lookup.get(key, default)
-    
-    def __setitem__(self, key, value):
-        # once we are full, we stay full until we are reset
-        if not self.isfull:
-            self.isfull = len(self) >= self.maxsize
-
-        if self.isfull:
-            self.lookup.pop(self.key_ttl_queue.popleft(), None)
-
-        self.lookup[key] = value
-        self.key_ttl_queue.append(key)
-
-class _UnboundedTTLCache(_TTLCache):
-    def __setitem__(self, key, value):
-        # unbounded cache, just add new item
-        self.lookup[key] = value
-        self.key_ttl_queue.append(key)
-        
-class _DisabledTTLCache(_TTLCache):
-    def __setitem__(self, key, value):
-        # cacheing is effectively disabled, do nothing
-        pass
-
 class ParserElement(object):
     """Abstract base level parser element class."""
     DEFAULT_WHITE_CHARS = " \n\t\r"
@@ -1196,18 +1149,56 @@ class ParserElement(object):
         else:
             return True
 
-    packrat_cache = _TTLCache()
-    packrat_cache_stats = [0, 0, 0]
-    packrat_cache_lock = RLock()
+
+    class DictCache(object):
+        def __init__(self, size=None):
+            self._cache = {}
+            self.maxsize = None
+        
+        def get(self, key, default=None):
+            return self._cache.get(key, default)
+        
+        def set(self, key, value):
+            self._cache[key] = value
+            
+        def clear(self):
+            self._cache.clear()
+        
+        def stats(self):
+            return [0, 0]
     
+    class LruDictCache(object):
+        def __init__(self, size=None):
+            self._cache = _lru_cache(size)(lambda arg: list())
+            self.maxsize = size
+        
+        def get(self, key, default=None):
+            ret = self._cache(key)
+            return ret[0] if ret else ret
+        
+        def set(self, key, value):
+            ret = self._cache(key)
+            ret[:] = [value]
+            
+        def clear(self):
+            self._cache.cache_clear()
+        
+        def stats(self):
+            return self._cache.cache_info()
+            
+    # argument cache for optimizing repeated calls when backtracking through recursive expressions
+    packrat_cache = DictCache()
+    packrat_cache_lock = RLock()
+    packrat_cache_stats = [0, 0]
+
     # this method gets repeatedly called during backtracking with the same arguments -
     # we can cache these arguments and save ourselves the trouble of re-parsing the contained expression
     def _parseCache( self, instring, loc, doActions=True, callPreParse=True ):
-        SIZE, HIT, MISS = 0, 1, 2
+        HIT, MISS = 0, 1
         lookup = (self, instring, loc, callPreParse, doActions)
         with ParserElement.packrat_cache_lock:
-            value = ParserElement.packrat_cache.get(lookup, None)
-            if value is not None:
+            value = ParserElement.packrat_cache.get(lookup)
+            if value:
                 ParserElement.packrat_cache_stats[HIT] += 1
                 if isinstance(value, Exception):
                     raise value
@@ -1215,14 +1206,12 @@ class ParserElement(object):
             else:
                 ParserElement.packrat_cache_stats[MISS] += 1
                 try:
-                    value = self._parseNoCache( instring, loc, doActions, callPreParse )
-                    ParserElement.packrat_cache[lookup] = (value[0], value[1].copy())
-                    ParserElement.packrat_cache_stats[SIZE] = len(ParserElement.packrat_cache)
+                    value = self._parseNoCache(instring, loc, doActions, callPreParse)
+                    ParserElement.packrat_cache.set(lookup, (value[0], value[1].copy()))
                     return value
                 except ParseBaseException as pe:
-                    pe.__traceback__ = None
-                    ParserElement.packrat_cache[lookup] = pe
-                    ParserElement.packrat_cache_stats[SIZE] = len(ParserElement.packrat_cache)
+                    value = pe.__class__(*pe.args)
+                    ParserElement.packrat_cache.set(lookup, value)
                     raise
 
     _parse = _parseNoCache
@@ -1258,7 +1247,10 @@ class ParserElement(object):
         """
         if not ParserElement._packratEnabled:
             ParserElement._packratEnabled = True
-            ParserElement.packrat_cache = _TTLCache.get_cache(cache_size_limit)
+            if _lru_cache:
+                ParserElement.packrat_cache = ParserElement.LruDictCache(cache_size_limit)
+            else:
+                ParserElement.packrat_cache = ParserElement.DictCache()
             ParserElement._parse = ParserElement._parseCache
 
     def parseString( self, instring, parseAll=False ):
