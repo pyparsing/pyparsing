@@ -58,7 +58,7 @@ The pyparsing module handles some of the problems that are typically vexing when
 """
 
 __version__ = "2.1.6"
-__versionTime__ = "27 Jul 2016 19:13 UTC"
+__versionTime__ = "03 Aug 2016 23:56 UTC"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -71,6 +71,7 @@ import sre_constants
 import collections
 import pprint
 import traceback
+import types
 from datetime import datetime
 
 try:
@@ -79,13 +80,12 @@ except ImportError:
     from threading import RLock
 
 try:
-    from functools import lru_cache as _lru_cache
+    from collections import OrderedDict as _OrderedDict
 except ImportError:
     try:
-        from functools32 import lru_cache as _lru_cache
+        from ordereddict import OrderedDict as _OrderedDict
     except ImportError:
-        _lru_cache = None
-
+        _OrderedDict = None
 
 #~ sys.stderr.write( "testing pyparsing module, version %s, %s\n" % (__version__,__versionTime__ ) )
 
@@ -1150,28 +1150,75 @@ class ParserElement(object):
         else:
             return True
 
+    class _UnboundedCache(object):
+        def __init__(self):
+            cache = {}
+            self.not_in_cache = not_in_cache = object()
+
+            def get(self, key):
+                return cache.get(key, not_in_cache)
+
+            def set(self, key, value):
+                cache[key] = value
+
+            def clear(self):
+                cache.clear()
+
+            self.get = types.MethodType(get, self)
+            self.set = types.MethodType(set, self)
+            self.clear = types.MethodType(clear, self)
+
+    if _OrderedDict is not None:
+        class _FifoCache(object):
+            def __init__(self, size):
+                self.not_in_cache = not_in_cache = object()
+
+                cache = _OrderedDict()
+
+                def get(self, key):
+                    return cache.get(key, not_in_cache)
+
+                def set(self, key, value):
+                    cache[key] = value
+                    if len(cache) > size:
+                        cache.popitem(False)
+
+                def clear(self):
+                    cache.clear()
+
+                self.get = types.MethodType(get, self)
+                self.set = types.MethodType(set, self)
+                self.clear = types.MethodType(clear, self)
+
+    else:
+        class _FifoCache(object):
+            def __init__(self, size):
+                self.not_in_cache = not_in_cache = object()
+
+                cache = {}
+                key_fifo = collections.deque([], size)
+
+                def get(self, key):
+                    return cache.get(key, not_in_cache)
+
+                def set(self, key, value):
+                    cache[key] = value
+                    if len(cache) > size:
+                        cache.pop(key_fifo.popleft(), None)
+                    key_fifo.append(key)
+
+                def clear(self):
+                    cache.clear()
+                    key_fifo.clear()
+
+                self.get = types.MethodType(get, self)
+                self.set = types.MethodType(set, self)
+                self.clear = types.MethodType(clear, self)
 
     # argument cache for optimizing repeated calls when backtracking through recursive expressions
-    packrat_cache = {}  # default to ordinary dict in case lru_cache not available
+    packrat_cache = {} # this is set later by enabledPackrat(); this is here so that resetCache() doesn't fail
     packrat_cache_lock = RLock()
     packrat_cache_stats = [0, 0]
-
-    class _LruDictCache(object):
-        """wrapper class, to make lru_cache look like a dict
-        """
-        def __init__(self, size=None):
-            self._cache = _lru_cache(size)(lambda arg: list())
-            self.maxsize = size
-
-        def setdefault(self, key, default):
-            return self._cache(key)
-
-        def clear(self):
-            self._cache.cache_clear()
-
-        def stats(self):
-            return self._cache.cache_info()
-
 
     # this method gets repeatedly called during backtracking with the same arguments -
     # we can cache these arguments and save ourselves the trouble of re-parsing the contained expression
@@ -1179,29 +1226,24 @@ class ParserElement(object):
         HIT, MISS = 0, 1
         lookup = (self, instring, loc, callPreParse, doActions)
         with ParserElement.packrat_cache_lock:
-            container = ParserElement.packrat_cache.setdefault(lookup, [])
-            if container:
-                # retrieved non-empty container from cache, so this is a cache hit
-                # get values or exception from container
-                value = container[0]
+            cache = ParserElement.packrat_cache
+            value = cache.get(lookup)
+            if value is cache.not_in_cache:
+                ParserElement.packrat_cache_stats[MISS] += 1
+                try:
+                    value = self._parseNoCache(instring, loc, doActions, callPreParse)
+                except ParseBaseException as pe:
+                    # cache a copy of the exception, without the traceback
+                    cache.set(lookup, pe.__class__(*pe.args))
+                    raise
+                else:
+                    cache.set(lookup, (value[0], value[1].copy()))
+                    return value
+            else:
                 ParserElement.packrat_cache_stats[HIT] += 1
                 if isinstance(value, Exception):
                     raise value
                 return (value[0], value[1].copy())
-            else:
-                # retrieved container is empty, so this is a cache miss (first
-                # occurrence of this lookup key); must populate the container
-                ParserElement.packrat_cache_stats[MISS] += 1
-                try:
-                    value = self._parseNoCache(instring, loc, doActions, callPreParse)
-                    # saved parsed value into cached container
-                    container.append((value[0], value[1].copy()))
-                    return value
-                except ParseBaseException as pe:
-                    # construct copy of exception for cacheing (omit traceback)
-                    exc_value = pe.__class__(*pe.args)
-                    container.append(exc_value)
-                    raise
 
     _parse = _parseNoCache
 
@@ -1236,9 +1278,12 @@ class ParserElement(object):
         """
         if not ParserElement._packratEnabled:
             ParserElement._packratEnabled = True
-            if _lru_cache:
-                ParserElement.packrat_cache = ParserElement._LruDictCache(cache_size_limit)
+            if cache_size_limit is None:
+                ParserElement.packrat_cache = ParserElement._UnboundedCache()
+            else:
+                ParserElement.packrat_cache = ParserElement._FifoCache(cache_size_limit)
             ParserElement._parse = ParserElement._parseCache
+
 
     def parseString( self, instring, parseAll=False ):
         """Execute the parse expression with the given string.

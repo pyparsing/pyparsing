@@ -4,15 +4,13 @@ Change Log
 
 Version 2.1.6 - 
 ------------------------------
-- *Major packrat upgrade*, to take advantage of functools.lru_cache, 
-  inspired by patch provided by Tal Einat - many, many, thanks to Tal 
-  for working on this! Tal's tests show faster parsing performance 
-  (2X in some tests), *and* memory reduction from 3GB down to ~100MB! 
-  functools.lru_cache is only available in Python 3.2 and later,
-  If running this on an earlier Python, this change will also try to 
-  import lru_cache from functools32, which provides a backport of 
-  lru_cache to earlier Python versions. If lru_cache cannot be imported,
-  packratting will revert to the previous unbounded dict cache.
+- *Major packrat upgrade*, inspired by patch provided by Tal Einat - 
+  many, many, thanks to Tal for working on this! Tal's tests show 
+  faster parsing performance (2X in some tests), *and* memory reduction 
+  from 3GB down to ~100MB! Requires no changes to existing code using 
+  packratting. (Uses OrderedDict, available in Python 2.7 and later.
+  For Python 2.6 users, will attempt to import from ordereddict
+  backport. If not present, will implement pure-Python Fifo dict.)
 
 - Fixed bug in pyparsing_common.numeric, integers were parsed as floats.
 
