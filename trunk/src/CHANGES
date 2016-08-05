@@ -20,7 +20,14 @@ Version 2.1.6 -
   respectively. I hope the "f" prefix of "fnumber" will be a better
   indicator of its internal conversion of parsed values to floats, 
   while the generic "number" is similar to the flexible number syntax
-  in other languages.
+  in other languages. Also fixed a bug in pyparsing_common.numeric
+  (now renamed to pyparsing_common.number), integers were parsed and 
+  returned as floats instead of being retained as ints.
+
+- Fixed bug in upcaseTokens and downcaseTokens introduced in 2.1.5,
+  when the parse action was used in conjunction with results names.
+  Reported by Steven Arcangeli from the dql project, thanks for your
+  patience, Steven!
 
 - Major change to docs! After seeing some comments on reddit about 
   general issue with docs of Python modules, and thinking that I'm a 
@@ -55,8 +62,6 @@ Version 2.1.6 -
 
   For tracing tokens in and out of parse actions, the more complete 
   repr form provides important information when debugging parse actions.
-  
-- Fixed bug in pyparsing_common.numeric, integers were parsed as floats.
 
 
 Verison 2.1.5 - June, 2016
