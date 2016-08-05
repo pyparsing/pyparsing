@@ -58,7 +58,7 @@ The pyparsing module handles some of the problems that are typically vexing when
 """
 
 __version__ = "2.1.6"
-__versionTime__ = "05 Aug 2016 18:01 UTC"
+__versionTime__ = "05 Aug 2016 18:11 UTC"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -592,7 +592,7 @@ class ParseResults(object):
         return ret
 
     def asXML( self, doctag=None, namedItemsOnly=False, indent="", formatted=True ):
-        """Returns the parse results as XML. Tags are created for tokens and lists that have defined results names."""
+        """(Deprecated) Returns the parse results as XML. Tags are created for tokens and lists that have defined results names."""
         nl = "\n"
         out = []
         namedItems = dict((v[1],k) for (k,vlist) in self.__tokdict.items()
