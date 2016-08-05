@@ -2700,7 +2700,7 @@ class CommonExpressionsTest(ParseTestCase):
             """, failureTests=True)[0]
         assert success, "error in detecting invalid IPv6 address"
 
-        success = pyparsing_common.numeric.runTests("""
+        success = pyparsing_common.number.runTests("""
             100
             -100
             +100
@@ -2711,7 +2711,7 @@ class CommonExpressionsTest(ParseTestCase):
         assert success, "error in parsing valid numerics"
 
         # any int or real number, returned as float
-        success = pyparsing_common.number.runTests("""
+        success = pyparsing_common.fnumber.runTests("""
             100
             -100
             +100
@@ -2780,7 +2780,7 @@ class CommonExpressionsTest(ParseTestCase):
             """)[0]
         assert success, "failed to parse valid mixed integer"
 
-        success, results = pyparsing_common.numeric.runTests("""
+        success, results = pyparsing_common.number.runTests("""
             100
             -3
             1.732
