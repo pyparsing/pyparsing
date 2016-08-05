@@ -1464,6 +1464,11 @@ class UpcaseDowncaseUnicode(ParseTestCase):
         uword = pp.Word(ualphas).setParseAction(pp.downcaseTokens)
 
         print_(uword.searchString(a))
+        
+        kw = pp.Keyword('mykey', caseless=True).setParseAction(pp.upcaseTokens).setResultsName('rname')
+        ret = kw.parseString('mykey')
+        print(ret.rname)
+        assert ret.rname=='MYKEY', "failed to upcase with named result"
 
         if not IRON_PYTHON_ENV:
             #test html data

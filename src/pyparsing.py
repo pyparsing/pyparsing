@@ -58,7 +58,7 @@ The pyparsing module handles some of the problems that are typically vexing when
 """
 
 __version__ = "2.1.6"
-__versionTime__ = "05 Aug 2016 18:11 UTC"
+__versionTime__ = "05 Aug 2016 19:32 UTC"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -3729,7 +3729,7 @@ def tokenMap(func, *args):
        parsed data to an integer using base 16.
     """
     def pa(s,l,t):
-        t[:] = [func(tokn, *args) for tokn in t]
+        return [func(tokn, *args) for tokn in t]
 
     try:
         func_name = getattr(func, '__name__', 
