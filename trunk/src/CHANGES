@@ -22,6 +22,18 @@ Version 2.1.6 -
   while the generic "number" is similar to the flexible number syntax
   in other languages.
 
+- Deprecated ParseResults.asXML. I've never been too happy with this
+  method, and it usually forces some unnatural code in the parsers in
+  order to get decent tag names. The amount of guesswork that asXML 
+  has to do to try to match names with values should have been a red
+  flag from day one. If you are using asXML, you will need to implement 
+  your own ParseResults->XML serialization. Or consider migrating to
+  a more current format such as JSON (which is very easy to do: 
+  results_as_json = json.dumps(parse_result.asDict()) Hopefully, when
+  I remove this code in a future version, I'll also be able to simplify 
+  some of the craziness in ParseResults, which IIRC was only there to try 
+  to make asXML work.
+
 - Updated traceParseAction parse action decorator to show the repr
   of the input and output tokens, instead of the str format, since 
   str has been simplified to just show the token list content.  
