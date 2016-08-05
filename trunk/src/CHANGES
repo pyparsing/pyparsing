@@ -12,6 +12,16 @@ Version 2.1.6 -
   For Python 2.6 users, will attempt to import from ordereddict
   backport. If not present, will implement pure-Python Fifo dict.)
 
+- Minor API change - to better distinguish between the flexible
+  numeric types defined in pyparsing_common, I've changed "numeric" 
+  (which parsed numbers of different types and returned int for ints, 
+  float for floats, etc.) and "number" (which parsed numbers of int
+  or float type, and returned all floats) to "number" and "fnumber"
+  respectively. I hope the "f" prefix of "fnumber" will be a better
+  indicator of its internal conversion of parsed values to floats, 
+  while the generic "number" is similar to the flexible number syntax
+  in other languages.
+  
 - Fixed bug in pyparsing_common.numeric, integers were parsed as floats.
 
 

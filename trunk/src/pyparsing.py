@@ -58,7 +58,7 @@ The pyparsing module handles some of the problems that are typically vexing when
 """
 
 __version__ = "2.1.6"
-__versionTime__ = "03 Aug 2016 23:56 UTC"
+__versionTime__ = "05 Aug 2016 17:50 UTC"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -4104,10 +4104,10 @@ class pyparsing_common:
     """expression that parses a floating point number with optional scientific notation and returns a float"""
 
     # streamlining this expression makes the docs nicer-looking
-    numeric = (sciReal | real | signedInteger).streamline()
+    number = (sciReal | real | signedInteger).streamline()
     """any numeric expression, returns the corresponding Python type"""
 
-    number = Regex(r'[+-]?\d+\.?\d*([eE][+-]?\d+)?').setName("number").setParseAction(convertToFloat)
+    fnumber = Regex(r'[+-]?\d+\.?\d*([eE][+-]?\d+)?').setName("fnumber").setParseAction(convertToFloat)
     """any int or real number, returned as float"""
     
     identifier = Word(alphas+'_', alphanums+'_').setName("identifier")
@@ -4203,7 +4203,7 @@ if __name__ == "__main__":
 
         """)
 
-    pyparsing_common.numeric.runTests("""
+    pyparsing_common.number.runTests("""
         100
         -100
         +100
@@ -4213,7 +4213,7 @@ if __name__ == "__main__":
         """)
 
     # any int or real number, returned as float
-    pyparsing_common.number.runTests("""
+    pyparsing_common.fnumber.runTests("""
         100
         -100
         +100
