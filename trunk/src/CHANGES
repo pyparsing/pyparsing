@@ -21,6 +21,20 @@ Version 2.1.6 -
   indicator of its internal conversion of parsed values to floats, 
   while the generic "number" is similar to the flexible number syntax
   in other languages.
+
+- Updated traceParseAction parse action decorator to show the repr
+  of the input and output tokens, instead of the str format, since 
+  str has been simplified to just show the token list content.  
+  
+  (The change to ParseResults.__str__ occurred in pyparsing 2.0.4, but
+  it seems that didn't make it into the release notes - sorry! Too
+  many users, especially beginners, were confused by the 
+  "([token_list], {names_dict})" str format for ParseResults, thinking 
+  they were getting a tuple containing a list and a dict. The full form 
+  can be seen if using repr().)
+
+  For tracing tokens in and out of parse actions, the more complete 
+  repr form provides important information when debugging parse actions.
   
 - Fixed bug in pyparsing_common.numeric, integers were parsed as floats.
 
