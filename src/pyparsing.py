@@ -58,7 +58,7 @@ The pyparsing module handles some of the problems that are typically vexing when
 """
 
 __version__ = "2.1.6"
-__versionTime__ = "05 Aug 2016 17:50 UTC"
+__versionTime__ = "05 Aug 2016 18:01 UTC"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -3423,13 +3423,13 @@ def traceParseAction(f):
         s,l,t = paArgs[-3:]
         if len(paArgs)>3:
             thisFunc = paArgs[0].__class__.__name__ + '.' + thisFunc
-        sys.stderr.write( ">>entering %s(line: '%s', %d, %s)\n" % (thisFunc,line(l,s),l,t) )
+        sys.stderr.write( ">>entering %s(line: '%s', %d, %r)\n" % (thisFunc,line(l,s),l,t) )
         try:
             ret = f(*paArgs)
         except Exception as exc:
             sys.stderr.write( "<<leaving %s (exception: %s)\n" % (thisFunc,exc) )
             raise
-        sys.stderr.write( "<<leaving %s (ret: %s)\n" % (thisFunc,ret) )
+        sys.stderr.write( "<<leaving %s (ret: %r)\n" % (thisFunc,ret) )
         return ret
     try:
         z.__name__ = f.__name__
