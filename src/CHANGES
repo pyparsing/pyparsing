@@ -22,6 +22,14 @@ Version 2.1.6 -
   while the generic "number" is similar to the flexible number syntax
   in other languages.
 
+- Major change to docs! After seeing some comments on reddit about 
+  general issue with docs of Python modules, and thinking that I'm a 
+  little overdue in doing some doc tuneup on pyparsing, I decided to
+  following the suggestions of the redditor and add more inline examples
+  to the pyparsing reference documentation. I hope this addition 
+  will clarify some of the more common questions people have, especially
+  when first starting with pyparsing/Python.
+
 - Deprecated ParseResults.asXML. I've never been too happy with this
   method, and it usually forces some unnatural code in the parsers in
   order to get decent tag names. The amount of guesswork that asXML 
