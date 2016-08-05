@@ -3685,14 +3685,14 @@ def srange(s):
           srange("[a-z$_]") -> "abcdefghijklmnopqrstuvwxyz$_"
        The input string must be enclosed in []'s, and the returned string is the expanded
        character set joined into a single string.
-       The values enclosed in the []'s may be::
-          a single character
-          an escaped character with a leading backslash (such as \- or \])
-          an escaped hex character with a leading '\x' (\x21, which is a '!' character) 
-            (\0x## is also supported for backwards compatibility) 
-          an escaped octal character with a leading '\0' (\041, which is a '!' character)
-          a range of any of the above, separated by a dash ('a-z', etc.)
-          any combination of the above ('aeiouy', 'a-zA-Z0-9_$', etc.)
+       The values enclosed in the []'s may be:
+        - a single character
+        - an escaped character with a leading backslash (such as C{\-} or C{\]})
+        - an escaped hex character with a leading C{'\x'} (C{\x21}, which is a C{'!'} character) 
+            (C{\0x##} is also supported for backwards compatibility) 
+        - an escaped octal character with a leading C{'\0'} (C{\041}, which is a C{'!'} character)
+        - a range of any of the above, separated by a dash (C{'a-z'}, etc.)
+        - any combination of the above (C{'aeiouy'}, C{'a-zA-Z0-9_$'}, etc.)
     """
     _expanded = lambda p: p if not isinstance(p,ParseResults) else ''.join(unichr(c) for c in range(ord(p[0]),ord(p[1])+1))
     try:
