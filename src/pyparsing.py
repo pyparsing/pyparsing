@@ -58,7 +58,7 @@ The pyparsing module handles some of the problems that are typically vexing when
 """
 
 __version__ = "2.1.6"
-__versionTime__ = "05 Aug 2016 20:05 UTC"
+__versionTime__ = "06 Aug 2016 18:17 UTC"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -474,7 +474,7 @@ class ParseResults(object):
         
     def pop( self, *args, **kwargs):
         """
-        Removes and returns item at specified index (C{default=last}).
+        Removes and returns item at specified index (default=C{last}).
         Supports both C{list} and C{dict} semantics for C{pop()}. If passed no
         argument or an integer argument, it will use C{list} semantics
         and pop tokens from the list of parsed tokens. If passed a 
@@ -797,10 +797,25 @@ class ParseResults(object):
 
     def getName(self):
         """
-        Returns the results name for this token expression.
+        Returns the results name for this token expression. Useful when several 
+        different expressions might match at a particular location.
 
         Example::
-            TODO
+            integer = Word(nums)
+            ssn_expr = Regex(r"\d\d\d-\d\d-\d\d\d\d")
+            house_number_expr = Suppress('#') + Word(nums, alphanums)
+            user_data = (Group(house_number_expr)("house_number") 
+                        | Group(ssn_expr)("ssn")
+                        | Group(integer)("age"))
+            user_info = OneOrMore(user_data)
+            
+            result = user_info.parseString("22 111-22-3333 #221B")
+            for item in result:
+                print(item.getName(), ':', item[0])
+        prints::
+            age : 22
+            ssn : 111-22-3333
+            house_number : 221B
         """
         if self.__name:
             return self.__name
@@ -1433,7 +1448,7 @@ class ParserElement(object):
                         cache.popitem(False)
 
                 def clear(self):
-                            cache.clear()
+                    cache.clear()
 
                 self.get = types.MethodType(get, self)
                 self.set = types.MethodType(set, self)
@@ -1668,7 +1683,12 @@ class ParserElement(object):
         action.  C{transformString()} returns the resulting transformed string.
         
         Example::
-            TODO
+            wd = Word(alphas)
+            wd.setParseAction(lambda toks: toks[0].title())
+            
+            print(wd.transformString("now is the winter of our discontent made glorious summer by this sun of york."))
+        Prints::
+            Now Is The Winter Of Our Discontent Made Glorious Summer By This Sun Of York.
         """
         out = []
         lastE = 0
@@ -1703,7 +1723,17 @@ class ParserElement(object):
         C{maxMatches} argument, to clip searching after 'n' matches are found.
         
         Example::
-            TODO
+            # a capitalized word starts with an uppercase letter, followed by zero or more lowercase letters
+            cap_word = Word(alphas.upper(), alphas.lower())
+            
+            for match in cap_word.searchString("More than Iron, more than Lead, more than Gold I need Electricity"):
+                print(match[0])
+        prints::
+            More
+            Iron
+            Lead
+            Gold
+            I
         """
         try:
             return ParseResults([ t for t,s,e in self.scanString( instring, maxMatches ) ])
@@ -1722,7 +1752,10 @@ class ParserElement(object):
         matching text should be included in the split results.
         
         Example::        
-            TODO
+            punc = oneOf(list(".,;:/-!?"))
+            print(list(punc.split("This, this?, this sentence, is badly punctuated!")))
+        prints::
+            ['This', ' this', '', ' this sentence', ' is badly punctuated', '']
         """
         splits = 0
         last = 0
@@ -2114,18 +2147,75 @@ class ParserElement(object):
            
         Parameters:
          - tests - a list of separate test strings, or a multiline string of test strings
-         - parseAll - (default=True) - flag to pass to C{L{parseString}} when running tests           
-         - comment - (default='#') - expression for indicating embedded comments in the test 
+         - parseAll - (default=C{True}) - flag to pass to C{L{parseString}} when running tests           
+         - comment - (default=C{'#'}) - expression for indicating embedded comments in the test 
               string; pass None to disable comment filtering
-         - printResults - (default=True) prints test output to stdout
-         - failureTests - (default=False) indicates if these tests are expected to fail parsing
+         - printResults - (default=C{True}) prints test output to stdout
+         - failureTests - (default=C{False}) indicates if these tests are expected to fail parsing
 
         Returns: a (success, results) tuple, where success indicates that all tests succeeded
-        (or failed if C{failureTest} is True), and the results contain a list of lines of each 
+        (or failed if C{failureTests} is True), and the results contain a list of lines of each 
         test's output
         
         Example::
-            TODO
+            number_expr = pyparsing_common.number.copy()
+
+            result = number_expr.runTests('''
+                # unsigned integer
+                100
+                # negative integer
+                -100
+                # float with scientific notation
+                6.02e23
+                # integer with scientific notation
+                1e-12
+                ''')
+            print("Success" if result[0] else "Failed!")
+
+            result = number_expr.runTests('''
+                # stray character
+                100Z
+                # missing leading digit before '.'
+                -.100
+                # too many '.'
+                3.14.159
+                ''', failureTests=True)
+            print("Success" if result[0] else "Failed!")
+        prints::
+            # unsigned integer
+            100
+            [100]
+
+            # negative integer
+            -100
+            [-100]
+
+            # float with scientific notation
+            6.02e23
+            [6.02e+23]
+
+            # integer with scientific notation
+            1e-12
+            [1e-12]
+
+            Success
+            
+            # stray character
+            100Z
+               ^
+            FAIL: Expected end of text (at char 3), (line:1, col:4)
+
+            # missing leading digit before '.'
+            -.100
+            ^
+            FAIL: Expected {real number with scientific notation | real number | signed integer} (at char 0), (line:1, col:1)
+
+            # too many '.'
+            3.14.159
+                ^
+            FAIL: Expected end of text (at char 4), (line:1, col:5)
+
+            Success
         """
         if isinstance(tests, basestring):
             tests = list(map(str.strip, tests.rstrip().splitlines()))
@@ -2350,9 +2440,33 @@ class Word(Token):
     C{excludeChars} parameter can list characters that might be found in 
     the input C{bodyChars} string; useful to define a word of all printables
     except for one or two characters, for instance.
+    
+    L{srange} is useful for defining custom character set strings for defining 
+    C{Word} expressions, using range notation from regular expression character sets.
 
     Example::
-        TODO
+        # pyparsing includes helper strings for building Words:
+        #   alphas
+        #   nums
+        #   alphanums
+        #   hexnums
+        #   alphas8bit (alphabetic characters in ASCII range 128-255 - accented, tilded, umlauted, etc.)
+        #   printables (any non-whitespace character)
+        
+        # a word composed of digits
+        integer = Word(nums) # equivalent to Word("0123456789") or Word(srange("0-9"))
+        
+        # a word with a leading capital, and zero or more lowercase
+        capital_word = Word(alphas.upper(), alphas.lower())
+
+        # hostnames are alphanumeric, with leading alpha, and '-'
+        hostname = Word(alphas, alphanums+'-')
+        
+        # roman numeral (not a strict parser, accepts invalid mix of characters)
+        roman = Word("IVXLCDM")
+        
+        # any string of non-whitespace characters, except for ','
+        csv_value = Word(printables, excludeChars=",")
     """
     def __init__( self, initChars, bodyChars=None, min=1, max=0, exact=0, asKeyword=False, excludeChars=None ):
         super(Word,self).__init__()
@@ -2472,7 +2586,10 @@ class Regex(Token):
     Defined with string specifying the regular expression in a form recognized by the inbuilt Python re module.
 
     Example::
-        TODO
+        realnum = Regex(r"[+-]?\d+\.\d*")
+        ssn = Regex(r"\d\d\d-\d\d-\d\d\d\d")
+        # ref: http://stackoverflow.com/questions/267399/how-do-you-match-only-valid-roman-numerals-with-a-regular-expression
+        roman = Regex(r"M{0,4}(CM|CD|D?C{0,3})(XC|XL|L?X{0,3})(IX|IV|V?I{0,3})")
     """
     compiledREtype = type(re.compile("[A-Z]"))
     def __init__( self, pattern, flags=0):
@@ -2540,15 +2657,24 @@ class QuotedString(Token):
     
     Defined with the following parameters:
         - quoteChar - string of one or more characters defining the quote delimiting string
-        - escChar - character to escape quotes, typically backslash (default=None)
-        - escQuote - special quote sequence to escape an embedded quote string (such as SQL's "" to escape an embedded ") (default=None)
+        - escChar - character to escape quotes, typically backslash (default=C{None})
+        - escQuote - special quote sequence to escape an embedded quote string (such as SQL's "" to escape an embedded ") (default=C{None})
         - multiline - boolean indicating whether quotes can span multiple lines (default=C{False})
         - unquoteResults - boolean indicating whether the matched text should be unquoted (default=C{True})
         - endQuoteChar - string of one or more characters defining the end of the quote delimited string (default=C{None} => same as quoteChar)
         - convertWhitespaceEscapes - convert escaped whitespace (C{'\t'}, C{'\n'}, etc.) to actual whitespace (default=C{True})
 
     Example::
-        TODO
+        qs = QuotedString('"')
+        print(qs.searchString('lsjdf "This is the quote" sldjf'))
+        complex_qs = QuotedString('{{', endQuoteChar='}}')
+        print(complex_qs.searchString('lsjdf {{This is the "quote"}} sldjf'))
+        sql_qs = QuotedString('"', escQuote='""')
+        print(sql_qs.searchString('lsjdf "This is the quote with ""embedded"" quotes" sldjf'))
+    prints::
+        [['This is the quote']]
+        [['This is the "quote"']]
+        [['This is the quote with "embedded" quotes']]
     """
     def __init__( self, quoteChar, escChar=None, escQuote=None, multiline=False, unquoteResults=True, endQuoteChar=None, convertWhitespaceEscapes=True):
         super(QuotedString,self).__init__()
@@ -2664,14 +2790,19 @@ class QuotedString(Token):
 
 class CharsNotIn(Token):
     """
-    Token for matching words composed of characters *not* in a given set.
+    Token for matching words composed of characters *not* in a given set (will
+    include whitespace in matched characters if not listed in the provided exclusion set - see example).
     Defined with string containing all disallowed characters, and an optional
     minimum, maximum, and/or exact length.  The default value for C{min} is 1 (a
     minimum value < 1 is not valid); the default values for C{max} and C{exact}
     are 0, meaning no maximum or exact length restriction.
 
     Example::
-        TODO
+        # define a comma-separated-value as anything that is not a ','
+        csv_value = CharsNotIn(',')
+        print(delimitedList(csv_value).parseString("dkls,lsdkjf,s12 34,@!#,213"))
+    prints::
+        ['dkls', 'lsdkjf', 's12 34', '@!#', '213']
     """
     def __init__( self, notChars, min=1, max=0, exact=0 ):
         super(CharsNotIn,self).__init__()
@@ -2836,9 +2967,6 @@ class LineStart(_PositionToken):
 class LineEnd(_PositionToken):
     """
     Matches if current position is at the end of a line within the parse string
-
-    Example::
-        TODO
     """
     def __init__( self ):
         super(LineEnd,self).__init__()
@@ -3051,7 +3179,12 @@ class And(ParseExpression):
     May also be constructed using the C{'-'} operator, which will suppress backtracking.
 
     Example::
-        TODO
+        integer = Word(nums)
+        name_expr = OneOrMore(Word(alphas))
+
+        expr = And([integer("id"),name_expr("name"),integer("age")])
+        # more easily written as:
+        expr = integer("id") + name_expr("name") + integer("age")
     """
 
     class _ErrorStop(Empty):
@@ -3121,7 +3254,10 @@ class Or(ParseExpression):
     May be constructed using the C{'^'} operator.
 
     Example::
-        TODO
+        number = Word(nums) ^ Combine(Word(nums) + '.' + Word(nums))
+        print(number.searchString("123 3.1416 789"))
+    prints::
+        [['123'], ['3.1416'], ['789']]
     """
     def __init__( self, exprs, savelist = False ):
         super(Or,self).__init__(exprs, savelist)
@@ -3195,7 +3331,13 @@ class MatchFirst(ParseExpression):
     May be constructed using the C{'|'} operator.
 
     Example::
-        TODO
+        # watch the order of expressions to match
+        number = Word(nums) | Combine(Word(nums) + '.' + Word(nums))
+        print(number.searchString("123 3.1416 789")) #  Fail! -> [['123'], ['3'], ['1416'], ['789']]
+
+        # put more selective expression first
+        number = Combine(Word(nums) + '.' + Word(nums)) | Word(nums)
+        print(number.searchString("123 3.1416 789")) #  Better -> [['123'], ['3.1416'], ['789']]
     """
     def __init__( self, exprs, savelist = False ):
         super(MatchFirst,self).__init__(exprs, savelist)
@@ -3255,7 +3397,51 @@ class Each(ParseExpression):
     May be constructed using the C{'&'} operator.
 
     Example::
-        TODO
+        color = oneOf("RED ORANGE YELLOW GREEN BLUE PURPLE BLACK WHITE BROWN")
+        shape_type = oneOf("SQUARE CIRCLE TRIANGLE STAR HEXAGON OCTAGON")
+        integer = Word(nums)
+        shape_attr = "shape:" + shape_type("shape")
+        posn_attr = "posn:" + Group(integer("x") + ',' + integer("y"))("posn")
+        color_attr = "color:" + color("color")
+        size_attr = "size:" + integer("size")
+
+        # use Each to accept attributes in any order (shape and posn are required, color and size are optional)
+        shape_spec = shape_attr & posn_attr & Optional(color_attr) & Optional(size_attr)
+
+        shape_spec.runTests('''
+            shape: SQUARE color: BLACK posn: 100, 120
+            shape: CIRCLE size: 50 color: BLUE posn: 50,80
+            color:GREEN size:20 shape:TRIANGLE posn:20,40
+            '''
+            )
+    prints::
+        shape: SQUARE color: BLACK posn: 100, 120
+        ['shape:', 'SQUARE', 'color:', 'BLACK', 'posn:', ['100', ',', '120']]
+        - color: BLACK
+        - posn: ['100', ',', '120']
+          - x: 100
+          - y: 120
+        - shape: SQUARE
+
+
+        shape: CIRCLE size: 50 color: BLUE posn: 50,80
+        ['shape:', 'CIRCLE', 'size:', '50', 'color:', 'BLUE', 'posn:', ['50', ',', '80']]
+        - color: BLUE
+        - posn: ['50', ',', '80']
+          - x: 50
+          - y: 80
+        - shape: CIRCLE
+        - size: 50
+
+
+        color: GREEN size: 20 shape: TRIANGLE posn: 20,40
+        ['color:', 'GREEN', 'size:', '20', 'shape:', 'TRIANGLE', 'posn:', ['20', ',', '40']]
+        - color: GREEN
+        - posn: ['20', ',', '40']
+          - x: 20
+          - y: 40
+        - shape: TRIANGLE
+        - size: 20
     """
     def __init__( self, exprs, savelist = True ):
         super(Each,self).__init__(exprs, savelist)
@@ -3699,8 +3885,8 @@ class Forward(ParseElementEnhance):
         fwdExpr << (a | b | c)
     Converting to use the '<<=' operator instead will avoid this problem.
 
-    Example::
-        TODO
+    See L{ParserElement.pprint} for an example of a recursive parser created using
+    C{Forward}.
     """
     def __init__( self, other=None ):
         super(Forward,self).__init__( other, savelist=False )
@@ -3884,7 +4070,19 @@ class Suppress(TokenConverter):
     Converter for ignoring the results of a parsed expression.
 
     Example::
-        TODO
+        source = "a, b, c,d"
+        wd = Word(alphas)
+        wd_list1 = wd + ZeroOrMore(',' + wd)
+        print(wd_list1.parseString(source))
+
+        # often, delimiters that are useful during parsing are just in the
+        # way afterward - use Suppress to keep them out of the parsed output
+        wd_list2 = wd + ZeroOrMore(Suppress(',') + wd)
+        print(wd_list2.parseString(source))
+    prints::
+        ['a', ',', 'b', ',', 'c', ',', 'd']
+        ['a', 'b', 'c', 'd']
+    (See also L{delimitedList}.)
     """
     def postParse( self, instring, loc, tokenlist ):
         return []
@@ -3914,7 +4112,18 @@ def traceParseAction(f):
     Decorator for debugging parse actions.
 
     Example::
-        TODO
+        wd = Word(alphas)
+
+        @traceParseAction
+        def remove_duplicate_chars(tokens):
+            return ''.join(sorted(set(''.join(tokens)))
+
+        wds = OneOrMore(wd).setParseAction(remove_duplicate_chars)
+        print(wds.parseString("slkdjs sld sldd sdlf sdljf"))
+    prints::
+        >>entering remove_duplicate_chars(line: 'slkdjs sld sldd sdlf sdljf', 0, (['slkdjs', 'sld', 'sldd', 'sdlf', 'sdljf'], {}))
+        <<leaving remove_duplicate_chars (ret: 'dfjkls')
+        ['dfjkls']
     """
     f = _trim_arity(f)
     def z(*paArgs):
@@ -4526,7 +4735,40 @@ def nestedExpr(opener="(", closer=")", content=None, ignoreExpr=quotedString.cop
     then pass C{None} for this argument.
 
     Example::
-        TODO
+        data_type = oneOf("void int short long char float double")
+        decl_data_type = Combine(data_type + Optional(Word('*')))
+        ident = Word(alphas+'_', alphanums+'_')
+        number = pyparsing_common.number
+        arg = Group(decl_data_type + ident)
+        LPAR,RPAR = map(Suppress, "()")
+
+        code_body = nestedExpr('{', '}', ignoreExpr=(quotedString | cStyleComment))
+
+        c_function = (decl_data_type("type") 
+                      + ident("name")
+                      + LPAR + Optional(delimitedList(arg), [])("args") + RPAR 
+                      + code_body("body"))
+        c_function.ignore(cStyleComment)
+        
+        source_code = '''
+            int is_odd(int x) { 
+                return (x%2); 
+            }
+                
+            int dec_to_hex(char hchar) { 
+                if (hchar >= '0' && hchar <= '9') { 
+                    return (ord(hchar)-ord('0')); 
+                } else { 
+                    return (10+ord(hchar)-ord('A'));
+                } 
+            }
+        '''
+        for func in c_function.searchString(source_code):
+            print("%(name)s (%(type)s) args: %(args)s" % func)
+
+    prints::
+        is_odd (int) args: [['int', 'x']]
+        dec_to_hex (int) args: [['char', 'hchar']]
     """
     if opener == closer:
         raise ValueError("opening and closing strings cannot be the same")
@@ -4695,7 +4937,7 @@ class pyparsing_common:
     """fractional expression of an integer divided by an integer, returns a float"""
     fraction.addParseAction(lambda t: t[0]/t[-1])
 
-    mixed_integer = (fraction | integer + Optional(Optional('-').suppress() + fraction)).setName("fraction or mixed integer-fraction")
+    mixed_integer = (fraction | signedInteger + Optional(Optional('-').suppress() + fraction)).setName("fraction or mixed integer-fraction")
     """mixed integer of the form 'integer - fraction', with optional leading integer, returns float"""
     mixed_integer.addParseAction(sum)
 
@@ -4738,7 +4980,11 @@ class pyparsing_common:
          - fmt - format to be passed to datetime.strptime (default=C{"%Y-%m-%d"})
 
         Example::
-            TODO
+            date_expr = pyparsing_common.iso8601_date.copy()
+            date_expr.setParseAction(pyparsing_common.convertToDate())
+            print(date_expr.parseString("1999-12-31"))
+        prints::
+            [datetime.date(1999, 12, 31)]
         """
         return lambda s,l,t: datetime.strptime(t[0], fmt).date()
 
@@ -4751,7 +4997,11 @@ class pyparsing_common:
          - fmt - format to be passed to datetime.strptime (default=C{"%Y-%m-%dT%H:%M:%S.%f"})
 
         Example::
-            TODO
+            dt_expr = pyparsing_common.iso8601_datetime.copy()
+            dt_expr.setParseAction(pyparsing_common.convertToDatetime())
+            print(dt_expr.parseString("1999-12-31T23:59:59.999"))
+        prints::
+            [datetime.datetime(1999, 12, 31, 23, 59, 59, 999000)]
         """
         return lambda s,l,t: datetime.strptime(t[0], fmt)
 
