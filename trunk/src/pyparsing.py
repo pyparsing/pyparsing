@@ -58,7 +58,7 @@ The pyparsing module handles some of the problems that are typically vexing when
 """
 
 __version__ = "2.1.6"
-__versionTime__ = "06 Aug 2016 18:17 UTC"
+__versionTime__ = "06 Aug 2016 22:22 UTC"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -832,7 +832,7 @@ class ParseResults(object):
         else:
             return None
 
-    def dump(self,indent='',depth=0):
+    def dump(self, indent='', depth=0, full=True):
         """
         Diagnostic method for listing out the contents of a C{ParseResults}.
         Accepts an optional C{indent} argument so that this string can be embedded
@@ -853,26 +853,27 @@ class ParseResults(object):
         out = []
         NL = '\n'
         out.append( indent+_ustr(self.asList()) )
-        if self.haskeys():
-            items = sorted(self.items())
-            for k,v in items:
-                if out:
-                    out.append(NL)
-                out.append( "%s%s- %s: " % (indent,('  '*depth), k) )
-                if isinstance(v,ParseResults):
-                    if v:
-                        out.append( v.dump(indent,depth+1) )
+        if full:
+            if self.haskeys():
+                items = sorted(self.items())
+                for k,v in items:
+                    if out:
+                        out.append(NL)
+                    out.append( "%s%s- %s: " % (indent,('  '*depth), k) )
+                    if isinstance(v,ParseResults):
+                        if v:
+                            out.append( v.dump(indent,depth+1) )
+                        else:
+                            out.append(_ustr(v))
                     else:
                         out.append(_ustr(v))
-                else:
-                    out.append(_ustr(v))
-        elif any(isinstance(vv,ParseResults) for vv in self):
-            v = self
-            for i,vv in enumerate(v):
-                if isinstance(vv,ParseResults):
-                    out.append("\n%s%s[%d]:\n%s%s%s" % (indent,('  '*(depth)),i,indent,('  '*(depth+1)),vv.dump(indent,depth+1) ))
-                else:
-                    out.append("\n%s%s[%d]:\n%s%s%s" % (indent,('  '*(depth)),i,indent,('  '*(depth+1)),_ustr(vv)))
+            elif any(isinstance(vv,ParseResults) for vv in self):
+                v = self
+                for i,vv in enumerate(v):
+                    if isinstance(vv,ParseResults):
+                        out.append("\n%s%s[%d]:\n%s%s%s" % (indent,('  '*(depth)),i,indent,('  '*(depth+1)),vv.dump(indent,depth+1) ))
+                    else:
+                        out.append("\n%s%s[%d]:\n%s%s%s" % (indent,('  '*(depth)),i,indent,('  '*(depth+1)),_ustr(vv)))
             
         return "".join(out)
 
@@ -2139,7 +2140,7 @@ class ParserElement(object):
         except ParseBaseException:
             return False
                 
-    def runTests(self, tests, parseAll=True, comment='#', printResults=True, failureTests=False):
+    def runTests(self, tests, parseAll=True, comment='#', fullDump=True, printResults=True, failureTests=False):
         """
         Execute the parse expression on a series of test strings, showing each
         test, the parsed results or where the parse failed. Quick and easy way to
@@ -2150,6 +2151,8 @@ class ParserElement(object):
          - parseAll - (default=C{True}) - flag to pass to C{L{parseString}} when running tests           
          - comment - (default=C{'#'}) - expression for indicating embedded comments in the test 
               string; pass None to disable comment filtering
+         - fullDump - (default=C{True}) - dump results as list followed by results names in nested outline;
+              if False, only dump nested list
          - printResults - (default=C{True}) prints test output to stdout
          - failureTests - (default=C{False}) indicates if these tests are expected to fail parsing
 
@@ -2234,7 +2237,7 @@ class ParserElement(object):
             comments = []
             try:
                 result = self.parseString(t, parseAll=parseAll)
-                out.append(result.dump())
+                out.append(result.dump(full=fullDump))
                 success = success and not failureTests
             except ParseBaseException as pe:
                 fatal = "(FATAL)" if isinstance(pe, ParseFatalException) else ""
@@ -2248,7 +2251,8 @@ class ParserElement(object):
                 result = pe
 
             if printResults:
-                out.append('')
+                if fullDump:
+                    out.append('')
                 print('\n'.join(out))
 
             allResults.append((t, result))
@@ -3254,6 +3258,8 @@ class Or(ParseExpression):
     May be constructed using the C{'^'} operator.
 
     Example::
+        # construct Or using '^' operator
+        
         number = Word(nums) ^ Combine(Word(nums) + '.' + Word(nums))
         print(number.searchString("123 3.1416 789"))
     prints::
@@ -3331,6 +3337,8 @@ class MatchFirst(ParseExpression):
     May be constructed using the C{'|'} operator.
 
     Example::
+        # construct MatchFirst using '|' operator
+        
         # watch the order of expressions to match
         number = Word(nums) | Combine(Word(nums) + '.' + Word(nums))
         print(number.searchString("123 3.1416 789")) #  Fail! -> [['123'], ['3'], ['1416'], ['789']]
@@ -3405,7 +3413,8 @@ class Each(ParseExpression):
         color_attr = "color:" + color("color")
         size_attr = "size:" + integer("size")
 
-        # use Each to accept attributes in any order (shape and posn are required, color and size are optional)
+        # use Each (using operator '&') to accept attributes in any order 
+        # (shape and posn are required, color and size are optional)
         shape_spec = shape_attr & posn_attr & Optional(color_attr) & Optional(size_attr)
 
         shape_spec.runTests('''
@@ -3605,7 +3614,14 @@ class FollowedBy(ParseElementEnhance):
     position.  C{FollowedBy} always returns a null token list.
 
     Example::
-        TODO
+        # use FollowedBy to match a label only if it is followed by a ':'
+        data_word = Word(alphas)
+        label = data_word + FollowedBy(':')
+        attr_expr = Group(label + Suppress(':') + OneOrMore(data_word, stopOn=label).setParseAction(' '.join))
+        
+        OneOrMore(attr_expr).parseString("shape: SQUARE color: BLACK posn: upper left").pprint()
+    prints::
+        [['shape', 'SQUARE'], ['color', 'BLACK'], ['posn', 'upper left']]
     """
     def __init__( self, expr ):
         super(FollowedBy,self).__init__(expr)
@@ -3625,7 +3641,7 @@ class NotAny(ParseElementEnhance):
     always returns a null token list.  May be constructed using the '~' operator.
 
     Example::
-        TODO
+        
     """
     def __init__( self, expr ):
         super(NotAny,self).__init__(expr)
@@ -3655,12 +3671,24 @@ class OneOrMore(ParseElementEnhance):
     
     Parameters:
      - expr - expression that must match one or more times
-     - stopOn - (default=None) - expression for a terminating sentinel
+     - stopOn - (default=C{None}) - expression for a terminating sentinel
           (only required if the sentinel would ordinarily match the repetition 
           expression)          
 
     Example::
-        TODO
+        data_word = Word(alphas)
+        label = data_word + FollowedBy(':')
+        attr_expr = Group(label + Suppress(':') + OneOrMore(data_word).setParseAction(' '.join))
+
+        text = "shape: SQUARE posn: upper left color: BLACK"
+        OneOrMore(attr_expr).parseString(text).pprint()  # Fail! read 'color' as data instead of next label -> [['shape', 'SQUARE color']]
+
+        # use stopOn attribute for OneOrMore to avoid reading label string as part of the data
+        attr_expr = Group(label + Suppress(':') + OneOrMore(data_word, stopOn=label).setParseAction(' '.join))
+        OneOrMore(attr_expr).parseString(text).pprint() # Better -> [['shape', 'SQUARE'], ['posn', 'upper left'], ['color', 'BLACK']]
+        
+        # could also be written as
+        (attr_expr * (1,)).parseString(text).pprint()
     """
     def __init__( self, expr, stopOn=None):
         super(OneOrMore, self).__init__(expr)
@@ -3718,12 +3746,11 @@ class ZeroOrMore(OneOrMore):
     
     Parameters:
      - expr - expression that must match zero or more times
-     - stopOn - (default=None) - expression for a terminating sentinel
+     - stopOn - (default=C{None}) - expression for a terminating sentinel
           (only required if the sentinel would ordinarily match the repetition 
           expression)          
 
-    Example::
-        TODO
+    Example: similar to L{OneOrMore}
     """
     def __init__( self, expr, stopOn=None):
         super(ZeroOrMore,self).__init__(expr, stopOn=stopOn)
@@ -3758,11 +3785,34 @@ class Optional(ParseElementEnhance):
 
     Parameters:
      - expr - expression that must match zero or more times
-     - default (optional) - value to be returned if the optional expression
-          is not found.
+     - default (optional) - value to be returned if the optional expression is not found.
 
     Example::
-        TODO
+        # US postal code can be a 5-digit zip, plus optional 4-digit qualifier
+        zip = Combine(Word(nums, exact=5) + Optional('-' + Word(nums, exact=4)))
+        zip.runTests('''
+            # traditional ZIP code
+            12345
+            
+            # ZIP+4 form
+            12101-0001
+            
+            # invalid ZIP
+            98765-
+            ''')
+    prints::
+        # traditional ZIP code
+        12345
+        ['12345']
+
+        # ZIP+4 form
+        12101-0001
+        ['12101-0001']
+
+        # invalid ZIP
+        98765-
+             ^
+        FAIL: Expected end of text (at char 5), (line:1, col:6)
     """
     def __init__( self, expr, default=_optionalNotMatched ):
         super(Optional,self).__init__( expr, savelist=False )
@@ -3807,7 +3857,45 @@ class SkipTo(ParseElementEnhance):
           the SkipTo is not a match
 
     Example::
-        TODO
+        report = '''
+            Outstanding Issues Report - 1 Jan 2000
+
+               # | Severity | Description                               |  Days Open
+            -----+----------+-------------------------------------------+-----------
+             101 | Critical | Intermittent system crash                 |          6
+              94 | Cosmetic | Spelling error on Login ('log|n')         |         14
+              79 | Minor    | System slow when running too many reports |         47
+            '''
+        integer = Word(nums)
+        SEP = Suppress('|')
+        # use SkipTo to simply match everything up until the next SEP
+        # - ignore quoted strings, so that a '|' character inside a quoted string does not match
+        # - parse action will call token.strip() for each matched token, i.e., the description body
+        string_data = SkipTo(SEP, ignore=quotedString)
+        string_data.setParseAction(tokenMap(str.strip))
+        ticket_expr = (integer("issue_num") + SEP 
+                      + string_data("sev") + SEP 
+                      + string_data("desc") + SEP 
+                      + integer("days_open"))
+        
+        for tkt in ticket_expr.searchString(report):
+            print txt.dump()
+    prints::
+        ['101', 'Critical', 'Intermittent system crash', '6']
+        - days_open: 6
+        - desc: Intermittent system crash
+        - issue_num: 101
+        - sev: Critical
+        ['94', 'Cosmetic', "Spelling error on Login ('log|n')", '14']
+        - days_open: 14
+        - desc: Spelling error on Login ('log|n')
+        - issue_num: 94
+        - sev: Cosmetic
+        ['79', 'Minor', 'System slow when running too many reports', '47']
+        - days_open: 47
+        - desc: System slow when running too many reports
+        - issue_num: 79
+        - sev: Minor
     """
     def __init__( self, other, include=False, ignore=None, failOn=None ):
         super( SkipTo, self ).__init__( other )
@@ -3885,7 +3973,7 @@ class Forward(ParseElementEnhance):
         fwdExpr << (a | b | c)
     Converting to use the '<<=' operator instead will avoid this problem.
 
-    See L{ParserElement.pprint} for an example of a recursive parser created using
+    See L{ParseResults.pprint} for an example of a recursive parser created using
     C{Forward}.
     """
     def __init__( self, other=None ):
@@ -4034,7 +4122,34 @@ class Dict(TokenConverter):
     Useful for tabular report scraping when the first column can be used as a item key.
 
     Example::
-        TODO
+        data_word = Word(alphas)
+        label = data_word + FollowedBy(':')
+        attr_expr = Group(label + Suppress(':') + OneOrMore(data_word).setParseAction(' '.join))
+
+        text = "shape: SQUARE posn: upper left color: light blue texture: burlap"
+        attr_expr = (label + Suppress(':') + OneOrMore(data_word, stopOn=label).setParseAction(' '.join))
+        
+        # print attributes as plain groups
+        print(OneOrMore(attr_expr).parseString(text).dump())
+        
+        # instead of OneOrMore(expr), parse using Dict(OneOrMore(Group(expr))) - Dict will auto-assign names
+        result = Dict(OneOrMore(Group(attr_expr))).parseString(text)
+        print(result.dump())
+        
+        # access named fields as dict entries, or output as dict
+        print(result['shape'])        
+        print(result.asDict())
+    prints::
+        ['shape', 'SQUARE', 'posn', 'upper left', 'color', 'light blue', 'texture', 'burlap']
+
+        [['shape', 'SQUARE'], ['posn', 'upper left'], ['color', 'light blue'], ['texture', 'burlap']]
+        - color: light blue
+        - posn: upper left
+        - shape: SQUARE
+        - texture: burlap
+        SQUARE
+        {'color': 'light blue', 'posn': 'upper left', 'texture': 'burlap', 'shape': 'SQUARE'}
+    See more examples at L{ParseResults} of accessing fields by results name.
     """
     def __init__( self, expr ):
         super(Dict,self).__init__( expr )
@@ -4349,7 +4464,28 @@ def dictOf( key, value ):
     fields.
 
     Example::
-        TODO
+        text = "shape: SQUARE posn: upper left color: light blue texture: burlap"
+        attr_expr = (label + Suppress(':') + OneOrMore(data_word, stopOn=label).setParseAction(' '.join))
+        print(OneOrMore(attr_expr).parseString(text).dump())
+        
+        attr_label = label
+        attr_value = Suppress(':') + OneOrMore(data_word, stopOn=label).setParseAction(' '.join)
+
+        # similar to Dict, but simpler call format
+        result = dictOf(attr_label, attr_value).parseString(text)
+        print(result.dump())
+        print(result['shape'])
+        print(result.shape)  # object attribute access works too
+        print(result.asDict())
+    prints::
+        [['shape', 'SQUARE'], ['posn', 'upper left'], ['color', 'light blue'], ['texture', 'burlap']]
+        - color: light blue
+        - posn: upper left
+        - shape: SQUARE
+        - texture: burlap
+        SQUARE
+        SQUARE
+        {'color': 'light blue', 'shape': 'SQUARE', 'posn': 'upper left', 'texture': 'burlap'}
     """
     return Dict( ZeroOrMore( Group ( key + value ) ) )
 
@@ -4368,7 +4504,14 @@ def originalTextFor(expr, asString=True):
     results name values.
 
     Example::
-        TODO
+        src = "this is test <b> bold <i>text</i> </b> normal text "
+        for tag in ("b","i"):
+            opener,closer = makeHTMLTags(tag)
+            patt = originalTextFor(opener + SkipTo(closer) + closer)
+            print(patt.searchString(src)[0])
+    prints::
+        ['<b> bold <i>text</i> </b>']
+        ['<i>text</i>']
     """
     locMarker = Empty().setParseAction(lambda s,loc,t: loc)
     endlocMarker = locMarker.copy()
@@ -4445,9 +4588,6 @@ def srange(s):
      - an escaped octal character with a leading C{'\0'} (C{\041}, which is a C{'!'} character)
      - a range of any of the above, separated by a dash (C{'a-z'}, etc.)
      - any combination of the above (C{'aeiouy'}, C{'a-zA-Z0-9_$'}, etc.)
-
-    Example::
-        TODO
     """
     _expanded = lambda p: p if not isinstance(p,ParseResults) else ''.join(unichr(c) for c in range(ord(p[0]),ord(p[1])+1))
     try:
@@ -4459,9 +4599,6 @@ def matchOnlyAtCol(n):
     """
     Helper method for defining parse actions that require matching at a specific
     column in the input text.
-
-    Example::
-        TODO
     """
     def verifyCol(strg,locn,toks):
         if col(locn,strg) != n:
@@ -4504,7 +4641,21 @@ def tokenMap(func, *args):
     parsed data to an integer using base 16.
 
     Example::
-        TODO
+        hex_ints = OneOrMore(Word(hexnums)).setParseAction(tokenMap(int, 16))
+        hex_ints.runTests('''
+            00 11 22 aa FF 0a 0d 1a
+            ''')
+        
+        upperword = Word(alphas).setParseAction(tokenMap(str.upper))
+        OneOrMore(upperword).runTests('''
+            lsdj sldjf sdlkfj sdlkfj
+            ''')
+    prints::
+        00 11 22 aa FF 0a 0d 1a
+        [0, 17, 34, 170, 255, 10, 13, 26]
+
+        lsdj sldjf sdlkfj sdlkfj
+        ['LSDJ', 'SLDJF', 'SDLKFJ', 'SDLKFJ']
     """
     def pa(s,l,t):
         return [func(tokn, *args) for tokn in t]
@@ -4555,19 +4706,29 @@ def _makeTags(tagStr, xml):
 
 def makeHTMLTags(tagStr):
     """
-    Helper to construct opening and closing tag expressions for HTML, given a tag name
+    Helper to construct opening and closing tag expressions for HTML, given a tag name. Matches
+    tags in either upper or lower case, attributes with namespaces and with quoted or unquoted values.
 
     Example::
-        TODO
+        text = '<td>More info at the <a href="http://pyparsing.wikispaces.com">pyparsing</a> wiki page</td>'
+        # makeHTMLTags returns pyparsing expressions for the opening and closing tags as a 2-tuple
+        a,a_end = makeHTMLTags("A")
+        link_expr = a + SkipTo(a_end)("link_text") + a_end
+        
+        for link in link_expr.searchString(text):
+            # attributes in the <A> tag (like C{"href"} shown here) are also accessible as named results
+            print(link.link_text, '->', link.href)
+    prints::
+        pyparsing -> http://pyparsing.wikispaces.com
     """
     return _makeTags( tagStr, False )
 
 def makeXMLTags(tagStr):
     """
-    Helper to construct opening and closing tag expressions for XML, given a tag name
+    Helper to construct opening and closing tag expressions for XML, given a tag name. Matches
+    tags only in the given upper/lower case.
 
-    Example::
-        TODO
+    Example: similar to L{makeHTMLTags}
     """
     return _makeTags( tagStr, True )
 
@@ -4593,7 +4754,33 @@ def withAttribute(*args,**attrDict):
     C{withAttribute.ANY_VALUE} as the value.
 
     Example::
-        TODO
+        html = '''
+            <div>
+            Some text
+            <div type="grid">1 4 0 1 0</div>
+            <div type="graph">1,3 2,3 1,1</div>
+            <div>this has no type</div>
+            </div>
+                
+        '''
+        div,div_end = makeHTMLTags("div")
+
+        # only match div tag having a type attribute with value "grid"
+        div_grid = div().setParseAction(withAttribute(type="grid"))
+        grid_expr = div_grid + SkipTo(div | div_end)("body")
+        for grid_header in grid_expr.searchString(html):
+            print(grid_header.body)
+        
+        # construct a match with any div tag having a type attribute, regardless of the value
+        div_any_type = div().setParseAction(withAttribute(type=withAttribute.ANY_VALUE))
+        div_expr = div_any_type + SkipTo(div | div_end)("body")
+        for div_header in div_expr.searchString(html):
+            print(div_header.body)
+    prints::
+        1 4 0 1 0
+
+        1 4 0 1 0
+        1,3 2,3 1,1
     """
     if args:
         attrs = args[:]
@@ -4616,7 +4803,31 @@ def withClass(classname, namespace=''):
     difficult because C{class} is a reserved word in Python.
 
     Example::
-        TODO
+        html = '''
+            <div>
+            Some text
+            <div class="grid">1 4 0 1 0</div>
+            <div class="graph">1,3 2,3 1,1</div>
+            <div>this &lt;div&gt; has no class</div>
+            </div>
+                
+        '''
+        div,div_end = makeHTMLTags("div")
+        div_grid = div().setParseAction(withClass("grid"))
+        
+        grid_expr = div_grid + SkipTo(div | div_end)("body")
+        for grid_header in grid_expr.searchString(html):
+            print(grid_header.body)
+        
+        div_any_type = div().setParseAction(withClass(withAttribute.ANY_VALUE))
+        div_expr = div_any_type + SkipTo(div | div_end)("body")
+        for div_header in div_expr.searchString(html):
+            print(div_header.body)
+    prints::
+        1 4 0 1 0
+
+        1 4 0 1 0
+        1,3 2,3 1,1
     """
     classattr = "%s:class" % namespace if namespace else "class"
     return withAttribute(**{classattr : classname})        
@@ -4653,7 +4864,31 @@ def infixNotation( baseExpr, opList, lpar=Suppress('('), rpar=Suppress(')') ):
      - rpar - expression for matching right-parentheses (default=Suppress(')'))
 
     Example::
-        TODO
+        # simple example of four-function arithmetic with ints and variable names
+        integer = pyparsing_common.signedInteger
+        varname = pyparsing_common.identifier 
+        
+        arith_expr = infixNotation(integer | varname,
+            [
+            ('-', 1, opAssoc.RIGHT),
+            (oneOf('* /'), 2, opAssoc.LEFT),
+            (oneOf('+ -'), 2, opAssoc.LEFT),
+            ])
+        
+        arith_expr.runTests('''
+            5+3*6
+            (5+3)*6
+            -2--11
+            ''', fullDump=False)
+    prints::
+        5+3*6
+        [[5, '+', [3, '*', 6]]]
+
+        (5+3)*6
+        [[[5, '+', 3], '*', 6]]
+
+        -2--11
+        [[['-', 2], '-', ['-', 11]]]
     """
     ret = Forward()
     lastExpr = baseExpr | ( lpar + ret + rpar )
@@ -4820,7 +5055,65 @@ def indentedBlock(blockStatementExpr, indentStack, indent=True):
     A valid block must contain at least one C{blockStatement}.
 
     Example::
-        TODO
+        data = '''
+        def A(z):
+          A1
+          B = 100
+          G = A2
+          A2
+          A3
+        B
+        def BB(a,b,c):
+          BB1
+          def BBA():
+            bba1
+            bba2
+            bba3
+        C
+        D
+        def spam(x,y):
+             def eggs(z):
+                 pass
+        '''
+
+
+        indentStack = [1]
+        stmt = Forward()
+
+        identifier = Word(alphas, alphanums)
+        funcDecl = ("def" + identifier + Group( "(" + Optional( delimitedList(identifier) ) + ")" ) + ":")
+        func_body = indentedBlock(stmt, indentStack)
+        funcDef = Group( funcDecl + func_body )
+
+        rvalue = Forward()
+        funcCall = Group(identifier + "(" + Optional(delimitedList(rvalue)) + ")")
+        rvalue << (funcCall | identifier | Word(nums))
+        assignment = Group(identifier + "=" + rvalue)
+        stmt << ( funcDef | assignment | identifier )
+
+        module_body = OneOrMore(stmt)
+
+        parseTree = module_body.parseString(data)
+        parseTree.pprint()
+    prints::
+        [['def',
+          'A',
+          ['(', 'z', ')'],
+          ':',
+          [['A1'], [['B', '=', '100']], [['G', '=', 'A2']], ['A2'], ['A3']]],
+         'B',
+         ['def',
+          'BB',
+          ['(', 'a', 'b', 'c', ')'],
+          ':',
+          [['BB1'], [['def', 'BBA', ['(', ')'], ':', [['bba1'], ['bba2'], ['bba3']]]]]],
+         'C',
+         'D',
+         ['def',
+          'spam',
+          ['(', 'x', 'y', ')'],
+          ':',
+          [[['def', 'eggs', ['(', 'z', ')'], ':', [['pass']]]]]]] 
     """
     def checkPeerIndent(s,l,t):
         if l >= len(s): return
@@ -4911,7 +5204,121 @@ class pyparsing_common:
      - C{L{stripHTMLTags}}
 
     Example::
-        TODO
+        pyparsing_common.number.runTests('''
+            # any int or real number, returned as the appropriate type
+            100
+            -100
+            +100
+            3.14159
+            6.02e23
+            1e-12
+            ''')
+
+        pyparsing_common.fnumber.runTests('''
+            # any int or real number, returned as float
+            100
+            -100
+            +100
+            3.14159
+            6.02e23
+            1e-12
+            ''')
+
+        pyparsing_common.hex_integer.runTests('''
+            # hex numbers
+            100
+            FF
+            ''')
+
+        pyparsing_common.fraction.runTests('''
+            # fractions
+            1/2
+            -3/4
+            ''')
+
+        pyparsing_common.mixed_integer.runTests('''
+            # mixed fractions
+            1
+            1/2
+            -3/4
+            1-3/4
+            ''')
+
+        import uuid
+        pyparsing_common.uuid.setParseAction(tokenMap(uuid.UUID))
+        pyparsing_common.uuid.runTests('''
+            # uuid
+            12345678-1234-5678-1234-567812345678
+            ''')
+    prints::
+        # any int or real number, returned as the appropriate type
+        100
+        [100]
+
+        -100
+        [-100]
+
+        +100
+        [100]
+
+        3.14159
+        [3.14159]
+
+        6.02e23
+        [6.02e+23]
+
+        1e-12
+        [1e-12]
+
+        # any int or real number, returned as float
+        100
+        [100.0]
+
+        -100
+        [-100.0]
+
+        +100
+        [100.0]
+
+        3.14159
+        [3.14159]
+
+        6.02e23
+        [6.02e+23]
+
+        1e-12
+        [1e-12]
+
+        # hex numbers
+        100
+        [256]
+
+        FF
+        [255]
+
+        # fractions
+        1/2
+        [0.5]
+
+        -3/4
+        [-0.75]
+
+        # mixed fractions
+        1
+        [1]
+
+        1/2
+        [0.5]
+
+        -3/4
+        [-0.75]
+
+        1-3/4
+        [1.75]
+
+        # uuid
+        12345678-1234-5678-1234-567812345678
+        [UUID('12345678-1234-5678-1234-567812345678')]
     """
 
     convertToInteger = tokenMap(int)
@@ -5021,7 +5428,12 @@ class pyparsing_common:
         Parse action to remove HTML tags from web page HTML source
 
         Example::
-            TODO
+            # strip HTML links from normal text 
+            text = '<td>More info at the <a href="http://pyparsing.wikispaces.com">pyparsing</a> wiki page</td>'
+            td,td_end = makeHTMLTags("TD")
+            table_text = td + SkipTo(td_end).setParseAction(pyparsing_common.stripHTMLTags)("body") + td_end
+            
+            print(table_text.parseString(text).body) # -> 'More info at the pyparsing wiki page'
         """
         return pyparsing_common._html_stripper.transformString(tokens[0])
 
