@@ -112,8 +112,7 @@ tests = """\
     select * from xyzzy where z > 100
     select * from xyzzy where z > 100 order by zz
     select * from xyzzy
-    select z.* from xyzzy""".splitlines()
-tests = """\
+    select z.* from xyzzy
     select a, b from test_table where 1=1 and b='yes'
     select a, b from test_table where 1=1 and b in (select bb from foo)
     select z.a, b from test_table where 1=1 and b in (select bb from foo)
@@ -122,13 +121,6 @@ tests = """\
     select a, db.table.b as BBB from db.table where 1=1 and BBB='yes'
     select a, db.table.b as BBB from test_table,db.table where 1=1 and BBB='yes'
     select a, db.table.b as BBB from test_table,db.table where 1=1 and BBB='yes' limit 50
-    """.splitlines()
-for t in tests:
-    t = t.strip()
-    if not t: continue
-    print(t)
-    try:
-        print(select_stmt.parseString(t).dump())
-    except ParseException as pe:
-        print(pe.msg)
-    print()
+    """
+
+select_stmt.runTests(tests)
