@@ -58,7 +58,7 @@ The pyparsing module handles some of the problems that are typically vexing when
 """
 
 __version__ = "2.1.6"
-__versionTime__ = "06 Aug 2016 22:22 UTC"
+__versionTime__ = "07 Aug 2016 04:42 UTC"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -2448,15 +2448,16 @@ class Word(Token):
     L{srange} is useful for defining custom character set strings for defining 
     C{Word} expressions, using range notation from regular expression character sets.
 
+    pyparsing includes helper strings for building Words:
+     - L{alphas}
+     - L{nums}
+     - L{alphanums}
+     - L{hexnums}
+     - L{alphas8bit} (alphabetic characters in ASCII range 128-255 - accented, tilded, umlauted, etc.)
+     - L{punc8bit} (non-alphabetic characters in ASCII range 128-255 - currency, symbols, superscripts, diacriticals, etc.)
+     - L{printables} (any non-whitespace character)
+
     Example::
-        # pyparsing includes helper strings for building Words:
-        #   alphas
-        #   nums
-        #   alphanums
-        #   hexnums
-        #   alphas8bit (alphabetic characters in ASCII range 128-255 - accented, tilded, umlauted, etc.)
-        #   printables (any non-whitespace character)
-        
         # a word composed of digits
         integer = Word(nums) # equivalent to Word("0123456789") or Word(srange("0-9"))
         
