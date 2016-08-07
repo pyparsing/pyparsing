@@ -2345,7 +2345,7 @@ class Keyword(Token):
        
     Example::
         Keyword("start").parseString("start")  # -> ['start']
-        Keyword("start").parseStrign("starting")  # -> Exception
+        Keyword("start").parseString("starting")  # -> Exception
 
     For case-insensitive matching, use L{CaselessKeyword}.
     """
