@@ -3880,7 +3880,7 @@ class SkipTo(ParseElementEnhance):
                       + integer("days_open"))
         
         for tkt in ticket_expr.searchString(report):
-            print txt.dump()
+            print tkt.dump()
     prints::
         ['101', 'Critical', 'Intermittent system crash', '6']
         - days_open: 6
