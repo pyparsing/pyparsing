@@ -697,8 +697,8 @@ class ParseResults(object):
 
             # even though a ParseResults supports dict-like access, sometime you just need to have a dict
             import json
-            print(json.dumps(result_dict)) # -> {"month": "31", "day": "1999", "year": "12"}
             print(json.dumps(result)) # -> Exception: TypeError: ... is not JSON serializable
+            print(json.dumps(result.asDict())) # -> {"month": "31", "day": "1999", "year": "12"}
         """
         if PY_3:
             item_fn = self.items
