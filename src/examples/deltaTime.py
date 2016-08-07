@@ -202,14 +202,7 @@ if __name__ == "__main__":
     noon Sunday
     noon last Sunday
     2pm next Sunday
-    next Sunday at 2pm""".splitlines()
-     
-    for t in tests:
-        t = t.strip()
-        print(t, "(relative to %s)" % datetime.now())
-        res = nlTimeExpression.parseString(t)
-        if "calculatedTime" in res:
-            print(res.calculatedTime)
-        else:
-            print("???")
-        print('')
+    next Sunday at 2pm"""
+
+    print("(relative to %s)" % datetime.now())
+    nlTimeExpression.runTests(tests)
