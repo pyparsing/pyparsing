@@ -1141,6 +1141,8 @@ class ParserElement(object):
             print(OneOrMore(integerK | integerM | integer).parseString("5K 100 640K 256M"))
         prints::
             [5120, 100, 655360, 268435456]
+        Equivalent form of C{expr.copy()} is just C{expr()}::
+            integerM = integer().addParseAction(lambda toks: toks[0]*1024*1024) + Suppress("M")
         """
         cpy = copy.copy( self )
         cpy.parseAction = self.parseAction[:]
@@ -1222,7 +1224,7 @@ class ParserElement(object):
         Otherwise, fn does not need to return any value.
 
         Optional keyword arguments:
-         - callDuringTry = (default=False) indicate if parse action should be run during lookaheads and alternate testing
+         - callDuringTry = (default=C{False}) indicate if parse action should be run during lookaheads and alternate testing
 
         Note: the default parsing behavior is to expand tabs in the input string
         before starting the parsing process.  See L{I{parseString}<parseString>} for more information
@@ -1527,7 +1529,7 @@ class ParserElement(object):
            both valid results and parsing exceptions.
            
            Parameters:
-            - cache_size_limit - (default=128) - if an integer value is provided
+            - cache_size_limit - (default=C{128}) - if an integer value is provided
               will limit the size of the packrat cache; if None is passed, then
               the cache size will be unbounded; if 0 is passed, the cache will
               be effectively disabled.
@@ -1727,14 +1729,9 @@ class ParserElement(object):
             # a capitalized word starts with an uppercase letter, followed by zero or more lowercase letters
             cap_word = Word(alphas.upper(), alphas.lower())
             
-            for match in cap_word.searchString("More than Iron, more than Lead, more than Gold I need Electricity"):
-                print(match[0])
+            print(cap_word.searchString("More than Iron, more than Lead, more than Gold I need Electricity"))
         prints::
-            More
-            Iron
-            Lead
-            Gold
-            I
+            ['More', 'Iron', 'Lead', 'Gold', 'I']
         """
         try:
             return ParseResults([ t for t,s,e in self.scanString( instring, maxMatches ) ])
@@ -2128,7 +2125,7 @@ class ParserElement(object):
            
         Parameters:
          - testString - to test against this expression for a match
-         - parseAll - (default=True) - flag to pass to C{L{parseString}} when running tests
+         - parseAll - (default=C{True}) - flag to pass to C{L{parseString}} when running tests
             
         Example::
             expr = Word(nums)
@@ -2302,6 +2299,11 @@ class Literal(Token):
         Literal('blah').parseString('blah')  # -> ['blah']
         Literal('blah').parseString('blahfooblah')  # -> ['blah']
         Literal('blah').parseString('bla')  # -> Exception: Expected "blah"
+    
+    For case-insensitive matching, use L{CaselessLiteral}.
+    
+    For keyword matching (force word break before and after the matched string),
+    use L{Keyword} or L{CaselessKeyword}.
     """
     def __init__( self, matchString ):
         super(Literal,self).__init__()
@@ -2344,6 +2346,8 @@ class Keyword(Token):
     Example::
         Keyword("start").parseString("start")  # -> ['start']
         Keyword("start").parseStrign("starting")  # -> Exception
+
+    For case-insensitive matching, use L{CaselessKeyword}.
     """
     DEFAULT_KEYWORD_CHARS = alphanums+"_$"
 
@@ -2447,6 +2451,12 @@ class Word(Token):
     
     L{srange} is useful for defining custom character set strings for defining 
     C{Word} expressions, using range notation from regular expression character sets.
+    
+    A common mistake is to use C{Word} to match a specific literal string, as in 
+    C{Word("Address")}. Remember that C{Word} uses the string argument to define
+    I{sets} of matchable characters. This expression would match "Add", "AAA",
+    "dAred", or any other word made up of the characters 'A', 'd', 'r', 'e', and 's'.
+    To match an exact literal string, use L{Literal} or L{Keyword}.
 
     pyparsing includes helper strings for building Words:
      - L{alphas}
@@ -3849,11 +3859,11 @@ class SkipTo(ParseElementEnhance):
 
     Parameters:
      - expr - target expression marking the end of the data to be skipped
-     - include - (default=False) if True, the target expression is also parsed 
+     - include - (default=C{False}) if True, the target expression is also parsed 
           (the skipped text and target expression are returned as a 2-element list).
-     - ignore - (default=None) used to define grammars (typically quoted strings and 
+     - ignore - (default=C{None}) used to define grammars (typically quoted strings and 
           comments) that might contain false matches to the target expression
-     - failOn - (default=None) define expressions that are not allowed to be 
+     - failOn - (default=C{None}) define expressions that are not allowed to be 
           included in the skipped test; if found before the target expression is found, 
           the SkipTo is not a match
 
@@ -4388,8 +4398,8 @@ def oneOf( strs, caseless=False, useRegex=True ):
 
     Parameters:
      - strs - a string of space-delimited literals, or a list of string literals
-     - caseless - (default=False) - treat all literals as caseless
-     - useRegex - (default=True) - as an optimization, will generate a Regex
+     - caseless - (default=C{False}) - treat all literals as caseless
+     - useRegex - (default=C{True}) - as an optimization, will generate a Regex
           object; otherwise, will generate a C{MatchFirst} object (if C{caseless=True}, or
           if creating a C{Regex} raises an exception)
 
@@ -4641,7 +4651,7 @@ def tokenMap(func, *args):
     the token, as in C{hex_integer = Word(hexnums).setParseAction(tokenMap(int, 16))}, which will convert the
     parsed data to an integer using base 16.
 
-    Example::
+    Example (compare the last to example in L{ParserElement.transformString}::
         hex_ints = OneOrMore(Word(hexnums)).setParseAction(tokenMap(int, 16))
         hex_ints.runTests('''
             00 11 22 aa FF 0a 0d 1a
@@ -4649,14 +4659,22 @@ def tokenMap(func, *args):
         
         upperword = Word(alphas).setParseAction(tokenMap(str.upper))
         OneOrMore(upperword).runTests('''
-            lsdj sldjf sdlkfj sdlkfj
+            my kingdom for a horse
+            ''')
+
+        wd = Word(alphas).setParseAction(tokenMap(str.title))
+        OneOrMore(wd).setParseAction(' '.join).runTests('''
+            now is the winter of our discontent made glorious summer by this sun of york
             ''')
     prints::
         00 11 22 aa FF 0a 0d 1a
         [0, 17, 34, 170, 255, 10, 13, 26]
 
-        lsdj sldjf sdlkfj sdlkfj
-        ['LSDJ', 'SLDJF', 'SDLKFJ', 'SDLKFJ']
+        my kingdom for a horse
+        ['MY', 'KINGDOM', 'FOR', 'A', 'HORSE']
+
+        now is the winter of our discontent made glorious summer by this sun of york
+        ['Now Is The Winter Of Our Discontent Made Glorious Summer By This Sun Of York']
     """
     def pa(s,l,t):
         return [func(tokn, *args) for tokn in t]
@@ -4717,7 +4735,7 @@ def makeHTMLTags(tagStr):
         link_expr = a + SkipTo(a_end)("link_text") + a_end
         
         for link in link_expr.searchString(text):
-            # attributes in the <A> tag (like C{"href"} shown here) are also accessible as named results
+            # attributes in the <A> tag (like "href" shown here) are also accessible as named results
             print(link.link_text, '->', link.href)
     prints::
         pyparsing -> http://pyparsing.wikispaces.com
@@ -4861,8 +4879,8 @@ def infixNotation( baseExpr, opList, lpar=Suppress('('), rpar=Suppress(')') ):
        - parseAction is the parse action to be associated with
           expressions matching this operator expression (the
           parse action tuple member may be omitted)
-     - lpar - expression for matching left-parentheses (default=Suppress('('))
-     - rpar - expression for matching right-parentheses (default=Suppress(')'))
+     - lpar - expression for matching left-parentheses (default=C{Suppress('(')})
+     - rpar - expression for matching right-parentheses (default=C{Suppress(')')})
 
     Example::
         # simple example of four-function arithmetic with ints and variable names
@@ -4954,10 +4972,10 @@ def nestedExpr(opener="(", closer=")", content=None, ignoreExpr=quotedString.cop
     delimiters ("(" and ")" are the default).
 
     Parameters:
-     - opener - opening character for a nested list (default="("); can also be a pyparsing expression
-     - closer - closing character for a nested list (default=")"); can also be a pyparsing expression
-     - content - expression for items within the nested lists (default=None)
-     - ignoreExpr - expression for ignoring opening and closing delimiters (default=quotedString)
+     - opener - opening character for a nested list (default=C{"("}); can also be a pyparsing expression
+     - closer - closing character for a nested list (default=C{")"}); can also be a pyparsing expression
+     - content - expression for items within the nested lists (default=C{None})
+     - ignoreExpr - expression for ignoring opening and closing delimiters (default=C{quotedString})
 
     If an expression is not provided for the content argument, the nested
     expression will capture all whitespace-delimited content between delimiters
@@ -5051,7 +5069,7 @@ def indentedBlock(blockStatementExpr, indentStack, indent=True):
             should share a common indentStack)
      - indent - boolean indicating whether block must be indented beyond the
             the current level; set to False for block of left-most statements
-            (default=True)
+            (default=C{True})
 
     A valid block must contain at least one C{blockStatement}.
 
