@@ -2938,6 +2938,23 @@ class ExprSplitterTest(ParseTestCase):
                 print_("\n>>> " + line)
                 assert False, "invalid split on expression with maxSplits=1, corner case"
 
+class ParseFatalExceptionTest(ParseTestCase):
+    def runTest(self):
+        
+        from pyparsing import Word, nums, ParseFatalException
+
+        success = False
+        try:
+            expr = "ZZZ" - Word(nums)
+            expr.parseString("ZZZ bad")
+        except ParseFatalException as pfe:
+            print('ParseFatalException raised correctly')
+            success = True
+        except Exception as e:
+            print(type(e))
+            print(e)
+        
+        assert success, "bad handling of syntax error"
 
 class MiscellaneousParserTests(ParseTestCase):
     def runTest(self):
@@ -3148,6 +3165,7 @@ if console:
     testclasses = []
     #~ testclasses.append(put_test_class_here)
     #~ testclasses.append(RequiredEachTest)
+
     if not testclasses:
         testRunner.run( makeTestSuite() )
     else:

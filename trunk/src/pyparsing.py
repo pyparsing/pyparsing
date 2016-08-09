@@ -57,8 +57,8 @@ The pyparsing module handles some of the problems that are typically vexing when
  - embedded comments
 """
 
-__version__ = "2.1.6"
-__versionTime__ = "07 Aug 2016 04:42 UTC"
+__version__ = "2.1.7"
+__versionTime__ = "09 Aug 2016 19:30 UTC"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -191,6 +191,14 @@ class ParseBaseException(Exception):
         self.parserElement = elem
         self.args = (pstr, loc, msg)
 
+    @classmethod
+    def _from_exception(cls, pe):
+        """
+        internal factory method to simplify creating one type of ParseException 
+        from another - avoids having __init__ signature conflicts among subclasses
+        """
+        return cls(pe.pstr, pe.loc, pe.msg, pe.parserElement)
+
     def __getattr__( self, aname ):
         """supported attributes by name are:
             - lineno - returns the line number of the exception text
@@ -251,12 +259,10 @@ class ParseFatalException(ParseBaseException):
     pass
 
 class ParseSyntaxException(ParseFatalException):
-    """just like C{L{ParseFatalException}}, but thrown internally when an
-       C{L{ErrorStop<And._ErrorStop>}} ('-' operator) indicates that parsing is to stop immediately because
-       an unbacktrackable syntax error has been found"""
-    def __init__(self, pe):
-        super(ParseSyntaxException, self).__init__(
-                                    pe.pstr, pe.loc, pe.msg, pe.parserElement)
+    """just like L{ParseFatalException}, but thrown internally when an
+       L{ErrorStop<And._ErrorStop>} ('-' operator) indicates that parsing is to stop 
+       immediately because an unbacktrackable syntax error has been found"""
+    pass
 
 #~ class ReparseException(ParseBaseException):
     #~ """Experimental class - parse actions can raise this exception to cause
@@ -272,7 +278,7 @@ class ParseSyntaxException(ParseFatalException):
         #~ self.reparseLoc = restartLoc
 
 class RecursiveGrammarException(Exception):
-    """exception thrown by C{validate()} if the grammar could be improperly recursive"""
+    """exception thrown by L{ParserElement.validate} if the grammar could be improperly recursive"""
     def __init__( self, parseElementList ):
         self.parseElementTrace = parseElementList
 
@@ -3231,9 +3237,9 @@ class And(ParseExpression):
                     raise
                 except ParseBaseException as pe:
                     pe.__traceback__ = None
-                    raise ParseSyntaxException(pe)
+                    raise ParseSyntaxException._from_exception(pe)
                 except IndexError:
-                    raise ParseSyntaxException( ParseException(instring, len(instring), self.errmsg, self) )
+                    raise ParseSyntaxException(instring, len(instring), self.errmsg, self)
             else:
                 loc, exprtokens = e._parse( instring, loc, doActions )
             if exprtokens or exprtokens.haskeys():
