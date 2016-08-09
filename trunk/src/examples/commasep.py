@@ -5,6 +5,9 @@
 # - leading and trailing whitespace is implicitly trimmed from list elements
 # - list elements can be quoted strings, which can safely contain commas without breaking
 #    into separate elements
+#
+# Copyright (c) 2004-2016, Paul McGuire
+#
 
 from pyparsing import commaSeparatedList
 

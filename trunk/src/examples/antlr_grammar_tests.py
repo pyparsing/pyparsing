@@ -2,6 +2,8 @@
 Created on 4 sept. 2010
 
 @author: luca
+
+Submitted by Luca DallOlio, September, 2010
 '''
 import unittest
 import antlr_grammar

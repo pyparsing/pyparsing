@@ -127,13 +127,15 @@ def printer(s, loc, tok):
 def get_filename_list(tf):
     import sys, glob
     if tf == None:
-        tf = sys.argv[1:]
+        if len(sys.argv) > 1:
+            tf = sys.argv[1:]
+        else:
+            tf = glob.glob("*.dfm")
     elif type(tf) == str:
         tf = [tf]
     testfiles = []
     for arg in tf:
-        for i in glob.glob(arg):
-            testfiles.append(i)
+        testfiles.extend(glob.glob(arg))
     return testfiles
 
 def main(testfiles=None, action=printer):
@@ -145,6 +147,7 @@ def main(testfiles=None, action=printer):
     Otherwise, a simple ParseResults is returned.
     """
     testfiles = get_filename_list(testfiles)
+    print(testfiles)
 
     if action:
         for i in (simple_identifier, value, item_list):

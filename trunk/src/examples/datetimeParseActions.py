@@ -21,6 +21,7 @@ integer.setParseAction(convertToInt)
 
 # define a pattern for a year/month/day date
 date_expr = integer('year') + '/' + integer('month') + '/' + integer('day')
+date_expr.ignore(pythonStyleComment)
 
 def convertToDatetime(s,loc,tokens):
     try:

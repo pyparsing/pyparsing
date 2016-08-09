@@ -4,6 +4,8 @@
 #
 # Demonstration of the parsing module, on the prototypical "Hello, World!" example
 #
+# Copyright 2004-2016, by Paul McGuire
+#
 from pyparsing import Word 
 
 # define grammar

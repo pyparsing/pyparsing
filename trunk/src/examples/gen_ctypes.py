@@ -1,3 +1,10 @@
+#
+# gen_ctypes.py
+#
+# Parse a .h header file to generate ctypes argtype and return type definitions
+#
+# Copyright 2004-2016, by Paul McGuire
+#
 from pyparsing import *
 
 typemap = {

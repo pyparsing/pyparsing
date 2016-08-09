@@ -5,7 +5,8 @@ A standalone parser using pyparsing.
 pyparsing has a simple and expressive syntax so the grammar is easy to read and
 write.
 
-Matthew Brett 2010
+Submitted by Matthew Brett, 2010
+
 Simplified BSD license
 """
 

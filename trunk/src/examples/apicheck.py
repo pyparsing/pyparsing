@@ -2,6 +2,9 @@
 #   A simple source code scanner for finding patterns of the form
 #       [ procname1 $arg1 $arg2 ]
 #  and verifying the number of arguments
+#
+# Copyright (c) 2004-2016, Paul McGuire
+#
 
 from pyparsing import *
 
