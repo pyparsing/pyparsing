@@ -59,10 +59,10 @@ expr << (arithExpr | textExpr)
 
 
 (EQ + expr).runTests("""\
-    =3*A7+5"
-    =3*Sheet1!$A$7+5"
-    =3*'Sheet 1'!$A$7+5" 
-    =3*'O''Reilly''s sheet'!$A$7+5" 
-    =if(Sum(A1:A25)>42,Min(B1:B25),if(Sum(C1:C25)>3.14, (Min(C1:C25)+3)*18,Max(B1:B25)))"
+    =3*A7+5
+    =3*Sheet1!$A$7+5
+    =3*'Sheet 1'!$A$7+5"
+    =3*'O''Reilly''s sheet'!$A$7+5
+    =if(Sum(A1:A25)>42,Min(B1:B25),if(Sum(C1:C25)>3.14, (Min(C1:C25)+3)*18,Max(B1:B25)))
     =sum(a1:a25,10,min(b1,c2,d3))
 """)

@@ -4,6 +4,8 @@
 #
 # Demonstration of the parsing module, on the prototypical "Hello, World!" example
 #
+# Copyright 2004-2016, by Paul McGuire
+#
 from pyparsing import Word, srange
 
 koreanChars = srange(r"[\0xac00-\0xd7a3]")

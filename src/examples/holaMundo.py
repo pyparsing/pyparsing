@@ -18,13 +18,21 @@ tokens = saludo.parseString("Hola, Mundo !")
 for i in range(len(tokens)):
     print ("Token %d -> %s" % (i,tokens[i]))
 
-#imprimimos cada uno de los tokens Y listooo!!, he aquí la salida 
-# Token 0—> Hola Token 1—> , Token 2—> Mundo Token 3—> ! 
+#imprimimos cada uno de los tokens Y listooo!!, he aquÃ­ a salida 
+# Token 0 -> Hola
+# Token 1 -> ,
+# Token 2-> Mundo 
+# Token 3 -> ! 
  
-# Por supuesto, se pueden “reutilizar” gramáticas, por ejemplo: 
+# Por supuesto, se pueden "reutilizar" gramÃ¡ticas, por ejemplo: 
 numimag = Word(nums) + 'i' 
 numreal = Word(nums) 
 numcomplex = numreal + '+' + numimag 
 print (numcomplex.parseString("3+5i"))
 
-# Excelente!!, bueno, los dejo, me voy a seguir tirando código…
+# Cambiar a complejo numero durante parsear:
+numcomplex.setParseAction(lambda t: complex(''.join(t).replace('i','j')))
+print (numcomplex.parseString("3+5i"))
+
+# Excelente!!, bueno, los dejo, me voy a seguir tirando cÃ³digo...
+

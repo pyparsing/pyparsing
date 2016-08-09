@@ -5,6 +5,7 @@ Created on 4 sept. 2010
 
 @author: luca
 
+Submitted by Luca DallOlio, September, 2010
 (Minor updates by Paul McGuire, June, 2012)
 '''
 from pyparsing import Word, ZeroOrMore, printables, Suppress, OneOrMore, Group, \

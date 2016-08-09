@@ -8,6 +8,8 @@
 # Updated 8 Jan 2007 - fixed dict grouping bug, and made elements and
 #   members optional in array and object collections
 #
+# Updated 9 Aug 2016 - use more current pyparsing constructs/idioms
+#
 json_bnf = """
 object 
     { members } 
@@ -33,35 +35,29 @@ value
 
 from pyparsing import *
 
-TRUE = Keyword("true").setParseAction( replaceWith(True) )
-FALSE = Keyword("false").setParseAction( replaceWith(False) )
-NULL = Keyword("null").setParseAction( replaceWith(None) )
+def make_keyword(kwd_str, kwd_value):
+    return Keyword(kwd_str).setParseAction(replaceWith(kwd_value))
+TRUE  = make_keyword("true", True)
+FALSE = make_keyword("false", False)
+NULL  = make_keyword("null", None)
 
-jsonString = dblQuotedString.setParseAction( removeQuotes )
-jsonNumber = Combine( Optional('-') + ( '0' | Word('123456789',nums) ) +
-                    Optional( '.' + Word(nums) ) +
-                    Optional( Word('eE',exact=1) + Word(nums+'+-',nums) ) )
+LBRACK, RBRACK, LBRACE, RBRACE, COLON = map(Suppress, "[]{}:")
+
+jsonString = dblQuotedString().setParseAction(removeQuotes)
+jsonNumber = pyparsing_common.number()
 
 jsonObject = Forward()
 jsonValue = Forward()
 jsonElements = delimitedList( jsonValue )
-jsonArray = Group(Suppress('[') + Optional(jsonElements, []) + Suppress(']') )
-jsonValue << ( jsonString | jsonNumber | Group(jsonObject)  | jsonArray | TRUE | FALSE | NULL )
-memberDef = Group( jsonString + Suppress(':') + jsonValue )
-jsonMembers = delimitedList( memberDef )
-jsonObject << Dict( Suppress('{') + Optional(jsonMembers) + Suppress('}') )
+jsonArray = Group(LBRACK + Optional(jsonElements, []) + RBRACK)
+jsonValue << (jsonString | jsonNumber | Group(jsonObject)  | jsonArray | TRUE | FALSE | NULL)
+memberDef = Group(jsonString + COLON + jsonValue)
+jsonMembers = delimitedList(memberDef)
+jsonObject << Dict(LBRACE + Optional(jsonMembers) + RBRACE)
 
 jsonComment = cppStyleComment 
-jsonObject.ignore( jsonComment )
+jsonObject.ignore(jsonComment)
 
-def convertNumbers(s,l,toks):
-    n = toks[0]
-    try:
-        return int(n)
-    except ValueError as ve:
-        return float(n)
-        
-jsonNumber.setParseAction( convertNumbers )
     
 if __name__ == "__main__":
     testdata = """

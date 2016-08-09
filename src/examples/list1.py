@@ -1,3 +1,10 @@
+#
+# list1.py
+#
+# an example of using parse actions to convert type of parsed data.
+#
+# Copyright (c) 2006-2016, Paul McGuire
+#
 from pyparsing import *
 
 # first pass
@@ -20,8 +27,8 @@ print(listStr.parseString(test))
 lbrack = Literal("[").suppress()
 rbrack = Literal("]").suppress()
 cvtInt = lambda s,l,toks: int(toks[0])
-integer = Word(nums).setName("integer").setParseAction( cvtInt )
 cvtReal = lambda s,l,toks: float(toks[0])
+integer = Word(nums).setName("integer").setParseAction( cvtInt )
 real = Combine(Optional(oneOf("+ -")) + Word(nums) + "." +
                Optional(Word(nums))).setName("real").setParseAction( cvtReal )
 listItem = real | integer | quotedString.setParseAction( removeQuotes )
@@ -33,14 +40,13 @@ test = "['a', 100, 3.14]"
 print(listStr.parseString(test))
 
 # third pass, add nested list support
-cvtInt = lambda s,l,toks: int(toks[0])
-cvtReal = lambda s,l,toks: float(toks[0])
+lbrack, rbrack = map(Suppress, "[]")
 
-lbrack = Literal("[").suppress()
-rbrack = Literal("]").suppress()
+cvtInt = tokenMap(int)
+cvtReal = tokenMap(float)
+
 integer = Word(nums).setName("integer").setParseAction( cvtInt )
-real = Combine(Optional(oneOf("+ -")) + Word(nums) + "." +
-               Optional(Word(nums))).setName("real").setParseAction( cvtReal )
+real = Regex(r"[+-]?\d+\.\d*").setName("real").setParseAction( cvtReal )
 
 listStr = Forward()
 listItem = real | integer | quotedString.setParseAction(removeQuotes) | Group(listStr)

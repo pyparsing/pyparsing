@@ -1,9 +1,15 @@
+#
+# ebnftest.py 
+#
+# Test script for ebnf.py
+#
+# Submitted 2004 by Seo Sanghyeon
+#
 print('Importing pyparsing...')
 from pyparsing import *
 
 print('Constructing EBNF parser with pyparsing...')
 import ebnf
-import sets
 
 
 grammar = '''
@@ -39,7 +45,7 @@ parsers = ebnf.parse(grammar, table)
 ebnf_parser = parsers['syntax']
 
 commentcharcount = 0
-commentlocs = sets.Set()
+commentlocs = set()
 def tallyCommentChars(s,l,t):
     global commentcharcount,commentlocs
     # only count this comment if we haven't seen it before

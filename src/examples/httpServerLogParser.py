@@ -1,5 +1,7 @@
 # httpServerLogParser.py
 #
+# Copyright (c) 2016, Paul McGuire
+#
 """
 Parser for HTTP server log output, of the form:
 
