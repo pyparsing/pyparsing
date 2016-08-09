@@ -2,6 +2,13 @@
 Change Log
 ==========
 
+Version 2.1.7 - 
+------------------------------
+- Fixed regression reported by Andrea Censi (surfaced in PyContracts 
+  tests) when using ParseSyntaxExceptions (raised when using operator '-')
+  with packrat parsing.
+
+
 Version 2.1.6 - 
 ------------------------------
 - *Major packrat upgrade*, inspired by patch provided by Tal Einat - 
