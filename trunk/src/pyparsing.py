@@ -57,8 +57,8 @@ The pyparsing module handles some of the problems that are typically vexing when
  - embedded comments
 """
 
-__version__ = "2.1.7"
-__versionTime__ = "11 Aug 2016 07:29 UTC"
+__version__ = "2.1.8"
+__versionTime__ = "11 Aug 2016 19:09 UTC"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -3557,7 +3557,10 @@ class ParseElementEnhance(ParserElement):
     def __init__( self, expr, savelist=False ):
         super(ParseElementEnhance,self).__init__(savelist)
         if isinstance( expr, basestring ):
-            expr = ParserElement._literalStringClass(expr)
+            if issubclass(ParserElement._literalStringClass, Token):
+                expr = ParserElement._literalStringClass(expr)
+            else:
+                expr = ParserElement._literalStringClass(Literal(expr))
         self.expr = expr
         self.strRepr = None
         if expr is not None:
