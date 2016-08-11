@@ -8,6 +8,11 @@ Version 2.1.7 -
   tests) when using ParseSyntaxExceptions (raised when using operator '-')
   with packrat parsing.
 
+- Minor fix to oneOf, to accept all iterables, not just space-delimited
+  strings and lists. (If you have a list or set of strings, it is 
+  not necessary to concat them using ' '.join to pass them to oneOf,
+  oneOf will accept the list or set or generator directly.)
+
 
 Version 2.1.6 - 
 ------------------------------
