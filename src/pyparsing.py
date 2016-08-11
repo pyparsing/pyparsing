@@ -153,6 +153,8 @@ else:
             singleArgBuiltins.append(getattr(__builtin__,fname))
         except AttributeError:
             continue
+            
+_generatorType = type((y for y in range(1)))
  
 def _xml_escape(data):
     """Escape &, <, >, ", ', etc. in a string of data."""
@@ -349,7 +351,7 @@ class ParseResults(object):
                 toklist = []
             if isinstance(toklist, list):
                 self.__toklist = toklist[:]
-            elif isinstance(toklist, collections.Iterable):
+            elif isinstance(toklist, _generatorType):
                 self.__toklist = list(toklist)
             else:
                 self.__toklist = [toklist]
@@ -3085,6 +3087,8 @@ class ParseExpression(ParserElement):
     """
     def __init__( self, exprs, savelist = False ):
         super(ParseExpression,self).__init__(savelist)
+        if isinstance( exprs, _generatorType ):
+            exprs = list(exprs)
 
         if isinstance( exprs, basestring ):
             self.exprs = [ ParserElement._literalStringClass( exprs ) ]
