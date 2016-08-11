@@ -349,7 +349,7 @@ class ParseResults(object):
                 toklist = []
             if isinstance(toklist, list):
                 self.__toklist = toklist[:]
-            elif isinstance(toklist, _generatorType):
+            elif isinstance(toklist, collections.Iterable):
                 self.__toklist = list(toklist)
             else:
                 self.__toklist = [toklist]
