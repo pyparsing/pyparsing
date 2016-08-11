@@ -309,23 +309,26 @@ class ParseResults(object):
                         + integer.setResultsName("day"))
         # equivalent form:
         # date_str = integer("year") + '/' + integer("month") + '/' + integer("day")
-           
+
         result = date_str.parseString("1999/12/31")
-        print(list(result))
-        print(result[0])
-        print(result['month'])
-        print(result.day)
-        print('month' in result)
-        print('minutes' in result)
-        print(result.dump())
+
+        def test(s, fn=repr):
+            print("%s -> %s" % (s, fn(eval(s))))
+        test("list(result)")
+        test("result[0]")
+        test("result['month']")
+        test("result.day")
+        test("'month' in result")
+        test("'minutes' in result")
+        test("result.dump()", str)
     prints::
-        ['1999', '/', '12', '/', '31']
-        1999
-        12
-        31
-        True
-        False
-        ['1999', '/', '12', '/', '31']
+        list(result) -> ['1999', '/', '12', '/', '31']
+        result[0] -> '1999'
+        result['month'] -> '12'
+        result.day -> '31'
+        'month' in result -> True
+        'minutes' in result -> False
+        result.dump() -> ['1999', '/', '12', '/', '31']
         - day: 31
         - month: 12
         - year: 1999
