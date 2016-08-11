@@ -58,7 +58,7 @@ The pyparsing module handles some of the problems that are typically vexing when
 """
 
 __version__ = "2.1.8"
-__versionTime__ = "11 Aug 2016 19:09 UTC"
+__versionTime__ = "11 Aug 2016 20:00 UTC"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -1159,7 +1159,7 @@ class ParserElement(object):
 
     def setName( self, name ):
         """
-        Define name for this expression, makes exception messages clearer.
+        Define name for this expression, makes debugging and exception messages clearer.
         
         Example::
             Word(nums).parseString("ABC")  # -> Exception: Expected W:(0123...) (at char 0), (line:1, col:1)
@@ -2057,6 +2057,35 @@ class ParserElement(object):
         """
         Enable display of debugging messages while doing pattern matching.
         Set C{flag} to True to enable, False to disable.
+
+        Example::
+            wd = Word(alphas).setName("alphaword")
+            integer = Word(nums).setName("numword")
+            term = wd | integer
+            
+            # turn on debugging for wd
+            wd.setDebug()
+
+            OneOrMore(term).parseString("abc 123 xyz 890")
+        
+        prints::
+            Match alphaword at loc 0(1,1)
+            Matched alphaword -> ['abc']
+            Match alphaword at loc 3(1,4)
+            Exception raised:Expected alphaword (at char 4), (line:1, col:5)
+            Match alphaword at loc 7(1,8)
+            Matched alphaword -> ['xyz']
+            Match alphaword at loc 11(1,12)
+            Exception raised:Expected alphaword (at char 12), (line:1, col:13)
+            Match alphaword at loc 15(1,16)
+            Exception raised:Expected alphaword (at char 15), (line:1, col:16)
+
+        The output shown is that produced by the default debug actions. Prior to attempting
+        to match the C{wd} expression, the debugging message C{"Match <exprname> at loc <n>(<line>,<col>)"}
+        is shown. Then if the parse succeeds, a C{"Matched"} message is shown, or an C{"Exception raised"}
+        message is shown. Also note the use of L{setName} to assign a human-readable name to the expression,
+        which makes debugging and exception messages easier to understand - for instance, the default
+        name created for the C{Word} expression without calling C{setName} is C{"W:(ABCD...)"}.
         """
         if flag:
             self.setDebugActions( _defaultStartDebugAction, _defaultSuccessDebugAction, _defaultExceptionDebugAction )

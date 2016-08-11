@@ -7,6 +7,8 @@ Version 2.1.8 -
 - Fixed bug in ParserElement.inlineLiteralsUsing, causing infinite 
   loop with Suppress.
 
+- Added a few more inline doc examples.
+
 
 Version 2.1.7 - 
 ------------------------------
