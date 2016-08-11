@@ -2956,6 +2956,55 @@ class ParseFatalExceptionTest(ParseTestCase):
         
         assert success, "bad handling of syntax error"
 
+class InlineLiteralsUsingTest(ParseTestCase):
+    def runTest(self):
+        
+        from pyparsing import ParserElement, Suppress, Literal, CaselessLiteral, Word, alphas, oneOf, CaselessKeyword, nums
+        
+        class AutoReset(object):
+            def __init__(self, ob, attrname):
+                self.ob = ob
+                self.save_attr = attrname
+                self.save_value = getattr(ob, attrname)
+
+            def __enter__(self):
+                pass
+
+            def __exit__(self, *args):
+                setattr(self.ob, self.save_attr, self.save_value)
+
+        with AutoReset(ParserElement, "_literalStringClass"):
+            ParserElement.inlineLiteralsUsing(Suppress)
+            wd = Word(alphas)
+            result = (wd + ',' + wd + oneOf("! . ?")).parseString("Hello, World!")
+            assert len(result) == 3, "inlineLiteralsUsing(Suppress) failed!"
+
+            ParserElement.inlineLiteralsUsing(Literal)
+            result = (wd + ',' + wd + oneOf("! . ?")).parseString("Hello, World!")
+            assert len(result) == 4, "inlineLiteralsUsing(Literal) failed!"
+
+            ParserElement.inlineLiteralsUsing(CaselessKeyword)
+            result = ("SELECT" + wd + "FROM" + wd).parseString("select color from colors")
+            assert result.asList() == "SELECT color FROM colors".split(), "inlineLiteralsUsing(CaselessKeyword) failed!"
+
+            ParserElement.inlineLiteralsUsing(CaselessLiteral)
+            result = ("SELECT" + wd + "FROM" + wd).parseString("select color from colors")
+            assert result.asList() == "SELECT color FROM colors".split(), "inlineLiteralsUsing(CaselessLiteral) failed!"
+
+            integer = Word(nums)
+            ParserElement.inlineLiteralsUsing(Literal)
+            date_str = integer("year") + '/' + integer("month") + '/' + integer("day")           
+            result = date_str.parseString("1999/12/31")  
+            assert result.asList() == ['1999', '/', '12', '/', '31'], "inlineLiteralsUsing(example 1) failed!"
+
+            # change to Suppress
+            ParserElement.inlineLiteralsUsing(Suppress)
+            date_str = integer("year") + '/' + integer("month") + '/' + integer("day")           
+
+            result = date_str.parseString("1999/12/31")  # -> ['1999', '12', '31']
+            assert result.asList() == ['1999', '12', '31'], "inlineLiteralsUsing(example 2) failed!"
+
+
 class MiscellaneousParserTests(ParseTestCase):
     def runTest(self):
         import pyparsing
