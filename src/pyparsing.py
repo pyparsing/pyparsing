@@ -58,7 +58,7 @@ The pyparsing module handles some of the problems that are typically vexing when
 """
 
 __version__ = "2.1.7"
-__versionTime__ = "09 Aug 2016 19:30 UTC"
+__versionTime__ = "11 Aug 2016 07:29 UTC"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -153,8 +153,6 @@ else:
             singleArgBuiltins.append(getattr(__builtin__,fname))
         except AttributeError:
             continue
-            
-_generatorType = type((y for y in range(1)))
  
 def _xml_escape(data):
     """Escape &, <, >, ", ', etc. in a string of data."""
@@ -3087,12 +3085,11 @@ class ParseExpression(ParserElement):
     """
     def __init__( self, exprs, savelist = False ):
         super(ParseExpression,self).__init__(savelist)
-        if isinstance( exprs, _generatorType ):
-            exprs = list(exprs)
 
         if isinstance( exprs, basestring ):
             self.exprs = [ ParserElement._literalStringClass( exprs ) ]
-        elif isinstance( exprs, collections.Sequence ):
+        elif isinstance( exprs, collections.Iterable ):
+            exprs = list(exprs)
             # if sequence of strings provided, wrap with Literal
             if all(isinstance(expr, basestring) for expr in exprs):
                 exprs = map(ParserElement._literalStringClass, exprs)
@@ -4403,7 +4400,7 @@ def oneOf( strs, caseless=False, useRegex=True ):
     but returns a C{L{MatchFirst}} for best performance.
 
     Parameters:
-     - strs - a string of space-delimited literals, or a list of string literals
+     - strs - a string of space-delimited literals, or a collection of string literals
      - caseless - (default=C{False}) - treat all literals as caseless
      - useRegex - (default=C{True}) - as an optimization, will generate a Regex
           object; otherwise, will generate a C{MatchFirst} object (if C{caseless=True}, or
@@ -4431,12 +4428,10 @@ def oneOf( strs, caseless=False, useRegex=True ):
     symbols = []
     if isinstance(strs,basestring):
         symbols = strs.split()
-    elif isinstance(strs, collections.Sequence):
-        symbols = list(strs[:])
-    elif isinstance(strs, _generatorType):
+    elif isinstance(strs, collections.Iterable):
         symbols = list(strs)
     else:
-        warnings.warn("Invalid argument to oneOf, expected string or list",
+        warnings.warn("Invalid argument to oneOf, expected string or iterable",
                 SyntaxWarning, stacklevel=2)
     if not symbols:
         return NoMatch()

@@ -2972,6 +2972,24 @@ class MiscellaneousParserTests(ParseTestCase):
             except RuntimeError:
                 assert False,"still have infinite loop in oneOf with duplicate symbols"
         
+            print_("verify oneOf handles generator input")
+            try:
+                test1 = pyparsing.oneOf(c for c in "a b c d a")
+            except RuntimeError:
+                assert False,"still have infinite loop in oneOf with duplicate symbols"
+        
+            print_("verify oneOf handles list input")
+            try:
+                test1 = pyparsing.oneOf("a b c d a".split())
+            except RuntimeError:
+                assert False,"still have infinite loop in oneOf with duplicate symbols"
+        
+            print_("verify oneOf handles set input")
+            try:
+                test1 = pyparsing.oneOf(set("a b c d a"))
+            except RuntimeError:
+                assert False,"still have infinite loop in oneOf with duplicate symbols"
+        
         # test MatchFirst bugfix
         if "B" in runtests:
             print_("verify MatchFirst iterates properly")
