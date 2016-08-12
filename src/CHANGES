@@ -4,6 +4,11 @@ Change Log
 
 Version 2.1.8 - 
 ------------------------------
+- Fixed issue in the optimization to _trim_arity, when the full 
+  stacktrace is retrieved to determine if a TypeError is raised in
+  pyparsing or in the caller's parse action. Code was traversing
+  the full stacktrace, and potentially encountering UnicodeDecodeError.
+
 - Fixed bug in ParserElement.inlineLiteralsUsing, causing infinite 
   loop with Suppress.
 
