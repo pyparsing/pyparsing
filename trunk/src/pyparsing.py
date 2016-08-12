@@ -58,7 +58,7 @@ The pyparsing module handles some of the problems that are typically vexing when
 """
 
 __version__ = "2.1.8"
-__versionTime__ = "11 Aug 2016 20:00 UTC"
+__versionTime__ = "12 Aug 2016 14:46 UTC"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -1017,13 +1017,13 @@ def _trim_arity(func, maxargs=2):
     
     # traceback return data structure changed in Py3.5 - normalize back to plain tuples
     if system_version[:2] >= (3,5):
-        def extract_stack():
+        def extract_stack(limit=0):
             # special handling for Python 3.5.0 - extra deep call stack by 1
             offset = -3 if system_version == (3,5,0) else -2
-            frame_summary = traceback.extract_stack()[offset]
+            frame_summary = traceback.extract_stack(limit=-offset+limit-1)[offset]
             return [(frame_summary.filename, frame_summary.lineno)]
-        def extract_tb(tb):
-            frames = traceback.extract_tb(tb)
+        def extract_tb(tb, limit=0):
+            frames = traceback.extract_tb(tb, limit=limit)
             frame_summary = frames[-1]
             return [(frame_summary.filename, frame_summary.lineno)]
     else:
@@ -1036,7 +1036,7 @@ def _trim_arity(func, maxargs=2):
     LINE_DIFF = 6
     # IF ANY CODE CHANGES, EVEN JUST COMMENTS OR BLANK LINES, BETWEEN THE NEXT LINE AND 
     # THE CALL TO FUNC INSIDE WRAPPER, LINE_DIFF MUST BE MODIFIED!!!!
-    this_line = extract_stack()[-1]
+    this_line = extract_stack(limit=2)[-1]
     pa_call_line_synth = (this_line[0], this_line[1]+LINE_DIFF)
 
     def wrapper(*args):
@@ -1052,7 +1052,7 @@ def _trim_arity(func, maxargs=2):
                 else:
                     try:
                         tb = sys.exc_info()[-1]
-                        if not extract_tb(tb)[-1][:2] == pa_call_line_synth:
+                        if not extract_tb(tb, limit=2)[-1][:2] == pa_call_line_synth:
                             raise
                     finally:
                         del tb
