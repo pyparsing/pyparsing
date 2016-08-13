@@ -12,6 +12,11 @@ Version 2.1.8 -
 - Fixed bug in ParserElement.inlineLiteralsUsing, causing infinite 
   loop with Suppress.
 
+- Fixed bug in Each, when merging named results from multiple
+  expressions in a ZeroOrMore or OneOrMore. Also fixed bug when
+  ZeroOrMore expressions were erroneously treated as required 
+  expressions in an Each expression.
+  
 - Added a few more inline doc examples.
 
 
