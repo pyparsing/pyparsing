@@ -2275,9 +2275,53 @@ class OptionalEachTest(ParseTestCase):
         assert modifiers == "with foo=bar bing=baz using id-deadbeef"
         assert not modifiers == "with foo=bar bing=baz using id-deadbeef using id-feedfeed"
     
+    def runTest3(self):
+        from pyparsing import Literal,Suppress,ZeroOrMore,OneOrMore
+
+        foo = Literal('foo')
+        bar = Literal('bar')
+
+        openBrace = Suppress(Literal("{"))
+        closeBrace = Suppress(Literal("}"))
+
+        exp = openBrace + (OneOrMore(foo)("foo") & ZeroOrMore(bar)("bar")) + closeBrace
+
+        tests = """\
+            {foo}
+            {bar foo bar foo bar foo}
+            """.splitlines()
+        for test in tests:
+            test = test.strip()
+            if not test:
+                continue
+            result = exp.parseString(test)
+            print(test, '->', result.asList())
+            assert result.asList() == test.strip("{}").split(), "failed to parse Each expression %r" % test
+            print(result.dump())
+
+        try:
+            result = exp.parseString("{bar}")
+            assert False, "failed to raise exception when required element is missing"
+        except ParseException as pe:
+            pass
+            
+    def runTest4(self):
+        from pyparsing import pyparsing_common, ZeroOrMore, Group
+        
+        expr = ((~pyparsing_common.iso8601_date + pyparsing_common.integer("id")) 
+                & ZeroOrMore(Group(pyparsing_common.iso8601_date)("date*")))
+        
+        expr.runTests("""
+            1999-12-31 100 2001-01-01
+            42
+            """)
+            
+    
     def runTest(self):
         self.runTest1()
         self.runTest2()
+        self.runTest3()
+        self.runTest4()
 
 class SumParseResultsTest(ParseTestCase):
     def runTest(self):
