@@ -16,9 +16,9 @@ FROM = Keyword("from", caseless=True)
 WHERE = Keyword("where", caseless=True)
 
 ident          = Word( alphas, alphanums + "_$" ).setName("identifier")
-columnName     = ( delimitedList( ident, ".", combine=True ) ).addParseAction(upcaseTokens)
+columnName     = ( delimitedList( ident, ".", combine=True ) ).setName("column name").addParseAction(upcaseTokens)
 columnNameList = Group( delimitedList( columnName ) )
-tableName      = ( delimitedList( ident, ".", combine=True ) ).addParseAction(upcaseTokens)
+tableName      = ( delimitedList( ident, ".", combine=True ) ).setName("table name").addParseAction(upcaseTokens)
 tableNameList  = Group( delimitedList( tableName ) )
 
 whereExpression = Forward()
@@ -56,17 +56,40 @@ oracleSqlComment = "--" + restOfLine
 simpleSQL.ignore( oracleSqlComment )
 
 if __name__ == "__main__":
-	simpleSQL.runTests("""\
-	    SELECT * from XYZZY, ABC
-	    select * from SYS.XYZZY
-	    Select A from Sys.dual
-	    Select A,B,C from Sys.dual
-	    Select A, B, C from Sys.dual
-	    Select A, B, C from Sys.dual, Table2   
-	    Xelect A, B, C from Sys.dual
-	    Select A, B, C frox Sys.dual
-	    Select
-	    Select &&& frox Sys.dual
-	    Select A from Sys.dual where a in ('RED','GREEN','BLUE')
-	    Select A from Sys.dual where a in ('RED','GREEN','BLUE') and b in (10,20,30)
-	    Select A,b from table1,table2 where table1.id eq table2.id -- test out comparison operators""")
+    simpleSQL.runTests("""\
+
+        # multiple tables
+        SELECT * from XYZZY, ABC
+
+        # dotted table name
+        select * from SYS.XYZZY
+
+        Select A from Sys.dual
+
+        Select A,B,C from Sys.dual
+
+        Select A, B, C from Sys.dual, Table2   
+
+        # FAIL - invalid SELECT keyword
+        Xelect A, B, C from Sys.dual
+
+        # FAIL - invalid FROM keyword
+        Select A, B, C frox Sys.dual
+
+        # FAIL - incomplete statement
+        Select
+
+        # FAIL - incomplete statement
+        Select * from
+
+        # FAIL - invalid column
+        Select &&& frox Sys.dual
+
+        # where clause
+        Select A from Sys.dual where a in ('RED','GREEN','BLUE')
+
+        # compound where clause
+        Select A from Sys.dual where a in ('RED','GREEN','BLUE') and b in (10,20,30)
+
+        # where clause with comparison operator
+        Select A,b from table1,table2 where table1.id eq table2.id""")
