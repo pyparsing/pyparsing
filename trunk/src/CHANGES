@@ -19,6 +19,8 @@ Version 2.1.8 -
   
 - Added a few more inline doc examples.
 
+- Improved use of runTests in several example scripts.
+
 
 Version 2.1.7 - 
 ------------------------------
