@@ -58,7 +58,7 @@ The pyparsing module handles some of the problems that are typically vexing when
 """
 
 __version__ = "2.1.8"
-__versionTime__ = "13 Aug 2016 02:22 UTC"
+__versionTime__ = "14 Aug 2016 08:43 UTC"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -2284,6 +2284,10 @@ class ParserElement(object):
                 out.append("FAIL: " + str(pe))
                 success = success and failureTests
                 result = pe
+            except Exception as exc:
+                out.append("FAIL-EXCEPTION: " + str(exc))
+                success = success and failureTests
+                result = exc
 
             if printResults:
                 if fullDump:
@@ -5443,7 +5447,12 @@ class pyparsing_common:
         prints::
             [datetime.date(1999, 12, 31)]
         """
-        return lambda s,l,t: datetime.strptime(t[0], fmt).date()
+        def cvt_fn(s,l,t):
+            try:
+                return datetime.strptime(t[0], fmt).date()
+            except ValueError as ve:
+                raise ParseException(s, l, str(ve))
+        return cvt_fn
 
     @staticmethod
     def convertToDatetime(fmt="%Y-%m-%dT%H:%M:%S.%f"):
@@ -5460,7 +5469,12 @@ class pyparsing_common:
         prints::
             [datetime.datetime(1999, 12, 31, 23, 59, 59, 999000)]
         """
-        return lambda s,l,t: datetime.strptime(t[0], fmt)
+        def cvt_fn(s,l,t):
+            try:
+                return datetime.strptime(t[0], fmt)
+            except ValueError as ve:
+                raise ParseException(s, l, str(ve))
+        return cvt_fn
 
     iso8601_date = Regex(r'(?P<year>\d{4})(?:-(?P<month>\d\d)(?:-(?P<day>\d\d))?)?').setName("ISO8601 date")
     "ISO8601 date (C{yyyy-mm-dd})"
