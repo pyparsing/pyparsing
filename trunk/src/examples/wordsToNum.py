@@ -78,8 +78,16 @@ numWords.ignore(Literal("-"))
 numWords.ignore(CaselessLiteral("and"))
 
 def test(s,expected):
-    print ("Expecting %s" % expected)
-    numWords.runTests(s)
+    try:
+        fail_expected = (expected is None)
+        success, results_tup = numWords.runTests(s, failureTests=fail_expected)
+        assert success, "Failed test!"
+        if not fail_expected:
+            teststr, results = results_tup[0]
+            observed = results[0]
+            assert expected == observed, "incorrect parsed value, {} -> {}, should be {}".format(teststr, observed, expected)
+    except Exception as exc:
+        print("{}: {}".format(type(exc).__name__, exc))
 
 test("one hundred twenty hundred", None)
 test("one hundred and twennty", None)

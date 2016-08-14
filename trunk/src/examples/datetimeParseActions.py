@@ -38,9 +38,15 @@ date_expr.setParseAction(convertToDatetime)
 
 date_expr.runTests("""\
     2000/1/1 
-    2000/13/1  # invalid month
-    1900/2/29  # 1900 was not a leap year
-    2000/2/29  # but 2000 was
+
+    # invalid month
+    2000/13/1  
+
+    # 1900 was not a leap year
+    1900/2/29  
+
+    # but 2000 was
+    2000/2/29  
     """)
 
 
@@ -50,7 +56,13 @@ date_expr.ignore(pythonStyleComment)
 
 date_expr.runTests("""\
     2000-01-01 
-    2000-13-01  # invalid month
-    1900-02-29  # 1900 was not a leap year
-    2000-02-29  # but 2000 was
+
+    # invalid month
+    2000-13-01  
+
+    # 1900 was not a leap year
+    1900-02-29  
+
+    # but 2000 was
+    2000-02-29  
     """)
