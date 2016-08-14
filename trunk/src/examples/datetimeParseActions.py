@@ -30,7 +30,7 @@ def convertToDatetime(s,loc,tokens):
         # on the integer expression above
         return datetime(tokens.year, tokens.month, tokens.day).date()
     except Exception as ve:
-        errmsg = "'%d/%d/%d' is not a valid date, %s" % \
+        errmsg = "'%s/%s/%s' is not a valid date, %s" % \
             (tokens.year, tokens.month, tokens.day, ve)
         raise ParseException(s, loc, errmsg)
 date_expr.setParseAction(convertToDatetime)
@@ -41,4 +41,16 @@ date_expr.runTests("""\
     2000/13/1  # invalid month
     1900/2/29  # 1900 was not a leap year
     2000/2/29  # but 2000 was
+    """)
+
+
+# if dates conform to ISO8601, use definitions in pyparsing_common
+date_expr = pyparsing_common.iso8601_date.setParseAction(pyparsing_common.convertToDate())
+date_expr.ignore(pythonStyleComment)
+
+date_expr.runTests("""\
+    2000-01-01 
+    2000-13-01  # invalid month
+    1900-02-29  # 1900 was not a leap year
+    2000-02-29  # but 2000 was
     """)
