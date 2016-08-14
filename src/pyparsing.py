@@ -2641,10 +2641,12 @@ class Regex(Token):
     """
     Token for matching strings that match a given regular expression.
     Defined with string specifying the regular expression in a form recognized by the inbuilt Python re module.
+    If the given regex contains named groups (defined using C{(?P<name>...)}), these will be preserved as 
+    named parse results.
 
     Example::
         realnum = Regex(r"[+-]?\d+\.\d*")
-        ssn = Regex(r"\d\d\d-\d\d-\d\d\d\d")
+        date = Regex(r'(?P<year>\d{4})-(?P<month>\d\d)-(?P<day>\d\d)')
         # ref: http://stackoverflow.com/questions/267399/how-do-you-match-only-valid-roman-numerals-with-a-regular-expression
         roman = Regex(r"M{0,4}(CM|CD|D?C{0,3})(XC|XL|L?X{0,3})(IX|IV|V?I{0,3})")
     """
@@ -2847,7 +2849,7 @@ class QuotedString(Token):
 
 class CharsNotIn(Token):
     """
-    Token for matching words composed of characters *not* in a given set (will
+    Token for matching words composed of characters I{not} in a given set (will
     include whitespace in matched characters if not listed in the provided exclusion set - see example).
     Defined with string containing all disallowed characters, and an optional
     minimum, maximum, and/or exact length.  The default value for C{min} is 1 (a
@@ -3656,7 +3658,7 @@ class ParseElementEnhance(ParserElement):
 class FollowedBy(ParseElementEnhance):
     """
     Lookahead matching of the given parse expression.  C{FollowedBy}
-    does *not* advance the parsing position within the input string, it only
+    does I{not} advance the parsing position within the input string, it only
     verifies that the specified parse expression matches at the current
     position.  C{FollowedBy} always returns a null token list.
 
@@ -3682,9 +3684,9 @@ class FollowedBy(ParseElementEnhance):
 class NotAny(ParseElementEnhance):
     """
     Lookahead to disallow matching with the given parse expression.  C{NotAny}
-    does *not* advance the parsing position within the input string, it only
-    verifies that the specified parse expression does *not* match at the current
-    position.  Also, C{NotAny} does *not* skip over leading whitespace. C{NotAny}
+    does I{not} advance the parsing position within the input string, it only
+    verifies that the specified parse expression does I{not} match at the current
+    position.  Also, C{NotAny} does I{not} skip over leading whitespace. C{NotAny}
     always returns a null token list.  May be constructed using the '~' operator.
 
     Example::
@@ -4374,7 +4376,7 @@ def matchPreviousLiteral(expr):
     will match C{"1:1"}, but not C{"1:2"}.  Because this matches a
     previous literal, will also match the leading C{"1:1"} in C{"1:10"}.
     If this is not desired, use C{matchPreviousExpr}.
-    Do *not* use with packrat parsing enabled.
+    Do I{not} use with packrat parsing enabled.
     """
     rep = Forward()
     def copyTokenToRepeater(s,l,t):
@@ -4400,10 +4402,10 @@ def matchPreviousExpr(expr):
         second = matchPreviousExpr(first)
         matchExpr = first + ":" + second
     will match C{"1:1"}, but not C{"1:2"}.  Because this matches by
-    expressions, will *not* match the leading C{"1:1"} in C{"1:10"};
+    expressions, will I{not} match the leading C{"1:1"} in C{"1:10"};
     the expressions are evaluated first, and then compared, so
     C{"1"} is compared with C{"10"}.
-    Do *not* use with packrat parsing enabled.
+    Do I{not} use with packrat parsing enabled.
     """
     rep = Forward()
     e2 = expr.copy()
