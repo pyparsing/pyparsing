@@ -31,15 +31,18 @@ vs. the traditional lex/yacc approach, or the use of regular expressions.  With 
 don't need to learn a new syntax for defining grammars or matching expressions - the parsing module
 provides a library of classes that you use to construct the grammar directly in Python.
 
-Here is a program to parse "Hello, World!" (or any greeting of the form C{"<salutation>, <addressee>!"})::
+Here is a program to parse "Hello, World!" (or any greeting of the form 
+C{"<salutation>, <addressee>!"}), built up using L{Word}, L{Literal}, and L{And} elements 
+(L{'+'<ParserElement.__add__>} operator gives L{And} expressions, strings are auto-converted to
+L{Literal} expressions)::
 
     from pyparsing import Word, alphas
 
     # define grammar of a greeting
-    greet = Word( alphas ) + "," + Word( alphas ) + "!"
+    greet = Word(alphas) + "," + Word(alphas) + "!"
 
     hello = "Hello, World!"
-    print (hello, "->", greet.parseString( hello ))
+    print (hello, "->", greet.parseString(hello))
 
 The program outputs the following::
 
@@ -48,7 +51,7 @@ The program outputs the following::
 The Python representation of the grammar is quite readable, owing to the self-explanatory
 class names, and the use of '+', '|' and '^' operators.
 
-The parsed results returned from L{I{ParserElement.parseString}<ParserElement.parseString>} can be accessed as a nested list, a dictionary, or an
+The L{ParseResults} object returned from L{ParserElement.parseString<ParserElement.parseString>} can be accessed as a nested list, a dictionary, or an
 object with named attributes.
 
 The pyparsing module handles some of the problems that are typically vexing when writing text parsers:
@@ -57,8 +60,8 @@ The pyparsing module handles some of the problems that are typically vexing when
  - embedded comments
 """
 
-__version__ = "2.1.8"
-__versionTime__ = "14 Aug 2016 08:43 UTC"
+__version__ = "2.1.9"
+__versionTime__ = "15 Aug 2016 18:14 UTC"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -310,6 +313,7 @@ class ParseResults(object):
         # equivalent form:
         # date_str = integer("year") + '/' + integer("month") + '/' + integer("day")
 
+        # parseString returns a ParseResults object
         result = date_str.parseString("1999/12/31")
 
         def test(s, fn=repr):
@@ -1775,7 +1779,15 @@ class ParserElement(object):
 
     def __add__(self, other ):
         """
-        Implementation of + operator - returns C{L{And}}
+        Implementation of + operator - returns C{L{And}}. Adding strings to a ParserElement
+        converts them to L{Literal}s by default.
+        
+        Example::
+            greet = Word(alphas) + "," + Word(alphas) + "!"
+            hello = "Hello, World!"
+            print (hello, "->", greet.parseString(hello))
+        Prints::
+            Hello, World! -> ['Hello', ',', 'World', '!']
         """
         if isinstance( other, basestring ):
             other = ParserElement._literalStringClass( other )
@@ -1972,7 +1984,7 @@ class ParserElement(object):
 
     def __call__(self, name=None):
         """
-        Shortcut for C{L{setResultsName}}, with C{listAllMatches=default}.
+        Shortcut for C{L{setResultsName}}, with C{listAllMatches=False}.
         
         If C{name} is given with a trailing C{'*'} character, then C{listAllMatches} will be
         passed as C{True}.
@@ -2083,7 +2095,8 @@ class ParserElement(object):
             Match alphaword at loc 15(1,16)
             Exception raised:Expected alphaword (at char 15), (line:1, col:16)
 
-        The output shown is that produced by the default debug actions. Prior to attempting
+        The output shown is that produced by the default debug actions - custom debug actions can be
+        specified using L{setDebugActions}. Prior to attempting
         to match the C{wd} expression, the debugging message C{"Match <exprname> at loc <n>(<line>,<col>)"}
         is shown. Then if the parse succeeds, a C{"Matched"} message is shown, or an C{"Exception raised"}
         message is shown. Also note the use of L{setName} to assign a human-readable name to the expression,
@@ -2646,7 +2659,7 @@ class Regex(Token):
 
     Example::
         realnum = Regex(r"[+-]?\d+\.\d*")
-        date = Regex(r'(?P<year>\d{4})-(?P<month>\d\d)-(?P<day>\d\d)')
+        date = Regex(r'(?P<year>\d{4})-(?P<month>\d\d?)-(?P<day>\d\d?)')
         # ref: http://stackoverflow.com/questions/267399/how-do-you-match-only-valid-roman-numerals-with-a-regular-expression
         roman = Regex(r"M{0,4}(CM|CD|D?C{0,3})(XC|XL|L?X{0,3})(IX|IV|V?I{0,3})")
     """
@@ -4274,7 +4287,10 @@ class OnlyOnce(object):
 
 def traceParseAction(f):
     """
-    Decorator for debugging parse actions.
+    Decorator for debugging parse actions. 
+    
+    When the parse action is called, this decorator will print C{">> entering I{method-name}(line:I{current_source_line}, I{parse_location}, I{matched_tokens})".}
+    When the parse action completes, the decorator will print C{"<<"} followed by the returned value, or any exception that the parse action raised.
 
     Example::
         wd = Word(alphas)
@@ -4339,9 +4355,16 @@ def countedArray( expr, intExpr=None ):
         integer expr expr expr...
     where the leading integer tells how many expr expressions follow.
     The matched tokens returns the array of expr tokens as a list - the leading count token is suppressed.
+    
+    If C{intExpr} is specified, it should be a pyparsing expression that produces an integer value.
 
     Example::
         countedArray(Word(alphas)).parseString('2 ab cd ef')  # -> ['ab', 'cd']
+
+        # in this parser, the leading integer value is given in binary,
+        # '10' indicating that 2 values are in the array
+        binaryConstant = Word('01').setParseAction(lambda t: int(t[0], 2))
+        countedArray(Word(alphas), intExpr=binaryConstant).parseString('10 ab cd ef')  # -> ['ab', 'cd']
     """
     arrayExpr = Forward()
     def countFieldParseAction(s,l,t):
