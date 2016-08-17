@@ -2,6 +2,13 @@
 Change Log
 ==========
 
+Version 2.1.9 - 
+------------------------------
+- Added class CloseMatch, a variation on Literal which matches 
+  "close" matches, that is, strings with at most 'n' mismatching
+  characters.
+
+
 Version 2.1.8 - 
 ------------------------------
 - Fixed issue in the optimization to _trim_arity, when the full 

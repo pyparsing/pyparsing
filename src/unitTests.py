@@ -3100,7 +3100,35 @@ class InlineLiteralsUsingTest(ParseTestCase):
             result = date_str.parseString("1999/12/31")  # -> ['1999', '12', '31']
             assert result.asList() == ['1999', '12', '31'], "inlineLiteralsUsing(example 2) failed!"
 
+class CloseMatchTest(ParseTestCase):
+    def runTest(self):
+        import pyparsing as pp
+        
+        searchseq = pp.CloseMatch("ATCATCGAATGGA", 2)
 
+        _, results = searchseq.runTests("""
+            ATCATCGAATGGA
+            XTCATCGAATGGX
+            ATCATCGAAXGGA
+            ATCAXXGAATGGA
+            ATCAXXGAATGXA
+            ATCAXXGAATGG
+            """)
+        expected = (
+            [],
+            [0,12],
+            [9],
+            [4,5],
+            None,
+            None
+            )
+
+        for r,exp in zip(results, expected):
+            if exp is not None:
+                assert r[1].mismatches == exp, "fail CloseMatch between %r and %r" % (searchseq.sequence, r[0])
+            print(r[0], 'exc: %s' % r[1] if exp is None and isinstance(r[1], Exception) 
+                                          else ("no match", "match")[r[1].mismatches == exp])
+        
 class MiscellaneousParserTests(ParseTestCase):
     def runTest(self):
         import pyparsing
