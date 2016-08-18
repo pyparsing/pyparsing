@@ -99,7 +99,7 @@ join_source << (Group(single_source + OneOrMore(join_op + single_source + join_c
 
 result_column = "*" | table_name + "." + "*" | Group(expr + Optional(Optional(AS) + column_alias))
 select_core = (SELECT + Optional(DISTINCT | ALL) + Group(delimitedList(result_column))("columns") +
-                Optional(FROM + join_source("from")) +
+                Optional(FROM + join_source("from*")) +
                 Optional(WHERE + expr("where_expr")) +
                 Optional(GROUP + BY + Group(delimitedList(ordering_term)("group_by_terms")) + 
                         Optional(HAVING + expr("having_expr"))))
