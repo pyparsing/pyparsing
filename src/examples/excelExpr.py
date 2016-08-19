@@ -7,10 +7,10 @@
 from pyparsing import (CaselessKeyword, Suppress, Word, alphas, 
     alphanums, nums, Optional, Group, oneOf, Forward, Regex, 
     infixNotation, opAssoc, dblQuotedString, delimitedList, 
-    Combine, Literal, QuotedString, ParserElement)
+    Combine, Literal, QuotedString, ParserElement, pyparsing_common)
 ParserElement.enablePackrat()
 
-EQ,EXCL,LPAR,RPAR,COLON,COMMA = map(Suppress, '=!():,')
+EQ,LPAR,RPAR,COLON,COMMA = map(Suppress, '=():,')
 EXCL, DOLLAR = map(Literal,"!$")
 sheetRef = Word(alphas, alphanums) | QuotedString("'",escQuote="''")
 colRef = Optional(DOLLAR) + Word(alphas,max=2)
@@ -26,7 +26,7 @@ expr = Forward()
 COMPARISON_OP = oneOf("< = > >= <= != <>")
 condExpr = expr + COMPARISON_OP + expr
 
-ifFunc = (CaselessKeyword("if") + 
+ifFunc = (CaselessKeyword("if") - 
           LPAR + 
           Group(condExpr)("condition") + 
           COMMA + Group(expr)("if_true") + 
@@ -41,7 +41,7 @@ funcCall = ifFunc | sumFunc | minFunc | maxFunc | aveFunc
 
 multOp = oneOf("* /")
 addOp = oneOf("+ -")
-numericLiteral = Regex(r"\-?\d+(\.\d+)?")
+numericLiteral = pyparsing_common.number
 operand = numericLiteral | funcCall | cellRange | cellRef 
 arithExpr = infixNotation(operand,
     [
@@ -65,4 +65,5 @@ expr << (arithExpr | textExpr)
     =3*'O''Reilly''s sheet'!$A$7+5
     =if(Sum(A1:A25)>42,Min(B1:B25),if(Sum(C1:C25)>3.14, (Min(C1:C25)+3)*18,Max(B1:B25)))
     =sum(a1:a25,10,min(b1,c2,d3))
+    =if("T"&a2="TTime", "Ready", "Not ready")
 """)
