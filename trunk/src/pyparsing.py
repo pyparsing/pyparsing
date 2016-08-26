@@ -61,7 +61,7 @@ The pyparsing module handles some of the problems that are typically vexing when
 """
 
 __version__ = "2.1.9"
-__versionTime__ = "17 Aug 2016 23:06 UTC"
+__versionTime__ = "18 Aug 2016 13:32 UTC"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -4810,10 +4810,10 @@ def tokenMap(func, *args):
     return pa
 
 upcaseTokens = tokenMap(lambda t: _ustr(t).upper())
-"""Helper parse action to convert tokens to upper case."""
+"""(Deprecated) Helper parse action to convert tokens to upper case. Deprecated in favor of L{pyparsing_common.upcaseTokens}"""
 
 downcaseTokens = tokenMap(lambda t: _ustr(t).lower())
-"""Helper parse action to convert tokens to lower case."""
+"""(Deprecated) Helper parse action to convert tokens to lower case. Deprecated in favor of L{pyparsing_common.downcaseTokens}"""
     
 def _makeTags(tagStr, xml):
     """Internal helper to construct opening and closing tag expressions, given a tag name"""
@@ -5005,7 +5005,7 @@ def infixNotation( baseExpr, opList, lpar=Suppress('('), rpar=Suppress(')') ):
 
     Example::
         # simple example of four-function arithmetic with ints and variable names
-        integer = pyparsing_common.signedInteger
+        integer = pyparsing_common.signed_integer
         varname = pyparsing_common.identifier 
         
         arith_expr = infixNotation(integer | varname,
@@ -5325,23 +5325,27 @@ _commasepitem = Combine(OneOrMore(Word(printables, excludeChars=',') +
                                   Optional( Word(" \t") +
                                             ~Literal(",") + ~LineEnd() ) ) ).streamline().setName("commaItem")
 commaSeparatedList = delimitedList( Optional( quotedString.copy() | _commasepitem, default="") ).setName("commaSeparatedList")
-"""Predefined expression of 1 or more printable words or quoted strings, separated by commas."""
+"""(Deprecated) Predefined expression of 1 or more printable words or quoted strings, separated by commas.
+   This expression is deprecated in favor of L{pyparsing_common.comma_separated_list}."""
 
 # some other useful expressions - using lower-case class name since we are really using this as a namespace
 class pyparsing_common:
     """
     Here are some common low-level expressions that may be useful in jump-starting parser development:
-     - numeric forms (L{integers<integer>}, L{reals<real>}, L{scientific notation<sciReal>})
+     - numeric forms (L{integers<integer>}, L{reals<real>}, L{scientific notation<sci_real>})
      - common L{programming identifiers<identifier>}
      - network addresses (L{MAC<mac_address>}, L{IPv4<ipv4_address>}, L{IPv6<ipv6_address>})
      - ISO8601 L{dates<iso8601_date>} and L{datetime<iso8601_datetime>}
      - L{UUID<uuid>}
+     - L{comma-separated list<comma_separated_list>}
     Parse actions:
      - C{L{convertToInteger}}
      - C{L{convertToFloat}}
      - C{L{convertToDate}}
      - C{L{convertToDatetime}}
      - C{L{stripHTMLTags}}
+     - C{L{upcaseTokens}}
+     - C{L{downcaseTokens}}
 
     Example::
         pyparsing_common.number.runTests('''
@@ -5477,25 +5481,25 @@ class pyparsing_common:
     hex_integer = Word(hexnums).setName("hex integer").setParseAction(tokenMap(int,16))
     """expression that parses a hexadecimal integer, returns an int"""
 
-    signedInteger = Regex(r'[+-]?\d+').setName("signed integer").setParseAction(convertToInteger)
+    signed_integer = Regex(r'[+-]?\d+').setName("signed integer").setParseAction(convertToInteger)
     """expression that parses an integer with optional leading sign, returns an int"""
 
-    fraction = (signedInteger().setParseAction(convertToFloat) + '/' + signedInteger().setParseAction(convertToFloat)).setName("fraction")
+    fraction = (signed_integer().setParseAction(convertToFloat) + '/' + signed_integer().setParseAction(convertToFloat)).setName("fraction")
     """fractional expression of an integer divided by an integer, returns a float"""
     fraction.addParseAction(lambda t: t[0]/t[-1])
 
-    mixed_integer = (fraction | signedInteger + Optional(Optional('-').suppress() + fraction)).setName("fraction or mixed integer-fraction")
+    mixed_integer = (fraction | signed_integer + Optional(Optional('-').suppress() + fraction)).setName("fraction or mixed integer-fraction")
     """mixed integer of the form 'integer - fraction', with optional leading integer, returns float"""
     mixed_integer.addParseAction(sum)
 
     real = Regex(r'[+-]?\d+\.\d*').setName("real number").setParseAction(convertToFloat)
     """expression that parses a floating point number and returns a float"""
 
-    sciReal = Regex(r'[+-]?\d+([eE][+-]?\d+|\.\d*([eE][+-]?\d+)?)').setName("real number with scientific notation").setParseAction(convertToFloat)
+    sci_real = Regex(r'[+-]?\d+([eE][+-]?\d+|\.\d*([eE][+-]?\d+)?)').setName("real number with scientific notation").setParseAction(convertToFloat)
     """expression that parses a floating point number with optional scientific notation and returns a float"""
 
     # streamlining this expression makes the docs nicer-looking
-    number = (sciReal | real | signedInteger).streamline()
+    number = (sci_real | real | signed_integer).streamline()
     """any numeric expression, returns the corresponding Python type"""
 
     fnumber = Regex(r'[+-]?\d+\.?\d*([eE][+-]?\d+)?').setName("fnumber").setParseAction(convertToFloat)
@@ -5586,6 +5590,18 @@ class pyparsing_common:
             print(table_text.parseString(text).body) # -> 'More info at the pyparsing wiki page'
         """
         return pyparsing_common._html_stripper.transformString(tokens[0])
+
+    _commasepitem = Combine(OneOrMore(~Literal(",") + ~LineEnd() + Word(printables, excludeChars=',') 
+                                        + Optional( White(" \t") ) ) ).streamline().setName("commaItem")
+    comma_separated_list = delimitedList( Optional( quotedString.copy() | _commasepitem, default="") ).setName("comma separated list")
+    """Predefined expression of 1 or more printable words or quoted strings, separated by commas."""
+
+    upcaseTokens = staticmethod(tokenMap(lambda t: _ustr(t).upper()))
+    """Parse action to convert tokens to upper case."""
+
+    downcaseTokens = staticmethod(tokenMap(lambda t: _ustr(t).lower()))
+    """Parse action to convert tokens to lower case."""
+
 
 if __name__ == "__main__":
 
