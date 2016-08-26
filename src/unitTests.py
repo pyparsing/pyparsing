@@ -1470,6 +1470,16 @@ class UpcaseDowncaseUnicode(ParseTestCase):
         print(ret.rname)
         assert ret.rname=='MYKEY', "failed to upcase with named result"
 
+        kw = pp.Keyword('mykey', caseless=True).setParseAction(pp.pyparsing_common.upcaseTokens).setResultsName('rname')
+        ret = kw.parseString('mykey')
+        print(ret.rname)
+        assert ret.rname=='MYKEY', "failed to upcase with named result (pyparsing_common)"
+
+        kw = pp.Keyword('MYKEY', caseless=True).setParseAction(pp.pyparsing_common.downcaseTokens).setResultsName('rname')
+        ret = kw.parseString('mykey')
+        print(ret.rname)
+        assert ret.rname=='mykey', "failed to upcase with named result"
+
         if not IRON_PYTHON_ENV:
             #test html data
             html = "<TR class=maintxt bgColor=#ffffff> \
