@@ -3138,7 +3138,61 @@ class CloseMatchTest(ParseTestCase):
                 assert r[1].mismatches == exp, "fail CloseMatch between %r and %r" % (searchseq.sequence, r[0])
             print(r[0], 'exc: %s' % r[1] if exp is None and isinstance(r[1], Exception) 
                                           else ("no match", "match")[r[1].mismatches == exp])
-        
+
+class DefaultKeywordCharsTest(ParseTestCase):
+    def runTest(self):
+        import pyparsing as pp
+
+        try:
+            pp.Keyword("start").parseString("start1000")
+        except pp.ParseException:
+            pass
+        else:
+            assert False, "failed to fail on default keyword chars"
+
+        try:
+            pp.Keyword("start", identChars=pp.alphas).parseString("start1000")
+        except pp.ParseException:
+            assert False, "failed to match keyword using updated keyword chars"
+        else:
+            pass
+
+        save_kwd_chars = pp.Keyword.DEFAULT_KEYWORD_CHARS
+        pp.Keyword.setDefaultKeywordChars(pp.alphas)
+        try:
+            pp.Keyword("start").parseString("start1000")
+        except pp.ParseException:
+            assert False, "failed to match keyword using updated keyword chars"
+        else:
+            pass
+
+        pp.Keyword.setDefaultKeywordChars(save_kwd_chars)
+
+        try:
+            pp.CaselessKeyword("START").parseString("start1000")
+        except pp.ParseException:
+            pass
+        else:
+            assert False, "failed to fail on default keyword chars"
+
+        try:
+            pp.CaselessKeyword("START", identChars=pp.alphas).parseString("start1000")
+        except pp.ParseException:
+            assert False, "failed to match keyword using updated keyword chars"
+        else:
+            pass
+
+        pp.Keyword.setDefaultKeywordChars(pp.alphas)
+        try:
+            pp.CaselessKeyword("START").parseString("start1000")
+        except pp.ParseException:
+            assert False, "failed to match keyword using updated keyword chars"
+        else:
+            pass
+
+        pp.Keyword.setDefaultKeywordChars(save_kwd_chars)
+
+
 class MiscellaneousParserTests(ParseTestCase):
     def runTest(self):
         import pyparsing
@@ -3263,6 +3317,15 @@ class MiscellaneousParserTests(ParseTestCase):
             assert names==[None, 'B', 'B', 'A', 'B', 'B', 'A', 'B', 'C', 'B', 'A'], \
                 "failure in getting names for tokens"
 
+            from pyparsing import Keyword, Word, alphas, OneOrMore
+            IF,AND,BUT = map(Keyword, "if and but".split())
+            ident = ~(IF | AND | BUT) + Word(alphas)("non-key")            
+            scanner = OneOrMore(IF | AND | BUT | ident)
+            def getNameTester(s,l,t):
+                print(t, t.getName())
+            ident.addParseAction(getNameTester)
+            scanner.parseString("lsjd sldkjf IF Saslkj AND lsdjf")
+            
         # test ParseResults.get() method
         if "H" in runtests:
             print_("verify behavior of ParseResults.get()")
