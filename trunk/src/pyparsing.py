@@ -61,7 +61,7 @@ The pyparsing module handles some of the problems that are typically vexing when
 """
 
 __version__ = "2.1.9"
-__versionTime__ = "18 Aug 2016 13:32 UTC"
+__versionTime__ = "08 Sep 2016 23:33 UTC"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -840,8 +840,8 @@ class ParseResults(object):
                 return None
         elif (len(self) == 1 and
                len(self.__tokdict) == 1 and
-               self.__tokdict.values()[0][0][1] in (0,-1)):
-            return self.__tokdict.keys()[0]
+               next(iter(self.__tokdict.values()))[0][1] in (0,-1)):
+            return next(iter(self.__tokdict.keys()))
         else:
             return None
 
@@ -2406,8 +2406,10 @@ class Keyword(Token):
     """
     DEFAULT_KEYWORD_CHARS = alphanums+"_$"
 
-    def __init__( self, matchString, identChars=DEFAULT_KEYWORD_CHARS, caseless=False ):
+    def __init__( self, matchString, identChars=None, caseless=False ):
         super(Keyword,self).__init__()
+        if identChars is None:
+            identChars = Keyword.DEFAULT_KEYWORD_CHARS
         self.match = matchString
         self.matchLen = len(matchString)
         try:
@@ -2482,7 +2484,7 @@ class CaselessKeyword(Keyword):
         
     (Contrast with example for L{CaselessLiteral}.)
     """
-    def __init__( self, matchString, identChars=Keyword.DEFAULT_KEYWORD_CHARS ):
+    def __init__( self, matchString, identChars=None ):
         super(CaselessKeyword,self).__init__( matchString, identChars, caseless=True )
 
     def parseImpl( self, instring, loc, doActions=True ):
