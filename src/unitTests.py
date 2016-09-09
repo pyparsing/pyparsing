@@ -54,16 +54,47 @@ class ParseTest(TestCase):
         pass
 """
 
+class AutoReset(object):
+    def __init__(self, ob, attrname):
+        self.ob = ob
+        self.save_attr = attrname
+        self.save_value = getattr(ob, attrname)
+
+    def __enter__(self):
+        pass
+
+    def __exit__(self, *args):
+        setattr(self.ob, self.save_attr, self.save_value)
+
 class ParseTestCase(TestCase):
-    def setUp(self):
-        print_(">>>> Starting test",str(self))
-    
+    def __init__(self):
+        super(ParseTestCase, self).__init__(methodName='_runTest')
+        
+    def _runTest(self):
+
+            buffered_stdout = StringIO()
+            
+            try:
+                with AutoReset(sys, 'stdout'):
+                    with AutoReset(sys, 'stderr'):
+                        try:
+                            sys.stdout = buffered_stdout
+                            sys.stderr = buffered_stdout
+                            print_(">>>> Starting test",str(self))
+                            self.runTest()
+                        except SyntaxWarning as sw:
+                            print_(sw)
+                        finally:
+                            print_("<<<< End of test",str(self))
+                            print_()  
+            except Exception as exc:
+                print_()
+                print_(buffered_stdout.getvalue())
+                raise
+
+        
     def runTest(self):
         pass
-        
-    def tearDown(self):
-        print_("<<<< End of test",str(self))
-        print_()  
         
     def __str__(self):
         return self.__class__.__name__
@@ -184,7 +215,8 @@ class ParseConfigFileTest(ParseTestCase):
         
         def test(fnam,numToks,resCheckList):
             print_("Parsing",fnam,"...", end=' ')
-            iniFileLines = "\n".join(open(fnam).read().splitlines())
+            with open(fnam) as infile:
+                iniFileLines = "\n".join(infile.read().splitlines())
             iniData = configParse.inifile_BNF().parseString( iniFileLines )
             print_(len(flatten(iniData.asList())))
             #~ pprint.pprint( iniData.asList() )
@@ -1317,7 +1349,6 @@ class InfixNotationGrammarTest4(ParseTestCase):
             assert str(results) == expected, "failed to match expected results, got '%s'" % str(results)
             print_()
 
-
 class PickleTest_Greeting():
     def __init__(self, toks):
         self.salutation = toks[0]
@@ -1901,7 +1932,6 @@ class OriginalTextForTest(ParseTestCase):
         if VERBOSE:
             print_(sorted(tag_fields.keys()))
         assert sorted(tag_fields.keys()) == ['alt', 'empty', 'height', 'src', 'startImg', 'tag', 'width'], 'failed to preserve results names in originalTextFor'
-        
 
 class PackratParsingCacheCopyTest(ParseTestCase):
     def runTest(self):
@@ -3067,18 +3097,6 @@ class InlineLiteralsUsingTest(ParseTestCase):
         
         from pyparsing import ParserElement, Suppress, Literal, CaselessLiteral, Word, alphas, oneOf, CaselessKeyword, nums
         
-        class AutoReset(object):
-            def __init__(self, ob, attrname):
-                self.ob = ob
-                self.save_attr = attrname
-                self.save_value = getattr(ob, attrname)
-
-            def __enter__(self):
-                pass
-
-            def __exit__(self, *args):
-                setattr(self.ob, self.save_attr, self.save_value)
-
         with AutoReset(ParserElement, "_literalStringClass"):
             ParserElement.inlineLiteralsUsing(Suppress)
             wd = Word(alphas)
@@ -3395,7 +3413,7 @@ def makeTestSuite():
         # retest using packrat parsing (disable those tests that aren't compatible)
         suite.addTest( EnablePackratParsing() )
 
-        unpackrattables = [ EnablePackratParsing, RepeaterTest, ]
+        unpackrattables = [ PyparsingTestInit, EnablePackratParsing, RepeaterTest, ]
 
         # add tests to test suite a second time, to run with packrat parsing
         # (leaving out those that we know wont work with packrat)
