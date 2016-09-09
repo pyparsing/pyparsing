@@ -33,8 +33,7 @@ JYTHON_ENV = sys.platform.startswith("java")
 TEST_USING_PACKRAT = True
 #~ TEST_USING_PACKRAT = False
 
-VERBOSE = False
-#~ VERBOSE = True
+VERBOSE = True
 
 # simple utility for flattening nested lists
 def flatten(L):
@@ -55,16 +54,19 @@ class ParseTest(TestCase):
 """
 
 class AutoReset(object):
-    def __init__(self, ob, attrname):
+    def __init__(self, *args):
+        ob = args[0]
+        attrnames = args[1:]
         self.ob = ob
-        self.save_attr = attrname
-        self.save_value = getattr(ob, attrname)
+        self.save_attrs = attrnames
+        self.save_values = [getattr(ob, attrname) for attrname in attrnames]
 
     def __enter__(self):
         pass
 
     def __exit__(self, *args):
-        setattr(self.ob, self.save_attr, self.save_value)
+        for attr, value in zip(self.save_attrs, self.save_values):
+            setattr(self.ob, attr, value)
 
 class ParseTestCase(TestCase):
     def __init__(self):
@@ -72,25 +74,27 @@ class ParseTestCase(TestCase):
         
     def _runTest(self):
 
-            buffered_stdout = StringIO()
-            
-            try:
-                with AutoReset(sys, 'stdout'):
-                    with AutoReset(sys, 'stderr'):
-                        try:
-                            sys.stdout = buffered_stdout
-                            sys.stderr = buffered_stdout
-                            print_(">>>> Starting test",str(self))
-                            self.runTest()
-                        except SyntaxWarning as sw:
-                            print_(sw)
-                        finally:
-                            print_("<<<< End of test",str(self))
-                            print_()  
-            except Exception as exc:
-                print_()
-                print_(buffered_stdout.getvalue())
-                raise
+        buffered_stdout = StringIO()
+        
+        try:
+            with AutoReset(sys, 'stdout', 'stderr'):
+                try:
+                    sys.stdout = buffered_stdout
+                    sys.stderr = buffered_stdout
+                    print_(">>>> Starting test",str(self))
+                    self.runTest()
+
+                except SyntaxWarning as sw:
+                    print_(sw)
+
+                finally:
+                    print_("<<<< End of test",str(self))
+                    print_()  
+
+        except Exception as exc:
+            print_()
+            print_(buffered_stdout.getvalue())
+            raise
 
         
     def runTest(self):
