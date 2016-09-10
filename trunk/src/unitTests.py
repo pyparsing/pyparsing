@@ -1,3 +1,11 @@
+#
+# unitTests.py
+#
+# Unit tests for pyparsing module
+#
+# Copyright 2002-2016, Paul McGuire
+#
+#
 # -*- coding: UTF-8 -*-
 from unittest import TestCase, TestSuite, TextTestRunner
 import unittest
