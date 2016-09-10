@@ -2,14 +2,14 @@
 Change Log
 ==========
 
-Version 2.1.9 - 
-------------------------------
+Version 2.1.9 - September, 2016
+-------------------------------
 - Added class CloseMatch, a variation on Literal which matches 
   "close" matches, that is, strings with at most 'n' mismatching
   characters.
 
 - Fixed bug in Keyword.setDefaultKeywordChars(), reported by Kobayashi
-  shinji - nice catch, thanks!
+  Shinji - nice catch, thanks!
 
 - Minor API change in pyparsing_common. Renamed some of the common
   expressions to PEP8 format (to be consistent with the other 
@@ -36,9 +36,16 @@ Version 2.1.9 -
 - Fixed Python3 compatibility bug when using dict keys() and values()
   in ParseResults.getName().
 
+- After some prodding, I've reworked the unitTests.py file for 
+  pyparsing over the past few releases. It uses some variations on 
+  unittest to handle my testing style. The test now:
+  . auto-discovers its test classes (while maintining their order
+    of definition)
+  . suppresses voluminous 'print' output for tests that pass
 
-Version 2.1.8 - 
-------------------------------
+
+Version 2.1.8 - August, 2016
+----------------------------
 - Fixed issue in the optimization to _trim_arity, when the full 
   stacktrace is retrieved to determine if a TypeError is raised in
   pyparsing or in the caller's parse action. Code was traversing
@@ -57,8 +64,8 @@ Version 2.1.8 -
 - Improved use of runTests in several example scripts.
 
 
-Version 2.1.7 - 
-------------------------------
+Version 2.1.7 - August, 2016
+----------------------------
 - Fixed regression reported by Andrea Censi (surfaced in PyContracts 
   tests) when using ParseSyntaxExceptions (raised when using operator '-')
   with packrat parsing.
@@ -69,8 +76,8 @@ Version 2.1.7 -
   oneOf will accept the list or set or generator directly.)
 
 
-Version 2.1.6 - 
-------------------------------
+Version 2.1.6 - August, 2016
+----------------------------
 - *Major packrat upgrade*, inspired by patch provided by Tal Einat - 
   many, many, thanks to Tal for working on this! Tal's tests show 
   faster parsing performance (2X in some tests), *and* memory reduction 
