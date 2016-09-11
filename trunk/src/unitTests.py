@@ -2863,6 +2863,14 @@ class CommonExpressionsTest(ParseTestCase):
             """)[0]
         assert success, "error in parsing valid numerics"
 
+        success = pyparsing_common.sci_real.runTests("""
+            1e12
+            -1e12
+            3.14159
+            6.02e23
+            """)[0]
+        assert success, "error in parsing valid scientific notation reals"
+
         # any int or real number, returned as float
         success = pyparsing_common.fnumber.runTests("""
             100
