@@ -4,8 +4,7 @@ Change Log
 
 Version 2.1.10 - 
 -------------------------------
-- Added support for regex module (alternative to Python's built-in
-  re module).
+- Added support for multiline test strings in runTests.
 
 
 Version 2.1.9 - September, 2016
