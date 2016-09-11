@@ -60,8 +60,8 @@ The pyparsing module handles some of the problems that are typically vexing when
  - embedded comments
 """
 
-__version__ = "2.1.9"
-__versionTime__ = "10 Sep 2016 15:10 UTC"
+__version__ = "2.1.10"
+__versionTime__ = "11 Sep 2016 01:15 UTC"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -2172,7 +2172,7 @@ class ParserElement(object):
     def matches(self, testString, parseAll=True):
         """
         Method for quick testing of a parser against a test string. Good for simple 
-        inline microtests of sub expressions while building up larger parser.0
+        inline microtests of sub expressions while building up larger parser.
            
         Parameters:
          - testString - to test against this expression for a match
@@ -4983,7 +4983,8 @@ def infixNotation( baseExpr, opList, lpar=Suppress('('), rpar=Suppress(')') ):
     Helper method for constructing grammars of expressions made up of
     operators working in a precedence hierarchy.  Operators may be unary or
     binary, left- or right-associative.  Parse actions can also be attached
-    to operator expressions.
+    to operator expressions. The generated parser will also recognize the use 
+    of parentheses to override operator precedences (see example below).
 
     Parameters:
      - baseExpr - expression representing the most basic element for the nested
