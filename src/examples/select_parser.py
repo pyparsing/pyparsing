@@ -56,7 +56,7 @@ type_name = oneOf("TEXT REAL INTEGER BLOB NULL")
 expr_term = (
     CAST + LPAR + expr + AS + type_name + RPAR |
     EXISTS + LPAR + select_stmt + RPAR |
-    function_name.setName("function_name") + LPAR + Optional(delimitedList(expr)) + RPAR |
+    function_name.setName("function_name") + LPAR + Optional("*" | delimitedList(expr)) + RPAR |
     literal_value |
     bind_parameter |
     Combine(identifier+('.'+identifier)*(0,2)).setName("ident")
@@ -88,8 +88,8 @@ join_constraint = Group(Optional(ON + expr | USING + LPAR + Group(delimitedList(
 join_op = COMMA | Group(Optional(NATURAL) + Optional(INNER | CROSS | LEFT + OUTER | LEFT | OUTER) + JOIN)
 
 join_source = Forward()
-single_source = ( (Group(database_name("database") + "." + table_name("table")) | table_name("table")) + 
-                    Optional(Optional(AS) + table_alias("table_alias")) +
+single_source = ( (Group(database_name("database") + "." + table_name("table*")) | table_name("table*")) + 
+                    Optional(Optional(AS) + table_alias("table_alias*")) +
                     Optional(INDEXED + BY + index_name("name") | NOT + INDEXED)("index") | 
                   (LPAR + select_stmt + RPAR + Optional(Optional(AS) + table_alias)) | 
                   (LPAR + join_source + RPAR) )
