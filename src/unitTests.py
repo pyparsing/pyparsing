@@ -1,3 +1,4 @@
+# -*- coding: UTF-8 -*-
 #
 # unitTests.py
 #
@@ -6,7 +7,6 @@
 # Copyright 2002-2016, Paul McGuire
 #
 #
-# -*- coding: UTF-8 -*-
 from unittest import TestCase, TestSuite, TextTestRunner
 import unittest
 import datetime
@@ -91,9 +91,6 @@ class ParseTestCase(TestCase):
                     sys.stderr = buffered_stdout
                     print_(">>>> Starting test",str(self))
                     self.runTest()
-
-                except SyntaxWarning as sw:
-                    print_(sw)
 
                 finally:
                     print_("<<<< End of test",str(self))
