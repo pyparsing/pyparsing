@@ -7,7 +7,7 @@
 #
 from pyparsing import Literal, CaselessLiteral, Word, delimitedList, Optional, \
     Combine, Group, alphas, nums, alphanums, ParseException, Forward, oneOf, quotedString, \
-    ZeroOrMore, restOfLine, Keyword, upcaseTokens
+    ZeroOrMore, restOfLine, Keyword, upcaseTokens, pyparsing_common
 
 # define SQL tokens
 selectStmt = Forward()
@@ -26,14 +26,9 @@ and_ = Keyword("and", caseless=True)
 or_ = Keyword("or", caseless=True)
 in_ = Keyword("in", caseless=True)
 
-E = CaselessLiteral("E")
 binop = oneOf("= != < > >= <= eq ne lt le gt ge", caseless=True)
-arithSign = Word("+-",exact=1)
-realNum = Combine( Optional(arithSign) + ( Word( nums ) + "." + Optional( Word(nums) )  |
-                                                         ( "." + Word(nums) ) ) + 
-            Optional( E + Optional(arithSign) + Word(nums) ) )
-intNum = Combine( Optional(arithSign) + Word( nums ) + 
-            Optional( E + Optional("+") + Word(nums) ) )
+realNum = pyparsing_common.real()
+intNum = pyparsing_common.signed_integer()
 
 columnRval = realNum | intNum | quotedString | columnName # need to add support for alg expressions
 whereCondition = Group(
