@@ -236,8 +236,11 @@ class ParseConfigFileTest(ParseTestCase):
             #~ print
             assert len(flatten(iniData.asList())) == numToks, "file %s not parsed correctly" % fnam
             for chk in resCheckList:
-                print_(chk[0], eval("iniData."+chk[0]), chk[1])
-                assert eval("iniData."+chk[0]) == chk[1]
+                var = iniData
+                for attr in chk[0].split('.'):
+                    var = getattr(var, attr)
+                print_(chk[0], var, chk[1])
+                assert var == chk[1]
             print_("OK")
             
         test("test/karthik.ini", 23, 
@@ -1161,6 +1164,7 @@ class RecursiveCombineTest(ParseTestCase):
 class InfixNotationGrammarTest1(ParseTestCase):
     def runTest(self):
         from pyparsing import Word,nums,alphas,Literal,oneOf,infixNotation,opAssoc
+        import ast
         
         integer = Word(nums).setParseAction(lambda t:int(t[0]))
         variable = Word(alphas,exact=1)
@@ -1202,7 +1206,7 @@ class InfixNotationGrammarTest1(ParseTestCase):
                     [['M', '*', ['X', '+', 'B']]]
                     [[1, '+', [2, '*', ['-', [3, '^', 4]], '*', 5], '+', ['-', ['+', ['-', 6]]]]]
                     [[3, '!', '!']]""".split('\n')
-        expected = [eval(x) for x in expected]
+        expected = [ast.literal_eval(x.strip()) for x in expected]
         for t,e in zip(test,expected):
             print_(t,"->",e, "got", expr.parseString(t).asList())
             assert expr.parseString(t).asList() == e,"mismatched results for infixNotation: got %s, expected %s" % (expr.parseString(t).asList(),e)
@@ -2794,6 +2798,7 @@ class RunTestsTest(ParseTestCase):
 class CommonExpressionsTest(ParseTestCase):
     def runTest(self):
         from pyparsing import pyparsing_common
+        import ast
         
         success = pyparsing_common.mac_address.runTests("""
             AA:BB:CC:DD:EE:FF
@@ -2946,7 +2951,7 @@ class CommonExpressionsTest(ParseTestCase):
             6.02e23""")
         assert success, "failed to parse numerics"
         for test,result in results:
-            expected = eval(test)
+            expected = ast.literal_eval(test)
             assert result[0] == expected, "numeric parse failed (wrong value) (%s should be %s)" % (result[0], expected)
             assert type(result[0]) == type(expected), "numeric parse failed (wrong type) (%s should be %s)" % (type(result[0]), type(expected))
             
