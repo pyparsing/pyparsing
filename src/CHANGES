@@ -6,6 +6,11 @@ Version 2.1.10 -
 -------------------------------
 - Added support for multiline test strings in runTests.
 
+- Fixed bug in ParseResults.dump when keys were not strings.
+  Also changed display of string values to show them in quotes,
+  to help distinguish parsed numeric strings from parsed integers
+  that have been converted to Python ints.
+
 
 Version 2.1.9 - September, 2016
 -------------------------------
