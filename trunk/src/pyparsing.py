@@ -61,7 +61,7 @@ The pyparsing module handles some of the problems that are typically vexing when
 """
 
 __version__ = "2.1.10"
-__versionTime__ = "11 Sep 2016 16:20 UTC"
+__versionTime__ = "17 Sep 2016 16:37 UTC"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -868,7 +868,7 @@ class ParseResults(object):
         out.append( indent+_ustr(self.asList()) )
         if full:
             if self.haskeys():
-                items = sorted(self.items())
+                items = sorted((str(k), v) for k,v in self.items())
                 for k,v in items:
                     if out:
                         out.append(NL)
@@ -879,7 +879,7 @@ class ParseResults(object):
                         else:
                             out.append(_ustr(v))
                     else:
-                        out.append(_ustr(v))
+                        out.append(repr(v))
             elif any(isinstance(vv,ParseResults) for vv in self):
                 v = self
                 for i,vv in enumerate(v):
@@ -4993,6 +4993,10 @@ def infixNotation( baseExpr, opList, lpar=Suppress('('), rpar=Suppress(')') ):
     binary, left- or right-associative.  Parse actions can also be attached
     to operator expressions. The generated parser will also recognize the use 
     of parentheses to override operator precedences (see example below).
+    
+    Note: if you define a deep operator list, you may see performance issues
+    when using infixNotation. See L{ParserElement.enablePackrat} for a
+    mechanism to potentially improve your parser performance.
 
     Parameters:
      - baseExpr - expression representing the most basic element for the nested
