@@ -19,76 +19,27 @@ def CORBA_IDL_BNF():
     if not bnf:
 
         # punctuation
-        colon  = Literal(":")
-        lbrace = Literal("{")
-        rbrace = Literal("}")
-        lbrack = Literal("[")
-        rbrack = Literal("]")
-        lparen = Literal("(")
-        rparen = Literal(")")
-        equals = Literal("=")
-        comma  = Literal(",")
-        dot    = Literal(".")
-        slash  = Literal("/")
-        bslash = Literal("\\")
-        star   = Literal("*")
-        semi   = Literal(";")
-        langle = Literal("<")
-        rangle = Literal(">")
+        (colon,lbrace,rbrace,lbrack,rbrack,lparen,rparen,
+        equals,comma,dot,slash,bslash,star,semi,langle,rangle) = map(Literal, r":{}[]()=,./\*;<>")
         
         # keywords
-        any_       = Keyword("any")
-        attribute_ = Keyword("attribute")
-        boolean_   = Keyword("boolean")
-        case_      = Keyword("case")
-        char_      = Keyword("char")
-        const_     = Keyword("const")
-        context_   = Keyword("context")
-        default_   = Keyword("default")
-        double_    = Keyword("double")
-        enum_      = Keyword("enum")
-        exception_ = Keyword("exception")
-        false_     = Keyword("FALSE")
-        fixed_     = Keyword("fixed")
-        float_     = Keyword("float")
-        inout_     = Keyword("inout")
-        interface_ = Keyword("interface")
-        in_        = Keyword("in")
-        long_      = Keyword("long")
-        module_    = Keyword("module")
-        object_    = Keyword("Object")
-        octet_     = Keyword("octet")
-        oneway_    = Keyword("oneway")
-        out_       = Keyword("out")
-        raises_    = Keyword("raises")
-        readonly_  = Keyword("readonly")
-        sequence_  = Keyword("sequence")
-        short_     = Keyword("short")
-        string_    = Keyword("string")
-        struct_    = Keyword("struct")
-        switch_    = Keyword("switch")
-        true_      = Keyword("TRUE")
-        typedef_   = Keyword("typedef")
-        unsigned_  = Keyword("unsigned")
-        union_     = Keyword("union")
-        void_      = Keyword("void")
-        wchar_     = Keyword("wchar")
-        wstring_   = Keyword("wstring")
+        (any_, attribute_, boolean_, case_, char_, const_, context_, default_, double_, enum_, exception_, 
+        FALSE_, fixed_, float_, inout_, interface_, in_, long_, module_, Object_, octet_, oneway_, out_, raises_, 
+        readonly_, sequence_, short_, string_, struct_, switch_, TRUE_, typedef_, unsigned_, union_, void_, 
+        wchar_, wstring_) = map(Keyword, """any attribute boolean case char const context 
+            default double enum exception FALSE fixed float inout interface in long module 
+            Object octet oneway out raises readonly sequence short string struct switch
+            TRUE typedef unsigned union void wchar wstring""".split())
         
         identifier = Word( alphas, alphanums + "_" ).setName("identifier")
         
-        #~ real = Combine( Word(nums+"+-", nums) + dot + Optional( Word(nums) ) 
-                        #~ + Optional( CaselessLiteral("E") + Word(nums+"+-",nums) ) )
         real = Regex(r"[+-]?\d+\.\d*([Ee][+-]?\d+)?").setName("real")
-        #~ integer = ( Combine( CaselessLiteral("0x") + Word( nums+"abcdefABCDEF" ) ) |
-                    #~ Word( nums+"+-", nums ) ).setName("int")
         integer = Regex(r"0x[0-9a-fA-F]+|[+-]?\d+").setName("int")
 
         udTypeName = delimitedList( identifier, "::", combine=True ).setName("udType")
-        # have to use longest match for type, in case a user-defined type name starts with a keyword type, like "stringSeq" or "longArray"
-        typeName = ( any_ ^ boolean_ ^ char_ ^ double_ ^ fixed_ ^ 
-                    float_ ^ long_ ^ octet_ ^ short_ ^ string_ ^ 
-                    wchar_ ^ wstring_ ^ udTypeName ).setName("type")
+        typeName = ( any_ | boolean_ | char_ | double_ | fixed_ | 
+                    float_ | long_ | octet_ | short_ | string_ | 
+                    wchar_ | wstring_ | udTypeName ).setName("type")
         sequenceDef = Forward().setName("seq")
         sequenceDef << Group( sequence_ + langle + ( sequenceDef | typeName ) + rangle )
         typeDef = sequenceDef | ( typeName + Optional( lbrack + integer + rbrack ) )
