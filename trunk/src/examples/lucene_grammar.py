@@ -8,16 +8,14 @@
 #
 
 from pyparsing import (Literal, CaselessKeyword, Forward, Regex, QuotedString, Suppress,
-    Optional, Group, FollowedBy, infixNotation, opAssoc, ParseException, ParserElement)
+    Optional, Group, FollowedBy, infixNotation, opAssoc, ParseException, ParserElement,
+    pyparsing_common)
 ParserElement.enablePackrat()
 
 COLON,LBRACK,RBRACK,LBRACE,RBRACE,TILDE,CARAT = map(Literal,":[]{}~^")
 LPAR,RPAR = map(Suppress,"()")
-and_ = CaselessKeyword("AND")
-or_ = CaselessKeyword("OR")
-not_ = CaselessKeyword("NOT")
-to_ = CaselessKeyword("TO")
-keyword = and_ | or_ | not_
+and_, or_, not_, to_ = map(CaselessKeyword, "AND OR NOT TO".split())
+keyword = and_ | or_ | not_ | to_
 
 expression = Forward()
 
@@ -32,11 +30,11 @@ required_modifier = Literal("+")("required")
 prohibit_modifier = Literal("-")("prohibit")
 integer = Regex(r"\d+").setParseAction(lambda t:int(t[0]))
 proximity_modifier = Group(TILDE + integer("proximity"))
-number = Regex(r'\d+(\.\d+)?').setParseAction(lambda t:float(t[0]))
+number = pyparsing_common.fnumber()
 fuzzy_modifier = TILDE + Optional(number, default=0.5)("fuzzy")
 
 term = Forward()
-field_name = valid_word.copy().setName("fieldname")
+field_name = valid_word().setName("fieldname")
 incl_range_search = Group(LBRACK + term("lower") + to_ + term("upper") + RBRACK)
 excl_range_search = Group(LBRACE + term("lower") + to_ + term("upper") + RBRACE)
 range_search = incl_range_search("incl_range") | excl_range_search("excl_range")
@@ -52,9 +50,9 @@ term.setParseAction(lambda t:[t] if 'field' in t or 'boost' in t else None)
 expression << infixNotation(term,
     [
     (required_modifier | prohibit_modifier, 1, opAssoc.RIGHT),
-    ((not_ | '!').setParseAction(lambda:"NOT"), 1, opAssoc.RIGHT),
-    ((and_ | '&&').setParseAction(lambda:"AND"), 2, opAssoc.LEFT),
-    (Optional(or_ | '||').setParseAction(lambda:"OR"), 2, opAssoc.LEFT),
+    ((not_ | '!').setParseAction(lambda: "NOT"), 1, opAssoc.RIGHT),
+    ((and_ | '&&').setParseAction(lambda: "AND"), 2, opAssoc.LEFT),
+    (Optional(or_ | '||').setParseAction(lambda: "OR"), 2, opAssoc.LEFT),
     ])
 
 # test strings taken from grammar description doc, and TestQueryParser.java
@@ -265,7 +263,7 @@ tests = r"""
     (*:*)
     +*:* -*:*
     the wizard of ozzy
-    """.splitlines()
+    """
 
 failtests = r"""
     field:term:with:colon some more terms
@@ -313,18 +311,9 @@ failtests = r"""
     a\:b\+c\~
     a:b\c~
     [ a\ TO a* ]
-    """.splitlines()
+    """
+
+success1, _ = expression.runTests(tests)
+success2, _ = expression.runTests(failtests, failureTests=True)
     
-allpass = True
-for t in [_f for _f in map(str.strip,tests) if _f]:
-    print(t)
-    try:
-        #~ expression.parseString(t,parseAll=True)
-        print(expression.parseString(t,parseAll=True))
-    except ParseException as pe:
-        print(t)
-        print(pe)
-        allpass = False
-    print('')
-    
-print(("FAIL", "OK")[allpass])
+print(("FAIL", "OK")[success1 and success2])

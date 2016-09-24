@@ -7,24 +7,22 @@
 #
 from pyparsing import Literal, CaselessLiteral, Word, delimitedList, Optional, \
     Combine, Group, alphas, nums, alphanums, ParseException, Forward, oneOf, quotedString, \
-    ZeroOrMore, restOfLine, Keyword, upcaseTokens, pyparsing_common
+    ZeroOrMore, restOfLine, CaselessKeyword, pyparsing_common
 
 # define SQL tokens
 selectStmt = Forward()
-SELECT = Keyword("select", caseless=True)
-FROM = Keyword("from", caseless=True)
-WHERE = Keyword("where", caseless=True)
+SELECT, FROM, WHERE = map(CaselessKeyword, "select from where".split())
 
 ident          = Word( alphas, alphanums + "_$" ).setName("identifier")
-columnName     = ( delimitedList( ident, ".", combine=True ) ).setName("column name").addParseAction(upcaseTokens)
-columnNameList = Group( delimitedList( columnName ) )
-tableName      = ( delimitedList( ident, ".", combine=True ) ).setName("table name").addParseAction(upcaseTokens)
-tableNameList  = Group( delimitedList( tableName ) )
+columnName     = delimitedList(ident, ".", combine=True).setName("column name")
+columnName.addParseAction(pyparsing_common.upcaseTokens)
+columnNameList = Group( delimitedList(columnName))
+tableName      = delimitedList(ident, ".", combine=True).setName("table name")
+tableName.addParseAction(pyparsing_common.upcaseTokens)
+tableNameList  = Group(delimitedList(tableName))
 
 whereExpression = Forward()
-and_ = Keyword("and", caseless=True)
-or_ = Keyword("or", caseless=True)
-in_ = Keyword("in", caseless=True)
+and_, or_, in_ = map(CaselessKeyword, "and or in".split())
 
 binop = oneOf("= != < > >= <= eq ne lt le gt ge", caseless=True)
 realNum = pyparsing_common.real()

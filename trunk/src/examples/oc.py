@@ -9,85 +9,78 @@ http://www.ioccc.org/1996/august.hint
 
 The following is a description of the OC grammar:
 
-	OC grammar
-	==========
-	Terminals are in quotes, () is used for bracketing.
+    OC grammar
+    ==========
+    Terminals are in quotes, () is used for bracketing.
 
-	program:	decl*
+    program:	decl*
 
-	decl:		vardecl
-			fundecl
+    decl:		vardecl
+            fundecl
 
-	vardecl:	type NAME ;
-			type NAME "[" INT "]" ;
+    vardecl:	type NAME ;
+            type NAME "[" INT "]" ;
 
-	fundecl:	type NAME "(" args ")" "{" body "}"
+    fundecl:	type NAME "(" args ")" "{" body "}"
 
-	args:		/*empty*/
-			( arg "," )* arg
+    args:		/*empty*/
+            ( arg "," )* arg
 
-	arg:		type NAME
+    arg:		type NAME
 
-	body:		vardecl* stmt*
+    body:		vardecl* stmt*
 
-	stmt:		ifstmt
-			whilestmt
-			dowhilestmt
-			"return" expr ";"
-			expr ";"
-			"{" stmt* "}"
-			";"
+    stmt:		ifstmt
+            whilestmt
+            dowhilestmt
+            "return" expr ";"
+            expr ";"
+            "{" stmt* "}"
+            ";"
 
-	ifstmt:		"if" "(" expr ")" stmt
-			"if" "(" expr ")" stmt "else" stmt
+    ifstmt:		"if" "(" expr ")" stmt
+            "if" "(" expr ")" stmt "else" stmt
 
-	whilestmt:	"while" "(" expr ")" stmt
+    whilestmt:	"while" "(" expr ")" stmt
 
-	dowhilestmt:	"do" stmt "while" "(" expr ")" ";"
+    dowhilestmt:	"do" stmt "while" "(" expr ")" ";"
 
-	expr:		expr binop expr
-			unop expr
-			expr "[" expr "]"
-			"(" expr ")"
-			expr "(" exprs ")"
-			NAME
-			INT
-			CHAR
-			STRING
+    expr:		expr binop expr
+            unop expr
+            expr "[" expr "]"
+            "(" expr ")"
+            expr "(" exprs ")"
+            NAME
+            INT
+            CHAR
+            STRING
 
-	exprs:		/*empty*/
-			(expr ",")* expr
+    exprs:		/*empty*/
+            (expr ",")* expr
 
-	binop:		"+" | "-" | "*" | "/" | "%" |
-			"=" |
-			"<" | "==" | "!="
+    binop:		"+" | "-" | "*" | "/" | "%" |
+            "=" |
+            "<" | "==" | "!="
 
-	unop:		"!" | "-" | "*"
+    unop:		"!" | "-" | "*"
 
-	type:		"int" stars
-			"char" stars
+    type:		"int" stars
+            "char" stars
 
-	stars:		"*"*
+    stars:		"*"*
 """
 
 from pyparsing import *
 
 LPAR,RPAR,LBRACK,RBRACK,LBRACE,RBRACE,SEMI,COMMA = map(Suppress, "()[]{};,")
-INT = Keyword("int")
-CHAR = Keyword("char")
-WHILE = Keyword("while")
-DO = Keyword("do")
-IF = Keyword("if")
-ELSE = Keyword("else")
-RETURN = Keyword("return")
+INT, CHAR, WHILE, DO, IF, ELSE, RETURN = map(Keyword, 
+    "int char while do if else return".split())
 
 NAME = Word(alphas+"_", alphanums+"_")
 integer = Regex(r"[+-]?\d+")
 char = Regex(r"'.'")
 string_ = dblQuotedString
 
-INT = Keyword("int")
-CHAR = Keyword("char")
 TYPE = Group((INT | CHAR) + ZeroOrMore("*"))
 
 expr = Forward()
@@ -148,23 +141,23 @@ int
 putstr(char *s)
 {
     while(*s)
-	putchar(*s++);
+        putchar(*s++);
 }
 
 int
 fac(int n)
 {
     if (n == 0)
-	return 1;
+        return 1;
     else
-	return n*fac(n-1);
+        return n*fac(n-1);
 }
 
 int
 putn(int n)
 {
     if (9 < n)
-	putn(n / 10);
+        putn(n / 10);
     putchar((n%10) + '0');
 }
 
@@ -184,10 +177,10 @@ main()
     int i;
     i = 0;
     while(i < 10)
-	facpr(i++);
+        facpr(i++);
     return 0;
 }
 """
 
-ast = program.parseString(test,parseAll=True)
+ast = program.parseString(test, parseAll=True)
 ast.pprint()
