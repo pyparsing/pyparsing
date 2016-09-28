@@ -3403,6 +3403,7 @@ class MiscellaneousParserTests(ParseTestCase):
 
         # test bugfix with repeated tokens when packrat parsing enabled
         if "L" in runtests:
+            print_('verify behavior with repeated tokens when packrat parsing is enabled')
             a = pyparsing.Literal("a")
             b = pyparsing.Literal("b")
             c = pyparsing.Literal("c")
@@ -3413,6 +3414,20 @@ class MiscellaneousParserTests(ParseTestCase):
             grammar = abb | abc | aba
 
             assert ''.join(grammar.parseString( "aba" )) == 'aba', "Packrat ABA failure!"
+        
+        if "M" in runtests:
+            print_('verify behavior of setResultsName with OneOrMore and ZeroOrMore')
+
+            stmt = pyparsing.Keyword('test')
+            print(pyparsing.ZeroOrMore(stmt)('tests').parseString('test test').tests)
+            print(pyparsing.OneOrMore(stmt)('tests').parseString('test test').tests)
+            print(pyparsing.Optional(pyparsing.OneOrMore(stmt)('tests')).parseString('test test').tests)
+            print(pyparsing.Optional(pyparsing.OneOrMore(stmt))('tests').parseString('test test').tests)
+            assert False, "testing..."
+            assert len(pyparsing.ZeroOrMore(stmt)('tests').parseString('test test').tests) == 2, "ZeroOrMore failure with setResultsName"
+            assert len(pyparsing.OneOrMore(stmt)('tests').parseString('test test').tests) == 2, "OneOrMore failure with setResultsName"
+            assert len(pyparsing.Optional(pyparsing.OneOrMore(stmt)('tests')).parseString('test test').tests) == 2, "OneOrMore failure with setResultsName"
+            assert len(pyparsing.Optional(pyparsing.OneOrMore(stmt))('tests').parseString('test test').tests) == 2, "OneOrMore failure with setResultsName"
 
 def makeTestSuite():
     import inspect
