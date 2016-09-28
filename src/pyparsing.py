@@ -61,7 +61,7 @@ The pyparsing module handles some of the problems that are typically vexing when
 """
 
 __version__ = "2.1.10"
-__versionTime__ = "17 Sep 2016 16:37 UTC"
+__versionTime__ = "28 Sep 2016 00:47 UTC"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -3800,6 +3800,7 @@ class NotAny(ParseElementEnhance):
 class _MultipleMatch(ParseElementEnhance):
     def __init__( self, expr, stopOn=None):
         super(_MultipleMatch, self).__init__(expr)
+        self.saveAsList = True
         ender = stopOn
         if isinstance(ender, basestring):
             ender = ParserElement._literalStringClass(ender)
@@ -3868,11 +3869,6 @@ class OneOrMore(_MultipleMatch):
             self.strRepr = "{" + _ustr(self.expr) + "}..."
 
         return self.strRepr
-
-    def setResultsName( self, name, listAllMatches=False ):
-        ret = super(OneOrMore,self).setResultsName(name,listAllMatches)
-        ret.saveAsList = True
-        return ret
 
 class ZeroOrMore(_MultipleMatch):
     """
@@ -3950,6 +3946,7 @@ class Optional(ParseElementEnhance):
     """
     def __init__( self, expr, default=_optionalNotMatched ):
         super(Optional,self).__init__( expr, savelist=False )
+        self.saveAsList = self.expr.saveAsList
         self.defaultValue = default
         self.mayReturnEmpty = True
 

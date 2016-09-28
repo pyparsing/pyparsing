@@ -4,6 +4,9 @@ Change Log
 
 Version 2.1.10 - 
 -------------------------------
+- Fixed bug in reporting named parse results for ZeroOrMore
+  expressions, thanks Ethan Nash for reporting this!
+
 - Added support for multiline test strings in runTests.
 
 - Fixed bug in ParseResults.dump when keys were not strings.
