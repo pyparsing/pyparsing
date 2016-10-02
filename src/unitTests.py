@@ -3423,11 +3423,16 @@ class MiscellaneousParserTests(ParseTestCase):
             print(pyparsing.OneOrMore(stmt)('tests').parseString('test test').tests)
             print(pyparsing.Optional(pyparsing.OneOrMore(stmt)('tests')).parseString('test test').tests)
             print(pyparsing.Optional(pyparsing.OneOrMore(stmt))('tests').parseString('test test').tests)
-            assert False, "testing..."
+            print(pyparsing.Optional(pyparsing.delimitedList(stmt))('tests').parseString('test,test').tests)
             assert len(pyparsing.ZeroOrMore(stmt)('tests').parseString('test test').tests) == 2, "ZeroOrMore failure with setResultsName"
             assert len(pyparsing.OneOrMore(stmt)('tests').parseString('test test').tests) == 2, "OneOrMore failure with setResultsName"
             assert len(pyparsing.Optional(pyparsing.OneOrMore(stmt)('tests')).parseString('test test').tests) == 2, "OneOrMore failure with setResultsName"
             assert len(pyparsing.Optional(pyparsing.OneOrMore(stmt))('tests').parseString('test test').tests) == 2, "OneOrMore failure with setResultsName"
+            assert len(pyparsing.Optional(pyparsing.delimitedList(stmt))('tests').parseString('test,test').tests) == 2, "delimitedList failure with setResultsName"
+            assert len((stmt*2)('tests').parseString('test test').tests) == 2, "multiplied(1) failure with setResultsName"
+            assert len((stmt*(None,2))('tests').parseString('test test').tests) == 2, "multiplied(2) failure with setResultsName"
+            assert len((stmt*(1,))('tests').parseString('test test').tests) == 2, "multipled(3) failure with setResultsName"
+            assert len((stmt*(2,))('tests').parseString('test test').tests) == 2, "multipled(3) failure with setResultsName"
 
 def makeTestSuite():
     import inspect

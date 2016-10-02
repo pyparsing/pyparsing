@@ -61,7 +61,7 @@ The pyparsing module handles some of the problems that are typically vexing when
 """
 
 __version__ = "2.1.10"
-__versionTime__ = "28 Sep 2016 00:47 UTC"
+__versionTime__ = "02 Oct 2016 23:15 UTC"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -2660,7 +2660,7 @@ class Word(Token):
                 self.reString = r"\b"+self.reString+r"\b"
             try:
                 self.re = re.compile( self.reString )
-            except:
+            except Exception:
                 self.re = None
 
     def parseImpl( self, instring, loc, doActions=True ):
@@ -2701,7 +2701,7 @@ class Word(Token):
     def __str__( self ):
         try:
             return super(Word,self).__str__()
-        except:
+        except Exception:
             pass
 
 
@@ -2785,7 +2785,7 @@ class Regex(Token):
     def __str__( self ):
         try:
             return super(Regex,self).__str__()
-        except:
+        except Exception:
             pass
 
         if self.strRepr is None:
@@ -2922,7 +2922,7 @@ class QuotedString(Token):
     def __str__( self ):
         try:
             return super(QuotedString,self).__str__()
-        except:
+        except Exception:
             pass
 
         if self.strRepr is None:
@@ -2991,7 +2991,7 @@ class CharsNotIn(Token):
     def __str__( self ):
         try:
             return super(CharsNotIn, self).__str__()
-        except:
+        except Exception:
             pass
 
         if self.strRepr is None:
@@ -3259,7 +3259,7 @@ class ParseExpression(ParserElement):
     def __str__( self ):
         try:
             return super(ParseExpression,self).__str__()
-        except:
+        except Exception:
             pass
 
         if self.strRepr is None:
@@ -3731,7 +3731,7 @@ class ParseElementEnhance(ParserElement):
     def __str__( self ):
         try:
             return super(ParseElementEnhance,self).__str__()
-        except:
+        except Exception:
             pass
 
         if self.strRepr is None and self.expr is not None:
@@ -4585,7 +4585,7 @@ def oneOf( strs, caseless=False, useRegex=True ):
                 return Regex( "[%s]" % "".join(_escapeRegexRangeChars(sym) for sym in symbols) ).setName(' | '.join(symbols))
             else:
                 return Regex( "|".join(re.escape(sym) for sym in symbols) ).setName(' | '.join(symbols))
-        except:
+        except Exception:
             warnings.warn("Exception creating Regex for oneOf, building MatchFirst",
                     SyntaxWarning, stacklevel=2)
 
@@ -4731,7 +4731,7 @@ def srange(s):
     _expanded = lambda p: p if not isinstance(p,ParseResults) else ''.join(unichr(c) for c in range(ord(p[0]),ord(p[1])+1))
     try:
         return "".join(_expanded(part) for part in _reBracketExpr.parseString(s).body)
-    except:
+    except Exception:
         return ""
 
 def matchOnlyAtCol(n):
