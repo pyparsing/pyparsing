@@ -61,7 +61,7 @@ The pyparsing module handles some of the problems that are typically vexing when
 """
 
 __version__ = "2.1.10"
-__versionTime__ = "02 Oct 2016 23:15 UTC"
+__versionTime__ = "04 Oct 2016 00:19 UTC"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -3085,27 +3085,25 @@ class GoToColumn(_PositionToken):
         ret = instring[ loc: newloc ]
         return newloc, ret
 
+
 class LineStart(_PositionToken):
     """
     Matches if current position is at the beginning of a line within the parse string
     """
     def __init__( self ):
         super(LineStart,self).__init__()
-        self.setWhitespaceChars( ParserElement.DEFAULT_WHITE_CHARS.replace("\n","") )
+        self.setWhitespaceChars( ParserElement.DEFAULT_WHITE_CHARS.replace("\n", ""))
         self.errmsg = "Expected start of line"
 
     def preParse( self, instring, loc ):
-        preloc = super(LineStart,self).preParse(instring,loc)
-        if instring[preloc] == "\n":
-            loc += 1
+        # don't do any pre-parsing for this class
         return loc
 
     def parseImpl( self, instring, loc, doActions=True ):
-        if not( loc==0 or
-            (loc == self.preParse( instring, 0 )) or
-            (instring[loc-1] == "\n") ): #col(loc, instring) != 1:
-            raise ParseException(instring, loc, self.errmsg, self)
-        return loc, []
+        loc, _ = Optional(White(' \t').leaveWhitespace() + Empty()).parseImpl(instring, loc)
+        if loc == 0 or col(loc, instring) == 1:
+            return loc, []
+        raise ParseException(instring, loc, self.errmsg, self)
 
 class LineEnd(_PositionToken):
     """
