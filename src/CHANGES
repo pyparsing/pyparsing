@@ -7,6 +7,11 @@ Version 2.1.10 -
 - Fixed bug in reporting named parse results for ZeroOrMore
   expressions, thanks Ethan Nash for reporting this!
 
+- Fixed behavior of LineStart to be much more predictable.
+  LineStart can now be used to detect if the next parse position
+  is col 1, factoring in potential leading whitespace (which would
+  cause LineStart to fail).
+
 - Added support for multiline test strings in runTests.
 
 - Fixed bug in ParseResults.dump when keys were not strings.

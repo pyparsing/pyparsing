@@ -76,6 +76,8 @@ class AutoReset(object):
         for attr, value in zip(self.save_attrs, self.save_values):
             setattr(self.ob, attr, value)
 
+BUFFER_OUTPUT = True
+
 class ParseTestCase(TestCase):
     def __init__(self):
         super(ParseTestCase, self).__init__(methodName='_runTest')
@@ -87,8 +89,9 @@ class ParseTestCase(TestCase):
         try:
             with AutoReset(sys, 'stdout', 'stderr'):
                 try:
-                    sys.stdout = buffered_stdout
-                    sys.stderr = buffered_stdout
+                    if BUFFER_OUTPUT:
+                        sys.stdout = buffered_stdout
+                        sys.stderr = buffered_stdout
                     print_(">>>> Starting test",str(self))
                     self.runTest()
 
@@ -97,8 +100,9 @@ class ParseTestCase(TestCase):
                     print_()  
 
         except Exception as exc:
-            print_()
-            print_(buffered_stdout.getvalue())
+            if BUFFER_OUTPUT:
+                print_()
+                print_(buffered_stdout.getvalue())
             raise
 
         
@@ -1674,6 +1678,63 @@ class CountedArrayTest3(ParseTestCase):
         assert r.asList() == [[5,7],[0,1,2,3,4,5],[],[5,4,3]], \
                 "Failed matching countedArray, got " + str(r.asList())
 
+class LineStartTest(ParseTestCase):
+    def runTest(self):
+        import pyparsing as pp
+
+        pass_tests = [
+            """\
+            AAA
+            BBB
+            """,
+            """\
+            AAA...
+            BBB
+            """,
+            ]
+        fail_tests = [
+            """\
+            AAA...
+            ...BBB
+            """,
+            """\
+            AAA  BBB
+            """,
+        ]
+
+        # cleanup test strings
+        pass_tests = ['\n'.join(s.lstrip() for s in t.splitlines()).replace('.', ' ') for t in pass_tests]
+        fail_tests = ['\n'.join(s.lstrip() for s in t.splitlines()).replace('.', ' ') for t in fail_tests]
+
+        test_patt = pp.Word('A') - pp.LineStart() + pp.Word('B')
+        print(test_patt.streamline())
+        success = test_patt.runTests(pass_tests)[0]
+        assert success, "failed LineStart passing tests (1)"
+
+        success = test_patt.runTests(fail_tests, failureTests=True)[0]
+        assert success, "failed LineStart failure mode tests (1)"
+
+        with AutoReset(pp.ParserElement, "DEFAULT_WHITE_CHARS"):
+            print(r'no \n in default whitespace chars')
+            pp.ParserElement.setDefaultWhitespaceChars(' ')
+
+            test_patt = pp.Word('A') - pp.LineStart() + pp.Word('B')
+            print(test_patt.streamline())
+            # should fail the pass tests too, since \n is no longer valid whitespace and we aren't parsing for it
+            success = test_patt.runTests(pass_tests, failureTests=True)[0]
+            assert success, "failed LineStart passing tests (2)"
+
+            success = test_patt.runTests(fail_tests, failureTests=True)[0]
+            assert success, "failed LineStart failure mode tests (2)"
+
+            test_patt = pp.Word('A') - pp.LineEnd().suppress() + pp.LineStart() + pp.Word('B') + pp.LineEnd().suppress()
+            print(test_patt.streamline())
+            success = test_patt.runTests(pass_tests)[0]
+            assert success, "failed LineStart passing tests (3)"
+
+            success = test_patt.runTests(fail_tests, failureTests=True)[0]
+            assert success, "failed LineStart failure mode tests (3)"
+
 class LineAndStringEndTest(ParseTestCase):
     def runTest(self):
         from pyparsing import OneOrMore,lineEnd,alphanums,Word,stringEnd,delimitedList,SkipTo
@@ -3197,16 +3258,14 @@ class DefaultKeywordCharsTest(ParseTestCase):
         else:
             pass
 
-        save_kwd_chars = pp.Keyword.DEFAULT_KEYWORD_CHARS
-        pp.Keyword.setDefaultKeywordChars(pp.alphas)
-        try:
-            pp.Keyword("start").parseString("start1000")
-        except pp.ParseException:
-            assert False, "failed to match keyword using updated keyword chars"
-        else:
-            pass
-
-        pp.Keyword.setDefaultKeywordChars(save_kwd_chars)
+        with AutoReset(pp.Keyword, "DEFAULT_KEYWORD_CHARS"):
+            pp.Keyword.setDefaultKeywordChars(pp.alphas)
+            try:
+                pp.Keyword("start").parseString("start1000")
+            except pp.ParseException:
+                assert False, "failed to match keyword using updated keyword chars"
+            else:
+                pass
 
         try:
             pp.CaselessKeyword("START").parseString("start1000")
@@ -3222,15 +3281,14 @@ class DefaultKeywordCharsTest(ParseTestCase):
         else:
             pass
 
-        pp.Keyword.setDefaultKeywordChars(pp.alphas)
-        try:
-            pp.CaselessKeyword("START").parseString("start1000")
-        except pp.ParseException:
-            assert False, "failed to match keyword using updated keyword chars"
-        else:
-            pass
-
-        pp.Keyword.setDefaultKeywordChars(save_kwd_chars)
+        with AutoReset(pp.Keyword, "DEFAULT_KEYWORD_CHARS"):
+            pp.Keyword.setDefaultKeywordChars(pp.alphas)
+            try:
+                pp.CaselessKeyword("START").parseString("start1000")
+            except pp.ParseException:
+                assert False, "failed to match keyword using updated keyword chars"
+            else:
+                pass
 
 
 class MiscellaneousParserTests(ParseTestCase):
@@ -3493,6 +3551,7 @@ if console:
     if not testclasses:
         testRunner.run( makeTestSuite() )
     else:
+        BUFFER_OUTPUT = False
         if lp is None:
             testRunner.run( makeTestSuiteTemp(testclasses) )
         else:
