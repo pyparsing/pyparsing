@@ -3092,14 +3092,12 @@ class LineStart(_PositionToken):
     
     Example::
     
-        test = """\
+        test = '''\
         AAA this line
         AAA and this line
-
           AAA but not this one
-
         B AAA and definitely not this one
-        """
+        '''
 
         for t in (LineStart() + 'AAA' + restOfLine).searchString(test):
             print(t)
