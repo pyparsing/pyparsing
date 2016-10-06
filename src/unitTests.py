@@ -1735,6 +1735,33 @@ class LineStartTest(ParseTestCase):
             success = test_patt.runTests(fail_tests, failureTests=True)[0]
             assert success, "failed LineStart failure mode tests (3)"
 
+        test = """\
+        AAA 1
+        AAA 2
+
+          AAA
+
+        B AAA
+
+        """
+
+        from textwrap import dedent
+        test = dedent(test)
+        print(test)
+
+        for t, s, e in (pp.LineStart() + 'AAA').scanString(test):
+            print(s, e, pp.lineno(s, test), pp.line(s, test), ord(test[s]))
+            print()
+            assert (test[s] == 'A'), 'failed LineStart with insignificant newlines'
+
+        with AutoReset(pp.ParserElement, "DEFAULT_WHITE_CHARS"):
+            pp.ParserElement.setDefaultWhitespaceChars(' ')
+            for t, s, e in (pp.LineStart() + 'AAA').scanString(test):
+                print(s, e, pp.lineno(s, test), pp.line(s, test), ord(test[s]))
+                print()
+                assert(test[s] == 'A'), 'failed LineStart with significant newlines'
+
+
 class LineAndStringEndTest(ParseTestCase):
     def runTest(self):
         from pyparsing import OneOrMore,lineEnd,alphanums,Word,stringEnd,delimitedList,SkipTo
@@ -3290,6 +3317,15 @@ class DefaultKeywordCharsTest(ParseTestCase):
             else:
                 pass
 
+class ColTest(ParseTestCase):
+    def runTest(self):
+        import pyparsing
+
+        test = "*\n* \n*   ALF\n*\n"
+        initials = [c for i, c in enumerate(test) if pyparsing.col(i, test) == 1]
+        print_(initials)
+        assert len(initials) == 4 and all(c=='*' for c in initials), 'fail col test'
+
 
 class MiscellaneousParserTests(ParseTestCase):
     def runTest(self):
@@ -3545,8 +3581,8 @@ if console:
     testRunner = TextTestRunner()
 
     testclasses = []
-    #~ testclasses.append(put_test_class_here)
-    #~ testclasses.append(RequiredEachTest)
+    # testclasses.append(put_test_class_here)
+    # testclasses.append(RequiredEachTest)
 
     if not testclasses:
         testRunner.run( makeTestSuite() )
