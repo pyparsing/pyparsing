@@ -3089,6 +3089,25 @@ class GoToColumn(_PositionToken):
 class LineStart(_PositionToken):
     """
     Matches if current position is at the beginning of a line within the parse string
+    
+    Example::
+    
+        test = """\
+        AAA this line
+        AAA and this line
+
+          AAA but not this one
+
+        B AAA and definitely not this one
+        """
+
+        for t in (LineStart() + 'AAA' + restOfLine).searchString(test):
+            print(t)
+    
+    Prints::
+        ['AAA', ' this line']
+        ['AAA', ' and this line']    
+
     """
     def __init__( self ):
         super(LineStart,self).__init__()
