@@ -61,7 +61,7 @@ The pyparsing module handles some of the problems that are typically vexing when
 """
 
 __version__ = "2.1.10"
-__versionTime__ = "04 Oct 2016 00:19 UTC"
+__versionTime__ = "06 Oct 2016 06:04 UTC"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -953,7 +953,7 @@ def col (loc,strg):
    positions within the parsed string.
    """
     s = strg
-    return 1 if loc<len(s) and s[loc] == '\n' else loc - s.rfind("\n", 0, loc)
+    return 1 if 0<loc<len(s) and s[loc-1] == '\n' else loc - s.rfind("\n", 0, loc)
 
 def lineno(loc,strg):
     """Returns current line number within a string, counting newlines as line separators.
@@ -3092,16 +3092,10 @@ class LineStart(_PositionToken):
     """
     def __init__( self ):
         super(LineStart,self).__init__()
-        self.setWhitespaceChars( ParserElement.DEFAULT_WHITE_CHARS.replace("\n", ""))
         self.errmsg = "Expected start of line"
 
-    def preParse( self, instring, loc ):
-        # don't do any pre-parsing for this class
-        return loc
-
     def parseImpl( self, instring, loc, doActions=True ):
-        loc, _ = Optional(White(' \t').leaveWhitespace() + Empty()).parseImpl(instring, loc)
-        if loc == 0 or col(loc, instring) == 1:
+        if col(loc, instring) == 1:
             return loc, []
         raise ParseException(instring, loc, self.errmsg, self)
 

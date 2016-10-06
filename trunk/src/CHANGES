@@ -10,7 +10,9 @@ Version 2.1.10 -
 - Fixed behavior of LineStart to be much more predictable.
   LineStart can now be used to detect if the next parse position
   is col 1, factoring in potential leading whitespace (which would
-  cause LineStart to fail).
+  cause LineStart to fail). Also fixed a bug in col, which is
+  used in LineStart, where '\n's were erroneously considered to
+  be column 1.
 
 - Added support for multiline test strings in runTests.
 
