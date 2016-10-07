@@ -61,7 +61,7 @@ The pyparsing module handles some of the problems that are typically vexing when
 """
 
 __version__ = "2.1.10"
-__versionTime__ = "06 Oct 2016 06:04 UTC"
+__versionTime__ = "07 Oct 2016 01:31 UTC"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -2271,7 +2271,7 @@ class ParserElement(object):
         Each test string must be on a single line. If you want to test a string that spans multiple
         lines, create a test like this::
 
-            expr.runTest(r"this is a test\n of strings that spans \n 3 lines")
+            expr.runTest(r"this is a test\\n of strings that spans \\n 3 lines")
         
         (Note that this is a raw string literal, you must include the leading 'r'.)
         """
