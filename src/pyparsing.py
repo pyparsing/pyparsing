@@ -1834,7 +1834,7 @@ class ParserElement(object):
             warnings.warn("Cannot combine element of type %s with ParserElement" % type(other),
                     SyntaxWarning, stacklevel=2)
             return None
-        return And( [ self, And._ErrorStop(), other ] )
+        return self + And._ErrorStop() + other
 
     def __rsub__(self, other ):
         """
