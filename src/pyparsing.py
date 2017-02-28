@@ -144,7 +144,7 @@ else:
         except UnicodeEncodeError:
             # Else encode it
             ret = unicode(obj).encode(sys.getdefaultencoding(), 'xmlcharrefreplace')
-            xmlcharref = Regex('&#\d+;')
+            xmlcharref = Regex(r'&#\d+;')
             xmlcharref.setParseAction(lambda t: '\\u' + hex(int(t[0][2:-1]))[2:])
             return xmlcharref.transformString(ret)
 
@@ -809,7 +809,7 @@ class ParseResults(object):
         return None
 
     def getName(self):
-        """
+        r"""
         Returns the results name for this token expression. Useful when several 
         different expressions might match at a particular location.
 
@@ -2737,7 +2737,7 @@ class Word(Token):
 
 
 class Regex(Token):
-    """
+    r"""
     Token for matching strings that match a given regular expression.
     Defined with string specifying the regular expression in a form recognized by the inbuilt Python re module.
     If the given regex contains named groups (defined using C{(?P<name>...)}), these will be preserved as 
@@ -2926,7 +2926,7 @@ class QuotedString(Token):
 
                 # replace escaped characters
                 if self.escChar:
-                    ret = re.sub(self.escCharReplacePattern,"\g<1>",ret)
+                    ret = re.sub(self.escCharReplacePattern, r"\g<1>", ret)
 
                 # replace escaped quotes
                 if self.escQuote:
