@@ -60,8 +60,8 @@ The pyparsing module handles some of the problems that are typically vexing when
  - embedded comments
 """
 
-__version__ = "2.1.10"
-__versionTime__ = "07 Oct 2016 01:31 UTC"
+__version__ = "2.2.0"
+__versionTime__ = "28 Feb 2017 04:37 UTC"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -1443,10 +1443,14 @@ class ParserElement(object):
 
             def clear(self):
                 cache.clear()
+                
+            def cache_len(self):
+                return len(cache)
 
             self.get = types.MethodType(get, self)
             self.set = types.MethodType(set, self)
             self.clear = types.MethodType(clear, self)
+            self.__len__ = types.MethodType(cache_len, self)
 
     if _OrderedDict is not None:
         class _FifoCache(object):
@@ -1460,15 +1464,22 @@ class ParserElement(object):
 
                 def set(self, key, value):
                     cache[key] = value
-                    if len(cache) > size:
-                        cache.popitem(False)
+                    while len(cache) > size:
+                        try:
+                            cache.popitem(False)
+                        except KeyError:
+                            pass
 
                 def clear(self):
                     cache.clear()
 
+                def cache_len(self):
+                    return len(cache)
+
                 self.get = types.MethodType(get, self)
                 self.set = types.MethodType(set, self)
                 self.clear = types.MethodType(clear, self)
+                self.__len__ = types.MethodType(cache_len, self)
 
     else:
         class _FifoCache(object):
@@ -1483,7 +1494,7 @@ class ParserElement(object):
 
                 def set(self, key, value):
                     cache[key] = value
-                    if len(cache) > size:
+                    while len(key_fifo) > size:
                         cache.pop(key_fifo.popleft(), None)
                     key_fifo.append(key)
 
@@ -1491,9 +1502,13 @@ class ParserElement(object):
                     cache.clear()
                     key_fifo.clear()
 
+                def cache_len(self):
+                    return len(cache)
+
                 self.get = types.MethodType(get, self)
                 self.set = types.MethodType(set, self)
                 self.clear = types.MethodType(clear, self)
+                self.__len__ = types.MethodType(cache_len, self)
 
     # argument cache for optimizing repeated calls when backtracking through recursive expressions
     packrat_cache = {} # this is set later by enabledPackrat(); this is here so that resetCache() doesn't fail
