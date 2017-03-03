@@ -9,7 +9,7 @@ from pyparsing import *
 # this just skips that step and inlines the bnf text directly - this grammar was taken from
 # Python 2.4.1
 #
-grammar = """
+grammar = r"""
 # Grammar for Python
 
 # Note:  Changing the grammar specified in this file will most likely

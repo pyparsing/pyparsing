@@ -54,16 +54,16 @@ number = Regex('[0-9]+')
 
 # Basis characters (by exclusion) for variable / field names.  The following
 # list of characters is from the btparse documentation
-any_name = Regex('[^\s"#%\'(),={}]+')
+any_name = Regex('[^\\s"#%\'(),={}]+')
 
 # btparse says, and the test bibs show by experiment, that macro and field names
 # cannot start with a digit.  In fact entry type names cannot start with a digit
 # either (see tests/bibs). Cite keys can start with a digit
-not_digname = Regex('[^\d\s"#%\'(),={}][^\s"#%\'(),={}]*')
+not_digname = Regex('[^\\d\\s"#%\'(),={}][^\\s"#%\'(),={}]*')
 
 # Comment comments out to end of line
 comment = (AT + CaselessLiteral('comment') +
-           Regex("[\s{(].*").leaveWhitespace())
+           Regex(r"[\s{(].*").leaveWhitespace())
 
 # The name types with their digiteyness
 not_dig_lower = not_digname.copy().setParseAction(lambda t: t[0].lower())
