@@ -2,6 +2,34 @@
 Change Log
 ==========
 
+Version 2.2.0 - March, 2017
+---------------------------
+- Bumped minor version number to reflect compatibility issues with
+  OneOrMore and ZeroOrMore bugfixes in 2.1.10. (2.1.10 fixed a bug
+  that was introduced in 2.1.4, but the fix could break code
+  written against 2.1.4 - 2.1.9.)
+
+- Updated setup.py to address recursive import problems now
+  that pyparsing is part of 'packaging' (used by setuptools).
+  Patch submitted by Joshua Root, much thanks!
+
+- Fixed KeyError issue reported by Yann Bizeul when using packrat
+  parsing in the Graphite time series database, thanks Yann!
+
+- Fixed incorrect usages of '\' in literals, as described in
+  https://docs.python.org/3/whatsnew/3.6.html#deprecated-python-behavior
+  Patch submitted by Ville Skyttä - thanks!
+
+- Minor internal change when using '-' operator, to be compatible
+  with ParserElement.streamline() method.
+
+- New unit test added for dill support for storing pyparsing parsers.
+  Ordinary Python pickle can be used to pickle pyparsing parsers as
+  long as they do not use any parse actions. The 'dill' module is an
+  extension to pickle which *does* support pickling of attached
+  parse actions.
+
+
 Version 2.1.10 - October, 2016
 -------------------------------
 - Fixed bug in reporting named parse results for ZeroOrMore
