@@ -1758,8 +1758,12 @@ class ParserElement(object):
             cap_word = Word(alphas.upper(), alphas.lower())
             
             print(cap_word.searchString("More than Iron, more than Lead, more than Gold I need Electricity"))
+
+            # the sum() builtin can be used to merge results into a single ParseResults object
+            print(sum(cap_word.searchString("More than Iron, more than Lead, more than Gold I need Electricity")))
         prints::
-            ['More', 'Iron', 'Lead', 'Gold', 'I']
+            [['More'], ['Iron'], ['Lead'], ['Gold'], ['I'], ['Electricity']]
+            ['More', 'Iron', 'Lead', 'Gold', 'I', 'Electricity']
         """
         try:
             return ParseResults([ t for t,s,e in self.scanString( instring, maxMatches ) ])
