@@ -120,7 +120,7 @@ def Verilog_BNF():
 
         identLead = alphas+"$_"
         identBody = alphanums+"$_"
-        identifier1 = Regex( r"\.?["+identLead+"]["+identBody+"]*(\.["+identLead+"]["+identBody+"]*)*"
+        identifier1 = Regex( r"\.?["+identLead+"]["+identBody+r"]*(\.["+identLead+"]["+identBody+"]*)*"
                             ).setName("baseIdent")
         identifier2 = Regex(r"\\\S+").setParseAction(lambda t:t[0][1:]).setName("escapedIdent")#.setDebug()
         identifier = identifier1 | identifier2
