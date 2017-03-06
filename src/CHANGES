@@ -23,6 +23,9 @@ Version 2.2.0 - March, 2017
 - Minor internal change when using '-' operator, to be compatible
   with ParserElement.streamline() method.
 
+- Expanded infixNotation to accept a list or tuple of parse actions
+  to attach to an operation.
+
 - New unit test added for dill support for storing pyparsing parsers.
   Ordinary Python pickle can be used to pickle pyparsing parsers as
   long as they do not use any parse actions. The 'dill' module is an
