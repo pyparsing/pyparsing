@@ -1322,7 +1322,7 @@ class InfixNotationGrammarTest3(ParseTestCase):
         expr = infixNotation( operand,
             [
             ("!", 1, opAssoc.LEFT),
-            ("^", 2, opAssoc.RIGHT),
+            ("^", 2, opAssoc.LEFT),
             (signop, 1, opAssoc.RIGHT),
             (multop, 2, opAssoc.LEFT),
             (plusop, 2, opAssoc.LEFT),
@@ -1365,6 +1365,75 @@ class InfixNotationGrammarTest4(ParseTestCase):
             print_(results)
             assert str(results) == expected, "failed to match expected results, got '%s'" % str(results)
             print_()
+
+class InfixNotationGrammarTest5(ParseTestCase):
+    from pyparsing import infixNotation, opAssoc, pyparsing_common, Literal, oneOf, ParseResults
+
+    expop = Literal('**')
+    signop = oneOf('+ -')
+    multop = oneOf('* /')
+    plusop = oneOf('+ -')
+
+    class ExprNode(object):
+        def __init__(self, tokens):
+            self.tokens = tokens[0]
+
+        def eval(self):
+            return None
+
+    class NumberNode(ExprNode):
+        def eval(self):
+            return self.tokens
+
+    class SignOp(ExprNode):
+        def eval(self):
+            mult = {'+': 1, '-': -1}[self.tokens[0]]
+            return mult * self.tokens[1].eval()
+
+    class BinOp(ExprNode):
+        def eval(self):
+            ret = self.tokens[0].eval()
+            for op, operand in zip(self.tokens[1::2], self.tokens[2::2]):
+                ret = self.opn_map[op](ret, operand.eval())
+            return ret
+
+    class ExpOp(BinOp):
+        opn_map = {'**': lambda a, b: b ** a}
+
+    class MultOp(BinOp):
+        import operator
+        opn_map = {'*': operator.mul, '/': operator.truediv}
+
+    class AddOp(BinOp):
+        import operator
+        opn_map = {'+': operator.add, '-': operator.sub}
+
+    operand = pyparsing_common.number().setParseAction(NumberNode)
+    expr = infixNotation(operand,
+                         [
+                             (expop, 2, opAssoc.LEFT, (lambda pr: [pr[0][::-1]], ExpOp)),
+                             (signop, 1, opAssoc.RIGHT, SignOp),
+                             (multop, 2, opAssoc.LEFT, MultOp),
+                             (plusop, 2, opAssoc.LEFT, AddOp),
+                         ])
+
+    tests = """\
+        2+7
+        2**3
+        2**3**2
+        3**9
+        3**3**2
+        """
+
+    for t in tests.splitlines():
+        t = t.strip()
+        if not t:
+            continue
+
+        parsed = expr.parseString(t)
+        eval_value = parsed[0].eval()
+        assert eval_value == eval(t), "Error evaluating %r, expected %r, got %r" % (t, eval(t), eval_value)
+
 
 class PickleTest_Greeting():
     def __init__(self, toks):

@@ -61,7 +61,7 @@ The pyparsing module handles some of the problems that are typically vexing when
 """
 
 __version__ = "2.2.0"
-__versionTime__ = "03 Mar 2017 01:09 UTC"
+__versionTime__ = "06 Mar 2017 02:06 UTC"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -1226,7 +1226,7 @@ class ParserElement(object):
 
     def setParseAction( self, *fns, **kwargs ):
         """
-        Define action to perform when successfully matching parse element definition.
+        Define one or more actions to perform when successfully matching parse element definition.
         Parse action fn is a callable method with 0-3 arguments, called as C{fn(s,loc,toks)},
         C{fn(loc,toks)}, C{fn(toks)}, or just C{fn()}, where:
          - s   = the original string being parsed (see note below)
@@ -1264,7 +1264,7 @@ class ParserElement(object):
 
     def addParseAction( self, *fns, **kwargs ):
         """
-        Add parse action to expression's list of parse actions. See L{I{setParseAction}<setParseAction>}.
+        Add one or more parse actions to expression's list of parse actions. See L{I{setParseAction}<setParseAction>}.
         
         See examples in L{I{copy}<copy>}.
         """
@@ -5039,7 +5039,9 @@ def infixNotation( baseExpr, opList, lpar=Suppress('('), rpar=Suppress(')') ):
           constants C{opAssoc.RIGHT} and C{opAssoc.LEFT}.
        - parseAction is the parse action to be associated with
           expressions matching this operator expression (the
-          parse action tuple member may be omitted)
+          parse action tuple member may be omitted); if the parse action
+          is passed a tuple or list of functions, this is equivalent to
+          calling C{setParseAction(*fn)} (L{ParserElement.setParseAction})
      - lpar - expression for matching left-parentheses (default=C{Suppress('(')})
      - rpar - expression for matching right-parentheses (default=C{Suppress(')')})
 
@@ -5112,7 +5114,10 @@ def infixNotation( baseExpr, opList, lpar=Suppress('('), rpar=Suppress(')') ):
         else:
             raise ValueError("operator must indicate right or left associativity")
         if pa:
-            matchExpr.setParseAction( pa )
+            if isinstance(pa, (tuple, list)):
+                matchExpr.setParseAction(*pa)
+            else:
+                matchExpr.setParseAction(pa)
         thisExpr <<= ( matchExpr.setName(termName) | lastExpr )
         lastExpr = thisExpr
     ret <<= lastExpr
