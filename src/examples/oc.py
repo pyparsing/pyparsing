@@ -71,6 +71,7 @@ The following is a description of the OC grammar:
 """
 
 from pyparsing import *
+ParserElement.enablePackrat()
 
 LPAR,RPAR,LBRACK,RBRACK,LBRACE,RBRACE,SEMI,COMMA = map(Suppress, "()[]{};,")
 INT, CHAR, WHILE, DO, IF, ELSE, RETURN = map(Keyword, 
@@ -82,10 +83,10 @@ char = Regex(r"'.'")
 string_ = dblQuotedString
 
 TYPE = Group((INT | CHAR) + ZeroOrMore("*"))
-
 expr = Forward()
-operand = NAME | integer | char | string_
-expr << (infixNotation(operand, 
+func_call = Group(NAME + LPAR + Group(Optional(delimitedList(expr))) + RPAR)
+operand = func_call | NAME | integer | char | string_
+expr <<= (infixNotation(operand, 
     [
     (oneOf('! - *'), 1, opAssoc.RIGHT),
     (oneOf('++ --'), 1, opAssoc.RIGHT),
@@ -93,7 +94,7 @@ expr << (infixNotation(operand,
     (oneOf('* / %'), 2, opAssoc.LEFT),
     (oneOf('+ -'), 2, opAssoc.LEFT),
     (oneOf('< == > <= >= !='), 2, opAssoc.LEFT),
-    (Regex(r'=[^=]'), 2, opAssoc.LEFT),
+    (Regex(r'(?<!=)=(?!=)'), 2, opAssoc.LEFT),
     ]) + 
     Optional( LBRACK + expr + RBRACK | 
               LPAR + Group(Optional(delimitedList(expr))) + RPAR )
@@ -176,6 +177,7 @@ main()
 {
     int i;
     i = 0;
+    if(a() == 1){}
     while(i < 10)
         facpr(i++);
     return 0;
