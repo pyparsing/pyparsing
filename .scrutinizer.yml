@@ -1,0 +1,14 @@
+build:
+  environment:
+    python: 2.7.7
+
+  tests:
+    before:
+      - 'pip install coverage'
+
+    override:
+      -
+        command: coverage run unitTests.py
+        coverage:
+          file: '.coverage'
+          format: 'py-cc'
