@@ -2,13 +2,17 @@ build:
   environment:
     python: 2.7.7
 
-  tests:
-    before:
-      - 'pip install coverage'
+  dependencies:
+    override:
+      - 'pip install -r requirements-dev.txt'
+      - true  # to have scrutinizer-ci not infer any commands.
 
+  tests:
     override:
       -
         command: coverage run unitTests.py
         coverage:
           file: '.coverage'
           format: 'py-cc'
+
+      - true # to have scrutinizer-ci not infer any commands.
