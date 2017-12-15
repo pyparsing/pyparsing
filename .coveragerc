@@ -1,2 +1,2 @@
 [run]
-source=pyparsing
+source=pyparsing  # This line instructs only the code contained in the "pyparsing.py" to be measured for coverage.
