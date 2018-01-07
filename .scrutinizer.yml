@@ -1,0 +1,23 @@
+# This file contains the configuration for Scrutinizer-CI, a tool we use for software quality.
+
+build:
+  # We will be running our tests in Python 2.7.7
+  environment:
+    python: 2.7.7
+
+  # Install development dependencies.
+  dependencies:
+    override:
+      - 'pip install -r requirements-dev.txt'
+      - true  # to have scrutinizer-ci not infer any commands.
+
+  tests:
+    override:
+      # Following command generates .coverage file, the output of the "coverage" tool.
+      -
+        command: coverage run unitTests.py
+        coverage:  # This section instructs Scrutinizer-CI this command produces test coverage output.
+          file: '.coverage'
+          format: 'py-cc'
+
+      - true # to have scrutinizer-ci not infer any commands.
