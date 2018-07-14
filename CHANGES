@@ -2,12 +2,14 @@
 Change Log
 ==========
 
-Version 2.2.1 - April, 2017
+Version 2.2.1 - TBD
 ---------------------------
 - Updated oc.py example to support function calls in arithmetic
   expressions; fixed regex for '==' operator; and added packrat
   parsing. Raised on the pyparsing wiki by Boris Marin, thanks!
 
+- Fixed bug in select_parser.py example, group_by_terms was not
+  reported. Reported on SF bugs by Adam Groszer, thanks Adam!
 
 Version 2.2.0 - March, 2017
 ---------------------------
