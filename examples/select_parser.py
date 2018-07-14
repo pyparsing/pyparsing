@@ -101,7 +101,7 @@ result_column = "*" | table_name + "." + "*" | Group(expr + Optional(Optional(AS
 select_core = (SELECT + Optional(DISTINCT | ALL) + Group(delimitedList(result_column))("columns") +
                 Optional(FROM + join_source("from*")) +
                 Optional(WHERE + expr("where_expr")) +
-                Optional(GROUP + BY + Group(delimitedList(ordering_term)("group_by_terms")) + 
+                Optional(GROUP + BY + Group(delimitedList(ordering_term))("group_by_terms") + 
                         Optional(HAVING + expr("having_expr"))))
 
 select_stmt << (select_core + ZeroOrMore(compound_operator + select_core) +
