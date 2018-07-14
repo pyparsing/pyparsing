@@ -121,6 +121,7 @@ tests = """\
     select a, db.table.b as BBB from db.table where 1=1 and BBB='yes'
     select a, db.table.b as BBB from test_table,db.table where 1=1 and BBB='yes'
     select a, db.table.b as BBB from test_table,db.table where 1=1 and BBB='yes' limit 50
+    select a, b from test_table where (1=1 or 2=3) and b='yes' group by zx having b=2 order by 1
     """
 
 select_stmt.runTests(tests)
