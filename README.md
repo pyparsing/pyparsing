@@ -1,4 +1,3 @@
-====================================
 PyParsing -- A Python Parsing Module
 ====================================
 
@@ -11,7 +10,7 @@ regular expressions.  The pyparsing module provides a library of classes
 that client code uses to construct the grammar directly in Python code.
 
 Here is a program to parse "Hello, World!" (or any greeting of the form 
-"<salutation>, <addressee>!"):
+"salutation, addressee!"):
 
     from pyparsing import Word, alphas
     greet = Word( alphas ) + "," + Word( alphas ) + "!"
