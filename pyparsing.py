@@ -76,19 +76,12 @@ import pprint
 import traceback
 import types
 from datetime import datetime
+from collections import OrderedDict
 
 try:
     from _thread import RLock
 except ImportError:
     from threading import RLock
-
-try:
-    from collections import OrderedDict as _OrderedDict
-except ImportError:
-    try:
-        from ordereddict import OrderedDict as _OrderedDict
-    except ImportError:
-        _OrderedDict = None
 
 #~ sys.stderr.write( "testing pyparsing module, version %s, %s\n" % (__version__,__versionTime__ ) )
 
@@ -1452,63 +1445,33 @@ class ParserElement(object):
             self.clear = types.MethodType(clear, self)
             self.__len__ = types.MethodType(cache_len, self)
 
-    if _OrderedDict is not None:
-        class _FifoCache(object):
-            def __init__(self, size):
-                self.not_in_cache = not_in_cache = object()
+    class _FifoCache(object):
+        def __init__(self, size):
+            self.not_in_cache = not_in_cache = object()
 
-                cache = _OrderedDict()
+            cache = OrderedDict()
 
-                def get(self, key):
-                    return cache.get(key, not_in_cache)
+            def get(self, key):
+                return cache.get(key, not_in_cache)
 
-                def set(self, key, value):
-                    cache[key] = value
-                    while len(cache) > size:
-                        try:
-                            cache.popitem(False)
-                        except KeyError:
-                            pass
+            def set(self, key, value):
+                cache[key] = value
+                while len(cache) > size:
+                    try:
+                        cache.popitem(False)
+                    except KeyError:
+                        pass
 
-                def clear(self):
-                    cache.clear()
+            def clear(self):
+                cache.clear()
 
-                def cache_len(self):
-                    return len(cache)
+            def cache_len(self):
+                return len(cache)
 
-                self.get = types.MethodType(get, self)
-                self.set = types.MethodType(set, self)
-                self.clear = types.MethodType(clear, self)
-                self.__len__ = types.MethodType(cache_len, self)
-
-    else:
-        class _FifoCache(object):
-            def __init__(self, size):
-                self.not_in_cache = not_in_cache = object()
-
-                cache = {}
-                key_fifo = collections.deque([], size)
-
-                def get(self, key):
-                    return cache.get(key, not_in_cache)
-
-                def set(self, key, value):
-                    cache[key] = value
-                    while len(key_fifo) > size:
-                        cache.pop(key_fifo.popleft(), None)
-                    key_fifo.append(key)
-
-                def clear(self):
-                    cache.clear()
-                    key_fifo.clear()
-
-                def cache_len(self):
-                    return len(cache)
-
-                self.get = types.MethodType(get, self)
-                self.set = types.MethodType(set, self)
-                self.clear = types.MethodType(clear, self)
-                self.__len__ = types.MethodType(cache_len, self)
+            self.get = types.MethodType(get, self)
+            self.set = types.MethodType(set, self)
+            self.clear = types.MethodType(clear, self)
+            self.__len__ = types.MethodType(cache_len, self)
 
     # argument cache for optimizing repeated calls when backtracking through recursive expressions
     packrat_cache = {} # this is set later by enabledPackrat(); this is here so that resetCache() doesn't fail

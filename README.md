@@ -51,7 +51,7 @@ Do the usual:
 
     python setup.py install
     
-(pyparsing requires Python 2.6 or later.)
+(pyparsing requires Python 2.7 or 3.4+.)
 
 Or corresponding commands using pip, easy_install, or wheel:
 
