@@ -79,12 +79,12 @@ def msg(txt):
 def debug(ftn, txt):
     """Used for debugging."""
     if debug_p:
-        sys.stdout.write("%s.%s:%s\n" % (modname, ftn, txt))
+        sys.stdout.write("{}.{}:{}\n".format(modname, ftn, txt))
         sys.stdout.flush()
 
 def fatal(ftn, txt):
     """If can't continue."""
-    msg = "%s.%s:FATAL:%s\n" % (modname, ftn, txt)
+    msg = "{}.{}:FATAL:{}\n".format(modname, ftn, txt)
     raise SystemExit(msg)
  
 def usage():

@@ -655,7 +655,7 @@ class ParseResults(object):
             return other + self
         
     def __repr__( self ):
-        return "(%s, %s)" % ( repr( self.__toklist ), repr( self.__tokdict ) )
+        return "({}, {})".format( repr( self.__toklist ), repr( self.__tokdict ) )
 
     def __str__( self ):
         return '[' + ', '.join(_ustr(i) if isinstance(i, ParseResults) else repr(i) for i in self.__toklist) + ']'
@@ -720,7 +720,7 @@ class ParseResults(object):
             else:
                 return obj
                 
-        return dict((k,toItem(v)) for k,v in item_fn())
+        return {k:toItem(v) for k,v in item_fn()}
 
     def copy( self ):
         """
@@ -739,8 +739,8 @@ class ParseResults(object):
         """
         nl = "\n"
         out = []
-        namedItems = dict((v[1],k) for (k,vlist) in self.__tokdict.items()
-                                                            for v in vlist)
+        namedItems = {v[1]:k for (k,vlist) in self.__tokdict.items()
+                                                            for v in vlist}
         nextLevelIndent = indent + "  "
 
         # collapse out indents if formatting is not desired
@@ -865,7 +865,7 @@ class ParseResults(object):
                 for k,v in items:
                     if out:
                         out.append(NL)
-                    out.append( "%s%s- %s: " % (indent,('  '*depth), k) )
+                    out.append( "{}{}- {}: ".format(indent,('  '*depth), k) )
                     if isinstance(v,ParseResults):
                         if v:
                             out.append( v.dump(indent,depth+1) )
@@ -2696,7 +2696,7 @@ class Word(Token):
                     return s
 
             if ( self.initCharsOrig != self.bodyCharsOrig ):
-                self.strRepr = "W:(%s,%s)" % ( charsAsStr(self.initCharsOrig), charsAsStr(self.bodyCharsOrig) )
+                self.strRepr = "W:({},{})".format( charsAsStr(self.initCharsOrig), charsAsStr(self.bodyCharsOrig) )
             else:
                 self.strRepr = "W:(%s)" % charsAsStr(self.initCharsOrig)
 
@@ -2842,7 +2842,7 @@ class QuotedString(Token):
                   (escChar is not None and _escapeRegexRangeChars(escChar) or '') )
         if len(self.endQuoteChar) > 1:
             self.pattern += (
-                '|(?:' + ')|(?:'.join("%s[^%s]" % (re.escape(self.endQuoteChar[:i]),
+                '|(?:' + ')|(?:'.join("{}[^{}]".format(re.escape(self.endQuoteChar[:i]),
                                                _escapeRegexRangeChars(self.endQuoteChar[i]))
                                     for i in range(len(self.endQuoteChar)-1,0,-1)) + ')'
                 )
@@ -2908,7 +2908,7 @@ class QuotedString(Token):
             pass
 
         if self.strRepr is None:
-            self.strRepr = "quoted string, starting with %s ending with %s" % (self.quoteChar, self.endQuoteChar)
+            self.strRepr = "quoted string, starting with {} ending with {}".format(self.quoteChar, self.endQuoteChar)
 
         return self.strRepr
 
@@ -3254,7 +3254,7 @@ class ParseExpression(ParserElement):
             pass
 
         if self.strRepr is None:
-            self.strRepr = "%s:(%s)" % ( self.__class__.__name__, _ustr(self.exprs) )
+            self.strRepr = "{}:({})".format( self.__class__.__name__, _ustr(self.exprs) )
         return self.strRepr
 
     def streamline( self ):
@@ -3591,7 +3591,7 @@ class Each(ParseExpression):
 
     def parseImpl( self, instring, loc, doActions=True ):
         if self.initExprGroups:
-            self.opt1map = dict((id(e.expr),e) for e in self.exprs if isinstance(e,Optional))
+            self.opt1map = {id(e.expr):e for e in self.exprs if isinstance(e,Optional)}
             opt1 = [ e.expr for e in self.exprs if isinstance(e,Optional) ]
             opt2 = [ e for e in self.exprs if e.mayReturnEmpty and not isinstance(e,Optional)]
             self.optionals = opt1 + opt2
@@ -3726,7 +3726,7 @@ class ParseElementEnhance(ParserElement):
             pass
 
         if self.strRepr is None and self.expr is not None:
-            self.strRepr = "%s:(%s)" % ( self.__class__.__name__, _ustr(self.expr) )
+            self.strRepr = "{}:({})".format( self.__class__.__name__, _ustr(self.expr) )
         return self.strRepr
 
 
@@ -4375,9 +4375,9 @@ def traceParseAction(f):
         try:
             ret = f(*paArgs)
         except Exception as exc:
-            sys.stderr.write( "<<leaving %s (exception: %s)\n" % (thisFunc,exc) )
+            sys.stderr.write( "<<leaving {} (exception: {})\n".format(thisFunc,exc) )
             raise
-        sys.stderr.write( "<<leaving %s (ret: %r)\n" % (thisFunc,ret) )
+        sys.stderr.write( "<<leaving {} (ret: {!r})\n".format(thisFunc,ret) )
         return ret
     try:
         z.__name__ = f.__name__
@@ -5182,7 +5182,7 @@ def nestedExpr(opener="(", closer=")", content=None, ignoreExpr=quotedString.cop
         ret <<= Group( Suppress(opener) + ZeroOrMore( ignoreExpr | ret | content ) + Suppress(closer) )
     else:
         ret <<= Group( Suppress(opener) + ZeroOrMore( ret | content )  + Suppress(closer) )
-    ret.setName('nested %s%s expression' % (opener,closer))
+    ret.setName('nested {}{} expression'.format(opener,closer))
     return ret
 
 def indentedBlock(blockStatementExpr, indentStack, indent=True):

@@ -23,4 +23,3 @@ for test in (samplestr1,samplestr2,samplestr3,samplestr4,):
     print()
 
     
-    

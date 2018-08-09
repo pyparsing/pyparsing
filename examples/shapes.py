@@ -15,7 +15,7 @@ class Shape(object):
         raise NotImplementedException()
     
     def __str__(self):
-        return "<%s>: %s" % (self.__class__.__name__, self.__dict__)
+        return "<{}>: {}".format(self.__class__.__name__, self.__dict__)
 
 class Square(Shape):
     def area(self):
