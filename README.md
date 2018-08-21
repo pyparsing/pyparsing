@@ -12,10 +12,12 @@ that client code uses to construct the grammar directly in Python code.
 Here is a program to parse "Hello, World!" (or any greeting of the form 
 "salutation, addressee!"):
 
-    from pyparsing import Word, alphas
-    greet = Word( alphas ) + "," + Word( alphas ) + "!"
-    hello = "Hello, World!"
-    print hello, "->", greet.parseString( hello )
+```python
+from pyparsing import Word, alphas
+greet = Word( alphas ) + "," + Word( alphas ) + "!"
+hello = "Hello, World!"
+print hello, "->", greet.parseString( hello )
+```
 
 The program outputs the following:
 
