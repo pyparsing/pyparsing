@@ -166,7 +166,7 @@ class ParseFourFnTest(ParseTestCase):
             fourFn.exprStack = []
             results = fourFn.BNF().parseString( s )
             resultValue = fourFn.evaluateStack( fourFn.exprStack )
-            assert resultValue == ans, "failed to evaluate %s, got %f" % ( s, resultValue )
+            assert resultValue == ans, "failed to evaluate {}, got {:f}".format( s, resultValue )
             print_(s, "->", resultValue)
         
         from math import pi,exp
@@ -370,12 +370,12 @@ class ParseIDLTest(ParseTestCase):
                 tokens.pprint()
                 tokens = flatten( tokens.asList() )
                 print_(len(tokens))
-                assert len(tokens) == numToks, "error matching IDL string, %s -> %s" % (strng, str(tokens) )
+                assert len(tokens) == numToks, "error matching IDL string, {} -> {}".format(strng, str(tokens) )
             except ParseException as err:
                 print_(err.line)
                 print_(" "*(err.column-1) + "^")
                 print_(err)
-                assert numToks == 0, "unexpected ParseException while parsing %s, %s" % (strng, str(err) )
+                assert numToks == 0, "unexpected ParseException while parsing {}, {}".format(strng, str(err) )
                 assert err.loc == errloc, "expected ParseException at %d, found exception at %d" % (errloc, err.loc)
             
         test(
@@ -875,8 +875,8 @@ class ParseExpressionResultsAccumulateTest(ParseTestCase):
                              ("hex",2,['0x2','0x4']),
                              ("word",1,['aaa']) ):
             print_(k,tokens[k])
-            assert len(tokens[k]) == llen, "Wrong length for key %s, %s" % (k,str(tokens[k].asList()))
-            assert lst == tokens[k].asList(), "Incorrect list returned for key %s, %s" % (k,str(tokens[k].asList()))
+            assert len(tokens[k]) == llen, "Wrong length for key {}, {}".format(k,str(tokens[k].asList()))
+            assert lst == tokens[k].asList(), "Incorrect list returned for key {}, {}".format(k,str(tokens[k].asList()))
         assert tokens.base10.asList() == ['1','3'], "Incorrect list for attribute base10, %s" % str(tokens.base10.asList())
         assert tokens.hex.asList() == ['0x2','0x4'], "Incorrect list for attribute hex, %s" % str(tokens.hex.asList())
         assert tokens.word.asList() == ['aaa'], "Incorrect list for attribute word, %s" % str(tokens.word.asList())
@@ -957,7 +957,7 @@ class ReStringRangeTest(ParseTestCase):
             t,exp = test
             res = pyparsing.srange(t)
             #print_(t,"->",res)
-            assert res == exp, "srange error, srange(%r)->'%r', expected '%r'" % (t, res, exp)
+            assert res == exp, "srange error, srange({!r})->'{!r}', expected '{!r}'".format(t, res, exp)
 
 class SkipToParserTests(ParseTestCase):
     def runTest(self):
@@ -972,8 +972,8 @@ class SkipToParserTests(ParseTestCase):
                 print_(testExpr.parseString(someText))
                 assert not fail_expected, "expected failure but no exception raised"
             except Exception as e:
-                print_("Exception %s while parsing string %s" % (e,repr(someText)))
-                assert fail_expected and isinstance(e,ParseBaseException), "Exception %s while parsing string %s" % (e,repr(someText))
+                print_("Exception {} while parsing string {}".format(e,repr(someText)))
+                assert fail_expected and isinstance(e,ParseBaseException), "Exception {} while parsing string {}".format(e,repr(someText))
     
         # This first test works, as the SkipTo expression is immediately following the ignore expression (cStyleComment)
         tryToParse('some text /* comment with ; in */; working')
@@ -1058,7 +1058,7 @@ class RepeaterTest(ParseTestCase):
                 found = True
             if not found:
                 print_("No literal match in", tst)
-            assert found == result, "Failed repeater for test: %s, matching %s" % (tst, str(seq))
+            assert found == result, "Failed repeater for test: {}, matching {}".format(tst, str(seq))
         print_()
 
         # retest using matchPreviousExpr instead of matchPreviousLiteral
@@ -1078,7 +1078,7 @@ class RepeaterTest(ParseTestCase):
                 found = True
             if not found:
                 print_("No expression match in", tst)
-            assert found == result, "Failed repeater for test: %s, matching %s" % (tst, str(seq))
+            assert found == result, "Failed repeater for test: {}, matching {}".format(tst, str(seq))
 
         print_()
 
@@ -1125,7 +1125,7 @@ class RepeaterTest(ParseTestCase):
                 break
             if not found:
                 print_("No expression match in", tst)
-            assert found == result, "Failed repeater for test: %s, matching %s" % (tst, str(seq))
+            assert found == result, "Failed repeater for test: {}, matching {}".format(tst, str(seq))
 
         print_()
         eFirst = Word(nums)
@@ -1146,7 +1146,7 @@ class RepeaterTest(ParseTestCase):
                 found = True
             if not found:
                 print_("No match in", tst)
-            assert found == result, "Failed repeater for test: %s, matching %s" % (tst, str(seq))
+            assert found == result, "Failed repeater for test: {}, matching {}".format(tst, str(seq))
 
 class RecursiveCombineTest(ParseTestCase):
     def runTest(self):
@@ -1213,7 +1213,7 @@ class InfixNotationGrammarTest1(ParseTestCase):
         expected = [ast.literal_eval(x.strip()) for x in expected]
         for t,e in zip(test,expected):
             print_(t,"->",e, "got", expr.parseString(t).asList())
-            assert expr.parseString(t).asList() == e,"mismatched results for infixNotation: got %s, expected %s" % (expr.parseString(t).asList(),e)
+            assert expr.parseString(t).asList() == e,"mismatched results for infixNotation: got {}, expected {}".format(expr.parseString(t).asList(),e)
 
 class InfixNotationGrammarTest2(ParseTestCase):
     def runTest(self):
@@ -1331,7 +1331,7 @@ class InfixNotationGrammarTest3(ParseTestCase):
         test = ["9"]
         for t in test:
             count = 0
-            print_("%s => %s" % (t, expr.parseString(t)))
+            print_("{} => {}".format(t, expr.parseString(t)))
             assert count == 1, "count evaluated too many times!"
 
 class InfixNotationGrammarTest4(ParseTestCase):
@@ -1432,7 +1432,7 @@ class InfixNotationGrammarTest5(ParseTestCase):
 
         parsed = expr.parseString(t)
         eval_value = parsed[0].eval()
-        assert eval_value == eval(t), "Error evaluating %r, expected %r, got %r" % (t, eval(t), eval_value)
+        assert eval_value == eval(t), "Error evaluating {!r}, expected {!r}, got {!r}".format(t, eval(t), eval_value)
 
 
 class PickleTest_Greeting():
@@ -1441,8 +1441,8 @@ class PickleTest_Greeting():
         self.greetee = toks[1]
         
     def __repr__(self):
-        return "%s: {%s}" % (self.__class__.__name__, 
-            ', '.join('%r: %r' % (k, getattr(self,k)) for k in sorted(self.__dict__)))
+        return "{}: {{{}}}".format(self.__class__.__name__, 
+            ', '.join('{!r}: {!r}'.format(k, getattr(self,k)) for k in sorted(self.__dict__)))
         
 class ParseResultsPickleTest(ParseTestCase):
     def runTest(self):
@@ -1496,7 +1496,7 @@ class ParseResultsPickleTest(ParseTestCase):
             else:
                 newresult = pickle.loads(pickleString)
             print_(newresult.dump())
-            assert newresult.dump() == result.dump(), "failed to pickle/unpickle ParseResults: expected %r, got %r" % (result, newresult)
+            assert newresult.dump() == result.dump(), "failed to pickle/unpickle ParseResults: expected {!r}, got {!r}".format(result, newresult)
 
 
 
@@ -1544,12 +1544,12 @@ class ParseHTMLTagsTest(ParseTestCase):
             tType = t.getName() 
             #~ print tType,"==",expectedType,"?"
             assert tType in "startBody endBody".split(), "parsed token of unknown type '%s'" % tType
-            assert tType == expectedType, "expected token of type %s, got %s" % (expectedType, tType) 
+            assert tType == expectedType, "expected token of type {}, got {}".format(expectedType, tType) 
             if tType == "startBody":
-                assert bool(t.empty) == expectedEmpty, "expected %s token, got %s" % ( expectedEmpty and "empty" or "not empty", 
+                assert bool(t.empty) == expectedEmpty, "expected {} token, got {}".format( expectedEmpty and "empty" or "not empty", 
                                                                                                 t.empty and "empty" or "not empty" )
-                assert t.bgcolor == expectedBG, "failed to match BGCOLOR, expected %s, got %s" % ( expectedBG, t.bgcolor )
-                assert t.fgcolor == expectedFG, "failed to match FGCOLOR, expected %s, got %s" % ( expectedFG, t.bgcolor )
+                assert t.bgcolor == expectedBG, "failed to match BGCOLOR, expected {}, got {}".format( expectedBG, t.bgcolor )
+                assert t.fgcolor == expectedFG, "failed to match FGCOLOR, expected {}, got {}".format( expectedFG, t.bgcolor )
             elif tType == "endBody":
                 #~ print "end tag"
                 pass
@@ -1632,7 +1632,7 @@ class ParseUsingRegex(ParseTestCase):
             if shouldPass:
                 try:
                     result = expression.parseString(instring)
-                    print_('%s correctly matched %s' % (repr(expression), repr(instring)))
+                    print_('{} correctly matched {}'.format(repr(expression), repr(instring)))
                     if expectedString != result[0]:
                         print_('\tbut failed to match the pattern as expected:')
                         print_('\tproduced %s instead of %s' % \
@@ -1644,7 +1644,7 @@ class ParseUsingRegex(ParseTestCase):
             else:
                 try:
                     result = expression.parseString(instring)
-                    print_('%s incorrectly matched %s' % (repr(expression), repr(instring)))
+                    print_('{} incorrectly matched {}'.format(repr(expression), repr(instring)))
                     print_('\tproduced %s as a result' % repr(result[0]))
                 except pyparsing.ParseException:
                     print_('%s correctly failed to match %s' % \
@@ -2121,7 +2121,7 @@ class PackratParsingCacheCopyTest(ParseTestCase):
         program = varDec | funcDef
         input = 'int f(){}'
         results = program.parseString(input)
-        print_("Parsed '%s' as %s" % (input, results.asList()))
+        print_("Parsed '{}' as {}".format(input, results.asList()))
         assert results.asList() == ['int', 'f', '(', ')', '{}'], "Error in packrat parsing"
 
 class PackratParsingCacheCopyTest2(ParseTestCase):
@@ -2207,7 +2207,7 @@ class WithAttributeParseActionTest(ParseTestCase):
             result = expr.searchString(data)
           
             print_(result.dump())
-            assert result.asList() == exp, "Failed test, expected %s, got %s" % (expected, result.asList())
+            assert result.asList() == exp, "Failed test, expected {}, got {}".format(expected, result.asList())
 
 class NestedExpressionsTest(ParseTestCase):
     def runTest(self):
@@ -2237,7 +2237,7 @@ class NestedExpressionsTest(ParseTestCase):
         expected = [[['ax', '+', 'by'], '*C']]
         result = expr.parseString(teststring)
         print_(result.dump())
-        assert result.asList() == expected, "Defaults didn't work. That's a bad sign. Expected: %s, got: %s" % (expected, result)
+        assert result.asList() == expected, "Defaults didn't work. That's a bad sign. Expected: {}, got: {}".format(expected, result)
 
         #Going through non-defaults, one by one; trying to think of anything
         #odd that might not be properly handled.
@@ -2250,7 +2250,7 @@ class NestedExpressionsTest(ParseTestCase):
         expr = nestedExpr("[")
         result = expr.parseString(teststring)
         print_(result.dump())
-        assert result.asList() == expected, "Non-default opener didn't work. Expected: %s, got: %s" % (expected, result)
+        assert result.asList() == expected, "Non-default opener didn't work. Expected: {}, got: {}".format(expected, result)
 
         #Change closer
         print_("\nNon-default closer")
@@ -2260,7 +2260,7 @@ class NestedExpressionsTest(ParseTestCase):
         expr = nestedExpr(closer="]")
         result = expr.parseString(teststring)
         print_(result.dump())
-        assert result.asList() == expected, "Non-default closer didn't work. Expected: %s, got: %s" % (expected, result)
+        assert result.asList() == expected, "Non-default closer didn't work. Expected: {}, got: {}".format(expected, result)
 
         # #Multicharacter opener, closer
         # opener = "bar"
@@ -2276,7 +2276,7 @@ class NestedExpressionsTest(ParseTestCase):
         # expr = nestedExpr(opener, closer)
         result = expr.parseString(teststring)
         print_(result.dump())
-        assert result.asList() == expected, "Multicharacter opener and closer didn't work. Expected: %s, got: %s" % (expected, result)
+        assert result.asList() == expected, "Multicharacter opener and closer didn't work. Expected: {}, got: {}".format(expected, result)
 
         #Lisp-ish comments
         print_("\nUse ignore expression (1)")
@@ -2292,7 +2292,7 @@ class NestedExpressionsTest(ParseTestCase):
         expr = nestedExpr(ignoreExpr=comment)
         result = expr.parseString(teststring)
         print_(result.dump())
-        assert result.asList() == expected , "Lisp-ish comments (\";; <...> $\") didn't work. Expected: %s, got: %s" % (expected, result)
+        assert result.asList() == expected , "Lisp-ish comments (\";; <...> $\") didn't work. Expected: {}, got: {}".format(expected, result)
 
 
         #Lisp-ish comments, using a standard bit of pyparsing, and an Or.
@@ -2310,7 +2310,7 @@ class NestedExpressionsTest(ParseTestCase):
         expr = nestedExpr(ignoreExpr=(comment ^ quotedString))
         result = expr.parseString(teststring)
         print_(result.dump())
-        assert result.asList() == expected , "Lisp-ish comments (\";; <...> $\") and quoted strings didn't work. Expected: %s, got: %s" % (expected, result)
+        assert result.asList() == expected , "Lisp-ish comments (\";; <...> $\") and quoted strings didn't work. Expected: {}, got: {}".format(expected, result)
 
 class WordExcludeTest(ParseTestCase):
     def runTest(self):
@@ -2336,7 +2336,7 @@ class ParseAllTest(ParseTestCase):
             ]
         for s,parseAllFlag,shouldSucceed in tests:
             try:
-                print_("'%s' parseAll=%s (shouldSuceed=%s)" % (s, parseAllFlag, shouldSucceed))
+                print_("'{}' parseAll={} (shouldSuceed={})".format(s, parseAllFlag, shouldSucceed))
                 testExpr.parseString(s,parseAllFlag)
                 assert shouldSucceed, "successfully parsed when should have failed"
             except ParseException as pe:
@@ -2353,7 +2353,7 @@ class ParseAllTest(ParseTestCase):
             ]
         for s,parseAllFlag,shouldSucceed in tests:
             try:
-                print_("'%s' parseAll=%s (shouldSucceed=%s)" % (s, parseAllFlag, shouldSucceed))
+                print_("'{}' parseAll={} (shouldSucceed={})".format(s, parseAllFlag, shouldSucceed))
                 testExpr.parseString(s,parseAllFlag)
                 assert shouldSucceed, "successfully parsed when should have failed"
             except ParseException as pe:
@@ -2439,7 +2439,7 @@ class WordBoundaryExpressionsTest(ParseTestCase):
                 bnf,
                 ]]
             print_(results)
-            assert results==expected,"Failed WordBoundaryTest, expected %s, got %s" % (expected,results)
+            assert results==expected,"Failed WordBoundaryTest, expected {}, got {}".format(expected,results)
             print_()
 
 class RequiredEachTest(ParseTestCase):
@@ -2557,7 +2557,7 @@ class SumParseResultsTest(ParseTestCase):
         results = (res1, res2, res3, res4,)
         for test,expected in zip(tests, results):
             person = sum(person_data.searchString(test))
-            result = "ID:%s DOB:%s INFO:%s" % (person.id, person.dob, person.info)
+            result = "ID:{} DOB:{} INFO:{}".format(person.id, person.dob, person.info)
             print_(test)
             print_(expected)
             print_(result)
@@ -2565,7 +2565,7 @@ class SumParseResultsTest(ParseTestCase):
                 print_(pd.dump())
             print_()
             assert expected == result, \
-                "Failed to parse '%s' correctly, \nexpected '%s', got '%s'" % (test,expected,result)
+                "Failed to parse '{}' correctly, \nexpected '{}', got '{}'".format(test,expected,result)
 
 class MarkInputLineTest(ParseTestCase):
     def runTest(self):
@@ -2621,16 +2621,16 @@ class PopTest(ParseTestCase):
             print_("EXP:", val, remaining)
             print_("GOT:", ret, result.asList())
             print_(ret, result.asList())
-            assert ret == val, "wrong value returned, got %r, expected %r" % (ret, val)
-            assert remaining == result.asList(), "list is in wrong state after pop, got %r, expected %r" % (result.asList(), remaining)
+            assert ret == val, "wrong value returned, got {!r}, expected {!r}".format(ret, val)
+            assert remaining == result.asList(), "list is in wrong state after pop, got {!r}, expected {!r}".format(result.asList(), remaining)
             print_()
 
         prevlist = result.asList()
         ret = result.pop('name', default="noname")
         print_(ret)
         print_(result.asList())
-        assert ret == "noname", "default value not successfully returned, got %r, expected %r" % (ret, "noname")
-        assert result.asList() == prevlist, "list is in wrong state after pop, got %r, expected %r" % (result.asList(), remaining)
+        assert ret == "noname", "default value not successfully returned, got {!r}, expected {!r}".format(ret, "noname")
+        assert result.asList() == prevlist, "list is in wrong state after pop, got {!r}, expected {!r}".format(result.asList(), remaining)
 
 
 class AddConditionTest(ParseTestCase):
@@ -3109,8 +3109,8 @@ class CommonExpressionsTest(ParseTestCase):
         assert success, "failed to parse numerics"
         for test,result in results:
             expected = ast.literal_eval(test)
-            assert result[0] == expected, "numeric parse failed (wrong value) (%s should be %s)" % (result[0], expected)
-            assert type(result[0]) == type(expected), "numeric parse failed (wrong type) (%s should be %s)" % (type(result[0]), type(expected))
+            assert result[0] == expected, "numeric parse failed (wrong value) ({} should be {})".format(result[0], expected)
+            assert type(result[0]) == type(expected), "numeric parse failed (wrong type) ({} should be {})".format(type(result[0]), type(expected))
             
 
 class TokenMapTest(ParseTestCase):
@@ -3332,7 +3332,7 @@ class CloseMatchTest(ParseTestCase):
 
         for r,exp in zip(results, expected):
             if exp is not None:
-                assert r[1].mismatches == exp, "fail CloseMatch between %r and %r" % (searchseq.sequence, r[0])
+                assert r[1].mismatches == exp, "fail CloseMatch between {!r} and {!r}".format(searchseq.sequence, r[0])
             print(r[0], 'exc: %s' % r[1] if exp is None and isinstance(r[1], Exception) 
                                           else ("no match", "match")[r[1].mismatches == exp])
 

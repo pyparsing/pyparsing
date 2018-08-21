@@ -76,19 +76,12 @@ import pprint
 import traceback
 import types
 from datetime import datetime
+from collections import OrderedDict
 
 try:
     from _thread import RLock
 except ImportError:
     from threading import RLock
-
-try:
-    from collections import OrderedDict as _OrderedDict
-except ImportError:
-    try:
-        from ordereddict import OrderedDict as _OrderedDict
-    except ImportError:
-        _OrderedDict = None
 
 #~ sys.stderr.write( "testing pyparsing module, version %s, %s\n" % (__version__,__versionTime__ ) )
 
@@ -662,7 +655,7 @@ class ParseResults(object):
             return other + self
         
     def __repr__( self ):
-        return "(%s, %s)" % ( repr( self.__toklist ), repr( self.__tokdict ) )
+        return "({}, {})".format( repr( self.__toklist ), repr( self.__tokdict ) )
 
     def __str__( self ):
         return '[' + ', '.join(_ustr(i) if isinstance(i, ParseResults) else repr(i) for i in self.__toklist) + ']'
@@ -727,7 +720,7 @@ class ParseResults(object):
             else:
                 return obj
                 
-        return dict((k,toItem(v)) for k,v in item_fn())
+        return {k:toItem(v) for k,v in item_fn()}
 
     def copy( self ):
         """
@@ -746,8 +739,8 @@ class ParseResults(object):
         """
         nl = "\n"
         out = []
-        namedItems = dict((v[1],k) for (k,vlist) in self.__tokdict.items()
-                                                            for v in vlist)
+        namedItems = {v[1]:k for (k,vlist) in self.__tokdict.items()
+                                                            for v in vlist}
         nextLevelIndent = indent + "  "
 
         # collapse out indents if formatting is not desired
@@ -872,7 +865,7 @@ class ParseResults(object):
                 for k,v in items:
                     if out:
                         out.append(NL)
-                    out.append( "%s%s- %s: " % (indent,('  '*depth), k) )
+                    out.append( "{}{}- {}: ".format(indent,('  '*depth), k) )
                     if isinstance(v,ParseResults):
                         if v:
                             out.append( v.dump(indent,depth+1) )
@@ -1452,63 +1445,33 @@ class ParserElement(object):
             self.clear = types.MethodType(clear, self)
             self.__len__ = types.MethodType(cache_len, self)
 
-    if _OrderedDict is not None:
-        class _FifoCache(object):
-            def __init__(self, size):
-                self.not_in_cache = not_in_cache = object()
+    class _FifoCache(object):
+        def __init__(self, size):
+            self.not_in_cache = not_in_cache = object()
 
-                cache = _OrderedDict()
+            cache = OrderedDict()
 
-                def get(self, key):
-                    return cache.get(key, not_in_cache)
+            def get(self, key):
+                return cache.get(key, not_in_cache)
 
-                def set(self, key, value):
-                    cache[key] = value
-                    while len(cache) > size:
-                        try:
-                            cache.popitem(False)
-                        except KeyError:
-                            pass
+            def set(self, key, value):
+                cache[key] = value
+                while len(cache) > size:
+                    try:
+                        cache.popitem(False)
+                    except KeyError:
+                        pass
 
-                def clear(self):
-                    cache.clear()
+            def clear(self):
+                cache.clear()
 
-                def cache_len(self):
-                    return len(cache)
+            def cache_len(self):
+                return len(cache)
 
-                self.get = types.MethodType(get, self)
-                self.set = types.MethodType(set, self)
-                self.clear = types.MethodType(clear, self)
-                self.__len__ = types.MethodType(cache_len, self)
-
-    else:
-        class _FifoCache(object):
-            def __init__(self, size):
-                self.not_in_cache = not_in_cache = object()
-
-                cache = {}
-                key_fifo = collections.deque([], size)
-
-                def get(self, key):
-                    return cache.get(key, not_in_cache)
-
-                def set(self, key, value):
-                    cache[key] = value
-                    while len(key_fifo) > size:
-                        cache.pop(key_fifo.popleft(), None)
-                    key_fifo.append(key)
-
-                def clear(self):
-                    cache.clear()
-                    key_fifo.clear()
-
-                def cache_len(self):
-                    return len(cache)
-
-                self.get = types.MethodType(get, self)
-                self.set = types.MethodType(set, self)
-                self.clear = types.MethodType(clear, self)
-                self.__len__ = types.MethodType(cache_len, self)
+            self.get = types.MethodType(get, self)
+            self.set = types.MethodType(set, self)
+            self.clear = types.MethodType(clear, self)
+            self.__len__ = types.MethodType(cache_len, self)
 
     # argument cache for optimizing repeated calls when backtracking through recursive expressions
     packrat_cache = {} # this is set later by enabledPackrat(); this is here so that resetCache() doesn't fail
@@ -2733,7 +2696,7 @@ class Word(Token):
                     return s
 
             if ( self.initCharsOrig != self.bodyCharsOrig ):
-                self.strRepr = "W:(%s,%s)" % ( charsAsStr(self.initCharsOrig), charsAsStr(self.bodyCharsOrig) )
+                self.strRepr = "W:({},{})".format( charsAsStr(self.initCharsOrig), charsAsStr(self.bodyCharsOrig) )
             else:
                 self.strRepr = "W:(%s)" % charsAsStr(self.initCharsOrig)
 
@@ -2879,7 +2842,7 @@ class QuotedString(Token):
                   (escChar is not None and _escapeRegexRangeChars(escChar) or '') )
         if len(self.endQuoteChar) > 1:
             self.pattern += (
-                '|(?:' + ')|(?:'.join("%s[^%s]" % (re.escape(self.endQuoteChar[:i]),
+                '|(?:' + ')|(?:'.join("{}[^{}]".format(re.escape(self.endQuoteChar[:i]),
                                                _escapeRegexRangeChars(self.endQuoteChar[i]))
                                     for i in range(len(self.endQuoteChar)-1,0,-1)) + ')'
                 )
@@ -2945,7 +2908,7 @@ class QuotedString(Token):
             pass
 
         if self.strRepr is None:
-            self.strRepr = "quoted string, starting with %s ending with %s" % (self.quoteChar, self.endQuoteChar)
+            self.strRepr = "quoted string, starting with {} ending with {}".format(self.quoteChar, self.endQuoteChar)
 
         return self.strRepr
 
@@ -3291,7 +3254,7 @@ class ParseExpression(ParserElement):
             pass
 
         if self.strRepr is None:
-            self.strRepr = "%s:(%s)" % ( self.__class__.__name__, _ustr(self.exprs) )
+            self.strRepr = "{}:({})".format( self.__class__.__name__, _ustr(self.exprs) )
         return self.strRepr
 
     def streamline( self ):
@@ -3628,7 +3591,7 @@ class Each(ParseExpression):
 
     def parseImpl( self, instring, loc, doActions=True ):
         if self.initExprGroups:
-            self.opt1map = dict((id(e.expr),e) for e in self.exprs if isinstance(e,Optional))
+            self.opt1map = {id(e.expr):e for e in self.exprs if isinstance(e,Optional)}
             opt1 = [ e.expr for e in self.exprs if isinstance(e,Optional) ]
             opt2 = [ e for e in self.exprs if e.mayReturnEmpty and not isinstance(e,Optional)]
             self.optionals = opt1 + opt2
@@ -3763,7 +3726,7 @@ class ParseElementEnhance(ParserElement):
             pass
 
         if self.strRepr is None and self.expr is not None:
-            self.strRepr = "%s:(%s)" % ( self.__class__.__name__, _ustr(self.expr) )
+            self.strRepr = "{}:({})".format( self.__class__.__name__, _ustr(self.expr) )
         return self.strRepr
 
 
@@ -4412,9 +4375,9 @@ def traceParseAction(f):
         try:
             ret = f(*paArgs)
         except Exception as exc:
-            sys.stderr.write( "<<leaving %s (exception: %s)\n" % (thisFunc,exc) )
+            sys.stderr.write( "<<leaving {} (exception: {})\n".format(thisFunc,exc) )
             raise
-        sys.stderr.write( "<<leaving %s (ret: %r)\n" % (thisFunc,ret) )
+        sys.stderr.write( "<<leaving {} (ret: {!r})\n".format(thisFunc,ret) )
         return ret
     try:
         z.__name__ = f.__name__
@@ -5219,7 +5182,7 @@ def nestedExpr(opener="(", closer=")", content=None, ignoreExpr=quotedString.cop
         ret <<= Group( Suppress(opener) + ZeroOrMore( ignoreExpr | ret | content ) + Suppress(closer) )
     else:
         ret <<= Group( Suppress(opener) + ZeroOrMore( ret | content )  + Suppress(closer) )
-    ret.setName('nested %s%s expression' % (opener,closer))
+    ret.setName('nested {}{} expression'.format(opener,closer))
     return ret
 
 def indentedBlock(blockStatementExpr, indentStack, indent=True):
