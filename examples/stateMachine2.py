@@ -66,10 +66,10 @@ def expand_state_definition(source, loc, tokens):
     
     # define all state classes
     statedef.extend(
-        "class %s(%s): pass" % (s,baseStateClass) 
+        "class {}({}): pass".format(s,baseStateClass) 
             for s in states )
     statedef.extend(
-        "%s._next_state_class = %s" % (s,fromTo[s]) 
+        "{}._next_state_class = {}".format(s,fromTo[s]) 
             for s in states if s in fromTo )
            
     return indent + ("\n"+indent).join(statedef)+"\n"
@@ -107,9 +107,9 @@ def expand_named_state_definition(source,loc,tokens):
         "        return self.transitionName",
         ])
     statedef.extend(
-        "%s = %sTransition()" % (tn,baseStateClass) 
+        "{} = {}Transition()".format(tn,baseStateClass) 
             for tn in transitions)
-    statedef.extend("%s.transitionName = '%s'" % (tn,tn) 
+    statedef.extend("{}.transitionName = '{}'".format(tn,tn) 
             for tn in transitions)
 
     # define base class for state classes
@@ -197,7 +197,7 @@ class SuffixImporter(object):
             # it probably isn't even a filesystem path
             if sys.path_importer_cache.get(dirpath,False) is None:
                 checkpath = os.path.join(
-                        dirpath,'%s.%s' % (fullname,self.suffix))
+                        dirpath,'{}.{}'.format(fullname,self.suffix))
                 yield checkpath
     
     def find_module(self, fullname, path=None):

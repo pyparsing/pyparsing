@@ -76,7 +76,7 @@ tupleStr.setParseAction( lambda t:tuple(t.asList()) )
 listStr <<= (lbrack + Optional(delimitedList(listItem)) + Optional(Suppress(",")) + rbrack)
 dictKeyStr = real | integer | quotedString.setParseAction(removeQuotes)
 dictStr <<= lbrace + Optional(delimitedList( Group( dictKeyStr + colon + listItem ))) + Optional(Suppress(",")) + rbrace
-dictStr.setParseAction(lambda t: dict((k_v[0],(k_v[1].asList() if isinstance(k_v[1],ParseResults) else k_v[1])) for k_v in t))
+dictStr.setParseAction(lambda t: {k_v[0]:(k_v[1].asList() if isinstance(k_v[1],ParseResults) else k_v[1]) for k_v in t})
 
 test = '[{0: [2], 1: []}, {0: [], 1: [], 2: [,]}, {0: [1, 2,],}]'
 print(listStr.parseString(test))
