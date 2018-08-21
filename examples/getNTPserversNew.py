@@ -31,5 +31,5 @@ serverListPage.close()
 
 addrs = {}
 for srvr,startloc,endloc in timeServerPattern.scanString( serverListHTML ):
-    print("%s (%s) - %s" % (srvr.ipAddr, srvr.hostname.strip(), srvr.loc.strip()))
+    print("{} ({}) - {}".format(srvr.ipAddr, srvr.hostname.strip(), srvr.loc.strip()))
     addrs[srvr.ipAddr] = srvr.loc

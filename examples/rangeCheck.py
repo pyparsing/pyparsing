@@ -26,7 +26,7 @@ def ranged_value(expr, minval=None, maxval=None):
     outOfRangeMessage = {
         (True, False)  : "value is greater than %s" % maxval,
         (False, True)  : "value is less than %s" % minval,
-        (False, False) : "value is not in the range (%s to %s)" % (minval,maxval),
+        (False, False) : "value is not in the range ({} to {})".format(minval,maxval),
         }[minval is None, maxval is None]
 
     return expr().addCondition(inRangeCondition, message=outOfRangeMessage)

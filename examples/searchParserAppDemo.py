@@ -6,10 +6,10 @@ products = [ "grape juice", "grape jelly", "orange juice", "orange jujubees",
     
 class FruitSearchParser(SearchQueryParser):
     def GetWord(self, word):
-        return set( p for p in products if p.startswith(word + " ") )
+        return { p for p in products if p.startswith(word + " ") }
 
     def GetWordWildcard(self, word):
-        return set( p for p in products if p.startswith(word[:-1]) )
+        return { p for p in products if p.startswith(word[:-1]) }
 
     def GetQuotes(self, search_string, tmp_result):
         result = Set()
