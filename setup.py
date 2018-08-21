@@ -22,8 +22,8 @@ setup(# Distribution meta-data
     description = "Python parsing module",
     author = "Paul McGuire",
     author_email = "ptmcg@users.sourceforge.net",
-    url = "http://pyparsing.wikispaces.com/",
-    download_url = "http://sourceforge.net/project/showfiles.php?group_id=97203",
+    url = "https://github.com/pyparsing/pyparsing/",
+    download_url = "https://pypi.org/project/pyparsing/",
     license = "MIT License",
     py_modules = modules,
     classifiers=[
