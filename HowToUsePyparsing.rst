@@ -5,8 +5,8 @@ Using the pyparsing module
 :author: Paul McGuire
 :address: ptmcg@users.sourceforge.net
 
-:revision: 2.0.1
-:date: July, 2013
+:revision: 2.0.1a
+:date: July, 2013 (minor update August, 2018)
 
 :copyright: Copyright |copy| 2003-2013 Paul McGuire. 
 
@@ -23,6 +23,9 @@ Using the pyparsing module
 
 .. contents::   :depth: 4
 
+Note: While this content is still valid, there are more detailed 
+descriptions and examples at the online doc server at
+https://pythonhosted.org/pyparsing/pyparsing-module.html
 
 Steps to follow
 ===============
@@ -599,9 +602,6 @@ Positional subclasses
 Converter subclasses
 --------------------
 
-- ``Upcase`` - converts matched tokens to uppercase (deprecated -
-  use ``upcaseTokens`` parse action instead)
-
 - ``Combine`` - joins all matched tokens into a single string, using
   specified joinString (default ``joinString=""``); expects
   all matching tokens to be adjacent, with no intervening
@@ -689,18 +689,10 @@ Other classes
   (The ``pprint`` module is especially good at printing out the nested contents
   given by ``asList()``.)
   
-  Finally, ParseResults can be converted to an XML string by calling ``asXML()``. Where
-  possible, results will be tagged using the results names defined for the respective
-  ParseExpressions.  ``asXML()`` takes two optional arguments:
+  Finally, ParseResults can be viewed by calling ``dump()``. ``dump()` will first show
+  the ``asList()`` output, followed by an indented structure listing parsed tokens that
+  have been assigned results names.
   
-  - ``doctagname`` - for ParseResults that do not have a defined name, this argument
-    will wrap the resulting XML in a set of opening and closing tags ``<doctagname>``
-    and ``</doctagname>``.
-
-  - ``namedItemsOnly`` (default=``False``) - flag to indicate if the generated XML should 
-    skip items that do not have defined names.  If a nested group item is named, then all
-    embedded items will be included, whether they have names or not.
-
 
 Exception classes and Troubleshooting
 -------------------------------------
@@ -747,8 +739,8 @@ Helper methods
   By default, the delimiters are suppressed, so the returned results contain
   only the separate list elements.  Can optionally specify ``combine=True``,
   indicating that the expressions and delimiters should be returned as one
-  combined value (useful for scoped variables, such as "a.b.c", or 
-  "a::b::c", or paths such as "a/b/c").
+  combined value (useful for scoped variables, such as ``"a.b.c"``, or 
+  ``"a::b::c"``, or paths such as ``"a/b/c"``).
 
 - ``countedArray( expr )`` - convenience function for a pattern where an list of
   instances of the given expression are preceded by an integer giving the count of
