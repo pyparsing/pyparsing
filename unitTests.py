@@ -4,7 +4,7 @@
 #
 # Unit tests for pyparsing module
 #
-# Copyright 2002-2016, Paul McGuire
+# Copyright 2002-2018, Paul McGuire
 #
 #
 from unittest import TestCase, TestSuite, TextTestRunner
@@ -3395,6 +3395,19 @@ class ColTest(ParseTestCase):
         print_(initials)
         assert len(initials) == 4 and all(c=='*' for c in initials), 'fail col test'
 
+class LiteralExceptionTest(ParseTestCase):
+    def runTest(self):
+        import pyparsing as pp
+
+        for cls in (pp.Literal, pp.CaselessLiteral, pp.Keyword, pp.CaselessKeyword,
+             pp.Word, pp.Regex):
+            expr = cls('xyz')#.setName('{}_expr'.format(cls.__name__.lower()))
+
+            try:
+                expr.parseString(' ')
+            except Exception as e:
+                print(cls.__name__, str(e))
+                assert isinstance(e, pp.ParseBaseException), "class {} raised wrong exception type {}".format(cls.__name__, type(e).__name__)
 
 class MiscellaneousParserTests(ParseTestCase):
     def runTest(self):
