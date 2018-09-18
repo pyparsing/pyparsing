@@ -1,5 +1,6 @@
 PyParsing -- A Python Parsing Module
 ====================================
+[![Build Status](https://travis-ci.org/pyparsing/pyparsing.svg?branch=master)](https://travis-ci.org/pyparsing/pyparsing)
 
 Introduction
 ============
