@@ -205,15 +205,15 @@ class TestParseAction(PyparsingExpressionTestCase):
         PpTestSpec(
             desc = "Use two parse actions to convert numeric string, then convert to datetime",
             expr = pp.Word(pp.nums).addParseAction(lambda t: int(t[0]), 
-                                                    lambda t: datetime.fromtimestamp(t[0])),
+                                                    lambda t: datetime.utcfromtimestamp(t[0])),
             text = "1537415628",
-            expected_list = [datetime(2018, 9, 19, 22, 53, 48)],
+            expected_list = [datetime(2018, 9, 20, 3, 53, 48)],
         ),
         PpTestSpec(
             desc = "Use tokenMap for parse actions that operate on a single-length token",
-            expr = pp.Word(pp.nums).addParseAction(pp.tokenMap(int), pp.tokenMap(datetime.fromtimestamp)),
+            expr = pp.Word(pp.nums).addParseAction(pp.tokenMap(int), pp.tokenMap(datetime.utcfromtimestamp)),
             text = "1537415628",
-            expected_list = [datetime(2018, 9, 19, 22, 53, 48)],
+            expected_list = [datetime(2018, 9, 20, 3, 53, 48)],
         ),
     ]
 
