@@ -160,6 +160,7 @@ if __name__ == '__main__':
     # we use unittest features that are in Py3 only, bail out if run on Py2
     import sys
     if sys.version_info[0] < 3:
+        print("simple_unit_tests.py runs on Python 3 only")
         sys.exit(0)
         
     unittest.main()
