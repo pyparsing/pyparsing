@@ -16,3 +16,4 @@ matrix:
 
 script:
  - python unitTests.py
+ - python test/simple_unit_tests.py

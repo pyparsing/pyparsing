@@ -2,6 +2,15 @@
 Change Log
 ==========
 
+Version 2.x.x - TBD
+-------------------
+- Added simple_unit_tests.py to test directory, as a collection of
+  easy-to-follow unit tests for various classes and features of
+  the pyparsing library. Primary intent is more to be instructional
+  than actually rigorous testing. Complex tests can still be added
+  in the unitTests.py file.
+
+
 Version 2.2.1 - September, 2018
 -------------------------------
 - Applied changes necessary to migrate hosting of pyparsing source
