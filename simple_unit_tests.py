@@ -192,6 +192,15 @@ class TestGroups(PyparsingExpressionTestCase):
             text = "range=5280 long=-138.52 lat=46.91",
             expected_list = [['range', 5280], ['long', -138.52], ['lat', 46.91]],
         ),
+        PpTestSpec(
+            desc = "Define multiple results names in groups - use Dict to define results names using parsed keys",
+            expr = pp.Dict(pp.OneOrMore(pp.Group(pp.Word(pp.alphas, pp.alphanums)("key") 
+                                          + pp.Suppress('=') 
+                                          + pp.pyparsing_common.number("value")))),
+            text = "range=5280 long=-138.52 lat=46.91",
+            expected_list = [['range', 5280], ['long', -138.52], ['lat', 46.91]],
+            expected_dict = {'lat': 46.91, 'long': -138.52, 'range': 5280}
+        ),
     ]
 
 class TestParseAction(PyparsingExpressionTestCase):
@@ -224,6 +233,13 @@ class TestParseCondition(PyparsingExpressionTestCase):
             expr = pp.OneOrMore(pp.Word(pp.nums).addCondition(lambda t: int(t[0]) % 7 == 0)),
             text = "14 35 77 12 28",
             expected_list = ['14', '35', '77'],
+        ),
+        PpTestSpec(
+            desc = "Separate conversion to int and condition into separate parse action/conditions",
+            expr = pp.OneOrMore(pp.Word(pp.nums).addParseAction(lambda t: int(t[0]))
+                                                 .addCondition(lambda t: t[0] % 7 == 0)),
+            text = "14 35 77 12 28",
+            expected_list = [14, 35, 77],
         ),
     ]
 
