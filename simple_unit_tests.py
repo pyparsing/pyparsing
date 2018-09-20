@@ -11,6 +11,7 @@
 import unittest
 import pyparsing as pp
 from collections import namedtuple
+from datetime import datetime
 
 # Test spec data class for specifying simple pyparsing test cases
 PpTestSpec = namedtuple("PpTestSpec", "desc expr text expected_list expected_dict expected_fail_locn")
@@ -126,6 +127,36 @@ class TestWord(PyparsingExpressionTestCase):
     ]
 
 
+class TestRepetition(PyparsingExpressionTestCase):
+    tests = [
+        PpTestSpec(
+            desc = "Match several words",
+            expr = pp.OneOrMore(pp.Word("x") | pp.Word("y")),
+            text = "xxyxxyyxxyxyxxxy",
+            expected_list = ['xx', 'y', 'xx', 'yy', 'xx', 'y', 'x', 'y', 'xxx', 'y'],
+        ),
+        PpTestSpec(
+            desc = "Match words and numbers - show use of results names to collect types of tokens",
+            expr = pp.OneOrMore(pp.Word(pp.alphas)("alpha*") | pp.pyparsing_common.integer("int*")),
+            text = "sdlfj23084ksdfs08234kjsdlfkjd0934",
+            expected_list = ['sdlfj', 23084, 'ksdfs', 8234, 'kjsdlfkjd', 934],
+            expected_dict = { 'alpha': ['sdlfj', 'ksdfs', 'kjsdlfkjd'], 'int': [23084, 8234, 934] }
+        ),
+        PpTestSpec(
+            desc = "Using delimitedList (comma is the default delimiter)",
+            expr = pp.delimitedList(pp.Word(pp.alphas)),
+            text = "xxyx,xy,y,xxyx,yxx, xy",
+            expected_list = ['xxyx', 'xy', 'y', 'xxyx', 'yxx', 'xy'],
+        ),
+        PpTestSpec(
+            desc = "Using delimitedList, with ':' delimiter",
+            expr = pp.delimitedList(pp.Word(pp.hexnums, exact=2), delim=':', combine=True),
+            text = "0A:4B:73:21:FE:76",
+            expected_list = ['0A:4B:73:21:FE:76'],
+        ),
+    ]
+
+
 class TestResultsName(PyparsingExpressionTestCase):
     tests = [
         PpTestSpec(
@@ -142,8 +173,26 @@ class TestResultsName(PyparsingExpressionTestCase):
             expected_dict = {'value': 'xyz'},
             expected_list = ['xyz'],
         ),
+        PpTestSpec(
+            desc = "Define multiple results names",
+            expr = pp.Word(pp.alphas, pp.alphanums)("key") + '=' + pp.pyparsing_common.integer("value"),
+            text = "range=5280",
+            expected_dict = {'key': 'range', 'value': 5280},
+            expected_list = ['range', '=', 5280],
+        ),
     ]
 
+class TestGroups(PyparsingExpressionTestCase):
+    tests = [
+        PpTestSpec(
+            desc = "Define multiple results names in groups",
+            expr = pp.OneOrMore(pp.Group(pp.Word(pp.alphas, pp.alphanums)("key") 
+                                          + pp.Suppress('=') 
+                                          + pp.pyparsing_common.number("value"))),
+            text = "range=5280 long=-138.52 lat=46.91",
+            expected_list = [['range', 5280], ['long', -138.52], ['lat', 46.91]],
+        ),
+    ]
 
 class TestParseAction(PyparsingExpressionTestCase):
     tests = [
@@ -153,8 +202,31 @@ class TestParseAction(PyparsingExpressionTestCase):
             text = "12345",
             expected_list = [12345],  # note - result is type int, not str 
         ),
+        PpTestSpec(
+            desc = "Use two parse actions to convert numeric string, then convert to datetime",
+            expr = pp.Word(pp.nums).addParseAction(lambda t: int(t[0]), 
+                                                    lambda t: datetime.fromtimestamp(t[0])),
+            text = "1537415628",
+            expected_list = [datetime(2018, 9, 19, 22, 53, 48)],
+        ),
+        PpTestSpec(
+            desc = "Use tokenMap for parse actions that operate on a single-length token",
+            expr = pp.Word(pp.nums).addParseAction(pp.tokenMap(int), pp.tokenMap(datetime.fromtimestamp)),
+            text = "1537415628",
+            expected_list = [datetime(2018, 9, 19, 22, 53, 48)],
+        ),
     ]
-    
+
+class TestParseCondition(PyparsingExpressionTestCase):
+    tests = [
+        PpTestSpec(
+            desc = "Define a condition to only match numeric values that are multiples of 7",
+            expr = pp.OneOrMore(pp.Word(pp.nums).addCondition(lambda t: int(t[0]) % 7 == 0)),
+            text = "14 35 77 12 28",
+            expected_list = ['14', '35', '77'],
+        ),
+    ]
+
 
 if __name__ == '__main__':
     # we use unittest features that are in Py3 only, bail out if run on Py2
