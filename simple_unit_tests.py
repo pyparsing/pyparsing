@@ -14,8 +14,9 @@ from collections import namedtuple
 from datetime import datetime
 
 # Test spec data class for specifying simple pyparsing test cases
-PpTestSpec = namedtuple("PpTestSpec", "desc expr text expected_list expected_dict expected_fail_locn")
-PpTestSpec.__new__.__defaults__ = ('', pp.Empty(), '', None, None, None)
+PpTestSpec = namedtuple("PpTestSpec", "desc expr text parse_fn "
+                                      "expected_list expected_dict expected_fail_locn")
+PpTestSpec.__new__.__defaults__ = ('', pp.Empty(), '', 'parseString', None, None, None)
 
 
 class PyparsingExpressionTestCase(unittest.TestCase):
@@ -42,20 +43,32 @@ class PyparsingExpressionTestCase(unittest.TestCase):
                                              type(test_spec.expr).__name__, 
                                              test_spec.expr))
 
+                parsefn = getattr(test_spec.expr, test_spec.parse_fn)
                 if test_spec.expected_fail_locn is None:
                     # expect success
-                    result = test_spec.expr.parseString(test_spec.text)
-                    print(result.dump())
-                    # compare results against given list and/or dict
-                    if test_spec.expected_list is not None:
-                        self.assertEqual(result.asList(), test_spec.expected_list)
-                    if test_spec.expected_dict is not None:
-                        self.assertEqual(result.asDict(), test_spec.expected_dict)
+                    result = parsefn(test_spec.text)
+                    if test_spec.parse_fn == 'parseString':
+                        print(result.dump())
+                        # compare results against given list and/or dict
+                        if test_spec.expected_list is not None:
+                            self.assertEqual(result.asList(), test_spec.expected_list)
+                        if test_spec.expected_dict is not None:
+                            self.assertEqual(result.asDict(), test_spec.expected_dict)
+                    elif test_spec.parse_fn == 'transformString':
+                        print(result)
+                        # compare results against given list and/or dict
+                        if test_spec.expected_list is not None:
+                            self.assertEqual([result], test_spec.expected_list)
+                    elif test_spec.parse_fn == 'searchString':
+                        print(result)
+                        # compare results against given list and/or dict
+                        if test_spec.expected_list is not None:
+                            self.assertEqual([result], test_spec.expected_list)
 
                 else:
                     # expect fail
                     with self.assertRaises(pp.ParseException) as ar:
-                        test_spec.expr.parseString(test_spec.text)
+                        parsefn(test_spec.text)
                     print(' ', test_spec.text or "''")
                     print(' ', ' '*ar.exception.loc+'^')
                     print(' ', ar.exception.msg)
@@ -103,6 +116,15 @@ class TestLiteral(PyparsingExpressionTestCase):
         ),
     ]
 
+class TestCaselessLiteral(PyparsingExpressionTestCase):
+    tests = [
+        PpTestSpec(
+            desc = "Match colors, converting to consistent case",
+            expr = pp.OneOrMore(pp.CaselessLiteral("RED") | pp.CaselessLiteral("GREEN") | pp.CaselessLiteral("BLUE")),
+            text = "red Green BluE blue GREEN green rEd",
+            expected_list = ['RED', 'GREEN', 'BLUE', 'BLUE', 'GREEN', 'GREEN', 'RED'],
+        ),
+    ]
 
 class TestWord(PyparsingExpressionTestCase):
     tests = [
@@ -183,20 +205,21 @@ class TestResultsName(PyparsingExpressionTestCase):
     ]
 
 class TestGroups(PyparsingExpressionTestCase):
+    EQ = pp.Suppress('=')
     tests = [
         PpTestSpec(
             desc = "Define multiple results names in groups",
-            expr = pp.OneOrMore(pp.Group(pp.Word(pp.alphas, pp.alphanums)("key") 
-                                          + pp.Suppress('=') 
+            expr = pp.OneOrMore(pp.Group(pp.Word(pp.alphas)("key") 
+                                          + EQ
                                           + pp.pyparsing_common.number("value"))),
             text = "range=5280 long=-138.52 lat=46.91",
             expected_list = [['range', 5280], ['long', -138.52], ['lat', 46.91]],
         ),
         PpTestSpec(
             desc = "Define multiple results names in groups - use Dict to define results names using parsed keys",
-            expr = pp.Dict(pp.OneOrMore(pp.Group(pp.Word(pp.alphas, pp.alphanums)("key") 
-                                          + pp.Suppress('=') 
-                                          + pp.pyparsing_common.number("value")))),
+            expr = pp.Dict(pp.OneOrMore(pp.Group(pp.Word(pp.alphas) 
+                                          + EQ
+                                          + pp.pyparsing_common.number))),
             text = "range=5280 long=-138.52 lat=46.91",
             expected_list = [['range', 5280], ['long', -138.52], ['lat', 46.91]],
             expected_dict = {'lat': 46.91, 'long': -138.52, 'range': 5280}
@@ -214,15 +237,47 @@ class TestParseAction(PyparsingExpressionTestCase):
         PpTestSpec(
             desc = "Use two parse actions to convert numeric string, then convert to datetime",
             expr = pp.Word(pp.nums).addParseAction(lambda t: int(t[0]), 
-                                                    lambda t: datetime.utcfromtimestamp(t[0])),
+                                                   lambda t: datetime.utcfromtimestamp(t[0])),
             text = "1537415628",
             expected_list = [datetime(2018, 9, 20, 3, 53, 48)],
         ),
         PpTestSpec(
             desc = "Use tokenMap for parse actions that operate on a single-length token",
-            expr = pp.Word(pp.nums).addParseAction(pp.tokenMap(int), pp.tokenMap(datetime.utcfromtimestamp)),
+            expr = pp.Word(pp.nums).addParseAction(pp.tokenMap(int), 
+                                                   pp.tokenMap(datetime.utcfromtimestamp)),
             text = "1537415628",
             expected_list = [datetime(2018, 9, 20, 3, 53, 48)],
+        ),
+        PpTestSpec(
+            desc = "Using a built-in function that takes a sequence of strs as a parse action",
+            expr = pp.OneOrMore(pp.Word(pp.hexnums, exact=2)).addParseAction(':'.join),
+            text = "0A4B7321FE76",
+            expected_list = ['0A:4B:73:21:FE:76'],
+        ),
+        PpTestSpec(
+            desc = "Using a built-in function that takes a sequence of strs as a parse action",
+            expr = pp.OneOrMore(pp.Word(pp.hexnums, exact=2)).addParseAction(sorted),
+            text = "0A4B7321FE76",
+            expected_list = ['0A', '21', '4B', '73', '76', 'FE'],
+        ),
+    ]
+
+class TestResultsModifyingParseAction(PyparsingExpressionTestCase):
+    def compute_stats_parse_action(t):
+        # by the time this parse action is called, parsed numeric words have been converted to ints
+        # by a previous parse action, so they can be treated as ints
+        t['sum'] = sum(t)
+        t['ave'] = sum(t) / len(t)
+        t['min'] = min(t)
+        t['max'] = max(t)
+
+    tests = [
+        PpTestSpec(
+            desc = "A parse action that adds new key-values",
+            expr = pp.OneOrMore(pp.pyparsing_common.integer).addParseAction(compute_stats_parse_action),
+            text = "27 1 14 22 89",
+            expected_list = [27, 1, 14, 22, 89],
+            expected_dict = {'ave': 30.6, 'max': 89, 'min': 1, 'sum': 153}
         ),
     ]
 
@@ -243,6 +298,26 @@ class TestParseCondition(PyparsingExpressionTestCase):
         ),
     ]
 
+class TestTransformStringUsingParseActions(PyparsingExpressionTestCase):
+    markup_convert_map = {
+        '*' : 'B',
+        '_' : 'U',
+        '/' : 'I',
+    }
+    def markup_convert(t):
+        htmltag = TestTransformStringUsingParseActions.markup_convert_map[t.markup_symbol]
+        return "<{}>{}</{}>".format(htmltag, t.body, htmltag)
+
+    tests = [
+        PpTestSpec(
+            desc = "Use transformString to convert simple markup to HTML",
+            expr = (pp.oneOf(markup_convert_map)('markup_symbol')
+                    + "(" + pp.CharsNotIn(")")('body') + ")").addParseAction(markup_convert),
+            text = "Show in *(bold), _(underscore), or /(italic) type",
+            expected_list = ['Show in <B>bold</B>, <U>underscore</U>, or <I>italic</I> type'],
+            parse_fn = 'transformString',
+        ),
+    ]
 
 if __name__ == '__main__':
     # we use unittest features that are in Py3 only, bail out if run on Py2
