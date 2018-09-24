@@ -14,6 +14,12 @@ matrix:
       sudo: true
   fast_finish: true
 
+install:
+  - pip install codecov
+
 script:
  - python unitTests.py
  - python simple_unit_tests.py
+
+after_success:
+  - codecov
