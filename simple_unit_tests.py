@@ -25,7 +25,7 @@ class PyparsingExpressionTestCase(unittest.TestCase):
     given text strings. Subclasses must define a class attribute 'tests' which
     is a list of PpTestSpec instances.
     """
-    def test_match(self):
+    def runTest(self):
         if self.__class__ is PyparsingExpressionTestCase:
             return
 
@@ -326,4 +326,15 @@ if __name__ == '__main__':
         print("simple_unit_tests.py runs on Python 3 only")
         sys.exit(0)
         
-    unittest.main()
+    import inspect
+    def get_decl_line_no(cls):
+        return inspect.getsourcelines(cls)[1]
+
+    # get all test case classes defined in this module and sort them by decl line no
+    test_case_classes = list(PyparsingExpressionTestCase.__subclasses__())
+    test_case_classes.sort(key=get_decl_line_no)
+    
+    # make into a suite and run it - this will run the tests in the same order
+    # they are declared in this module
+    suite = unittest.TestSuite(cls() for cls in test_case_classes)
+    unittest.TextTestRunner().run(suite)
