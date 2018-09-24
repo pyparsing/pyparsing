@@ -75,6 +75,7 @@ class PyparsingExpressionTestCase(unittest.TestCase):
                     self.assertEqual(ar.exception.loc, test_spec.expected_fail_locn)
 
 
+#=========== TEST DEFINITIONS START HERE ==============
 
 class TestLiteral(PyparsingExpressionTestCase):
     tests = [
@@ -148,7 +149,6 @@ class TestWord(PyparsingExpressionTestCase):
         ),
     ]
 
-
 class TestRepetition(PyparsingExpressionTestCase):
     tests = [
         PpTestSpec(
@@ -177,7 +177,6 @@ class TestRepetition(PyparsingExpressionTestCase):
             expected_list = ['0A:4B:73:21:FE:76'],
         ),
     ]
-
 
 class TestResultsName(PyparsingExpressionTestCase):
     tests = [
@@ -318,6 +317,9 @@ class TestTransformStringUsingParseActions(PyparsingExpressionTestCase):
             parse_fn = 'transformString',
         ),
     ]
+
+
+#============ MAIN ================
 
 if __name__ == '__main__':
     # we use unittest features that are in Py3 only, bail out if run on Py2
