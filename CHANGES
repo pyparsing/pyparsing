@@ -4,6 +4,12 @@ Change Log
 
 Version 2.x.x - TBD
 -------------------
+- Fixed bug in SkipTo, if a SkipTo expression that was skipping to
+  an expression that returned a list (such as an And), and the 
+  SkipTo was saved as a named result, the named result could be 
+  saved as a ParseResults - should always be saved as a string.
+  Issue #28, reported by seron.
+
 - Added simple_unit_tests.py, as a collection of easy-to-follow unit 
   tests for various classes and features of the pyparsing library. 
   Primary intent is more to be instructional than actually rigorous 

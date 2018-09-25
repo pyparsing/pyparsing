@@ -74,8 +74,8 @@ classes inherit from. Use the docstrings for examples of how to:
  - find more useful common expressions in the L{pyparsing_common} namespace class
 """
 
-__version__ = "2.2.1"
-__versionTime__ = "18 Sep 2018 00:49 UTC"
+__version__ = "2.2.2"
+__versionTime__ = "25 Sep 2018 04:18 UTC"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -4084,7 +4084,7 @@ class SkipTo(ParseElementEnhance):
         self.mayReturnEmpty = True
         self.mayIndexError = False
         self.includeMatch = include
-        self.asList = False
+        self.saveAsList = False
         if isinstance(failOn, basestring):
             self.failOn = ParserElement._literalStringClass(failOn)
         else:
