@@ -985,13 +985,13 @@ class SkipToParserTests(ParseTestCase):
         tryToParse('some text /* comment with ; in */; working')
         tryToParse('some text /* comment with ; in */some other stuff; working', fail_expected=True)
 
-	# test that we correctly create named results
-	text = "prefixDATAsuffix"
-	data = Literal("DATA")
-	suffix = Literal("suffix")
-	expr = SkipTo(data + suffix)('prefix') + data + suffix
-	result = expr.parseString(text)
-	assert isinstance(result.prefix, str), "SkipTo created with wrong saveAsList attribute"
+        # test that we correctly create named results
+        text = "prefixDATAsuffix"
+        data = Literal("DATA")
+        suffix = Literal("suffix")
+        expr = SkipTo(data + suffix)('prefix') + data + suffix
+        result = expr.parseString(text)
+        assert isinstance(result.prefix, str), "SkipTo created with wrong saveAsList attribute"
 
 class CustomQuotesTest(ParseTestCase):
     def runTest(self):
