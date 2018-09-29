@@ -34,6 +34,10 @@ Version 2.x.x - TBD
     will return
         <h1>This is the title</h1>
 
+- Fixed omission of LICENSE file in source tarball, also added 
+  CODE_OF_CONDUCT.md per GitHub community standards.
+
+
 Version 2.2.1 - September, 2018
 -------------------------------
 - Applied changes necessary to migrate hosting of pyparsing source
