@@ -1740,11 +1740,38 @@ class RegexSubTest(ParseTestCase):
         print_(result)
         assert result == '<h1>This is the main heading</h1>\n<h2>This is the sub-heading</h2>', "incorrect Regex.sub result with re string"
         
+        print_("test sub with re string (Regex returns re.match)")
+        expr = pp.Regex(r"([Hh]\d):\s*(.*)", asMatch=True).sub(r"<\1>\2</\1>")
+        result = expr.transformString("h1: This is the main heading\nh2: This is the sub-heading")
+        print_(result)
+        assert result == '<h1>This is the main heading</h1>\n<h2>This is the sub-heading</h2>', "incorrect Regex.sub result with re string"
+
         print_("test sub with callable that return str")
         expr = pp.Regex(r"<(.*?)>").sub(lambda m: m.group(1).upper())
         result = expr.transformString("I want this in upcase: <what? what?>")
         print_(result)
         assert result == 'I want this in upcase: WHAT? WHAT?', "incorrect Regex.sub result with callable"
+
+        try:
+            expr = pp.Regex(r"<(.*?)>", asMatch=True).sub(lambda m: m.group(1).upper())
+        except SyntaxError:
+            pass
+        else:
+            assert False, "failed to warn using a Regex.sub(callable) with asMatch=True"
+
+        try:
+            expr = pp.Regex(r"<(.*?)>", asGroupList=True).sub(lambda m: m.group(1).upper())
+        except SyntaxError:
+            pass
+        else:
+            assert False, "failed to warn using a Regex.sub() with asGroupList=True"
+
+        try:
+            expr = pp.Regex(r"<(.*?)>", asGroupList=True).sub("")
+        except SyntaxError:
+            pass
+        else:
+            assert False, "failed to warn using a Regex.sub() with asGroupList=True"
 
 class CountedArrayTest(ParseTestCase):
     def runTest(self):

@@ -2846,7 +2846,23 @@ class Regex(Token):
         Return Regex with an attached parse action to transform the parsed
         result as if called using C{re.sub(expr, repl, string)}.
         """
-        return self.addParseAction(lambda s, l, t: self.re.sub(repl, t[0]))
+        if self.asGroupList:
+            warnings.warn("cannot use sub() with Regex(asGroupList=True)", 
+                           SyntaxWarning, stacklevel=2)
+            raise SyntaxError()
+
+        if self.asMatch and callable(repl):
+            warnings.warn("cannot use sub() with a callable with Regex(asMatch=True)", 
+                           SyntaxWarning, stacklevel=2)
+            raise SyntaxError()        
+
+        if self.asMatch:
+            def pa(tokens):
+                return tokens[0].expand(repl)
+        else:
+            def pa(tokens):
+                return self.re.sub(repl, tokens[0])
+        return self.addParseAction(pa)
 
 class QuotedString(Token):
     r"""
