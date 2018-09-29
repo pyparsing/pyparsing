@@ -1701,6 +1701,51 @@ class ParseUsingRegex(ParseTestCase):
             
         invRe = pyparsing.Regex('')
 
+class RegexAsTypeTest(ParseTestCase):
+    def runTest(self):
+        import pyparsing as pp
+
+        test_str = "sldkjfj 123 456 lsdfkj"
+
+        print_("return as list of match groups")
+        expr = pp.Regex(r"\w+ (\d+) (\d+) (\w+)", asGroupList=True)
+        expected_group_list = [tuple(test_str.split()[1:])]
+        result = expr.parseString(test_str)
+        print_(result.dump())
+        print_(expected_group_list)
+        assert result.asList() == expected_group_list, "incorrect group list returned by Regex"
+
+        print_("return as re.match instance")
+        expr = pp.Regex(r"\w+ (?P<num1>\d+) (?P<num2>\d+) (?P<last_word>\w+)", asMatch=True)
+        result = expr.parseString(test_str)
+        print_(result.dump())
+        print_(result[0].groups())
+        print_(expected_group_list)
+        assert result[0].groupdict() == {'num1': '123',  'num2': '456',  'last_word': 'lsdfkj'}, 'invalid group dict from Regex(asMatch=True)'
+        assert result[0].groups() == expected_group_list[0], "incorrect group list returned by Regex(asMatch)"
+
+class RegexSubTest(ParseTestCase):
+    def runTest(self):
+        import pyparsing as pp
+
+        print_("test sub with string")
+        expr = pp.Regex(r"<title>").sub("'Richard III'")
+        result = expr.transformString("This is the title: <title>")
+        print_(result)
+        assert result == "This is the title: 'Richard III'", "incorrect Regex.sub result with simple string"
+        
+        print_("test sub with re string")
+        expr = pp.Regex(r"([Hh]\d):\s*(.*)").sub(r"<\1>\2</\1>")
+        result = expr.transformString("h1: This is the main heading\nh2: This is the sub-heading")
+        print_(result)
+        assert result == '<h1>This is the main heading</h1>\n<h2>This is the sub-heading</h2>', "incorrect Regex.sub result with re string"
+        
+        print_("test sub with callable that return str")
+        expr = pp.Regex(r"<(.*?)>").sub(lambda m: m.group(1).upper())
+        result = expr.transformString("I want this in upcase: <what? what?>")
+        print_(result)
+        assert result == 'I want this in upcase: WHAT? WHAT?', "incorrect Regex.sub result with callable"
+
 class CountedArrayTest(ParseTestCase):
     def runTest(self):
         from pyparsing import Word,nums,OneOrMore,countedArray

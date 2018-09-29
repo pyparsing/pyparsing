@@ -15,6 +15,24 @@ Version 2.x.x - TBD
   Primary intent is more to be instructional than actually rigorous 
   testing. Complex tests can still be added in the unitTests.py file.
 
+- New features added to the Regex class:
+  - optional asGroupList parameter, returns all the capture groups as
+    a list
+  - optional asMatch parameter, returns the raw re.match result
+  - new sub(repl) method, which adds a parse action calling
+    re.sub(pattern, repl, parsed_result). Simplifies creating 
+    Regex expressions to be used with transformString. Like re.sub,
+    repl may be an ordinary string (similar to using pyparsing's 
+    replaceWith), or may contain references to capture groups by group 
+    number, or may be a callable that takes an re match group and 
+    returns a string.
+    
+    For instance:
+        expr = pp.Regex(r"([Hh]\d):\s*(.*)").sub(r"<\1>\2</\1>")
+        expr.transformString("h1: This is the title")
+
+    will return
+        <h1>This is the title</h1>
 
 Version 2.2.1 - September, 2018
 -------------------------------

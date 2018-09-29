@@ -75,7 +75,7 @@ classes inherit from. Use the docstrings for examples of how to:
 """
 
 __version__ = "2.2.2"
-__versionTime__ = "25 Sep 2018 04:18 UTC"
+__versionTime__ = "29 Sep 2018 15:58 UTC"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -2776,7 +2776,7 @@ class Regex(Token):
         roman = Regex(r"M{0,4}(CM|CD|D?C{0,3})(XC|XL|L?X{0,3})(IX|IV|V?I{0,3})")
     """
     compiledREtype = type(re.compile("[A-Z]"))
-    def __init__( self, pattern, flags=0):
+    def __init__( self, pattern, flags=0, asGroupList=False, asMatch=False):
         """The parameters C{pattern} and C{flags} are passed to the C{re.compile()} function as-is. See the Python C{re} module for an explanation of the acceptable patterns and flags."""
         super(Regex,self).__init__()
 
@@ -2809,6 +2809,8 @@ class Regex(Token):
         self.errmsg = "Expected " + self.name
         self.mayIndexError = False
         self.mayReturnEmpty = True
+        self.asGroupList = asGroupList
+        self.asMatch = asMatch
 
     def parseImpl( self, instring, loc, doActions=True ):
         result = self.re.match(instring,loc)
@@ -2817,10 +2819,15 @@ class Regex(Token):
 
         loc = result.end()
         d = result.groupdict()
-        ret = ParseResults(result.group())
-        if d:
-            for k in d:
-                ret[k] = d[k]
+        if self.asMatch:
+            ret = result
+        elif self.asGroupList:
+            ret = result.groups()
+        else:
+            ret = ParseResults(result.group())
+            if d:
+                for k in d:
+                    ret[k] = d[k]
         return loc,ret
 
     def __str__( self ):
@@ -2834,6 +2841,12 @@ class Regex(Token):
 
         return self.strRepr
 
+    def sub(self, repl):
+        """
+        Return Regex with an attached parse action to transform the parsed
+        result as if called using C{re.sub(expr, repl, string)}.
+        """
+        return self.addParseAction(lambda s, l, t: self.re.sub(repl, t[0]))
 
 class QuotedString(Token):
     r"""
