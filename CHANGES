@@ -2,8 +2,8 @@
 Change Log
 ==========
 
-Version 2.x.x - TBD
--------------------
+Version 2.2.2 - September, 2018
+-------------------------------
 - Fixed bug in SkipTo, if a SkipTo expression that was skipping to
   an expression that returned a list (such as an And), and the 
   SkipTo was saved as a named result, the named result could be 
