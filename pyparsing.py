@@ -74,8 +74,8 @@ classes inherit from. Use the docstrings for examples of how to:
  - find more useful common expressions in the L{pyparsing_common} namespace class
 """
 
-__version__ = "2.2.2"
-__versionTime__ = "29 Sep 2018 15:58 UTC"
+__version__ = "2.3.0"
+__versionTime__ = "01 Oct 2018 04:14 UTC"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -1412,7 +1412,13 @@ class ParserElement(object):
             if debugging:
                 try:
                     for fn in self.parseAction:
-                        tokens = fn( instring, tokensStart, retTokens )
+                        try:
+                            tokens = fn( instring, tokensStart, retTokens )
+                        except IndexError as parse_action_exc:
+                            exc = ParseException("exception raised in parse action")
+                            exc.__cause__ = parse_action_exc
+                            raise exc
+
                         if tokens is not None:
                             retTokens = ParseResults( tokens,
                                                       self.resultsName,
@@ -1425,7 +1431,13 @@ class ParserElement(object):
                     raise
             else:
                 for fn in self.parseAction:
-                    tokens = fn( instring, tokensStart, retTokens )
+                    try:
+                        tokens = fn( instring, tokensStart, retTokens )
+                    except IndexError as parse_action_exc:
+                        exc = ParseException("exception raised in parse action")
+                        exc.__cause__ = parse_action_exc
+                        raise exc
+
                     if tokens is not None:
                         retTokens = ParseResults( tokens,
                                                   self.resultsName,

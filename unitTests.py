@@ -3489,6 +3489,28 @@ class LiteralExceptionTest(ParseTestCase):
                 print(cls.__name__, str(e))
                 assert isinstance(e, pp.ParseBaseException), "class {} raised wrong exception type {}".format(cls.__name__, type(e).__name__)
 
+class ParseActionExceptionTest(ParseTestCase):
+    def runTest(self):
+        import pyparsing as pp
+        import traceback
+        
+        number = pp.Word(pp.nums)
+        def number_action():
+            raise IndexError # this is the important line!
+
+        number.setParseAction(number_action)
+        symbol = pp.Word('abcd', max=1)
+        expr = number | symbol
+        with self.assertRaises(pp.ParseException):
+            try:
+                expr.parseString('1 + 2')
+            except Exception as e:
+                assert hasattr(e, '__cause__'), "no __cause__ attribute in the raised exception"
+                assert e.__cause__ is not None, "__cause__ not propagated to outer exception"
+                assert type(e.__cause__) == IndexError, "__cause__ references wrong exception"
+                traceback.print_exc()
+                raise
+
 class MiscellaneousParserTests(ParseTestCase):
     def runTest(self):
         import pyparsing

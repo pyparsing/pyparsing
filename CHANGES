@@ -2,6 +2,20 @@
 Change Log
 ==========
 
+Version 2.3.0 - TBD
+-------------------
+- IndexError's raised in parse actions will get explicitly reraised 
+  as ParseExceptions that wrap the original IndexError. Since 
+  IndexError sometimes occurs as part of pyparsing's normal parsing 
+  logic, IndexErrors that are raised during a parse action may have
+  gotten silently reinterpreted as parsing errors. To retain the 
+  information from the IndexError, these exceptions will now be 
+  raised as ParseExceptions that reference the original IndexError. 
+  This wrapping will only be visible when run under Python3, since it
+  emulates "raise ... from ..." syntax. Addresses Issue#4, reported
+  by guswns0528.
+
+
 Version 2.2.2 - September, 2018
 -------------------------------
 - Fixed bug in SkipTo, if a SkipTo expression that was skipping to
