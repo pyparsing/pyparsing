@@ -125,6 +125,12 @@ class TestCaselessLiteral(PyparsingExpressionTestCase):
             text = "red Green BluE blue GREEN green rEd",
             expected_list = ['RED', 'GREEN', 'BLUE', 'BLUE', 'GREEN', 'GREEN', 'RED'],
         ),
+        PpTestSpec(
+            desc = "Match colors, converting to consistent case - use generator to define expresssions for MatchFirst",
+            expr = pp.OneOrMore(pp.MatchFirst(pp.CaselessLiteral(color) for color in "RED GREEN BLUE".split())),
+            text = "red Green BluE blue GREEN green rEd",
+            expected_list = ['RED', 'GREEN', 'BLUE', 'BLUE', 'GREEN', 'GREEN', 'RED'],
+        ),
     ]
 
 class TestWord(PyparsingExpressionTestCase):
@@ -156,6 +162,12 @@ class TestRepetition(PyparsingExpressionTestCase):
             expr = pp.OneOrMore(pp.Word("x") | pp.Word("y")),
             text = "xxyxxyyxxyxyxxxy",
             expected_list = ['xx', 'y', 'xx', 'yy', 'xx', 'y', 'x', 'y', 'xxx', 'y'],
+        ),
+        PpTestSpec(
+            desc = "Match several words, skipping whitespace",
+            expr = pp.OneOrMore(pp.Word("x") | pp.Word("y")),
+            text = "x x  y xxy yxx y xyx  xxy",
+            expected_list = ['x', 'x', 'y', 'xx', 'y', 'y', 'xx', 'y', 'x', 'y', 'x', 'xx', 'y'],
         ),
         PpTestSpec(
             desc = "Match words and numbers - show use of results names to collect types of tokens",
@@ -222,6 +234,16 @@ class TestGroups(PyparsingExpressionTestCase):
             text = "range=5280 long=-138.52 lat=46.91",
             expected_list = [['range', 5280], ['long', -138.52], ['lat', 46.91]],
             expected_dict = {'lat': 46.91, 'long': -138.52, 'range': 5280}
+        ),
+        PpTestSpec(
+            desc = "Define multiple value types",
+            expr = pp.Dict(pp.OneOrMore(pp.Group(pp.Word(pp.alphas)
+                                          + EQ
+                                          + (pp.pyparsing_common.number | pp.oneOf("True False") | pp.QuotedString("'"))
+                                        ))),
+            text = "long=-122.47 lat=37.82 public=True name='Golden Gate Bridge'",
+            expected_list = [['long', -122.47], ['lat', 37.82], ['public', 'True'], ['name', 'Golden Gate Bridge']],
+            expected_dict = {'long': -122.47, 'lat': 37.82, 'public': 'True', 'name': 'Golden Gate Bridge'}
         ),
     ]
 
