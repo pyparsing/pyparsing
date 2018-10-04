@@ -125,12 +125,6 @@ class TestCaselessLiteral(PyparsingExpressionTestCase):
             text = "red Green BluE blue GREEN green rEd",
             expected_list = ['RED', 'GREEN', 'BLUE', 'BLUE', 'GREEN', 'GREEN', 'RED'],
         ),
-        PpTestSpec(
-            desc = "Match colors, converting to consistent case - use generator to define expresssions for MatchFirst",
-            expr = pp.OneOrMore(pp.MatchFirst(pp.CaselessLiteral(color) for color in "RED GREEN BLUE".split())),
-            text = "red Green BluE blue GREEN green rEd",
-            expected_list = ['RED', 'GREEN', 'BLUE', 'BLUE', 'GREEN', 'GREEN', 'RED'],
-        ),
     ]
 
 class TestWord(PyparsingExpressionTestCase):
