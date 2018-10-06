@@ -1339,7 +1339,7 @@ class InfixNotationGrammarTest3(ParseTestCase):
         test = ["9"]
         for t in test:
             count = 0
-            print_("%s => %s" % (t, expr.parseString(t)))
+            print_("%r => %s (count=%d)" % (t, expr.parseString(t), count))
             assert count == 1, "count evaluated too many times!"
 
 class InfixNotationGrammarTest4(ParseTestCase):
@@ -1772,6 +1772,40 @@ class RegexSubTest(ParseTestCase):
             pass
         else:
             assert False, "failed to warn using a Regex.sub() with asGroupList=True"
+
+class PrecededByTest(ParseTestCase):
+    def runTest(self):
+        import pyparsing as pp
+
+        num = pp.Word(pp.nums).setParseAction(lambda t: int(t[0]))
+        interesting_num = pp.PrecededBy(pp.Char("abc")("prefix*")) + num
+        semi_interesting_num = pp.PrecededBy('_') + num
+        crazy_num = pp.PrecededBy(pp.Word("^", "$%^")("prefix*"), 10) + num
+        boring_num = ~pp.PrecededBy(pp.Char("abc_$%^" + pp.nums)) + num
+        very_boring_num = pp.PrecededBy(pp.WordStart()) + num
+        finicky_num = pp.PrecededBy(pp.Word("^", "$%^"), retreat=3) + num
+
+        s = "c384 b8324 _9293874 _293 404 $%^$^%$2939"
+        print(s)
+        for expr, expected_list, expected_dict in [
+            (interesting_num, [384, 8324], {'prefix': ['c', 'b']}),
+            (semi_interesting_num, [9293874, 293], {}),
+            (boring_num, [404], {}),
+            (crazy_num, [2939], {'prefix': ['^%$']}), 
+            (finicky_num, [2939], {}), 
+            (very_boring_num, [404], {}),
+            ]:
+            print(expr.searchString(s))
+            result = sum(expr.searchString(s))
+            print(result)
+            
+            assert result.asList() == expected_list, "Erroneous tokens for {}: expected {}, got {}".format(expr, 
+                                                                                                             expected_list,
+                                                                                                             result.asList())
+            assert result.asDict() == expected_dict, "Erroneous named results for {}: expected {}, got {}".format(expr, 
+                                                                                                             expected_dict,
+                                                                                                             result.asDict())
+
 
 class CountedArrayTest(ParseTestCase):
     def runTest(self):
@@ -3511,6 +3545,15 @@ class ParseActionExceptionTest(ParseTestCase):
                 traceback.print_exc()
                 raise
 
+class FollowedByTest(ParseTestCase):
+    def runTest(self):
+        import pyparsing as pp
+        expr = pp.Word(pp.alphas)("item") + pp.FollowedBy(pp.pyparsing_common.integer("qty"))
+        result = expr.parseString("balloon 99")
+        print(result.dump())
+        assert 'qty' in result, "failed to capture results name in FollowedBy"
+        assert result.asDict() == {'item': 'balloon', 'qty': 99}, "invalid results name structure from FollowedBy"
+
 class MiscellaneousParserTests(ParseTestCase):
     def runTest(self):
         import pyparsing
@@ -3764,9 +3807,10 @@ if console:
     #~ # console mode
     testRunner = TextTestRunner()
 
-    testclasses = []
-    # testclasses.append(put_test_class_here)
-    # testclasses.append(RequiredEachTest)
+    # run specific tests by including them in this list, otherwise
+    # all tests will be run
+    testclasses = [
+        ]
 
     if not testclasses:
         testRunner.run( makeTestSuite() )

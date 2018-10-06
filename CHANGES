@@ -12,8 +12,40 @@ Version 2.3.0 - TBD
   information from the IndexError, these exceptions will now be 
   raised as ParseExceptions that reference the original IndexError. 
   This wrapping will only be visible when run under Python3, since it
-  emulates "raise ... from ..." syntax. Addresses Issue#4, reported
-  by guswns0528.
+  emulates "raise ... from ..." syntax. 
+  
+  Addresses Issue#4, reported by guswns0528.
+
+- Added Char class to simplify defining expressions of a single
+  character. (Char("abc") is equivalent to Word("abc", exact=1))
+
+- Added class PrecededBy to perform lookbehind tests. PrecededBy is 
+  used in the same way as FollowedBy, passing in an expression that
+  must occur just prior to the current parse location.
+  
+  For fixed-length expressions like a Literal, Keyword, Char, or a 
+  Word with an `exact` or `maxLen` length given, `PrecededBy(expr)` 
+  is sufficient. For varying length expressions like a Word with no 
+  given maximum length, `PrecededBy` must be constructed with an 
+  integer `retreat` argument, as in 
+  `PrecededBy(Word(alphas, nums), retreat=10)`, to specify the maximum 
+  number of characters pyparsing must look backward to make a match. 
+  pyparsing will check all the values from 1 up to retreat characters 
+  back from the current parse location.
+
+  When stepping backwards through the input string, PrecededBy does 
+  *not* skip over whitespace.
+  
+  PrecededBy can be created with a results name so that, even though
+  it always returns an empty parse result, the result *can* include
+  named results.
+  
+  Idea first suggested in Issue#30 by Freakwill.
+
+- Updated FollowedBy to accept expressions that contain named results,
+  so that results names defined in the lookahead expression will be 
+  returned, even though FollowedBy always returns an empty list.
+  Inspired by the same feature implemented in PrecededBy.
 
 
 Version 2.2.2 - September, 2018

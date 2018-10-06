@@ -75,7 +75,7 @@ classes inherit from. Use the docstrings for examples of how to:
 """
 
 __version__ = "2.3.0"
-__versionTime__ = "01 Oct 2018 04:14 UTC"
+__versionTime__ = "06 Oct 2018 14:31 UTC"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -118,11 +118,11 @@ except ImportError:
 __all__ = [
 'And', 'CaselessKeyword', 'CaselessLiteral', 'CharsNotIn', 'Combine', 'Dict', 'Each', 'Empty',
 'FollowedBy', 'Forward', 'GoToColumn', 'Group', 'Keyword', 'LineEnd', 'LineStart', 'Literal',
-'MatchFirst', 'NoMatch', 'NotAny', 'OneOrMore', 'OnlyOnce', 'Optional', 'Or',
+'PrecededBy', 'MatchFirst', 'NoMatch', 'NotAny', 'OneOrMore', 'OnlyOnce', 'Optional', 'Or',
 'ParseBaseException', 'ParseElementEnhance', 'ParseException', 'ParseExpression', 'ParseFatalException',
 'ParseResults', 'ParseSyntaxException', 'ParserElement', 'QuotedString', 'RecursiveGrammarException',
 'Regex', 'SkipTo', 'StringEnd', 'StringStart', 'Suppress', 'Token', 'TokenConverter', 
-'White', 'Word', 'WordEnd', 'WordStart', 'ZeroOrMore',
+'White', 'Word', 'WordEnd', 'WordStart', 'ZeroOrMore', 'Char',
 'alphanums', 'alphas', 'alphas8bit', 'anyCloseTag', 'anyOpenTag', 'cStyleComment', 'col',
 'commaSeparatedList', 'commonHTMLEntity', 'countedArray', 'cppStyleComment', 'dblQuotedString',
 'dblSlashComment', 'delimitedList', 'dictOf', 'downcaseTokens', 'empty', 'hexnums',
@@ -2774,6 +2774,17 @@ class Word(Token):
         return self.strRepr
 
 
+class Char(Word):
+    """
+    A short-cut class for defining C{Word(characters, exact=1)}, 
+    when defining a match of any single character in a string of characters.
+    """
+    def __init__(self, charset):
+        super(Char, self).__init__(charset, exact=1)
+        self.reString = "[%s]" % _escapeRegexRangeChars(self.initCharsOrig)
+        self.re = re.compile( self.reString )
+
+
 class Regex(Token):
     r"""
     Token for matching strings that match a given regular expression.
@@ -2786,6 +2797,10 @@ class Regex(Token):
         date = Regex(r'(?P<year>\d{4})-(?P<month>\d\d?)-(?P<day>\d\d?)')
         # ref: http://stackoverflow.com/questions/267399/how-do-you-match-only-valid-roman-numerals-with-a-regular-expression
         roman = Regex(r"M{0,4}(CM|CD|D?C{0,3})(XC|XL|L?X{0,3})(IX|IV|V?I{0,3})")
+        
+        make_html = Regex(r"(\w+):(.*?):").sub(r"<\1>\2</\1>")
+        print(make_html.transformString("h1:main title:"))
+        # prints "<h1>main title</h1>"
     """
     compiledREtype = type(re.compile("[A-Z]"))
     def __init__( self, pattern, flags=0, asGroupList=False, asMatch=False):
@@ -3835,7 +3850,9 @@ class FollowedBy(ParseElementEnhance):
     Lookahead matching of the given parse expression.  C{FollowedBy}
     does I{not} advance the parsing position within the input string, it only
     verifies that the specified parse expression matches at the current
-    position.  C{FollowedBy} always returns a null token list.
+    position.  C{FollowedBy} always returns a null token list. If any 
+    results names are defined in the lookahead expression, those *will* be
+    returned for access by name.
 
     Example::
         # use FollowedBy to match a label only if it is followed by a ':'
@@ -3852,8 +3869,82 @@ class FollowedBy(ParseElementEnhance):
         self.mayReturnEmpty = True
 
     def parseImpl( self, instring, loc, doActions=True ):
-        self.expr.tryParse( instring, loc )
-        return loc, []
+        _, ret = self.expr._parse(instring, loc, doActions=doActions)
+        del ret[:]
+        return loc, ret
+
+
+class PrecededBy(ParseElementEnhance):
+    """
+    Lookbehind matching of the given parse expression.  C{PrecededBy}
+    does not advance the parsing position within the input string, it only
+    verifies that the specified parse expression matches prior to the current
+    position.  C{PrecededBy} always returns a null token list, but if
+    a results name is defined on the given expression, it is returned.
+    
+    Parameters:
+     - expr - expression that must match prior to the current parse location
+     - retreat - (default=C{None}) - (int) maximum number of characters to 
+       lookbehind prior to the current parse location
+    
+    If the lookbehind expression is a string, Literal, Keyword, or a
+    Word or CharsNotIn with a specified exact or maximum length, then
+    the retreat parameter is not required. Otherwise, retreat must be
+    specified to give a maximum number of characters to look back from
+    the current parse position for a lookbehind match.
+    
+    Example::
+
+        # VB-style variable names with type prefixes
+        int_var = PrecededBy("#") + pyparsing_common.identifier
+        str_var = PrecededBy("$") + pyparsing_common.identifier
+    
+    """
+    def __init__(self, expr, retreat=None):
+        super(PrecededBy, self).__init__(expr)
+        self.expr = self.expr().leaveWhitespace()
+        self.mayReturnEmpty = True
+        self.mayIndexError = False
+        self.exact = False
+        if isinstance(expr, str):
+            retreat = len(expr)
+            self.exact = True
+        elif isinstance(expr, (Literal, Keyword)):
+            retreat = expr.matchLen
+            self.exact = True
+        elif isinstance(expr, (Word, CharsNotIn)) and expr.maxLen != _MAX_INT:
+            retreat = expr.maxLen
+            self.exact = True
+        elif isinstance(expr, _PositionToken):
+            retreat = 0
+            self.exact = True
+        self.retreat = retreat
+        self.errmsg = "not preceded by " + str(expr)
+        self.skipWhitespace = False
+
+    def parseImpl(self, instring, loc=0, doActions=True):
+        if self.exact:
+            if loc < self.retreat:
+                raise ParseException(instring, loc, self.errmsg)
+            start = loc - self.retreat
+            _, ret = self.expr._parse(instring, start)
+        else:
+            # retreat specified a maximum lookbehind window, iterate
+            test_expr = self.expr + StringEnd()
+            instring_slice = instring[:loc]
+            last_expr = ParseException(instring, loc, self.errmsg)
+            for offset in range(1, min(loc, self.retreat+1)):
+                try:
+                    _, ret = test_expr._parse(instring_slice, loc-offset)
+                except ParseBaseException as pbe:
+                    last_expr = pbe
+                else:
+                    break
+            else:
+                raise last_expr
+        # return empty list of tokens, but preserve any defined results names
+        del ret[:]
+        return loc, ret
 
 
 class NotAny(ParseElementEnhance):
@@ -3865,7 +3956,18 @@ class NotAny(ParseElementEnhance):
     always returns a null token list.  May be constructed using the '~' operator.
 
     Example::
+        AND, OR, NOT = map(CaselessKeyword, "AND OR NOT".split())
+
+        # take care not to mistake keywords for identifiers
+        ident = ~(AND | OR | NOT) + Word(alphas)
+        boolean_term = Optional(NOT) + ident
+
+        # very crude boolean expression - to support parenthesis groups and 
+        # operation hierarchy, use infixNotation
+        boolean_expr = boolean_term + ZeroOrMore((AND | OR) + boolean_term)
         
+        # integers that are followed by "." are actually floats
+        integer = Word(nums) + ~Char(".")
     """
     def __init__( self, expr ):
         super(NotAny,self).__init__(expr)
@@ -5135,6 +5237,12 @@ def infixNotation( baseExpr, opList, lpar=Suppress('('), rpar=Suppress(')') ):
         -2--11
         [[['-', 2], '-', ['-', 11]]]
     """
+    # captive version of FollowedBy that does not do parse actions or capture results names
+    class _FB(FollowedBy):
+        def parseImpl(self, instring, loc, doActions=True):
+            self.expr.tryParse(instring, loc)
+            return loc, []
+
     ret = Forward()
     lastExpr = baseExpr | ( lpar + ret + rpar )
     for i,operDef in enumerate(opList):
@@ -5147,14 +5255,14 @@ def infixNotation( baseExpr, opList, lpar=Suppress('('), rpar=Suppress(')') ):
         thisExpr = Forward().setName(termName)
         if rightLeftAssoc == opAssoc.LEFT:
             if arity == 1:
-                matchExpr = FollowedBy(lastExpr + opExpr) + Group( lastExpr + OneOrMore( opExpr ) )
+                matchExpr = _FB(lastExpr + opExpr) + Group( lastExpr + OneOrMore( opExpr ) )
             elif arity == 2:
                 if opExpr is not None:
-                    matchExpr = FollowedBy(lastExpr + opExpr + lastExpr) + Group( lastExpr + OneOrMore( opExpr + lastExpr ) )
+                    matchExpr = _FB(lastExpr + opExpr + lastExpr) + Group( lastExpr + OneOrMore( opExpr + lastExpr ) )
                 else:
-                    matchExpr = FollowedBy(lastExpr+lastExpr) + Group( lastExpr + OneOrMore(lastExpr) )
+                    matchExpr = _FB(lastExpr+lastExpr) + Group( lastExpr + OneOrMore(lastExpr) )
             elif arity == 3:
-                matchExpr = FollowedBy(lastExpr + opExpr1 + lastExpr + opExpr2 + lastExpr) + \
+                matchExpr = _FB(lastExpr + opExpr1 + lastExpr + opExpr2 + lastExpr) + \
                             Group( lastExpr + opExpr1 + lastExpr + opExpr2 + lastExpr )
             else:
                 raise ValueError("operator must be unary (1), binary (2), or ternary (3)")
@@ -5163,14 +5271,14 @@ def infixNotation( baseExpr, opList, lpar=Suppress('('), rpar=Suppress(')') ):
                 # try to avoid LR with this extra test
                 if not isinstance(opExpr, Optional):
                     opExpr = Optional(opExpr)
-                matchExpr = FollowedBy(opExpr.expr + thisExpr) + Group( opExpr + thisExpr )
+                matchExpr = _FB(opExpr.expr + thisExpr) + Group( opExpr + thisExpr )
             elif arity == 2:
                 if opExpr is not None:
-                    matchExpr = FollowedBy(lastExpr + opExpr + thisExpr) + Group( lastExpr + OneOrMore( opExpr + thisExpr ) )
+                    matchExpr = _FB(lastExpr + opExpr + thisExpr) + Group( lastExpr + OneOrMore( opExpr + thisExpr ) )
                 else:
-                    matchExpr = FollowedBy(lastExpr + thisExpr) + Group( lastExpr + OneOrMore( thisExpr ) )
+                    matchExpr = _FB(lastExpr + thisExpr) + Group( lastExpr + OneOrMore( thisExpr ) )
             elif arity == 3:
-                matchExpr = FollowedBy(lastExpr + opExpr1 + thisExpr + opExpr2 + thisExpr) + \
+                matchExpr = _FB(lastExpr + opExpr1 + thisExpr + opExpr2 + thisExpr) + \
                             Group( lastExpr + opExpr1 + thisExpr + opExpr2 + thisExpr )
             else:
                 raise ValueError("operator must be unary (1), binary (2), or ternary (3)")
