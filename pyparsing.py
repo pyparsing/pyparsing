@@ -1419,7 +1419,7 @@ class ParserElement(object):
                             exc.__cause__ = parse_action_exc
                             raise exc
 
-                        if tokens is not None:
+                        if tokens is not None and tokens is not retTokens:
                             retTokens = ParseResults( tokens,
                                                       self.resultsName,
                                                       asList=self.saveAsList and isinstance(tokens,(ParseResults,list)),
@@ -1438,7 +1438,7 @@ class ParserElement(object):
                         exc.__cause__ = parse_action_exc
                         raise exc
 
-                    if tokens is not None:
+                    if tokens is not None and tokens is not retTokens:
                         retTokens = ParseResults( tokens,
                                                   self.resultsName,
                                                   asList=self.saveAsList and isinstance(tokens,(ParseResults,list)),
