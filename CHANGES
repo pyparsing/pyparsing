@@ -4,6 +4,41 @@ Change Log
 
 Version 2.3.0 - TBD
 -------------------
+- POSSIBLE API CHANGE: Fixed bug where a parse action that explicitly 
+  returned the input ParseResults could add another nesting level in
+  the results if the current expression had a results name.
+
+        vals = pp.OneOrMore(pp.pyparsing_common.integer)("int_values")
+        
+        def add_total(tokens):
+            tokens['total'] = sum(tokens)
+            return tokens  # this line can be removed
+
+        vals.addParseAction(add_total)
+        print(vals.parseString("244 23 13 2343").dump())
+
+  Before the fix, this code would print (note the extra nesting level):
+  
+    [244, 23, 13, 2343]
+    - int_values: [244, 23, 13, 2343]
+      - int_values: [244, 23, 13, 2343]
+      - total: 2623
+    - total: 2623
+
+  With the fix, this code now prints:
+  
+    [244, 23, 13, 2343]
+    - int_values: [244, 23, 13, 2343]
+    - total: 2623
+
+  This fix will change the structure of ParseResults returned if a 
+  program defines a parse action that returns the tokens that were 
+  sent in. This is not necessary, and statements like "return tokens" 
+  in the example above can be safely deleted prior to upgrading to 
+  this release, in order to avoid the bug and get the new behavior.
+
+  Reported by seron in Issue #22, nice catch!
+
 - IndexError's raised in parse actions will get explicitly reraised 
   as ParseExceptions that wrap the original IndexError. Since 
   IndexError sometimes occurs as part of pyparsing's normal parsing 
@@ -46,10 +81,6 @@ Version 2.3.0 - TBD
   so that results names defined in the lookahead expression will be 
   returned, even though FollowedBy always returns an empty list.
   Inspired by the same feature implemented in PrecededBy.
-
-- Fixed bug where a parse action that explicitly returned the input
-  ParseResults could add another nesting level if the current expression
-  had a results name. Reported by seron in Issue #22, nice catch!
 
 
 Version 2.2.2 - September, 2018

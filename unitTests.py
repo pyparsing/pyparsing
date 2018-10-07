@@ -13,7 +13,6 @@ import datetime
 
 from pyparsing import ParseException
 import pyparsing as pp 
-print(pp.__version__)
 #~ import HTMLTestRunner
 
 import sys
@@ -3543,6 +3542,16 @@ class ParseActionExceptionTest(ParseTestCase):
 class ParseActionNestingTest(ParseTestCase):
     # tests Issue #22
     def runTest(self):
+        
+        vals = pp.OneOrMore(pp.pyparsing_common.integer)("int_values")
+        def add_total(tokens):
+            tokens['total'] = sum(tokens)
+            return tokens
+        vals.addParseAction(add_total)
+        results = vals.parseString("244 23 13 2343")
+        print(results.dump())
+        assert results.int_values.asDict() == {}, "noop parse action changed ParseResults structure"
+        
         name = pp.Word(pp.alphas)('name')
         score = pp.Word(pp.nums + '.')('score')
         nameScore = pp.Group(name + score)
