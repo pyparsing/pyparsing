@@ -39,6 +39,64 @@ Version 2.3.0 - TBD
 
   Reported by seron in Issue #22, nice catch!
 
+- POSSIBLE API CHANGE: Fixed a related bug where a results name 
+  erroneously created a second level of hierarchy in the returned 
+  ParseResults. The intent for accumulating results names into ParseResults
+  is that, in the absence of Group'ing, all names get merged into a
+  common namespace. This allows us to write:
+  
+       key_value_expr = (Word(alphas)("key") + '=' + Word(nums)("value"))
+       result = key_value_expr.parseString("a = 100") 
+    
+  and have result structured as {"key": "a", "value": "100"} 
+  instead of [{"key": "a"}, {"value": "100"}].
+  
+  However, if a named expression is used in a higher-level non-Group 
+  expression that *also* has a name, a false sub-level would be created 
+  in the namespace:
+
+        num = pp.Word(pp.nums)
+        num_pair = ("[" + (num("A") + num("B"))("values") + "]")
+        U = num_pair.parseString("[ 10 20 ]")
+        print(U.dump())
+
+  Since there is no grouping, "A", "B", and "values" should all appear
+  at the same level in the results, as:
+  
+        ['[', '10', '20', ']']
+        - A: '10'
+        - B: '20'
+        - values: ['10', '20']
+
+  Instead, an extra level of "A" and "B" show up under "values":
+  
+        ['[', '10', '20', ']']
+        - A: '10'
+        - B: '20'
+        - values: ['10', '20']
+          - A: '10'
+          - B: '20'
+
+  This bug has been fixed. Now, if this hierarchy is desired, then a
+  Group should be added:
+  
+        num_pair = ("[" + pp.Group(num("A") + num("B"))("values") + "]")
+
+  Giving:
+  
+        ['[', ['10', '20'], ']']
+        - values: ['10', '20']
+          - A: '10'
+          - B: '20'
+
+  But in no case should "A" and "B" appear in multiple levels. This bug-fix
+  fixes that.
+  
+  If you have current code which relies on this behavior, then add or remove
+  Groups as necessary to get your intended results structure.
+  
+  Reported by Athanasios Anastasiou.
+
 - IndexError's raised in parse actions will get explicitly reraised 
   as ParseExceptions that wrap the original IndexError. Since 
   IndexError sometimes occurs as part of pyparsing's normal parsing 

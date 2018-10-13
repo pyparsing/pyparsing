@@ -3572,6 +3572,21 @@ class ParseActionNestingTest(ParseTestCase):
         print("result1.dump():\n" + result1.dump() + "\n")
         assert before_pa_dict == after_pa_dict, "noop parse action changed ParseResults structure"
 
+class ParseResultsNameBelowUngroupedNameTest(ParseTestCase):
+    def runTest(self):
+        import pyparsing as pp
+        
+        rule_num = pp.Regex("[0-9]+")("LIT_NUM*")
+        list_num = pp.Group(pp.Literal("[")("START_LIST") 
+                            + pp.delimitedList(rule_num)("LIST_VALUES") 
+                            + pp.Literal("]")("END_LIST"))("LIST")
+
+        test_string = "[ 1,2,3,4,5,6 ]"
+        list_num.runTests(test_string)
+
+        U = list_num.parseString(test_string)
+        assert "LIT_NUM" not in U.LIST.LIST_VALUES, "results name retained as sub in ungrouped named result"
+
         
 class FollowedByTest(ParseTestCase):
     def runTest(self):

@@ -398,7 +398,7 @@ class ParseResults(object):
                     toklist = [ toklist ]
                 if asList:
                     if isinstance(toklist,ParseResults):
-                        self[name] = _ParseResultsWithOffset(toklist.copy(),0)
+                        self[name] = _ParseResultsWithOffset(ParseResults(toklist.__toklist), 0)
                     else:
                         self[name] = _ParseResultsWithOffset(ParseResults(toklist[0]),0)
                     self[name].__name = name
