@@ -34,5 +34,6 @@ build:
         coverage:  # This section instructs Scrutinizer-CI this command produces test coverage output.
           file: '.coverage'
           format: 'py-cc'
+      - 'py-scrutinizer-run'
 
       - true # to have scrutinizer-ci not infer any commands.
