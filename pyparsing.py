@@ -91,7 +91,11 @@ import pprint
 import traceback
 import types
 from datetime import datetime
-from itertools import filterfalse
+try:
+    # Python 3
+    from itertools import filterfalse
+except ImportError:
+    from itertools import ifilterfalse as filterfalse
 
 try:
     from _thread import RLock
@@ -144,6 +148,7 @@ if PY_3:
     _MAX_INT = sys.maxsize
     basestring = str
     unichr = chr
+    unicode = str
     _ustr = str
 
     # build list of single arg builtins, that can be used as parse actions
@@ -5838,15 +5843,15 @@ class _unicode_set:
 
     @_lazyclassproperty
     def printables(cls):
-        return ''.join(filterfalse(str.isspace, (chr(c) for r in cls._ranges for c in range(r[0], r[-1] + 1))))
+        return ''.join(filterfalse(unicode.isspace, (unichr(c) for r in cls._ranges for c in range(r[0], r[-1] + 1))))
 
     @_lazyclassproperty
     def alphas(cls):
-        return ''.join(filter(str.isalpha, (chr(c) for r in cls._ranges for c in range(r[0], r[-1] + 1))))
+        return ''.join(filter(unicode.isalpha, (unichr(c) for r in cls._ranges for c in range(r[0], r[-1] + 1))))
 
     @_lazyclassproperty
     def nums(cls):
-        return ''.join(filter(str.isdigit, (chr(c) for r in cls._ranges for c in range(r[0], r[-1] + 1))))
+        return ''.join(filter(unicode.isdigit, (unichr(c) for r in cls._ranges for c in range(r[0], r[-1] + 1))))
 
     @_lazyclassproperty
     def alphanums(cls):

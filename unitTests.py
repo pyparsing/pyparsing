@@ -3628,10 +3628,10 @@ class UnicodeTests(ParseTestCase):
         greet = pp.Word(alphas) + ',' + pp.Word(alphas) + '!'
 
         # input string
-        hello = "Καλημέρα, κόσμε!"
+        hello = u"Καλημέρα, κόσμε!"
         result = greet.parseString(hello)
         print_(result)
-        self.assertTrue(result.asList() == ['Καλημέρα', ',', 'κόσμε', '!'],
+        self.assertTrue(result.asList() == [u'Καλημέρα', ',', u'κόσμε', '!'],
                         "Failed to parse Greek 'Hello, World!' using pyparsing_unicode.Greek.alphas")
 
 class MiscellaneousParserTests(ParseTestCase):
