@@ -5907,17 +5907,17 @@ pyparsing_unicode.CJK._ranges = pyparsing_unicode.Chinese._ranges + pyparsing_un
 
 # define ranges in language character sets
 if PY_3:
-    pyparsing_unicode.العربية = pyparsing_unicode.Arabic
-    pyparsing_unicode.中文 = pyparsing_unicode.Chinese
-    pyparsing_unicode.кириллица = pyparsing_unicode.Cyrillic
-    pyparsing_unicode.Ελληνικά = pyparsing_unicode.Greek
-    pyparsing_unicode.עִברִית = pyparsing_unicode.Hebrew
-    pyparsing_unicode.日本語 = pyparsing_unicode.Japanese
-    pyparsing_unicode.Japanese.漢字 = pyparsing_unicode.Japanese.Kanji
-    pyparsing_unicode.Japanese.カタカナ = pyparsing_unicode.Japanese.Katakana
-    pyparsing_unicode.Japanese.ひらがな = pyparsing_unicode.Japanese.Hiragana
-    pyparsing_unicode.한국어 = pyparsing_unicode.Korean
-    pyparsing_unicode.ไทย = pyparsing_unicode.Thai
+    setattr(pyparsing_unicode, "العربية", pyparsing_unicode.Arabic)
+    setattr(pyparsing_unicode, "中文", pyparsing_unicode.Chinese)
+    setattr(pyparsing_unicode, "кириллица", pyparsing_unicode.Cyrillic)
+    setattr(pyparsing_unicode, "Ελληνικά", pyparsing_unicode.Greek)
+    setattr(pyparsing_unicode, "עִברִית", pyparsing_unicode.Hebrew)
+    setattr(pyparsing_unicode, "日本語", pyparsing_unicode.Japanese)
+    setattr(pyparsing_unicode.Japanese, "漢字", pyparsing_unicode.Japanese.Kanji)
+    setattr(pyparsing_unicode.Japanese, "カタカナ", pyparsing_unicode.Japanese.Katakana)
+    setattr(pyparsing_unicode.Japanese, "ひらがな", pyparsing_unicode.Japanese.Hiragana)
+    setattr(pyparsing_unicode, "한국어", pyparsing_unicode.Korean)
+    setattr(pyparsing_unicode, "ไทย", pyparsing_unicode.Thai)
 
 
 if __name__ == "__main__":
