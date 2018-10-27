@@ -3596,6 +3596,30 @@ class FollowedByTest(ParseTestCase):
         assert 'qty' in result, "failed to capture results name in FollowedBy"
         assert result.asDict() == {'item': 'balloon', 'qty': 99}, "invalid results name structure from FollowedBy"
 
+class SetBreakTest(ParseTestCase):
+    """
+    Test behavior of ParserElement.setBreak(), to invoke the debugger before parsing that element is attempted.
+
+    Temporarily monkeypatches pdb.set_trace.
+    """
+    def runTest(self):
+        was_called = []
+        def mock_set_trace():
+            was_called.append(True)
+
+        import pyparsing as pp
+        wd = pp.Word(pp.alphas)
+        wd.setBreak()
+
+        print_("Before parsing with setBreak:", was_called)
+        import pdb
+        with AutoReset(pdb, "set_trace"):
+            pdb.set_trace = mock_set_trace
+            wd.parseString("ABC")
+
+        print_("After parsing with setBreak:", was_called)
+        self.assertTrue(bool(was_called), "set_trace wasn't called by setBreak")
+
 class MiscellaneousParserTests(ParseTestCase):
     def runTest(self):
         
