@@ -3620,6 +3620,20 @@ class SetBreakTest(ParseTestCase):
         print_("After parsing with setBreak:", was_called)
         self.assertTrue(bool(was_called), "set_trace wasn't called by setBreak")
 
+class UnicodeTests(ParseTestCase):
+    def runTest(self):
+        import pyparsing as pp
+
+        alphas = pp.pyparsing_unicode.Greek.alphas
+        greet = pp.Word(alphas) + ',' + pp.Word(alphas) + '!'
+
+        # input string
+        hello = "Καλημέρα, κόσμε!"
+        result = greet.parseString(hello)
+        print_(result)
+        self.assertTrue(result.asList() == ['Καλημέρα', ',', 'κόσμε', '!'],
+                        "Failed to parse Greek 'Hello, World!' using pyparsing_unicode.Greek.alphas")
+
 class MiscellaneousParserTests(ParseTestCase):
     def runTest(self):
         

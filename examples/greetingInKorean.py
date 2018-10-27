@@ -6,17 +6,16 @@
 #
 # Copyright 2004-2016, by Paul McGuire
 #
-from pyparsing import Word, srange
+from pyparsing import Word, pyparsing_unicode
 
-koreanChars = srange(r"[\0xac00-\0xd7a3]")
-koreanWord = Word(koreanChars,min=2)
+koreanChars = pyparsing_unicode.Korean.alphas
+koreanWord = Word(koreanChars, min=2)
 
 # define grammar
 greet = koreanWord + "," + koreanWord + "!"
 
 # input string
-hello = '\uc548\ub155, \uc5ec\ub7ec\ubd84!' #"Hello, World!" in Korean
+hello = '안녕, 여러분!' #"Hello, World!" in Korean
 
 # parse input string
-print(greet.parseString( hello ))
-
+print(greet.parseString(hello))
