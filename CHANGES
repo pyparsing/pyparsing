@@ -2,19 +2,25 @@
 Change Log
 ==========
 
-Version 2.3.0 - TBD
--------------------
+Version 2.3.0 - October, 2018
+-----------------------------
 - NEW SUPPORT FOR UNICODE CHARACTER RANGES
   This release introduces the pyparsing_unicode namespace class, defining
   a series of language character sets to simplify the definition of alphas,
-  nums, printables, etc. in the following language sets:
+  nums, alphanums, and printables in the following language sets:
+   . Arabic
    . Chinese
+   . Cyrillic
+   . Devanagari
+   . Greek
+   . Hebrew
    . Japanese (including Kanji, Katakana, and Hirigana subsets)
    . Korean
-   . Greek
-   . Cyrillic
-   . Arabic
-   . Hebrew
+   . Latin1 (includes 7 and 8-bit Latin characters)
+   . Thai
+   . CJK (combination of Chinese, Japanese, and Korean sets)
+  There is also an `all` attribute on each that contains all characters
+  in the set.
 
   For example, your code can define words using:
 
