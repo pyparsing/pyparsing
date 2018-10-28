@@ -76,7 +76,7 @@ classes inherit from. Use the docstrings for examples of how to:
 """
 
 __version__ = "2.3.0"
-__versionTime__ = "27 Oct 2018 16:36 UTC"
+__versionTime__ = "28 Oct 2018 01:57 UTC"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -139,7 +139,7 @@ __all__ = [
 'replaceWith', 'restOfLine', 'sglQuotedString', 'srange', 'stringEnd',
 'stringStart', 'traceParseAction', 'unicodeString', 'upcaseTokens', 'withAttribute',
 'indentedBlock', 'originalTextFor', 'ungroup', 'infixNotation','locatedExpr', 'withClass',
-'CloseMatch', 'tokenMap', 'pyparsing_common', 'pyparsing_unicode',
+'CloseMatch', 'tokenMap', 'pyparsing_common', 'pyparsing_unicode', 'unicode_set',
 ]
 
 system_version = tuple(sys.version_info)[:3]
@@ -5838,7 +5838,7 @@ class _lazyclassproperty(object):
         return ret
 
 
-class _unicode_set:
+class unicode_set:
     _ranges = []
 
     @_lazyclassproperty
@@ -5858,54 +5858,57 @@ class _unicode_set:
         return cls.alphas + cls.nums
 
 
-class pyparsing_unicode(_unicode_set):
+class pyparsing_unicode(unicode_set):
     _ranges = [(32, sys.maxunicode)]
 
-    class Latin1(_unicode_set):
+    class Latin1(unicode_set):
         _ranges = [
             (0x0020, 0x007e), (0x00a0, 0x00ff),
         ]
 
-    class Greek(_unicode_set):
+    class Greek(unicode_set):
         _ranges = [
             (0x0370, 0x03ff), (0x1f00, 0x1f15), (0x1f18, 0x1f1d), (0x1f20, 0x1f45), (0x1f48, 0x1f4d),
             (0x1f50, 0x1f57), (0x1f59,), (0x1f5b,), (0x1f5d,), (0x1f5f, 0x1f7d), (0x1f80, 0x1fb4), (0x1fb6, 0x1fc4),
             (0x1fc6, 0x1fd3), (0x1fd6, 0x1fdb), (0x1fdd, 0x1fef), (0x1ff2, 0x1ff4), (0x1ff6, 0x1ffe),
         ]
 
-    class Cyrillic(_unicode_set):
+    class Cyrillic(unicode_set):
         _ranges = [(0x0400, 0x04ff)]
 
-    class Chinese(_unicode_set):
+    class Chinese(unicode_set):
         _ranges = [(0x4e00, 0x9fff)]
 
-    class Japanese(_unicode_set):
+    class Japanese(unicode_set):
         _ranges = [ ] # sum of Kanji, Hiragana, and Katakana ranges
 
-        class Kanji(_unicode_set):
+        class Kanji(unicode_set):
             _ranges = [(0x4E00, 0x9Fbf), ]
 
-        class Hiragana(_unicode_set):
+        class Hiragana(unicode_set):
             _ranges = [(0x3040, 0x309f), ]
 
-        class Katakana(_unicode_set):
+        class Katakana(unicode_set):
             _ranges = [(0x30a0, 0x30ff), ]
 
-    class Korean(_unicode_set):
+    class Korean(unicode_set):
         _ranges = [(0xac00, 0xd7af), (0x1100, 0x11ff), (0x3130, 0x318f), (0xa960, 0xa97f), (0xd7b0, 0xd7ff), ]
 
-    class CJK(_unicode_set):
+    class CJK(unicode_set):
         _ranges = [  # sum of Chinese, Japanese, and Korean ranges
         ]
 
-    class Thai(_unicode_set):
+    class Thai(unicode_set):
         _ranges = [(0x0e01, 0x0e3a), (0x0e3f, 0x0e5b), ]
 
-    class Arabic(_unicode_set):
+    class Arabic(unicode_set):
         _ranges = [(0x0600, 0x061b), (0x061e, 0x06ff), (0x0700, 0x077f), ]
 
-    class Hebrew(_unicode_set):
+    class Hebrew(unicode_set):
         _ranges = [(0x0590, 0x05ff), ]
+
+    class Devanagari(unicode_set):
+        _ranges = [(0x0900, 0x097f), (0xa8e0, 0xa8ff)]
 
 pyparsing_unicode.Japanese._ranges = pyparsing_unicode.Japanese.Kanji._ranges + pyparsing_unicode.Japanese.Hiragana._ranges + pyparsing_unicode.Japanese.Katakana._ranges
 pyparsing_unicode.CJK._ranges = pyparsing_unicode.Chinese._ranges + pyparsing_unicode.Japanese._ranges + pyparsing_unicode.Korean._ranges
@@ -5923,6 +5926,7 @@ if PY_3:
     setattr(pyparsing_unicode.Japanese, "ひらがな", pyparsing_unicode.Japanese.Hiragana)
     setattr(pyparsing_unicode, "한국어", pyparsing_unicode.Korean)
     setattr(pyparsing_unicode, "ไทย", pyparsing_unicode.Thai)
+    setattr(pyparsing_unicode, "देवनागरी", pyparsing_unicode.Devanagari)
 
 
 if __name__ == "__main__":
