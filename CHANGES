@@ -19,20 +19,16 @@ Version 2.3.0 - October, 2018
    . Latin1 (includes 7 and 8-bit Latin characters)
    . Thai
    . CJK (combination of Chinese, Japanese, and Korean sets)
-  There is also an `all` attribute on each that contains all characters
-  in the set.
 
   For example, your code can define words using:
 
     korean_word = Word(pyparsing_unicode.Korean.alphas)
 
-  There is also a range that includes the full unicode range.
-
-    all_unicode_chars = pyparsing_unicode.all
+  See their use in the updated examples greetingInGreek.py and
+  greetingInKorean.py.
 
   This namespace class also offers access to these sets using their
-  unicode identifiers. See their use in the updated examples
-  greetingInGreek.py and greetingInKorean.py.
+  unicode identifiers.
 
 - POSSIBLE API CHANGE: Fixed bug where a parse action that explicitly 
   returned the input ParseResults could add another nesting level in
