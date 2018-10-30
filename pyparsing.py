@@ -119,6 +119,12 @@ except ImportError:
     except ImportError:
         _OrderedDict = None
 
+try:
+    from types import SimpleNamespace
+except ImportError:
+    class SimpleNamespace: pass
+
+
 #~ sys.stderr.write( "testing pyparsing module, version %s, %s\n" % (__version__,__versionTime__ ) )
 
 __all__ = [
@@ -198,9 +204,6 @@ def _xml_escape(data):
     for from_,to_ in zip(from_symbols, to_symbols):
         data = data.replace(from_, to_)
     return data
-
-class _Constants(object):
-    pass
 
 alphas     = string.ascii_uppercase + string.ascii_lowercase
 nums       = "0123456789"
@@ -5179,7 +5182,7 @@ def withClass(classname, namespace=''):
     classattr = "%s:class" % namespace if namespace else "class"
     return withAttribute(**{classattr : classname})
 
-opAssoc = _Constants()
+opAssoc = SimpleNamespace()
 opAssoc.LEFT = object()
 opAssoc.RIGHT = object()
 
