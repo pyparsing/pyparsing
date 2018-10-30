@@ -69,8 +69,8 @@ if __name__ == '__main__':
   print("Type in the string to be parsed or 'quit' to exit the program")
   input_string = input("> ")
   
-  while input_string != 'quit':
-    if input_string.lower() == 'debug':
+  while input_string.strip().lower() != 'quit':
+    if input_string.strip().lower() == 'debug':
         debug_flag=True
         input_string = input("> ")
         continue
@@ -81,9 +81,9 @@ if __name__ == '__main__':
     if input_string != '':
       # try parsing the input string
       try:
-        L=pattern.parseString( input_string, parseAll=True )
+        L=pattern.parseString(input_string, parseAll=True)
       except ParseException as err:
-        L=['Parse Failure',input_string]
+        L=['Parse Failure', input_string, (str(err), err.line, err.column)]
       
       # show result of parsing the input string
       if debug_flag: print(input_string, "->", L)
@@ -102,12 +102,13 @@ if __name__ == '__main__':
           # Assign result to a variable if required
           if L.varname:
             variables[L.varname] = result
-          if debug_flag: print("variables=",variables)
+          if debug_flag: print("variables=", variables)
       else:
         print('Parse Failure')
-        print(err.line)
-        print(" "*(err.column-1) + "^")
-        print(err)
+        err_str, err_line, err_col = L[-1]
+        print(err_line)
+        print(" "*(err_col-1) + "^")
+        print(err_str)
   
     # obtain new input string
     input_string = input("> ")
