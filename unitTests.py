@@ -8,12 +8,9 @@
 #
 #
 from unittest import TestCase, TestSuite, TextTestRunner
-import unittest
 import datetime
-
 from pyparsing import ParseException
 import pyparsing as pp 
-#~ import HTMLTestRunner
 
 import sys
 import pdb
@@ -3872,18 +3869,8 @@ def makeTestSuiteTemp(classes):
         suite.addTest( cls() )
     return suite
 
-console = False
-console = True
+if __name__ == '__main__':
 
-#~ from line_profiler import LineProfiler
-#~ from pyparsing import ParseResults
-#~ lp = LineProfiler(ParseResults.__setitem__)
-lp = None
-
-#~ if __name__ == '__main__':
-    #~ unittest.main()
-if console:
-    #~ # console mode
     testRunner = TextTestRunner()
 
     # run specific tests by including them in this list, otherwise
@@ -3895,19 +3882,4 @@ if console:
         testRunner.run( makeTestSuite() )
     else:
         BUFFER_OUTPUT = False
-        if lp is None:
-            testRunner.run( makeTestSuiteTemp(testclasses) )
-        else:
-            lp.run("testRunner.run( makeTestSuite(%s) )" % testclass.__name__)
-else:
-    # HTML mode
-    outfile = "testResults.html"
-    outstream = open(outfile,"w")
-    testRunner = HTMLTestRunner.HTMLTestRunner( stream=outstream )
-    testRunner.run( makeTestSuite() )
-    outstream.close()
-
-    import os
-    os.system(r'"C:\Program Files\Internet Explorer\iexplore.exe" file://' + outfile)
-
-#~ lp.print_stats()
+        testRunner.run(makeTestSuiteTemp(testclasses))
