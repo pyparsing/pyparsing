@@ -12,7 +12,7 @@ class FruitSearchParser(SearchQueryParser):
         return { p for p in products if p.startswith(word[:-1]) }
 
     def GetQuotes(self, search_string, tmp_result):
-        result = Set()
+        result = set()
         # I have no idea how to use this feature...
         return result
 
