@@ -3631,6 +3631,43 @@ class UnicodeTests(ParseTestCase):
         self.assertTrue(result.asList() == [u'Καλημέρα', ',', u'κόσμε', '!'],
                         "Failed to parse Greek 'Hello, World!' using pyparsing_unicode.Greek.alphas")
 
+class IndentedBlockTest(ParseTestCase):
+    # parse pseudo-yaml indented text
+    def runTest(self):
+        if pp.ParserElement.packrat_cache:
+            print("cannot test indentedBlock with packrat enabled")
+            return
+        import textwrap
+
+        EQ = pp.Suppress('=')
+        stack = [1]
+        key = pp.pyparsing_common.identifier
+        value = pp.Forward()
+        key_value = key + EQ + value
+        compound_value = pp.Dict(pp.ungroup(pp.indentedBlock(key_value, stack)))
+        value <<= pp.pyparsing_common.integer | pp.QuotedString("'") | compound_value
+        parser = pp.Dict(pp.OneOrMore(pp.Group(key_value)))
+
+        text = """\
+            a = 100
+            b = 101
+            c =
+                c1 = 200
+                c2 =
+                    c21 = 999
+                c3 = 'A horse, a horse, my kingdom for a horse'
+            d = 505
+        """
+        text = textwrap.dedent(text)
+        print_(text)
+
+        result = parser.parseString(text)
+        print_(result.dump())
+        self.assertEqual(result.a,        100, "invalid indented block result")
+        self.assertEqual(result.c.c1,     200, "invalid indented block result")
+        self.assertEqual(result.c.c2.c21, 999, "invalid indented block result")
+
+
 class MiscellaneousParserTests(ParseTestCase):
     def runTest(self):
         
