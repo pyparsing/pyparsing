@@ -3902,7 +3902,7 @@ if console:
 else:
     # HTML mode
     outfile = "testResults.html"
-    outstream = file(outfile,"w")
+    outstream = open(outfile,"w")
     testRunner = HTMLTestRunner.HTMLTestRunner( stream=outstream )
     testRunner.run( makeTestSuite() )
     outstream.close()
