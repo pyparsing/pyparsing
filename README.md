@@ -38,37 +38,9 @@ vexing when writing text parsers:
 - quoted strings
 - embedded comments
 
-The .zip file includes examples of a simple SQL parser, simple CORBA IDL 
+The examples directory includes a simple SQL parser, simple CORBA IDL 
 parser, a config file parser, a chemical formula parser, and a four-
-function algebraic notation parser.  It also includes a simple how-to 
-document, and a UML class diagram of the library's classes.
-
-
-
-Installation
-============
-
-Do the usual:
-
-    python setup.py install
-    
-(pyparsing requires Python 2.6 or later.)
-
-Or corresponding commands using pip, easy_install, or wheel:
-
-    pip install pyparsing
-    
-    easy_install pyparsing
-    
-    wheel install pyparsing
-
-
-Documentation
-=============
-
-See:
-
-    HowToUsePyparsing.html
+function algebraic notation parser, among many others.
 
 
 License
