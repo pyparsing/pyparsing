@@ -334,6 +334,63 @@ class TestTransformStringUsingParseActions(PyparsingExpressionTestCase):
         ),
     ]
 
+class TestCommonHelperExpressions(PyparsingExpressionTestCase):
+    tests = [
+        PpTestSpec(
+            desc = "A comma-delimited list of words",
+            expr = pp.delimitedList(pp.Word(pp.alphas)),
+            text = "this, that, blah,foo,   bar",
+            expected_list = ['this', 'that', 'blah', 'foo', 'bar'],
+        ),
+        PpTestSpec(
+            desc = "A counted array of words",
+            expr = pp.OneOrMore(pp.countedArray(pp.Word('ab'))),
+            text = "2 aaa bbb 0 3 abab bbaa abbab",
+            expected_list = [['aaa', 'bbb'], [], ['abab', 'bbaa', 'abbab']],
+        ),
+        PpTestSpec(
+            desc = "skipping comments with ignore",
+            expr = (pp.pyparsing_common.identifier('lhs')
+                    + '='
+                    + pp.pyparsing_common.fnumber('rhs')).ignore(pp.cppStyleComment),
+            text = "abc_100 = /* value to be tested */ 3.1416",
+            expected_list = ['abc_100', '=', 3.1416],
+            expected_dict = {'lhs': 'abc_100', 'rhs': 3.1416},
+        ),
+        PpTestSpec(
+            desc = "some pre-defined expressions in pyparsing_common, and building a dotted identifier with delimted_list",
+            expr = (pp.pyparsing_common.number("id_num")
+                    + pp.delimitedList(pp.pyparsing_common.identifier, '.', combine=True)("name")
+                    + pp.pyparsing_common.ipv4_address("ip_address")
+                    ),
+            text = "1001 www.google.com 192.168.10.199",
+            expected_list = [1001, 'www.google.com', '192.168.10.199'],
+            expected_dict = {'id_num': 1001, 'name': 'www.google.com', 'ip_address': '192.168.10.199'},
+        ),
+        PpTestSpec(
+            desc = "using oneOf (shortcut for Literal('a') | Literal('b') | Literal('c'))",
+            expr = pp.OneOrMore(pp.oneOf("a b c")),
+            text = "a b a b b a c c a b b",
+            expected_list = ['a', 'b', 'a', 'b', 'b', 'a', 'c', 'c', 'a', 'b', 'b'],
+        ),
+        PpTestSpec(
+            desc = "parsing nested parentheses",
+            expr = pp.nestedExpr(),
+            text = "(a b (c) d (e f g ()))",
+            expected_list = [['a', 'b', ['c'], 'd', ['e', 'f', 'g', []]]],
+        ),
+        PpTestSpec(
+            desc = "parsing nested braces",
+            expr = (pp.Keyword('if')
+                    + pp.nestedExpr()('condition')
+                    + pp.nestedExpr('{', '}')('body')),
+            text = 'if ((x == y) || !z) {printf("{}");}',
+            expected_list = ['if', [['x', '==', 'y'], '||', '!z'], ['printf(', '"{}"', ');']],
+            expected_dict = {'condition': [[['x', '==', 'y'], '||', '!z']],
+                             'body': [['printf(', '"{}"', ');']]},
+        ),
+    ]
+
 
 #============ MAIN ================
 
