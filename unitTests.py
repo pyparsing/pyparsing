@@ -3526,15 +3526,16 @@ class ParseActionExceptionTest(ParseTestCase):
         number.setParseAction(number_action)
         symbol = pp.Word('abcd', max=1)
         expr = number | symbol
-        with self.assertRaises(pp.ParseException):
-            try:
-                expr.parseString('1 + 2')
-            except Exception as e:
-                assert hasattr(e, '__cause__'), "no __cause__ attribute in the raised exception"
-                assert e.__cause__ is not None, "__cause__ not propagated to outer exception"
-                assert type(e.__cause__) == IndexError, "__cause__ references wrong exception"
-                traceback.print_exc()
-                raise
+
+        try:
+            expr.parseString('1 + 2')
+        except Exception as e:
+            self.assertTrue(hasattr(e, '__cause__'), "no __cause__ attribute in the raised exception")
+            self.assertTrue(e.__cause__ is not None, "__cause__ not propagated to outer exception")
+            self.assertTrue(type(e.__cause__) == IndexError, "__cause__ references wrong exception")
+            traceback.print_exc()
+        else:
+            self.assertTrue(False, "Expected ParseException not raised")
 
 class ParseActionNestingTest(ParseTestCase):
     # tests Issue #22
