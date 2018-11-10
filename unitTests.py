@@ -3632,6 +3632,24 @@ class UnicodeTests(ParseTestCase):
         self.assertTrue(result.asList() == [u'Καλημέρα', ',', u'κόσμε', '!'],
                         "Failed to parse Greek 'Hello, World!' using pyparsing_unicode.Greek.alphas")
 
+        class Turkish_set(pp.unicode_set):
+            _ranges = pp.pyparsing_unicode.Latin1._ranges + pp.pyparsing_unicode.LatinA._ranges
+
+        key = pp.Word(Turkish_set.alphas)
+        value = pp.pyparsing_common.integer | pp.Word(Turkish_set.alphas, Turkish_set.alphanums)
+        EQ = pp.Suppress('=')
+        key_value = key + EQ + value
+
+        sample = """\
+            şehir=İzmir
+            ülke=Türkiye
+            nüfus=4279677"""
+        result = pp.Dict(pp.OneOrMore(pp.Group(key_value))).parseString(sample)
+
+        print(result.asDict())
+        self.assertEqual(result.asDict(), {'şehir': 'İzmir', 'ülke': 'Türkiye', 'nüfus': 4279677},
+                         "Failed to parse Turkish key-value pairs")
+
 class IndentedBlockTest(ParseTestCase):
     # parse pseudo-yaml indented text
     def runTest(self):
@@ -3914,6 +3932,7 @@ if __name__ == '__main__':
     # run specific tests by including them in this list, otherwise
     # all tests will be run
     testclasses = [
+        UnicodeTests
         ]
 
     if not testclasses:

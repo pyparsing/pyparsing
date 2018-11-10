@@ -75,8 +75,8 @@ classes inherit from. Use the docstrings for examples of how to:
  - find more useful common expressions in the L{pyparsing_common} namespace class
 """
 
-__version__ = "2.3.0"
-__versionTime__ = "28 Oct 2018 01:57 UTC"
+__version__ = "2.3.1"
+__versionTime__ = "10 Nov 2018 04:38 UTC"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -5865,9 +5865,13 @@ class pyparsing_unicode(unicode_set):
     _ranges = [(32, sys.maxunicode)]
 
     class Latin1(unicode_set):
-        _ranges = [
-            (0x0020, 0x007e), (0x00a0, 0x00ff),
-        ]
+        _ranges = [(0x0020, 0x007e), (0x00a0, 0x00ff),]
+
+    class LatinA(unicode_set):
+        _ranges = [(0x0100, 0x017f),]
+
+    class LatinB(unicode_set):
+        _ranges = [(0x0180, 0x024f),]
 
     class Greek(unicode_set):
         _ranges = [
