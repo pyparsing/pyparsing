@@ -3573,7 +3573,7 @@ class ParseActionNestingTest(ParseTestCase):
 class ParseResultsNameBelowUngroupedNameTest(ParseTestCase):
     def runTest(self):
         import pyparsing as pp
-        
+
         rule_num = pp.Regex("[0-9]+")("LIT_NUM*")
         list_num = pp.Group(pp.Literal("[")("START_LIST") 
                             + pp.delimitedList(rule_num)("LIST_VALUES") 
@@ -3585,7 +3585,25 @@ class ParseResultsNameBelowUngroupedNameTest(ParseTestCase):
         U = list_num.parseString(test_string)
         assert "LIT_NUM" not in U.LIST.LIST_VALUES, "results name retained as sub in ungrouped named result"
 
-        
+class ParseResultsNamesInGroupWithDictTest(ParseTestCase):
+    def runTest(self):
+        import pyparsing as pp
+
+        key = pp.pyparsing_common.identifier()
+        value = pp.pyparsing_common.integer()
+        lat = pp.pyparsing_common.real()
+        long = pp.pyparsing_common.real()
+        EQ = pp.Suppress('=')
+
+        data = lat("lat") + long("long") + pp.Dict(pp.OneOrMore(pp.Group(key + EQ + value)))
+        site = pp.QuotedString('"')("name") + pp.Group(data)("data")
+
+        test_string = '"Golden Gate Bridge" 37.819722 -122.478611 height=746 span=4200'
+        site.runTests(test_string)
+
+        # U = list_num.parseString(test_string)
+        # assert "LIT_NUM" not in U.LIST.LIST_VALUES, "results name retained as sub in ungrouped named result"
+
 class FollowedByTest(ParseTestCase):
     def runTest(self):
         expr = pp.Word(pp.alphas)("item") + pp.FollowedBy(pp.pyparsing_common.integer("qty"))
@@ -3932,7 +3950,6 @@ if __name__ == '__main__':
     # run specific tests by including them in this list, otherwise
     # all tests will be run
     testclasses = [
-        UnicodeTests
         ]
 
     if not testclasses:
