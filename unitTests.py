@@ -3650,8 +3650,9 @@ class UnicodeTests(ParseTestCase):
         self.assertTrue(result.asList() == [u'Καλημέρα', ',', u'κόσμε', '!'],
                         "Failed to parse Greek 'Hello, World!' using pyparsing_unicode.Greek.alphas")
 
-        class Turkish_set(pp.unicode_set):
-            _ranges = pp.pyparsing_unicode.Latin1._ranges + pp.pyparsing_unicode.LatinA._ranges
+        # define a custom unicode range using multiple inheritance
+        class Turkish_set(pp.pyparsing_unicode.Latin1, pp.pyparsing_unicode.LatinA):
+            pass
 
         key = pp.Word(Turkish_set.alphas)
         value = pp.pyparsing_common.integer | pp.Word(Turkish_set.alphas, Turkish_set.alphanums)
@@ -3667,6 +3668,9 @@ class UnicodeTests(ParseTestCase):
         print(result.asDict())
         self.assertEqual(result.asDict(), {'şehir': 'İzmir', 'ülke': 'Türkiye', 'nüfus': 4279677},
                          "Failed to parse Turkish key-value pairs")
+        self.assertEqual(len(pp.pyparsing_unicode.CJK.printables), 53760,
+                         "failed to construct ranges by merging Chinese, Japanese and Korean")
+        self.assertEqual(len(Turkish_set.printables), 317, "failed to construct ranges by merging Latin1 and LatinA")
 
 class IndentedBlockTest(ParseTestCase):
     # parse pseudo-yaml indented text

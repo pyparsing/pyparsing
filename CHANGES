@@ -6,6 +6,14 @@ Version 2.3.1 -
 ---------------
 - Added unicode sets to pyparsing_unicode for Latin-A and Latin-B ranges.
 
+- Added ability to define custom unicode sets as combinations of other sets
+  using multiple inheritance.
+
+    class Turkish_set(pp.pyparsing_unicode.Latin1, pp.pyparsing_unicode.LatinA):
+        pass
+
+    turkish_word = pp.Word(Turkish_set.alphas)
+
 
 Version 2.3.0 - October, 2018
 -----------------------------

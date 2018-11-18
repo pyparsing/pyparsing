@@ -91,6 +91,7 @@ import pprint
 import traceback
 import types
 from datetime import datetime
+from itertools import takewhile
 try:
     # Python 3
     from itertools import filterfalse
@@ -5841,20 +5842,23 @@ class _lazyclassproperty(object):
         return ret
 
 
-class unicode_set:
+class unicode_set(object):
     _ranges = []
 
     @_lazyclassproperty
     def printables(cls):
-        return ''.join(filterfalse(unicode.isspace, (unichr(c) for r in cls._ranges for c in range(r[0], r[-1] + 1))))
+        ranges = set(sum((cc._ranges for cc in takewhile(lambda x: x is not unicode_set, cls.__mro__)), []))
+        return ''.join(filterfalse(unicode.isspace, (unichr(c) for r in ranges for c in range(r[0], r[-1] + 1))))
 
     @_lazyclassproperty
     def alphas(cls):
-        return ''.join(filter(unicode.isalpha, (unichr(c) for r in cls._ranges for c in range(r[0], r[-1] + 1))))
+        ranges = set(sum((cc._ranges for cc in takewhile(lambda x: x is not unicode_set, cls.__mro__)), []))
+        return ''.join(filter(unicode.isalpha, (unichr(c) for r in ranges for c in range(r[0], r[-1] + 1))))
 
     @_lazyclassproperty
     def nums(cls):
-        return ''.join(filter(unicode.isdigit, (unichr(c) for r in cls._ranges for c in range(r[0], r[-1] + 1))))
+        ranges = set(sum((cc._ranges for cc in takewhile(lambda x: x is not unicode_set, cls.__mro__)), []))
+        return ''.join(filter(unicode.isdigit, (unichr(c) for r in ranges for c in range(r[0], r[-1] + 1))))
 
     @_lazyclassproperty
     def alphanums(cls):
@@ -5901,9 +5905,8 @@ class pyparsing_unicode(unicode_set):
     class Korean(unicode_set):
         _ranges = [(0xac00, 0xd7af), (0x1100, 0x11ff), (0x3130, 0x318f), (0xa960, 0xa97f), (0xd7b0, 0xd7ff), ]
 
-    class CJK(unicode_set):
-        _ranges = [  # sum of Chinese, Japanese, and Korean ranges
-        ]
+    class CJK(Chinese, Japanese, Korean):
+        pass
 
     class Thai(unicode_set):
         _ranges = [(0x0e01, 0x0e3a), (0x0e3f, 0x0e5b), ]
@@ -5918,7 +5921,6 @@ class pyparsing_unicode(unicode_set):
         _ranges = [(0x0900, 0x097f), (0xa8e0, 0xa8ff)]
 
 pyparsing_unicode.Japanese._ranges = pyparsing_unicode.Japanese.Kanji._ranges + pyparsing_unicode.Japanese.Hiragana._ranges + pyparsing_unicode.Japanese.Katakana._ranges
-pyparsing_unicode.CJK._ranges = pyparsing_unicode.Chinese._ranges + pyparsing_unicode.Japanese._ranges + pyparsing_unicode.Korean._ranges
 
 # define ranges in language character sets
 if PY_3:
