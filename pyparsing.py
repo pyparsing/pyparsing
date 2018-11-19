@@ -33,8 +33,8 @@ vs. the traditional lex/yacc approach, or the use of regular expressions.  With 
 don't need to learn a new syntax for defining grammars or matching expressions - the parsing module
 provides a library of classes that you use to construct the grammar directly in Python.
 
-Here is a program to parse "Hello, World!" (or any greeting of the form 
-C{"<salutation>, <addressee>!"}), built up using L{Word}, L{Literal}, and L{And} elements 
+Here is a program to parse "Hello, World!" (or any greeting of the form
+C{"<salutation>, <addressee>!"}), built up using L{Word}, L{Literal}, and L{And} elements
 (L{'+'<ParserElement.__add__>} operator gives L{And} expressions, strings are auto-converted to
 L{Literal} expressions)::
 
