@@ -40,6 +40,7 @@ Here is a program to parse "Hello, World!" (or any greeting of the form
 :class:`Literal`, and :class:`And` elements
 (:code:`ParserElement.__add__` operator gives :class:`And` expressions,
 strings are auto-converted to :class:`Literal` expressions)::
+
     from pyparsing import Word, alphas
 
     # define grammar of a greeting
@@ -49,31 +50,47 @@ strings are auto-converted to :class:`Literal` expressions)::
     print (hello, "->", greet.parseString(hello))
 
 The program outputs the following::
+
     Hello, World! -> ['Hello', ',', 'World', '!']
 
-The Python representation of the grammar is quite readable, owing to the self-explanatory
-class names, and the use of '+', '|' and '^' operators.
+The Python representation of the grammar is quite readable, owing to the
+self-explanatory class names, and the use of '+', '|' and '^' operators.
 
-The :class:`ParseResults` object returned from :class:`ParserElement.parseString<ParserElement.parseString>` can be accessed as a nested list, a dictionary, or an
-object with named attributes.
+The :class:`ParseResults` object returned from
+:class:`ParserElement.parseString<ParserElement.parseString>` can be
+accessed as a nested list, a dictionary, or an object with named
+attributes.
 
-The pyparsing module handles some of the problems that are typically vexing when writing text parsers:
- - extra or missing whitespace (the above program will also handle "Hello,World!", "Hello  ,  World  !", etc.)
- - quoted strings
- - embedded comments
+The pyparsing module handles some of the problems that are typically
+vexing when writing text parsers:
+
+  - extra or missing whitespace (the above program will also handle
+    "Hello,World!", "Hello  ,  World  !", etc.)
+  - quoted strings
+  - embedded comments
 
 
 Getting Started -
 -----------------
-Visit the classes :class:`ParserElement` and :class:`ParseResults` to see the base classes that most other pyparsing
+Visit the classes :class:`ParserElement` and :class:`ParseResults` to
+see the base classes that most other pyparsing
 classes inherit from. Use the docstrings for examples of how to:
- - construct literal match expressions from :class:`Literal` and :class:`CaselessLiteral` classes
- - construct character word-group expressions using the :class:`Word` class
- - see how to create repetitive expressions using :class:`ZeroOrMore` and :class:`OneOrMore` classes
- - use :class:`'+'<And>`, :class:`'|'<MatchFirst>`, :class:`'^'<Or>`, and :class:`'&'<Each>` operators to combine simple expressions into more complex ones
- - associate names with your parsed results using :class:`ParserElement.setResultsName`
- - find some helpful expression short-cuts like :class:`delimitedList` and :class:`oneOf`
- - find more useful common expressions in the :class:`pyparsing_common` namespace class
+
+ - construct literal match expressions from :class:`Literal` and
+   :class:`CaselessLiteral` classes
+ - construct character word-group expressions using the :class:`Word`
+   class
+ - see how to create repetitive expressions using :class:`ZeroOrMore`
+   and :class:`OneOrMore` classes
+ - use :class:`'+'<And>`, :class:`'|'<MatchFirst>`, :class:`'^'<Or>`,
+   and :class:`'&'<Each>` operators to combine simple expressions into
+   more complex ones
+ - associate names with your parsed results using
+   :class:`ParserElement.setResultsName`
+ - find some helpful expression short-cuts like :class:`delimitedList`
+   and :class:`oneOf`
+ - find more useful common expressions in the :class:`pyparsing_common`
+   namespace class
 """
 
 __version__ = "2.3.1"
@@ -167,9 +184,11 @@ else:
     range = xrange
 
     def _ustr(obj):
-        """Drop-in replacement for str(obj) that tries to be Unicode friendly. It first tries
-           str(obj). If that fails with a UnicodeEncodeError, then it tries unicode(obj). It
-           then < returns the unicode object | encodes it with the default encoding | ... >.
+        """Drop-in replacement for str(obj) that tries to be Unicode
+        friendly. It first tries str(obj). If that fails with
+        a UnicodeEncodeError, then it tries unicode(obj). It then
+        < returns the unicode object | encodes it with the default
+        encoding | ... >.
         """
         if isinstance(obj,unicode):
             return obj
@@ -3667,6 +3686,7 @@ class Each(ParseExpression):
     """
     Requires all given :code:`ParseExpression`s to be found, but in any order.
     Expressions may be separated by whitespace.
+
     May be constructed using the :code:`'&'` operator.
 
     Example::
@@ -4495,6 +4515,7 @@ class Dict(TokenConverter):
         - texture: burlap
         SQUARE
         {'color': 'light blue', 'posn': 'upper left', 'texture': 'burlap', 'shape': 'SQUARE'}
+
     See more examples at :class:`ParseResults` of accessing fields by results name.
     """
     def __init__( self, expr ):
