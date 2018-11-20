@@ -14,6 +14,10 @@ Version 2.3.1 -
 
     turkish_word = pp.Word(Turkish_set.alphas)
 
+- Fixup of docstrings to Sphinx format, inclusion of test files in the source
+  package, and convert markdown to rst throughout the distribution, great job
+  by Matěj Cepl!
+
 
 Version 2.3.0 - October, 2018
 -----------------------------
