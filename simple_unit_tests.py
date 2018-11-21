@@ -8,7 +8,10 @@
 # Copyright (c) 2018  Paul T. McGuire
 #
 
-import unittest
+try:
+    import unittest2 as unittest
+except ImportError:
+    import unittest
 import pyparsing as pp
 from collections import namedtuple
 from datetime import datetime
@@ -279,10 +282,11 @@ class TestParseAction(PyparsingExpressionTestCase):
 
 class TestResultsModifyingParseAction(PyparsingExpressionTestCase):
     def compute_stats_parse_action(t):
-        # by the time this parse action is called, parsed numeric words have been converted to ints
-        # by a previous parse action, so they can be treated as ints
+        # by the time this parse action is called, parsed numeric words
+        # have been converted to ints by a previous parse action, so
+        # they can be treated as ints
         t['sum'] = sum(t)
-        t['ave'] = sum(t) / len(t)
+        t['ave'] = sum(t) // len(t)
         t['min'] = min(t)
         t['max'] = max(t)
 
@@ -292,7 +296,7 @@ class TestResultsModifyingParseAction(PyparsingExpressionTestCase):
             expr = pp.OneOrMore(pp.pyparsing_common.integer).addParseAction(compute_stats_parse_action),
             text = "27 1 14 22 89",
             expected_list = [27, 1, 14, 22, 89],
-            expected_dict = {'ave': 30.6, 'max': 89, 'min': 1, 'sum': 153}
+            expected_dict = {'ave': 30, 'max': 89, 'min': 1, 'sum': 153}
         ),
     ]
 

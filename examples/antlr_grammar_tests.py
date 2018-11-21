@@ -6,7 +6,7 @@ Created on 4 sept. 2010
 Submitted by Luca DallOlio, September, 2010
 '''
 import unittest
-import antlr_grammar
+from . import antlr_grammar
 
 class Test(unittest.TestCase):
 
