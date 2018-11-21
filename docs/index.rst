@@ -4,7 +4,7 @@
    contain the root `toctree` directive.
 
 Welcome to PyParsing's documentation!
-=====================================
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. toctree::
    :maxdepth: 2
@@ -16,7 +16,7 @@ Welcome to PyParsing's documentation!
 
 
 Indices and tables
-==================
+~~~~~~~~~~~~~~~~~~
 
 * :ref:`genindex`
 * :ref:`modindex`
