@@ -57,7 +57,7 @@ The Python representation of the grammar is quite readable, owing to the
 self-explanatory class names, and the use of '+', '|' and '^' operators.
 
 The :class:`ParseResults` object returned from
-:class:`ParserElement.parseString<ParserElement.parseString>` can be
+:class:`ParserElement.parseString` can be
 accessed as a nested list, a dictionary, or an object with named
 attributes.
 
@@ -94,7 +94,7 @@ classes inherit from. Use the docstrings for examples of how to:
 """
 
 __version__ = "2.3.1"
-__versionTime__ = "20 Nov 2018 23:22 UTC"
+__versionTime__ = "21 Nov 2018 17:32 UTC"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -258,9 +258,9 @@ class ParseBaseException(Exception):
 
     def __getattr__( self, aname ):
         """supported attributes by name are:
-            - lineno - returns the line number of the exception text
-            - col - returns the column number of the exception text
-            - line - returns the line containing the exception text
+           - lineno - returns the line number of the exception text
+           - col - returns the column number of the exception text
+           - line - returns the line containing the exception text
         """
         if( aname == "lineno" ):
             return lineno( self.loc, self.pstr )
@@ -293,9 +293,9 @@ class ParseException(ParseBaseException):
     """
     Exception thrown when parse expressions don't match class;
     supported attributes by name are:
-     - lineno - returns the line number of the exception text
-     - col - returns the column number of the exception text
-     - line - returns the line containing the exception text
+    - lineno - returns the line number of the exception text
+    - col - returns the column number of the exception text
+    - line - returns the line containing the exception text
 
     Example::
 
@@ -309,6 +309,7 @@ class ParseException(ParseBaseException):
 
        Expected integer (at char 0), (line:1, col:1)
         column: 1
+
     """
     pass
 
@@ -552,7 +553,7 @@ class ParseResults(object):
 
     def pop( self, *args, **kwargs):
         """
-        Removes and returns item at specified index (default=:code:`last`).
+        Removes and returns item at specified index (default= :code:`last`).
         Supports both ``list`` and ``dict`` semantics for :code:`pop()`. If
         passed no argument or an integer argument, it will use ``list``
         semantics and pop tokens from the list of parsed tokens. If passed
@@ -579,7 +580,9 @@ class ParseResults(object):
                 return tokens
             patt.addParseAction(remove_LABEL)
             print(patt.parseString("AAB 123 321").dump())
+
         prints::
+
             ['AAB', '123', '321']
             - LABEL: AAB
 
@@ -898,7 +901,9 @@ class ParseResults(object):
             result = user_info.parseString("22 111-22-3333 #221B")
             for item in result:
                 print(item.getName(), ':', item[0])
+
         prints::
+
             age : 22
             ssn : 111-22-3333
             house_number : 221B
@@ -931,7 +936,9 @@ class ParseResults(object):
 
             result = date_str.parseString('12/31/1999')
             print(result.dump())
+
         prints::
+
             ['12', '/', '31', '/', '1999']
             - day: 1999
             - month: 31
@@ -966,9 +973,10 @@ class ParseResults(object):
 
     def pprint(self, *args, **kwargs):
         """
-        Pretty-printer for parsed results as a list, using the :code:`pprint` module.
-        Accepts additional positional or keyword args as defined for the
-        `:code:`pprint.pprint` method<http://docs.python.org/3/library/pprint.html#pprint.pprint>`__.
+        Pretty-printer for parsed results as a list, using the
+        `pprint <http://docs.python.org/3/library/pprint.html>`_ module.
+        Accepts additional positional or keyword args as defined for
+        `pprint.pprint <http://docs.python.org/3/library/pprint.html#pprint.pprint>`_ .
 
         Example::
 
@@ -979,7 +987,9 @@ class ParseResults(object):
             func <<= ident + Group(Optional(delimitedList(term)))
             result = func.parseString("fna a,b,(fnb c,d,200),100")
             result.pprint(width=40)
+
         prints::
+
             ['fna',
              ['a',
               'b',
@@ -1024,7 +1034,7 @@ def col (loc,strg):
    Note: the default parsing behavior is to expand tabs in the input string
    before starting the parsing process.  See
    :class:`ParserElement.parseString` for more
-   information on parsing strings containing :code:`<TAB>`s, and suggested
+   information on parsing strings containing :code:`TAB` s, and suggested
    methods to maintain a consistent view of the parsed string, the parse
    location, and line and column positions within the parsed string.
    """
@@ -1033,14 +1043,14 @@ def col (loc,strg):
 
 def lineno(loc,strg):
     """Returns current line number within a string, counting newlines as line separators.
-   The first line is number 1.
+    The first line is number 1.
 
-   Note: the default parsing behavior is to expand tabs in the input string
-   before starting the parsing process.  See :class:`ParserElement.parseString`
-   for more information on parsing strings containing :code:`<TAB>`s, and
-   suggested methods to maintain a consistent view of the parsed string, the
-   parse location, and line and column positions within the parsed string.
-   """
+    Note - the default parsing behavior is to expand tabs in the input string
+    before starting the parsing process.  See :class:`ParserElement.parseString`
+    for more information on parsing strings containing :code:`<TAB>` s, and
+    suggested methods to maintain a consistent view of the parsed string, the
+    parse location, and line and column positions within the parsed string.
+    """
     return strg.count("\n",0,loc) + 1
 
 def line( loc, strg ):
@@ -1232,9 +1242,13 @@ class ParserElement(object):
             integerM = integer.copy().addParseAction(lambda toks: toks[0]*1024*1024) + Suppress("M")
 
             print(OneOrMore(integerK | integerM | integer).parseString("5K 100 640K 256M"))
+
         prints::
+
             [5120, 100, 655360, 268435456]
+
         Equivalent form of :code:`expr.copy()` is just :code:`expr()`::
+
             integerM = integer().addParseAction(lambda toks: toks[0]*1024*1024) + Suppress("M")
         """
         cpy = copy.copy( self )
@@ -1309,21 +1323,23 @@ class ParserElement(object):
     def setParseAction( self, *fns, **kwargs ):
         """
         Define one or more actions to perform when successfully matching parse element definition.
-        Parse action fn is a callable method with 0-3 arguments, called as :code:`fn(s,loc,toks)`,
-        :code:`fn(loc,toks)`, :code:`fn(toks)`, or just :code:`fn()`, where:
-         - s   = the original string being parsed (see note below)
-         - loc = the location of the matching substring
-         - toks = a list of the matched tokens, packaged as a :code:`:class:`ParseResults`` object
+        Parse action fn is a callable method with 0-3 arguments, called as :code:`fn(s,loc,toks)` ,
+        :code:`fn(loc,toks)` , :code:`fn(toks)` , or just :code:`fn()` , where:
+
+        - s   = the original string being parsed (see note below)
+        - loc = the location of the matching substring
+        - toks = a list of the matched tokens, packaged as a :class:`ParseResults` object
+
         If the functions in fns modify the tokens, they can return them as the return
         value from fn, and the modified list of tokens will replace the original.
         Otherwise, fn does not need to return any value.
 
         Optional keyword arguments:
-         - callDuringTry = (default=:code:`False`) indicate if parse action should be run during lookaheads and alternate testing
+        - callDuringTry = (default= :code:`False` ) indicate if parse action should be run during lookaheads and alternate testing
 
         Note: the default parsing behavior is to expand tabs in the input string
         before starting the parsing process.  See :class:`parseString for more
-        information on parsing strings containing :code:`<TAB>`s, and suggested
+        information on parsing strings containing :code:`<TAB>` s, and suggested
         methods to maintain a consistent view of the parsed string, the parse
         location, and line and column positions within the parsed string.
 
@@ -1361,8 +1377,8 @@ class ParserElement(object):
         functions passed to :code:`addCondition` need to return boolean success/fail of the condition.
 
         Optional keyword arguments:
-         - message = define a custom message to be used in the raised exception
-         - fatal   = if True, will raise ParseFatalException to stop parsing immediately; otherwise will raise ParseException
+        - message = define a custom message to be used in the raised exception
+        - fatal   = if True, will raise ParseFatalException to stop parsing immediately; otherwise will raise ParseException
 
         Example::
 
@@ -1387,11 +1403,11 @@ class ParserElement(object):
         """Define action to perform if parsing fails at this expression.
            Fail acton fn is a callable function that takes the arguments
            :code:`fn(s,loc,expr,err)` where:
-            - s = string being parsed
-            - loc = location where expression match was attempted and failed
-            - expr = the parse expression that failed
-            - err = the exception thrown
-           The function returns no value.  It may throw :code:`:class:`ParseFatalException``
+           - s = string being parsed
+           - loc = location where expression match was attempted and failed
+           - expr = the parse expression that failed
+           - err = the exception thrown
+           The function returns no value.  It may throw :class:`ParseFatalException`
            if it is desired to stop parsing immediately."""
         self.failAction = fn
         return self
@@ -1652,10 +1668,11 @@ class ParserElement(object):
            both valid results and parsing exceptions.
 
            Parameters:
-            - cache_size_limit - (default=:code:`128`) - if an integer value is provided
-              will limit the size of the packrat cache; if None is passed, then
-              the cache size will be unbounded; if 0 is passed, the cache will
-              be effectively disabled.
+
+           - cache_size_limit - (default= :code:`128`) - if an integer value is provided
+             will limit the size of the packrat cache; if None is passed, then
+             the cache size will be unbounded; if 0 is passed, the cache will
+             be effectively disabled.
 
            This speedup may break existing programs that use parse actions that
            have side-effects.  For this reason, packrat parsing is disabled when
@@ -1687,7 +1704,7 @@ class ParserElement(object):
 
         If you want the grammar to require that the entire input string be
         successfully parsed, then set :code:`parseAll` to True (equivalent to ending
-        the grammar with :code:`:class:`StringEnd()``).
+        the grammar with :code:`StringEnd()`).
 
         Note: :code:`parseString` implicitly calls :code:`expandtabs()` on the input string,
         in order to report proper column numbers in parse actions.
@@ -1695,12 +1712,13 @@ class ParserElement(object):
         the grammar uses parse actions that use the :code:`loc` argument to index into the
         string being parsed, you can ensure you have a consistent view of the input
         string by:
-         - calling :code:`parseWithTabs` on your grammar before calling :code:`parseString`
-           (see :class:`parseWithTabs`)
-         - define your parse action using the full :code:`(s,loc,toks)` signature, and
-           reference the input string using the parse action's :code:`s` argument
-         - explictly expand the tabs in your input string before calling
-           :code:`parseString`
+
+        - calling :code:`parseWithTabs` on your grammar before calling :code:`parseString`
+          (see :class:`parseWithTabs`)
+        - define your parse action using the full :code:`(s,loc,toks)` signature, and
+          reference the input string using the parse action's :code:`s` argument
+        - explictly expand the tabs in your input string before calling
+          :code:`parseString`
 
         Example::
 
@@ -1804,7 +1822,7 @@ class ParserElement(object):
 
     def transformString( self, instring ):
         """
-        Extension to :code:`:class:`scanString``, to modify matching text with modified tokens that may
+        Extension to :class:`scanString`, to modify matching text with modified tokens that may
         be returned from a parse action.  To use :code:`transformString`, define a grammar and
         attach a parse action to it that modifies the returned token list.
         Invoking :code:`transformString()` on a target string will then scan for matches,
@@ -1817,7 +1835,9 @@ class ParserElement(object):
             wd.setParseAction(lambda toks: toks[0].title())
 
             print(wd.transformString("now is the winter of our discontent made glorious summer by this sun of york."))
-        Prints::
+
+        prints::
+
             Now Is The Winter Of Our Discontent Made Glorious Summer By This Sun Of York.
         """
         out = []
@@ -1848,7 +1868,7 @@ class ParserElement(object):
 
     def searchString( self, instring, maxMatches=_MAX_INT ):
         """
-        Another extension to :code:`:class:`scanString``, simplifying the access to the tokens found
+        Another extension to :class:`scanString`, simplifying the access to the tokens found
         to match the given parse expression.  May be called with optional
         :code:`maxMatches` argument, to clip searching after 'n' matches are found.
 
@@ -1861,7 +1881,9 @@ class ParserElement(object):
 
             # the sum() builtin can be used to merge results into a single ParseResults object
             print(sum(cap_word.searchString("More than Iron, more than Lead, more than Gold I need Electricity")))
+
         prints::
+
             [['More'], ['Iron'], ['Lead'], ['Gold'], ['I'], ['Electricity']]
             ['More', 'Iron', 'Lead', 'Gold', 'I', 'Electricity']
         """
@@ -1878,14 +1900,16 @@ class ParserElement(object):
         """
         Generator method to split a string using the given expression as a separator.
         May be called with optional :code:`maxsplit` argument, to limit the number of splits;
-        and the optional :code:`includeSeparators` argument (default=:code:`False`), if the separating
+        and the optional :code:`includeSeparators` argument (default= :code:`False`), if the separating
         matching text should be included in the split results.
 
         Example::
 
             punc = oneOf(list(".,;:/-!?"))
             print(list(punc.split("This, this?, this sentence, is badly punctuated!")))
+
         prints::
+
             ['This', ' this', '', ' this sentence', ' is badly punctuated', '']
         """
         splits = 0
@@ -1899,7 +1923,7 @@ class ParserElement(object):
 
     def __add__(self, other ):
         """
-        Implementation of + operator - returns :code:`:class:`And``. Adding strings to a ParserElement
+        Implementation of + operator - returns :class:`And`. Adding strings to a ParserElement
         converts them to :class:`Literal`s by default.
 
         Example::
@@ -1907,7 +1931,9 @@ class ParserElement(object):
             greet = Word(alphas) + "," + Word(alphas) + "!"
             hello = "Hello, World!"
             print (hello, "->", greet.parseString(hello))
-        Prints::
+
+        prints::
+
             Hello, World! -> ['Hello', ',', 'World', '!']
         """
         if isinstance( other, basestring ):
@@ -1920,7 +1946,7 @@ class ParserElement(object):
 
     def __radd__(self, other ):
         """
-        Implementation of + operator when left operand is not a :code:`:class:`ParserElement``
+        Implementation of + operator when left operand is not a :class:`ParserElement`
         """
         if isinstance( other, basestring ):
             other = ParserElement._literalStringClass( other )
@@ -1932,7 +1958,7 @@ class ParserElement(object):
 
     def __sub__(self, other):
         """
-        Implementation of - operator, returns :code:`:class:`And`` with error stop
+        Implementation of - operator, returns :class:`And` with error stop
         """
         if isinstance( other, basestring ):
             other = ParserElement._literalStringClass( other )
@@ -1944,7 +1970,7 @@ class ParserElement(object):
 
     def __rsub__(self, other ):
         """
-        Implementation of - operator when left operand is not a :code:`:class:`ParserElement``
+        Implementation of - operator when left operand is not a :class:`ParserElement`
         """
         if isinstance( other, basestring ):
             other = ParserElement._literalStringClass( other )
@@ -1965,8 +1991,8 @@ class ParserElement(object):
               (read as "at least n instances of :code:`expr`")
          - :code:`expr*(None,n)` is equivalent to :code:`expr*(0,n)`
               (read as "0 to n instances of :code:`expr`")
-         - :code:`expr*(None,None)` is equivalent to :code:`:class:`ZeroOrMore`(expr)`
-         - :code:`expr*(1,None)` is equivalent to :code:`:class:`OneOrMore`(expr)`
+         - :code:`expr*(None,None)` is equivalent to :code:`ZeroOrMoreexpr)`
+         - :code:`expr*(1,None)` is equivalent to :code:`OneOrMore(expr)`
 
         Note that :code:`expr*(None,n)` does not raise an exception if
         more than n exprs exist in the input stream; that is,
@@ -2027,7 +2053,7 @@ class ParserElement(object):
 
     def __or__(self, other ):
         """
-        Implementation of | operator - returns :code:`:class:`MatchFirst``
+        Implementation of | operator - returns :class:`MatchFirst`
         """
         if isinstance( other, basestring ):
             other = ParserElement._literalStringClass( other )
@@ -2039,7 +2065,7 @@ class ParserElement(object):
 
     def __ror__(self, other ):
         """
-        Implementation of | operator when left operand is not a :code:`:class:`ParserElement``
+        Implementation of | operator when left operand is not a :class:`ParserElement`
         """
         if isinstance( other, basestring ):
             other = ParserElement._literalStringClass( other )
@@ -2051,7 +2077,7 @@ class ParserElement(object):
 
     def __xor__(self, other ):
         """
-        Implementation of ^ operator - returns :code:`:class:`Or``
+        Implementation of ^ operator - returns :class:`Or`
         """
         if isinstance( other, basestring ):
             other = ParserElement._literalStringClass( other )
@@ -2063,7 +2089,7 @@ class ParserElement(object):
 
     def __rxor__(self, other ):
         """
-        Implementation of ^ operator when left operand is not a :code:`:class:`ParserElement``
+        Implementation of ^ operator when left operand is not a :class:`ParserElement`
         """
         if isinstance( other, basestring ):
             other = ParserElement._literalStringClass( other )
@@ -2075,7 +2101,7 @@ class ParserElement(object):
 
     def __and__(self, other ):
         """
-        Implementation of & operator - returns :code:`:class:`Each``
+        Implementation of & operator - returns :class:`Each`
         """
         if isinstance( other, basestring ):
             other = ParserElement._literalStringClass( other )
@@ -2087,7 +2113,7 @@ class ParserElement(object):
 
     def __rand__(self, other ):
         """
-        Implementation of & operator when left operand is not a :code:`:class:`ParserElement``
+        Implementation of & operator when left operand is not a :class:`ParserElement`
         """
         if isinstance( other, basestring ):
             other = ParserElement._literalStringClass( other )
@@ -2099,18 +2125,18 @@ class ParserElement(object):
 
     def __invert__( self ):
         """
-        Implementation of ~ operator - returns :code:`:class:`NotAny``
+        Implementation of ~ operator - returns :class:`NotAny`
         """
         return NotAny( self )
 
     def __call__(self, name=None):
         """
-        Shortcut for :code:`:class:`setResultsName``, with :code:`listAllMatches=False`.
+        Shortcut for :class:`setResultsName`, with :code:`listAllMatches=False`.
 
         If :code:`name` is given with a trailing :code:`'*'` character, then :code:`listAllMatches` will be
         passed as :code:`True`.
 
-        If :code:`name` is omitted, same as calling :code:`:class:`copy``.
+        If :code:`name` is omitted, same as calling :class:`copy`.
 
         Example::
 
@@ -2208,6 +2234,7 @@ class ParserElement(object):
             OneOrMore(term).parseString("abc 123 xyz 890")
 
         prints::
+
             Match alphaword at loc 0(1,1)
             Matched alphaword -> ['abc']
             Match alphaword at loc 3(1,4)
@@ -2300,7 +2327,7 @@ class ParserElement(object):
 
         Parameters:
          - testString - to test against this expression for a match
-         - parseAll - (default=:code:`True`) - flag to pass to :code:`:class:`parseString`` when running tests
+         - parseAll - (default= :code:`True`) - flag to pass to :class:`parseString` when running tests
 
         Example::
 
@@ -2321,13 +2348,13 @@ class ParserElement(object):
 
         Parameters:
          - tests - a list of separate test strings, or a multiline string of test strings
-         - parseAll - (default=:code:`True`) - flag to pass to :code:`:class:`parseString`` when running tests
-         - comment - (default=:code:`'#'`) - expression for indicating embedded comments in the test
+         - parseAll - (default= :code:`True` ) - flag to pass to :class:`parseString` when running tests
+         - comment - (default= :code:`'#'` ) - expression for indicating embedded comments in the test
               string; pass None to disable comment filtering
-         - fullDump - (default=:code:`True`) - dump results as list followed by results names in nested outline;
+         - fullDump - (default= :code:`True` ) - dump results as list followed by results names in nested outline;
               if False, only dump nested list
-         - printResults - (default=:code:`True`) prints test output to stdout
-         - failureTests - (default=:code:`False`) indicates if these tests are expected to fail parsing
+         - printResults - (default= :code:`True` ) prints test output to stdout
+         - failureTests - (default= :code:`False` ) indicates if these tests are expected to fail parsing
 
         Returns: a (success, results) tuple, where success indicates that all tests succeeded
         (or failed if :code:`failureTests` is True), and the results contain a list of lines of each
@@ -2358,7 +2385,9 @@ class ParserElement(object):
                 3.14.159
                 ''', failureTests=True)
             print("Success" if result[0] else "Failed!")
+
         prints::
+
             # unsigned integer
             100
             [100]
@@ -2522,7 +2551,7 @@ ParserElement._literalStringClass = Literal
 class Keyword(Token):
     """Token to exactly match a specified string as a keyword, that is,
     it must be immediately followed by a non-keyword character.  Compare
-    with :code:`:class:`Literal``:
+    with :class:`Literal`:
 
      - :code:`Literal("if")` will match the leading :code:`'if'` in
        :code:`'ifAndOnlyIf'`.
@@ -2892,10 +2921,6 @@ class Regex(Token):
         date = Regex(r'(?P<year>\d{4})-(?P<month>\d\d?)-(?P<day>\d\d?)')
         # ref: http://stackoverflow.com/questions/267399/how-do-you-match-only-valid-roman-numerals-with-a-regular-expression
         roman = Regex(r"M{0,4}(CM|CD|D?:code:`0,3`)(XC|XL|L?X{0,3})(IX|IV|V?I{0,3})")
-
-        make_html = Regex(r"(\w+):(.*?):").sub(r"<\1>\2</\1>")
-        print(make_html.transformString("h1:main title:"))
-        # prints "<h1>main title</h1>"
     """
     compiledREtype = type(re.compile("[A-Z]"))
     def __init__( self, pattern, flags=0, asGroupList=False, asMatch=False):
@@ -2971,6 +2996,12 @@ class Regex(Token):
         """
         Return Regex with an attached parse action to transform the parsed
         result as if called using :code:`re.sub(expr, repl, string)`.
+
+        Example::
+
+            make_html = Regex(r"(\w+):(.*?):").sub(r"<\1>\2</\1>")
+            print(make_html.transformString("h1:main title:"))
+            # prints "<h1>main title</h1>"
         """
         if self.asGroupList:
             warnings.warn("cannot use sub() with Regex(asGroupList=True)",
@@ -2999,20 +3030,20 @@ class QuotedString(Token):
         - quoteChar - string of one or more characters defining the
           quote delimiting string
         - escChar - character to escape quotes, typically backslash
-          (default=``None``)
+          (default= :code:`None` )
         - escQuote - special quote sequence to escape an embedded quote
-          string (such as SQL's "" to escape an embedded ")
-          (default=``None``)
+          string (such as SQL's :code:`""` to escape an embedded :code:`"`)
+          (default= :code:`None` )
         - multiline - boolean indicating whether quotes can span
-          multiple lines (default=:code:`False`)
+          multiple lines (default= :code:`False` )
         - unquoteResults - boolean indicating whether the matched text
-          should be unquoted (default=:code:`True`)
+          should be unquoted (default= :code:`True` )
         - endQuoteChar - string of one or more characters defining the
-          end of the quote delimited string (default=``None`` => same as
+          end of the quote delimited string (default= :code:`None`  => same as
           quoteChar)
         - convertWhitespaceEscapes - convert escaped whitespace
           (:code:`'\t'`, :code:`'\n'`, etc.) to actual whitespace
-          (default=:code:`True`)
+          (default= :code:`True` )
 
     Example::
 
@@ -3022,7 +3053,9 @@ class QuotedString(Token):
         print(complex_qs.searchString('lsjdf {{This is the "quote"}} sldjf'))
         sql_qs = QuotedString('"', escQuote='""')
         print(sql_qs.searchString('lsjdf "This is the quote with ""embedded"" quotes" sldjf'))
+
     prints::
+
         [['This is the quote']]
         [['This is the "quote"']]
         [['This is the quote with "embedded" quotes']]
@@ -3154,7 +3187,9 @@ class CharsNotIn(Token):
         # define a comma-separated-value as anything that is not a ','
         csv_value = CharsNotIn(',')
         print(delimitedList(csv_value).parseString("dkls,lsdkjf,s12 34,@!#,213"))
+
     prints::
+
         ['dkls', 'lsdkjf', 's12 34', '@!#', '213']
     """
     def __init__( self, notChars, min=1, max=0, exact=0 ):
@@ -3221,7 +3256,7 @@ class White(Token):
     a string containing the whitespace characters to be matched; default
     is :code:`" \\t\\r\\n"`.  Also takes optional :code:`min`,
     :code:`max`, and :code:`exact` arguments, as defined for the
-    :code:`:class:`Word`` class.
+    :class:`Word` class.
     """
     whiteStrs = {
         " " : "<SPC>",
@@ -3315,7 +3350,8 @@ class LineStart(_PositionToken):
         for t in (LineStart() + 'AAA' + restOfLine).searchString(test):
             print(t)
 
-    Prints::
+    prints::
+
         ['AAA', ' this line']
         ['AAA', ' and this line']
 
@@ -3384,7 +3420,7 @@ class StringEnd(_PositionToken):
 class WordStart(_PositionToken):
     """Matches if the current position is at the beginning of a Word,
     and is not preceded by any character in a given set of
-    :code:`wordChars` (default=:code:`printables`). To emulate the
+    :code:`wordChars` (default= :code:`printables`). To emulate the
     :code:`\b` behavior of regular expressions, use
     :code:`WordStart(alphanums)`. :code:`WordStart` will also match at
     the beginning of the string being parsed, or at the beginning of
@@ -3405,7 +3441,7 @@ class WordStart(_PositionToken):
 class WordEnd(_PositionToken):
     """Matches if the current position is at the end of a Word, and is
     not followed by any character in a given set of :code:`wordChars`
-    (default=:code:`printables`). To emulate the :code:`\b` behavior of
+    (default= :code:`printables`). To emulate the :code:`\b` behavior of
     regular expressions, use :code:`WordEnd(alphanums)`. :code:`WordEnd`
     will also match at the end of the string being parsed, or at the end
     of a line.
@@ -3539,7 +3575,7 @@ class ParseExpression(ParserElement):
 
 class And(ParseExpression):
     """
-    Requires all given :code:`ParseExpression`s to be found in the given order.
+    Requires all given :code:`ParseExpression` s to be found in the given order.
     Expressions may be separated by whitespace.
     May be constructed using the :code:`'+'` operator.
     May also be constructed using the :code:`'-'` operator, which will
@@ -3627,7 +3663,9 @@ class Or(ParseExpression):
 
         number = Word(nums) ^ Combine(Word(nums) + '.' + Word(nums))
         print(number.searchString("123 3.1416 789"))
+
     prints::
+
         [['123'], ['3.1416'], ['789']]
     """
     def __init__( self, exprs, savelist = False ):
@@ -3764,7 +3802,7 @@ class MatchFirst(ParseExpression):
 
 
 class Each(ParseExpression):
-    """Requires all given :code:`ParseExpression`s to be found, but in
+    """Requires all given :code:`ParseExpression` s to be found, but in
     any order. Expressions may be separated by whitespace.
 
     May be constructed using the :code:`'&'` operator.
@@ -3984,7 +4022,9 @@ class FollowedBy(ParseElementEnhance):
         attr_expr = Group(label + Suppress(':') + OneOrMore(data_word, stopOn=label).setParseAction(' '.join))
 
         OneOrMore(attr_expr).parseString("shape: SQUARE color: BLACK posn: upper left").pprint()
+
     prints::
+
         [['shape', 'SQUARE'], ['color', 'BLACK'], ['posn', 'upper left']]
     """
     def __init__( self, expr ):
@@ -4009,7 +4049,7 @@ class PrecededBy(ParseElementEnhance):
 
      - expr - expression that must match prior to the current parse
        location
-     - retreat - (default=``None``) - (int) maximum number of characters
+     - retreat - (default= :code:`None`) - (int) maximum number of characters
        to lookbehind prior to the current parse location
 
     If the lookbehind expression is a string, Literal, Keyword, or
@@ -4159,7 +4199,7 @@ class OneOrMore(_MultipleMatch):
 
     Parameters:
      - expr - expression that must match one or more times
-     - stopOn - (default=``None``) - expression for a terminating sentinel
+     - stopOn - (default= :code:`None`) - expression for a terminating sentinel
           (only required if the sentinel would ordinarily match the repetition
           expression)
 
@@ -4194,7 +4234,7 @@ class ZeroOrMore(_MultipleMatch):
 
     Parameters:
      - expr - expression that must match zero or more times
-     - stopOn - (default=``None``) - expression for a terminating sentinel
+     - stopOn - (default= :code:`None`) - expression for a terminating sentinel
           (only required if the sentinel would ordinarily match the repetition
           expression)
 
@@ -4248,7 +4288,9 @@ class Optional(ParseElementEnhance):
             # invalid ZIP
             98765-
             ''')
+
     prints::
+
         # traditional ZIP code
         12345
         ['12345']
@@ -4297,11 +4339,11 @@ class SkipTo(ParseElementEnhance):
 
     Parameters:
      - expr - target expression marking the end of the data to be skipped
-     - include - (default=:code:`False`) if True, the target expression is also parsed
+     - include - (default= :code:`False`) if True, the target expression is also parsed
           (the skipped text and target expression are returned as a 2-element list).
-     - ignore - (default=``None``) used to define grammars (typically quoted strings and
+     - ignore - (default= :code:`None`) used to define grammars (typically quoted strings and
           comments) that might contain false matches to the target expression
-     - failOn - (default=``None``) define expressions that are not allowed to be
+     - failOn - (default= :code:`None`) define expressions that are not allowed to be
           included in the skipped test; if found before the target expression is found,
           the SkipTo is not a match
 
@@ -4330,7 +4372,9 @@ class SkipTo(ParseElementEnhance):
 
         for tkt in ticket_expr.searchString(report):
             print tkt.dump()
+
     prints::
+
         ['101', 'Critical', 'Intermittent system crash', '6']
         - days_open: 6
         - desc: Intermittent system crash
@@ -4555,8 +4599,7 @@ class Combine(TokenConverter):
 
 class Group(TokenConverter):
     """Converter to return the matched tokens as a list - useful for
-    returning tokens of :code:`:class:`ZeroOrMore`` and
-    :code:`:class:`OneOrMore`` expressions.
+    returning tokens of :class:`ZeroOrMore` and :class:`OneOrMore` expressions.
 
     Example::
 
@@ -4658,9 +4701,12 @@ class Suppress(TokenConverter):
         # way afterward - use Suppress to keep them out of the parsed output
         wd_list2 = wd + ZeroOrMore(Suppress(',') + wd)
         print(wd_list2.parseString(source))
+
     prints::
+
         ['a', ',', 'b', ',', 'c', ',', 'd']
         ['a', 'b', 'c', 'd']
+
     (See also :class:`delimitedList`.)
     """
     def postParse( self, instring, loc, tokenlist ):
@@ -4688,9 +4734,10 @@ class OnlyOnce(object):
 def traceParseAction(f):
     """Decorator for debugging parse actions.
 
-    When the parse action is called, this decorator will print :code:`">>
-    entering :code:`method-name`(line:*current_source_line*, *parse_location*, *matched_tokens*)".
-    When the parse action completes, the decorator will print :code:`"<<"` followed by the returned value, or any exception that the parse action raised.
+    When the parse action is called, this decorator will print
+    :code:`">> entering method-name(line:<current_source_line>, <parse_location>, <matched_tokens>)"`.
+    When the parse action completes, the decorator will print
+    :code:`"<<"` followed by the returned value, or any exception that the parse action raised.
 
     Example::
 
@@ -4869,18 +4916,18 @@ def oneOf( strs, caseless=False, useRegex=True ):
     """Helper to quickly define a set of alternative Literals, and makes
     sure to do longest-first testing when there is a conflict,
     regardless of the input order, but returns
-    a :code:`:class:`MatchFirst`` for best performance.
+    a :class:`MatchFirst` for best performance.
 
     Parameters:
 
      - strs - a string of space-delimited literals, or a collection of
        string literals
-     - caseless - (default=:code:`False`) - treat all literals as
+     - caseless - (default= :code:`False`) - treat all literals as
        caseless
-     - useRegex - (default=:code:`True`) - as an optimization, will
+     - useRegex - (default= :code:`True`) - as an optimization, will
        generate a Regex object; otherwise, will generate
-       a :code:`MatchFirst` object (if :code:`caseless=True`, or if
-       creating a :code:`Regex` raises an exception)
+       a :class:`MatchFirst` object (if :code:`caseless=True`, or if
+       creating a :class:`Regex` raises an exception)
 
     Example::
 
@@ -4948,8 +4995,8 @@ def oneOf( strs, caseless=False, useRegex=True ):
 def dictOf( key, value ):
     """Helper to easily and clearly define a dictionary by specifying
     the respective patterns for the key and value.  Takes care of
-    defining the :code:`:class:`Dict``, :code:`:class:`ZeroOrMore``, and
-    :code:`:class:`Group`` tokens in the proper order.  The key pattern
+    defining the :class:`Dict`, :class:`ZeroOrMore`, and
+    :class:`Group` tokens in the proper order.  The key pattern
     can include delimiting markers or punctuation, as long as they are
     suppressed, thereby leaving the significant key text.  The value
     pattern can include named results, so that the :code:`Dict` results
@@ -4993,10 +5040,10 @@ def originalTextFor(expr, asString=True):
 
     If the optional :code:`asString` argument is passed as
     :code:`False`, then the return value is
-    a :code:`:class:`ParseResults`` containing any results names that
+    a :class:`ParseResults` containing any results names that
     were originally matched, and a single token containing the original
     matched text from the input string.  So if the expression passed to
-    :code:`:class:`originalTextFor`` contains expressions with defined
+    :class:`originalTextFor` contains expressions with defined
     results names, you must set :code:`asString` to :code:`False` if you
     want to preserve those results name values.
 
@@ -5043,7 +5090,7 @@ def locatedExpr(expr):
      - value = the actual parsed results
 
     Be careful if the input text contains :code:`<TAB>` characters, you
-    may want to call :code:`:class:`ParserElement.parseWithTabs``
+    may want to call :class:`ParserElement.parseWithTabs`
 
     Example::
 
@@ -5119,7 +5166,7 @@ def matchOnlyAtCol(n):
 def replaceWith(replStr):
     """Helper method for common parse actions that simply return
     a literal value.  Especially useful when used with
-    :code:`:class:`transformString<ParserElement.transformString>`()`.
+    :class:`transformString<ParserElement.transformString>` ().
 
     Example::
 
@@ -5155,6 +5202,7 @@ def tokenMap(func, *args):
     which will convert the parsed data to an integer using base 16.
 
     Example (compare the last to example in :class:`ParserElement.transformString`::
+
         hex_ints = OneOrMore(Word(hexnums)).setParseAction(tokenMap(int, 16))
         hex_ints.runTests('''
             00 11 22 aa FF 0a 0d 1a
@@ -5237,7 +5285,7 @@ def makeHTMLTags(tagStr):
 
     Example::
 
-        text = '<td>More info at the <a href="http://pyparsing.wikispaces.com">pyparsing</a> wiki page</td>'
+        text = '<td>More info at the <a href="https://github.com/pyparsing/pyparsing/wiki">pyparsing</a> wiki page</td>'
         # makeHTMLTags returns pyparsing expressions for the opening and
         # closing tags as a 2-tuple
         a,a_end = makeHTMLTags("A")
@@ -5250,7 +5298,7 @@ def makeHTMLTags(tagStr):
 
     prints::
 
-        pyparsing -> http://pyparsing.wikispaces.com
+        pyparsing -> https://github.com/pyparsing/pyparsing/wiki
     """
     return _makeTags( tagStr, False )
 
@@ -5264,8 +5312,8 @@ def makeXMLTags(tagStr):
 
 def withAttribute(*args,**attrDict):
     """Helper to create a validating parse action to be used with start
-    tags created with :code:`:class:`makeXMLTags`` or
-    :code:`:class:`makeHTMLTags``. Use :code:`withAttribute` to qualify
+    tags created with :class:`makeXMLTags` or
+    :class:`makeHTMLTags`. Use :code:`withAttribute` to qualify
     a starting tag with a required attribute value, to avoid false
     matches on common tags such as :code:`<TD>` or :code:`<DIV>`.
 
@@ -5283,7 +5331,7 @@ def withAttribute(*args,**attrDict):
     form.  Attribute names are matched insensitive to upper/lower case.
 
     If just testing for :code:`class` (with or without a namespace), use
-    :code:`:class:`withClass``.
+    :class:`withClass`.
 
     To verify that the attribute exists, but without specifying a value,
     pass :code:`withAttribute.ANY_VALUE` as the value.
@@ -5336,7 +5384,7 @@ def withAttribute(*args,**attrDict):
 withAttribute.ANY_VALUE = object()
 
 def withClass(classname, namespace=''):
-    """Simplified version of :code:`:class:`withAttribute`` when
+    """Simplified version of :class:`withAttribute` when
     matching on a div class - made difficult because :code:`class` is
     a reserved word in Python.
 
@@ -5394,8 +5442,8 @@ def infixNotation( baseExpr, opList, lpar=Suppress('('), rpar=Suppress(')') ):
      - baseExpr - expression representing the most basic element for the
        nested
      - opList - list of tuples, one for each operator precedence level
-       in the expression grammar; each tuple is of the form (opExpr,
-       numTerms, rightLeftAssoc, parseAction), where:
+       in the expression grammar; each tuple is of the form :code:`(opExpr,
+       numTerms, rightLeftAssoc, parseAction)`, where:
 
        - opExpr is the pyparsing expression for the operator; may also
          be a string, which will be converted to a Literal; if numTerms
@@ -5413,9 +5461,9 @@ def infixNotation( baseExpr, opList, lpar=Suppress('('), rpar=Suppress(')') ):
          :code:`setParseAction(*fn)`
          (:class:`ParserElement.setParseAction`)
      - lpar - expression for matching left-parentheses
-       (default=:code:`Suppress('(')`)
+       (default= :code:`Suppress('(')`)
      - rpar - expression for matching right-parentheses
-       (default=:code:`Suppress(')')`)
+       (default= :code:`Suppress(')')`)
 
     Example::
 
@@ -5507,7 +5555,7 @@ def infixNotation( baseExpr, opList, lpar=Suppress('('), rpar=Suppress(')') ):
     return ret
 
 operatorPrecedence = infixNotation
-"""(Deprecated) Former name of :code:`:class:`infixNotation``, will be
+"""(Deprecated) Former name of :class:`infixNotation`, will be
 dropped in a future release."""
 
 dblQuotedString = Combine(Regex(r'"(?:[^"\n\r\\]|(?:"")|(?:\\(?:[^x]|x[0-9a-fA-F]+)))*')+'"').setName("string enclosed in double quotes")
@@ -5522,13 +5570,13 @@ def nestedExpr(opener="(", closer=")", content=None, ignoreExpr=quotedString.cop
 
     Parameters:
      - opener - opening character for a nested list
-       (default=:code:`"("`); can also be a pyparsing expression
+       (default= :code:`"("`); can also be a pyparsing expression
      - closer - closing character for a nested list
-       (default=:code:`")"`); can also be a pyparsing expression
+       (default= :code:`")"`); can also be a pyparsing expression
      - content - expression for items within the nested lists
-       (default=``None``)
+       (default= :code:`None`)
      - ignoreExpr - expression for ignoring opening and closing
-       delimiters (default=:code:`quotedString`)
+       delimiters (default= :class:`quotedString`)
 
     If an expression is not provided for the content argument, the
     nested expression will capture all whitespace-delimited content
@@ -5538,7 +5586,7 @@ def nestedExpr(opener="(", closer=")", content=None, ignoreExpr=quotedString.cop
     contain opening or closing characters that should not be treated as
     opening or closing characters for nesting, such as quotedString or
     a comment expression.  Specify multiple expressions using an
-    :code:`:class:`Or`` or :code:`:class:`MatchFirst``. The default is
+    :class:`Or` or :class:`MatchFirst`. The default is
     :class:`quotedString`, but if no expressions are to be ignored, then
     pass ``None`` for this argument.
 
@@ -5626,7 +5674,7 @@ def indentedBlock(blockStatementExpr, indentStack, indent=True):
        grammar should share a common indentStack)
      - indent - boolean indicating whether block must be indented beyond
        the the current level; set to False for block of left-most
-       statements (default=:code:`True`)
+       statements (default= :code:`True`)
 
     A valid block must contain at least one :code:`blockStatement`.
 
@@ -5752,10 +5800,10 @@ dblSlashComment = Regex(r"//(?:\\\n|[^\n])*").setName("// comment")
 "Comment of the form :code:`// ... (to end of line)`"
 
 cppStyleComment = Combine(Regex(r"/\*(?:[^*]|\*(?!/))*") + '*/'| dblSlashComment).setName("C++ style comment")
-"Comment of either form :code:`:class:`cStyleComment`` or :code:`:class:`dblSlashComment``"
+"Comment of either form :class:`cStyleComment` or :class:`dblSlashComment`"
 
 javaStyleComment = cppStyleComment
-"Same as :code:`:class:`cppStyleComment``"
+"Same as :class:`cppStyleComment`"
 
 pythonStyleComment = Regex(r"#.*").setName("Python style comment")
 "Comment of the form :code:`# ... (to end of line)`"
@@ -5766,8 +5814,8 @@ _commasepitem = Combine(OneOrMore(Word(printables, excludeChars=',') +
 commaSeparatedList = delimitedList( Optional( quotedString.copy() | _commasepitem, default="") ).setName("commaSeparatedList")
 """(Deprecated) Predefined expression of 1 or more printable words or
 quoted strings, separated by commas.
-   This expression is deprecated in favor of
-   :class:`pyparsing_common.comma_separated_list`.
+
+This expression is deprecated in favor of :class:`pyparsing_common.comma_separated_list`.
 """
 
 # some other useful expressions - using lower-case class name since we are really using this as a namespace
@@ -5787,13 +5835,13 @@ class pyparsing_common:
 
     Parse actions:
 
-     - :code:`:class:`convertToInteger``
-     - :code:`:class:`convertToFloat``
-     - :code:`:class:`convertToDate``
-     - :code:`:class:`convertToDatetime``
-     - :code:`:class:`stripHTMLTags``
-     - :code:`:class:`upcaseTokens``
-     - :code:`:class:`downcaseTokens``
+     - :class:`convertToInteger`
+     - :class:`convertToFloat`
+     - :class:`convertToDate`
+     - :class:`convertToDatetime`
+     - :class:`stripHTMLTags`
+     - :class:`upcaseTokens`
+     - :class:`downcaseTokens`
 
     Example::
 
@@ -5980,7 +6028,7 @@ class pyparsing_common:
         Helper to create a parse action for converting parsed date string to Python datetime.date
 
         Params -
-         - fmt - format to be passed to datetime.strptime (default=:code:`"%Y-%m-%d"`)
+         - fmt - format to be passed to datetime.strptime (default= :code:`"%Y-%m-%d"`)
 
         Example::
 
@@ -6005,7 +6053,7 @@ class pyparsing_common:
         datetime string to Python datetime.datetime
 
         Params -
-         - fmt - format to be passed to datetime.strptime (default=:code:`"%Y-%m-%dT%H:%M:%S.%f"`)
+         - fmt - format to be passed to datetime.strptime (default= :code:`"%Y-%m-%dT%H:%M:%S.%f"`)
 
         Example::
 
@@ -6041,11 +6089,14 @@ class pyparsing_common:
         Example::
 
             # strip HTML links from normal text
-            text = '<td>More info at the <a href="http://pyparsing.wikispaces.com">pyparsing</a> wiki page</td>'
+            text = '<td>More info at the <a href="https://github.com/pyparsing/pyparsing/wiki">pyparsing</a> wiki page</td>'
             td,td_end = makeHTMLTags("TD")
             table_text = td + SkipTo(td_end).setParseAction(pyparsing_common.stripHTMLTags)("body") + td_end
+            print(table_text.parseString(text).body)
 
-            print(table_text.parseString(text).body) # -> 'More info at the pyparsing wiki page'
+        Prints::
+
+            More info at the pyparsing wiki page
         """
         return pyparsing_common._html_stripper.transformString(tokens[0])
 
