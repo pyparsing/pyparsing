@@ -8,7 +8,10 @@
 # Copyright (c) 2018  Paul T. McGuire
 #
 
-import unittest
+try:
+    import unittest2 as unittest
+except ImportError:
+    import unittest
 import pyparsing as pp
 from collections import namedtuple
 from datetime import datetime
