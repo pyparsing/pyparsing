@@ -3639,6 +3639,33 @@ class SetBreakTest(ParseTestCase):
 class UnicodeTests(ParseTestCase):
     def runTest(self):
         import pyparsing as pp
+        p_u = pp.pyparsing_unicode
+
+        # verify proper merging of ranges by addition
+        kanji_printables = p_u.Japanese.Kanji.printables
+        katakana_printables = p_u.Japanese.Katakana.printables
+        hiragana_printables = p_u.Japanese.Hiragana.printables
+        japanese_printables = p_u.Japanese.printables
+        self.assertEqual(set(japanese_printables), set(kanji_printables
+                                                       + katakana_printables
+                                                       + hiragana_printables),
+                         "failed to construct ranges by merging Japanese types")
+
+        # verify proper merging of ranges using multiple inheritance
+        cjk_printables = p_u.CJK.printables
+        self.assertEqual(len(cjk_printables), len(set(cjk_printables)),
+                         "CJK contains duplicate characters - all should be unique")
+
+        chinese_printables = p_u.Chinese.printables
+        korean_printables = p_u.Korean.printables
+        print(len(cjk_printables), len(set(chinese_printables
+                                           + korean_printables
+                                           + japanese_printables)))
+
+        self.assertEqual(len(cjk_printables), len(set(chinese_printables
+                                                      + korean_printables
+                                                      + japanese_printables)),
+                         "failed to construct ranges by merging Chinese, Japanese and Korean")
 
         alphas = pp.pyparsing_unicode.Greek.alphas
         greet = pp.Word(alphas) + ',' + pp.Word(alphas) + '!'
@@ -3654,6 +3681,11 @@ class UnicodeTests(ParseTestCase):
         class Turkish_set(pp.pyparsing_unicode.Latin1, pp.pyparsing_unicode.LatinA):
             pass
 
+        self.assertEqual(set(Turkish_set.printables),
+                         set(pp.pyparsing_unicode.Latin1.printables
+                             + pp.pyparsing_unicode.LatinA.printables),
+                         "failed to construct ranges by merging Latin1 and LatinA")
+
         key = pp.Word(Turkish_set.alphas)
         value = pp.pyparsing_common.integer | pp.Word(Turkish_set.alphas, Turkish_set.alphanums)
         EQ = pp.Suppress('=')
@@ -3668,9 +3700,6 @@ class UnicodeTests(ParseTestCase):
         print(result.asDict())
         self.assertEqual(result.asDict(), {'şehir': 'İzmir', 'ülke': 'Türkiye', 'nüfus': 4279677},
                          "Failed to parse Turkish key-value pairs")
-        self.assertEqual(len(pp.pyparsing_unicode.CJK.printables), 53760,
-                         "failed to construct ranges by merging Chinese, Japanese and Korean")
-        self.assertEqual(len(Turkish_set.printables), 317, "failed to construct ranges by merging Latin1 and LatinA")
 
 class IndentedBlockTest(ParseTestCase):
     # parse pseudo-yaml indented text

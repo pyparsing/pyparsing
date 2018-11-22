@@ -6116,9 +6116,12 @@ class _lazyclassproperty(object):
     def __get__(self, obj, cls):
         if cls is None:
             cls = type(obj)
-        ret = self.fn(cls)
-        setattr(cls, self.fn.__name__, ret)
-        return ret
+        if not hasattr(cls, '_intern') or any(cls._intern is getattr(superclass, '_intern', []) for superclass in cls.__mro__[1:]):
+            cls._intern = {}
+        attrname = self.fn.__name__
+        if attrname not in cls._intern:
+            cls._intern[attrname] = self.fn(cls)
+        return cls._intern[attrname]
 
 
 class unicode_set(object):
@@ -6137,23 +6140,30 @@ class unicode_set(object):
     """
     _ranges = []
 
+    @classmethod
+    def _get_chars_for_ranges(cls):
+        ret = []
+        for cc in cls.__mro__:
+            if cc is unicode_set:
+                break
+            for rr in cc._ranges:
+                ret.extend(range(rr[0], rr[-1]+1))
+        return [unichr(c) for c in sorted(set(ret))]
+
     @_lazyclassproperty
     def printables(cls):
         "all non-whitespace characters in this range"
-        ranges = set(sum((cc._ranges for cc in takewhile(lambda x: x is not unicode_set, cls.__mro__)), []))
-        return ''.join(filterfalse(unicode.isspace, (unichr(c) for r in ranges for c in range(r[0], r[-1] + 1))))
+        return u''.join(filterfalse(unicode.isspace, cls._get_chars_for_ranges()))
 
     @_lazyclassproperty
     def alphas(cls):
         "all alphabetic characters in this range"
-        ranges = set(sum((cc._ranges for cc in takewhile(lambda x: x is not unicode_set, cls.__mro__)), []))
-        return ''.join(filter(unicode.isalpha, (unichr(c) for r in ranges for c in range(r[0], r[-1] + 1))))
+        return u''.join(filter(unicode.isalpha, cls._get_chars_for_ranges()))
 
     @_lazyclassproperty
     def nums(cls):
         "all numeric digit characters in this range"
-        ranges = set(sum((cc._ranges for cc in takewhile(lambda x: x is not unicode_set, cls.__mro__)), []))
-        return ''.join(filter(unicode.isdigit, (unichr(c) for r in ranges for c in range(r[0], r[-1] + 1))))
+        return u''.join(filter(unicode.isdigit, cls._get_chars_for_ranges()))
 
     @_lazyclassproperty
     def alphanums(cls):
@@ -6187,13 +6197,13 @@ class pyparsing_unicode(unicode_set):
         _ranges = [(0x0400, 0x04ff)]
 
     class Chinese(unicode_set):
-        _ranges = [(0x4e00, 0x9fff)]
+        _ranges = [(0x4e00, 0x9fff), (0x3000, 0x303f), ]
 
     class Japanese(unicode_set):
         _ranges = [ ] # sum of Kanji, Hiragana, and Katakana ranges
 
         class Kanji(unicode_set):
-            _ranges = [(0x4E00, 0x9Fbf), ]
+            _ranges = [(0x4E00, 0x9Fbf), (0x3000, 0x303f), ]
 
         class Hiragana(unicode_set):
             _ranges = [(0x3040, 0x309f), ]
@@ -6202,7 +6212,7 @@ class pyparsing_unicode(unicode_set):
             _ranges = [(0x30a0, 0x30ff), ]
 
     class Korean(unicode_set):
-        _ranges = [(0xac00, 0xd7af), (0x1100, 0x11ff), (0x3130, 0x318f), (0xa960, 0xa97f), (0xd7b0, 0xd7ff), ]
+        _ranges = [(0xac00, 0xd7af), (0x1100, 0x11ff), (0x3130, 0x318f), (0xa960, 0xa97f), (0xd7b0, 0xd7ff), (0x3000, 0x303f), ]
 
     class CJK(Chinese, Japanese, Korean):
         pass
@@ -6219,7 +6229,9 @@ class pyparsing_unicode(unicode_set):
     class Devanagari(unicode_set):
         _ranges = [(0x0900, 0x097f), (0xa8e0, 0xa8ff)]
 
-pyparsing_unicode.Japanese._ranges = pyparsing_unicode.Japanese.Kanji._ranges + pyparsing_unicode.Japanese.Hiragana._ranges + pyparsing_unicode.Japanese.Katakana._ranges
+pyparsing_unicode.Japanese._ranges = (pyparsing_unicode.Japanese.Kanji._ranges
+                                      + pyparsing_unicode.Japanese.Hiragana._ranges
+                                      + pyparsing_unicode.Japanese.Katakana._ranges)
 
 # define ranges in language character sets
 if PY_3:
