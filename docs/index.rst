@@ -5,6 +5,7 @@
 
 Welcome to PyParsing's documentation!
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Release v\ |version|
 
 .. toctree::
    :maxdepth: 2

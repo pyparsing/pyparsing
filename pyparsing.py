@@ -38,8 +38,8 @@ grammar directly in Python.
 Here is a program to parse "Hello, World!" (or any greeting of the form
 ``"<salutation>, <addressee>!"``), built up using :class:`Word`,
 :class:`Literal`, and :class:`And` elements
-(``ParserElement.__add__`` operator gives :class:`And` expressions,
-strings are auto-converted to :class:`Literal` expressions)::
+(the :class:`'+'<ParserElement.__add__>` operators create :class:`And` expressions,
+and the strings are auto-converted to :class:`Literal` expressions)::
 
     from pyparsing import Word, alphas
 
@@ -94,7 +94,7 @@ classes inherit from. Use the docstrings for examples of how to:
 """
 
 __version__ = "2.3.1"
-__versionTime__ = "21 Nov 2018 17:32 UTC"
+__versionTime__ = "22 Nov 2018 07:07 UTC"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
