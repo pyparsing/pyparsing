@@ -94,7 +94,7 @@ classes inherit from. Use the docstrings for examples of how to:
 """
 
 __version__ = "2.3.1"
-__versionTime__ = "22 Nov 2018 07:07 UTC"
+__versionTime__ = "13 Dec 2018 06:25 UTC"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -515,13 +515,13 @@ class ParseResults(object):
 
     if PY_3:
         keys = _iterkeys
-        """Returns an iterator of all named result keys (Python 3.x only)."""
+        """Returns an iterator of all named result keys."""
 
         values = _itervalues
-        """Returns an iterator of all named result values (Python 3.x only)."""
+        """Returns an iterator of all named result values."""
 
         items = _iteritems
-        """Returns an iterator of all named result key-value tuples (Python 3.x only)."""
+        """Returns an iterator of all named result key-value tuples."""
 
     else:
         iterkeys = _iterkeys
@@ -1213,7 +1213,7 @@ class ParserElement(object):
         self.resultsName = None
         self.saveAsList = savelist
         self.skipWhitespace = True
-        self.whiteChars = ParserElement.DEFAULT_WHITE_CHARS
+        self.whiteChars = set(ParserElement.DEFAULT_WHITE_CHARS)
         self.copyDefaultWhiteChars = True
         self.mayReturnEmpty = False # used when checking for left-recursion
         self.keepTabs = False
@@ -1391,8 +1391,9 @@ class ParserElement(object):
         msg = kwargs.get("message", "failed user-defined condition")
         exc_type = ParseFatalException if kwargs.get("fatal", False) else ParseException
         for fn in fns:
+            fn = _trim_arity(fn)
             def pa(s,l,t):
-                if not bool(_trim_arity(fn)(s,l,t)):
+                if not bool(fn(s,l,t)):
                     raise exc_type(s,l,msg)
             self.parseAction.append(pa)
         self.callDuringTry = self.callDuringTry or kwargs.get("callDuringTry", False)
@@ -2248,7 +2249,7 @@ class ParserElement(object):
         The output shown is that produced by the default debug actions - custom debug actions can be
         specified using :class:`setDebugActions`. Prior to attempting
         to match the ``wd`` expression, the debugging message ``"Match <exprname> at loc <n>(<line>,<col>)"``
-        is shown. Then if the parse succeeds, a ``"Matched"` message is shown, or an ``"Exception raised"``
+        is shown. Then if the parse succeeds, a ``"Matched"`` message is shown, or an ``"Exception raised"``
         message is shown. Also note the use of :class:`setName` to assign a human-readable name to the expression,
         which makes debugging and exception messages easier to understand - for instance, the default
         name created for the :class:`Word` expression without calling ``setName`` is ``"W:(ABCD...)"``.
@@ -2968,16 +2969,16 @@ class Regex(Token):
             raise ParseException(instring, loc, self.errmsg, self)
 
         loc = result.end()
-        d = result.groupdict()
         if self.asMatch:
             ret = result
         elif self.asGroupList:
             ret = result.groups()
         else:
             ret = ParseResults(result.group())
+            d = result.groupdict()
             if d:
-                for k in d:
-                    ret[k] = d[k]
+                for k, v in d.items():
+                    ret[k] = v
         return loc,ret
 
     def __str__( self ):
@@ -3258,11 +3259,29 @@ class White(Token):
     :class:`Word` class.
     """
     whiteStrs = {
-        " " : "<SPC>",
-        "\t": "<TAB>",
-        "\n": "<LF>",
-        "\r": "<CR>",
-        "\f": "<FF>",
+        ' ' : '<SP>',
+        '\t': '<TAB>',
+        '\n': '<LF>',
+        '\r': '<CR>',
+        '\f': '<FF>',
+        'u\00A0': '<NBSP>',
+        'u\1680': '<OGHAM_SPACE_MARK>',
+        'u\180E': '<MONGOLIAN_VOWEL_SEPARATOR>',
+        'u\2000': '<EN_QUAD>',
+        'u\2001': '<EM_QUAD>',
+        'u\2002': '<EN_SPACE>',
+        'u\2003': '<EM_SPACE>',
+        'u\2004': '<THREE-PER-EM_SPACE>',
+        'u\2005': '<FOUR-PER-EM_SPACE>',
+        'u\2006': '<SIX-PER-EM_SPACE>',
+        'u\2007': '<FIGURE_SPACE>',
+        'u\2008': '<PUNCTUATION_SPACE>',
+        'u\2009': '<THIN_SPACE>',
+        'u\200A': '<HAIR_SPACE>',
+        'u\200B': '<ZERO_WIDTH_SPACE>',
+        'u\202F': '<NNBSP>',
+        'u\205F': '<MMSP>',
+        'u\3000': '<IDEOGRAPHIC_SPACE>',
         }
     def __init__(self, ws=" \t\r\n", min=1, max=0, exact=0):
         super(White,self).__init__()
@@ -6112,6 +6131,8 @@ class pyparsing_common:
 class _lazyclassproperty(object):
     def __init__(self, fn):
         self.fn = fn
+        self.__doc__ = fn.__doc__
+        self.__name__ = fn.__name__
 
     def __get__(self, obj, cls):
         if cls is None:
@@ -6178,15 +6199,19 @@ class pyparsing_unicode(unicode_set):
     _ranges = [(32, sys.maxunicode)]
 
     class Latin1(unicode_set):
+        "Unicode set for Latin-1 Unicode Character Range"
         _ranges = [(0x0020, 0x007e), (0x00a0, 0x00ff),]
 
     class LatinA(unicode_set):
+        "Unicode set for Latin-A Unicode Character Range"
         _ranges = [(0x0100, 0x017f),]
 
     class LatinB(unicode_set):
+        "Unicode set for Latin-B Unicode Character Range"
         _ranges = [(0x0180, 0x024f),]
 
     class Greek(unicode_set):
+        "Unicode set for Greek Unicode Character Ranges"
         _ranges = [
             (0x0370, 0x03ff), (0x1f00, 0x1f15), (0x1f18, 0x1f1d), (0x1f20, 0x1f45), (0x1f48, 0x1f4d),
             (0x1f50, 0x1f57), (0x1f59,), (0x1f5b,), (0x1f5d,), (0x1f5f, 0x1f7d), (0x1f80, 0x1fb4), (0x1fb6, 0x1fc4),
@@ -6194,39 +6219,51 @@ class pyparsing_unicode(unicode_set):
         ]
 
     class Cyrillic(unicode_set):
+        "Unicode set for Cyrillic Unicode Character Range"
         _ranges = [(0x0400, 0x04ff)]
 
     class Chinese(unicode_set):
+        "Unicode set for Chinese Unicode Character Range"
         _ranges = [(0x4e00, 0x9fff), (0x3000, 0x303f), ]
 
     class Japanese(unicode_set):
-        _ranges = [ ] # sum of Kanji, Hiragana, and Katakana ranges
+        "Unicode set for Japanese Unicode Character Range, combining Kanji, Hiragana, and Katakana ranges"
+        _ranges = [ ]
 
         class Kanji(unicode_set):
+            "Unicode set for Kanji Unicode Character Range"
             _ranges = [(0x4E00, 0x9Fbf), (0x3000, 0x303f), ]
 
         class Hiragana(unicode_set):
+            "Unicode set for Hiragana Unicode Character Range"
             _ranges = [(0x3040, 0x309f), ]
 
         class Katakana(unicode_set):
+            "Unicode set for Katakana  Unicode Character Range"
             _ranges = [(0x30a0, 0x30ff), ]
 
     class Korean(unicode_set):
+        "Unicode set for Korean Unicode Character Range"
         _ranges = [(0xac00, 0xd7af), (0x1100, 0x11ff), (0x3130, 0x318f), (0xa960, 0xa97f), (0xd7b0, 0xd7ff), (0x3000, 0x303f), ]
 
     class CJK(Chinese, Japanese, Korean):
+        "Unicode set for combined Chinese, Japanese, and Korean (CJK) Unicode Character Range"
         pass
 
     class Thai(unicode_set):
+        "Unicode set for Thai Unicode Character Range"
         _ranges = [(0x0e01, 0x0e3a), (0x0e3f, 0x0e5b), ]
 
     class Arabic(unicode_set):
+        "Unicode set for Arabic Unicode Character Range"
         _ranges = [(0x0600, 0x061b), (0x061e, 0x06ff), (0x0700, 0x077f), ]
 
     class Hebrew(unicode_set):
+        "Unicode set for Hebrew Unicode Character Range"
         _ranges = [(0x0590, 0x05ff), ]
 
     class Devanagari(unicode_set):
+        "Unicode set for Devanagari Unicode Character Range"
         _ranges = [(0x0900, 0x097f), (0xa8e0, 0xa8ff)]
 
 pyparsing_unicode.Japanese._ranges = (pyparsing_unicode.Japanese.Kanji._ranges

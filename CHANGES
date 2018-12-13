@@ -18,6 +18,9 @@ Version 2.3.1 -
   package, and convert markdown to rst throughout the distribution, great job
   by Matěj Cepl!
 
+- Expanded the whitespace characters recognized by the White class to include
+  all unicode defined spaces. Suggested in Issue #51 by rtkjbillo.
+
 
 Version 2.3.0 - October, 2018
 -----------------------------
