@@ -21,6 +21,11 @@ Version 2.3.1 -
 - Expanded the whitespace characters recognized by the White class to include
   all unicode defined spaces. Suggested in Issue #51 by rtkjbillo.
 
+- Added optional post_parse argument to ParserElement.runTests() to add a
+  custom callback to be called for test strings that parse successfully. Useful
+  for running tests that do additional validation or processing on the parsed
+  results.
+
 
 Version 2.3.0 - October, 2018
 -----------------------------

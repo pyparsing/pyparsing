@@ -94,7 +94,7 @@ classes inherit from. Use the docstrings for examples of how to:
 """
 
 __version__ = "2.3.1"
-__versionTime__ = "13 Dec 2018 06:25 UTC"
+__versionTime__ = "21 Dec 2018 06:14 UTC"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -2340,7 +2340,8 @@ class ParserElement(object):
         except ParseBaseException:
             return False
 
-    def runTests(self, tests, parseAll=True, comment='#', fullDump=True, printResults=True, failureTests=False):
+    def runTests(self, tests, parseAll=True, comment='#',
+                 fullDump=True, printResults=True, failureTests=False, postParse=None):
         """
         Execute the parse expression on a series of test strings, showing each
         test, the parsed results or where the parse failed. Quick and easy way to
@@ -2348,13 +2349,15 @@ class ParserElement(object):
 
         Parameters:
          - tests - a list of separate test strings, or a multiline string of test strings
-         - parseAll - (default= ``True`` ) - flag to pass to :class:`parseString` when running tests
-         - comment - (default= ``'#'`` ) - expression for indicating embedded comments in the test
+         - parseAll - (default= ``True``) - flag to pass to :class:`parseString` when running tests
+         - comment - (default= ``'#'``) - expression for indicating embedded comments in the test
               string; pass None to disable comment filtering
-         - fullDump - (default= ``True`` ) - dump results as list followed by results names in nested outline;
+         - fullDump - (default= ``True``) - dump results as list followed by results names in nested outline;
               if False, only dump nested list
-         - printResults - (default= ``True`` ) prints test output to stdout
-         - failureTests - (default= ``False`` ) indicates if these tests are expected to fail parsing
+         - printResults - (default= ``True``) prints test output to stdout
+         - failureTests - (default= ``False``) indicates if these tests are expected to fail parsing
+         - postParse - (default= ``None``) optional callback for successful parse results; called as
+              `fn(test_string, parse_results)` and returns a string to be added to the test output
 
         Returns: a (success, results) tuple, where success indicates that all tests succeeded
         (or failed if ``failureTests`` is True), and the results contain a list of lines of each
@@ -2450,6 +2453,11 @@ class ParserElement(object):
                 result = self.parseString(t, parseAll=parseAll)
                 out.append(result.dump(full=fullDump))
                 success = success and not failureTests
+                if post_parse is not None:
+                    try:
+                        out.append(post_parse(t, result))
+                    except Exception as e:
+                        out.append("{} failed: {}: {}".format(post_parse.__name__, type(e).__name__, e))
             except ParseBaseException as pe:
                 fatal = "(FATAL)" if isinstance(pe, ParseFatalException) else ""
                 if '\n' in t:

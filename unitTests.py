@@ -103,7 +103,6 @@ class ParseTestCase(TestCase):
                 print_(buffered_stdout.getvalue())
             raise
 
-        
     def runTest(self):
         pass
         
@@ -3057,6 +3056,23 @@ class RunTestsTest(ParseTestCase):
             """
         success = indices.runTests(tests, printResults=False, failureTests=True)[0]
         assert success, "failed to raise exception on improper range test"
+
+class RunTestsPostParseTest(ParseTestCase):
+    def runTest(self):
+        import pyparsing as pp
+
+        integer = pp.pyparsing_common.integer
+        fraction = integer('numerator') + '/' + integer('denominator')
+
+        def eval_fraction(test, result):
+            return "eval: {}".format(result.numerator / result.denominator)
+
+        success = fraction.runTests("""\
+            1/2
+            1/0
+        """, postParse=eval_fraction)
+
+        self.assertTrue(success, "failed to parse fractions in RunTestsPostParse")
 
 class CommonExpressionsTest(ParseTestCase):
     def runTest(self):
