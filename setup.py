@@ -2,18 +2,9 @@
 
 """Setup script for the pyparsing module distribution."""
 
-# Setuptools depends on pyparsing (via packaging) as of version 34, so allow
-# installing without it to avoid bootstrap problems.
-try:
-    from setuptools import setup
-except ImportError:
-    from distutils.core import setup
-
-import sys
-import os
-
+from setuptools import setup
 from pyparsing import __version__ as pyparsing_version
-    
+
 modules = ["pyparsing",]
 
 setup(# Distribution meta-data
