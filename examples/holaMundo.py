@@ -1,4 +1,4 @@
-# -*- coding: UTF-8 -*-
+# -*- coding: utf-8 -*-
 
 # escrito por Marco Alfonso, 2004 Noviembre
 
