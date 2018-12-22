@@ -2453,11 +2453,11 @@ class ParserElement(object):
                 result = self.parseString(t, parseAll=parseAll)
                 out.append(result.dump(full=fullDump))
                 success = success and not failureTests
-                if post_parse is not None:
+                if postParse is not None:
                     try:
-                        out.append(post_parse(t, result))
+                        out.append(postParse(t, result))
                     except Exception as e:
-                        out.append("{} failed: {}: {}".format(post_parse.__name__, type(e).__name__, e))
+                        out.append("{} failed: {}: {}".format(postParse.__name__, type(e).__name__, e))
             except ParseBaseException as pe:
                 fatal = "(FATAL)" if isinstance(pe, ParseFatalException) else ""
                 if '\n' in t:
