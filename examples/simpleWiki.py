@@ -12,7 +12,7 @@ def convertToHTML(opening,closing):
     def conversionParseAction(s,l,t):
         return opening + t[0] + closing
     return conversionParseAction
-    
+
 italicized = QuotedString("*").setParseAction(convertToHTML("<I>","</I>"))
 bolded = QuotedString("**").setParseAction(convertToHTML("<B>","</B>"))
 boldItalicized = QuotedString("***").setParseAction(convertToHTML("<B><I>","</I></B>"))
@@ -22,7 +22,7 @@ def convertToHTML_A(s,l,t):
     except ValueError:
         raise ParseFatalException(s,l,"invalid URL link reference: " + t[0])
     return '<A href="{}">{}</A>'.format(url,text)
-    
+
 urlRef = QuotedString("{{",endQuoteChar="}}").setParseAction(convertToHTML_A)
 
 wikiMarkup = urlRef | boldItalicized | bolded | italicized

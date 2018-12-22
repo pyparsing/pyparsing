@@ -11,19 +11,19 @@
 # Updated 9 Aug 2016 - use more current pyparsing constructs/idioms
 #
 json_bnf = """
-object 
-    { members } 
-    {} 
-members 
-    string : value 
-    members , string : value 
-array 
+object
+    { members }
+    {}
+members
+    string : value
+    members , string : value
+array
     [ elements ]
-    [] 
-elements 
-    value 
-    elements , value 
-value 
+    []
+elements
+    value
+    elements , value
+value
     string
     number
     object
@@ -55,10 +55,10 @@ memberDef = Group(jsonString + COLON + jsonValue)
 jsonMembers = delimitedList(memberDef)
 jsonObject << Dict(LBRACE + Optional(jsonMembers) + RBRACE)
 
-jsonComment = cppStyleComment 
+jsonComment = cppStyleComment
 jsonObject.ignore(jsonComment)
 
-    
+
 if __name__ == "__main__":
     testdata = """
     {
@@ -66,7 +66,7 @@ if __name__ == "__main__":
             "title": "example glossary",
             "GlossDiv": {
                 "title": "S",
-                "GlossList": 
+                "GlossList":
                     {
                     "ID": "SGML",
                     "SortAs": "SGML",
@@ -103,5 +103,3 @@ if __name__ == "__main__":
     testPrint( results.glossary.GlossDiv.GlossList.Acronym )
     testPrint( results.glossary.GlossDiv.GlossList.EvenPrimesGreaterThan2 )
     testPrint( results.glossary.GlossDiv.GlossList.PrimesLessThan10 )
-
-

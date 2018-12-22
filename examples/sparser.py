@@ -2,7 +2,7 @@
 
 """
 NAME:
-    sparser.py  
+    sparser.py
 
 SYNOPSIS:
     sparser.py [options] filename
@@ -64,7 +64,7 @@ debug_p = 0
 
 
 #---positional args, default is empty---
-pargs = []    
+pargs = []
 
 
 #---other---
@@ -86,7 +86,7 @@ def fatal(ftn, txt):
     """If can't continue."""
     msg = "{}.{}:FATAL:{}\n".format(modname, ftn, txt)
     raise SystemExit(msg)
- 
+
 def usage():
     """Prints the docstring."""
     print(__doc__)
@@ -129,10 +129,10 @@ class ParseFileLineByLine:
     or '~user' to indicate a home directory, as well as URLs (for reading
     only).
 
-    Constructor: 
+    Constructor:
     ParseFileLineByLine(|filename|, |mode|='"r"'), where |filename| is the name
     of the file (or a URL) and |mode| is one of '"r"' (read), '"w"' (write) or
-    '"a"' (append, not supported for .Z files).  
+    '"a"' (append, not supported for .Z files).
     """
 
     def __init__(self, filename, mode = 'r'):
@@ -154,27 +154,27 @@ class ParseFileLineByLine:
                     raise IOError(2, 'No such file or directory: ' + filename)
             filen, file_extension = os.path.splitext(filename)
             command_dict = {
-              ('.Z', 'r'): 
+              ('.Z', 'r'):
                 "self.file = os.popen('uncompress -c ' + filename, mode)",
-              ('.gz', 'r'): 
+              ('.gz', 'r'):
                 "self.file = gzip.GzipFile(filename, 'rb')",
-              ('.bz2', 'r'): 
+              ('.bz2', 'r'):
                 "self.file = os.popen('bzip2 -dc ' + filename, mode)",
-              ('.Z', 'w'): 
+              ('.Z', 'w'):
                 "self.file = os.popen('compress > ' + filename, mode)",
-              ('.gz', 'w'): 
+              ('.gz', 'w'):
                 "self.file = gzip.GzipFile(filename, 'wb')",
-              ('.bz2', 'w'): 
+              ('.bz2', 'w'):
                 "self.file = os.popen('bzip2 > ' + filename, mode)",
-              ('.Z', 'a'): 
+              ('.Z', 'a'):
                 "raise IOError, (0, 'Can\'t append to .Z files')",
-              ('.gz', 'a'): 
+              ('.gz', 'a'):
                 "self.file = gzip.GzipFile(filename, 'ab')",
-              ('.bz2', 'a'): 
+              ('.bz2', 'a'):
                 "raise IOError, (0, 'Can\'t append to .bz2 files')",
                            }
 
-            exec(command_dict.get((file_extension, mode), 
+            exec(command_dict.get((file_extension, mode),
                                   'self.file = open(filename, mode)'))
 
         self.grammar = None
@@ -211,54 +211,54 @@ class ParseFileLineByLine:
         decimal_sep = "."
         sign = oneOf("+ -")
         # part of printables without decimal_sep, +, -
-        special_chars = string.replace('!"#$%&\'()*,./:;<=>?@[\\]^_`{|}~', 
-                                       decimal_sep, "") 
+        special_chars = string.replace('!"#$%&\'()*,./:;<=>?@[\\]^_`{|}~',
+                                       decimal_sep, "")
         integer = ToInteger(
-                  Combine(Optional(sign) + 
+                  Combine(Optional(sign) +
                           Word(nums))).setName("integer")
         positive_integer = ToInteger(
-                           Combine(Optional("+") + 
+                           Combine(Optional("+") +
                                    Word(nums))).setName("integer")
         negative_integer = ToInteger(
-                           Combine("-" + 
+                           Combine("-" +
                                    Word(nums))).setName("integer")
         real = ToFloat(
-               Combine(Optional(sign) + 
-                       Word(nums) + 
-                       decimal_sep + 
-                       Optional(Word(nums)) + 
-                       Optional(oneOf("E e") + 
+               Combine(Optional(sign) +
+                       Word(nums) +
+                       decimal_sep +
+                       Optional(Word(nums)) +
+                       Optional(oneOf("E e") +
                                 Word(nums)))).setName("real")
         positive_real = ToFloat(
-                        Combine(Optional("+") + 
-                                Word(nums) + 
-                                decimal_sep + 
-                                Optional(Word(nums)) + 
-                                Optional(oneOf("E e") + 
+                        Combine(Optional("+") +
+                                Word(nums) +
+                                decimal_sep +
+                                Optional(Word(nums)) +
+                                Optional(oneOf("E e") +
                                          Word(nums)))).setName("real")
         negative_real = ToFloat(
-                        Combine("-" + 
-                                Word(nums) + 
-                                decimal_sep + 
-                                Optional(Word(nums)) + 
-                                Optional(oneOf("E e") + 
+                        Combine("-" +
+                                Word(nums) +
+                                decimal_sep +
+                                Optional(Word(nums)) +
+                                Optional(oneOf("E e") +
                                          Word(nums)))).setName("real")
         qString = ( sglQuotedString | dblQuotedString ).setName("qString")
-    
+
         # add other characters we should skip over between interesting fields
         integer_junk = Optional(
                        Suppress(
-                       Word(alphas + 
-                            special_chars + 
+                       Word(alphas +
+                            special_chars +
                             decimal_sep))).setName("integer_junk")
         real_junk = Optional(
                     Suppress(
-                    Word(alphas + 
+                    Word(alphas +
                          special_chars))).setName("real_junk")
         qString_junk = SkipTo(qString).setName("qString_junk")
 
         # Now that 'integer', 'real', and 'qString' have been assigned I can
-        # execute the definition file.  
+        # execute the definition file.
         exec(compile(open(self.parsedef).read(), self.parsedef, 'exec'))
 
         # Build the grammar, combination of the 'integer', 'real, 'qString',
@@ -337,7 +337,7 @@ def main(pargs):
     for i in fp:
         print(i)
 
-    
+
 #-------------------------
 if __name__ == '__main__':
     ftn = "main"
@@ -361,5 +361,5 @@ if __name__ == '__main__':
 
 #===Revision Log===
 #Created by mkpythonproj:
-#2006-02-06  Tim Cera  
+#2006-02-06  Tim Cera
 #

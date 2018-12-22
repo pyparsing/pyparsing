@@ -7,7 +7,7 @@ from pyparsing import *
 
 def romanNumeralLiteral(numeralString, value):
     return Literal(numeralString).setParseAction(replaceWith(value))
-    
+
 one         = romanNumeralLiteral("I",1)
 four        = romanNumeralLiteral("IV",4)
 five        = romanNumeralLiteral("V",5)
@@ -22,8 +22,8 @@ fivehundred = romanNumeralLiteral("D",500)
 ninehundred = romanNumeralLiteral("CM",900)
 onethousand = romanNumeralLiteral("M",1000)
 
-numeral = ( onethousand | ninehundred | fivehundred | fourhundred | 
-            onehundred | ninety | fifty | forty | ten | nine | five | 
+numeral = ( onethousand | ninehundred | fivehundred | fourhundred |
+            onehundred | ninety | fifty | forty | ten | nine | five |
             four | one ).leaveWhitespace()
 
 romanNumeral = OneOrMore(numeral).setParseAction( lambda s,l,t : sum(t) )
@@ -34,7 +34,7 @@ def makeRomanNumeral(n):
         n -= limit
         s += c
         return n,s
-    
+
     ret = ""
     while n >= 1000: n,ret = addDigit(n,1000,"M",ret)
     while n >=  900: n,ret = addDigit(n, 900,"CM",ret)
@@ -66,9 +66,3 @@ test("XIV")
 test("XIX")
 test("MCMLXXX")
 test("MMVI")
-
-
-
-
-
-

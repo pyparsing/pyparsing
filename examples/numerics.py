@@ -9,41 +9,41 @@
 # Format samples from https://docs.oracle.com/cd/E19455-01/806-0169/overview-9/index.html
 #
 tests = """\
-# Canadian (English and French) 
-4 294 967 295,000  
+# Canadian (English and French)
+4 294 967 295,000
 
-# Danish 
-4 294 967 295,000 
+# Danish
+4 294 967 295,000
 
-# Finnish 
-4 294 967 295,000 
+# Finnish
+4 294 967 295,000
 
-# French 
-4 294 967 295,000  
+# French
+4 294 967 295,000
 
-# German 
-4 294 967 295,000  
+# German
+4 294 967 295,000
 
-# Italian 
-4.294.967.295,000 
+# Italian
+4.294.967.295,000
 
-# Norwegian 
-4.294.967.295,000  
+# Norwegian
+4.294.967.295,000
 
-# Spanish 
-4.294.967.295,000  
+# Spanish
+4.294.967.295,000
 
-# Swedish 
-4 294 967 295,000  
+# Swedish
+4 294 967 295,000
 
-# GB-English 
-4,294,967,295.000  
+# GB-English
+4,294,967,295.000
 
-# US-English 
-4,294,967,295.000  
+# US-English
+4,294,967,295.000
 
-# Thai 
-4,294,967,295.000 
+# Thai
+4,294,967,295.000
 """
 
 from pyparsing import Regex

@@ -21,7 +21,7 @@ def pushFirst( strg, loc, toks ):
     exprStack.append( toks[0] )
 def pushUMinus( strg, loc, toks ):
     for t in toks:
-      if t == '-': 
+      if t == '-':
         exprStack.append( 'unary -' )
         #~ exprStack.append( '-1' )
         #~ exprStack.append( '*' )
@@ -48,27 +48,27 @@ def BNF():
         # and CaselessKeyword only match whole words
         e     = CaselessKeyword( "E" )
         pi    = CaselessKeyword( "PI" )
-        #~ fnumber = Combine( Word( "+-"+nums, nums ) + 
+        #~ fnumber = Combine( Word( "+-"+nums, nums ) +
                            #~ Optional( point + Optional( Word( nums ) ) ) +
                            #~ Optional( e + Word( "+-"+nums, nums ) ) )
         fnumber = Regex(r"[+-]?\d+(?:\.\d*)?(?:[eE][+-]?\d+)?")
         ident = Word(alphas, alphanums+"_$")
-     
+
         plus, minus, mult, div = map(Literal, "+-*/")
         lpar, rpar = map(Suppress, "()")
         addop  = plus | minus
         multop = mult | div
         expop = Literal( "^" )
-        
+
         expr = Forward()
-        atom = ((0,None)*minus + ( pi | e | fnumber | ident + lpar + expr + rpar | ident ).setParseAction( pushFirst ) | 
-                Group( lpar + expr + rpar )).setParseAction(pushUMinus) 
-        
+        atom = ((0,None)*minus + ( pi | e | fnumber | ident + lpar + expr + rpar | ident ).setParseAction( pushFirst ) |
+                Group( lpar + expr + rpar )).setParseAction(pushUMinus)
+
         # by defining exponentiation as "atom [ ^ factor ]..." instead of "atom [ ^ atom ]...", we get right-to-left exponents, instead of left-to-righ
         # that is, 2^3^2 = 2^(3^2), not (2^3)^2.
         factor = Forward()
         factor << atom + ZeroOrMore( ( expop + factor ).setParseAction( pushFirst ) )
-        
+
         term = factor + ZeroOrMore( ( multop + factor ).setParseAction( pushFirst ) )
         expr << term + ZeroOrMore( ( addop + term ).setParseAction( pushFirst ) )
         bnf = expr
@@ -109,7 +109,7 @@ def evaluateStack( s ):
         return float( op )
 
 if __name__ == "__main__":
-    
+
     def test( s, expVal ):
         global exprStack
         exprStack[:] = []
@@ -125,7 +125,7 @@ if __name__ == "__main__":
                 print(s, "=", val, results, "=>", exprStack)
             else:
                 print(s+"!!!", val, "!=", expVal, results, "=>", exprStack)
-  
+
     test( "9", 9 )
     test( "-9", -9 )
     test( "--9", 9 )

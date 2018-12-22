@@ -1,9 +1,9 @@
-# 
+#
 # dhcpd_leases_parser.py
 #
 # Copyright 2008, Paul McGuire
 #
-# Sample parser to parse a dhcpd.leases file to extract leases 
+# Sample parser to parse a dhcpd.leases file to extract leases
 # and lease attributes
 #
 # format ref: http://www.linuxmanpages.com/man5/dhcpd.leases.5.php

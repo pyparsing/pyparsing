@@ -55,7 +55,7 @@ syntax.ignore(ebnfComment)
 
 def do_integer(str, loc, toks):
     return int(toks[0])
-    
+
 def do_meta_identifier(str, loc, toks):
     if toks[0] in symbol_table:
         return symbol_table[toks[0]]

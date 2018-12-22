@@ -35,11 +35,11 @@ whereCondition = Group(
     ( columnName + in_ + "(" + selectStmt + ")" ) |
     ( "(" + whereExpression + ")" )
     )
-whereExpression << whereCondition + ZeroOrMore( ( and_ | or_ ) + whereExpression ) 
+whereExpression << whereCondition + ZeroOrMore( ( and_ | or_ ) + whereExpression )
 
 # define the grammar
-selectStmt <<= (SELECT + ('*' | columnNameList)("columns") + 
-                FROM + tableNameList( "tables" ) + 
+selectStmt <<= (SELECT + ('*' | columnNameList)("columns") +
+                FROM + tableNameList( "tables" ) +
                 Optional(Group(WHERE + whereExpression), "")("where"))
 
 simpleSQL = selectStmt
@@ -61,7 +61,7 @@ if __name__ == "__main__":
 
         Select A,B,C from Sys.dual
 
-        Select A, B, C from Sys.dual, Table2   
+        Select A, B, C from Sys.dual, Table2
 
         # FAIL - invalid SELECT keyword
         Xelect A, B, C from Sys.dual

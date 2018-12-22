@@ -38,7 +38,7 @@ def operatorOperands(tokenlist):
             yield (next(it), next(it))
         except StopIteration:
             break
-            
+
 class EvalPowerOp(object):
     "Class to evaluate multiplication and division expressions"
     def __init__(self, tokens):
@@ -48,7 +48,7 @@ class EvalPowerOp(object):
         for val in self.value[-3::-2]:
             res = val.eval()**res
         return res
-    
+
 class EvalMultOp(object):
     "Class to evaluate multiplication and division expressions"
     def __init__(self, tokens):
@@ -61,7 +61,7 @@ class EvalMultOp(object):
             if op == '/':
                 prod /= val.eval()
         return prod
-    
+
 class EvalAddOp(object):
     "Class to evaluate addition and subtraction expressions"
     def __init__(self, tokens):
@@ -105,7 +105,7 @@ class EvalComparisonOp(object):
         else:
             return True
         return False
-    
+
 
 # define the parser
 integer = Word(nums)
@@ -137,57 +137,57 @@ comp_expr = infixNotation(arith_expr,
 def main():
     # sample expressions posted on comp.lang.python, asking for advice
     # in safely evaluating them
-    rules=[ 
-             '( A - B ) = 0', 
-             '(A + B + C + D + E + F + G + H + I) = J', 
-             '(A + B + C + D + E + F + G + H) = I', 
-             '(A + B + C + D + E + F) = G', 
-             '(A + B + C + D + E) = (F + G + H + I + J)', 
-             '(A + B + C + D + E) = (F + G + H + I)', 
-             '(A + B + C + D + E) = F', 
-             '(A + B + C + D) = (E + F + G + H)', 
-             '(A + B + C) = (D + E + F)', 
-             '(A + B) = (C + D + E + F)', 
-             '(A + B) = (C + D)', 
-             '(A + B) = (C - D + E - F - G + H + I + J)', 
-             '(A + B) = C', 
-             '(A + B) = 0', 
-             '(A+B+C+D+E) = (F+G+H+I+J)', 
-             '(A+B+C+D) = (E+F+G+H)', 
-             '(A+B+C+D)=(E+F+G+H)', 
-             '(A+B+C)=(D+E+F)', 
-             '(A+B)=(C+D)', 
-             '(A+B)=C', 
-             '(A-B)=C', 
-             '(A/(B+C))', 
-             '(B/(C+D))', 
-             '(G + H) = I', 
-             '-0.99 LE ((A+B+C)-(D+E+F+G)) LE 0.99', 
-             '-0.99 LE (A-(B+C)) LE 0.99', 
-             '-1000.00 LE A LE 0.00', 
-             '-5000.00 LE A LE 0.00', 
-             'A < B', 
-             'A < 7000', 
-             'A = -(B)', 
-             'A = C', 
-             'A = 0', 
-             'A GT 0', 
-             'A GT 0.00', 
-             'A GT 7.00', 
-             'A LE B', 
-             'A LT -1000.00', 
-             'A LT -5000', 
-             'A LT 0', 
-             'A=(B+C+D)', 
-             'A=B', 
-             'I = (G + H)', 
-             '0.00 LE A LE 4.00', 
+    rules=[
+             '( A - B ) = 0',
+             '(A + B + C + D + E + F + G + H + I) = J',
+             '(A + B + C + D + E + F + G + H) = I',
+             '(A + B + C + D + E + F) = G',
+             '(A + B + C + D + E) = (F + G + H + I + J)',
+             '(A + B + C + D + E) = (F + G + H + I)',
+             '(A + B + C + D + E) = F',
+             '(A + B + C + D) = (E + F + G + H)',
+             '(A + B + C) = (D + E + F)',
+             '(A + B) = (C + D + E + F)',
+             '(A + B) = (C + D)',
+             '(A + B) = (C - D + E - F - G + H + I + J)',
+             '(A + B) = C',
+             '(A + B) = 0',
+             '(A+B+C+D+E) = (F+G+H+I+J)',
+             '(A+B+C+D) = (E+F+G+H)',
+             '(A+B+C+D)=(E+F+G+H)',
+             '(A+B+C)=(D+E+F)',
+             '(A+B)=(C+D)',
+             '(A+B)=C',
+             '(A-B)=C',
+             '(A/(B+C))',
+             '(B/(C+D))',
+             '(G + H) = I',
+             '-0.99 LE ((A+B+C)-(D+E+F+G)) LE 0.99',
+             '-0.99 LE (A-(B+C)) LE 0.99',
+             '-1000.00 LE A LE 0.00',
+             '-5000.00 LE A LE 0.00',
+             'A < B',
+             'A < 7000',
+             'A = -(B)',
+             'A = C',
+             'A = 0',
+             'A GT 0',
+             'A GT 0.00',
+             'A GT 7.00',
+             'A LE B',
+             'A LT -1000.00',
+             'A LT -5000',
+             'A LT 0',
+             'A=(B+C+D)',
+             'A=B',
+             'I = (G + H)',
+             '0.00 LE A LE 4.00',
              '4.00 LT A LE 7.00',
              '0.00 LE A LE 4.00 LE E > D',
              '2**2**(A+3)',
-         ] 
-    vars_={'A': 0, 'B': 1.1, 'C': 2.2, 'D': 3.3, 'E': 4.4, 'F': 5.5, 'G': 
-    6.6, 'H':7.7, 'I':8.8, 'J':9.9} 
+         ]
+    vars_={'A': 0, 'B': 1.1, 'C': 2.2, 'D': 3.3, 'E': 4.4, 'F': 5.5, 'G':
+    6.6, 'H':7.7, 'I':8.8, 'J':9.9}
 
     # define tests from given rules
     tests = []
@@ -216,12 +216,12 @@ def main():
             failed += 1
         else:
             print('')
-            
+
     print('')
     if failed:
         print(failed, "tests FAILED")
     else:
         print("all tests PASSED")
 
-if __name__=='__main__': 
+if __name__=='__main__':
     main()

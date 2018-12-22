@@ -43,8 +43,8 @@ description = Regex("[^#\n]+")
 description.setParseAction(lambda t:t[0].lstrip('- '))
 
 TODO,SKIP = map(CaselessLiteral,'TODO SKIP'.split())
-directive = Group(Suppress('#') + (TODO + restOfLine | 
-    FollowedBy(SKIP) + 
+directive = Group(Suppress('#') + (TODO + restOfLine |
+    FollowedBy(SKIP) +
         restOfLine.copy().setParseAction(lambda t:['SKIP',t[0]]) ))
 
 commentLine = Suppress("#") + empty + restOfLine
@@ -52,11 +52,11 @@ commentLine = Suppress("#") + empty + restOfLine
 testLine = Group(
     Optional(OneOrMore(commentLine + NL))("comments") +
     testStatus("passed") +
-    Optional(integer)("testNumber") + 
-    Optional(description)("description") + 
+    Optional(integer)("testNumber") +
+    Optional(description)("description") +
     Optional(directive)("directive")
     )
-bailLine = Group(Literal("Bail out!")("BAIL") + 
+bailLine = Group(Literal("Bail out!")("BAIL") +
                     empty + Optional(restOfLine)("reason"))
 
 tapOutputParser = Optional(Group(plan)("plan") + NL) & \
@@ -89,7 +89,7 @@ class TAPSummary(object):
             expected = list(range(1, int(results.plan.ubound)+1))
         else:
             expected = list(range(1,len(results.tests)+1))
-        
+
         for i,res in enumerate(results.tests):
             # test for bail out
             if res.BAIL:
@@ -99,7 +99,7 @@ class TAPSummary(object):
                 self.skippedTests += [ TAPTest.bailedTest(ii) for ii in expected[i:] ]
                 self.bailReason = res.reason
                 break
-            
+
             #~ print res.dump()
             testnum = i+1
             if res.testNumber != "":
@@ -109,16 +109,16 @@ class TAPSummary(object):
             res["testNumber"] = testnum
 
             test = TAPTest(res)
-            if test.passed: 
+            if test.passed:
                 self.passedTests.append(test)
             else:
                 self.failedTests.append(test)
             if test.skipped: self.skippedTests.append(test)
             if test.todo: self.todoTests.append(test)
             if test.todo and test.passed: self.bonusTests.append(test)
-            
+
         self.passedSuite = not self.bail and (set(self.failedTests)-set(self.todoTests) == set())
-    
+
     def summary(self, showPassed=False, showAll=False):
         testListStr = lambda tl : "[" + ",".join(str(t.num) for t in tl) + "]"
         summaryText = []

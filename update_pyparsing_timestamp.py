@@ -15,4 +15,3 @@ with open('pyparsing.py', encoding='utf-8') as oldpp:
 
 with open('pyparsing.py','w', encoding='utf-8') as newpp:
     newpp.write(new_code)
-

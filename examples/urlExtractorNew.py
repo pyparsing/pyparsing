@@ -25,11 +25,8 @@ serverListPage.close()
 for toks,strt,end in link.scanString(htmlText):
     print(toks.startA.href,"->",toks.body)
 
-# Create dictionary from list comprehension, assembled from each pair of tokens returned 
+# Create dictionary from list comprehension, assembled from each pair of tokens returned
 # from a matched URL.
-pprint.pprint( 
+pprint.pprint(
     {  toks.body:toks.startA.href for toks,strt,end in link.scanString(htmlText)  }
     )
-
-
-

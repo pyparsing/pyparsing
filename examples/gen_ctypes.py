@@ -43,7 +43,7 @@ typemap = {
     "Bool" : "c_bool",
     "void" : "None",
     }
-    
+
 LPAR,RPAR,LBRACE,RBRACE,COMMA,SEMI = map(Suppress,"(){},;")
 ident = Word(alphas, alphanums + "_")
 integer = Regex(r"[+-]?\d+")
@@ -52,19 +52,19 @@ hexinteger = Regex(r"0x[0-9a-fA-F]+")
 const = Suppress("const")
 primitiveType = oneOf(t for t in typemap if not t.endswith("*"))
 structType = Suppress("struct") + ident
-vartype = (Optional(const) + 
-            (primitiveType | structType | ident) + 
+vartype = (Optional(const) +
+            (primitiveType | structType | ident) +
             Optional(Word("*")("ptr")))
 def normalizetype(t):
     if isinstance(t, ParseResults):
         return ' '.join(t)
         #~ ret = ParseResults([' '.join(t)])
         #~ return ret
-        
+
 vartype.setParseAction(normalizetype)
 
 arg = Group(vartype("argtype") + Optional(ident("argname")))
-func_def = (vartype("fn_type") + ident("fn_name") + 
+func_def = (vartype("fn_type") + ident("fn_name") +
                 LPAR + Optional(delimitedList(arg|"..."))("fn_args") + RPAR + SEMI)
 def derivefields(t):
     if t.fn_args and t.fn_args[-1] == "...":
@@ -74,7 +74,7 @@ func_def.setParseAction(derivefields)
 fn_typedef = "typedef" + func_def
 var_typedef = "typedef" + primitiveType("primType") + ident("name") + SEMI
 
-enum_def = (Keyword("enum") + LBRACE + 
+enum_def = (Keyword("enum") + LBRACE +
             delimitedList(Group(ident("name") + '=' + (hexinteger|integer)("value")))("evalues")
             + Optional(COMMA)
             + RBRACE)
@@ -131,7 +131,7 @@ for fn,_,_ in (cStyleComment.suppress() | fn_typedef.suppress() | func_def).scan
         if arg != "...":
             if arg.argtype not in typemap:
                 getUDType(arg.argtype)
-    functions.append(fn)                
+    functions.append(fn)
 
 # scan input header text for enums
 enum_def.ignore(cppStyleComment)
@@ -160,7 +160,7 @@ print()
 print("# functions")
 for fn in functions:
     prefix = "{}.{}".format(module, fn.fn_name)
-    
+
     print("{}.restype = {}".format(prefix, typeAsCtypes(fn.fn_type)))
     if fn.varargs:
         print("# warning - %s takes variable argument list" % prefix)
@@ -170,5 +170,3 @@ for fn in functions:
         print("{}.argtypes = ({},)".format(prefix, ','.join(typeAsCtypes(a.argtype) for a in fn.fn_args)))
     else:
         print("%s.argtypes = ()" % (prefix))
-        
-

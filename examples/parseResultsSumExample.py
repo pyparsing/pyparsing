@@ -21,5 +21,3 @@ for test in (samplestr1,samplestr2,samplestr3,samplestr4,):
     print(person.id)
     print(person.dump())
     print()
-
-    

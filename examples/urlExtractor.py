@@ -23,11 +23,8 @@ with closing(urllib.request.urlopen("http://www.yahoo.com")) as serverListPage:
 for toks,strt,end in link.scanString(htmlText):
     print(toks.asList())
 
-# Create dictionary from list comprehension, assembled from each pair of tokens returned 
+# Create dictionary from list comprehension, assembled from each pair of tokens returned
 # from a matched URL.
-pprint.pprint( 
+pprint.pprint(
     {toks.body: toks.href for toks,strt,end in link.scanString(htmlText)}
     )
-
-
-
