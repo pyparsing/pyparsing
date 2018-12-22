@@ -94,7 +94,7 @@ classes inherit from. Use the docstrings for examples of how to:
 """
 
 __version__ = "2.3.1"
-__versionTime__ = "21 Dec 2018 06:14 UTC"
+__versionTime__ = "22 Dec 2018 15:31 UTC"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -2449,7 +2449,8 @@ class ParserElement(object):
             out = ['\n'.join(comments), t]
             comments = []
             try:
-                t = t.replace(r'\n','\n')
+                # convert newline marks to actual newlines, and strip leading BOM if present
+                t = t.replace(r'\n','\n').lstrip('\ufeff')
                 result = self.parseString(t, parseAll=parseAll)
                 out.append(result.dump(full=fullDump))
                 success = success and not failureTests
