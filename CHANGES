@@ -26,6 +26,9 @@ Version 2.3.1 -
   for running tests that do additional validation or processing on the parsed
   results.
 
+- Removed distutils fallback in setup.py. If installing the package fails,
+  please update to the latest version of setuptools.
+
 
 Version 2.3.0 - October, 2018
 -----------------------------
