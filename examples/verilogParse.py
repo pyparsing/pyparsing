@@ -61,17 +61,16 @@
 #           for udpInstance.
 #   1.0.11 - Fixed bug in inst_args, content alternatives were reversed
 #
-import pdb
 import time
 import pprint
 import sys
 
 __version__ = "1.0.11"
 
-from pyparsing import Literal, CaselessLiteral, Keyword, Word, OneOrMore, ZeroOrMore, \
-        Forward, NotAny, delimitedList, Group, Optional, Combine, alphas, nums, restOfLine, cStyleComment, \
-        alphanums, printables, dblQuotedString, empty, ParseException, ParseResults, MatchFirst, oneOf, GoToColumn, \
-        ParseResults,StringEnd, FollowedBy, ParserElement, And, Regex, cppStyleComment#,__version__
+from pyparsing import Literal, Keyword, Word, OneOrMore, ZeroOrMore, \
+        Forward, delimitedList, Group, Optional, Combine, alphas, nums, restOfLine, \
+        alphanums, dblQuotedString, empty, ParseException, oneOf, \
+        StringEnd, FollowedBy, ParserElement, Regex, cppStyleComment
 import pyparsing
 usePackrat = False
 usePsyco = False

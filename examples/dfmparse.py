@@ -10,7 +10,7 @@ __author__ = "Daniel 'Dang' Griffith <pythondev - dang at lazytwinacres . net>"
 
 from pyparsing import Literal, CaselessLiteral, Word, delimitedList \
     , Optional, Combine, Group, alphas, nums, alphanums, Forward \
-    , oneOf, sglQuotedString, OneOrMore, ZeroOrMore, CharsNotIn
+    , oneOf, OneOrMore, ZeroOrMore, CharsNotIn
 
 
 # This converts DFM character constants into Python string (unicode) values.

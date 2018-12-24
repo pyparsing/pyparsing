@@ -5,7 +5,7 @@
 # A partial implementation of a parser of Excel formula expressions.
 #
 from pyparsing import (CaselessKeyword, Suppress, Word, alphas,
-    alphanums, nums, Optional, Group, oneOf, Forward, Regex,
+    alphanums, nums, Optional, Group, oneOf, Forward,
     infixNotation, opAssoc, dblQuotedString, delimitedList,
     Combine, Literal, QuotedString, ParserElement, pyparsing_common)
 ParserElement.enablePackrat()

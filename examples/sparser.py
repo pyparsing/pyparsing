@@ -47,8 +47,6 @@ EXAMPLES:
 import sys
 import os
 import getopt
-import re
-import gzip
 
 from pyparsing import *
 

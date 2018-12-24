@@ -7,7 +7,6 @@
 # Copyright (c) 2004, Paul McGuire
 #
 from pyparsing import Literal, Word, Group, Dict, ZeroOrMore, alphas, nums, delimitedList, pyparsing_common
-import pprint
 
 testData = """
 +-------+------+------+------+------+------+------+------+------+

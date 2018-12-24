@@ -2,7 +2,6 @@
 #
 # module to define .pystate import handler
 #
-#import imputil
 import sys
 import os
 import types
@@ -10,11 +9,9 @@ import urllib.parse
 
 DEBUG = False
 
-from pyparsing import Word, Group, ZeroOrMore, alphas, \
-    alphanums, ParserElement, ParseException, ParseSyntaxException, \
-    Empty, LineEnd, OneOrMore, col, Keyword, pythonStyleComment, \
-    StringEnd, traceParseAction
-
+from pyparsing import Word, Group, alphas, \
+    alphanums, ParseException, \
+    OneOrMore, col, Keyword, pythonStyleComment
 
 ident = Word(alphas+"_", alphanums+"_$")
 

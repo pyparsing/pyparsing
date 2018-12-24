@@ -13,7 +13,6 @@ from pyparsing import ParseException
 import pyparsing as pp
 
 import sys
-import pdb
 
 PY_3 = sys.version.startswith('3')
 if PY_3:
@@ -273,7 +272,6 @@ class ParseJSONDataTest(ParseTestCase):
             [],
             ]
 
-        import pprint
         for t,exp in zip((test1,test2,test3,test4,test5),expected):
             result = jsonObject.parseString(t)
 ##            print result.dump()
@@ -285,7 +283,6 @@ class ParseJSONDataTest(ParseTestCase):
 class ParseCommaSeparatedValuesTest(ParseTestCase):
     def runTest(self):
         from pyparsing import commaSeparatedList
-        import string
 
         testData = [
             "a,b,c,100.2,,3",
@@ -316,7 +313,7 @@ class ParseCommaSeparatedValuesTest(ParseTestCase):
 class ParseEBNFTest(ParseTestCase):
     def runTest(self):
         from examples import ebnf
-        from pyparsing import Word, quotedString, alphas, nums,ParserElement
+        from pyparsing import Word, quotedString, alphas, nums
 
         print_('Constructing EBNF parser with pyparsing...')
 
@@ -989,7 +986,7 @@ class ReStringRangeTest(ParseTestCase):
 class SkipToParserTests(ParseTestCase):
     def runTest(self):
 
-        from pyparsing import Literal, SkipTo, NotAny, cStyleComment, ParseBaseException
+        from pyparsing import Literal, SkipTo, cStyleComment, ParseBaseException
 
         thingToFind = Literal('working')
         testExpr = SkipTo(Literal(';'), include=True, ignore=cStyleComment) + thingToFind
@@ -1068,7 +1065,7 @@ class CustomQuotesTest(ParseTestCase):
 
 class RepeaterTest(ParseTestCase):
     def runTest(self):
-        from pyparsing import matchPreviousLiteral,matchPreviousExpr, Forward, Literal, Word, alphas, nums, ParserElement
+        from pyparsing import matchPreviousLiteral,matchPreviousExpr, Word, nums, ParserElement
 
         if ParserElement._packratEnabled:
             print_("skipping this test, not compatible with packratting")
@@ -1406,7 +1403,7 @@ class InfixNotationGrammarTest4(ParseTestCase):
 class InfixNotationGrammarTest5(ParseTestCase):
 
     def runTest(self):
-        from pyparsing import infixNotation, opAssoc, pyparsing_common, Literal, oneOf, ParseResults
+        from pyparsing import infixNotation, opAssoc, pyparsing_common, Literal, oneOf
 
         expop = Literal('**')
         signop = oneOf('+ -')
@@ -2267,7 +2264,7 @@ class OriginalTextForTest(ParseTestCase):
 
 class PackratParsingCacheCopyTest(ParseTestCase):
     def runTest(self):
-        from pyparsing import Word,nums,ParserElement,delimitedList,Literal,Optional,alphas,alphanums,ZeroOrMore,empty
+        from pyparsing import Word,nums,delimitedList,Literal,Optional,alphas,alphanums,ZeroOrMore,empty
 
         integer = Word(nums).setName("integer")
         id = Word(alphas+'_',alphanums+'_')
@@ -2288,7 +2285,7 @@ class PackratParsingCacheCopyTest(ParseTestCase):
 
 class PackratParsingCacheCopyTest2(ParseTestCase):
     def runTest(self):
-        from pyparsing import Keyword,Word,Suppress,Forward,Optional,delimitedList,ParserElement,Group
+        from pyparsing import Keyword,Word,Suppress,Forward,Optional,delimitedList,Group
 
         DO,AA = list(map(Keyword, "DO AA".split()))
         LPAR,RPAR = list(map(Suppress,"()"))
@@ -2639,7 +2636,7 @@ class OptionalEachTest(ParseTestCase):
                          + str(p1res.asList()) + " should match " + str(p2res.asList()))
 
     def runTest2(self):
-        from pyparsing import Word, alphanums, Suppress, OneOrMore, Group, Regex, Optional
+        from pyparsing import Word, alphanums, OneOrMore, Group, Regex, Optional
 
         word = Word(alphanums + '_').setName("word")
         with_stmt = 'with' + OneOrMore(Group(word('key') + '=' + word('value')))('overrides')
@@ -2736,7 +2733,7 @@ class MarkInputLineTest(ParseTestCase):
 
         samplestr1 = "DOB 100-10-2010;more garbage\nID PARI12345678;more garbage"
 
-        from pyparsing import Regex, Word, alphanums, restOfLine
+        from pyparsing import Regex
         dob_ref = "DOB" + Regex(r"\d{2}-\d{2}-\d{4}")("dob")
 
         try:
@@ -2754,7 +2751,7 @@ class LocatedExprTest(ParseTestCase):
         #             012345678901234567890123456789012345678901234567890
         samplestr1 = "DOB 10-10-2010;more garbage;ID PARI12345678  ;more garbage"
 
-        from pyparsing import Regex, Word, alphanums, restOfLine, locatedExpr
+        from pyparsing import Word, alphanums, locatedExpr
         id_ref = locatedExpr("ID" + Word(alphanums,exact=12)("id"))
 
         res = id_ref.searchString(samplestr1)[0][0]
@@ -2802,7 +2799,7 @@ class PopTest(ParseTestCase):
 
 class AddConditionTest(ParseTestCase):
     def runTest(self):
-        from pyparsing import Word, alphas, nums, Suppress, ParseFatalException
+        from pyparsing import Word, nums, Suppress, ParseFatalException
 
         numParser = Word(nums)
         numParser.addParseAction(lambda s,l,t: int(t[0]))

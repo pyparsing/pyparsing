@@ -10,7 +10,7 @@ Submitted by Luca DallOlio, September, 2010
 '''
 from pyparsing import Word, ZeroOrMore, printables, Suppress, OneOrMore, Group, \
     LineEnd, Optional, White, originalTextFor, hexnums, nums, Combine, Literal, Keyword, \
-    cStyleComment, Regex, Forward, MatchFirst, And, srange, oneOf, alphas, alphanums, \
+    cStyleComment, Regex, Forward, MatchFirst, And, oneOf, alphas, alphanums, \
     delimitedList
 
 # http://www.antlr.org/grammar/ANTLR/ANTLRv3.g

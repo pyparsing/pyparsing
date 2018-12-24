@@ -8,7 +8,7 @@
 # Copyright 2011,2015 Paul T. McGuire
 #
 
-from pyparsing import Word, nums, Suppress, ParseException, empty, Optional
+from pyparsing import Word, nums, Suppress, Optional
 from datetime import datetime
 
 def ranged_value(expr, minval=None, maxval=None):

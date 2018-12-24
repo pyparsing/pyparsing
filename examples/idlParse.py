@@ -6,9 +6,9 @@
 # Copyright (c) 2003, Paul McGuire
 #
 
-from pyparsing import Literal, CaselessLiteral, Word, OneOrMore, ZeroOrMore, \
-        Forward, NotAny, delimitedList, oneOf, Group, Optional, Combine, alphas, nums, restOfLine, cStyleComment, \
-        alphanums, printables, empty, quotedString, ParseException, ParseResults, Keyword, Regex
+from pyparsing import Literal, Word, OneOrMore, ZeroOrMore, \
+        Forward, delimitedList, Group, Optional, alphas, restOfLine, cStyleComment, \
+        alphanums, quotedString, ParseException, Keyword, Regex
 import pprint
 #~ import tree2image
 

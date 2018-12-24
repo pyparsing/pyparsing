@@ -18,7 +18,7 @@
 #    A copy of the GNU General Public License can be found at <http://www.gnu.org/licenses/>.
 
 from pyparsing import *
-from sys import stdin, stdout, stderr, argv, exit
+from sys import stdin, argv, exit
 
 #defines debug level
 # 0 - no debug

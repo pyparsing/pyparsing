@@ -1,4 +1,4 @@
-from pyparsing import Optional, oneOf, Dict, Literal, Word, printables, Group, OneOrMore, ZeroOrMore
+from pyparsing import Optional, oneOf, Literal, Word, printables, Group, OneOrMore, ZeroOrMore
 
 """
 A simple parser for calendar (*.ics) files,
