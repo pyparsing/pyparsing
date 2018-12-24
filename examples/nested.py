@@ -7,7 +7,6 @@
 #
 
 from pyparsing import *
-import pprint
 
 data = """
 {

@@ -6,7 +6,7 @@
 # Copyright 2004-2010, by Paul McGuire
 # September, 2010 - updated to more current use of setResultsName, new NIST URL
 #
-from pyparsing import (Word, Combine, Suppress, SkipTo, nums, makeHTMLTags,
+from pyparsing import (Word, Combine, SkipTo, nums, makeHTMLTags,
                         delimitedList, alphas, alphanums)
 try:
     import urllib.request

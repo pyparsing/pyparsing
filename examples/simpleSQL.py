@@ -5,8 +5,8 @@
 #
 # Copyright (c) 2003,2016, Paul McGuire
 #
-from pyparsing import Literal, CaselessLiteral, Word, delimitedList, Optional, \
-    Combine, Group, alphas, nums, alphanums, ParseException, Forward, oneOf, quotedString, \
+from pyparsing import Word, delimitedList, Optional, \
+    Group, alphas, alphanums, Forward, oneOf, quotedString, \
     ZeroOrMore, restOfLine, CaselessKeyword, pyparsing_common
 
 # define SQL tokens

@@ -8,7 +8,7 @@
 #
 
 from pyparsing import (Literal, CaselessKeyword, Forward, Regex, QuotedString, Suppress,
-    Optional, Group, FollowedBy, infixNotation, opAssoc, ParseException, ParserElement,
+    Optional, Group, infixNotation, opAssoc, ParserElement,
     pyparsing_common)
 ParserElement.enablePackrat()
 

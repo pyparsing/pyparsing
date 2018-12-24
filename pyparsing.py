@@ -109,7 +109,7 @@ import pprint
 import traceback
 import types
 from datetime import datetime
-from itertools import takewhile
+
 try:
     # Python 3
     from itertools import filterfalse

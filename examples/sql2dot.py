@@ -47,9 +47,9 @@ alter table only student_registrations
     (class_id) references classes(class_id);
 """.upper()
 
-from pyparsing import Literal, CaselessLiteral, Word, delimitedList \
-    ,Optional, Combine, Group, alphas, nums, alphanums, Forward \
-    , oneOf, sglQuotedString, OneOrMore, ZeroOrMore, CharsNotIn \
+from pyparsing import Literal, Word, delimitedList \
+    , alphas, alphanums \
+    , OneOrMore, ZeroOrMore, CharsNotIn \
     , replaceWith
 
 skobki = "(" + ZeroOrMore(CharsNotIn(")")) + ")"
