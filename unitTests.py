@@ -850,7 +850,7 @@ class ParseKeywordTest(ParseTestCase):
             print_("Match Literal", end=' ')
             try:
                 print_(lit.parseString(s))
-            except:
+            except Exception:
                 print_("failed")
                 if litShouldPass:
                     self.assertTrue(False, "Literal failed to match %s, should have" % s)
@@ -861,7 +861,7 @@ class ParseKeywordTest(ParseTestCase):
             print_("Match Keyword", end=' ')
             try:
                 print_(kw.parseString(s))
-            except:
+            except Exception:
                 print_("failed")
                 if kwShouldPass:
                     self.assertTrue(False, "Keyword failed to match %s, should have" % s)
@@ -3939,10 +3939,10 @@ class MiscellaneousParserTests(ParseTestCase):
                 print_(t, repr(t))
                 try:
                     names.append( t[0].getName() )
-                except:
+                except Exception:
                     try:
                         names.append( t.getName() )
-                    except:
+                    except Exception:
                         names.append( None )
             print_(teststring)
             print_(names)

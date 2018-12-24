@@ -404,7 +404,7 @@ if __name__ == '__main__':
     else:
       try:
         print(parse(input_string))
-      except:
+      except Exception:
         pass
 
     # obtain new input string

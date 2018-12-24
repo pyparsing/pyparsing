@@ -81,7 +81,7 @@ psycoOn = False
 if usePackrat:
     try:
         ParserElement.enablePackrat()
-    except:
+    except Exception:
         pass
     else:
         packratOn = True
@@ -91,7 +91,7 @@ if usePsyco:
     try:
         import psyco
         psyco.full()
-    except:
+    except Exception:
         print("failed to import psyco Python optimizer")
     else:
         psycoOn = True
