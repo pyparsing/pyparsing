@@ -74,7 +74,7 @@ from pyparsing import *
 ParserElement.enablePackrat()
 
 LPAR,RPAR,LBRACK,RBRACK,LBRACE,RBRACE,SEMI,COMMA = map(Suppress, "()[]{};,")
-INT, CHAR, WHILE, DO, IF, ELSE, RETURN = map(Keyword, 
+INT, CHAR, WHILE, DO, IF, ELSE, RETURN = map(Keyword,
     "int char while do if else return".split())
 
 NAME = Word(alphas+"_", alphanums+"_")
@@ -86,7 +86,7 @@ TYPE = Group((INT | CHAR) + ZeroOrMore("*"))
 expr = Forward()
 func_call = Group(NAME + LPAR + Group(Optional(delimitedList(expr))) + RPAR)
 operand = func_call | NAME | integer | char | string_
-expr <<= (infixNotation(operand, 
+expr <<= (infixNotation(operand,
     [
     (oneOf('! - *'), 1, opAssoc.RIGHT),
     (oneOf('++ --'), 1, opAssoc.RIGHT),
@@ -95,8 +95,8 @@ expr <<= (infixNotation(operand,
     (oneOf('+ -'), 2, opAssoc.LEFT),
     (oneOf('< == > <= >= !='), 2, opAssoc.LEFT),
     (Regex(r'(?<!=)=(?!=)'), 2, opAssoc.LEFT),
-    ]) + 
-    Optional( LBRACK + expr + RBRACK | 
+    ]) +
+    Optional( LBRACK + expr + RBRACK |
               LPAR + Group(Optional(delimitedList(expr))) + RPAR )
     )
 
@@ -110,7 +110,7 @@ returnstmt = RETURN - expr + SEMI
 stmt << Group( ifstmt |
           whilestmt |
           dowhilestmt |
-          returnstmt | 
+          returnstmt |
           expr + SEMI |
           LBRACE + ZeroOrMore(stmt) + RBRACE |
           SEMI)

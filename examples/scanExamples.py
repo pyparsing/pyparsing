@@ -28,8 +28,8 @@ ident = Word(alphas, alphanums+"_")
 macroDef = Literal("#define") + ident.setResultsName("name") + "=" + restOfLine.setResultsName("value")
 for t,s,e in macroDef.scanString( testData ):
     print(t.name,":", t.value)
-    
-# or a quick way to make a dictionary of the names and values 
+
+# or a quick way to make a dictionary of the names and values
 # (return only key and value tokens, and construct dict from key-value pairs)
 # - empty ahead of restOfLine advances past leading whitespace, does implicit lstrip during parsing
 macroDef = Suppress("#define") + ident + Suppress("=") + empty + restOfLine
@@ -48,8 +48,8 @@ scopedIdent.setParseAction(lambda t: "_".join(t))
 
 print("(replace namespace-scoped names with C-compatible names)")
 print(scopedIdent.transformString( testData ))
-    
-    
+
+
 # or a crude pre-processor (use parse actions to replace matching text)
 def substituteMacro(s,l,t):
     if t[0] in macros:

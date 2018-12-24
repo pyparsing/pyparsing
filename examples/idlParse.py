@@ -15,30 +15,30 @@ import pprint
 bnf = None
 def CORBA_IDL_BNF():
     global bnf
-    
+
     if not bnf:
 
         # punctuation
         (colon,lbrace,rbrace,lbrack,rbrack,lparen,rparen,
         equals,comma,dot,slash,bslash,star,semi,langle,rangle) = map(Literal, r":{}[]()=,./\*;<>")
-        
+
         # keywords
-        (any_, attribute_, boolean_, case_, char_, const_, context_, default_, double_, enum_, exception_, 
-        FALSE_, fixed_, float_, inout_, interface_, in_, long_, module_, Object_, octet_, oneway_, out_, raises_, 
-        readonly_, sequence_, short_, string_, struct_, switch_, TRUE_, typedef_, unsigned_, union_, void_, 
-        wchar_, wstring_) = map(Keyword, """any attribute boolean case char const context 
-            default double enum exception FALSE fixed float inout interface in long module 
+        (any_, attribute_, boolean_, case_, char_, const_, context_, default_, double_, enum_, exception_,
+        FALSE_, fixed_, float_, inout_, interface_, in_, long_, module_, Object_, octet_, oneway_, out_, raises_,
+        readonly_, sequence_, short_, string_, struct_, switch_, TRUE_, typedef_, unsigned_, union_, void_,
+        wchar_, wstring_) = map(Keyword, """any attribute boolean case char const context
+            default double enum exception FALSE fixed float inout interface in long module
             Object octet oneway out raises readonly sequence short string struct switch
             TRUE typedef unsigned union void wchar wstring""".split())
-        
+
         identifier = Word( alphas, alphanums + "_" ).setName("identifier")
-        
+
         real = Regex(r"[+-]?\d+\.\d*([Ee][+-]?\d+)?").setName("real")
         integer = Regex(r"0x[0-9a-fA-F]+|[+-]?\d+").setName("int")
 
         udTypeName = delimitedList( identifier, "::", combine=True ).setName("udType")
-        typeName = ( any_ | boolean_ | char_ | double_ | fixed_ | 
-                    float_ | long_ | octet_ | short_ | string_ | 
+        typeName = ( any_ | boolean_ | char_ | double_ | fixed_ |
+                    float_ | long_ | octet_ | short_ | string_ |
                     wchar_ | wstring_ | udTypeName ).setName("type")
         sequenceDef = Forward().setName("seq")
         sequenceDef << Group( sequence_ + langle + ( sequenceDef | typeName ) + rangle )
@@ -60,11 +60,11 @@ def CORBA_IDL_BNF():
         moduleDef << module_ + identifier + lbrace + ZeroOrMore( moduleItem ) + rbrace + semi
 
         bnf = ( moduleDef | OneOrMore( moduleItem ) )
-        
+
         singleLineComment = "//" + restOfLine
         bnf.ignore( singleLineComment )
         bnf.ignore( cStyleComment )
-        
+
     return bnf
 
 testnum = 1
@@ -84,7 +84,7 @@ def test( strng ):
         print(" "*(err.column-1) + "^")
         print(err)
     print()
-    
+
 if __name__ == "__main__":
     test(
         """
@@ -94,7 +94,7 @@ if __name__ == "__main__":
         typedef string[10] tenStrings;
         typedef sequence<string> stringSeq;
         typedef sequence< sequence<string> > stringSeqSeq;
-        
+
         interface QoSAdmin {
             stringSeq method1( in string arg1, inout long arg2 );
             stringSeqSeq method2( in string arg1, inout long arg2, inout long arg3);
@@ -108,14 +108,14 @@ if __name__ == "__main__":
          * a block comment *
          */
         typedef string[10] tenStrings;
-        typedef 
+        typedef
             /** ** *** **** *
              * a block comment *
              */
             sequence<string> /*comment inside an And */ stringSeq;
         /* */  /**/ /***/ /****/
         typedef sequence< sequence<string> > stringSeqSeq;
-        
+
         interface QoSAdmin {
             stringSeq method1( in string arg1, inout long arg2 );
             stringSeqSeq method2( in string arg1, inout long arg2, inout long arg3);
@@ -135,7 +135,7 @@ if __name__ == "__main__":
             string msg;
             sequence<string> dataStrings;
             };
-          
+
           interface TestInterface
             {
             void method1( in string arg1, inout long arg2 );
@@ -144,16 +144,16 @@ if __name__ == "__main__":
         )
     test(
         """
-        module Test1 
+        module Test1
           {
           exception TestException
             {
             string msg;
             ];
-          
+
           interface TestInterface
             {
-            void method1( in string arg1, inout long arg2 ) 
+            void method1( in string arg1, inout long arg2 )
               raises ( TestException );
             };
           };
@@ -161,13 +161,13 @@ if __name__ == "__main__":
         )
     test(
         """
-        module Test1 
+        module Test1
           {
           exception TestException
             {
             string msg;
             };
-    
+
           };
         """
         )

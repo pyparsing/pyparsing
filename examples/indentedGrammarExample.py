@@ -2,7 +2,7 @@
 #
 # Copyright (c) 2006,2016  Paul McGuire
 #
-# A sample of a pyparsing grammar using indentation for 
+# A sample of a pyparsing grammar using indentation for
 # grouping (like Python does).
 #
 # Updated to use indentedBlock helper method.
@@ -51,4 +51,3 @@ module_body = OneOrMore(stmt)
 print(data)
 parseTree = module_body.parseString(data)
 parseTree.pprint()
-

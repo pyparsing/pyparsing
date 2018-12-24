@@ -22,8 +22,8 @@ def reportLongWords(st,locn,toks):
         print("The full line of text was:")
         print("'%s'" % line(locn,st))
         print((" "*col(locn,st))+" ^")
-        print() 
-        
+        print()
+
 wd = Word(alphas).setParseAction( reportLongWords )
 OneOrMore(wd).parseString(data)
 
@@ -39,7 +39,7 @@ class Token(object):
         self.col = col(locn,st)
     def __str__(self):
         return "%(tokenString)s (line: %(lineNo)d, col: %(col)d)" % self.__dict__
-        
+
 def createTokenObject(st,locn,toks):
     return Token(st,locn, toks[0])
 

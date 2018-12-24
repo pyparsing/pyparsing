@@ -3,7 +3,7 @@
 #
 # Posted by Mark Tolonen on comp.lang.python in August, 2009,
 # Used with permission.
-# 
+#
 # Parser that scans through C or C++ code for enum definitions, and
 # generates corresponding Python constant definitions.
 #

@@ -1,6 +1,6 @@
 # rangeCheck.py
 #
-#   A sample program showing how parse actions can convert parsed 
+#   A sample program showing how parse actions can convert parsed
 # strings into a data type or object, and to validate the parsed value.
 #
 # Updated to use new addCondition method and expr() copy.
@@ -38,7 +38,7 @@ integer.setParseAction(lambda t:int(t[0]))
 month = ranged_value(integer, 1, 12)
 day = ranged_value(integer, 1, 31)
 year = ranged_value(integer, 2000, None)
-    
+
 SLASH = Suppress('/')
 dateExpr = year("year") + SLASH + month("month") + Optional(SLASH + day("day"))
 dateExpr.setName("date")
@@ -58,5 +58,3 @@ dateExpr.runTests("""
     2004/2/29
     2004/2
     1999/12/31""")
-
-

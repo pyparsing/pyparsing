@@ -5,7 +5,7 @@
 
 from pyparsing import *
 
-# should probably read this from the Grammar file provided with the Python source, but 
+# should probably read this from the Grammar file provided with the Python source, but
 # this just skips that step and inlines the bnf text directly - this grammar was taken from
 # Python 2.4.1
 #
@@ -135,15 +135,15 @@ class SemanticGroup(object):
         self.contents = contents
         while self.contents[-1].__class__ == self.__class__:
             self.contents = self.contents[:-1] + self.contents[-1].contents
-        
+
     def __str__(self):
-        return "{}({})".format(self.label, 
+        return "{}({})".format(self.label,
                 " ".join([isinstance(c,str) and c or str(c) for c in self.contents]) )
-        
+
 class OrList(SemanticGroup):
     label = "OR"
     pass
-    
+
 class AndList(SemanticGroup):
     label = "AND"
     pass
@@ -151,7 +151,7 @@ class AndList(SemanticGroup):
 class OptionalGroup(SemanticGroup):
     label = "OPT"
     pass
-    
+
 class Atom(SemanticGroup):
     def __init__(self,contents):
         if len(contents) > 1:
@@ -162,10 +162,10 @@ class Atom(SemanticGroup):
             self.contents = contents
         else:
             self.contents = contents[0]
-            
+
     def __str__(self):
         return "{}{}".format(self.rep, self.contents)
-    
+
 def makeGroupObject(cls):
     def groupAction(s,l,t):
         try:

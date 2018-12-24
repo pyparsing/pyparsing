@@ -1,5 +1,5 @@
 # stateMachine.py
-# 
+#
 # module to define .pystate import handler
 #
 #import imputil
@@ -18,9 +18,9 @@ from pyparsing import Word, Group, ZeroOrMore, alphas, \
 
 ident = Word(alphas+"_", alphanums+"_$")
 
-pythonKeywords = """and as assert break class continue def 
-    del elif else except exec finally for from global if import 
-    in is lambda None not or pass print raise return try while with 
+pythonKeywords = """and as assert break class continue def
+    del elif else except exec finally for from global if import
+    in is lambda None not or pass print raise return try while with
     yield True False"""
 pythonKeywords = set(pythonKeywords.split())
 def no_keywords_allowed(s,l,t):
@@ -46,7 +46,7 @@ namedStateMachine = Keyword("statemachine") + \
 def expand_state_definition(source, loc, tokens):
     indent = " " * (col(loc,source)-1)
     statedef = []
-    
+
     # build list of states
     states = set()
     fromTo = {}
@@ -54,7 +54,7 @@ def expand_state_definition(source, loc, tokens):
         states.add(tn.fromState)
         states.add(tn.toState)
         fromTo[tn.fromState] = tn.toState
-    
+
     # define base class for state classes
     baseStateClass = tokens.name + "State"
     statedef.extend([
@@ -63,17 +63,17 @@ def expand_state_definition(source, loc, tokens):
         "        return self.__class__.__name__",
         "    def next_state(self):",
         "        return self._next_state_class()" ])
-    
+
     # define all state classes
     statedef.extend(
-        "class {}({}): pass".format(s,baseStateClass) 
+        "class {}({}): pass".format(s,baseStateClass)
             for s in states )
     statedef.extend(
-        "{}._next_state_class = {}".format(s,fromTo[s]) 
+        "{}._next_state_class = {}".format(s,fromTo[s])
             for s in states if s in fromTo )
-           
+
     return indent + ("\n"+indent).join(statedef)+"\n"
-    
+
 stateMachine.setParseAction(expand_state_definition)
 
 def expand_named_state_definition(source,loc,tokens):
@@ -82,9 +82,9 @@ def expand_named_state_definition(source,loc,tokens):
     # build list of states and transitions
     states = set()
     transitions = set()
-    
+
     baseStateClass = tokens.name + "State"
-    
+
     fromTo = {}
     for tn in tokens.transitions:
         states.add(tn.fromState)
@@ -99,7 +99,7 @@ def expand_named_state_definition(source,loc,tokens):
     for s in states:
         if s not in fromTo:
             fromTo[s] = {}
-    
+
     # define state transition class
     statedef.extend([
         "class %sTransition:" % baseStateClass,
@@ -107,9 +107,9 @@ def expand_named_state_definition(source,loc,tokens):
         "        return self.transitionName",
         ])
     statedef.extend(
-        "{} = {}Transition()".format(tn,baseStateClass) 
+        "{} = {}Transition()".format(tn,baseStateClass)
             for tn in transitions)
-    statedef.extend("{}.transitionName = '{}'".format(tn,tn) 
+    statedef.extend("{}.transitionName = '{}'".format(tn,tn)
             for tn in transitions)
 
     # define base class for state classes
@@ -128,19 +128,19 @@ def expand_named_state_definition(source,loc,tokens):
         "    def __getattr__(self,name):",
         "        raise Exception(%s)" % excmsg,
         ])
-    
+
     # define all state classes
     for s in states:
-        statedef.append("class %s(%s): pass" % 
+        statedef.append("class %s(%s): pass" %
                                     (s,baseStateClass))
 
     # define state transition maps and transition methods
     for s in states:
         trns = list(fromTo[s].items())
-        statedef.append("%s.tnmap = {%s}" % 
+        statedef.append("%s.tnmap = {%s}" %
             (s, ",".join("%s:%s" % tn for tn in trns)) )
         statedef.extend([
-            "%s.%s = staticmethod(lambda : %s())" % 
+            "%s.%s = staticmethod(lambda : %s())" %
                                             (s,tn_,to_)
                 for tn_,to_ in trns
             ])
@@ -159,7 +159,7 @@ class SuffixImporter(object):
     the PEP, and also used Doug Hellmann's PyMOTW article `Modules and
     Imports`_, as a pattern.
 
-    .. _`Modules and Imports`: http://www.doughellmann.com/PyMOTW/sys/imports.html   
+    .. _`Modules and Imports`: http://www.doughellmann.com/PyMOTW/sys/imports.html
 
     Define a subclass that specifies a :attr:`suffix` attribute, and
     implements a :meth:`process_filedata` method. Then call the classmethod
@@ -199,7 +199,7 @@ class SuffixImporter(object):
                 checkpath = os.path.join(
                         dirpath,'{}.{}'.format(fullname,self.suffix))
                 yield checkpath
-    
+
     def find_module(self, fullname, path=None):
         for checkpath in self.checkpath_iter(fullname):
             if os.path.isfile(checkpath):
@@ -237,20 +237,20 @@ class PystateImporter(SuffixImporter):
         # MATT-NOTE: re-worked :func:`get_state_machine`
 
         # convert any statemachine expressions
-        stateMachineExpr = (stateMachine | 
+        stateMachineExpr = (stateMachine |
                             namedStateMachine).ignore(
                                             pythonStyleComment)
         generated_code = stateMachineExpr.transformString(data)
 
         if DEBUG: print(generated_code)
 
-        # compile code object from generated code 
-        # (strip trailing spaces and tabs, compile doesn't like 
+        # compile code object from generated code
+        # (strip trailing spaces and tabs, compile doesn't like
         # dangling whitespace)
         COMPILE_MODE = 'exec'
 
-        codeobj = compile(generated_code.rstrip(" \t"), 
-                            module.__file__, 
+        codeobj = compile(generated_code.rstrip(" \t"),
+                            module.__file__,
                             COMPILE_MODE)
 
         exec(codeobj, module.__dict__)

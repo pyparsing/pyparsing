@@ -1,10 +1,9 @@
-
 #~ url = "http://cmsdoc.cern.ch/cms/test/aprom/phedex/dev/gowri/datasvc/tbedi/requestDetails"
-#~ params = {'format':'json'} 
-#~ import urllib 
-#~ eparams = urllib.urlencode(params) 
-#~ import urllib2 
-#~ request = urllib2.Request(url,eparams) 
+#~ params = {'format':'json'}
+#~ import urllib
+#~ eparams = urllib.urlencode(params)
+#~ import urllib2
+#~ request = urllib2.Request(url,eparams)
 #~ response = urllib2.urlopen(request)
 #~ s = response.read()
 #~ response.close()

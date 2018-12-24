@@ -36,15 +36,15 @@ class PyparsingExpressionTestCase(unittest.TestCase):
         for test_spec in self.tests:
             # for each spec in the class's tests list, create a subtest
             # that will either:
-            #  - parse the string with expected success, display the 
+            #  - parse the string with expected success, display the
             #    results, and validate the returned ParseResults
-            #  - or parse the string with expected failure, display the 
+            #  - or parse the string with expected failure, display the
             #    error message and mark the error location, and validate
             #    the location against an expected value
             with self.subTest(test_spec=test_spec):
                 test_spec.expr.streamline()
-                print("\n{} - {}({})".format(test_spec.desc, 
-                                             type(test_spec.expr).__name__, 
+                print("\n{} - {}({})".format(test_spec.desc,
+                                             type(test_spec.expr).__name__,
                                              test_spec.expr))
 
                 parsefn = getattr(test_spec.expr, test_spec.parse_fn)
@@ -218,7 +218,7 @@ class TestGroups(PyparsingExpressionTestCase):
     tests = [
         PpTestSpec(
             desc = "Define multiple results names in groups",
-            expr = pp.OneOrMore(pp.Group(pp.Word(pp.alphas)("key") 
+            expr = pp.OneOrMore(pp.Group(pp.Word(pp.alphas)("key")
                                           + EQ
                                           + pp.pyparsing_common.number("value"))),
             text = "range=5280 long=-138.52 lat=46.91",
@@ -226,7 +226,7 @@ class TestGroups(PyparsingExpressionTestCase):
         ),
         PpTestSpec(
             desc = "Define multiple results names in groups - use Dict to define results names using parsed keys",
-            expr = pp.Dict(pp.OneOrMore(pp.Group(pp.Word(pp.alphas) 
+            expr = pp.Dict(pp.OneOrMore(pp.Group(pp.Word(pp.alphas)
                                           + EQ
                                           + pp.pyparsing_common.number))),
             text = "range=5280 long=-138.52 lat=46.91",
@@ -251,18 +251,18 @@ class TestParseAction(PyparsingExpressionTestCase):
             desc = "Match with numeric string converted to int",
             expr = pp.Word("0123456789").addParseAction(lambda t: int(t[0])),
             text = "12345",
-            expected_list = [12345],  # note - result is type int, not str 
+            expected_list = [12345],  # note - result is type int, not str
         ),
         PpTestSpec(
             desc = "Use two parse actions to convert numeric string, then convert to datetime",
-            expr = pp.Word(pp.nums).addParseAction(lambda t: int(t[0]), 
+            expr = pp.Word(pp.nums).addParseAction(lambda t: int(t[0]),
                                                    lambda t: datetime.utcfromtimestamp(t[0])),
             text = "1537415628",
             expected_list = [datetime(2018, 9, 20, 3, 53, 48)],
         ),
         PpTestSpec(
             desc = "Use tokenMap for parse actions that operate on a single-length token",
-            expr = pp.Word(pp.nums).addParseAction(pp.tokenMap(int), 
+            expr = pp.Word(pp.nums).addParseAction(pp.tokenMap(int),
                                                    pp.tokenMap(datetime.utcfromtimestamp)),
             text = "1537415628",
             expected_list = [datetime(2018, 9, 20, 3, 53, 48)],
@@ -405,7 +405,7 @@ if __name__ == '__main__':
     if sys.version_info[0] < 3:
         print("simple_unit_tests.py runs on Python 3 only")
         sys.exit(0)
-        
+
     import inspect
     def get_decl_line_no(cls):
         return inspect.getsourcelines(cls)[1]
@@ -413,7 +413,7 @@ if __name__ == '__main__':
     # get all test case classes defined in this module and sort them by decl line no
     test_case_classes = list(PyparsingExpressionTestCase.__subclasses__())
     test_case_classes.sort(key=get_decl_line_no)
-    
+
     # make into a suite and run it - this will run the tests in the same order
     # they are declared in this module
     suite = unittest.TestSuite(cls() for cls in test_case_classes)

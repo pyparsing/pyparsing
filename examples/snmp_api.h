@@ -13,10 +13,10 @@
 #ifndef DONT_SHARE_ERROR_WITH_OTHER_THREADS
 #define SET_SNMP_ERROR(x) snmp_errno=(x)
 #else
-#define SET_SNMP_ERROR(x) 
+#define SET_SNMP_ERROR(x)
 #endif
 
- 
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -109,7 +109,7 @@ struct snmp_pdu {
     long    version;
     int	    command;	/* Type of this PDU */
     long    reqid;	/* Request id - note: not incremented on retries */
-    long    msgid;      /* Message id for V3 messages 
+    long    msgid;      /* Message id for V3 messages
                          * note: incremented for each retry */
     long    transid;    /* Unique ID for incoming transactions */
     long    sessid;     /* Session id for AgentX messages */
@@ -291,7 +291,7 @@ extern void snmp_set_detail (const char *);
 #define REPORT_usmStatsUnsupportedSecLevels_NUM 1
 #define REPORT_usmStatsNotInTimeWindows_NUM 2
 #define REPORT_usmStatsUnknownUserNames_NUM 3
-#define REPORT_usmStatsUnknownEngineIDs_NUM 4 
+#define REPORT_usmStatsUnknownEngineIDs_NUM 4
 #define REPORT_usmStatsWrongDigests_NUM 5
 #define REPORT_usmStatsDecryptionErrors_NUM 6
 
@@ -478,7 +478,7 @@ int snmp_send (struct snmp_session *, struct snmp_pdu *);
  * On any error, 0 is returned.
  * The pdu is freed by snmp_send() unless a failure occured.
  */
-int snmp_async_send (struct snmp_session *, struct snmp_pdu *, 
+int snmp_async_send (struct snmp_session *, struct snmp_pdu *,
                          snmp_callback, void *);
 
 

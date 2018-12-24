@@ -75,7 +75,7 @@ object Form1: TForm1
     Connection.Params.Strings = (
       'BlobSize=-1'
       'CommitRetain=False'
-      
+
         'Database=C:\Program Files\Common Files\Borland Shared\Data\emplo' +
         'yee.gdb'
       'DriverName=Interbase'

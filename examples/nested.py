@@ -10,12 +10,12 @@ from pyparsing import *
 import pprint
 
 data = """
-{ 
-     { item1 "item with } in it" } 
-     { 
-      {item2a item2b } 
-      {item3} 
-     } 
+{
+     { item1 "item with } in it" }
+     {
+      {item2a item2b }
+      {item3}
+     }
 
 }
 """
@@ -27,4 +27,3 @@ print(( (nestedItems+stringEnd).parseString(data).asList() ))
 # use default delimiters of ()'s
 mathExpr = nestedExpr()
 print(( mathExpr.parseString( "((( ax + by)*C) *(Z | (E^F) & D))") ))
-

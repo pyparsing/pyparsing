@@ -15,7 +15,7 @@ import pprint
 inibnf = None
 def inifile_BNF():
     global inibnf
-    
+
     if not inibnf:
 
         # punctuation
@@ -23,24 +23,24 @@ def inifile_BNF():
         rbrack = Literal("]").suppress()
         equals = Literal("=").suppress()
         semi   = Literal(";")
-        
+
         comment = semi + Optional( restOfLine )
-        
+
         nonrbrack = "".join( [ c for c in printables if c != "]" ] ) + " \t"
         nonequals = "".join( [ c for c in printables if c != "=" ] ) + " \t"
-        
+
         sectionDef = lbrack + Word( nonrbrack ) + rbrack
         keyDef = ~lbrack + Word( nonequals ) + equals + empty + restOfLine
         # strip any leading or trailing blanks from key
         def stripKey(tokens):
             tokens[0] = tokens[0].strip()
         keyDef.setParseAction(stripKey)
-        
+
         # using Dict will allow retrieval of named data fields as attributes of the parsed results
         inibnf = Dict( ZeroOrMore( Group( sectionDef + Dict( ZeroOrMore( Group( keyDef ) ) ) ) ) )
-        
+
         inibnf.ignore( comment )
-        
+
     return inibnf
 
 
@@ -59,14 +59,13 @@ def test( strng ):
         print(err.line)
         print(" "*(err.column-1) + "^")
         print(err)
-    
+
     iniFile.close()
     print()
     return tokens
-    
+
 if __name__ == "__main__":
 	ini = test("setup.ini")
-	print("ini['Startup']['modemid'] =", ini['Startup']['modemid']) 
+	print("ini['Startup']['modemid'] =", ini['Startup']['modemid'])
 	print("ini.Startup =", ini.Startup)
 	print("ini.Startup.modemid =", ini.Startup.modemid)
-

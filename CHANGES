@@ -58,12 +58,12 @@ Version 2.3.0 - October, 2018
   This namespace class also offers access to these sets using their
   unicode identifiers.
 
-- POSSIBLE API CHANGE: Fixed bug where a parse action that explicitly 
+- POSSIBLE API CHANGE: Fixed bug where a parse action that explicitly
   returned the input ParseResults could add another nesting level in
   the results if the current expression had a results name.
 
         vals = pp.OneOrMore(pp.pyparsing_common.integer)("int_values")
-        
+
         def add_total(tokens):
             tokens['total'] = sum(tokens)
             return tokens  # this line can be removed
@@ -72,7 +72,7 @@ Version 2.3.0 - October, 2018
         print(vals.parseString("244 23 13 2343").dump())
 
   Before the fix, this code would print (note the extra nesting level):
-  
+
     [244, 23, 13, 2343]
     - int_values: [244, 23, 13, 2343]
       - int_values: [244, 23, 13, 2343]
@@ -80,33 +80,33 @@ Version 2.3.0 - October, 2018
     - total: 2623
 
   With the fix, this code now prints:
-  
+
     [244, 23, 13, 2343]
     - int_values: [244, 23, 13, 2343]
     - total: 2623
 
-  This fix will change the structure of ParseResults returned if a 
-  program defines a parse action that returns the tokens that were 
-  sent in. This is not necessary, and statements like "return tokens" 
-  in the example above can be safely deleted prior to upgrading to 
+  This fix will change the structure of ParseResults returned if a
+  program defines a parse action that returns the tokens that were
+  sent in. This is not necessary, and statements like "return tokens"
+  in the example above can be safely deleted prior to upgrading to
   this release, in order to avoid the bug and get the new behavior.
 
   Reported by seron in Issue #22, nice catch!
 
-- POSSIBLE API CHANGE: Fixed a related bug where a results name 
-  erroneously created a second level of hierarchy in the returned 
+- POSSIBLE API CHANGE: Fixed a related bug where a results name
+  erroneously created a second level of hierarchy in the returned
   ParseResults. The intent for accumulating results names into ParseResults
   is that, in the absence of Group'ing, all names get merged into a
   common namespace. This allows us to write:
-  
+
        key_value_expr = (Word(alphas)("key") + '=' + Word(nums)("value"))
-       result = key_value_expr.parseString("a = 100") 
-    
-  and have result structured as {"key": "a", "value": "100"} 
+       result = key_value_expr.parseString("a = 100")
+
+  and have result structured as {"key": "a", "value": "100"}
   instead of [{"key": "a"}, {"value": "100"}].
-  
-  However, if a named expression is used in a higher-level non-Group 
-  expression that *also* has a name, a false sub-level would be created 
+
+  However, if a named expression is used in a higher-level non-Group
+  expression that *also* has a name, a false sub-level would be created
   in the namespace:
 
         num = pp.Word(pp.nums)
@@ -116,14 +116,14 @@ Version 2.3.0 - October, 2018
 
   Since there is no grouping, "A", "B", and "values" should all appear
   at the same level in the results, as:
-  
+
         ['[', '10', '20', ']']
         - A: '10'
         - B: '20'
         - values: ['10', '20']
 
   Instead, an extra level of "A" and "B" show up under "values":
-  
+
         ['[', '10', '20', ']']
         - A: '10'
         - B: '20'
@@ -133,11 +133,11 @@ Version 2.3.0 - October, 2018
 
   This bug has been fixed. Now, if this hierarchy is desired, then a
   Group should be added:
-  
+
         num_pair = ("[" + pp.Group(num("A") + num("B"))("values") + "]")
 
   Giving:
-  
+
         ['[', ['10', '20'], ']']
         - values: ['10', '20']
           - A: '10'
@@ -145,52 +145,52 @@ Version 2.3.0 - October, 2018
 
   But in no case should "A" and "B" appear in multiple levels. This bug-fix
   fixes that.
-  
+
   If you have current code which relies on this behavior, then add or remove
   Groups as necessary to get your intended results structure.
-  
+
   Reported by Athanasios Anastasiou.
 
-- IndexError's raised in parse actions will get explicitly reraised 
-  as ParseExceptions that wrap the original IndexError. Since 
-  IndexError sometimes occurs as part of pyparsing's normal parsing 
+- IndexError's raised in parse actions will get explicitly reraised
+  as ParseExceptions that wrap the original IndexError. Since
+  IndexError sometimes occurs as part of pyparsing's normal parsing
   logic, IndexErrors that are raised during a parse action may have
-  gotten silently reinterpreted as parsing errors. To retain the 
-  information from the IndexError, these exceptions will now be 
-  raised as ParseExceptions that reference the original IndexError. 
+  gotten silently reinterpreted as parsing errors. To retain the
+  information from the IndexError, these exceptions will now be
+  raised as ParseExceptions that reference the original IndexError.
   This wrapping will only be visible when run under Python3, since it
-  emulates "raise ... from ..." syntax. 
-  
+  emulates "raise ... from ..." syntax.
+
   Addresses Issue #4, reported by guswns0528.
 
 - Added Char class to simplify defining expressions of a single
   character. (Char("abc") is equivalent to Word("abc", exact=1))
 
-- Added class PrecededBy to perform lookbehind tests. PrecededBy is 
+- Added class PrecededBy to perform lookbehind tests. PrecededBy is
   used in the same way as FollowedBy, passing in an expression that
   must occur just prior to the current parse location.
-  
-  For fixed-length expressions like a Literal, Keyword, Char, or a 
-  Word with an `exact` or `maxLen` length given, `PrecededBy(expr)` 
-  is sufficient. For varying length expressions like a Word with no 
-  given maximum length, `PrecededBy` must be constructed with an 
-  integer `retreat` argument, as in 
-  `PrecededBy(Word(alphas, nums), retreat=10)`, to specify the maximum 
-  number of characters pyparsing must look backward to make a match. 
-  pyparsing will check all the values from 1 up to retreat characters 
+
+  For fixed-length expressions like a Literal, Keyword, Char, or a
+  Word with an `exact` or `maxLen` length given, `PrecededBy(expr)`
+  is sufficient. For varying length expressions like a Word with no
+  given maximum length, `PrecededBy` must be constructed with an
+  integer `retreat` argument, as in
+  `PrecededBy(Word(alphas, nums), retreat=10)`, to specify the maximum
+  number of characters pyparsing must look backward to make a match.
+  pyparsing will check all the values from 1 up to retreat characters
   back from the current parse location.
 
-  When stepping backwards through the input string, PrecededBy does 
+  When stepping backwards through the input string, PrecededBy does
   *not* skip over whitespace.
-  
+
   PrecededBy can be created with a results name so that, even though
   it always returns an empty parse result, the result *can* include
   named results.
-  
+
   Idea first suggested in Issue #30 by Freakwill.
 
 - Updated FollowedBy to accept expressions that contain named results,
-  so that results names defined in the lookahead expression will be 
+  so that results names defined in the lookahead expression will be
   returned, even though FollowedBy always returns an empty list.
   Inspired by the same feature implemented in PrecededBy.
 
@@ -198,14 +198,14 @@ Version 2.3.0 - October, 2018
 Version 2.2.2 - September, 2018
 -------------------------------
 - Fixed bug in SkipTo, if a SkipTo expression that was skipping to
-  an expression that returned a list (such as an And), and the 
-  SkipTo was saved as a named result, the named result could be 
+  an expression that returned a list (such as an And), and the
+  SkipTo was saved as a named result, the named result could be
   saved as a ParseResults - should always be saved as a string.
   Issue #28, reported by seron.
 
-- Added simple_unit_tests.py, as a collection of easy-to-follow unit 
-  tests for various classes and features of the pyparsing library. 
-  Primary intent is more to be instructional than actually rigorous 
+- Added simple_unit_tests.py, as a collection of easy-to-follow unit
+  tests for various classes and features of the pyparsing library.
+  Primary intent is more to be instructional than actually rigorous
   testing. Complex tests can still be added in the unitTests.py file.
 
 - New features added to the Regex class:
@@ -213,13 +213,13 @@ Version 2.2.2 - September, 2018
     a list
   - optional asMatch parameter, returns the raw re.match result
   - new sub(repl) method, which adds a parse action calling
-    re.sub(pattern, repl, parsed_result). Simplifies creating 
+    re.sub(pattern, repl, parsed_result). Simplifies creating
     Regex expressions to be used with transformString. Like re.sub,
-    repl may be an ordinary string (similar to using pyparsing's 
-    replaceWith), or may contain references to capture groups by group 
-    number, or may be a callable that takes an re match group and 
+    repl may be an ordinary string (similar to using pyparsing's
+    replaceWith), or may contain references to capture groups by group
+    number, or may be a callable that takes an re match group and
     returns a string.
-    
+
     For instance:
         expr = pp.Regex(r"([Hh]\d):\s*(.*)").sub(r"<\1>\2</\1>")
         expr.transformString("h1: This is the title")
@@ -227,7 +227,7 @@ Version 2.2.2 - September, 2018
     will return
         <h1>This is the title</h1>
 
-- Fixed omission of LICENSE file in source tarball, also added 
+- Fixed omission of LICENSE file in source tarball, also added
   CODE_OF_CONDUCT.md per GitHub community standards.
 
 
@@ -248,7 +248,7 @@ Version 2.2.1 - September, 2018
 - Fixed bug in select_parser.py example, group_by_terms was not
   reported. Reported on SF bugs by Adam Groszer, thanks Adam!
 
-- Added "Getting Started" section to the module docstring, to 
+- Added "Getting Started" section to the module docstring, to
   guide new users to the most common starting points in pyparsing's
   API.
 
@@ -309,7 +309,7 @@ Version 2.1.10 - October, 2016
 
 Version 2.1.9 - September, 2016
 -------------------------------
-- Added class CloseMatch, a variation on Literal which matches 
+- Added class CloseMatch, a variation on Literal which matches
   "close" matches, that is, strings with at most 'n' mismatching
   characters.
 
@@ -317,13 +317,13 @@ Version 2.1.9 - September, 2016
   Shinji - nice catch, thanks!
 
 - Minor API change in pyparsing_common. Renamed some of the common
-  expressions to PEP8 format (to be consistent with the other 
+  expressions to PEP8 format (to be consistent with the other
   pyparsing_common expressions):
   . signedInteger -> signed_integer
   . sciReal -> sci_real
-  
+
   Also, in trying to stem the API bloat of pyparsing, I've copied
-  some of the global expressions and helper parse actions into 
+  some of the global expressions and helper parse actions into
   pyparsing_common, with the originals to be deprecated and removed
   in a future release:
   . commaSeparatedList -> pyparsing_common.comma_separated_list
@@ -334,15 +334,15 @@ Version 2.1.9 - September, 2016
   quotedString, or the Word-helping strings like alphas, nums, etc.
   to migrate to pyparsing_common - they are just too pervasive. As for
   the PEP8 vs camelCase naming, all the expressions are PEP8, while
-  the parse actions in pyparsing_common are still camelCase. It's a 
+  the parse actions in pyparsing_common are still camelCase. It's a
   small step - when pyparsing 3.0 comes around, everything will change
   to PEP8 snake case.)
 
 - Fixed Python3 compatibility bug when using dict keys() and values()
   in ParseResults.getName().
 
-- After some prodding, I've reworked the unitTests.py file for 
-  pyparsing over the past few releases. It uses some variations on 
+- After some prodding, I've reworked the unitTests.py file for
+  pyparsing over the past few releases. It uses some variations on
   unittest to handle my testing style. The test now:
   . auto-discovers its test classes (while maintining their order
     of definition)
@@ -351,19 +351,19 @@ Version 2.1.9 - September, 2016
 
 Version 2.1.8 - August, 2016
 ----------------------------
-- Fixed issue in the optimization to _trim_arity, when the full 
+- Fixed issue in the optimization to _trim_arity, when the full
   stacktrace is retrieved to determine if a TypeError is raised in
   pyparsing or in the caller's parse action. Code was traversing
   the full stacktrace, and potentially encountering UnicodeDecodeError.
 
-- Fixed bug in ParserElement.inlineLiteralsUsing, causing infinite 
+- Fixed bug in ParserElement.inlineLiteralsUsing, causing infinite
   loop with Suppress.
 
 - Fixed bug in Each, when merging named results from multiple
   expressions in a ZeroOrMore or OneOrMore. Also fixed bug when
-  ZeroOrMore expressions were erroneously treated as required 
+  ZeroOrMore expressions were erroneously treated as required
   expressions in an Each expression.
-  
+
 - Added a few more inline doc examples.
 
 - Improved use of runTests in several example scripts.
@@ -371,36 +371,36 @@ Version 2.1.8 - August, 2016
 
 Version 2.1.7 - August, 2016
 ----------------------------
-- Fixed regression reported by Andrea Censi (surfaced in PyContracts 
+- Fixed regression reported by Andrea Censi (surfaced in PyContracts
   tests) when using ParseSyntaxExceptions (raised when using operator '-')
   with packrat parsing.
 
 - Minor fix to oneOf, to accept all iterables, not just space-delimited
-  strings and lists. (If you have a list or set of strings, it is 
+  strings and lists. (If you have a list or set of strings, it is
   not necessary to concat them using ' '.join to pass them to oneOf,
   oneOf will accept the list or set or generator directly.)
 
 
 Version 2.1.6 - August, 2016
 ----------------------------
-- *Major packrat upgrade*, inspired by patch provided by Tal Einat - 
-  many, many, thanks to Tal for working on this! Tal's tests show 
-  faster parsing performance (2X in some tests), *and* memory reduction 
-  from 3GB down to ~100MB! Requires no changes to existing code using 
+- *Major packrat upgrade*, inspired by patch provided by Tal Einat -
+  many, many, thanks to Tal for working on this! Tal's tests show
+  faster parsing performance (2X in some tests), *and* memory reduction
+  from 3GB down to ~100MB! Requires no changes to existing code using
   packratting. (Uses OrderedDict, available in Python 2.7 and later.
   For Python 2.6 users, will attempt to import from ordereddict
   backport. If not present, will implement pure-Python Fifo dict.)
 
 - Minor API change - to better distinguish between the flexible
-  numeric types defined in pyparsing_common, I've changed "numeric" 
-  (which parsed numbers of different types and returned int for ints, 
+  numeric types defined in pyparsing_common, I've changed "numeric"
+  (which parsed numbers of different types and returned int for ints,
   float for floats, etc.) and "number" (which parsed numbers of int
   or float type, and returned all floats) to "number" and "fnumber"
   respectively. I hope the "f" prefix of "fnumber" will be a better
-  indicator of its internal conversion of parsed values to floats, 
+  indicator of its internal conversion of parsed values to floats,
   while the generic "number" is similar to the flexible number syntax
   in other languages. Also fixed a bug in pyparsing_common.numeric
-  (now renamed to pyparsing_common.number), integers were parsed and 
+  (now renamed to pyparsing_common.number), integers were parsed and
   returned as floats instead of being retained as ints.
 
 - Fixed bug in upcaseTokens and downcaseTokens introduced in 2.1.5,
@@ -408,71 +408,71 @@ Version 2.1.6 - August, 2016
   Reported by Steven Arcangeli from the dql project, thanks for your
   patience, Steven!
 
-- Major change to docs! After seeing some comments on reddit about 
-  general issue with docs of Python modules, and thinking that I'm a 
+- Major change to docs! After seeing some comments on reddit about
+  general issue with docs of Python modules, and thinking that I'm a
   little overdue in doing some doc tuneup on pyparsing, I decided to
   following the suggestions of the redditor and add more inline examples
-  to the pyparsing reference documentation. I hope this addition 
+  to the pyparsing reference documentation. I hope this addition
   will clarify some of the more common questions people have, especially
   when first starting with pyparsing/Python.
 
 - Deprecated ParseResults.asXML. I've never been too happy with this
   method, and it usually forces some unnatural code in the parsers in
-  order to get decent tag names. The amount of guesswork that asXML 
+  order to get decent tag names. The amount of guesswork that asXML
   has to do to try to match names with values should have been a red
-  flag from day one. If you are using asXML, you will need to implement 
+  flag from day one. If you are using asXML, you will need to implement
   your own ParseResults->XML serialization. Or consider migrating to
-  a more current format such as JSON (which is very easy to do: 
+  a more current format such as JSON (which is very easy to do:
   results_as_json = json.dumps(parse_result.asDict()) Hopefully, when
-  I remove this code in a future version, I'll also be able to simplify 
-  some of the craziness in ParseResults, which IIRC was only there to try 
+  I remove this code in a future version, I'll also be able to simplify
+  some of the craziness in ParseResults, which IIRC was only there to try
   to make asXML work.
 
 - Updated traceParseAction parse action decorator to show the repr
-  of the input and output tokens, instead of the str format, since 
-  str has been simplified to just show the token list content.  
-  
+  of the input and output tokens, instead of the str format, since
+  str has been simplified to just show the token list content.
+
   (The change to ParseResults.__str__ occurred in pyparsing 2.0.4, but
   it seems that didn't make it into the release notes - sorry! Too
-  many users, especially beginners, were confused by the 
-  "([token_list], {names_dict})" str format for ParseResults, thinking 
-  they were getting a tuple containing a list and a dict. The full form 
+  many users, especially beginners, were confused by the
+  "([token_list], {names_dict})" str format for ParseResults, thinking
+  they were getting a tuple containing a list and a dict. The full form
   can be seen if using repr().)
 
-  For tracing tokens in and out of parse actions, the more complete 
+  For tracing tokens in and out of parse actions, the more complete
   repr form provides important information when debugging parse actions.
 
 
 Verison 2.1.5 - June, 2016
 ------------------------------
-- Added ParserElement.split() generator method, similar to re.split(). 
+- Added ParserElement.split() generator method, similar to re.split().
   Includes optional arguments maxsplit (to limit the number of splits),
-  and includeSeparators (to include the separating matched text in the 
+  and includeSeparators (to include the separating matched text in the
   returned output, default=False).
 
 - Added a new parse action construction helper tokenMap, which will
-  apply a function and optional arguments to each element in a 
+  apply a function and optional arguments to each element in a
   ParseResults. So this parse action:
-  
+
       def lowercase_all(tokens):
           return [str(t).lower() for t in tokens]
       OneOrMore(Word(alphas)).setParseAction(lowercase_all)
 
   can now be written:
-  
+
       OneOrMore(Word(alphas)).setParseAction(tokenMap(str.lower))
 
   Also simplifies writing conversion parse actions like:
-  
+
       integer = Word(nums).setParseAction(lambda t: int(t[0]))
 
   to just:
-  
+
       integer = Word(nums).setParseAction(tokenMap(int))
 
   If additional arguments are necessary, they can be included in the
   call to tokenMap, as in:
-  
+
       hex_integer = Word(hexnums).setParseAction(tokenMap(int, 16))
 
 - Added more expressions to pyparsing_common:
@@ -492,38 +492,38 @@ Verison 2.1.5 - June, 2016
   and an output list of each test and its output lines.
 
 - Added failureTests argument (default=False) to runTests, so that
-  tests can be run that are expected failures, and runTests' success 
+  tests can be run that are expected failures, and runTests' success
   value will return True only if all tests *fail* as expected. Also,
   parseAll now defaults to True.
 
 - New example numerics.py, shows samples of parsing integer and real
   numbers using locale-dependent formats:
 
-    4.294.967.295,000 
-    4 294 967 295,000  
-    4,294,967,295.000  
-  
+    4.294.967.295,000
+    4 294 967 295,000
+    4,294,967,295.000
+
 
 Version 2.1.4 - May, 2016
 ------------------------------
 - Split out the '==' behavior in ParserElement, now implemented
-  as the ParserElement.matches() method. Using '==' for string test 
+  as the ParserElement.matches() method. Using '==' for string test
   purposes will be removed in a future release.
 
 - Expanded capabilities of runTests(). Will now accept embedded
-  comments (default is Python style, leading '#' character, but 
+  comments (default is Python style, leading '#' character, but
   customizable). Comments will be emitted along with the tests and
   test output. Useful during test development, to create a test string
-  consisting only of test case description comments separated by 
+  consisting only of test case description comments separated by
   blank lines, and then fill in the test cases. Will also highlight
   ParseFatalExceptions with "(FATAL)".
 
-- Added a 'pyparsing_common' class containing common/helpful little 
-  expressions such as integer, float, identifier, etc. I used this 
-  class as a sort of embedded namespace, to contain these helpers 
+- Added a 'pyparsing_common' class containing common/helpful little
+  expressions such as integer, float, identifier, etc. I used this
+  class as a sort of embedded namespace, to contain these helpers
   without further adding to pyparsing's namespace bloat.
 
-- Minor enhancement to traceParseAction decorator, to retain the 
+- Minor enhancement to traceParseAction decorator, to retain the
   parse action's name for the trace output.
 
 - Added optional 'fatal' keyword arg to addCondition, to indicate that
@@ -545,8 +545,8 @@ Version 2.1.2 - May, 2016
 - Fixed catastrophic regex backtracking in implementation of the
   quoted string expressions (dblQuotedString, sglQuotedString, and
   quotedString). Reported on the pyparsing wiki by webpentest,
-  good catch! (Also tuned up some other expressions susceptible to the 
-  same backtracking problem, such as cStyleComment, cppStyleComment, 
+  good catch! (Also tuned up some other expressions susceptible to the
+  same backtracking problem, such as cStyleComment, cppStyleComment,
   etc.)
 
 
@@ -564,7 +564,7 @@ Version 2.1.1 - March, 2016
   unit test submitted by robyschek, well done!
 
 - Removed use of functools.partial in replaceWith, as this creates
-  an ambiguous signature for the generated parse action, which fails in 
+  an ambiguous signature for the generated parse action, which fails in
   PyPy. Reported by Evan Hubinger, thanks Evan!
 
 - Added default behavior to QuotedString to convert embedded '\t', '\n',
@@ -574,47 +574,47 @@ Version 2.1.1 - March, 2016
 
 Version 2.1.0 - February, 2016
 ------------------------------
-- Modified the internal _trim_arity method to distinguish between 
+- Modified the internal _trim_arity method to distinguish between
   TypeError's raised while trying to determine parse action arity and
   those raised within the parse action itself. This will clear up those
-  confusing "<lambda>() takes exactly 1 argument (0 given)" error 
+  confusing "<lambda>() takes exactly 1 argument (0 given)" error
   messages when there is an actual TypeError in the body of the parse
   action. Thanks to all who have raised this issue in the past, and
   most recently to Michael Cohen, who sent in a proposed patch, and got
   me to finally tackle this problem.
 
-- Added compatibility for pickle protocols 2-4 when pickling ParseResults. 
+- Added compatibility for pickle protocols 2-4 when pickling ParseResults.
   In Python 2.x, protocol 0 was the default, and protocol 2 did not work.
-  In Python 3.x, protocol 3 is the default, so explicitly naming 
+  In Python 3.x, protocol 3 is the default, so explicitly naming
   protocol 0 or 1 was required to pickle ParseResults. With this release,
   all protocols 0-4 are supported. Thanks for reporting this on StackOverflow,
   Arne Wolframm, and for providing a nice simple test case!
 
 - Added optional 'stopOn' argument to ZeroOrMore and OneOrMore, to
-  simplify breaking on stop tokens that would match the repetition 
-  expression. 
-  
-  It is a common problem to fail to look ahead when matching repetitive 
+  simplify breaking on stop tokens that would match the repetition
+  expression.
+
+  It is a common problem to fail to look ahead when matching repetitive
   tokens if the sentinel at the end also matches the repetition
   expression, as when parsing "BEGIN aaa bbb ccc END" with:
-  
+
     "BEGIN" + OneOrMore(Word(alphas)) + "END"
 
   Since "END" matches the repetition expression "Word(alphas)", it will
-  never get parsed as the terminating sentinel. Up until now, this has 
+  never get parsed as the terminating sentinel. Up until now, this has
   to be resolved by the user inserting their own negative lookahead:
-  
+
     "BEGIN" + OneOrMore(~Literal("END") + Word(alphas)) + "END"
-  
+
   Using stopOn, they can more easily write:
-  
+
     "BEGIN" + OneOrMore(Word(alphas), stopOn="END") + "END"
-  
+
   The stopOn argument can be a literal string or a pyparsing expression.
   Inspired by a question by Lamakaha on StackOverflow (and many previous
   questions with the same negative-lookahead resolution).
 
-- Added expression names for many internal and builtin expressions, to 
+- Added expression names for many internal and builtin expressions, to
   reduce name and error message overhead during parsing.
 
 - Converted helper lambdas to functions to refactor and add docstring
@@ -622,7 +622,7 @@ Version 2.1.0 - February, 2016
 
 - Fixed ParseResults.asDict() to correctly convert nested ParseResults
   values to dicts.
-  
+
 - Cleaned up some examples, fixed typo in fourFn.py identified by
   aristotle2600 on reddit.
 
@@ -651,10 +651,10 @@ Version 2.0.7 - December, 2015
 - Fixed bug in ignore() that was introduced in pyparsing 1.5.3, that would
   not accept a string literal as the ignore expression.
 
-- Added new example parseTabularData.py to illustrate parsing of data 
+- Added new example parseTabularData.py to illustrate parsing of data
   formatted in columns, with detection of empty cells.
 
-- Updated a number of examples to more current Python and pyparsing 
+- Updated a number of examples to more current Python and pyparsing
   forms.
 
 
@@ -667,18 +667,18 @@ Version 2.0.6 - November, 2015
   or parse actions, reported by Max Rothman - thank you, Max!
 
 - Added optional parseAll argument to runTests, whether tests should
-  require the entire input string to be parsed or not (similar to 
+  require the entire input string to be parsed or not (similar to
   parseAll argument to parseString). Plus a little neaten-up of the
   output on Python 2 (no stray ()'s).
 
 - Modified exception messages from MatchFirst and Or expressions. These
   were formerly misleading as they would only give the first or longest
   exception mismatch error message. Now the error message includes all
-  the alternatives that were possible matches. Originally proposed by 
+  the alternatives that were possible matches. Originally proposed by
   a pyparsing user, but I've lost the email thread - finally figured out
   a fairly clean way to do this.
 
-- Fixed a bug in Or, when a parse action on an alternative raises an 
+- Fixed a bug in Or, when a parse action on an alternative raises an
   exception, other potentially matching alternatives were not always tried.
   Reported by TheVeryOmni on the pyparsing wiki, thanks!
 
@@ -690,18 +690,18 @@ Version 2.0.5 - October, 2015
 -----------------------------
 - (&$(@#&$(@!!!!  Some "print" statements snuck into pyparsing v2.0.4,
   breaking Python 3 compatibility! Fixed. Reported by jenshn, thanks!
-  
+
 
 Version 2.0.4 - October, 2015
 -----------------------------
-- Added ParserElement.addCondition, to simplify adding parse actions 
+- Added ParserElement.addCondition, to simplify adding parse actions
   that act primarily as filters. If the given condition evaluates False,
   pyparsing will raise a ParseException. The condition should be a method
   with the same method signature as a parse action, but should return a
   boolean. Suggested by Victor Porton, nice idea Victor, thanks!
 
 - Slight mod to srange to accept unicode literals for the input string,
-  such as "[а-яА-Я]" instead of "[\u0430-\u044f\u0410-\u042f]". Thanks 
+  such as "[а-яА-Я]" instead of "[\u0430-\u044f\u0410-\u042f]". Thanks
   to Alexandr Suchkov for the patch!
 
 - Enhanced implementation of replaceWith.
@@ -715,18 +715,18 @@ Version 2.0.4 - October, 2015
   adding a new function 'exp', and the leading 'e' of 'exp' was accidentally
   parsed as the mathematical constant 'e'. Nice catch, Tom Grydeland - thanks!
 
-- Adopt new-fangled Python features, like decorators and ternary expressions, 
+- Adopt new-fangled Python features, like decorators and ternary expressions,
   per suggestions from Williamzjc - thanks William! (Oh yeah, I'm not
   supporting Python 2.3 with this code any more...) Plus, some additional
   code fixes/cleanup - thanks again!
 
 - Added ParserElement.runTests, a little test bench for quickly running
-  an expression against a list of sample input strings. Basically, I got 
+  an expression against a list of sample input strings. Basically, I got
   tired of writing the same test code over and over, and finally added it
   as a test point method on ParserElement.
 
 - Added withClass helper method, a simplified version of withAttribute for
-  the common but annoying case when defining a filter on a div's class - 
+  the common but annoying case when defining a filter on a div's class -
   made difficult because 'class' is a Python reserved word.
 
 
@@ -750,7 +750,7 @@ Version 2.0.3 - October, 2014
   on Sourceforge by aldanor, thanks!
 
 - Fixed bug in ParseResults __init__ method, when returning non-ParseResults
-  types from parse actions that implement __eq__. Raised during discussion 
+  types from parse actions that implement __eq__. Raised during discussion
   on the pyparsing wiki with cyrfer.
 
 
@@ -767,8 +767,8 @@ Version 2.0.2 - April, 2014
   and prettified output. Now instead of importing the pprint module
   and then writing "pprint.pprint(result)", you can just write
   "result.pprint()".  This method also accepts addtional positional and
-  keyword arguments (such as indent, width, etc.), which get passed 
-  through directly to the pprint method 
+  keyword arguments (such as indent, width, etc.), which get passed
+  through directly to the pprint method
   (see http://docs.python.org/2/library/pprint.html#pprint.pprint).
 
 - Removed deprecation warnings when using '<<' for Forward expression
@@ -786,33 +786,33 @@ Version 2.0.2 - April, 2014
 
 - ParseResults emulates the change in list vs. iterator semantics for
   methods like keys(), values(), and items(). Under Python 2.x, these
-  methods will return lists, under Python 3.x, these methods will 
+  methods will return lists, under Python 3.x, these methods will
   return iterators.
 
 - ParseResults now has a method haskeys() which returns True or False
   depending on whether any results names have been defined. This simplifies
-  testing for the existence of results names under Python 3.x, which 
+  testing for the existence of results names under Python 3.x, which
   returns keys() as an iterator, not a list.
 
 - ParseResults now supports both list and dict semantics for pop().
   If passed no argument or an integer argument, it will use list semantics
   and pop tokens from the list of parsed tokens. If passed a non-integer
-  argument (most likely a string), it will use dict semantics and 
+  argument (most likely a string), it will use dict semantics and
   pop the corresponding value from any defined results names. A
-  second default return value argument is supported, just as in 
+  second default return value argument is supported, just as in
   dict.pop().
 
 - Fixed bug in markInputline, thanks for reporting this, Matt Grant!
 
-- Cleaned up my unit test environment, now runs with Python 2.6 and 
+- Cleaned up my unit test environment, now runs with Python 2.6 and
   3.3.
 
 
 Version 2.0.1 - July, 2013
 --------------------------
-- Removed use of "nonlocal" that prevented using this version of 
-  pyparsing with Python 2.6 and 2.7. This will make it easier to 
-  install for packages that depend on pyparsing, under Python 
+- Removed use of "nonlocal" that prevented using this version of
+  pyparsing with Python 2.6 and 2.7. This will make it easier to
+  install for packages that depend on pyparsing, under Python
   versions 2.6 and later. Those using older versions of Python
   will have to manually install pyparsing 1.5.7.
 
@@ -824,7 +824,7 @@ Version 2.0.1 - July, 2013
 Version 2.0.0 - November, 2012
 ------------------------------
 - Rather than release another combined Python 2.x/3.x release
-  I've decided to start a new major version that is only 
+  I've decided to start a new major version that is only
   compatible with Python 3.x (and consequently Python 2.7 as
   well due to backporting of key features). This version will
   be the main development path from now on, with little follow-on
@@ -838,7 +838,7 @@ Version 2.0.0 - November, 2012
 
 Version 1.5.7 - November, 2012
 -----------------------------
-- NOTE: This is the last release of pyparsing that will try to 
+- NOTE: This is the last release of pyparsing that will try to
   maintain compatibility with Python versions < 2.6. The next
   release of pyparsing will be version 2.0.0, using new Python
   syntax that will not be compatible for Python version 2.5 or
@@ -855,12 +855,12 @@ Version 1.5.7 - November, 2012
 - Fixed bug in ParseResults.__dir__ under Python 3, reported by
   Thomas Kluyver, thank you Thomas!
 
-- Added ParserElement.inlineLiteralsUsing static method, to 
+- Added ParserElement.inlineLiteralsUsing static method, to
   override pyparsing's default behavior of converting string
   literals to Literal instances, to use other classes (such
   as Suppress or CaselessLiteral).
 
-- Added new operator '<<=', which will eventually replace '<<' for 
+- Added new operator '<<=', which will eventually replace '<<' for
   storing the contents of a Forward(). '<<=' does not have the same
   operator precedence problems that '<<' does.
 
@@ -868,11 +868,11 @@ Version 1.5.7 - November, 2012
   description of what this helper function creates. 'operatorPrecedence'
   is deprecated, and will be dropped entirely in a future release.
 
-- Added optional arguments lpar and rpar to operatorPrecedence, so that 
+- Added optional arguments lpar and rpar to operatorPrecedence, so that
   expressions that use it can override the default suppression of the
   grouping characters.
 
-- Added support for using single argument builtin functions as parse 
+- Added support for using single argument builtin functions as parse
   actions.  Now you can write 'expr.setParseAction(len)' and get back
   the length of the list of matched tokens.  Supported builtins are:
   sum, len, sorted, reversed, list, tuple, set, any, all, min, and max.
@@ -882,25 +882,25 @@ Version 1.5.7 - November, 2012
 - Improved linking in generated docs, proposed on the pyparsing wiki
   by techtonik, thanks!
 
-- Fixed a bug in the definition of 'alphas', which was based on the 
-  string.uppercase and string.lowercase "constants", which in fact 
-  *aren't* constant, but vary with locale settings. This could make 
+- Fixed a bug in the definition of 'alphas', which was based on the
+  string.uppercase and string.lowercase "constants", which in fact
+  *aren't* constant, but vary with locale settings. This could make
   parsers locale-sensitive in a subtle way. Thanks to Kef Schecter for
-  his diligence in following through on reporting and monitoring 
+  his diligence in following through on reporting and monitoring
   this bugfix!
 
 - Fixed a bug in the Py3 version of pyparsing, during exception
-  handling with packrat parsing enabled, reported by Catherine 
+  handling with packrat parsing enabled, reported by Catherine
   Devlin - thanks Catherine!
 
-- Fixed typo in ParseBaseException.__dir__, reported anonymously on 
+- Fixed typo in ParseBaseException.__dir__, reported anonymously on
   the SourceForge bug tracker, thank you Pyparsing User With No Name.
 
 - Fixed bug in srange when using '\x###' hex character codes.
 
-- Addeed optional 'intExpr' argument to countedArray, so that you 
+- Addeed optional 'intExpr' argument to countedArray, so that you
   can define your own expression that will evaluate to an integer,
-  to be used as the count for the following elements. Allows you 
+  to be used as the count for the following elements. Allows you
   to define a countedArray with the count given in hex, for example,
   by defining intExpr as "Word(hexnums).setParseAction(int(t[0],16))".
 
@@ -908,7 +908,7 @@ Version 1.5.7 - November, 2012
 Version 1.5.6 - June, 2011
 ----------------------------
 - Cleanup of parse action normalizing code, to be more version-tolerant,
-  and robust in the face of future Python versions - much thanks to 
+  and robust in the face of future Python versions - much thanks to
   Raymond Hettinger for this rewrite!
 
 - Removal of exception cacheing, addressing a memory leak condition
@@ -916,7 +916,7 @@ Version 1.5.6 - June, 2011
   their analysis and work on this problem!
 
 - Fixed bug when using packrat parsing, where a previously parsed
-  expression would duplicate subsequent tokens - reported by Frankie 
+  expression would duplicate subsequent tokens - reported by Frankie
   Ribery on stackoverflow, thanks!
 
 - Added 'ungroup' helper method, to address token grouping done
@@ -924,7 +924,7 @@ Version 1.5.6 - June, 2011
   And actually returns any text - also inspired by stackoverflow
   discussion with Frankie Ribery!
 
-- Fixed bug in srange, which accepted escaped hex characters of the 
+- Fixed bug in srange, which accepted escaped hex characters of the
   form '\0x##', but should be '\x##'.  Both forms will be supported
   for backwards compatibility.
 
@@ -946,10 +946,10 @@ Version 1.5.6 - June, 2011
 
 - Updated oneOf internal regular expression generation, with improved
   parse time performance.
-  
+
 - Slight performance improvement in transformString, removing empty
   strings from the list of string fragments built while scanning the
-  source text, before calling ''.join.  Especially useful when using 
+  source text, before calling ''.join.  Especially useful when using
   transformString to strip out selected text.
 
 - Enhanced form of using the "expr('name')" style of results naming,
@@ -963,7 +963,7 @@ Version 1.5.6 - June, 2011
   . protobuf parser - parses Google's protobuf language
   . btpyparse - a BibTex parser contributed by Matthew Brett,
     with test suite test_bibparse.py (thanks, Matthew!)
-  . groupUsingListAllMatches.py - demo using trailing '*' for results 
+  . groupUsingListAllMatches.py - demo using trailing '*' for results
     names
 
 
@@ -977,8 +977,8 @@ Version 1.5.5 - August, 2010
 Version 1.5.4 - August, 2010
 ----------------------------
 
-- Fixed __builtins__ and file references in Python 3 code, thanks to 
-  Greg Watson, saulspatz, sminos, and Mark Summerfield for reporting 
+- Fixed __builtins__ and file references in Python 3 code, thanks to
+  Greg Watson, saulspatz, sminos, and Mark Summerfield for reporting
   their Python 3 experiences.
 
 - Added new example, apicheck.py, as a sample of scanning a Tcl-like
@@ -995,13 +995,13 @@ Version 1.5.3 - June, 2010
 --------------------------
 
 - ======= NOTE:  API CHANGE!!!!!!! ===============
-  With this release, and henceforward, the pyparsing module is 
+  With this release, and henceforward, the pyparsing module is
   imported as "pyparsing" on both Python 2.x and Python 3.x versions.
 
-- Fixed up setup.py to auto-detect Python version and install the 
-  correct version of pyparsing - suggested by Alex Martelli, 
-  thanks, Alex! (and my apologies to all those who struggled with 
-  those spurious installation errors caused by my earlier 
+- Fixed up setup.py to auto-detect Python version and install the
+  correct version of pyparsing - suggested by Alex Martelli,
+  thanks, Alex! (and my apologies to all those who struggled with
+  those spurious installation errors caused by my earlier
   fumblings!)
 
 - Fixed bug on Python3 when using parseFile, getting bytes instead of
@@ -1014,14 +1014,14 @@ Version 1.5.3 - June, 2010
 - Fixed very sneaky bug in Each, in which Optional elements were
   not completely recognized as optional - found by Tal Weiss, thanks
   for your patience.
-  
+
 - Fixed off-by-1 bug in line() method when the first line of the
   input text was an empty line. Thanks to John Krukoff for submitting
   a patch!
-  
+
 - Fixed bug in transformString if grammar contains Group expressions,
   thanks to patch submitted by barnabas79, nice work!
-  
+
 - Fixed bug in originalTextFor in which trailing comments or otherwised
   ignored text got slurped in with the matched expression.  Thanks to
   michael_ramirez44 on the pyparsing wiki for reporting this just in
@@ -1029,8 +1029,8 @@ Version 1.5.3 - June, 2010
 
 - Added better support for summing ParseResults, see the new example,
   parseResultsSumExample.py.
-  
-- Added support for composing a Regex using a compiled RE object; 
+
+- Added support for composing a Regex using a compiled RE object;
   thanks to my new colleague, Mike Thornton!
 
 - In version 1.5.2, I changed the way exceptions are raised in order
@@ -1038,41 +1038,41 @@ Version 1.5.3 - June, 2010
   user posted a bug report on SF that this behavior makes it difficult
   to debug some complex parsers, or parsers nested within parsers. In
   this release I've added a class attribute ParserElement.verbose_stacktrace,
-  with a default value of False. If you set this to True, pyparsing will 
+  with a default value of False. If you set this to True, pyparsing will
   report stacktraces using the pre-1.5.2 behavior.
 
-- New examples: 
+- New examples:
 
-  . pymicko.py, a MicroC compiler submitted by Zarko Zivanov. 
-    (Note: this example is separately licensed under the GPLv3, 
+  . pymicko.py, a MicroC compiler submitted by Zarko Zivanov.
+    (Note: this example is separately licensed under the GPLv3,
     and requires Python 2.6 or higher.)  Thank you, Zarko!
 
   . oc.py, a subset C parser, using the BNF from the 1996 Obfuscated C
     Contest.
 
-  . stateMachine2.py, a modified version of stateMachine.py submitted 
-    by Matt Anderson, that is compatible with Python versions 2.7 and 
+  . stateMachine2.py, a modified version of stateMachine.py submitted
+    by Matt Anderson, that is compatible with Python versions 2.7 and
     above - thanks so much, Matt!
-    
-  . select_parser.py, a parser for reading SQLite SELECT statements, 
+
+  . select_parser.py, a parser for reading SQLite SELECT statements,
     as specified at http://www.sqlite.org/lang_select.html; this goes
     into much more detail than the simple SQL parser included in pyparsing's
     source code
-    
-  . excelExpr.py, a *simplistic* first-cut at a parser for Excel 
-    expressions, which I originally posted on comp.lang.python in January, 
+
+  . excelExpr.py, a *simplistic* first-cut at a parser for Excel
+    expressions, which I originally posted on comp.lang.python in January,
     2010; beware, this parser omits many common Excel cases (addition of
     numbers represented as strings, references to named ranges)
-    
+
   . cpp_enum_parser.py, a nice little parser posted my Mark Tolonen on
     comp.lang.python in August, 2009 (redistributed here with Mark's
     permission).  Thanks a bunch, Mark!
-    
+
   . partial_gene_match.py, a sample I posted to Stackoverflow.com,
     implementing a special variation on Literal that does "close" matching,
-    up to a given number of allowed mismatches.  The application was to 
+    up to a given number of allowed mismatches.  The application was to
     find matching gene sequences, with allowance for one or two mismatches.
-    
+
   . tagCapture.py, a sample showing how to use a Forward placeholder to
     enforce matching of text parsed in a previous expression.
 
@@ -1084,26 +1084,26 @@ Version 1.5.2 - April, 2009
 ------------------------------
 - Added pyparsing_py3.py module, so that Python 3 users can use
   pyparsing by changing their pyparsing import statement to:
-  
+
       import pyparsing_py3
 
-  Thanks for help from Patrick Laban and his friend Geremy 
+  Thanks for help from Patrick Laban and his friend Geremy
   Condra on the pyparsing wiki.
-  
+
 - Removed __slots__ declaration on ParseBaseException, for
   compatibility with IronPython 2.0.1.  Raised by David
   Lawler on the pyparsing wiki, thanks David!
-  
-- Fixed bug in SkipTo/failOn handling - caught by eagle eye 
+
+- Fixed bug in SkipTo/failOn handling - caught by eagle eye
   cpennington on the pyparsing wiki!
 
 - Fixed second bug in SkipTo when using the ignore constructor
   argument, reported by Catherine Devlin, thanks!
-  
+
 - Fixed obscure bug reported by Eike Welk when using a class
   as a ParseAction with an errant __getitem__ method.
 
-- Simplified exception stack traces when reporting parse 
+- Simplified exception stack traces when reporting parse
   exceptions back to caller of parseString or parseFile - thanks
   to a tip from Peter Otten on comp.lang.python.
 
@@ -1111,16 +1111,16 @@ Version 1.5.2 - April, 2009
   expressions that match zero-length strings.  Prompted by a
   question posted by ellisonbg on the wiki.
 
-- Enhanced classes that take a list of expressions (And, Or, 
+- Enhanced classes that take a list of expressions (And, Or,
   MatchFirst, and Each) to accept generator expressions also.
   This can be useful when generating lists of alternative
   expressions, as in this case, where the user wanted to match
   any repetitions of '+', '*', '#', or '.', but not mixtures
   of them (that is, match '+++', but not '+-+'):
-  
+
       codes = "+*#."
       format = MatchFirst(Word(c) for c in codes)
-      
+
   Based on a problem posed by Denis Spir on the Python tutor
   list.
 
@@ -1131,30 +1131,30 @@ Version 1.5.2 - April, 2009
 Version 1.5.1 - October, 2008
 -------------------------------
 - Added new helper method originalTextFor, to replace the use of
-  the current keepOriginalText parse action.  Now instead of 
+  the current keepOriginalText parse action.  Now instead of
   using the parse action, as in:
-  
+
       fullName = Word(alphas) + Word(alphas)
       fullName.setParseAction(keepOriginalText)
-      
+
   (in this example, we used keepOriginalText to restore any white
   space that may have been skipped between the first and last
   names)
   You can now write:
-  
+
       fullName = originalTextFor(Word(alphas) + Word(alphas))
-      
+
   The implementation of originalTextFor is simpler and faster than
   keepOriginalText, and does not depend on using the inspect or
   imp modules.
-  
+
 - Added optional parseAll argument to parseFile, to be consistent
   with parseAll argument to parseString.  Posted by pboucher on the
   pyparsing wiki, thanks!
 
 - Added failOn argument to SkipTo, so that grammars can define
   literal strings or pyparsing expressions which, if found in the
-  skipped text, will cause SkipTo to fail.  Useful to prevent 
+  skipped text, will cause SkipTo to fail.  Useful to prevent
   SkipTo from reading past terminating expression.  Instigated by
   question posed by Aki Niimura on the pyparsing wiki.
 
@@ -1178,13 +1178,13 @@ Version 1.5.1 - October, 2008
   defined.
 
 - Fixed bug in ParseResults.asXML(), in which the first named
-  item within a ParseResults gets reported with an <ITEM> tag 
+  item within a ParseResults gets reported with an <ITEM> tag
   instead of with the correct results name.
-  
-- Fixed bug in '-' error stop, when '-' operator is used inside a 
+
+- Fixed bug in '-' error stop, when '-' operator is used inside a
   Combine expression.
 
-- Reverted generator expression to use list comprehension, for 
+- Reverted generator expression to use list comprehension, for
   better compatibility with old versions of Python.  Reported by
   jester/artixdesign on the SourceForge pyparsing discussion list.
 

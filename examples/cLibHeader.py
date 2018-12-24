@@ -1,4 +1,4 @@
-# 
+#
 # cLibHeader.py
 #
 # A simple parser to extract API doc info from a C header file
@@ -12,7 +12,7 @@ testdata = """
   int func1(float *vec, int len, double arg1);
   int func2(float **arr, float *vec, int len, double arg1, double arg2);
   """
-  
+
 ident = Word(alphas, alphanums + "_")
 vartype = Combine( oneOf("float double int char") + Optional(Word("*")), adjacent = False)
 arglist = delimitedList(Group(vartype("type") + ident("name")))

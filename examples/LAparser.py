@@ -4,11 +4,11 @@ Based on:  SimpleCalc.py example (author Paul McGuire) in pyparsing-1.3.3
 Author:    Mike Ellis
 Copyright: Ellis & Grant, Inc. 2005
 License:   You may freely use, modify, and distribute this software.
-Warranty:  THIS SOFTWARE HAS NO WARRANTY WHATSOEVER. USE AT YOUR OWN RISK. 
+Warranty:  THIS SOFTWARE HAS NO WARRANTY WHATSOEVER. USE AT YOUR OWN RISK.
 Notes: Parses infix linear algebra (LA) notation for vectors, matrices, and scalars.
-       Output is C code function calls.  The parser can be run as an interactive 
-       interpreter or included as module to use for in-place substitution into C files 
-       containing LA equations.  
+       Output is C code function calls.  The parser can be run as an interactive
+       interpreter or included as module to use for in-place substitution into C files
+       containing LA equations.
 
        Supported operations are:
        OPERATION:              INPUT                    OUTPUT
@@ -34,27 +34,27 @@ Notes: Parses infix linear algebra (LA) notation for vectors, matrices, and scal
        Matrix determinant:     "a = M3_b^Det"           "a=mDeterminant(b)"
 
        The parser requires the expression to be an equation.  Each non-scalar variable
-       must be prefixed with a type tag, 'M3_' for 3x3 matrices and 'V3_' for 3-vectors. 
-       For proper compilation of the C code, the variables need to be declared without 
+       must be prefixed with a type tag, 'M3_' for 3x3 matrices and 'V3_' for 3-vectors.
+       For proper compilation of the C code, the variables need to be declared without
        the prefix as float[3] for vectors and float[3][3] for matrices. The operations do
        not modify any variables on the right-hand side of the equation.
 
-       Equations may include nested expressions within parentheses. The allowed binary 
+       Equations may include nested expressions within parentheses. The allowed binary
        operators are '+-*/^' for scalars, and '+-*^@' for vectors and matrices with the
        meanings defined in the table above.
 
        Specifying an improper combination of operands, e.g. adding a vector to a matrix,
        is detected by the parser and results in a Python TypeError Exception. The usual cause
-       of this is omitting one or more tag prefixes. The parser knows nothing about a 
-       a variable's C declaration and relies entirely on the type tags. Errors in C 
+       of this is omitting one or more tag prefixes. The parser knows nothing about a
+       a variable's C declaration and relies entirely on the type tags. Errors in C
        declarations are not caught until compile time.
 
-Usage: To process LA equations embedded in source files, import this module and 
+Usage: To process LA equations embedded in source files, import this module and
        pass input and output file objects to the fprocess() function.  You can
        can also invoke the parser from the command line, e.g. 'python LAparser.py',
        to run a small test suite and enter an interactive loop where you can enter
        LA equations and see the resulting C code.
-       
+
 """
 
 import re,os,sys
@@ -87,7 +87,7 @@ def _assignVar( str, loc, toks ):
 point = Literal('.')
 e = CaselessLiteral('E')
 plusorminus = Literal('+') | Literal('-')
-number = Word(nums) 
+number = Word(nums)
 integer = Combine( Optional(plusorminus) + number )
 floatnumber = Combine( integer +
                        Optional( point + Optional(number) ) +
@@ -103,7 +103,7 @@ ident = Forward()
 ## a ParseException.
 ident = Combine(Word(alphas + '-',alphanums + '_') + \
                 ZeroOrMore(lbracket + (Word(alphas + '-',alphanums + '_')|integer) + rbracket) \
-                ) 
+                )
 
 plus  = Literal( "+" )
 minus = Literal( "-" )
@@ -118,14 +118,14 @@ expop = Literal( "^" )
 assignop = Literal( "=" )
 
 expr = Forward()
-atom = ( ( e | floatnumber | integer | ident  ).setParseAction(_pushFirst) | 
+atom = ( ( e | floatnumber | integer | ident  ).setParseAction(_pushFirst) |
          ( lpar + expr.suppress() + rpar )
        )
 factor = Forward()
 factor << atom + ZeroOrMore( ( expop + factor ).setParseAction( _pushFirst ) )
-        
+
 term = factor + ZeroOrMore( ( multop + factor ).setParseAction( _pushFirst ) )
-expr << term + ZeroOrMore( ( addop + term ).setParseAction( _pushFirst ) ) 
+expr << term + ZeroOrMore( ( addop + term ).setParseAction( _pushFirst ) )
 equation = (ident + assignop).setParseAction(_assignVar) + expr + StringEnd()
 
 # End of grammar definition
@@ -143,12 +143,12 @@ class UnaryUnsupportedError(Exception): pass
 
 def _isvec(ident):
    if ident[0] == '-' and ident[1:vplen+1] == vprefix:
-      raise UnaryUnsupportedError 
+      raise UnaryUnsupportedError
    else: return ident[0:vplen] == vprefix
 
-def _ismat(ident): 
+def _ismat(ident):
    if ident[0] == '-' and ident[1:mplen+1] == mprefix:
-      raise UnaryUnsupportedError 
+      raise UnaryUnsupportedError
    else: return ident[0:mplen] == mprefix
 
 def _isscalar(ident): return not (_isvec(ident) or _ismat(ident))
@@ -163,41 +163,41 @@ def _isscalar(ident): return not (_isvec(ident) or _ismat(ident))
 ## nested function calls, e.g. "V3_a + V3_b*5"  yields "V3_vAdd(a,vScale(b,5)".  Note that prefixes are
 ## stripped from operands and function names within the argument list to the outer function and
 ## the appropriate prefix is placed on the outer function for removal later as the stack evaluation
-## recurses toward the final assignment statement.  
+## recurses toward the final assignment statement.
 
-def _addfunc(a,b): 
+def _addfunc(a,b):
    if _isscalar(a) and _isscalar(b): return "(%s+%s)"%(a,b)
-   if _isvec(a) and _isvec(b): return "%svAdd(%s,%s)"%(vprefix,a[vplen:],b[vplen:]) 
-   if _ismat(a) and _ismat(b): return "%smAdd(%s,%s)"%(mprefix,a[mplen:],b[mplen:]) 
+   if _isvec(a) and _isvec(b): return "%svAdd(%s,%s)"%(vprefix,a[vplen:],b[vplen:])
+   if _ismat(a) and _ismat(b): return "%smAdd(%s,%s)"%(mprefix,a[mplen:],b[mplen:])
    else: raise TypeError
 
-def _subfunc(a,b):  
+def _subfunc(a,b):
    if _isscalar(a) and _isscalar(b): return "(%s-%s)"%(a,b)
-   if _isvec(a) and _isvec(b): return "%svSubtract(%s,%s)"%(vprefix,a[vplen:],b[vplen:]) 
-   if _ismat(a) and _ismat(b): return "%smSubtract(%s,%s)"%(mprefix,a[mplen:],b[mplen:]) 
+   if _isvec(a) and _isvec(b): return "%svSubtract(%s,%s)"%(vprefix,a[vplen:],b[vplen:])
+   if _ismat(a) and _ismat(b): return "%smSubtract(%s,%s)"%(mprefix,a[mplen:],b[mplen:])
    else: raise TypeError
 
-def _mulfunc(a,b):  
+def _mulfunc(a,b):
    if _isscalar(a) and _isscalar(b): return "%s*%s"%(a,b)
-   if _isvec(a) and _isvec(b):    return "vDot(%s,%s)"%(a[vplen:],b[vplen:]) 
-   if _ismat(a) and _ismat(b):    return "%smMultiply(%s,%s)"%(mprefix,a[mplen:],b[mplen:]) 
-   if _ismat(a) and _isvec(b):    return "%smvMultiply(%s,%s)"%(vprefix,a[mplen:],b[vplen:]) 
-   if _ismat(a) and _isscalar(b): return "%smScale(%s,%s)"%(mprefix,a[mplen:],b) 
-   if _isvec(a) and _isscalar(b): return "%svScale(%s,%s)"%(vprefix,a[mplen:],b) 
+   if _isvec(a) and _isvec(b):    return "vDot(%s,%s)"%(a[vplen:],b[vplen:])
+   if _ismat(a) and _ismat(b):    return "%smMultiply(%s,%s)"%(mprefix,a[mplen:],b[mplen:])
+   if _ismat(a) and _isvec(b):    return "%smvMultiply(%s,%s)"%(vprefix,a[mplen:],b[vplen:])
+   if _ismat(a) and _isscalar(b): return "%smScale(%s,%s)"%(mprefix,a[mplen:],b)
+   if _isvec(a) and _isscalar(b): return "%svScale(%s,%s)"%(vprefix,a[mplen:],b)
    else: raise TypeError
 
 def _outermulfunc(a,b):
    ## The '@' operator is used for the vector outer product.
-   if _isvec(a) and _isvec(b): 
+   if _isvec(a) and _isvec(b):
      return "%svOuterProduct(%s,%s)"%(mprefix,a[vplen:],b[vplen:])
    else: raise TypeError
 
 def _divfunc(a,b):
-   ## The '/' operator is used only for scalar division  
+   ## The '/' operator is used only for scalar division
    if _isscalar(a) and _isscalar(b): return "%s/%s"%(a,b)
    else: raise TypeError
 
-def _expfunc(a,b):  
+def _expfunc(a,b):
   ## The '^' operator is used for exponentiation on scalars and
   ## as a marker for unary operations on vectors and matrices.
   if _isscalar(a) and _isscalar(b): return "pow(%s,%s)"%(str(a),str(b))
@@ -208,17 +208,17 @@ def _expfunc(a,b):
   if _isvec(a) and b=='Mag2':       return "vMagnitude2(%s)"%(a[vplen:])
   else: raise TypeError
 
-def _assignfunc(a,b): 
+def _assignfunc(a,b):
    ## The '=' operator is used for assignment
    if _isscalar(a) and _isscalar(b): return "%s=%s"%(a,b)
-   if _isvec(a) and _isvec(b): return "vCopy(%s,%s)"%(a[vplen:],b[vplen:]) 
-   if _ismat(a) and _ismat(b): return "mCopy(%s,%s)"%(a[mplen:],b[mplen:]) 
+   if _isvec(a) and _isvec(b): return "vCopy(%s,%s)"%(a[vplen:],b[vplen:])
+   if _ismat(a) and _ismat(b): return "mCopy(%s,%s)"%(a[mplen:],b[mplen:])
    else: raise TypeError
 
 ## End of BIO func definitions
 ##----------------------------------------------------------------------------
 
-# Map  operator symbols to corresponding BIO funcs 
+# Map  operator symbols to corresponding BIO funcs
 opn = { "+" : ( _addfunc ),
         "-" : ( _subfunc ),
         "*" : ( _mulfunc ),
@@ -237,25 +237,25 @@ def _evaluateStack( s ):
     result = opn[op]( op1, op2 )
     if debug_flag: print(result)
     return result
-  else: 
+  else:
     return op
 
 ##----------------------------------------------------------------------------
 # The parse function that invokes all of the above.
 def parse(input_string):
     """
-    Accepts an input string containing an LA equation, e.g., 
+    Accepts an input string containing an LA equation, e.g.,
     "M3_mymatrix = M3_anothermatrix^-1" returns C code function
     calls that implement the expression.
     """
-    
+
     global  exprStack
     global targetvar
 
     # Start with a blank exprStack and a blank targetvar
     exprStack = []
     targetvar=None
-  
+
     if input_string != '':
       # try parsing the input string
       try:
@@ -266,14 +266,14 @@ def parse(input_string):
         print(" "*(err.column-1) + "^", file=sys.stderr)
         print(err, file=sys.stderr)
         raise
-      
+
       # show result of parsing the input string
-      if debug_flag: 
+      if debug_flag:
         print(input_string, "->", L)
         print("exprStack=", exprStack)
-  
+
       # Evaluate the stack of parsed operands, emitting C code.
-      try: 
+      try:
         result=_evaluateStack(exprStack)
       except TypeError:
         print("Unsupported operation on right side of '%s'.\nCheck for missing or incorrect tags on non-scalar operands."%input_string, file=sys.stderr)
@@ -281,8 +281,8 @@ def parse(input_string):
       except UnaryUnsupportedError:
         print("Unary negation is not supported for vectors and matrices: '%s'"%input_string, file=sys.stderr)
         raise
-  
-      # Create final assignment and print it. 
+
+      # Create final assignment and print it.
       if debug_flag: print("var=",targetvar)
       if targetvar != None:
           try:
@@ -311,22 +311,22 @@ def fprocess(infilep,outfilep):
 
    Other text in the file is unaltered.
 
-   The arguments are file objects (NOT file names) opened for reading and 
+   The arguments are file objects (NOT file names) opened for reading and
    writing, respectively.
    """
    pattern = r'\[\[\s*(.*?)\s*\]\]'
    eqn = re.compile(pattern,re.DOTALL)
    s = infilep.read()
-   def parser(mo): 
+   def parser(mo):
       ccode = parse(mo.group(1))
       return "/* %s */\n%s;\nLAParserBufferReset();\n"%(mo.group(1),ccode)
 
    content = eqn.sub(parser,s)
    outfilep.write(content)
- 
+
 ##-----------------------------------------------------------------------------------
 def test():
-   """ 
+   """
    Tests the parsing of various supported expressions. Raises
    an AssertError if the output is not what is expected. Prints the
    input, expected output, and actual output for all tests.
@@ -357,9 +357,9 @@ def test():
      ("Vector magnitude","a = V3_b^Mag","a=sqrt(vMagnitude2(b))"),
      ("Complicated expression", "myscalar = (M3_amatrix * V3_bvector)^Mag + 5*(-xyz[i] + 2.03^2)","myscalar=(sqrt(vMagnitude2(mvMultiply(amatrix,bvector)))+5*(-xyz[i]+pow(2.03,2)))"),
      ("Complicated Multiline", "myscalar = \n(M3_amatrix * V3_bvector)^Mag +\n 5*(xyz + 2.03^2)","myscalar=(sqrt(vMagnitude2(mvMultiply(amatrix,bvector)))+5*(xyz+pow(2.03,2)))")
-      
+
      ]
-   
+
    for t in testcases:
       name,input,expected = t
       print(name)
@@ -369,13 +369,13 @@ def test():
       print("   %s received"%result)
       print("")
       assert expected == result
-    
+
    ##TODO: Write testcases with invalid expressions and test that the expected
    ## exceptions are raised.
 
    print("Tests completed!")
 ##----------------------------------------------------------------------------
-## The following is executed only when this module is executed as 
+## The following is executed only when this module is executed as
 ## command line script.  It runs a small test suite (see above)
 ## and then enters an interactive loop where you
 ## can enter expressions and see the resulting C code as output.
@@ -386,7 +386,7 @@ if __name__ == '__main__':
 
   # input_string
   input_string=''
-  
+
   # Display instructions on how to use the program interactively
   interactiveusage = """
   Entering interactive mode:
@@ -396,7 +396,7 @@ if __name__ == '__main__':
   """
   print(interactiveusage)
   input_string = input("> ")
-  
+
   while input_string != 'quit':
     if input_string == "debug on":
        debug_flag = True
@@ -406,12 +406,10 @@ if __name__ == '__main__':
       try:
         print(parse(input_string))
       except:
-        pass 
+        pass
 
     # obtain new input string
     input_string = input("> ")
-  
+
   # if user types 'quit' then say goodbye
   print("Good bye!")
-
-

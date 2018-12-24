@@ -23,14 +23,14 @@ INT = Word(nums)
 ESC = Literal('\\') + (oneOf(list(r'nrtbf\">'+"'")) | ('u' + Word(hexnums, exact=4)) | Word(printables, exact=1))
 LITERAL_CHAR = ESC | ~(Literal("'") | Literal('\\')) + Word(printables, exact=1)
 CHAR_LITERAL = Suppress("'") + LITERAL_CHAR + Suppress("'")
-STRING_LITERAL = Suppress("'") + Combine(OneOrMore(LITERAL_CHAR)) + Suppress("'") 
+STRING_LITERAL = Suppress("'") + Combine(OneOrMore(LITERAL_CHAR)) + Suppress("'")
 DOUBLE_QUOTE_STRING_LITERAL = '"' + ZeroOrMore(LITERAL_CHAR) + '"'
 DOUBLE_ANGLE_STRING_LITERAL = '<<' + ZeroOrMore(Word(printables, exact=1)) + '>>'
 TOKEN_REF = Word(alphas.upper(), alphanums+'_')
 RULE_REF = Word(alphas.lower(), alphanums+'_')
 ACTION_ESC = (Suppress("\\") + Suppress("'")) | Suppress('\\"') | Suppress('\\') + (~(Literal("'") | Literal('"')) + Word(printables, exact=1))
 ACTION_CHAR_LITERAL = Suppress("'") + (ACTION_ESC | ~(Literal('\\') | Literal("'")) + Word(printables, exact=1)) + Suppress("'")
-ACTION_STRING_LITERAL = Suppress('"') + ZeroOrMore(ACTION_ESC | ~(Literal('\\') | Literal('"')) + Word(printables, exact=1)) + Suppress('"') 
+ACTION_STRING_LITERAL = Suppress('"') + ZeroOrMore(ACTION_ESC | ~(Literal('\\') | Literal('"')) + Word(printables, exact=1)) + Suppress('"')
 SRC = Suppress('src') + ACTION_STRING_LITERAL("file") + INT("line")
 id = TOKEN_REF | RULE_REF
 SL_COMMENT = Suppress('//') + Suppress('$ANTLR') + SRC | ZeroOrMore(~EOL + Word(printables)) + EOL
@@ -91,7 +91,7 @@ rewrite = Optional(Literal('TODO REWRITE RULES TODO'))
 block << Suppress('(') + Optional(Optional(optionsSpec("opts")) + Suppress(':')) + Group(alternative('a1') + rewrite + Group(ZeroOrMore(Suppress('|') + alternative('a2') + rewrite))("alternatives"))("block") + Suppress(')')
 altList = alternative('a1') + rewrite + Group(ZeroOrMore(Suppress('|') + alternative('a2') + rewrite))("alternatives")
 exceptionHandler = Suppress('catch') + ARG_ACTION + ACTION
-finallyClause = Suppress('finally') + ACTION 
+finallyClause = Suppress('finally') + ACTION
 exceptionGroup = (OneOrMore(exceptionHandler) + Optional(finallyClause)) | finallyClause
 
 ruleHeading = Optional(ML_COMMENT)("ruleComment") + Optional(modifier)("modifier") + id("ruleName") + Optional("!") + Optional(ARG_ACTION("arg")) + Optional(Suppress('returns') + ARG_ACTION("rt")) + Optional(throwsSpec) + Optional(optionsSpec) + Optional(ruleScopeSpec) + ZeroOrMore(ruleAction)
@@ -125,7 +125,7 @@ def __antlrAlternativeConverter(pyparsingRules, antlrAlternative):
             regex = r'['+str(element.atom.c1[0])+'-'+str(element.atom.c2[0]+']')
             rule = Regex(regex)("anonymous_regex")
         elif hasattr(element, 'block') and element.block != '':
-            rule = __antlrAlternativesConverter(pyparsingRules, element.block)        
+            rule = __antlrAlternativesConverter(pyparsingRules, element.block)
         else:
             ruleRef = element.atom
             assert ruleRef in pyparsingRules
@@ -145,7 +145,7 @@ def __antlrAlternativeConverter(pyparsingRules, antlrAlternative):
         rule = Group(And(elementList))("anonymous_and")
     else:
         rule = elementList[0]
-    assert rule != None        
+    assert rule != None
     return rule
 
 def __antlrRuleConverter(pyparsingRules, antlrRule):
@@ -169,11 +169,11 @@ def antlrConverter(antlrGrammarTree):
     for antlrRuleName, antlrRule in list(antlrRules.items()):
         pyparsingRule = __antlrRuleConverter(pyparsingRules, antlrRule)
         assert pyparsingRule != None
-        pyparsingRules[antlrRuleName] << pyparsingRule 
+        pyparsingRules[antlrRuleName] << pyparsingRule
     return pyparsingRules
 
 if __name__ == "__main__":
-    
+
     text = """grammar SimpleCalc;
 
 options {
@@ -209,7 +209,7 @@ NUMBER    : (DIGIT)+ ;
 fragment DIGIT    : '0'..'9' ;
 
 """
-    
+
     grammar().validate()
     antlrGrammarTree = grammar().parseString(text)
     print(antlrGrammarTree.asXML("antlrGrammarTree"))

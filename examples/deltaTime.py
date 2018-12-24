@@ -1,9 +1,9 @@
 # deltaTime.py
 #
-# Parser to convert a conversational time reference such as "in a minute" or 
-# "noon tomorrow" and convert it to a Python datetime.  The returned 
+# Parser to convert a conversational time reference such as "in a minute" or
+# "noon tomorrow" and convert it to a Python datetime.  The returned
 # ParseResults object contains the results name "timeOffset" containing
-# the timedelta, and "calculatedTime" containing the computed time relative 
+# the timedelta, and "calculatedTime" containing the computed time relative
 # to datetime.now().
 #
 # Copyright 2010, by Paul McGuire
@@ -30,7 +30,7 @@ def convertToTimedelta(toks):
     if toks.dir:
         td *= toks.dir
     toks["timeOffset"] = td
- 
+
 def convertToDay(toks):
     now = datetime.now()
     if "wkdayRef" in toks:
@@ -50,7 +50,7 @@ def convertToDay(toks):
             "yesterday" : datetime(now.year, now.month, now.day)+timedelta(-1),
             "tomorrow"  : datetime(now.year, now.month, now.day)+timedelta(+1),
             }[name]
- 
+
 def convertToAbsTime(toks):
     now = datetime.now()
     if "dayRef" in toks:
@@ -70,7 +70,7 @@ def convertToAbsTime(toks):
             if hhmmss.miltime:
                 hh,mm = hhmmss.miltime
                 ss = 0
-            else:            
+            else:
                 hh,mm,ss = (hhmmss.HH % 12), hhmmss.MM, hhmmss.SS
                 if not mm: mm = 0
                 if not ss: ss = 0
@@ -80,7 +80,7 @@ def convertToAbsTime(toks):
     else:
         timeOfDay = timedelta(0, (now.hour*60+now.minute)*60+now.second, now.microsecond)
     toks["absTime"] = day + timeOfDay
- 
+
 def calculateTime(toks):
     if toks.absTime:
         absTime = toks.absTime
@@ -89,7 +89,7 @@ def calculateTime(toks):
     if toks.timeOffset:
         absTime += toks.timeOffset
     toks["calculatedTime"] = absTime
- 
+
 # grammar definitions
 CL = CaselessLiteral
 today, tomorrow, yesterday, noon, midnight, now = map( CL,
@@ -100,7 +100,7 @@ week, day, hour, minute, second = map( plural,
 am = CL("am")
 pm = CL("pm")
 COLON = Suppress(':')
- 
+
 # are these actually operators?
 in_ = CL("in").setParseAction(replaceWith(1))
 from_ = CL("from").setParseAction(replaceWith(1))
@@ -123,7 +123,7 @@ def fill_timefields(t):
 int4.addParseAction(fill_timefields)
 qty = integer | couple | a_qty
 dayName = oneOf( list(calendar.day_name) )
- 
+
 dayOffset = (qty("qty") + (week | day)("timeunit"))
 dayFwdBack = (from_ + now.suppress() | ago)("dir")
 weekdayRef = (Optional(next_ | last_,1)("dir") + dayName("day"))
@@ -132,37 +132,37 @@ dayRef = Optional( (dayOffset + (before | after | from_)("dir") ).setParseAction
              weekdayRef("wkdayRef")).setParseAction(convertToDay)
 todayRef = (dayOffset + dayFwdBack).setParseAction(convertToTimedelta) | \
             (in_("dir") + qty("qty") + day("timeunit")).setParseAction(convertToTimedelta)
- 
+
 dayTimeSpec = dayRef | todayRef
 dayTimeSpec.setParseAction(calculateTime)
- 
+
 relativeTimeUnit = (week | day | hour | minute | second)
- 
+
 timespec = Group(ungroup(int4) |
-                 integer("HH") + 
-                 ungroup(Optional(COLON + integer,[0]))("MM") + 
-                 ungroup(Optional(COLON + integer,[0]))("SS") + 
+                 integer("HH") +
+                 ungroup(Optional(COLON + integer,[0]))("MM") +
+                 ungroup(Optional(COLON + integer,[0]))("SS") +
                  (am | pm)("ampm")
                  )
 
-absTimeSpec = ((noon | midnight | now | timespec("timeparts"))("timeOfDay") + 
+absTimeSpec = ((noon | midnight | now | timespec("timeparts"))("timeOfDay") +
                 Optional(on_) + Optional(dayRef)("dayRef") |
-                dayRef("dayRef") + at_ + 
+                dayRef("dayRef") + at_ +
                 (noon | midnight | now | timespec("timeparts"))("timeOfDay"))
 absTimeSpec.setParseAction(convertToAbsTime,calculateTime)
- 
+
 relTimeSpec = qty("qty") + relativeTimeUnit("timeunit") + \
                 (from_ | before | after)("dir") + \
                 Optional(at_) + \
                 absTimeSpec("absTime") | \
               qty("qty") + relativeTimeUnit("timeunit") + ago("dir") | \
-              in_ + qty("qty") + relativeTimeUnit("timeunit") 
+              in_ + qty("qty") + relativeTimeUnit("timeunit")
 relTimeSpec.setParseAction(convertToTimedelta,calculateTime)
- 
-nlTimeExpression = (absTimeSpec + Optional(dayTimeSpec) | 
-                    dayTimeSpec + Optional(Optional(at_) + absTimeSpec) | 
+
+nlTimeExpression = (absTimeSpec + Optional(dayTimeSpec) |
+                    dayTimeSpec + Optional(Optional(at_) + absTimeSpec) |
                     relTimeSpec + Optional(absTimeSpec))
- 
+
 if __name__ == "__main__":
     # test grammar
     tests = """\

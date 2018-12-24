@@ -98,5 +98,3 @@ if __name__ == "__main__":
         res = boolExpr.parseString(t)[0]
         success = "PASS" if bool(res) == expected else "FAIL"
         print (t,'\n', res, '=', bool(res),'\n', success, '\n')
-
-

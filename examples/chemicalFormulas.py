@@ -13,7 +13,7 @@ atomicWeight = {
     "Cl" : 35.4527,
     "C"  : 12.0107
     }
-    
+
 def test( bnf, strg, fn=None ):
     try:
         print(strg,"->", bnf.parseString( strg ), end=' ')
@@ -62,6 +62,3 @@ fn = lambda elemList : sum(atomicWeight[elem.symbol]*elem.qty for elem in elemLi
 test( formula, "H2O", fn )
 test( formula, "C6H5OH", fn )
 test( formula, "NaCl", fn )
-    
-
-

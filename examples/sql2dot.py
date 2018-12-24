@@ -2,7 +2,7 @@
 
 # sql2dot.py
 #
-#  Creates table graphics by parsing SQL table DML commands and 
+#  Creates table graphics by parsing SQL table DML commands and
 #  generating DOT language output.
 #
 #  Adapted from a post at http://energyblog.blogspot.com/2006/04/blog-post_20.html.
@@ -38,15 +38,15 @@ class_id integer
 
 alter table only student_registrations
     add constraint students_link
-    foreign key 
+    foreign key
     (student_id) references students(student_id);
 
 alter table only student_registrations
-    add constraint classes_link 
-    foreign key 
+    add constraint classes_link
+    foreign key
     (class_id) references classes(class_id);
 """.upper()
-    
+
 from pyparsing import Literal, CaselessLiteral, Word, delimitedList \
     ,Optional, Combine, Group, alphas, nums, alphanums, Forward \
     , oneOf, sglQuotedString, OneOrMore, ZeroOrMore, CharsNotIn \
@@ -55,7 +55,7 @@ from pyparsing import Literal, CaselessLiteral, Word, delimitedList \
 skobki = "(" + ZeroOrMore(CharsNotIn(")")) + ")"
 field_def = OneOrMore(Word(alphas,alphanums+"_\"':-") | skobki)
 
-def field_act(s,loc,tok):    
+def field_act(s,loc,tok):
     return ("<"+tok[0]+"> " + " ".join(tok)).replace("\"","\\\"")
 
 field_def.setParseAction(field_act)
@@ -75,7 +75,7 @@ create_table_def.setParseAction(create_table_act)
 
 add_fkey_def=Literal("ALTER")+"TABLE"+"ONLY" + Word(alphanums+"_").setResultsName("fromtable") + "ADD" \
     + "CONSTRAINT" + Word(alphanums+"_") + "FOREIGN"+"KEY"+"("+Word(alphanums+"_").setResultsName("fromcolumn")+")" \
-    +"REFERENCES"+Word(alphanums+"_").setResultsName("totable")+"("+Word(alphanums+"_").setResultsName("tocolumn")+")"+";"    
+    +"REFERENCES"+Word(alphanums+"_").setResultsName("totable")+"("+Word(alphanums+"_").setResultsName("tocolumn")+")"+";"
 
 def add_fkey_act(toks):
     return """ "%(fromtable)s":%(fromcolumn)s -> "%(totable)s":%(tocolumn)s """ % toks
@@ -90,7 +90,7 @@ statement_def =  comment_def | create_table_def | add_fkey_def | other_statement
 defs =  OneOrMore(statement_def)
 
 print("""digraph g { graph [ rankdir = "LR" ]; """)
-for i in defs.parseString(sampleSQL):    
-    if i!="":        
+for i in defs.parseString(sampleSQL):
+    if i!="":
         print(i)
 print("}")

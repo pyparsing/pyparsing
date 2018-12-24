@@ -1,4 +1,4 @@
-# 
+#
 # invRegex.py
 #
 # Copyright 2008, Paul McGuire
@@ -13,7 +13,7 @@
 #
 __all__ = ["count","invert"]
 
-from pyparsing import (Literal, oneOf, printables, ParserElement, Combine, 
+from pyparsing import (Literal, oneOf, printables, ParserElement, Combine,
     SkipTo, infixNotation, ParseFatalException, Word, nums, opAssoc,
     Suppress, ParseResults, srange)
 
@@ -76,7 +76,7 @@ class AlternativeEmitter(object):
                 for s in e.makeGenerator()():
                     yield s
         return altGen
-        
+
 class LiteralEmitter(object):
     def __init__(self,lit):
         self.lit = lit
@@ -91,7 +91,7 @@ class LiteralEmitter(object):
 
 def handleRange(toks):
     return CharacterRangeEmitter(srange(toks[0]))
-    
+
 def handleRepetition(toks):
     toks=toks[0]
     if toks[1] in "*+":
@@ -111,7 +111,7 @@ def handleRepetition(toks):
             return GroupEmitter([toks[0]] * mincount + [opt])
         else:
             return [toks[0]] * mincount
-            
+
 def handleLiteral(toks):
     lit = ""
     for t in toks:
@@ -122,7 +122,7 @@ def handleLiteral(toks):
                 lit += t[1]
         else:
             lit += t
-    return LiteralEmitter(lit)    
+    return LiteralEmitter(lit)
 
 def handleMacro(toks):
     macroChar = toks[0][1]
@@ -163,14 +163,14 @@ def parser():
         repetition = (
             ( lbrace + Word(nums)("count") + rbrace ) |
             ( lbrace + Word(nums)("minCount")+","+ Word(nums)("maxCount") + rbrace ) |
-            oneOf(list("*+?")) 
+            oneOf(list("*+?"))
             )
 
         reRange.setParseAction(handleRange)
         reLiteral.setParseAction(handleLiteral)
         reMacro.setParseAction(handleMacro)
         reDot.setParseAction(handleDot)
-        
+
         reTerm = ( reLiteral | reRange | reMacro | reDot | reNonCaptureGroup)
         reExpr = infixNotation( reTerm,
             [
@@ -180,7 +180,7 @@ def parser():
             ]
             )
         _parser = reExpr
-        
+
     return _parser
 
 def count(gen):
@@ -232,7 +232,7 @@ def main():
     (Fri|Mon|S(atur|un)|T(hur|ue)s|Wednes)day
     A(pril|ugust)|((Dec|Nov|Sept)em|Octo)ber|(Febr|Jan)uary|Ju(ly|ne)|Ma(rch|y)
     """.split('\n')
-    
+
     for t in tests:
         t = t.strip()
         if not t: continue

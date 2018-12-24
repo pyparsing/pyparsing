@@ -21,7 +21,7 @@ test1 = """
                 "WMDsFound" : false,
                 "IraqAlQaedaConnections" : null,
                 "Abbrev": "ISO 8879:1986",
-                "GlossDef": 
+                "GlossDef":
 "A meta-markup language, used to create markup languages such as DocBook.",
                 "GlossSeeAlso": ["GML", "XML", "markup"],
                 "EmptyDict" : {},
@@ -50,7 +50,7 @@ test3 = """
     "debug": "on",
     "window": {
         "title": "Sample Konfabulator Widget",        "name": "main_window",        "width": 500,        "height": 500
-    },    "image": { 
+    },    "image": {
         "src": "Images/Sun.png",
         "name": "sun1",        "hOffset": 250,        "vOffset": 250,        "alignment": "center"
     },    "text": {
@@ -59,7 +59,7 @@ test3 = """
         "style": "bold",        "name": "text1",        "hOffset": 250,        "vOffset": 100,        "alignment": "center",
         "onMouseUp": "sun1.opacity = (sun1.opacity / 100) * 90;"
     }
-}}  
+}}
 """
 test4 = """
 {"web-app": {
@@ -357,4 +357,3 @@ test5 = """
     ]
 }}
 """
-

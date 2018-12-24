@@ -49,4 +49,3 @@ print(sorted(set(results.cons)))
 print('')
 print(results.others)
 print(sorted(set(results.others)))
-

@@ -10,10 +10,10 @@ import string
 
 def aOrAn( item ):
     if item.desc[0] in "aeiou":
-        return "an " + item.desc 
+        return "an " + item.desc
     else:
         return "a " + item.desc
-    
+
 def enumerateItems(l):
     if len(l) == 0: return "nothing"
     out = []
@@ -31,33 +31,33 @@ def enumerateDoors(l):
         out.append("and")
     out.append(l[-1])
     return " ".join(out)
-    
+
 class Room(object):
     def __init__(self, desc):
         self.desc = desc
         self.inv = []
         self.gameOver = False
         self.doors = [None,None,None,None]
-    
+
     def __getattr__(self,attr):
         return \
-            { 
+            {
             "n":self.doors[0],
             "s":self.doors[1],
             "e":self.doors[2],
             "w":self.doors[3],
             }[attr]
-                
+
     def enter(self,player):
         if self.gameOver:
             player.gameOver = True
-        
+
     def addItem(self, it):
         self.inv.append(it)
-    
+
     def removeItem(self,it):
         self.inv.remove(it)
-        
+
     def describe(self):
         print(self.desc)
         visibleItems = [ it for it in self.inv if it.isVisible ]
@@ -69,12 +69,12 @@ class Room(object):
             print("There {} {} here.".format(is_form, enumerateItems(visibleItems)))
         else:
             print("You see %s." % (enumerateItems(visibleItems)))
-            
+
 
 class Exit(Room):
     def __init__(self):
         super(Exit,self).__init__("")
-    
+
     def enter(self,player):
         player.gameOver = True
 
@@ -94,10 +94,10 @@ class Item(object):
         self.usableConditionTest = None
         self.cantTakeMessage = "You can't take that!"
         Item.items[desc] = self
-        
+
     def __str__(self):
         return self.desc
-        
+
     def breakItem(self):
         if not self.isBroken:
             print("<Crash!>")
@@ -109,7 +109,7 @@ class Item(object):
             return self.usableConditionTest( player, target )
         else:
             return False
-        
+
     def useItem(self, player, target):
         if self.useAction:
             self.useAction(player, self, target)
@@ -126,7 +126,7 @@ class OpenableItem(Item):
                 self.contents = contents
         else:
             self.contents = []
-    
+
     def openItem(self, player):
         if not self.isOpened:
             self.isOpened = not self.isOpened
@@ -135,7 +135,7 @@ class OpenableItem(Item):
                     player.room.addItem( item )
                 self.contents = []
             self.desc = "open " + self.desc
-    
+
     def closeItem(self, player):
         if self.isOpened:
             self.isOpened = not self.isOpened
@@ -152,10 +152,10 @@ class Command(object):
     @staticmethod
     def helpDescription():
         return ""
-        
+
     def _doCommand(self, player):
         pass
-    
+
     def __call__(self, player ):
         print(self.verbProg.capitalize()+"...")
         self._doCommand(player)
@@ -168,12 +168,12 @@ class MoveCommand(Command):
 
     @staticmethod
     def helpDescription():
-        return """MOVE or GO - go NORTH, SOUTH, EAST, or WEST 
+        return """MOVE or GO - go NORTH, SOUTH, EAST, or WEST
           (can abbreviate as 'GO N' and 'GO W', or even just 'E' and 'S')"""
-        
+
     def _doCommand(self, player):
         rm = player.room
-        nextRoom = rm.doors[ 
+        nextRoom = rm.doors[
             {
             "N":0,
             "S":1,
@@ -195,7 +195,7 @@ class TakeCommand(Command):
     @staticmethod
     def helpDescription():
         return "TAKE or PICKUP or PICK UP - pick up an object (but some are deadly)"
-        
+
     def _doCommand(self, player):
         rm = player.room
         subj = Item.items[self.subject]
@@ -217,7 +217,7 @@ class DropCommand(Command):
     @staticmethod
     def helpDescription():
         return "DROP or LEAVE - drop an object (but fragile items may break)"
-        
+
     def _doCommand(self, player):
         rm = player.room
         subj = Item.items[self.subject]
@@ -234,7 +234,7 @@ class InventoryCommand(Command):
     @staticmethod
     def helpDescription():
         return "INVENTORY or INV or I - lists what items you have"
-        
+
     def _doCommand(self, player):
         print("You have %s." % enumerateItems( player.inv ))
 
@@ -245,7 +245,7 @@ class LookCommand(Command):
     @staticmethod
     def helpDescription():
         return "LOOK or L - describes the current room and any objects in it"
-        
+
     def _doCommand(self, player):
         player.room.describe()
 
@@ -256,7 +256,7 @@ class DoorsCommand(Command):
     @staticmethod
     def helpDescription():
         return "DOORS - display what doors are visible from this room"
-        
+
     def _doCommand(self, player):
         rm = player.room
         numDoors = sum([1 for r in rm.doors if r is not None])
@@ -267,7 +267,7 @@ class DoorsCommand(Command):
                 reply = "There is a door to the "
             else:
                 reply = "There are doors to the "
-            doorNames = [ {0:"north", 1:"south", 2:"east", 3:"west"}[i] 
+            doorNames = [ {0:"north", 1:"south", 2:"east", 3:"west"}[i]
                           for i,d in enumerate(rm.doors) if d is not None ]
             #~ print doorNames
             reply += enumerateDoors( doorNames )
@@ -286,7 +286,7 @@ class UseCommand(Command):
     @staticmethod
     def helpDescription():
         return "USE or U - use an object, optionally IN or ON another object"
-        
+
     def _doCommand(self, player):
         rm = player.room
         availItems = rm.inv + player.inv
@@ -306,7 +306,7 @@ class OpenCommand(Command):
     @staticmethod
     def helpDescription():
         return "OPEN or O - open an object"
-        
+
     def _doCommand(self, player):
         rm = player.room
         availItems = rm.inv+player.inv
@@ -329,7 +329,7 @@ class CloseCommand(Command):
     @staticmethod
     def helpDescription():
         return "CLOSE or CL - close an object"
-        
+
     def _doCommand(self, player):
         rm = player.room
         availItems = rm.inv+player.inv
@@ -351,7 +351,7 @@ class QuitCommand(Command):
     @staticmethod
     def helpDescription():
         return "QUIT or Q - ends the game"
-        
+
     def _doCommand(self, player):
         print("Ok....")
         player.gameOver = True
@@ -363,7 +363,7 @@ class HelpCommand(Command):
     @staticmethod
     def helpDescription():
         return "HELP or H or ? - displays this help message"
-        
+
     def _doCommand(self, player):
         print("Enter any of the following commands (not case sensitive):")
         for cmd in [
@@ -388,28 +388,28 @@ class AppParseException(ParseException):
 class Parser(object):
     def __init__(self):
         self.bnf = self.makeBNF()
-        
+
     def makeBNF(self):
-        invVerb = oneOf("INV INVENTORY I", caseless=True) 
-        dropVerb = oneOf("DROP LEAVE", caseless=True) 
+        invVerb = oneOf("INV INVENTORY I", caseless=True)
+        dropVerb = oneOf("DROP LEAVE", caseless=True)
         takeVerb = oneOf("TAKE PICKUP", caseless=True) | \
             (CaselessLiteral("PICK") + CaselessLiteral("UP") )
         moveVerb = oneOf("MOVE GO", caseless=True) | empty
-        useVerb = oneOf("USE U", caseless=True) 
+        useVerb = oneOf("USE U", caseless=True)
         openVerb = oneOf("OPEN O", caseless=True)
         closeVerb = oneOf("CLOSE CL", caseless=True)
-        quitVerb = oneOf("QUIT Q", caseless=True) 
-        lookVerb = oneOf("LOOK L", caseless=True) 
+        quitVerb = oneOf("QUIT Q", caseless=True)
+        lookVerb = oneOf("LOOK L", caseless=True)
         doorsVerb = CaselessLiteral("DOORS")
         helpVerb = oneOf("H HELP ?",caseless=True)
-        
+
         itemRef = OneOrMore(Word(alphas)).setParseAction( self.validateItemName )
         nDir = oneOf("N NORTH",caseless=True).setParseAction(replaceWith("N"))
         sDir = oneOf("S SOUTH",caseless=True).setParseAction(replaceWith("S"))
         eDir = oneOf("E EAST",caseless=True).setParseAction(replaceWith("E"))
         wDir = oneOf("W WEST",caseless=True).setParseAction(replaceWith("W"))
         moveDirection = nDir | sDir | eDir | wDir
-        
+
         invCommand = invVerb
         dropCommand = dropVerb + itemRef("item")
         takeCommand = takeVerb + itemRef("item")
@@ -423,7 +423,7 @@ class Parser(object):
         lookCommand = lookVerb
         doorsCommand = doorsVerb
         helpCommand = helpVerb
-        
+
         # attach command classes to expressions
         invCommand.setParseAction(InventoryCommand)
         dropCommand.setParseAction(DropCommand)
@@ -438,18 +438,18 @@ class Parser(object):
         helpCommand.setParseAction(HelpCommand)
 
         # define parser using all command expressions
-        return ( invCommand | 
+        return ( invCommand |
                   useCommand |
-                  openCommand | 
-                  closeCommand | 
-                  dropCommand | 
-                  takeCommand | 
-                  moveCommand | 
-                  lookCommand | 
-                  doorsCommand | 
+                  openCommand |
+                  closeCommand |
+                  dropCommand |
+                  takeCommand |
+                  moveCommand |
+                  lookCommand |
+                  doorsCommand |
                   helpCommand |
                   quitCommand )("command") + LineEnd()
-    
+
     def validateItemName(self,s,l,t):
         iname = " ".join(t)
         if iname not in Item.items:
@@ -468,13 +468,13 @@ class Parser(object):
                                    "Excuse me?",
                                    "???",
                                    "What?" ] ))
-    
+
 class Player(object):
     def __init__(self, name):
         self.name = name
         self.gameOver = False
         self.inv = []
-    
+
     def moveTo(self, rm):
         self.room = rm
         rm.enter(self)
@@ -484,33 +484,33 @@ class Player(object):
             print("Game over!")
         else:
             rm.describe()
-    
+
     def take(self,it):
         if it.isDeadly:
             print("Aaaagh!...., the %s killed me!" % it)
             self.gameOver = True
         else:
             self.inv.append(it)
-    
+
     def drop(self,it):
         self.inv.remove(it)
         if it.isFragile:
             it.breakItem()
-        
+
 
 def createRooms( rm ):
     """
     create rooms, using multiline string showing map layout
     string contains symbols for the following:
-     A-Z, a-z indicate rooms, and rooms will be stored in a dictionary by 
+     A-Z, a-z indicate rooms, and rooms will be stored in a dictionary by
                reference letter
      -, | symbols indicate connection between rooms
      <, >, ^, . symbols indicate one-way connection between rooms
     """
     # start with empty dictionary of rooms
     ret = {}
-    
-    # look for room symbols, and initialize dictionary 
+
+    # look for room symbols, and initialize dictionary
     # - exit room is always marked 'Z'
     for c in rm:
         if c in string.ascii_letters:
@@ -529,9 +529,9 @@ def createRooms( rm ):
                 s = None
                 e = None
                 w = None
-                
+
                 # look in neighboring cells for connection symbols (must take
-                # care to guard that neighboring cells exist before testing 
+                # care to guard that neighboring cells exist before testing
                 # contents)
                 if col > 0 and line[col-1] in "<-":
                     other = line[col-2]

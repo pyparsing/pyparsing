@@ -42,11 +42,11 @@ boost = (CARAT + number("boost"))
 
 string_expr = Group(string + proximity_modifier) | string
 word_expr = Group(valid_word + fuzzy_modifier) | valid_word
-term << (Optional(field_name("field") + COLON) + 
+term << (Optional(field_name("field") + COLON) +
          (word_expr | string_expr | range_search | Group(LPAR + expression + RPAR)) +
          Optional(boost))
 term.setParseAction(lambda t:[t] if 'field' in t or 'boost' in t else None)
-    
+
 expression << infixNotation(term,
     [
     (required_modifier | prohibit_modifier, 1, opAssoc.RIGHT),
@@ -302,7 +302,7 @@ failtests = r"""
     XY\u005A
     item:\ item:ABCD\
     \
-    a\ or b    
+    a\ or b
     a\:b\-c
     a\:b\+c
     a\:b\-c\*
@@ -315,5 +315,5 @@ failtests = r"""
 
 success1, _ = expression.runTests(tests)
 success2, _ = expression.runTests(failtests, failureTests=True)
-    
+
 print(("FAIL", "OK")[success1 and success2])

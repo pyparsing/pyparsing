@@ -62,7 +62,7 @@ DEBUG = 0
 # (small subset of C made for compiler course at Faculty of Technical Sciences, Chair for Applied Computer Sciences, Novi Sad, Serbia)
 
 # Patterns:
- 
+
 # letter
 #  ->    "_" | "a" | "A" | "b" | "B" | "c" | "C" | "d" | "D" | "e" | "E" | "f"
 #      | "F" | "g" | "G" | "h" | "H" | "i" | "I" | "j" | "J" | "k" | "K" | "l"
@@ -72,56 +72,56 @@ DEBUG = 0
 
 # digit
 #  ->  "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9"
- 
+
 # identifier
 #  ->  letter ( letter | digit )*
- 
+
 # int_constant
 #  ->  digit +
- 
+
 # unsigned_constant
 #  ->  digit + ( "u" | "U" )
- 
+
 # Productions:
- 
+
 # program
 #  ->  variable_list function_list
 #  ->  function_list
- 
+
 # variable_list
 #  ->  variable ";"
 #  ->  variable_list variable ";"
- 
+
 # variable
 #  ->  type identifier
-  
+
 # type
 #  ->  "int"
 #  ->  "unsigned"
-  
+
 # function_list
 #  ->  function
 #  ->  function_list function
- 
+
 # function
 #  ->  type identifier "(" parameters ")" body
- 
+
 # parameters
 #  ->  <empty>
 #  ->  parameter_list
- 
+
 # parameter_list
 #  ->  variable
 #  ->  parameter_list "," variable
- 
+
 # body
 #  ->  "{" variable_list statement_list "}"
 #  ->  "{" statement_list "}"
- 
+
 # statement_list
 #  ->  <empty>
 #  ->  statement_list statement
- 
+
 # statement
 #  ->  assignement_statement
 #  ->  function_call_statement
@@ -129,20 +129,20 @@ DEBUG = 0
 #  ->  while_statement
 #  ->  return_statement
 #  ->  compound_statement
- 
+
 # assignement_statement
 #  ->  identifier "=" num_exp ";"
- 
+
 # num_exp
 #  ->  mul_exp
 #  ->  num_exp "+" mul_exp
 #  ->  num_exp "-" mul_exp
- 
+
 # mul_exp
 #  ->  exp
 #  ->  mul_exp "*" exp
 #  ->  mul_exp "/" exp
- 
+
 # exp
 #  ->  constant
 #  ->  identifier
@@ -150,38 +150,38 @@ DEBUG = 0
 #  ->  "(" num_exp ")"
 #  ->  "+" exp
 #  ->  "-" exp
- 
+
 # constant
 #  ->  int_constant
 #  ->  unsigned_constant
- 
+
 # function_call
 #  ->  identifier "(" arguments ")"
- 
+
 # arguments
 #  ->  <empty>
 #  ->  argument_list
- 
+
 # argument_list
 #  ->  num_exp
 #  ->  argument_list "," num_exp
- 
+
 # function_call_statement
 #  ->  function_call ";"
- 
+
 # if_statement
 #  ->  "if" "(" log_exp ")" statement
 #  ->  "if" "(" log_exp ")" statement "else" statement
 #  ->   ->   ->   ->   ->   ->   -> ->   2
- 
+
 # log_exp
 #  ->  and_exp
 #  ->  log_exp "||" and_exp
- 
+
 # and_exp
 #  ->  rel_exp
 #  ->  and_exp "&&" rel_exp
- 
+
 # rel_exp
 #  ->  num_exp  "<" num_exp
 #  ->  num_exp  ">" num_exp
@@ -189,16 +189,16 @@ DEBUG = 0
 #  ->  num_exp  ">=" num_exp
 #  ->  num_exp  "==" num_exp
 #  ->  num_exp  "!=" num_exp
- 
+
 # while_statement
 #  ->  "while" "(" log_exp ")" statement
- 
+
 # return_statement
 #  ->  "return" num_exp ";"
- 
+
 # compound_statement
 #  ->  "{" statement_list "}"
- 
+
 # Comment: /* a comment */
 
 ##########################################################################################
@@ -280,13 +280,13 @@ class SemanticException(Exception):
             self.text = line(exshared.location, exshared.text)
         else:
             self.line = self.col = self.text = None
-            
-    def _get_message(self): 
+
+    def _get_message(self):
         return self._message
-    def _set_message(self, message): 
+    def _set_message(self, message):
         self._message = message
     message = property(_get_message, _set_message)
-    
+
     def __str__(self):
         """String representation of the semantic error"""
         msg = "Error"
@@ -322,7 +322,7 @@ class SymbolTableEntry(object):
         """Sets attribute's name and value"""
         self.attribute_name = name
         self.attribute = value
-    
+
     def attribute_str(self):
         """Returns attribute string (used only for table display)"""
         return "{}={}".format(self.attribute_name, self.attribute) if self.attribute != None else "None"
@@ -468,7 +468,7 @@ class SymbolTable(object):
         except Exception:
             self.error()
         return same
-    
+
     def same_type_as_argument(self, index, function_index, argument_number):
         """Returns True if index and function's argument are of the same type
            index - index in symbol table
@@ -924,7 +924,7 @@ class MicroC(object):
         if print_location and (exshared.location != None):
             msg += "\n%s" % wtext
         print(msg)
-        
+
 
     def data_begin_action(self):
         """Inserts text at start of data segment"""
@@ -1311,7 +1311,7 @@ if 0:
     #main program
     mc = MicroC()
     output_file = "output.asm"
-    
+
     if len(argv) == 1:
         input_file = stdin
     elif len(argv) == 2:
@@ -1345,7 +1345,7 @@ if 0:
 ##########################################################################################
 
 if __name__ == "__main__":
-    
+
     test_program_example = """
         int a;
         int b;
