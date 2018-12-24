@@ -226,13 +226,6 @@ Usage notes
   or expressions that may occur within an ``And`` expression; an early element
   of an ``And`` may match, but the overall expression may fail.
 
-- Performance of pyparsing may be slow for complex grammars and/or large
-  input strings.  The psyco_ package can be used to improve the speed of the
-  pyparsing module with no changes to grammar or program logic - observed
-  improvments have been in the 20-50% range.
-
-.. _psyco: http://psyco.sourceforge.net/
-
 
 Classes
 =======
@@ -363,11 +356,8 @@ methods for code to use are:
   performance enhancement, known as "packrat parsing".  packrat parsing is
   disabled by default, since it may conflict with some user programs that use
   parse actions.  To activate the packrat feature, your
-  program must call the class method ParserElement.enablePackrat().  If
-  your program uses psyco to "compile as you go", you must call
-  enablePackrat before calling psyco.full().  If you do not do this,
-  Python will crash.  For best results, call enablePackrat() immediately
-  after importing pyparsing.
+  program must call the class method ParserElement.enablePackrat(). For best
+  results, call enablePackrat() immediately after importing pyparsing.
 
 
 Basic ParserElement subclasses
