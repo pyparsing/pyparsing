@@ -73,10 +73,8 @@ from pyparsing import Literal, Keyword, Word, OneOrMore, ZeroOrMore, \
         StringEnd, FollowedBy, ParserElement, Regex, cppStyleComment
 import pyparsing
 usePackrat = False
-usePsyco = False
 
 packratOn = False
-psycoOn = False
 
 if usePackrat:
     try:
@@ -85,17 +83,6 @@ if usePackrat:
         pass
     else:
         packratOn = True
-
-# comment out this section to disable psyco function compilation
-if usePsyco:
-    try:
-        import psyco
-        psyco.full()
-    except Exception:
-        print("failed to import psyco Python optimizer")
-    else:
-        psycoOn = True
-
 
 def dumpTokens(s,l,t):
     import pprint
@@ -637,7 +624,6 @@ else:
         print(" - using pyparsing version", pyparsing.__version__)
         print(" - using Python version", sys.version)
         if packratOn: print(" - using packrat parsing")
-        if psycoOn: print(" - using psyco runtime optimization")
         print()
 
         import os
