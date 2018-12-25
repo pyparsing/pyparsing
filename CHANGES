@@ -773,7 +773,7 @@ Version 2.0.2 - April, 2014
 
 - Removed deprecation warnings when using '<<' for Forward expression
   assignment. '<<=' is still preferred, but '<<' will be retained
-  for cases whre '<<=' operator is not suitable (such as in defining
+  for cases where '<<=' operator is not suitable (such as in defining
   lambda expressions).
 
 - Expanded argument compatibility for classes and functions that
