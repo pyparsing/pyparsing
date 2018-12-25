@@ -170,7 +170,7 @@ def makeGroupObject(cls):
     def groupAction(s,l,t):
         try:
             return cls(t[0].asList())
-        except:
+        except Exception:
             return cls(t)
     return groupAction
 

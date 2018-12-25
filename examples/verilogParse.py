@@ -79,11 +79,10 @@ packratOn = False
 if usePackrat:
     try:
         ParserElement.enablePackrat()
-    except:
+    except Exception:
         pass
     else:
         packratOn = True
-
 
 def dumpTokens(s,l,t):
     import pprint

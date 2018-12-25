@@ -161,7 +161,7 @@ def main(testfiles=None, action=printer):
         try:
             retval[f] = object_definition.parseFile(f)
             success += 1
-        except:
+        except Exception:
             failures.append(f)
 
     if failures:
