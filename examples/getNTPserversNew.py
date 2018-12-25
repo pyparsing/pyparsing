@@ -24,7 +24,7 @@ timeServerPattern =  (tdStart + hostname("hostname") + tdEnd +
                       tdStart + SkipTo(tdEnd)("loc") + tdEnd)
 
 # get list of time servers
-nistTimeServerURL = "http://tf.nist.gov/tf-cgi/servers.cgi#"
+nistTimeServerURL = "https://tf.nist.gov/tf-cgi/servers.cgi#"
 serverListPage = urlopen( nistTimeServerURL )
 serverListHTML = serverListPage.read().decode("UTF-8")
 serverListPage.close()

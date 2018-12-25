@@ -19,8 +19,8 @@
 #
 # If you find this software to be useful, please make a donation to one
 # of the following charities:
-# - the Red Cross (http://www.redcross.org)
-# - Hospice Austin (http://www.hospiceaustin.org)
+# - the Red Cross (https://www.redcross.org/)
+# - Hospice Austin (https://www.hospiceaustin.org/)
 #
 #    DISCLAIMER:
 #    THIS SOFTWARE IS PROVIDED BY PAUL T. McGUIRE ``AS IS'' AND ANY EXPRESS OR

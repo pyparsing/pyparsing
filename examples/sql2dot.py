@@ -5,7 +5,7 @@
 #  Creates table graphics by parsing SQL table DML commands and
 #  generating DOT language output.
 #
-#  Adapted from a post at http://energyblog.blogspot.com/2006/04/blog-post_20.html.
+#  Adapted from a post at https://energyblog.blogspot.com/2006/04/blog-post_20.html.
 #
 sampleSQL = """
 create table student

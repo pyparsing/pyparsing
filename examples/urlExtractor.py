@@ -14,7 +14,7 @@ linkBody.addParseAction(lambda toks: ' '.join(toks[0].strip().split()))
 link = linkOpenTag + linkBody("body") + linkCloseTag.suppress()
 
 # Go get some HTML with some links in it.
-with closing(urllib.request.urlopen("http://www.yahoo.com")) as serverListPage:
+with closing(urllib.request.urlopen("https://www.yahoo.com/")) as serverListPage:
     htmlText = serverListPage.read().decode("UTF-8")
 
 # scanString is a generator that loops through the input htmlText, and for each

@@ -973,9 +973,9 @@ class ParseResults(object):
     def pprint(self, *args, **kwargs):
         """
         Pretty-printer for parsed results as a list, using the
-        `pprint <http://docs.python.org/3/library/pprint.html>`_ module.
+        `pprint <https://docs.python.org/3/library/pprint.html>`_ module.
         Accepts additional positional or keyword args as defined for
-        `pprint.pprint <http://docs.python.org/3/library/pprint.html#pprint.pprint>`_ .
+        `pprint.pprint <https://docs.python.org/3/library/pprint.html#pprint.pprint>`_ .
 
         Example::
 
@@ -2918,7 +2918,7 @@ class Char(Word):
 class Regex(Token):
     r"""Token for matching strings that match a given regular
     expression. Defined with string specifying the regular expression in
-    a form recognized by the stdlib Python  `re module <http://docs.python.org/3/library/re.html>`_.
+    a form recognized by the stdlib Python  `re module <https://docs.python.org/3/library/re.html>`_.
     If the given regex contains named groups (defined using ``(?P<name>...)``),
     these will be preserved as named parse results.
 
@@ -2926,14 +2926,14 @@ class Regex(Token):
 
         realnum = Regex(r"[+-]?\d+\.\d*")
         date = Regex(r'(?P<year>\d{4})-(?P<month>\d\d?)-(?P<day>\d\d?)')
-        # ref: http://stackoverflow.com/questions/267399/how-do-you-match-only-valid-roman-numerals-with-a-regular-expression
+        # ref: https://stackoverflow.com/questions/267399/how-do-you-match-only-valid-roman-numerals-with-a-regular-expression
         roman = Regex(r"M{0,4}(CM|CD|D?{0,3})(XC|XL|L?X{0,3})(IX|IV|V?I{0,3})")
     """
     compiledREtype = type(re.compile("[A-Z]"))
     def __init__( self, pattern, flags=0, asGroupList=False, asMatch=False):
         """The parameters ``pattern`` and ``flags`` are passed
         to the ``re.compile()`` function as-is. See the Python
-        `re module <http://docs.python.org/3/library/re.html>`_ module for an
+        `re module <https://docs.python.org/3/library/re.html>`_ module for an
         explanation of the acceptable patterns and flags.
         """
         super(Regex,self).__init__()

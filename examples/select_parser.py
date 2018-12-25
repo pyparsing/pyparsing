@@ -2,7 +2,7 @@
 # Copyright 2010, Paul McGuire
 #
 # a simple SELECT statement parser, taken from SQLite's SELECT statement
-# definition at http://www.sqlite.org/lang_select.html
+# definition at https://www.sqlite.org/lang_select.html
 #
 from pyparsing import *
 ParserElement.enablePackrat()

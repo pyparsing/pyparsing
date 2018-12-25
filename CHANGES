@@ -769,7 +769,7 @@ Version 2.0.2 - April, 2014
   "result.pprint()".  This method also accepts addtional positional and
   keyword arguments (such as indent, width, etc.), which get passed
   through directly to the pprint method
-  (see http://docs.python.org/2/library/pprint.html#pprint.pprint).
+  (see https://docs.python.org/2/library/pprint.html#pprint.pprint).
 
 - Removed deprecation warnings when using '<<' for Forward expression
   assignment. '<<=' is still preferred, but '<<' will be retained
@@ -1055,7 +1055,7 @@ Version 1.5.3 - June, 2010
     above - thanks so much, Matt!
 
   . select_parser.py, a parser for reading SQLite SELECT statements,
-    as specified at http://www.sqlite.org/lang_select.html; this goes
+    as specified at https://www.sqlite.org/lang_select.html this goes
     into much more detail than the simple SQL parser included in pyparsing's
     source code
 

@@ -16,7 +16,7 @@ scriptBody = scriptOpen + SkipTo(scriptClose) + scriptClose
 commonHTMLEntity.setParseAction(replaceHTMLEntity)
 
 # get some HTML
-targetURL = "http://wiki.python.org/moin/PythonDecoratorLibrary"
+targetURL = "https://wiki.python.org/moin/PythonDecoratorLibrary"
 with closing(urllib.request.urlopen( targetURL )) as targetPage:
     targetHTML = targetPage.read().decode("UTF-8")
 

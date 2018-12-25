@@ -3,7 +3,7 @@
 
 # ISO 14977 standardize The Extended Backus-Naur Form(EBNF) syntax.
 # You can read a final draft version here:
-# http://www.cl.cam.ac.uk/~mgk25/iso-ebnf.html
+# https://www.cl.cam.ac.uk/~mgk25/iso-ebnf.html
 #
 # Submitted 2004 by Seo Sanghyeon
 #
