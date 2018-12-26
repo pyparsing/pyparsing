@@ -5,7 +5,7 @@ Here is a simple Wiki input:
   *This is in italics.*
   **This is in bold!**
   ***This is in bold italics!***
-  Here's a URL to {{Pyparsing's Wiki Page->http://pyparsing.wikispaces.com}}
+  Here's a URL to {{Pyparsing's Wiki Page->https://site-closed.wikispaces.com}}
 """
 
 def convertToHTML(opening,closing):

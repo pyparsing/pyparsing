@@ -3,7 +3,7 @@
 #
 # A pyparsing parser to process the output of the Perl
 #   "Test Anything Protocol"
-#   (http://search.cpan.org/~petdance/TAP-1.00/TAP.pm)
+#   (https://metacpan.org/pod/release/PETDANCE/TAP-1.00/TAP.pm)
 #
 # TAP output lines are preceded or followed by a test number range:
 #   1..n

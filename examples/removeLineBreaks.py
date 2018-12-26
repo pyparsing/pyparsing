@@ -3,7 +3,7 @@
 # Demonstration of the pyparsing module, converting text files
 # with hard line-breaks to text files with line breaks only
 # between paragraphs.  (Helps when converting downloads from Project
-# Gutenberg - http://www.gutenberg.org - to import to word processing apps
+# Gutenberg - https://www.gutenberg.org/ - to import to word processing apps
 # that can reformat paragraphs once hard line-breaks are removed.)
 #
 # Uses parse actions and transformString to remove unwanted line breaks,

@@ -14,7 +14,7 @@ linkOpenTag,linkCloseTag = makeHTMLTags("a")
 link = linkOpenTag + SkipTo(linkCloseTag)("body") + linkCloseTag.suppress()
 
 # Go get some HTML with some links in it.
-serverListPage = urllib.request.urlopen( "http://www.google.com" )
+serverListPage = urllib.request.urlopen( "https://www.google.com/" )
 htmlText = serverListPage.read()
 serverListPage.close()
 

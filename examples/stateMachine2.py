@@ -156,7 +156,7 @@ class SuffixImporter(object):
     the PEP, and also used Doug Hellmann's PyMOTW article `Modules and
     Imports`_, as a pattern.
 
-    .. _`Modules and Imports`: http://www.doughellmann.com/PyMOTW/sys/imports.html
+    .. _`Modules and Imports`: https://pymotw.com/3/sys/imports.html
 
     Define a subclass that specifies a :attr:`suffix` attribute, and
     implements a :meth:`process_filedata` method. Then call the classmethod

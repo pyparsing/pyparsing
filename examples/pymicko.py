@@ -15,7 +15,7 @@
 #    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #    GNU General Public License for more details.
 #
-#    A copy of the GNU General Public License can be found at <http://www.gnu.org/licenses/>.
+#    A copy of the GNU General Public License can be found at <https://www.gnu.org/licenses/>.
 
 from pyparsing import *
 from sys import stdin, argv, exit
