@@ -94,7 +94,7 @@ classes inherit from. Use the docstrings for examples of how to:
 """
 
 __version__ = "2.3.1"
-__versionTime__ = "22 Dec 2018 15:31 UTC"
+__versionTime__ = "28 Dec 2018 20:39 UTC"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -3629,6 +3629,11 @@ class And(ParseExpression):
         self.skipWhitespace = self.exprs[0].skipWhitespace
         self.callPreparse = True
 
+    def streamline(self):
+        super(And, self).streamline()
+        self.mayReturnEmpty = all(e.mayReturnEmpty for e in self.exprs)
+        return self
+
     def parseImpl( self, instring, loc, doActions=True ):
         # pass False as last arg to _parse for first element, since we already
         # pre-parsed the string as part of our And pre-parsing
@@ -3699,6 +3704,11 @@ class Or(ParseExpression):
             self.mayReturnEmpty = any(e.mayReturnEmpty for e in self.exprs)
         else:
             self.mayReturnEmpty = True
+
+    def streamline(self):
+        super(Or, self).streamline()
+        self.saveAsList = any(e.saveAsList for e in self.exprs)
+        return self
 
     def parseImpl( self, instring, loc, doActions=True ):
         maxExcLoc = -1
@@ -3779,8 +3789,14 @@ class MatchFirst(ParseExpression):
         super(MatchFirst,self).__init__(exprs, savelist)
         if self.exprs:
             self.mayReturnEmpty = any(e.mayReturnEmpty for e in self.exprs)
+            # self.saveAsList = any(e.saveAsList for e in self.exprs)
         else:
             self.mayReturnEmpty = True
+
+    def streamline(self):
+        super(MatchFirst, self).streamline()
+        self.saveAsList = any(e.saveAsList for e in self.exprs)
+        return self
 
     def parseImpl( self, instring, loc, doActions=True ):
         maxExcLoc = -1
@@ -3888,6 +3904,12 @@ class Each(ParseExpression):
         self.mayReturnEmpty = all(e.mayReturnEmpty for e in self.exprs)
         self.skipWhitespace = True
         self.initExprGroups = True
+        self.saveAsList = True
+
+    def streamline(self):
+        super(Each, self).streamline()
+        self.mayReturnEmpty = all(e.mayReturnEmpty for e in self.exprs)
+        return self
 
     def parseImpl( self, instring, loc, doActions=True ):
         if self.initExprGroups:
@@ -4639,7 +4661,7 @@ class Group(TokenConverter):
     """
     def __init__( self, expr ):
         super(Group,self).__init__( expr )
-        self.saveAsList = True
+        self.saveAsList = expr.saveAsList
 
     def postParse( self, instring, loc, tokenlist ):
         return [ tokenlist ]

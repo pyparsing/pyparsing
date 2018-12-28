@@ -3825,6 +3825,31 @@ class IndentedBlockTest(ParseTestCase):
         self.assertEqual(result.c.c1,     200, "invalid indented block result")
         self.assertEqual(result.c.c2.c21, 999, "invalid indented block result")
 
+class ParseResultsWithNameMatchFirst(ParseTestCase):
+    def runTest(self):
+        import pyparsing as pp
+        expr_a = pp.Literal('not') + pp.Literal('the') + pp.Literal('bird')
+        expr_b = pp.Literal('the') + pp.Literal('bird')
+        expr = (expr_a | expr_b)('rexp')
+        expr.runTests("""\
+            not the bird
+            the bird
+        """)
+        self.assertEqual(list(expr.parseString('not the bird')['rexp']), 'not the bird'.split())
+        self.assertEqual(list(expr.parseString('the bird')['rexp']), 'the bird'.split())
+
+class ParseResultsWithNameOr(ParseTestCase):
+    def runTest(self):
+        import pyparsing as pp
+        expr_a = pp.Literal('not') + pp.Literal('the') + pp.Literal('bird')
+        expr_b = pp.Literal('the') + pp.Literal('bird')
+        expr = (expr_a ^ expr_b)('rexp')
+        expr.runTests("""\
+            not the bird
+            the bird
+        """)
+        self.assertEqual(list(expr.parseString('not the bird')['rexp']), 'not the bird'.split())
+        self.assertEqual(list(expr.parseString('the bird')['rexp']), 'the bird'.split())
 
 class MiscellaneousParserTests(ParseTestCase):
     def runTest(self):

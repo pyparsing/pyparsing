@@ -1,0 +1,37 @@
+# define state machine
+statemachine TrafficLight:
+    Red -> Green
+    Green -> Yellow
+    Yellow -> Red
+
+
+# define some class level constants
+Red.carsCanGo = False
+Yellow.carsCanGo = True
+Green.carsCanGo = True
+
+
+# setup some class level methods
+def flashCrosswalk(s):
+    def flash():
+        print("%s...%s...%s" % (s, s, s))
+
+    return flash
+
+
+Red.crossingSignal = staticmethod(flashCrosswalk("WALK"))
+Yellow.crossingSignal = staticmethod(flashCrosswalk("DONT WALK"))
+Green.crossingSignal = staticmethod(flashCrosswalk("DONT WALK"))
+
+
+# setup some instance methods
+def wait(nSeconds):
+    def waitFn(self):
+        print("<wait %d seconds>" % nSeconds)
+
+    return waitFn
+
+
+Red.delay = wait(20)
+Yellow.delay = wait(3)
+Green.delay = wait(15)
