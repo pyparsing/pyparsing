@@ -94,7 +94,7 @@ classes inherit from. Use the docstrings for examples of how to:
 """
 
 __version__ = "2.3.1"
-__versionTime__ = "28 Dec 2018 20:39 UTC"
+__versionTime__ = "28 Dec 2018 20:52 UTC"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -5076,7 +5076,7 @@ def dictOf( key, value ):
         SQUARE
         {'color': 'light blue', 'shape': 'SQUARE', 'posn': 'upper left', 'texture': 'burlap'}
     """
-    return Dict( ZeroOrMore( Group ( key + value ) ) )
+    return Dict(OneOrMore(Group(key + value)))
 
 def originalTextFor(expr, asString=True):
     """Helper to return the original, untokenized text for a given

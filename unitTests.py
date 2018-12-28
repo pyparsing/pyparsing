@@ -3851,6 +3851,25 @@ class ParseResultsWithNameOr(ParseTestCase):
         self.assertEqual(list(expr.parseString('not the bird')['rexp']), 'not the bird'.split())
         self.assertEqual(list(expr.parseString('the bird')['rexp']), 'the bird'.split())
 
+class EmptyDictDoesNotRaiseException(ParseTestCase):
+    def runTest(self):
+        import pyparsing as pp
+
+        key = pp.Word(pp.alphas)
+        value = pp.Word(pp.nums)
+        EQ = pp.Suppress('=')
+        key_value_dict = pp.dictOf(key, EQ + value)
+        try:
+            print(key_value_dict.parseString("""\
+                a = 10
+                b = 20
+                """).dump())
+            print(key_value_dict.parseString("").dump())
+        except pp.ParseException:
+            pass
+        else:
+            self.assertTrue(False, "failed to raise exception when matching empty string")
+
 class MiscellaneousParserTests(ParseTestCase):
     def runTest(self):
 

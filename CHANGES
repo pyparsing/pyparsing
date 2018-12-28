@@ -12,6 +12,9 @@ Version 2.3.1 -
   changes in the tokens returned if you have this condition in your pyparsing
   scripts.
 
+- Fix bug in dictOf which could match an empty sequence, making it
+  infinitely loop if wrapped in a OneOrMore.
+
 - Added unicode sets to pyparsing_unicode for Latin-A and Latin-B ranges.
 
 - Added ability to define custom unicode sets as combinations of other sets
