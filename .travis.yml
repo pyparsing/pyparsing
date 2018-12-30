@@ -20,12 +20,12 @@ install:
 script:
  - python unitTests.py
  - python simple_unit_tests.py
- - python examples/numerics.py
- - python examples/lucene_grammar.py
- - python examples/TAP.py
- - python examples/romanNumerals.py
- - python examples/sexpParser.py
- - python examples/oc.py
+ - PYTHONPATH=. python examples/numerics.py
+ - PYTHONPATH=. python examples/lucene_grammar.py
+ - PYTHONPATH=. python examples/TAP.py
+ - PYTHONPATH=. python examples/romanNumerals.py
+ - PYTHONPATH=. python examples/sexpParser.py
+ - PYTHONPATH=. python examples/oc.py
 
 after_success:
   - codecov
