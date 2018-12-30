@@ -35,7 +35,7 @@ Version 2.3.1 -
 - Added optional postParse argument to ParserElement.runTests() to add a
   custom callback to be called for test strings that parse successfully. Useful
   for running tests that do additional validation or processing on the parsed
-  results.
+  results. See updated chemcialFormulas.py example.
 
 - Removed distutils fallback in setup.py. If installing the package fails,
   please update to the latest version of setuptools. Plus overall project code

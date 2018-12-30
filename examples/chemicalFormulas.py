@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+#
 # chemicalFormulas.py
 #
 # Copyright (c) 2003, Paul McGuire
@@ -11,46 +13,41 @@ atomicWeight = {
     "H"  : 1.00794,
     "Na" : 22.9897,
     "Cl" : 35.4527,
-    "C"  : 12.0107
+    "C"  : 12.0107,
     }
-
-def test( bnf, strg, fn=None ):
-    try:
-        print(strg,"->", bnf.parseString( strg ), end=' ')
-    except ParseException as pe:
-        print(pe)
-    else:
-        if fn != None:
-            print(fn( bnf.parseString( strg ) ))
-        else:
-            print()
 
 digits = "0123456789"
 
 # Version 1
-element = Regex("A[cglmrstu]|B[aehikr]?|C[adeflmorsu]?|D[bsy]|"
-                "E[rsu]|F[emr]?|G[ade]|H[efgos]?|I[nr]?|Kr?|L[airu]|"
-                "M[dgnot]|N[abdeiop]?|Os?|P[abdmortu]?|R[abefghnu]|"
-                "S[bcegimnr]?|T[abcehilm]|U(u[bhopqst])?|V|W|Xe|Yb?|Z[nr]")
-
 element = Word( alphas.upper(), alphas.lower(), max=2)
+# for stricter matching, use this Regex instead
+# element = Regex("A[cglmrstu]|B[aehikr]?|C[adeflmorsu]?|D[bsy]|"
+#                 "E[rsu]|F[emr]?|G[ade]|H[efgos]?|I[nr]?|Kr?|L[airu]|"
+#                 "M[dgnot]|N[abdeiop]?|Os?|P[abdmortu]?|R[abefghnu]|"
+#                 "S[bcegimnr]?|T[abcehilm]|U(u[bhopqst])?|V|W|Xe|Yb?|Z[nr]")
 elementRef = Group( element + Optional( Word( digits ), default="1" ) )
 formula = OneOrMore( elementRef )
 
 fn = lambda elemList : sum(atomicWeight[elem]*int(qty) for elem,qty in elemList)
-test( formula, "H2O", fn )
-test( formula, "C6H5OH", fn )
-test( formula, "NaCl", fn )
+formula.runTests("""\
+    H2O
+    C6H5OH
+    NaCl
+    """,
+    fullDump=False, postParse=lambda _, tokens: "Molecular weight: {}".format(fn(tokens)))
 print()
 
-# Version 2 - access parsed items by field name
+# Version 2 - access parsed items by results name
 elementRef = Group( element("symbol") + Optional( Word( digits ), default="1" )("qty") )
 formula = OneOrMore( elementRef )
 
 fn = lambda elemList : sum(atomicWeight[elem.symbol]*int(elem.qty) for elem in elemList)
-test( formula, "H2O", fn )
-test( formula, "C6H5OH", fn )
-test( formula, "NaCl", fn )
+formula.runTests("""\
+    H2O
+    C6H5OH
+    NaCl
+    """,
+    fullDump=False, postParse=lambda _, tokens: "Molecular weight: {}".format(fn(tokens)))
 print()
 
 # Version 3 - convert integers during parsing process
@@ -59,6 +56,30 @@ elementRef = Group( element("symbol") + Optional( integer, default=1 )("qty") )
 formula = OneOrMore( elementRef )
 
 fn = lambda elemList : sum(atomicWeight[elem.symbol]*elem.qty for elem in elemList)
-test( formula, "H2O", fn )
-test( formula, "C6H5OH", fn )
-test( formula, "NaCl", fn )
+formula.runTests("""\
+    H2O
+    C6H5OH
+    NaCl
+    """,
+    fullDump=False, postParse=lambda _, tokens: "Molecular weight: {}".format(fn(tokens)))
+print()
+
+# Version 4 - parse and convert integers as subscript digits
+subscript_digits = "₀₁₂₃₄₅₆₇₈₉"
+subscript_int_map = dict((e[1], e[0]) for e in enumerate(subscript_digits))
+def cvt_subscript_int(s):
+    ret = 0
+    for c in s[0]:
+        ret = ret*10 + subscript_int_map[c]
+    return ret
+subscript_int = Word(subscript_digits).addParseAction(cvt_subscript_int)
+
+elementRef = Group( element("symbol") + Optional(subscript_int, default=1)("qty") )
+formula = OneOrMore( elementRef )
+formula.runTests("""\
+    H₂O
+    C₆H₅OH
+    NaCl
+    """,
+    fullDump=False, postParse=lambda _, tokens: "Molecular weight: {}".format(fn(tokens)))
+print()
