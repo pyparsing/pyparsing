@@ -52,17 +52,26 @@ def makeRomanNumeral(n):
     return ret
 tests = " ".join(makeRomanNumeral(i) for i in range(1,5000+1))
 
+roman_int_map = {}
 expected = 1
 for t,s,e in romanNumeral.scanString(tests):
+    orig = tests[s:e]
     if t[0] != expected:
-        print("{} {} {}".format("==>", t, tests[s:e]))
+        print("{} {} {}".format("==>", t, orig))
+    roman_int_map[orig] = t[0]
     expected += 1
 
-def test(rn):
-    print("{} -> {}".format(rn, romanNumeral.parseString(rn)[0]))
-test("XVI")
-test("XXXIX")
-test("XIV")
-test("XIX")
-test("MCMLXXX")
-test("MMVI")
+def verify_value(s, tokens):
+    expected = roman_int_map[s]
+    if tokens[0] != expected:
+        raise Exception("incorrect value for {} ({}), expected {}".format(s, tokens[0], expected ))
+
+romanNumeral.runTests("""\
+    XVI
+    XXXIX
+    XIV
+    XIX
+    MCMLXXX
+    MMVI
+    """, fullDump=False,
+    postParse=verify_value)

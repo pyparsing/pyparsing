@@ -2454,7 +2454,9 @@ class ParserElement(object):
                 success = success and not failureTests
                 if postParse is not None:
                     try:
-                        out.append(postParse(t, result))
+                        pp_value = postParse(t, result)
+                        if pp_value is not None:
+                            out.append(str(pp_value))
                     except Exception as e:
                         out.append("{} failed: {}: {}".format(postParse.__name__, type(e).__name__, e))
             except ParseBaseException as pe:

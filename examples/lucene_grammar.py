@@ -317,3 +317,6 @@ success1, _ = expression.runTests(tests)
 success2, _ = expression.runTests(failtests, failureTests=True)
 
 print(("FAIL", "OK")[success1 and success2])
+
+if not (success1 and success2):
+    raise Exception("failure in lucene grammar parser, check output")

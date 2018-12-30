@@ -20,6 +20,12 @@ install:
 script:
  - python unitTests.py
  - python simple_unit_tests.py
+ - python examples/numerics.py
+ - python examples/lucene_grammar.py
+ - python examples/TAP.py
+ - python examples/romanNumerals.py
+ - python examples/sexpParser.py
+ - python examples/oc.py
 
 after_success:
   - codecov
