@@ -2,8 +2,8 @@
 Change Log
 ==========
 
-Version 2.3.1 -
----------------
+Version 2.3.1 - December, 2018
+------------------------------
 - POSSIBLE API CHANGE: this release fixes a bug when results names were
   attached to a MatchFirst or Or object containing an And object.
   Previously, a results name on an And object within an enclosing MatchFirst
@@ -24,6 +24,15 @@ Version 2.3.1 -
         pass
 
     turkish_word = pp.Word(Turkish_set.alphas)
+
+- Updated state machine import examples, with state machine demos for:
+  . traffic light
+  . library book checkin/checkout
+  . document review/approval
+  See the examples in examples/statemachine
+
+- Added an example parser for the decaf language. This language was formerly
+  used for tutorial at Stanford University.
 
 - Fixup of docstrings to Sphinx format, inclusion of test files in the source
   package, and convert markdown to rst throughout the distribution, great job

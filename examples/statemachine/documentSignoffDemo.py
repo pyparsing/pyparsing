@@ -63,6 +63,3 @@ def run_demo():
 
 if __name__ == '__main__':
     run_demo()
-
-# TODO - can you pickle state or otherwise persist it?
-# TODO - can you decorate state changes (for logging or permission checking)?
