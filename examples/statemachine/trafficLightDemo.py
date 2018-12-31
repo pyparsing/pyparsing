@@ -26,9 +26,8 @@ class TrafficLight:
 
 light = TrafficLight()
 for i in range(10):
-    print(light, end=' ')
-    print(("STOP", "GO")[light.carsCanGo])
-    light.crossingSignal()
+    print("{} {}".format(light, ("STOP", "GO")[light.cars_can_go]))
+    light.crossing_signal()
     light.delay()
     print()
 

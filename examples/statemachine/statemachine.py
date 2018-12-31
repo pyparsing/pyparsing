@@ -25,6 +25,8 @@ from pyparsing import Word, Group, ZeroOrMore, alphas, \
     Empty, LineEnd, OneOrMore, col, Keyword, pythonStyleComment, \
     StringEnd, traceParseAction
 
+class InvalidTransitionException(Exception): pass
+
 ident = Word(alphas + "_", alphanums + "_$")
 
 def no_keywords_allowed(s, l, t):
@@ -33,13 +35,13 @@ def no_keywords_allowed(s, l, t):
 
 ident.addCondition(no_keywords_allowed, message="cannot use a Python keyword for state or transition identifier")
 
-stateTransition = ident("fromState") + "->" + ident("toState")
+stateTransition = ident("from_state") + "->" + ident("to_state")
 stateMachine = (Keyword("statemachine") + ident("name") + ":"
                 + OneOrMore(Group(stateTransition))("transitions"))
 
-namedStateTransition = (ident("fromState")
+namedStateTransition = (ident("from_state")
                         + "-(" + ident("transition") + ")->"
-                        + ident("toState"))
+                        + ident("to_state"))
 namedStateMachine = (Keyword("statemachine") + ident("name") + ":"
                      + OneOrMore(Group(namedStateTransition))("transitions"))
 
@@ -52,9 +54,9 @@ def expand_state_definition(source, loc, tokens):
     states = set()
     fromTo = {}
     for tn in tokens.transitions:
-        states.add(tn.fromState)
-        states.add(tn.toState)
-        fromTo[tn.fromState] = tn.toState
+        states.add(tn.from_state)
+        states.add(tn.to_state)
+        fromTo[tn.from_state] = tn.to_state
 
     # define base class for state classes
     baseStateClass = tokens.name
@@ -62,8 +64,12 @@ def expand_state_definition(source, loc, tokens):
         "class %s(object):" % baseStateClass,
         "    def __str__(self):",
         "        return self.__class__.__name__",
+        "    @classmethod",
+        "    def states(cls):",
+        "        return list(cls.__subclasses__)",
         "    def next_state(self):",
-        "        return self._next_state_class()"])
+        "        return self._next_state_class()",
+    ])
 
     # define all state classes
     statedef.extend("class {}({}): pass".format(s, baseStateClass) for s in states)
@@ -87,13 +93,13 @@ def expand_named_state_definition(source, loc, tokens):
 
     fromTo = {}
     for tn in tokens.transitions:
-        states.add(tn.fromState)
-        states.add(tn.toState)
+        states.add(tn.from_state)
+        states.add(tn.to_state)
         transitions.add(tn.transition)
-        if tn.fromState in fromTo:
-            fromTo[tn.fromState][tn.transition] = tn.toState
+        if tn.from_state in fromTo:
+            fromTo[tn.from_state][tn.transition] = tn.to_state
         else:
-            fromTo[tn.fromState] = {tn.transition: tn.toState}
+            fromTo[tn.from_state] = {tn.transition: tn.to_state}
 
     # add entries for terminal states
     for s in states:
@@ -115,35 +121,32 @@ def expand_named_state_definition(source, loc, tokens):
     # define base class for state classes
     excmsg = "'" + tokens.name + \
              '.%s does not support transition "%s"' \
-             "'% (self, tn)"
+             "'% (self, name)"
     statedef.extend([
         "class %s(object):" % baseStateClass,
         "    def __str__(self):",
         "        return self.__class__.__name__",
-        "    def next_state(self,tn):",
+        "    def next_state(self, name):",
         "        try:",
         "            return self.tnmap[tn]()",
         "        except KeyError:",
-        "            raise Exception(%s)" % excmsg,
-        "    def __getattr__(self,name):",
-        "        raise Exception(%s)" % excmsg,
+        "            import statemachine",
+        "            raise statemachine.InvalidTransitionException(%s)" % excmsg,
+        "    def __getattr__(self, name):",
+        "        import statemachine",
+        "        raise statemachine.InvalidTransitionException(%s)" % excmsg,
     ])
 
     # define all state classes
-    for s in states:
-        statedef.append("class %s(%s): pass" %
-                        (s, baseStateClass))
+    statedef.extend("class %s(%s): pass" % (s, baseStateClass)
+                        for s in states)
 
     # define state transition maps and transition methods
     for s in states:
         trns = list(fromTo[s].items())
-        statedef.append("%s.tnmap = {%s}" %
-                        (s, ",".join("%s:%s" % tn for tn in trns)))
-        statedef.extend([
-            "%s.%s = staticmethod(lambda : %s())" %
-            (s, tn_, to_)
-            for tn_, to_ in trns
-        ])
+        statedef.append("%s.tnmap = {%s}" % (s, ", ".join("%s:%s" % tn for tn in trns)))
+        statedef.extend("%s.%s = staticmethod(lambda: %s())" % (s, tn_, to_)
+                            for tn_, to_ in trns)
 
     return indent + ("\n" + indent).join(statedef) + "\n"
 
@@ -253,4 +256,5 @@ class PystateImporter(SuffixImporter):
 
 PystateImporter.register()
 
-# print("registered {!r} importer".format(PystateImporter.suffix))
+if DEBUG:
+    print("registered {!r} importer".format(PystateImporter.suffix))

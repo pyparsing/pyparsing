@@ -18,21 +18,21 @@ statemachine TrafficLightState:
 
 
 # define some class level constants
-Red.carsCanGo = False
-Yellow.carsCanGo = True
-Green.carsCanGo = True
+Red.cars_can_go = False
+Yellow.cars_can_go = True
+Green.cars_can_go = True
 
 
 # setup some class level methods
-def flashCrosswalk(s):
+def flash_crosswalk(s):
     def flash():
         print("%s...%s...%s" % (s, s, s))
 
     return flash
 
-Red.crossingSignal = staticmethod(flashCrosswalk("WALK"))
-Yellow.crossingSignal = staticmethod(flashCrosswalk("DONT WALK"))
-Green.crossingSignal = staticmethod(flashCrosswalk("DONT WALK"))
+Red.crossing_signal = staticmethod(flash_crosswalk("WALK"))
+Yellow.crossing_signal = staticmethod(flash_crosswalk("DONT WALK"))
+Green.crossing_signal = staticmethod(flash_crosswalk("DONT WALK"))
 
 
 # setup some instance methods
