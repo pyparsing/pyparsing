@@ -19,7 +19,7 @@ keyword = and_ | or_ | not_ | to_
 
 expression = Forward()
 
-valid_word = Regex(r'([a-zA-Z0-9*_+.-]|\\[!(){}\[\]^"~*?\\:])+').setName("word")
+valid_word = Regex(r'([a-zA-Z0-9*_+.-]|\\\\|\\([+\-!(){}\[\]^"~*?:]|\|\||&&))+').setName("word")
 valid_word.setParseAction(
     lambda t : t[0].replace('\\\\',chr(127)).replace('\\','').replace(chr(127),'\\')
     )
@@ -57,6 +57,7 @@ expression << infixNotation(term,
 
 # test strings taken from grammar description doc, and TestQueryParser.java
 tests = r"""
+    # Success tests
     a and b
     a and not b
     a and !b
@@ -225,6 +226,8 @@ tests = r"""
     \*
     *
     \\
+    \||
+    \&&
     a\:b\:c
     a\\b\:c
     a\:b\\c
@@ -266,6 +269,7 @@ tests = r"""
     """
 
 failtests = r"""
+    # Failure tests
     field:term:with:colon some more terms
     (sub query)^5.0^2.0 plus more
     a:b:c
