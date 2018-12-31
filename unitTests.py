@@ -4022,7 +4022,7 @@ class MiscellaneousParserTests(ParseTestCase):
             print_("verify behavior of ParseResults.get()")
             # use sum() to merge separate groups into single ParseResults
             res = sum(g1.parseString(teststring)[1:])
-            print(res.dump())
+            print_(res.dump())
             print_(res.get("A","A not found"))
             print_(res.get("D","!D"))
             self.assertEqual(res.get("A","A not found"), "aaa", "get on existing key failed")
