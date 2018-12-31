@@ -7,15 +7,18 @@ import keyword
 import sys
 import os
 import types
+import importlib
 try:
     import urllib.parse
     url_parse = urllib.parse.urlparse
 except ImportError:
+    print("import error, Python 2 not supported")
+    raise
     import urllib
     url_parse = urllib.parse
 
 
-DEBUG = True #False
+DEBUG = False
 
 from pyparsing import Word, Group, ZeroOrMore, alphas, \
     alphanums, ParserElement, ParseException, ParseSyntaxException, \
@@ -54,7 +57,7 @@ def expand_state_definition(source, loc, tokens):
         fromTo[tn.fromState] = tn.toState
 
     # define base class for state classes
-    baseStateClass = tokens.name + "State"
+    baseStateClass = tokens.name
     statedef.extend([
         "class %s(object):" % baseStateClass,
         "    def __str__(self):",
@@ -63,15 +66,12 @@ def expand_state_definition(source, loc, tokens):
         "        return self._next_state_class()"])
 
     # define all state classes
-    statedef.extend(
-        "class {}({}): pass".format(s, baseStateClass)
-        for s in states)
-    statedef.extend(
-        "{}._next_state_class = {}".format(s, fromTo[s])
-        for s in states if s in fromTo)
+    statedef.extend("class {}({}): pass".format(s, baseStateClass) for s in states)
+
+    # define state->state transitions
+    statedef.extend("{}._next_state_class = {}".format(s, fromTo[s]) for s in states if s in fromTo)
 
     return indent + ("\n" + indent).join(statedef) + "\n"
-
 
 stateMachine.setParseAction(expand_state_definition)
 
@@ -83,7 +83,7 @@ def expand_named_state_definition(source, loc, tokens):
     states = set()
     transitions = set()
 
-    baseStateClass = tokens.name + "State"
+    baseStateClass = tokens.name
 
     fromTo = {}
     for tn in tokens.transitions:
@@ -147,9 +147,7 @@ def expand_named_state_definition(source, loc, tokens):
 
     return indent + ("\n" + indent).join(statedef) + "\n"
 
-
-namedStateMachine.setParseAction(
-    expand_named_state_definition)
+namedStateMachine.setParseAction(expand_named_state_definition)
 
 
 # ======================================================================
@@ -196,9 +194,9 @@ class SuffixImporter(object):
             # entry is thus a path to a directory on the filesystem;
             # if it's not None, then some other importer is in charge, and
             # it probably isn't even a filesystem path
-            if sys.path_importer_cache.get(dirpath, False) is None:
-                checkpath = os.path.join(
-                    dirpath, '{}.{}'.format(fullname, self.suffix))
+            finder = sys.path_importer_cache.get(dirpath)
+            if isinstance(finder, (type(None), importlib.machinery.FileFinder)):
+                checkpath = os.path.join(dirpath, '{}.{}'.format(fullname, self.suffix))
                 yield checkpath
 
     def find_module(self, fullname, path=None):
@@ -255,4 +253,4 @@ class PystateImporter(SuffixImporter):
 
 PystateImporter.register()
 
-print("registered {!r} importer".format(PystateImporter.suffix))
+# print("registered {!r} importer".format(PystateImporter.suffix))

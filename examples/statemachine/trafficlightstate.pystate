@@ -1,8 +1,20 @@
-# define state machine
-statemachine TrafficLight:
+#
+# trafficlightstate.pystate
+#
+# state machine model of the states and associated behaviors and properties for each
+# different state of a traffic light
+
+
+# define state machine with transitions
+# (states will be implemented as Python classes, so use name case appropriate for class names)
+statemachine TrafficLightState:
     Red -> Green
     Green -> Yellow
     Yellow -> Red
+
+
+# statemachine only defines the state->state transitions - actual behavior and properties
+# must be added separately
 
 
 # define some class level constants
@@ -18,7 +30,6 @@ def flashCrosswalk(s):
 
     return flash
 
-
 Red.crossingSignal = staticmethod(flashCrosswalk("WALK"))
 Yellow.crossingSignal = staticmethod(flashCrosswalk("DONT WALK"))
 Green.crossingSignal = staticmethod(flashCrosswalk("DONT WALK"))
@@ -30,7 +41,6 @@ def wait(nSeconds):
         print("<wait %d seconds>" % nSeconds)
 
     return waitFn
-
 
 Red.delay = wait(20)
 Yellow.delay = wait(3)
