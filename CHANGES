@@ -2,8 +2,8 @@
 Change Log
 ==========
 
-Version 2.3.1 - December, 2018
-------------------------------
+Version 2.3.1 - January, 2019
+-----------------------------
 - POSSIBLE API CHANGE: this release fixes a bug when results names were
   attached to a MatchFirst or Or object containing an And object.
   Previously, a results name on an And object within an enclosing MatchFirst
@@ -11,6 +11,36 @@ Version 2.3.1 - December, 2018
   matched by the And are correctly returned. This may result in subtle
   changes in the tokens returned if you have this condition in your pyparsing
   scripts.
+
+- New staticmethod ParseException.explain() to help diagnose parse exceptions
+  by showing the failing input line and the trace of ParserElements in
+  the parser leading up to the exception. explain() returns a multiline
+  string listing each element by name. (This is still an experimental
+  method, and the method signature and format of the returned string may
+  evolve over the next few releases.)
+
+  Example:
+        # define a parser to parse an integer followed by an
+        # alphabetic word
+        expr = pp.Word(pp.nums).setName("int")
+               + pp.Word(pp.alphas).setName("word")
+        try:
+            # parse a string with a numeric second value instead of alpha
+            expr.parseString("123 355")
+        except pp.ParseException as pe:
+            print_(pp.ParseException.explain(pe))
+
+  Prints:
+        123 355
+            ^
+        ParseException: Expected word (at char 4), (line:1, col:5)
+        __main__.ExplainExceptionTest
+        pyparsing.And - {int word}
+        pyparsing.Word - word
+
+  explain() will accept any exception type and will list the function
+  names and parse expressions in the stack trace. This is especially
+  useful when an exception is raised in a parse action.
 
 - Fix bug in dictOf which could match an empty sequence, making it
   infinitely loop if wrapped in a OneOrMore.

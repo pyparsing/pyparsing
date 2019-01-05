@@ -3874,16 +3874,55 @@ class EmptyDictDoesNotRaiseException(ParseTestCase):
         value = pp.Word(pp.nums)
         EQ = pp.Suppress('=')
         key_value_dict = pp.dictOf(key, EQ + value)
+
+        print_(key_value_dict.parseString("""\
+            a = 10
+            b = 20
+            """).dump())
+
         try:
-            print_(key_value_dict.parseString("""\
-                a = 10
-                b = 20
-                """).dump())
             print_(key_value_dict.parseString("").dump())
-        except pp.ParseException:
-            pass
+        except pp.ParseException as pe:
+            print_(pp.ParseException.explain(pe))
         else:
             self.assertTrue(False, "failed to raise exception when matching empty string")
+
+class ExplainExceptionTest(ParseTestCase):
+    def runTest(self):
+        import pyparsing as pp
+
+        expr = pp.Word(pp.nums).setName("int") + pp.Word(pp.alphas).setName("word")
+        try:
+            expr.parseString("123 355")
+        except pp.ParseException as pe:
+            print_(pp.ParseException.explain(pe, depth=0))
+
+        expr = pp.Word(pp.nums).setName("int") - pp.Word(pp.alphas).setName("word")
+        try:
+            expr.parseString("123 355 (test using ErrorStop)")
+        except pp.ParseSyntaxException as pe:
+            print_(pp.ParseException.explain(pe))
+
+        integer = pp.Word(pp.nums).setName("int").addParseAction(lambda t: int(t[0]))
+        expr = integer + integer
+
+        def divide_args(t):
+            integer.parseString("A")
+            return t[0] / t[1]
+
+        expr.addParseAction(divide_args)
+        pp.ParserElement.enablePackrat()
+        print_()
+        # ~ print(expr.parseString("125 25"))
+
+        try:
+            expr.parseString("123 0")
+        except pp.ParseException as pe:
+            print_(pp.ParseException.explain(pe))
+        except Exception as exc:
+            print_(pp.ParseException.explain(exc))
+            raise
+
 
 class MiscellaneousParserTests(ParseTestCase):
     def runTest(self):

@@ -1,7 +1,7 @@
 #-*- coding: utf-8 -*-
 # module pyparsing.py
 #
-# Copyright (c) 2003-2018  Paul T. McGuire
+# Copyright (c) 2003-2019  Paul T. McGuire
 #
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
@@ -94,7 +94,7 @@ classes inherit from. Use the docstrings for examples of how to:
 """
 
 __version__ = "2.3.1"
-__versionTime__ = "28 Dec 2018 20:52 UTC"
+__versionTime__ = "05 Jan 2019 23:47 UTC"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -311,7 +311,75 @@ class ParseException(ParseBaseException):
         column: 1
 
     """
-    pass
+
+    @staticmethod
+    def explain(exc, depth=16):
+        """
+        Method to take an exception and translate the Python internal traceback into a list
+        of the pyparsing expressions that caused the exception to be raised.
+
+        Parameters:
+
+         - exc - exception raised during parsing (need not be a ParseException, in support
+           of Python exceptions that might be raised in a parse action)
+         - depth (default=16) - number of levels back in the stack trace to list expression
+           and function names; if None, the full stack trace names will be listed; if 0, only
+           the failing input line, marker, and exception string will be shown
+
+        Returns a multi-line string listing the ParserElements and/or function names in the
+        exception's stack trace.
+
+        Note: the diagnostic output will include string representations of the expressions
+        that failed to parse. These representations will be more helpful if you use `setName` to
+        give identifiable names to your expressions. Otherwise they will use the default string
+        forms, which may be cryptic to read.
+        """
+        import inspect
+
+        if depth is None:
+            depth = sys.getrecursionlimit()
+        ret = []
+        if isinstance(exc, ParseBaseException):
+            ret.append(exc.line)
+            ret.append(' ' * (exc.col - 1) + '^')
+        ret.append("{}: {}".format(type(exc).__name__, exc))
+
+        callers = inspect.getinnerframes(exc.__traceback__, context=depth)
+        seen = set()
+
+        if depth > 0:
+            for i, ff in enumerate(callers[-depth:]):
+                frm = ff.frame
+
+                f_self = frm.f_locals.get('self', None)
+                if isinstance(f_self, ParserElement):
+                    if frm.f_code.co_name not in ('parseImpl', '_parseNoCache'):
+                        continue
+                    if f_self in seen:
+                        continue
+                    seen.add(f_self)
+
+                    self_type = type(f_self)
+                    ret.append("{}.{} - {}".format(self_type.__module__,
+                                                   self_type.__name__,
+                                                   f_self))
+                elif f_self is not None:
+                    self_type = type(f_self)
+                    ret.append("{}.{}".format(self_type.__module__,
+                                              self_type.__name__))
+                else:
+                    code = frm.f_code
+                    if code.co_name in ('wrapper', '<module>'):
+                        continue
+
+                    ret.append("{}".format(code.co_name))
+
+                depth -= 1
+                if not depth:
+                    break
+
+        return '\n'.join(ret)
+
 
 class ParseFatalException(ParseBaseException):
     """user-throwable exception thrown when inconsistent parse content
