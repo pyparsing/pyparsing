@@ -29,6 +29,7 @@ class PyparsingExpressionTestCase(unittest.TestCase):
     given text strings. Subclasses must define a class attribute 'tests' which
     is a list of PpTestSpec instances.
     """
+    tests = []
     def runTest(self):
         if self.__class__ is PyparsingExpressionTestCase:
             return
@@ -71,12 +72,13 @@ class PyparsingExpressionTestCase(unittest.TestCase):
 
                 else:
                     # expect fail
-                    with self.assertRaises(pp.ParseException) as ar:
+                    try:
                         parsefn(test_spec.text)
-                    print(' ', test_spec.text or "''")
-                    print(' ', ' '*ar.exception.loc+'^')
-                    print(' ', ar.exception.msg)
-                    self.assertEqual(ar.exception.loc, test_spec.expected_fail_locn)
+                    except Exception as exc:
+                        print(pp.ParseException.explain(exc))
+                        self.assertEqual(exc.loc, test_spec.expected_fail_locn)
+                    else:
+                        self.assertTrue(False, "failed to raise expected exception")
 
 
 #=========== TEST DEFINITIONS START HERE ==============
