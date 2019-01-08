@@ -59,10 +59,33 @@ Version 2.3.1 - January, 2019
   . traffic light
   . library book checkin/checkout
   . document review/approval
+
+  In the traffic light example, you can use the custom 'statemachine' keyword
+  to define the states for a traffic light, and have the state classes
+  auto-generated for you:
+
+      statemachine TrafficLightState:
+          Red -> Green
+          Green -> Yellow
+          Yellow -> Red
+
+  Similar for state machines with named transitions, like the library book
+  state example:
+
+      statemachine LibraryBookState:
+          New -(shelve)-> Available
+          Available -(reserve)-> OnHold
+          OnHold -(release)-> Available
+          Available -(checkout)-> CheckedOut
+          CheckedOut -(checkin)-> Available
+
+  Once the classes are defined, then additional Python code can reference those
+  classes to add class attributes, instance methods, etc.
+
   See the examples in examples/statemachine
 
-- Added an example parser for the decaf language. This language was formerly
-  used for tutorial at Stanford University.
+- Added an example parser for the decaf language. This language is used in
+  CS compiler classes in many colleges and universities.
 
 - Fixup of docstrings to Sphinx format, inclusion of test files in the source
   package, and convert markdown to rst throughout the distribution, great job
@@ -79,6 +102,9 @@ Version 2.3.1 - January, 2019
 - Removed distutils fallback in setup.py. If installing the package fails,
   please update to the latest version of setuptools. Plus overall project code
   cleanup (CRLFs, whitespace, imports, etc.), thanks Jon Dufresne!
+
+- Fix bug in CaselessKeyword, to make its behavior consistent with
+  Keyword(caseless=True). Fixes Issue #65 reported by telesphore.
 
 
 Version 2.3.0 - October, 2018
