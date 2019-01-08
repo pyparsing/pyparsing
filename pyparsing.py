@@ -94,7 +94,7 @@ classes inherit from. Use the docstrings for examples of how to:
 """
 
 __version__ = "2.3.1"
-__versionTime__ = "05 Jan 2019 23:47 UTC"
+__versionTime__ = "08 Jan 2019 01:25 UTC"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -2733,12 +2733,6 @@ class CaselessKeyword(Keyword):
     """
     def __init__( self, matchString, identChars=None ):
         super(CaselessKeyword,self).__init__( matchString, identChars, caseless=True )
-
-    def parseImpl( self, instring, loc, doActions=True ):
-        if ( (instring[ loc:loc+self.matchLen ].upper() == self.caselessmatch) and
-             (loc >= len(instring)-self.matchLen or instring[loc+self.matchLen].upper() not in self.identChars) ):
-            return loc+self.matchLen, self.match
-        raise ParseException(instring, loc, self.errmsg, self)
 
 class CloseMatch(Token):
     """A variation on :class:`Literal` which matches "close" matches,
