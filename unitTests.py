@@ -3924,6 +3924,20 @@ class ExplainExceptionTest(ParseTestCase):
             raise
 
 
+class CaselessKeywordVsKeywordCaselessTest(ParseTestCase):
+    def runTest(self):
+        import pyparsing as pp
+
+        frule = pp.Keyword('t', caseless=True) + pp.Keyword('yes', caseless=True)
+        crule = pp.CaselessKeyword('t') + pp.CaselessKeyword('yes')
+
+        flist = frule.searchString('not yes').asList()
+        print_(flist)
+        clist = crule.searchString('not yes').asList()
+        print_(clist)
+        self.assertEqual(flist, clist, "CaselessKeyword not working the same as Keyword(caseless=True)")
+
+
 class MiscellaneousParserTests(ParseTestCase):
     def runTest(self):
 
