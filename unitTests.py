@@ -3870,6 +3870,10 @@ class ParseResultsWithNameOr(ParseTestCase):
 
 class EmptyDictDoesNotRaiseException(ParseTestCase):
     def runTest(self):
+        if not PY_3:
+            print('explain() not supported in Py2')
+            return
+
         import pyparsing as pp
 
         key = pp.Word(pp.alphas)
@@ -3891,6 +3895,10 @@ class EmptyDictDoesNotRaiseException(ParseTestCase):
 
 class ExplainExceptionTest(ParseTestCase):
     def runTest(self):
+        if not PY_3:
+            print('explain() not supported in Py2')
+            return
+
         import pyparsing as pp
 
         expr = pp.Word(pp.nums).setName("int") + pp.Word(pp.alphas).setName("word")
