@@ -94,7 +94,7 @@ classes inherit from. Use the docstrings for examples of how to:
 """
 
 __version__ = "2.3.1"
-__versionTime__ = "09 Jan 2019 23:17 UTC"
+__versionTime__ = "09 Jan 2019 23:26 UTC"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -344,7 +344,12 @@ class ParseException(ParseBaseException):
             ret.append(' ' * (exc.col - 1) + '^')
         ret.append("{0}: {1}".format(type(exc).__name__, exc))
 
-        callers = inspect.getinnerframes(exc.__traceback__, context=depth)
+        if hasattr(exc, '__traceback__'):
+            exc_tb = exc.__traceback__
+        else:
+            exc_tb = sys.exc_info()[-1]
+        callers = inspect.getinnerframes(exc_tb, context=depth)
+
         seen = set()
 
         if depth > 0:
