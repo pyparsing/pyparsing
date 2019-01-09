@@ -34,7 +34,7 @@ formula.runTests("""\
     C6H5OH
     NaCl
     """,
-    fullDump=False, postParse=lambda _, tokens: "Molecular weight: {}".format(fn(tokens)))
+    fullDump=False, postParse=lambda _, tokens: "Molecular weight: {0}".format(fn(tokens)))
 print()
 
 # Version 2 - access parsed items by results name
@@ -47,7 +47,7 @@ formula.runTests("""\
     C6H5OH
     NaCl
     """,
-    fullDump=False, postParse=lambda _, tokens: "Molecular weight: {}".format(fn(tokens)))
+    fullDump=False, postParse=lambda _, tokens: "Molecular weight: {0}".format(fn(tokens)))
 print()
 
 # Version 3 - convert integers during parsing process
@@ -61,7 +61,7 @@ formula.runTests("""\
     C6H5OH
     NaCl
     """,
-    fullDump=False, postParse=lambda _, tokens: "Molecular weight: {}".format(fn(tokens)))
+    fullDump=False, postParse=lambda _, tokens: "Molecular weight: {0}".format(fn(tokens)))
 print()
 
 # Version 4 - parse and convert integers as subscript digits
@@ -81,5 +81,5 @@ formula.runTests("""\
     C₆H₅OH
     NaCl
     """,
-    fullDump=False, postParse=lambda _, tokens: "Molecular weight: {}".format(fn(tokens)))
+    fullDump=False, postParse=lambda _, tokens: "Molecular weight: {0}".format(fn(tokens)))
 print()

@@ -77,12 +77,12 @@ def msg(txt):
 def debug(ftn, txt):
     """Used for debugging."""
     if debug_p:
-        sys.stdout.write("{}.{}:{}\n".format(modname, ftn, txt))
+        sys.stdout.write("{0}.{1}:{2}\n".format(modname, ftn, txt))
         sys.stdout.flush()
 
 def fatal(ftn, txt):
     """If can't continue."""
-    msg = "{}.{}:FATAL:{}\n".format(modname, ftn, txt)
+    msg = "{0}.{1}:FATAL:{2}\n".format(modname, ftn, txt)
     raise SystemExit(msg)
 
 def usage():
@@ -116,7 +116,7 @@ class ParseFileLineByLine:
     compressed.  Compression is deduced from the file name suffixes '.Z'
     (compress/uncompress), '.gz' (gzip/gunzip), and '.bz2' (bzip2).
 
-    The parse definition file name is developed based on the input file name.
+    The parse definition fi le name is developed based on the input file name.
     If the input file name is 'basename.ext', then the definition file is
     'basename_def.ext'.  If a definition file specific to the input file is not
     found, then the program searches for the file 'sparse.def' which would be

@@ -94,7 +94,7 @@ classes inherit from. Use the docstrings for examples of how to:
 """
 
 __version__ = "2.3.1"
-__versionTime__ = "08 Jan 2019 01:25 UTC"
+__versionTime__ = "09 Jan 2019 23:17 UTC"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -342,7 +342,7 @@ class ParseException(ParseBaseException):
         if isinstance(exc, ParseBaseException):
             ret.append(exc.line)
             ret.append(' ' * (exc.col - 1) + '^')
-        ret.append("{}: {}".format(type(exc).__name__, exc))
+        ret.append("{0}: {1}".format(type(exc).__name__, exc))
 
         callers = inspect.getinnerframes(exc.__traceback__, context=depth)
         seen = set()
@@ -360,19 +360,19 @@ class ParseException(ParseBaseException):
                     seen.add(f_self)
 
                     self_type = type(f_self)
-                    ret.append("{}.{} - {}".format(self_type.__module__,
-                                                   self_type.__name__,
-                                                   f_self))
+                    ret.append("{0}.{1} - {2}".format(self_type.__module__,
+                                                      self_type.__name__,
+                                                      f_self))
                 elif f_self is not None:
                     self_type = type(f_self)
-                    ret.append("{}.{}".format(self_type.__module__,
-                                              self_type.__name__))
+                    ret.append("{0}.{1}".format(self_type.__module__,
+                                                self_type.__name__))
                 else:
                     code = frm.f_code
                     if code.co_name in ('wrapper', '<module>'):
                         continue
 
-                    ret.append("{}".format(code.co_name))
+                    ret.append("{0}".format(code.co_name))
 
                 depth -= 1
                 if not depth:
@@ -2526,7 +2526,7 @@ class ParserElement(object):
                         if pp_value is not None:
                             out.append(str(pp_value))
                     except Exception as e:
-                        out.append("{} failed: {}: {}".format(postParse.__name__, type(e).__name__, e))
+                        out.append("{0} failed: {1}: {2}".format(postParse.__name__, type(e).__name__, e))
             except ParseBaseException as pe:
                 fatal = "(FATAL)" if isinstance(pe, ParseFatalException) else ""
                 if '\n' in t:

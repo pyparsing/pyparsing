@@ -325,7 +325,7 @@ class SymbolTableEntry(object):
 
     def attribute_str(self):
         """Returns attribute string (used only for table display)"""
-        return "{}={}".format(self.attribute_name, self.attribute) if self.attribute != None else "None"
+        return "{0}={1}".format(self.attribute_name, self.attribute) if self.attribute != None else "None"
 
 class SymbolTable(object):
     """Class for symbol table of microC program"""
@@ -368,9 +368,9 @@ class SymbolTable(object):
             parameters = ""
             for p in sym.param_types:
                 if parameters == "":
-                    parameters = "{}".format(SharedData.TYPES[p])
+                    parameters = "{0}".format(SharedData.TYPES[p])
                 else:
-                    parameters += ", {}".format(SharedData.TYPES[p])
+                    parameters += ", {0}".format(SharedData.TYPES[p])
             print("{0:3d} | {1:^{2}s} | {3:^{4}s} | {5:^{6}s} | {7:^{8}} | ({9})".format(i, sym.name, sym_len, SharedData.KINDS[sym.kind], kind_len, SharedData.TYPES[sym.type], type_len, sym.attribute_str(), attr_len, parameters))
 
     def insert_symbol(self, sname, skind, stype):
@@ -604,7 +604,7 @@ class CodeGenerator(object):
            internal - boolean value, adds "@" prefix to label
            definition - boolean value, adds ":" suffix to label
         """
-        return "{}{}{}".format(self.internal if internal else "", name, self.definition if definition else "")
+        return "{0}{1}{2}".format(self.internal if internal else "", name, self.definition if definition else "")
 
     def symbol(self, index):
         """Generates symbol name from index"""
@@ -616,14 +616,14 @@ class CodeGenerator(object):
         sym = self.symtab.table[index]
         #local variables are located at negative offset from frame pointer register
         if sym.kind == SharedData.KINDS.LOCAL_VAR:
-            return "-{}(%14)".format(sym.attribute * 4 + 4)
+            return "-{0}(1:%14)".format(sym.attribute * 4 + 4)
         #parameters are located at positive offset from frame pointer register
         elif sym.kind == SharedData.KINDS.PARAMETER:
-            return "{}(%14)".format(8 + sym.attribute * 4)
+            return "{0}(1:%14)".format(8 + sym.attribute * 4)
         elif sym.kind == SharedData.KINDS.CONSTANT:
-            return "${}".format(sym.name)
+            return "${0}".format(sym.name)
         else:
-            return "{}".format(sym.name)
+            return "{0}".format(sym.name)
 
     def save_used_registers(self):
         """Pushes all used working registers before function call"""
@@ -674,7 +674,7 @@ class CodeGenerator(object):
            internal - boolean value, adds "@" prefix to label
            definition - boolean value, adds ":" suffix to label
         """
-        self.newline_text(self.label("{}{}{}".format("@" if internal else "", name, ":" if definition else "")))
+        self.newline_text(self.label("{0}{1}{2}".format("@" if internal else "", name, ":" if definition else "")))
 
     def global_var(self, name):
         """Inserts a new static (global) variable definition"""
@@ -704,7 +704,7 @@ class CodeGenerator(object):
         #if operand3 is not defined, reserve one free register for it
         output = self.take_register(output_type) if operand3 == None else operand3
         mnemonic = self.arithmetic_mnemonic(operation, output_type)
-        self.newline_text("{}\t{},{},{}".format(mnemonic, self.symbol(operand1), self.symbol(operand2), self.symbol(output)), True)
+        self.newline_text("{0}\t{1},{2},{3}".format(mnemonic, self.symbol(operand1), self.symbol(operand2), self.symbol(output)), True)
         return output
 
     def relop_code(self, relop, operands_type):
@@ -723,13 +723,13 @@ class CodeGenerator(object):
            label    - jump label
         """
         jump = self.OPPOSITE_JUMPS[relcode] if opposite else self.CONDITIONAL_JUMPS[relcode]
-        self.newline_text("{}\t{}".format(jump, label), True)
+        self.newline_text("{0}\t{1}".format(jump, label), True)
 
     def unconditional_jump(self, label):
         """Generates an unconditional jump instruction
            label    - jump label
         """
-        self.newline_text("JMP \t{}".format(label), True)
+        self.newline_text("JMP \t{0}".format(label), True)
 
     def move(self,operand1, operand2):
         """Generates a move instruction
@@ -741,7 +741,7 @@ class CodeGenerator(object):
             self.free_if_register(operand1)
         else:
             output_type = SharedData.TYPES.NO_TYPE
-        self.newline_text("MOV \t{},{}".format(self.symbol(operand1), self.symbol(operand2)), True)
+        self.newline_text("MOV \t{0},{1}".format(self.symbol(operand1), self.symbol(operand2)), True)
         if isinstance(operand2, int):
             if self.symtab.get_kind(operand2) == SharedData.KINDS.WORKING_REGISTER:
                 self.symtab.set_type(operand2, output_type)
@@ -761,7 +761,7 @@ class CodeGenerator(object):
         typ = self.symtab.get_type(operand1)
         self.free_if_register(operand1)
         self.free_if_register(operand2)
-        self.newline_text("CMP{}\t{},{}".format(self.OPSIGNS[typ], self.symbol(operand1), self.symbol(operand2)), True)
+        self.newline_text("CMP{0}\t{1},{2}".format(self.OPSIGNS[typ], self.symbol(operand1), self.symbol(operand2)), True)
 
     def function_begin(self):
         """Inserts function name label and function frame initialization"""
@@ -772,7 +772,7 @@ class CodeGenerator(object):
     def function_body(self):
         """Inserts a local variable initialization and body label"""
         if self.shared.function_vars > 0:
-            const = self.symtab.insert_constant("{}".format(self.shared.function_vars * 4), SharedData.TYPES.UNSIGNED)
+            const = self.symtab.insert_constant("0{}".format(self.shared.function_vars * 4), SharedData.TYPES.UNSIGNED)
             self.arithmetic("-", "%15", const, "%15")
         self.newline_label(self.shared.function_name + "_body", True, True)
 
@@ -796,7 +796,7 @@ class CodeGenerator(object):
         args = self.symtab.get_attribute(function)
         #generates stack cleanup if function has arguments
         if args > 0:
-            args_space = self.symtab.insert_constant("{}".format(args * 4), SharedData.TYPES.UNSIGNED)
+            args_space = self.symtab.insert_constant("{0}".format(args * 4), SharedData.TYPES.UNSIGNED)
             self.arithmetic("+", "%15", args_space, "%15")
 
 ##########################################################################################
@@ -1148,7 +1148,7 @@ class MicroC(object):
             if DEBUG > 2: return
         exshared.setpos(loc, text)
         if not self.symtab.same_types(arg[0], arg[2]):
-            raise SemanticException("Invalid operands for operator '{}'".format(arg[1]))
+            raise SemanticException("Invalid operands for operator '{0}'".format(arg[1]))
         self.codegen.compare(arg[0], arg[2])
         #return relational operator's code
         self.relexp_code = self.codegen.relop_code(arg[1], self.symtab.get_type(arg[0]))
@@ -1161,7 +1161,7 @@ class MicroC(object):
             print("AND+EXP:",arg)
             if DEBUG == 2: self.symtab.display()
             if DEBUG > 2: return
-        label = self.codegen.label("false{}".format(self.false_label_number), True, False)
+        label = self.codegen.label("false{0}".format(self.false_label_number), True, False)
         self.codegen.jump(self.relexp_code, True, label)
         self.andexp_code = self.relexp_code
         return self.andexp_code
@@ -1173,9 +1173,9 @@ class MicroC(object):
             print("LOG_EXP:",arg)
             if DEBUG == 2: self.symtab.display()
             if DEBUG > 2: return
-        label = self.codegen.label("true{}".format(self.label_number), True, False)
+        label = self.codegen.label("true{0}".format(self.label_number), True, False)
         self.codegen.jump(self.relexp_code, False, label)
-        self.codegen.newline_label("false{}".format(self.false_label_number), True, True)
+        self.codegen.newline_label("false{0}".format(self.false_label_number), True, True)
         self.false_label_number += 1
 
     def if_begin_action(self, text, loc, arg):
@@ -1187,7 +1187,7 @@ class MicroC(object):
             if DEBUG > 2: return
         self.false_label_number += 1
         self.label_number = self.false_label_number
-        self.codegen.newline_label("if{}".format(self.label_number), True, True)
+        self.codegen.newline_label("if{0}".format(self.label_number), True, True)
 
     def if_body_action(self, text, loc, arg):
         """Code executed after recognising if statement's body"""
@@ -1197,10 +1197,10 @@ class MicroC(object):
             if DEBUG == 2: self.symtab.display()
             if DEBUG > 2: return
         #generate conditional jump (based on last compare)
-        label = self.codegen.label("false{}".format(self.false_label_number), True, False)
+        label = self.codegen.label("false{0}".format(self.false_label_number), True, False)
         self.codegen.jump(self.relexp_code, True, label)
         #generate 'true' label (executes if condition is satisfied)
-        self.codegen.newline_label("true{}".format(self.label_number), True, True)
+        self.codegen.newline_label("true{0}".format(self.label_number), True, True)
         #save label numbers (needed for nested if/while statements)
         self.label_stack.append(self.false_label_number)
         self.label_stack.append(self.label_number)
@@ -1214,10 +1214,10 @@ class MicroC(object):
             if DEBUG > 2: return
         #jump to exit after all statements for true condition are executed
         self.label_number = self.label_stack.pop()
-        label = self.codegen.label("exit{}".format(self.label_number), True, False)
+        label = self.codegen.label("exit{0}".format(self.label_number), True, False)
         self.codegen.unconditional_jump(label)
         #generate final 'false' label (executes if condition isn't satisfied)
-        self.codegen.newline_label("false{}".format(self.label_stack.pop()), True, True)
+        self.codegen.newline_label("false{0}".format(self.label_stack.pop()), True, True)
         self.label_stack.append(self.label_number)
 
     def if_end_action(self, text, loc, arg):
@@ -1227,7 +1227,7 @@ class MicroC(object):
             print("IF_END:",arg)
             if DEBUG == 2: self.symtab.display()
             if DEBUG > 2: return
-        self.codegen.newline_label("exit{}".format(self.label_stack.pop()), True, True)
+        self.codegen.newline_label("exit{0}".format(self.label_stack.pop()), True, True)
 
     def while_begin_action(self, text, loc, arg):
         """Code executed after recognising a while statement (while keyword)"""
@@ -1238,7 +1238,7 @@ class MicroC(object):
             if DEBUG > 2: return
         self.false_label_number += 1
         self.label_number = self.false_label_number
-        self.codegen.newline_label("while{}".format(self.label_number), True, True)
+        self.codegen.newline_label("while{0}".format(self.label_number), True, True)
 
     def while_body_action(self, text, loc, arg):
         """Code executed after recognising while statement's body"""
@@ -1248,10 +1248,10 @@ class MicroC(object):
             if DEBUG == 2: self.symtab.display()
             if DEBUG > 2: return
         #generate conditional jump (based on last compare)
-        label = self.codegen.label("false{}".format(self.false_label_number), True, False)
+        label = self.codegen.label("false{0}".format(self.false_label_number), True, False)
         self.codegen.jump(self.relexp_code, True, label)
         #generate 'true' label (executes if condition is satisfied)
-        self.codegen.newline_label("true{}".format(self.label_number), True, True)
+        self.codegen.newline_label("true{0}".format(self.label_number), True, True)
         self.label_stack.append(self.false_label_number)
         self.label_stack.append(self.label_number)
 
@@ -1264,11 +1264,11 @@ class MicroC(object):
             if DEBUG > 2: return
         #jump to condition checking after while statement body
         self.label_number = self.label_stack.pop()
-        label = self.codegen.label("while{}".format(self.label_number), True, False)
+        label = self.codegen.label("while{0}".format(self.label_number), True, False)
         self.codegen.unconditional_jump(label)
         #generate final 'false' label and exit label
-        self.codegen.newline_label("false{}".format(self.label_stack.pop()), True, True)
-        self.codegen.newline_label("exit{}".format(self.label_number), True, True)
+        self.codegen.newline_label("false{0}".format(self.label_stack.pop()), True, True)
+        self.codegen.newline_label("exit{0}".format(self.label_number), True, True)
 
     def program_end_action(self, text, loc, arg):
         """Checks if there is a 'main' function and the type of 'main' function"""
@@ -1320,7 +1320,7 @@ if 0:
         input_file = argv[1]
         output_file = argv[2]
     else:
-        usage = """Usage: {} [input_file [output_file]]
+        usage = """Usage: {0} [input_file [output_file]]
     If output file is omitted, output.asm is used
     If input file is omitted, stdin is used""".format(argv[0])
         print(usage)

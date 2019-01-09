@@ -26,7 +26,7 @@ class Document:
         return attr
 
     def __str__(self):
-        return "{}: {}".format(self.__class__.__name__, self._state)
+        return "{0}: {1}".format(self.__class__.__name__, self._state)
 
 
 def run_demo():

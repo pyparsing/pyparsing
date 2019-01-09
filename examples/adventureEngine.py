@@ -66,7 +66,7 @@ class Room(object):
                 is_form = "are"
             else:
                 is_form = "is"
-            print("There {} {} here.".format(is_form, enumerateItems(visibleItems)))
+            print("There {0} {1} here.".format(is_form, enumerateItems(visibleItems)))
         else:
             print("You see %s." % (enumerateItems(visibleItems)))
 

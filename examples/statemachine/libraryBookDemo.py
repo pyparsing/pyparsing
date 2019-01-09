@@ -19,7 +19,7 @@ class Book:
         return attr
 
     def __str__(self):
-        return "{}: {}".format(self.__class__.__name__, self._state)
+        return "{0}: {1}".format(self.__class__.__name__, self._state)
 
 
 class RestrictedBook(Book):
@@ -35,7 +35,7 @@ class RestrictedBook(Book):
         if user in self._authorized_users:
             self._state = self._state.checkout()
         else:
-            raise Exception("{} could not check out restricted book".format((user, "anonymous")[user is None]))
+            raise Exception("{0} could not check out restricted book".format((user, "anonymous")[user is None]))
 
 
 def run_demo():

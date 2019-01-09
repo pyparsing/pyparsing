@@ -85,9 +85,9 @@ def test(s,expected):
         if not fail_expected:
             teststr, results = results_tup[0]
             observed = results[0]
-            assert expected == observed, "incorrect parsed value, {} -> {}, should be {}".format(teststr, observed, expected)
+            assert expected == observed, "incorrect parsed value, {0} -> {1}, should be {2}".format(teststr, observed, expected)
     except Exception as exc:
-        print("{}: {}".format(type(exc).__name__, exc))
+        print("{0}: {1}".format(type(exc).__name__, exc))
 
 test("one hundred twenty hundred", None)
 test("one hundred and twennty", None)

@@ -21,7 +21,7 @@ def convertToHTML_A(s,l,t):
         text,url=t[0].split("->")
     except ValueError:
         raise ParseFatalException(s,l,"invalid URL link reference: " + t[0])
-    return '<A href="{}">{}</A>'.format(url,text)
+    return '<A href="{0}">{1}</A>'.format(url, text)
 
 urlRef = QuotedString("{{",endQuoteChar="}}").setParseAction(convertToHTML_A)
 

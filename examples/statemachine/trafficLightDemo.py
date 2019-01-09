@@ -21,12 +21,12 @@ class TrafficLight:
         return getattr(self._state, attrname)
 
     def __str__(self):
-        return "{}: {}".format(self.__class__.__name__, self._state)
+        return "{0}: {1}".format(self.__class__.__name__, self._state)
 
 
 light = TrafficLight()
 for i in range(10):
-    print("{} {}".format(light, ("STOP", "GO")[light.cars_can_go]))
+    print("{0} {1}".format(light, ("STOP", "GO")[light.cars_can_go]))
     light.crossing_signal()
     light.delay()
     print()

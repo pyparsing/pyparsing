@@ -137,7 +137,7 @@ class SemanticGroup(object):
             self.contents = self.contents[:-1] + self.contents[-1].contents
 
     def __str__(self):
-        return "{}({})".format(self.label,
+        return "{0}({1})".format(self.label,
                 " ".join([isinstance(c,str) and c or str(c) for c in self.contents]) )
 
 class OrList(SemanticGroup):
@@ -164,7 +164,7 @@ class Atom(SemanticGroup):
             self.contents = contents[0]
 
     def __str__(self):
-        return "{}{}".format(self.rep, self.contents)
+        return "{0}{1}".format(self.rep, self.contents)
 
 def makeGroupObject(cls):
     def groupAction(s,l,t):

@@ -57,14 +57,14 @@ expected = 1
 for t,s,e in romanNumeral.scanString(tests):
     orig = tests[s:e]
     if t[0] != expected:
-        print("{} {} {}".format("==>", t, orig))
+        print("{0} {1} {2}".format("==>", t, orig))
     roman_int_map[orig] = t[0]
     expected += 1
 
 def verify_value(s, tokens):
     expected = roman_int_map[s]
     if tokens[0] != expected:
-        raise Exception("incorrect value for {} ({}), expected {}".format(s, tokens[0], expected ))
+        raise Exception("incorrect value for {0} ({1}), expected {2}".format(s, tokens[0], expected ))
 
 romanNumeral.runTests("""\
     XVI

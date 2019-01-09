@@ -72,10 +72,10 @@ def expand_state_definition(source, loc, tokens):
     ])
 
     # define all state classes
-    statedef.extend("class {}({}): pass".format(s, baseStateClass) for s in states)
+    statedef.extend("class {0}({1}): pass".format(s, baseStateClass) for s in states)
 
     # define state->state transitions
-    statedef.extend("{}._next_state_class = {}".format(s, fromTo[s]) for s in states if s in fromTo)
+    statedef.extend("{0}._next_state_class = {1}".format(s, fromTo[s]) for s in states if s in fromTo)
 
     return indent + ("\n" + indent).join(statedef) + "\n"
 
@@ -113,9 +113,9 @@ def expand_named_state_definition(source, loc, tokens):
         "        return self.transitionName",
     ])
     statedef.extend(
-        "{} = {}Transition()".format(tn, baseStateClass)
+        "{0} = {1}Transition()".format(tn, baseStateClass)
         for tn in transitions)
-    statedef.extend("{}.transitionName = '{}'".format(tn, tn)
+    statedef.extend("{0}.transitionName = '{1}'".format(tn, tn)
                     for tn in transitions)
 
     # define base class for state classes
@@ -199,7 +199,7 @@ class SuffixImporter(object):
             # it probably isn't even a filesystem path
             finder = sys.path_importer_cache.get(dirpath)
             if isinstance(finder, (type(None), importlib.machinery.FileFinder)):
-                checkpath = os.path.join(dirpath, '{}.{}'.format(fullname, self.suffix))
+                checkpath = os.path.join(dirpath, '{0}.{1}'.format(fullname, self.suffix))
                 yield checkpath
 
     def find_module(self, fullname, path=None):
@@ -257,4 +257,4 @@ class PystateImporter(SuffixImporter):
 PystateImporter.register()
 
 if DEBUG:
-    print("registered {!r} importer".format(PystateImporter.suffix))
+    print("registered {0!r} importer".format(PystateImporter.suffix))
