@@ -333,6 +333,8 @@ class ParseException(ParseBaseException):
         that failed to parse. These representations will be more helpful if you use `setName` to
         give identifiable names to your expressions. Otherwise they will use the default string
         forms, which may be cryptic to read.
+
+        explain() is only supported under Python 3.
         """
         import inspect
 
@@ -344,15 +346,9 @@ class ParseException(ParseBaseException):
             ret.append(' ' * (exc.col - 1) + '^')
         ret.append("{0}: {1}".format(type(exc).__name__, exc))
 
-        if hasattr(exc, '__traceback__'):
-            exc_tb = exc.__traceback__
-        else:
-            exc_tb = sys.exc_info()[-1]
-        callers = inspect.getinnerframes(exc_tb, context=depth)
-
-        seen = set()
-
         if depth > 0:
+            callers = inspect.getinnerframes(exc.__traceback__, context=depth)
+            seen = set()
             for i, ff in enumerate(callers[-depth:]):
                 frm = ff.frame
 

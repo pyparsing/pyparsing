@@ -42,6 +42,8 @@ Version 2.3.1 - January, 2019
   names and parse expressions in the stack trace. This is especially
   useful when an exception is raised in a parse action.
 
+  Note: explain() is only supported under Python 3.
+
 - Fix bug in dictOf which could match an empty sequence, making it
   infinitely loop if wrapped in a OneOrMore.
 
