@@ -7,7 +7,7 @@
 #
 from pyparsing import Word, delimitedList, Optional, \
     Group, alphas, alphanums, Forward, oneOf, quotedString, \
-    ZeroOrMore, restOfLine, CaselessKeyword, pyparsing_common
+    ZeroOrMore, restOfLine, CaselessKeyword, pyparsing_common as ppc
 
 # define SQL tokens
 selectStmt = Forward()
@@ -15,18 +15,18 @@ SELECT, FROM, WHERE = map(CaselessKeyword, "select from where".split())
 
 ident          = Word( alphas, alphanums + "_$" ).setName("identifier")
 columnName     = delimitedList(ident, ".", combine=True).setName("column name")
-columnName.addParseAction(pyparsing_common.upcaseTokens)
+columnName.addParseAction(ppc.upcaseTokens)
 columnNameList = Group( delimitedList(columnName))
 tableName      = delimitedList(ident, ".", combine=True).setName("table name")
-tableName.addParseAction(pyparsing_common.upcaseTokens)
+tableName.addParseAction(ppc.upcaseTokens)
 tableNameList  = Group(delimitedList(tableName))
 
 whereExpression = Forward()
 and_, or_, in_ = map(CaselessKeyword, "and or in".split())
 
 binop = oneOf("= != < > >= <= eq ne lt le gt ge", caseless=True)
-realNum = pyparsing_common.real()
-intNum = pyparsing_common.signed_integer()
+realNum = ppc.real()
+intNum = ppc.signed_integer()
 
 columnRval = realNum | intNum | quotedString | columnName # need to add support for alg expressions
 whereCondition = Group(

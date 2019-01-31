@@ -3,10 +3,10 @@
 # escrito por Marco Alfonso, 2004 Noviembre
 
 # importamos los símbolos requeridos desde el módulo
-from pyparsing import Word, alphas, oneOf, pyparsing_unicode, nums, Group, OneOrMore
+from pyparsing import Word, alphas, oneOf, nums, Group, OneOrMore, pyparsing_unicode as ppu
 
 # usamos las letras en latin1, que incluye las como 'ñ', 'á', 'é', etc.
-alphas = pyparsing_unicode.Latin1.alphas
+alphas = ppu.Latin1.alphas
 
 # Aqui decimos que la gramatica "saludo" DEBE contener
 # una palabra compuesta de caracteres alfanumericos

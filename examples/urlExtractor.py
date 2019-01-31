@@ -1,6 +1,6 @@
 # URL extractor
 # Copyright 2004, Paul McGuire
-from pyparsing import makeHTMLTags, SkipTo, pyparsing_common
+from pyparsing import makeHTMLTags, SkipTo, pyparsing_common as ppc
 import urllib.request
 from contextlib import closing
 import pprint
@@ -8,7 +8,7 @@ import pprint
 linkOpenTag, linkCloseTag = makeHTMLTags('a')
 
 linkBody = SkipTo(linkCloseTag)
-linkBody.setParseAction(pyparsing_common.stripHTMLTags)
+linkBody.setParseAction(ppc.stripHTMLTags)
 linkBody.addParseAction(lambda toks: ' '.join(toks[0].strip().split()))
 
 link = linkOpenTag + linkBody("body") + linkCloseTag.suppress()

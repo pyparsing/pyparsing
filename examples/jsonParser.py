@@ -33,29 +33,30 @@ value
     null
 """
 
-from pyparsing import *
+import pyparsing as pp
+from pyparsing import pyparsing_common as ppc
 
 def make_keyword(kwd_str, kwd_value):
-    return Keyword(kwd_str).setParseAction(replaceWith(kwd_value))
+    return pp.Keyword(kwd_str).setParseAction(pp.replaceWith(kwd_value))
 TRUE  = make_keyword("true", True)
 FALSE = make_keyword("false", False)
 NULL  = make_keyword("null", None)
 
-LBRACK, RBRACK, LBRACE, RBRACE, COLON = map(Suppress, "[]{}:")
+LBRACK, RBRACK, LBRACE, RBRACE, COLON = map(pp.Suppress, "[]{}:")
 
-jsonString = dblQuotedString().setParseAction(removeQuotes)
-jsonNumber = pyparsing_common.number()
+jsonString = pp.dblQuotedString().setParseAction(pp.removeQuotes)
+jsonNumber = ppc.number()
 
-jsonObject = Forward()
-jsonValue = Forward()
-jsonElements = delimitedList( jsonValue )
-jsonArray = Group(LBRACK + Optional(jsonElements, []) + RBRACK)
-jsonValue << (jsonString | jsonNumber | Group(jsonObject)  | jsonArray | TRUE | FALSE | NULL)
-memberDef = Group(jsonString + COLON + jsonValue)
-jsonMembers = delimitedList(memberDef)
-jsonObject << Dict(LBRACE + Optional(jsonMembers) + RBRACE)
+jsonObject = pp.Forward()
+jsonValue = pp.Forward()
+jsonElements = pp.delimitedList( jsonValue )
+jsonArray = pp.Group(LBRACK + pp.Optional(jsonElements, []) + RBRACK)
+jsonValue << (jsonString | jsonNumber | pp.Group(jsonObject)  | jsonArray | TRUE | FALSE | NULL)
+memberDef = pp.Group(jsonString + COLON + jsonValue)
+jsonMembers = pp.delimitedList(memberDef)
+jsonObject << pp.Dict(LBRACE + pp.Optional(jsonMembers) + RBRACE)
 
-jsonComment = cppStyleComment
+jsonComment = pp.cppStyleComment
 jsonObject.ignore(jsonComment)
 
 
@@ -90,12 +91,11 @@ if __name__ == "__main__":
     }
     """
 
-    import pprint
     results = jsonObject.parseString(testdata)
-    pprint.pprint( results.asList() )
+    results.pprint()
     print()
     def testPrint(x):
-        print(type(x),repr(x))
+        print(type(x), repr(x))
     print(list(results.glossary.GlossDiv.GlossList.keys()))
     testPrint( results.glossary.title )
     testPrint( results.glossary.GlossDiv.GlossList.ID )

@@ -6,11 +6,12 @@
 # Copyright 2012, Paul T. McGuire
 #
 from datetime import datetime
-from pyparsing import *
+import pyparsing as pp
+from pyparsing import pyparsing_common as ppc
 
 # define an integer string, and a parse action to convert it
 # to an integer at parse time
-integer = Word(nums).setName("integer")
+integer = pp.Word(pp.nums).setName("integer")
 def convertToInt(tokens):
     # no need to test for validity - we can't get here
     # unless tokens[0] contains all numeric digits
@@ -21,7 +22,7 @@ integer.setParseAction(convertToInt)
 
 # define a pattern for a year/month/day date
 date_expr = integer('year') + '/' + integer('month') + '/' + integer('day')
-date_expr.ignore(pythonStyleComment)
+date_expr.ignore(pp.pythonStyleComment)
 
 def convertToDatetime(s,loc,tokens):
     try:
@@ -32,7 +33,7 @@ def convertToDatetime(s,loc,tokens):
     except Exception as ve:
         errmsg = "'%s/%s/%s' is not a valid date, %s" % \
             (tokens.year, tokens.month, tokens.day, ve)
-        raise ParseException(s, loc, errmsg)
+        raise pp.ParseException(s, loc, errmsg)
 date_expr.setParseAction(convertToDatetime)
 
 
@@ -51,8 +52,8 @@ date_expr.runTests("""\
 
 
 # if dates conform to ISO8601, use definitions in pyparsing_common
-date_expr = pyparsing_common.iso8601_date.setParseAction(pyparsing_common.convertToDate())
-date_expr.ignore(pythonStyleComment)
+date_expr = ppc.iso8601_date.setParseAction(ppc.convertToDate())
+date_expr.ignore(pp.pythonStyleComment)
 
 date_expr.runTests("""\
     2000-01-01

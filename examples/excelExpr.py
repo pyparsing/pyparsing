@@ -7,7 +7,7 @@
 from pyparsing import (CaselessKeyword, Suppress, Word, alphas,
     alphanums, nums, Optional, Group, oneOf, Forward,
     infixNotation, opAssoc, dblQuotedString, delimitedList,
-    Combine, Literal, QuotedString, ParserElement, pyparsing_common)
+    Combine, Literal, QuotedString, ParserElement, pyparsing_common as ppc)
 ParserElement.enablePackrat()
 
 EQ,LPAR,RPAR,COLON,COMMA = map(Suppress, '=():,')
@@ -26,11 +26,12 @@ expr = Forward()
 COMPARISON_OP = oneOf("< = > >= <= != <>")
 condExpr = expr + COMPARISON_OP + expr
 
-ifFunc = (CaselessKeyword("if") -
-          LPAR +
-          Group(condExpr)("condition") +
-          COMMA + Group(expr)("if_true") +
-          COMMA + Group(expr)("if_false") + RPAR)
+ifFunc = (CaselessKeyword("if")
+          - LPAR
+          + Group(condExpr)("condition")
+          + COMMA + Group(expr)("if_true")
+          + COMMA + Group(expr)("if_false")
+          + RPAR)
 
 statFunc = lambda name : Group(CaselessKeyword(name) + Group(LPAR + delimitedList(expr) + RPAR))
 sumFunc = statFunc("sum")
@@ -41,7 +42,7 @@ funcCall = ifFunc | sumFunc | minFunc | maxFunc | aveFunc
 
 multOp = oneOf("* /")
 addOp = oneOf("+ -")
-numericLiteral = pyparsing_common.number
+numericLiteral = ppc.number
 operand = numericLiteral | funcCall | cellRange | cellRef
 arithExpr = infixNotation(operand,
     [

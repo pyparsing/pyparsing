@@ -1410,7 +1410,7 @@ class InfixNotationGrammarTest4(ParseTestCase):
 class InfixNotationGrammarTest5(ParseTestCase):
 
     def runTest(self):
-        from pyparsing import infixNotation, opAssoc, pyparsing_common, Literal, oneOf
+        from pyparsing import infixNotation, opAssoc, pyparsing_common as ppc, Literal, oneOf
 
         expop = Literal('**')
         signop = oneOf('+ -')
@@ -1451,9 +1451,7 @@ class InfixNotationGrammarTest5(ParseTestCase):
             import operator
             opn_map = {'+': operator.add, '-': operator.sub}
 
-        from pyparsing import pyparsing_common, infixNotation
-
-        operand = pyparsing_common.number().setParseAction(NumberNode)
+        operand = ppc.number().setParseAction(NumberNode)
         expr = infixNotation(operand,
                              [
                                  (expop, 2, opAssoc.LEFT, (lambda pr: [pr[0][::-1]], ExpOp)),
@@ -1608,6 +1606,7 @@ class UpcaseDowncaseUnicode(ParseTestCase):
     def runTest(self):
 
         import pyparsing as pp
+        from pyparsing import pyparsing_unicode as ppu
         import sys
         if PY_3:
             unichr = chr
@@ -1616,7 +1615,7 @@ class UpcaseDowncaseUnicode(ParseTestCase):
 
         a = u'\u00bfC\u00f3mo esta usted?'
         if not JYTHON_ENV:
-            ualphas = pp.pyparsing_unicode.alphas
+            ualphas = ppu.alphas
         else:
             ualphas = "".join( unichr(i) for i in list(range(0xd800)) + list(range(0xe000,sys.maxunicode))
                                 if unichr(i).isalpha() )
@@ -3682,11 +3681,12 @@ class ParseResultsNameBelowUngroupedNameTest(ParseTestCase):
 class ParseResultsNamesInGroupWithDictTest(ParseTestCase):
     def runTest(self):
         import pyparsing as pp
+        from pyparsing import pyparsing_common as ppc
 
-        key = pp.pyparsing_common.identifier()
-        value = pp.pyparsing_common.integer()
-        lat = pp.pyparsing_common.real()
-        long = pp.pyparsing_common.real()
+        key = ppc.identifier()
+        value = ppc.integer()
+        lat = ppc.real()
+        long = ppc.real()
         EQ = pp.Suppress('=')
 
         data = lat("lat") + long("long") + pp.Dict(pp.OneOrMore(pp.Group(key + EQ + value)))
@@ -3700,7 +3700,9 @@ class ParseResultsNamesInGroupWithDictTest(ParseTestCase):
 
 class FollowedByTest(ParseTestCase):
     def runTest(self):
-        expr = pp.Word(pp.alphas)("item") + pp.FollowedBy(pp.pyparsing_common.integer("qty"))
+        import pyparsing as pp
+        from pyparsing import pyparsing_common as ppc
+        expr = pp.Word(pp.alphas)("item") + pp.FollowedBy(ppc.integer("qty"))
         result = expr.parseString("balloon 99")
         print_(result.dump())
         self.assertTrue('qty' in result, "failed to capture results name in FollowedBy")
@@ -3734,25 +3736,26 @@ class SetBreakTest(ParseTestCase):
 class UnicodeTests(ParseTestCase):
     def runTest(self):
         import pyparsing as pp
-        p_u = pp.pyparsing_unicode
+        ppu = pp.pyparsing_unicode
+        ppc = pp.pyparsing_common
 
         # verify proper merging of ranges by addition
-        kanji_printables = p_u.Japanese.Kanji.printables
-        katakana_printables = p_u.Japanese.Katakana.printables
-        hiragana_printables = p_u.Japanese.Hiragana.printables
-        japanese_printables = p_u.Japanese.printables
+        kanji_printables = ppu.Japanese.Kanji.printables
+        katakana_printables = ppu.Japanese.Katakana.printables
+        hiragana_printables = ppu.Japanese.Hiragana.printables
+        japanese_printables = ppu.Japanese.printables
         self.assertEqual(set(japanese_printables), set(kanji_printables
                                                        + katakana_printables
                                                        + hiragana_printables),
                          "failed to construct ranges by merging Japanese types")
 
         # verify proper merging of ranges using multiple inheritance
-        cjk_printables = p_u.CJK.printables
+        cjk_printables = ppu.CJK.printables
         self.assertEqual(len(cjk_printables), len(set(cjk_printables)),
                          "CJK contains duplicate characters - all should be unique")
 
-        chinese_printables = p_u.Chinese.printables
-        korean_printables = p_u.Korean.printables
+        chinese_printables = ppu.Chinese.printables
+        korean_printables = ppu.Korean.printables
         print_(len(cjk_printables), len(set(chinese_printables
                                            + korean_printables
                                            + japanese_printables)))
@@ -3762,7 +3765,7 @@ class UnicodeTests(ParseTestCase):
                                                       + japanese_printables)),
                          "failed to construct ranges by merging Chinese, Japanese and Korean")
 
-        alphas = pp.pyparsing_unicode.Greek.alphas
+        alphas = ppu.Greek.alphas
         greet = pp.Word(alphas) + ',' + pp.Word(alphas) + '!'
 
         # input string
@@ -3773,26 +3776,23 @@ class UnicodeTests(ParseTestCase):
                         "Failed to parse Greek 'Hello, World!' using pyparsing_unicode.Greek.alphas")
 
         # define a custom unicode range using multiple inheritance
-        class Turkish_set(pp.pyparsing_unicode.Latin1, pp.pyparsing_unicode.LatinA):
+        class Turkish_set(ppu.Latin1, ppu.LatinA):
             pass
 
         self.assertEqual(set(Turkish_set.printables),
-                         set(pp.pyparsing_unicode.Latin1.printables
-                             + pp.pyparsing_unicode.LatinA.printables),
+                         set(ppu.Latin1.printables + ppu.LatinA.printables),
                          "failed to construct ranges by merging Latin1 and LatinA (printables)")
 
         self.assertEqual(set(Turkish_set.alphas),
-                         set(pp.pyparsing_unicode.Latin1.alphas
-                             + pp.pyparsing_unicode.LatinA.alphas),
+                         set(ppu.Latin1.alphas + ppu.LatinA.alphas),
                          "failed to construct ranges by merging Latin1 and LatinA (alphas)")
 
         self.assertEqual(set(Turkish_set.nums),
-                         set(pp.pyparsing_unicode.Latin1.nums
-                             + pp.pyparsing_unicode.LatinA.nums),
+                         set(ppu.Latin1.nums + ppu.LatinA.nums),
                          "failed to construct ranges by merging Latin1 and LatinA (nums)")
 
         key = pp.Word(Turkish_set.alphas)
-        value = pp.pyparsing_common.integer | pp.Word(Turkish_set.alphas, Turkish_set.alphanums)
+        value = ppc.integer | pp.Word(Turkish_set.alphas, Turkish_set.alphanums)
         EQ = pp.Suppress('=')
         key_value = key + EQ + value
 
@@ -4154,7 +4154,7 @@ class MiscellaneousParserTests(ParseTestCase):
 def makeTestSuite():
     import inspect
     suite = TestSuite()
-    suite.addTest( PyparsingTestInit() )
+    suite.addTest(PyparsingTestInit())
 
     test_case_classes = ParseTestCase.__subclasses__()
     # put classes in order as they are listed in the source code
@@ -4185,8 +4185,7 @@ def makeTestSuite():
 def makeTestSuiteTemp(classes):
     suite = TestSuite()
     suite.addTest(PyparsingTestInit())
-    for cls in classes:
-        suite.addTest(cls())
+    suite.addTests(cls() for cls in classes)
     return suite
 
 if __name__ == '__main__':

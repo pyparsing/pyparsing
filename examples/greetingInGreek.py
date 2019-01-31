@@ -6,10 +6,10 @@
 #
 # Copyright 2004-2016, by Paul McGuire
 #
-from pyparsing import Word, pyparsing_unicode
+from pyparsing import Word, pyparsing_unicode as ppu
 
 # define grammar
-alphas = pyparsing_unicode.Greek.alphas
+alphas = ppu.Greek.alphas
 greet = Word(alphas) + ',' + Word(alphas) + '!'
 
 # input string

@@ -41,6 +41,7 @@
     Constant ::= intConstant | doubleConstant | boolConstant |  stringConstant | null
 """
 import pyparsing as pp
+from pyparsing import pyparsing_common as ppc
 pp.ParserElement.enablePackrat()
 
 # keywords
@@ -52,8 +53,8 @@ keywords = pp.MatchFirst(list(keywords))
 
 LPAR, RPAR, LBRACE, RBRACE, LBRACK, RBRACK, DOT, EQ, COMMA, SEMI = map(pp.Suppress, "(){}[].=,;")
 hexConstant = pp.Regex(r"0[xX][0-9a-fA-F]+").addParseAction(lambda t: int(t[0][2:], 16))
-intConstant = hexConstant | pp.pyparsing_common.integer
-doubleConstant = pp.pyparsing_common.real
+intConstant = hexConstant | ppc.integer
+doubleConstant = ppc.real
 boolConstant = TRUE | FALSE
 stringConstant = pp.dblQuotedString
 null = NULL
