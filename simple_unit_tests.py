@@ -155,6 +155,22 @@ class TestWord(PyparsingExpressionTestCase):
         ),
     ]
 
+class TestCombine(PyparsingExpressionTestCase):
+    tests = [
+        PpTestSpec(
+            desc="Parsing real numbers - fail, parsed numbers are in pieces",
+            expr=pp.OneOrMore(pp.Word(pp.nums) + '.' + pp.Word(pp.nums)),
+            text="1.2 2.3 3.1416 98.6",
+            expected_list=['1', '.', '2', '2', '.', '3', '3', '.', '1416', '98', '.', '6'],
+        ),
+        PpTestSpec(
+            desc="Parsing real numbers - better, use Combine to combine multiple tokens into one",
+            expr=pp.OneOrMore(pp.Combine(pp.Word(pp.nums) + '.' + pp.Word(pp.nums))),
+            text="1.2 2.3 3.1416 98.6",
+            expected_list=['1.2', '2.3', '3.1416', '98.6'],
+        ),
+    ]
+
 class TestRepetition(PyparsingExpressionTestCase):
     tests = [
         PpTestSpec(
@@ -250,6 +266,12 @@ class TestGroups(PyparsingExpressionTestCase):
 class TestParseAction(PyparsingExpressionTestCase):
     tests = [
         PpTestSpec(
+            desc="Parsing real numbers - use parse action to convert to float at parse time",
+            expr=pp.OneOrMore(pp.Combine(pp.Word(pp.nums) + '.' + pp.Word(pp.nums)).addParseAction(lambda t: float(t[0]))),
+            text="1.2 2.3 3.1416 98.6",
+            expected_list= [1.2, 2.3, 3.1416, 98.6], # note, these are now floats, not strs
+        ),
+        PpTestSpec(
             desc = "Match with numeric string converted to int",
             expr = pp.Word("0123456789").addParseAction(lambda t: int(t[0])),
             text = "12345",
@@ -300,6 +322,16 @@ class TestResultsModifyingParseAction(PyparsingExpressionTestCase):
             text = "27 1 14 22 89",
             expected_list = [27, 1, 14, 22, 89],
             expected_dict = {'ave': 30.6, 'max': 89, 'min': 1, 'sum': 153}
+        ),
+    ]
+
+class TestRegex(PyparsingExpressionTestCase):
+    tests = [
+        PpTestSpec(
+            desc="Parsing real numbers - using Regex instead of Combine",
+            expr=pp.OneOrMore(pp.Regex(r'\d+\.\d+').addParseAction(lambda t: float(t[0]))),
+            text="1.2 2.3 3.1416 98.6",
+            expected_list=[1.2, 2.3, 3.1416, 98.6],  # note, these are now floats, not strs
         ),
     ]
 
