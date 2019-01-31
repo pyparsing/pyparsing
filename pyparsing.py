@@ -93,8 +93,8 @@ classes inherit from. Use the docstrings for examples of how to:
    namespace class
 """
 
-__version__ = "2.3.1"
-__versionTime__ = "09 Jan 2019 23:26 UTC"
+__version__ = "2.3.2"
+__versionTime__ = "18 Jan 2019 22:15 UTC"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -2517,7 +2517,9 @@ class ParserElement(object):
             comments = []
             try:
                 # convert newline marks to actual newlines, and strip leading BOM if present
-                t = t.replace(r'\n','\n').lstrip('\ufeff')
+                NL = Literal(r'\n').addParseAction(replaceWith('\n')).ignore(quotedString)
+                BOM = '\ufeff'
+                t = NL.transformString(t.lstrip(BOM))
                 result = self.parseString(t, parseAll=parseAll)
                 out.append(result.dump(full=fullDump))
                 success = success and not failureTests
@@ -3854,7 +3856,7 @@ class MatchFirst(ParseExpression):
         super(MatchFirst,self).__init__(exprs, savelist)
         if self.exprs:
             self.mayReturnEmpty = any(e.mayReturnEmpty for e in self.exprs)
-            # self.saveAsList = any(e.saveAsList for e in self.exprs)
+            self.saveAsList = any(e.saveAsList for e in self.exprs)
         else:
             self.mayReturnEmpty = True
 
