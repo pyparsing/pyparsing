@@ -5854,33 +5854,22 @@ def indentedBlock(blockStatementExpr, indentStack, indent=True):
           ':',
           [[['def', 'eggs', ['(', 'z', ')'], ':', [['pass']]]]]]]
     """
-    class Context:
-        """
-        Stores all the indents that this particular rule has added to the global indent stack
-        """
-        indents_added = 0
+    backup_stack = indentStack[:]
 
-    def revert_stack():
-        """
-        Reverts changes to the indent stack that this particular rule has added if it fails
-        """
-    
-        if Context.indents_added > 0:
-            del indentStack[Context.indents_added * -1:]
-            Context.indents_added = 0
+    def reset_stack():
+        indentStack[:] = backup_stack
 
     def checkPeerIndent(s,l,t):
         if l >= len(s): return
         curCol = col(l,s)
         if curCol != indentStack[-1]:
             if curCol > indentStack[-1]:
-                raise ParseFatalException(s,l,"illegal nesting")
+                raise ParseException(s,l,"illegal nesting")
             raise ParseException(s,l,"not a peer entry")
 
     def checkSubIndent(s,l,t):
         curCol = col(l,s)
         if curCol > indentStack[-1]:
-            Context.indents_added += 1
             indentStack.append( curCol )
         else:
             raise ParseException(s,l,"not a subentry")
@@ -5890,7 +5879,6 @@ def indentedBlock(blockStatementExpr, indentStack, indent=True):
         curCol = col(l,s)
         if not(indentStack and curCol < indentStack[-1] and curCol <= indentStack[-2]):
             raise ParseException(s,l,"not an unindent")
-        Context.indents_added -= 1
         indentStack.pop()
 
     NL = OneOrMore(LineEnd().setWhitespaceChars("\t ").suppress())
@@ -5904,7 +5892,7 @@ def indentedBlock(blockStatementExpr, indentStack, indent=True):
     else:
         smExpr = Group( Optional(NL) +
             (OneOrMore( PEER + Group(blockStatementExpr) + Optional(NL) )) )
-    smExpr.setFailAction(lambda a, b, c, d: revert_stack())
+    smExpr.setFailAction(lambda a, b, c, d: reset_stack())
     blockStatementExpr.ignore(_bslash + LineEnd())
     return smExpr.setName('indented block')
 
