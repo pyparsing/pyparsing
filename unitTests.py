@@ -3854,42 +3854,44 @@ class IndentedBlockScanTest(ParseTestCase):
         return block
 
     def runTest(self):
+        from textwrap import dedent
+
         # This input string is a perfect match for the parser, so a single match is found
         p1 = self.get_parser()
-        r1 = list(p1.scanString("""
+        r1 = list(p1.scanString(dedent("""\
         block:
             A
-        """))
+        """)))
         self.assertEqual(len(r1), 1)
 
         # This input string is a perfect match for the parser, except for the letter B instead of A, so this will fail (and should)
         p2 = self.get_parser()
-        r2 = list(p2.scanString("""
+        r2 = list(p2.scanString(dedent("""\
         block:
             B
-        """))
+        """)))
         self.assertEqual(len(r2), 0)
 
         # This input string contains both string A and string B, and it finds one match (as it should)
         p3 = self.get_parser()
-        r3 = list(p3.scanString("""
+        r3 = list(p3.scanString(dedent("""\
         block:
             A
         block:
             B
-        """))
+        """)))
         self.assertEqual(len(r3), 1)
 
         # This input string contains both string A and string B, but in a different order.
         # This means that the indented block matches, but then parsing fails because of the character B
         # Then, because the indent stack is not unrolled back to [1], it fails to match the second block also
         p4 = self.get_parser()
-        r4 = list(p4.scanString("""
+        r4 = list(p4.scanString(dedent("""\
         block:
             B
         block:
             A
-        """))
+        """)))
         self.assertEqual(len(r4), 1)
 
 
@@ -4246,7 +4248,8 @@ if __name__ == '__main__':
     # run specific tests by including them in this list, otherwise
     # all tests will be run
     testclasses = [
-        ]
+        # IndentedBlockScanTest
+    ]
 
     if not testclasses:
         testRunner.run(makeTestSuite())
