@@ -3846,11 +3846,12 @@ class IndentedBlockTest(ParseTestCase):
 class IndentedBlockScanTest(ParseTestCase):
     def get_parser(self):
         """
-        A valid statement is the word "block:", followed by an indent, followed by the letter A only
+        A valid statement is the word "block:", followed by an indent, followed by the letter A only, or another block
         """
         stack = [1]
-        body = pp.indentedBlock(pp.Literal('A'), indentStack=stack, indent=True)
-        block = pp.Literal('block:') + body
+        block = pp.Forward()
+        body = pp.indentedBlock(pp.Literal('A') ^ block, indentStack=stack, indent=True)
+        block <<= pp.Literal('block:') + body
         return block
 
     def runTest(self):
@@ -3883,8 +3884,6 @@ class IndentedBlockScanTest(ParseTestCase):
         self.assertEqual(len(r3), 1)
 
         # This input string contains both string A and string B, but in a different order.
-        # This means that the indented block matches, but then parsing fails because of the character B
-        # Then, because the indent stack is not unrolled back to [1], it fails to match the second block also
         p4 = self.get_parser()
         r4 = list(p4.scanString(dedent("""\
         block:
@@ -3893,6 +3892,30 @@ class IndentedBlockScanTest(ParseTestCase):
             A
         """)))
         self.assertEqual(len(r4), 1)
+
+        # This is the same as case 3, but with nesting
+        p5 = self.get_parser()
+        r5 = list(p5.scanString(dedent("""\
+        block:
+            block:
+                A
+        block:
+            block:
+                B
+        """)))
+        self.assertEqual(len(r5), 1)
+
+        # This is the same as case 4, but with nesting
+        p6 = self.get_parser()
+        r6 = list(p6.scanString(dedent("""\
+        block:
+            block:
+                B
+        block:
+            block:
+                A
+        """)))
+        self.assertEqual(len(r6), 1)
 
 
 class ParseResultsWithNameMatchFirst(ParseTestCase):
@@ -4248,7 +4271,6 @@ if __name__ == '__main__':
     # run specific tests by including them in this list, otherwise
     # all tests will be run
     testclasses = [
-        # IndentedBlockScanTest
     ]
 
     if not testclasses:
