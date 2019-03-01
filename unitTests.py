@@ -3842,6 +3842,57 @@ class IndentedBlockTest(ParseTestCase):
         self.assertEqual(result.c.c1,     200, "invalid indented block result")
         self.assertEqual(result.c.c2.c21, 999, "invalid indented block result")
 
+
+class IndentedBlockScanTest(ParseTestCase):
+    def get_parser(self):
+        """
+        A valid statement is the word "block:", followed by an indent, followed by the letter A only
+        """
+        stack = [1]
+        body = pp.indentedBlock(pp.Literal('A'), indentStack=stack, indent=True)
+        block = pp.Literal('block:') + body
+        return block
+
+    def runTest(self):
+        # This input string is a perfect match for the parser, so a single match is found
+        p1 = self.get_parser()
+        r1 = list(p1.scanString("""
+        block:
+            A
+        """))
+        self.assertEqual(len(r1), 1)
+
+        # This input string is a perfect match for the parser, except for the letter B instead of A, so this will fail (and should)
+        p2 = self.get_parser()
+        r2 = list(p2.scanString("""
+        block:
+            B
+        """))
+        self.assertEqual(len(r2), 0)
+
+        # This input string contains both string A and string B, and it finds one match (as it should)
+        p3 = self.get_parser()
+        r3 = list(p3.scanString("""
+        block:
+            A
+        block:
+            B
+        """))
+        self.assertEqual(len(r3), 1)
+
+        # This input string contains both string A and string B, but in a different order.
+        # This means that the indented block matches, but then parsing fails because of the character B
+        # Then, because the indent stack is not unrolled back to [1], it fails to match the second block also
+        p4 = self.get_parser()
+        r4 = list(p4.scanString("""
+        block:
+            B
+        block:
+            A
+        """))
+        self.assertEqual(len(r4), 1)
+
+
 class ParseResultsWithNameMatchFirst(ParseTestCase):
     def runTest(self):
         import pyparsing as pp
