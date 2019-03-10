@@ -2891,7 +2891,8 @@ class UnicodeExpressionTest(ParseTestCase):
 class SetNameTest(ParseTestCase):
     def runTest(self):
         from pyparsing import (oneOf,infixNotation,Word,nums,opAssoc,delimitedList,countedArray,
-            nestedExpr,makeHTMLTags,anyOpenTag,anyCloseTag,commonHTMLEntity,replaceHTMLEntity)
+            nestedExpr,makeHTMLTags,anyOpenTag,anyCloseTag,commonHTMLEntity,replaceHTMLEntity,
+            Forward,ZeroOrMore)
 
         a = oneOf("a b c")
         b = oneOf("d e f")
@@ -2904,6 +2905,8 @@ class SetNameTest(ParseTestCase):
                         [
                         (('?',':'),3,opAssoc.LEFT),
                         ])
+        recursive = Forward()
+        recursive <<= a + ZeroOrMore(b + recursive)
 
         tests = [
             a,
@@ -2913,6 +2916,7 @@ class SetNameTest(ParseTestCase):
             arith_expr.expr,
             arith_expr2,
             arith_expr2.expr,
+            recursive,
             delimitedList(Word(nums).setName("int")),
             countedArray(Word(nums).setName("int")),
             nestedExpr(),
@@ -2926,10 +2930,11 @@ class SetNameTest(ParseTestCase):
             a | b | c
             d | e | f
             {a | b | c | d | e | f}
-            Forward: ...
+            Forward: + | - term
             + | - term
-            Forward: ...
+            Forward: ?: term
             ?: term
+            Forward: {a | b | c [{d | e | f Forward: ...}]...}
             int [, int]...
             (len) int...
             nested () expression
