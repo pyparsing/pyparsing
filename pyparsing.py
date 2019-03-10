@@ -350,7 +350,11 @@ class ParseException(ParseBaseException):
             callers = inspect.getinnerframes(exc.__traceback__, context=depth)
             seen = set()
             for i, ff in enumerate(callers[-depth:]):
-                frm = ff.frame
+                if isinstance(ff, tuple):
+                    # Python 2 compatibility
+                    frm = ff[0]
+                else:
+                    frm = ff.frame
 
                 f_self = frm.f_locals.get('self', None)
                 if isinstance(f_self, ParserElement):
