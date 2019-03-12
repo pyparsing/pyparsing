@@ -3847,6 +3847,82 @@ class IndentedBlockTest(ParseTestCase):
         self.assertEqual(result.c.c1,     200, "invalid indented block result")
         self.assertEqual(result.c.c2.c21, 999, "invalid indented block result")
 
+
+class IndentedBlockScanTest(ParseTestCase):
+    def get_parser(self):
+        """
+        A valid statement is the word "block:", followed by an indent, followed by the letter A only, or another block
+        """
+        stack = [1]
+        block = pp.Forward()
+        body = pp.indentedBlock(pp.Literal('A') ^ block, indentStack=stack, indent=True)
+        block <<= pp.Literal('block:') + body
+        return block
+
+    def runTest(self):
+        from textwrap import dedent
+
+        # This input string is a perfect match for the parser, so a single match is found
+        p1 = self.get_parser()
+        r1 = list(p1.scanString(dedent("""\
+        block:
+            A
+        """)))
+        self.assertEqual(len(r1), 1)
+
+        # This input string is a perfect match for the parser, except for the letter B instead of A, so this will fail (and should)
+        p2 = self.get_parser()
+        r2 = list(p2.scanString(dedent("""\
+        block:
+            B
+        """)))
+        self.assertEqual(len(r2), 0)
+
+        # This input string contains both string A and string B, and it finds one match (as it should)
+        p3 = self.get_parser()
+        r3 = list(p3.scanString(dedent("""\
+        block:
+            A
+        block:
+            B
+        """)))
+        self.assertEqual(len(r3), 1)
+
+        # This input string contains both string A and string B, but in a different order.
+        p4 = self.get_parser()
+        r4 = list(p4.scanString(dedent("""\
+        block:
+            B
+        block:
+            A
+        """)))
+        self.assertEqual(len(r4), 1)
+
+        # This is the same as case 3, but with nesting
+        p5 = self.get_parser()
+        r5 = list(p5.scanString(dedent("""\
+        block:
+            block:
+                A
+        block:
+            block:
+                B
+        """)))
+        self.assertEqual(len(r5), 1)
+
+        # This is the same as case 4, but with nesting
+        p6 = self.get_parser()
+        r6 = list(p6.scanString(dedent("""\
+        block:
+            block:
+                B
+        block:
+            block:
+                A
+        """)))
+        self.assertEqual(len(r6), 1)
+
+
 class ParseResultsWithNameMatchFirst(ParseTestCase):
     def runTest(self):
         import pyparsing as pp

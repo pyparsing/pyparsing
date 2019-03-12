@@ -5854,12 +5854,17 @@ def indentedBlock(blockStatementExpr, indentStack, indent=True):
           ':',
           [[['def', 'eggs', ['(', 'z', ')'], ':', [['pass']]]]]]]
     """
+    backup_stack = indentStack[:]
+
+    def reset_stack():
+        indentStack[:] = backup_stack
+
     def checkPeerIndent(s,l,t):
         if l >= len(s): return
         curCol = col(l,s)
         if curCol != indentStack[-1]:
             if curCol > indentStack[-1]:
-                raise ParseFatalException(s,l,"illegal nesting")
+                raise ParseException(s,l,"illegal nesting")
             raise ParseException(s,l,"not a peer entry")
 
     def checkSubIndent(s,l,t):
@@ -5887,6 +5892,7 @@ def indentedBlock(blockStatementExpr, indentStack, indent=True):
     else:
         smExpr = Group( Optional(NL) +
             (OneOrMore( PEER + Group(blockStatementExpr) + Optional(NL) )) )
+    smExpr.setFailAction(lambda a, b, c, d: reset_stack())
     blockStatementExpr.ignore(_bslash + LineEnd())
     return smExpr.setName('indented block')
 
