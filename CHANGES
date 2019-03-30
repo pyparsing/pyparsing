@@ -32,6 +32,9 @@ Version 2.4.0 - March, 2019
 - Fixed docstring with embedded '\w', which creates SyntaxWarnings in
   Py3.8, issue #80.
 
+- Updated SimpleSQL.py example to handle nested selects, reworked
+  where expression to use infixNotation.
+
 
 Version 2.3.1 - January, 2019
 -----------------------------
