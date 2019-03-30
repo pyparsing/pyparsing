@@ -19,6 +19,16 @@ Version 2.4.0 - March, 2019
   setting the flag to True or False in these later versions will have no
   effect.
 
+- Added example parser for rosettacode.org tutorial compiler.
+
+- Fixed bug in runTests handling '\n' literals in quoted strings.
+
+- indentedBlock failure handling was improved; PR submitted by TMiguelT,
+  thanks!
+
+- Address Py2 incompatibility in simpleUnitTests, plus explain() and
+  Forward str() cleanup; PRs graciously provided by eswald.
+
 
 Version 2.3.1 - January, 2019
 -----------------------------
