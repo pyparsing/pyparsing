@@ -5374,7 +5374,9 @@ downcaseTokens = tokenMap(lambda t: _ustr(t).lower())
 """(Deprecated) Helper parse action to convert tokens to lower case.
 Deprecated in favor of :class:`pyparsing_common.downcaseTokens`"""
 
-def _makeTags(tagStr, xml):
+def _makeTags(tagStr, xml,
+              suppress_LT=Suppress("<"),
+              suppress_GT=Suppress(">")):
     """Internal helper to construct opening and closing tag expressions, given a tag name"""
     if isinstance(tagStr,basestring):
         resname = tagStr
@@ -5385,20 +5387,23 @@ def _makeTags(tagStr, xml):
     tagAttrName = Word(alphas,alphanums+"_-:")
     if (xml):
         tagAttrValue = dblQuotedString.copy().setParseAction( removeQuotes )
-        openTag = Suppress("<") + tagStr("tag") + \
-                Dict(ZeroOrMore(Group( tagAttrName + Suppress("=") + tagAttrValue ))) + \
-                Optional("/",default=[False]).setResultsName("empty").setParseAction(lambda s,l,t:t[0]=='/') + Suppress(">")
+        openTag = (suppress_LT
+                   + tagStr("tag")
+                   + Dict(ZeroOrMore(Group(tagAttrName + Suppress("=") + tagAttrValue )))
+                   + Optional("/", default=[False])("empty").setParseAction(lambda s,l,t:t[0]=='/')
+                   + suppress_GT)
     else:
-        printablesLessRAbrack = "".join(c for c in printables if c not in ">")
-        tagAttrValue = quotedString.copy().setParseAction( removeQuotes ) | Word(printablesLessRAbrack)
-        openTag = Suppress("<") + tagStr("tag") + \
-                Dict(ZeroOrMore(Group( tagAttrName.setParseAction(downcaseTokens) + \
-                Optional( Suppress("=") + tagAttrValue ) ))) + \
-                Optional("/",default=[False]).setResultsName("empty").setParseAction(lambda s,l,t:t[0]=='/') + Suppress(">")
-    closeTag = Combine(_L("</") + tagStr + ">")
+        tagAttrValue = quotedString.copy().setParseAction( removeQuotes ) | Word(printables, excludeChars=">")
+        openTag = (suppress_LT
+                   + tagStr("tag")
+                   + Dict(ZeroOrMore(Group(tagAttrName.setParseAction(downcaseTokens)
+                                           + Optional(Suppress("=") + tagAttrValue))))
+                   + Optional("/",default=[False])("empty").setParseAction(lambda s,l,t:t[0]=='/')
+                   + suppress_GT)
+    closeTag = Combine(suppress_LT + _L("/") + tagStr + ">")
 
-    openTag = openTag.setResultsName("start"+"".join(resname.replace(":"," ").title().split())).setName("<%s>" % resname)
-    closeTag = closeTag.setResultsName("end"+"".join(resname.replace(":"," ").title().split())).setName("</%s>" % resname)
+    openTag = openTag("start"+"".join(resname.replace(":"," ").title().split())).setName("<%s>" % resname)
+    closeTag = closeTag("end"+"".join(resname.replace(":"," ").title().split())).setName("</%s>" % resname)
     openTag.tag = resname
     closeTag.tag = resname
     return openTag, closeTag
