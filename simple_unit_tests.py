@@ -29,6 +29,15 @@ class PyparsingExpressionTestCase(unittest.TestCase):
     given text strings. Subclasses must define a class attribute 'tests' which
     is a list of PpTestSpec instances.
     """
+    
+    if not hasattr(unittest.TestCase, 'subTest'):
+        # Python 2 compatibility
+        from contextlib import contextmanager
+        @contextmanager
+        def subTest(self, **params):
+            print('subTest:', params)
+            yield
+    
     tests = []
     def runTest(self):
         if self.__class__ is PyparsingExpressionTestCase:
@@ -44,9 +53,9 @@ class PyparsingExpressionTestCase(unittest.TestCase):
             #    the location against an expected value
             with self.subTest(test_spec=test_spec):
                 test_spec.expr.streamline()
-                print("\n{} - {}({})".format(test_spec.desc,
-                                             type(test_spec.expr).__name__,
-                                             test_spec.expr))
+                print("\n{0} - {1}({2})".format(test_spec.desc,
+                                                type(test_spec.expr).__name__,
+                                                test_spec.expr))
 
                 parsefn = getattr(test_spec.expr, test_spec.parse_fn)
                 if test_spec.expected_fail_locn is None:
@@ -69,12 +78,16 @@ class PyparsingExpressionTestCase(unittest.TestCase):
                         # compare results against given list and/or dict
                         if test_spec.expected_list is not None:
                             self.assertEqual([result], test_spec.expected_list)
-
                 else:
                     # expect fail
                     try:
                         parsefn(test_spec.text)
                     except Exception as exc:
+                        if not hasattr(exc, '__traceback__'):
+                            # Python 2 compatibility
+                            from sys import exc_info
+                            etype, value, traceback = exc_info()
+                            exc.__traceback__ = traceback
                         print(pp.ParseException.explain(exc))
                         self.assertEqual(exc.loc, test_spec.expected_fail_locn)
                     else:
@@ -434,12 +447,6 @@ class TestCommonHelperExpressions(PyparsingExpressionTestCase):
 #============ MAIN ================
 
 if __name__ == '__main__':
-    # we use unittest features that are in Py3 only, bail out if run on Py2
-    import sys
-    if sys.version_info[0] < 3:
-        print("simple_unit_tests.py runs on Python 3 only")
-        sys.exit(0)
-
     import inspect
     def get_decl_line_no(cls):
         return inspect.getsourcelines(cls)[1]

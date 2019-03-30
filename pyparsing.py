@@ -4647,18 +4647,18 @@ class Forward(ParseElementEnhance):
     def __str__( self ):
         if hasattr(self,"name"):
             return self.name
-        return self.__class__.__name__ + ": ..."
 
-        # stubbed out for now - creates awful memory and perf issues
-        self._revertClass = self.__class__
-        self.__class__ = _ForwardNoRecurse
+        # Avoid infinite recursion by setting a temporary name
+        self.name = self.__class__.__name__ + ": ..."
+
+        # Use the string representation of main expression.
         try:
             if self.expr is not None:
                 retString = _ustr(self.expr)
             else:
                 retString = "None"
         finally:
-            self.__class__ = self._revertClass
+            del self.name
         return self.__class__.__name__ + ": " + retString
 
     def copy(self):
@@ -4668,10 +4668,6 @@ class Forward(ParseElementEnhance):
             ret = Forward()
             ret <<= self
             return ret
-
-class _ForwardNoRecurse(Forward):
-    def __str__( self ):
-        return "..."
 
 class TokenConverter(ParseElementEnhance):
     """
@@ -5869,12 +5865,17 @@ def indentedBlock(blockStatementExpr, indentStack, indent=True):
           ':',
           [[['def', 'eggs', ['(', 'z', ')'], ':', [['pass']]]]]]]
     """
+    backup_stack = indentStack[:]
+
+    def reset_stack():
+        indentStack[:] = backup_stack
+
     def checkPeerIndent(s,l,t):
         if l >= len(s): return
         curCol = col(l,s)
         if curCol != indentStack[-1]:
             if curCol > indentStack[-1]:
-                raise ParseFatalException(s,l,"illegal nesting")
+                raise ParseException(s,l,"illegal nesting")
             raise ParseException(s,l,"not a peer entry")
 
     def checkSubIndent(s,l,t):
@@ -5902,6 +5903,7 @@ def indentedBlock(blockStatementExpr, indentStack, indent=True):
     else:
         smExpr = Group( Optional(NL) +
             (OneOrMore( PEER + Group(blockStatementExpr) + Optional(NL) )) )
+    smExpr.setFailAction(lambda a, b, c, d: reset_stack())
     blockStatementExpr.ignore(_bslash + LineEnd())
     return smExpr.setName('indented block')
 
