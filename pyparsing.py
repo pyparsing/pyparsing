@@ -93,8 +93,8 @@ classes inherit from. Use the docstrings for examples of how to:
    namespace class
 """
 
-__version__ = "2.3.2"
-__versionTime__ = "18 Jan 2019 22:15 UTC"
+__version__ = "2.4.0"
+__versionTime__ = "30 Mar 2019 05:34 UTC"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -142,6 +142,20 @@ try:
     from types import SimpleNamespace
 except ImportError:
     class SimpleNamespace: pass
+
+# version compatibility configuration
+__compat__ = SimpleNamespace()
+__compat__.__doc__ = """
+    A cross-version compatibility configuration for pyparsing features that will be 
+    released in a future version. By setting values in this configuration to True, 
+    those features can be enabled in prior versions for compatibility development 
+    and testing.
+    
+     - collect_all_And_tokens - flag to enable fix for Issue #63 that fixes erroneous grouping
+       of results names when an And expression is nested within an Or or MatchFirst; set to 
+       True to enable bugfix to be released in pyparsing 2.4
+"""
+__compat__.collect_all_And_tokens = True
 
 
 #~ sys.stderr.write( "testing pyparsing module, version %s, %s\n" % (__version__,__versionTime__ ) )
@@ -350,7 +364,7 @@ class ParseException(ParseBaseException):
             callers = inspect.getinnerframes(exc.__traceback__, context=depth)
             seen = set()
             for i, ff in enumerate(callers[-depth:]):
-                frm = ff.frame
+                frm = ff[0]
 
                 f_self = frm.f_locals.get('self', None)
                 if isinstance(f_self, ParserElement):
@@ -3774,7 +3788,8 @@ class Or(ParseExpression):
 
     def streamline(self):
         super(Or, self).streamline()
-        self.saveAsList = any(e.saveAsList for e in self.exprs)
+        if __compat__.collect_all_And_tokens:
+            self.saveAsList = any(e.saveAsList for e in self.exprs)
         return self
 
     def parseImpl( self, instring, loc, doActions=True ):
@@ -3856,13 +3871,13 @@ class MatchFirst(ParseExpression):
         super(MatchFirst,self).__init__(exprs, savelist)
         if self.exprs:
             self.mayReturnEmpty = any(e.mayReturnEmpty for e in self.exprs)
-            self.saveAsList = any(e.saveAsList for e in self.exprs)
         else:
             self.mayReturnEmpty = True
 
     def streamline(self):
         super(MatchFirst, self).streamline()
-        self.saveAsList = any(e.saveAsList for e in self.exprs)
+        if __compat__.collect_all_And_tokens:
+            self.saveAsList = any(e.saveAsList for e in self.exprs)
         return self
 
     def parseImpl( self, instring, loc, doActions=True ):
@@ -4728,7 +4743,7 @@ class Group(TokenConverter):
     """
     def __init__( self, expr ):
         super(Group,self).__init__( expr )
-        self.saveAsList = expr.saveAsList
+        self.saveAsList = True
 
     def postParse( self, instring, loc, tokenlist ):
         return [ tokenlist ]

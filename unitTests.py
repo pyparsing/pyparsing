@@ -3868,6 +3868,35 @@ class ParseResultsWithNameOr(ParseTestCase):
         self.assertEqual(list(expr.parseString('not the bird')['rexp']), 'not the bird'.split())
         self.assertEqual(list(expr.parseString('the bird')['rexp']), 'the bird'.split())
 
+        expr = (expr_a | expr_b)('rexp')
+        expr.runTests("""\
+            not the bird
+            the bird
+        """)
+        self.assertEqual(list(expr.parseString('not the bird')['rexp']), 'not the bird'.split())
+        self.assertEqual(list(expr.parseString('the bird')['rexp']), 'the bird'.split())
+
+        # test compatibility mode, restoring pre-2.3.1 behavior
+        with AutoReset(pp.__compat__, "collect_all_And_tokens"):
+            pp.__compat__.collect_all_And_tokens = False
+            expr_a = pp.Literal('not') + pp.Literal('the') + pp.Literal('bird')
+            expr_b = pp.Literal('the') + pp.Literal('bird')
+            expr = (expr_a ^ expr_b)('rexp')
+            expr.runTests("""\
+                not the bird
+                the bird
+            """)
+            self.assertEqual(expr.parseString('not the bird')['rexp'], 'not')
+            self.assertEqual(expr.parseString('the bird')['rexp'], 'the')
+
+            expr = (expr_a | expr_b)('rexp')
+            expr.runTests("""\
+                not the bird
+                the bird
+            """)
+            self.assertEqual(expr.parseString('not the bird')['rexp'], 'not')
+            self.assertEqual(expr.parseString('the bird')['rexp'], 'the')
+
 class EmptyDictDoesNotRaiseException(ParseTestCase):
     def runTest(self):
         if not PY_3:

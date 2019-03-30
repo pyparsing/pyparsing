@@ -2,6 +2,24 @@
 Change Log
 ==========
 
+Version 2.4.0 - March, 2019
+---------------------------
+- Well, it looks like the API change that was introduced in 2.3.1 was more
+  drastic than expected, so for a friendlier forward upgrade path, this
+  release:
+  . Adds a pyparsing.__compat__ object for specifying compatibility with
+    future breaking changes.
+  . Conditionalizes the API-breaking behavior, based on the value
+    pyparsing.__compat__.collect_all_And_tokens.  By default, this value
+    will be set to True, reflecting the new bugfixed behavior.
+  . User code that is dependent on the pre-bugfix behavior can restore
+    it by setting this value to False.
+
+  In 2.5 and later versions, the conditional code will be removed and
+  setting the flag to True or False in these later versions will have no
+  effect.
+
+
 Version 2.3.1 - January, 2019
 -----------------------------
 - POSSIBLE API CHANGE: this release fixes a bug when results names were
