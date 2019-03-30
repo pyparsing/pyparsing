@@ -29,6 +29,9 @@ Version 2.4.0 - March, 2019
 - Address Py2 incompatibility in simpleUnitTests, plus explain() and
   Forward str() cleanup; PRs graciously provided by eswald.
 
+- Fixed docstring with embedded '\w', which creates SyntaxWarnings in
+  Py3.8, issue #80.
+
 
 Version 2.3.1 - January, 2019
 -----------------------------

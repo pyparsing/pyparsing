@@ -94,7 +94,7 @@ classes inherit from. Use the docstrings for examples of how to:
 """
 
 __version__ = "2.4.0"
-__versionTime__ = "30 Mar 2019 05:34 UTC"
+__versionTime__ = "30 Mar 2019 07:57 UTC"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -3081,7 +3081,7 @@ class Regex(Token):
         return self.strRepr
 
     def sub(self, repl):
-        """
+        r"""
         Return Regex with an attached parse action to transform the parsed
         result as if called using `re.sub(expr, repl, string) <https://docs.python.org/3/library/re.html#re.sub>`_.
 
@@ -3441,7 +3441,7 @@ class GoToColumn(_PositionToken):
 
 
 class LineStart(_PositionToken):
-    """Matches if current position is at the beginning of a line within
+    r"""Matches if current position is at the beginning of a line within
     the parse string
 
     Example::
