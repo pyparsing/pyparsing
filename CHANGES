@@ -7,6 +7,8 @@ Version 2.4.0 - March, 2019
 - Well, it looks like the API change that was introduced in 2.3.1 was more
   drastic than expected, so for a friendlier forward upgrade path, this
   release:
+  . Bumps the current version number to 2.4.0, to reflect this
+    incompatible change.
   . Adds a pyparsing.__compat__ object for specifying compatibility with
     future breaking changes.
   . Conditionalizes the API-breaking behavior, based on the value
@@ -19,8 +21,6 @@ Version 2.4.0 - March, 2019
   setting the flag to True or False in these later versions will have no
   effect.
 
-- Added example parser for rosettacode.org tutorial compiler.
-
 - Fixed bug in runTests handling '\n' literals in quoted strings.
 
 - indentedBlock failure handling was improved; PR submitted by TMiguelT,
@@ -32,8 +32,15 @@ Version 2.4.0 - March, 2019
 - Fixed docstring with embedded '\w', which creates SyntaxWarnings in
   Py3.8, issue #80.
 
-- Updated SimpleSQL.py example to handle nested selects, reworked
-  where expression to use infixNotation.
+- Examples:
+
+  - Added example parser for rosettacode.org tutorial compiler.
+
+  - Added example to show how an HTML table can be parsed into a
+    collection of Python lists or dicts, one per row.
+
+  - Updated SimpleSQL.py example to handle nested selects, reworked
+    'where' expression to use infixNotation.
 
 
 Version 2.3.1 - January, 2019
