@@ -3995,6 +3995,11 @@ class EmptyDictDoesNotRaiseException(ParseTestCase):
         try:
             print_(key_value_dict.parseString("").dump())
         except pp.ParseException as pe:
+            exc = pe
+            if not hasattr(exc, '__traceback__'):
+                # Python 2 compatibility
+                etype, value, traceback = sys.exc_info()
+                exc.__traceback__ = traceback
             print_(pp.ParseException.explain(pe))
         else:
             self.assertTrue(False, "failed to raise exception when matching empty string")
@@ -4007,12 +4012,22 @@ class ExplainExceptionTest(ParseTestCase):
         try:
             expr.parseString("123 355")
         except pp.ParseException as pe:
+            exc = pe
+            if not hasattr(exc, '__traceback__'):
+                # Python 2 compatibility
+                etype, value, traceback = sys.exc_info()
+                exc.__traceback__ = traceback
             print_(pp.ParseException.explain(pe, depth=0))
 
         expr = pp.Word(pp.nums).setName("int") - pp.Word(pp.alphas).setName("word")
         try:
             expr.parseString("123 355 (test using ErrorStop)")
         except pp.ParseSyntaxException as pe:
+            exc = pe
+            if not hasattr(exc, '__traceback__'):
+                # Python 2 compatibility
+                etype, value, traceback = sys.exc_info()
+                exc.__traceback__ = traceback
             print_(pp.ParseException.explain(pe))
 
         integer = pp.Word(pp.nums).setName("int").addParseAction(lambda t: int(t[0]))
@@ -4030,8 +4045,17 @@ class ExplainExceptionTest(ParseTestCase):
         try:
             expr.parseString("123 0")
         except pp.ParseException as pe:
+            exc = pe
+            if not hasattr(exc, '__traceback__'):
+                # Python 2 compatibility
+                etype, value, traceback = sys.exc_info()
+                exc.__traceback__ = traceback
             print_(pp.ParseException.explain(pe))
         except Exception as exc:
+            if not hasattr(exc, '__traceback__'):
+                # Python 2 compatibility
+                etype, value, traceback = sys.exc_info()
+                exc.__traceback__ = traceback
             print_(pp.ParseException.explain(exc))
             raise
 
