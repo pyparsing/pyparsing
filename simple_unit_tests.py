@@ -373,7 +373,7 @@ class TestTransformStringUsingParseActions(PyparsingExpressionTestCase):
     }
     def markup_convert(t):
         htmltag = TestTransformStringUsingParseActions.markup_convert_map[t.markup_symbol]
-        return "<{}>{}</{}>".format(htmltag, t.body, htmltag)
+        return "<{0}>{1}</{2}>".format(htmltag, t.body, htmltag)
 
     tests = [
         PpTestSpec(
