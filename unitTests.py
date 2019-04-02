@@ -2346,7 +2346,7 @@ class WithAttributeParseActionTest(ParseTestCase):
         <a B="x">3</a>
         <a b="X">4</a>
         <a b="y">5</a>
-        <a class="boo">8</a>
+        <a class="boo">8</ a>
         """
         tagStart, tagEnd = makeHTMLTags("a")
 
@@ -4308,7 +4308,9 @@ if __name__ == '__main__':
         ]
 
     if not testclasses:
-        testRunner.run(makeTestSuite())
+        result = testRunner.run(makeTestSuite())
     else:
         BUFFER_OUTPUT = False
-        testRunner.run(makeTestSuiteTemp(testclasses))
+        result = testRunner.run(makeTestSuiteTemp(testclasses))
+
+    exit(0 if result.wasSuccessful() else 1)

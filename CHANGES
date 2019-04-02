@@ -2,7 +2,7 @@
 Change Log
 ==========
 
-Version 2.4.0 - March, 2019
+Version 2.4.0 - April, 2019
 ---------------------------
 - Well, it looks like the API change that was introduced in 2.3.1 was more
   drastic than expected, so for a friendlier forward upgrade path, this
@@ -69,7 +69,7 @@ Version 2.3.1 - January, 2019
             # parse a string with a numeric second value instead of alpha
             expr.parseString("123 355")
         except pp.ParseException as pe:
-            print_(pp.ParseException.explain(pe))
+            print(pp.ParseException.explain(pe))
 
   Prints:
         123 355

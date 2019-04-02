@@ -94,7 +94,7 @@ classes inherit from. Use the docstrings for examples of how to:
 """
 
 __version__ = "2.4.0"
-__versionTime__ = "30 Mar 2019 07:57 UTC"
+__versionTime__ = "02 Apr 2019 02:07 UTC"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -762,7 +762,7 @@ class ParseResults(object):
             print(patt.addParseAction(make_palindrome).parseString("lskdj sdlkjf lksd")) # -> 'lskdjsdlkjflksddsklfjkldsjdksl'
         """
         if isinstance(itemseq, ParseResults):
-            self += itemseq
+            self.__iadd__(itemseq)
         else:
             self.__toklist.extend(itemseq)
 
@@ -2936,7 +2936,7 @@ class Word(Token):
             loc = result.end()
             return loc, result.group()
 
-        if not(instring[ loc ] in self.initChars):
+        if instring[loc] not in self.initChars:
             raise ParseException(instring, loc, self.errmsg, self)
 
         start = loc
@@ -2951,9 +2951,9 @@ class Word(Token):
         throwException = False
         if loc - start < self.minLen:
             throwException = True
-        if self.maxSpecified and loc < instrlen and instring[loc] in bodychars:
+        elif self.maxSpecified and loc < instrlen and instring[loc] in bodychars:
             throwException = True
-        if self.asKeyword:
+        elif self.asKeyword:
             if (start>0 and instring[start-1] in bodychars) or (loc<instrlen and instring[loc] in bodychars):
                 throwException = True
 
@@ -3050,24 +3050,41 @@ class Regex(Token):
         self.mayReturnEmpty = True
         self.asGroupList = asGroupList
         self.asMatch = asMatch
+        if self.asGroupList:
+            self.parseImpl = self.parseImplAsGroupList
+        if self.asMatch:
+            self.parseImpl = self.parseImplAsMatch
 
-    def parseImpl( self, instring, loc, doActions=True ):
+    def parseImpl(self, instring, loc, doActions=True):
         result = self.re.match(instring,loc)
         if not result:
             raise ParseException(instring, loc, self.errmsg, self)
 
         loc = result.end()
-        if self.asMatch:
-            ret = result
-        elif self.asGroupList:
-            ret = result.groups()
-        else:
-            ret = ParseResults(result.group())
-            d = result.groupdict()
-            if d:
-                for k, v in d.items():
-                    ret[k] = v
-        return loc,ret
+        ret = ParseResults(result.group())
+        d = result.groupdict()
+        if d:
+            for k, v in d.items():
+                ret[k] = v
+        return loc, ret
+
+    def parseImplAsGroupList(self, instring, loc, doActions=True):
+        result = self.re.match(instring,loc)
+        if not result:
+            raise ParseException(instring, loc, self.errmsg, self)
+
+        loc = result.end()
+        ret = result.groups()
+        return loc, ret
+
+    def parseImplAsMatch(self, instring, loc, doActions=True):
+        result = self.re.match(instring,loc)
+        if not result:
+            raise ParseException(instring, loc, self.errmsg, self)
+
+        loc = result.end()
+        ret = result
+        return loc, ret
 
     def __str__( self ):
         try:
@@ -3392,7 +3409,7 @@ class White(Token):
             self.minLen = exact
 
     def parseImpl( self, instring, loc, doActions=True ):
-        if not(instring[ loc ] in self.matchWhite):
+        if instring[loc] not in self.matchWhite:
             raise ParseException(instring, loc, self.errmsg, self)
         start = loc
         loc += 1
@@ -3663,10 +3680,6 @@ class ParseExpression(ParserElement):
         self.errmsg = "Expected " + _ustr(self)
 
         return self
-
-    def setResultsName( self, name, listAllMatches=False ):
-        ret = super(ParseExpression,self).setResultsName(name,listAllMatches)
-        return ret
 
     def validate( self, validateTrace=[] ):
         tmp = validateTrace[:]+[self]
@@ -5400,7 +5413,7 @@ def _makeTags(tagStr, xml,
                                            + Optional(Suppress("=") + tagAttrValue))))
                    + Optional("/",default=[False])("empty").setParseAction(lambda s,l,t:t[0]=='/')
                    + suppress_GT)
-    closeTag = Combine(suppress_LT + _L("/") + tagStr + ">")
+    closeTag = Combine(_L("</") + tagStr + ">", adjacent=False)
 
     openTag = openTag("start"+"".join(resname.replace(":"," ").title().split())).setName("<%s>" % resname)
     closeTag = closeTag("end"+"".join(resname.replace(":"," ").title().split())).setName("</%s>" % resname)

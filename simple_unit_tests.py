@@ -458,4 +458,6 @@ if __name__ == '__main__':
     # make into a suite and run it - this will run the tests in the same order
     # they are declared in this module
     suite = unittest.TestSuite(cls() for cls in test_case_classes)
-    unittest.TextTestRunner().run(suite)
+    result = unittest.TextTestRunner().run(suite)
+
+    exit(0 if result.wasSuccessful() else 1)
