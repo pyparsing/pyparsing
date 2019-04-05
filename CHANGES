@@ -42,6 +42,8 @@ Version 2.4.0 - April, 2019
   - Updated SimpleSQL.py example to handle nested selects, reworked
     'where' expression to use infixNotation.
 
+  - Added include_preprocessor.py, similar to macroExpander.py.
+
 
 Version 2.3.1 - January, 2019
 -----------------------------
