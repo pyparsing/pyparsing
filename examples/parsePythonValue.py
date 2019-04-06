@@ -3,7 +3,7 @@
 # Copyright, 2006, by Paul McGuire
 #
 from __future__ import print_function
-from pyparsing import *
+import pyparsing as pp
 
 
 cvtBool = lambda t:t[0]=='True'
@@ -14,39 +14,45 @@ cvtDict = lambda toks: dict(toks.asList())
 cvtList = lambda toks: [toks.asList()]
 
 # define punctuation as suppressed literals
-lparen,rparen,lbrack,rbrack,lbrace,rbrace,colon = \
-    map(Suppress,"()[]{}:")
+lparen, rparen, lbrack, rbrack, lbrace, rbrace, colon, comma = map(pp.Suppress,"()[]{}:,")
 
-integer = Regex(r"[+-]?\d+")\
-    .setName("integer")\
-    .setParseAction( cvtInt )
-real = Regex(r"[+-]?\d+\.\d*([Ee][+-]?\d+)?")\
-    .setName("real")\
-    .setParseAction( cvtReal )
-tupleStr = Forward()
-listStr = Forward()
-dictStr = Forward()
+integer = pp.Regex(r"[+-]?\d+").setName("integer").setParseAction(cvtInt )
+real = pp.Regex(r"[+-]?\d+\.\d*([Ee][+-]?\d+)?").setName("real").setParseAction(cvtReal)
+tupleStr = pp.Forward()
+listStr = pp.Forward()
+dictStr = pp.Forward()
 
-unicodeString.setParseAction(lambda t:t[0][2:-1].decode('unicode-escape'))
-quotedString.setParseAction(lambda t:t[0][1:-1].decode('string-escape'))
-boolLiteral = oneOf("True False").setParseAction(cvtBool)
-noneLiteral = Literal("None").setParseAction(replaceWith(None))
+pp.unicodeString.setParseAction(lambda t:t[0][2:-1])
+pp.quotedString.setParseAction(lambda t:t[0][1:-1])
+boolLiteral = pp.oneOf("True False").setParseAction(cvtBool)
+noneLiteral = pp.Literal("None").setParseAction(pp.replaceWith(None))
 
-listItem = real|integer|quotedString|unicodeString|boolLiteral|noneLiteral| \
-            Group(listStr) | tupleStr | dictStr
+listItem = (real
+            | integer
+            | pp.quotedString
+            | pp.unicodeString
+            | boolLiteral
+            | noneLiteral
+            | pp.Group(listStr)
+            | tupleStr
+            | dictStr)
 
-tupleStr << ( Suppress("(") + Optional(delimitedList(listItem)) +
-            Optional(Suppress(",")) + Suppress(")") )
-tupleStr.setParseAction( cvtTuple )
+tupleStr << (lparen
+             + pp.Optional(pp.delimitedList(listItem))
+             + pp.Optional(comma)
+             + rparen)
+tupleStr.setParseAction(cvtTuple)
 
-listStr << (lbrack + Optional(delimitedList(listItem) +
-            Optional(Suppress(","))) + rbrack)
+listStr << (lbrack
+            + pp.Optional(pp.delimitedList(listItem) + pp.Optional(comma))
+            + rbrack)
 listStr.setParseAction(cvtList, lambda t: t[0])
 
-dictEntry = Group( listItem + colon + listItem )
-dictStr << (lbrace + Optional(delimitedList(dictEntry) + \
-    Optional(Suppress(","))) + rbrace)
-dictStr.setParseAction( cvtDict )
+dictEntry = pp.Group(listItem + colon + listItem)
+dictStr << (lbrace
+            + pp.Optional(pp.delimitedList(dictEntry) + pp.Optional(comma))
+            + rbrace)
+dictStr.setParseAction(cvtDict)
 
 tests = """['a', 100, ('A', [101,102]), 3.14, [ +2.718, 'xyzzy', -1.414] ]
            [{0: [2], 1: []}, {0: [], 1: [], 2: []}, {0: [1, 2]}]
@@ -56,15 +62,6 @@ tests = """['a', 100, ('A', [101,102]), 3.14, [ +2.718, 'xyzzy', -1.414] ]
            6.02E23
            6.02e+023
            1.0e-7
-           'a quoted string'""".split("\n")
+           'a quoted string'"""
 
-for test in tests:
-    print("Test:", test.strip())
-    result = listItem.parseString(test)[0]
-    print("Result:", result)
-    try:
-        for dd in result:
-            if isinstance(dd,dict): print(list(dd.items()))
-    except TypeError as te:
-        pass
-    print()
+listItem.runTests(tests)

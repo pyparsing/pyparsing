@@ -20,7 +20,4 @@ testData = [
     "",
     ]
 
-for line in testData:
-    print(commaSeparatedList.parseString(line))
-    print(line.split(","))
-    print()
+commaSeparatedList.runTests(testData)
