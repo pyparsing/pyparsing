@@ -1,7 +1,7 @@
 include pyparsing.py
 include HowToUsePyparsing.html pyparsingClassDiagram.*
 include README.md CODE_OF_CONDUCT.md CHANGES LICENSE
-include examples/*.py examples/Setup.ini examples/*.dfm examples/*.ics examples/*.html
+include examples/*.py examples/Setup.ini examples/*.dfm examples/*.ics examples/*.html examples/*.h
 recursive-include docs *
 prune docs/_build/*
 recursive-include test *
