@@ -13,13 +13,27 @@ Version 2.4.0 - April, 2019
     future breaking changes.
   . Conditionalizes the API-breaking behavior, based on the value
     pyparsing.__compat__.collect_all_And_tokens.  By default, this value
-    will be set to True, reflecting the new bugfixed behavior.
+    will be set to True, reflecting the new bugfixed behavior. To set this
+    value to False, add to your code:
+
+        import pyparsing
+        pyparsing.__compat__.collect_all_And_tokens = False
+
   . User code that is dependent on the pre-bugfix behavior can restore
     it by setting this value to False.
 
   In 2.5 and later versions, the conditional code will be removed and
   setting the flag to True or False in these later versions will have no
   effect.
+
+- Updated unitTests.py and simple_unit_tests.py to be compatible with
+  "python setup.py test". To run tests using setup, do:
+
+      python setup.py test
+      python setup.py test -s unitTests.suite
+      python setup.py test -s simple_unit_tests.suite
+
+  Prompted by issue #83 and PR submitted by bdragon28, thanks.
 
 - Fixed bug in runTests handling '\n' literals in quoted strings.
 
@@ -41,7 +55,6 @@ Version 2.4.0 - April, 2019
 - Fixed docstring with embedded '\w', which creates SyntaxWarnings in
   Py3.8, issue #80.
 
-
 - Examples:
 
   - Added example parser for rosettacode.org tutorial compiler.
@@ -56,6 +69,11 @@ Version 2.4.0 - April, 2019
 
   - Examples using makeHTMLTags use new tag_body expression when
     retrieving a tag's body text.
+
+  - Updated examples that are runnable as unit tests:
+
+        python setup.py test -s examples.antlr_grammar_tests
+        python setup.py test -s examples.test_bibparse
 
 
 Version 2.3.1 - January, 2019

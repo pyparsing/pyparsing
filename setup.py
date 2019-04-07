@@ -18,6 +18,7 @@ setup(# Distribution meta-data
     license = "MIT License",
     py_modules = modules,
     python_requires='>=2.6, !=3.0.*, !=3.1.*, !=3.2.*',
+    test_suite="unitTests.suite",
     classifiers=[
         'Development Status :: 5 - Production/Stable',
         'Intended Audience :: Developers',

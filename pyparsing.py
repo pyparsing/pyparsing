@@ -94,7 +94,7 @@ classes inherit from. Use the docstrings for examples of how to:
 """
 
 __version__ = "2.4.0"
-__versionTime__ = "07 Apr 2019 04:08 UTC"
+__versionTime__ = "07 Apr 2019 12:40 UTC"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -160,7 +160,7 @@ __compat__.collect_all_And_tokens = True
 
 #~ sys.stderr.write( "testing pyparsing module, version %s, %s\n" % (__version__,__versionTime__ ) )
 
-__all__ = [
+__all__ = [ '__version__', '__versionTime__', '__author__', '__compat__',
 'And', 'CaselessKeyword', 'CaselessLiteral', 'CharsNotIn', 'Combine', 'Dict', 'Each', 'Empty',
 'FollowedBy', 'Forward', 'GoToColumn', 'Group', 'Keyword', 'LineEnd', 'LineStart', 'Literal',
 'PrecededBy', 'MatchFirst', 'NoMatch', 'NotAny', 'OneOrMore', 'OnlyOnce', 'Optional', 'Or',
@@ -5215,7 +5215,7 @@ def ungroup(expr):
     """Helper to undo pyparsing's default grouping of And expressions,
     even if all but one are non-empty.
     """
-    return TokenConverter(expr).setParseAction(lambda t:t[0])
+    return TokenConverter(expr).addParseAction(lambda t:t[0])
 
 def locatedExpr(expr):
     """Helper to decorate a returned token with its starting and ending

@@ -11,7 +11,7 @@ Submitted by Luca DallOlio, September, 2010
 from pyparsing import Word, ZeroOrMore, printables, Suppress, OneOrMore, Group, \
     LineEnd, Optional, White, originalTextFor, hexnums, nums, Combine, Literal, Keyword, \
     cStyleComment, Regex, Forward, MatchFirst, And, oneOf, alphas, alphanums, \
-    delimitedList
+    delimitedList, ungroup
 
 # http://www.antlr.org/grammar/ANTLR/ANTLRv3.g
 
@@ -79,7 +79,11 @@ terminal = (CHAR_LITERAL | TOKEN_REF + Optional(ARG_ACTION) | STRING_LITERAL | '
 block = Forward()
 notSet = Suppress('~') + (notTerminal | block)
 rangeNotPython = CHAR_LITERAL("c1") + RANGE + CHAR_LITERAL("c2")
-atom = Group(rangeNotPython + Optional(unary_op)("op")) | terminal | (notSet + Optional(unary_op)("op")) | (RULE_REF + Optional(ARG_ACTION("arg")) + Optional(unary_op)("op"))
+atom = Group((rangeNotPython + Optional(unary_op)("op"))
+             | terminal
+             | (notSet + Optional(unary_op)("op"))
+             | (RULE_REF + Optional(ARG_ACTION("arg")) + Optional(unary_op)("op"))
+             )
 element = Forward()
 treeSpec = Suppress('^(') + element*(2,) + Suppress(')')
 ebnfSuffix = oneOf("? * +")
@@ -127,9 +131,9 @@ def __antlrAlternativeConverter(pyparsingRules, antlrAlternative):
         elif hasattr(element, 'block') and element.block != '':
             rule = __antlrAlternativesConverter(pyparsingRules, element.block)
         else:
-            ruleRef = element.atom
+            ruleRef = element.atom[0]
             assert ruleRef in pyparsingRules
-            rule = pyparsingRules[element.atom](element.atom)
+            rule = pyparsingRules[ruleRef](ruleRef)
         if hasattr(element, 'op') and element.op != '':
             if element.op == '+':
                 rule = Group(OneOrMore(rule))("anonymous_one_or_more")

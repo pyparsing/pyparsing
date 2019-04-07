@@ -94,7 +94,7 @@ class PyparsingExpressionTestCase(unittest.TestCase):
                         self.assertTrue(False, "failed to raise expected exception")
 
 
-#=========== TEST DEFINITIONS START HERE ==============
+# =========== TEST DEFINITIONS START HERE ==============
 
 class TestLiteral(PyparsingExpressionTestCase):
     tests = [
@@ -444,20 +444,26 @@ class TestCommonHelperExpressions(PyparsingExpressionTestCase):
     ]
 
 
-#============ MAIN ================
+def _get_decl_line_no(cls):
+    import inspect
+    return inspect.getsourcelines(cls)[1]
+
+
+# get all test case classes defined in this module and sort them by decl line no
+test_case_classes = list(PyparsingExpressionTestCase.__subclasses__())
+test_case_classes.sort(key=_get_decl_line_no)
+
+# make into a suite and run it - this will run the tests in the same order
+# they are declared in this module
+#
+# runnable from setup.py using "python setup.py test -s simple_unit_tests.suite"
+#
+suite = unittest.TestSuite(cls() for cls in test_case_classes)
+
+
+# ============ MAIN ================
 
 if __name__ == '__main__':
-    import inspect
-    def get_decl_line_no(cls):
-        return inspect.getsourcelines(cls)[1]
-
-    # get all test case classes defined in this module and sort them by decl line no
-    test_case_classes = list(PyparsingExpressionTestCase.__subclasses__())
-    test_case_classes.sort(key=get_decl_line_no)
-
-    # make into a suite and run it - this will run the tests in the same order
-    # they are declared in this module
-    suite = unittest.TestSuite(cls() for cls in test_case_classes)
     result = unittest.TextTestRunner().run(suite)
 
     exit(0 if result.wasSuccessful() else 1)

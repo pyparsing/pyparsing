@@ -4327,6 +4327,10 @@ def makeTestSuiteTemp(classes):
     suite.addTests(cls() for cls in classes)
     return suite
 
+# runnable from setup.py using "python setup.py test -s unitTests.suite"
+suite = makeTestSuite()
+
+
 if __name__ == '__main__':
 
     testRunner = TextTestRunner()
@@ -4337,7 +4341,7 @@ if __name__ == '__main__':
         ]
 
     if not testclasses:
-        result = testRunner.run(makeTestSuite())
+        result = testRunner.run(suite)
     else:
         BUFFER_OUTPUT = False
         result = testRunner.run(makeTestSuiteTemp(testclasses))
