@@ -8,11 +8,11 @@
 #
 from contextlib import closing
 import urllib.request, urllib.parse, urllib.error
-from pyparsing import (makeHTMLTags, SkipTo, commonHTMLEntity, replaceHTMLEntity,
+from pyparsing import (makeHTMLTags, commonHTMLEntity, replaceHTMLEntity,
     htmlComment, anyOpenTag, anyCloseTag, LineEnd, OneOrMore, replaceWith)
 
-scriptOpen,scriptClose = makeHTMLTags("script")
-scriptBody = scriptOpen + SkipTo(scriptClose) + scriptClose
+scriptOpen, scriptClose = makeHTMLTags("script")
+scriptBody = scriptOpen + scriptOpen.tag_body + scriptClose
 commonHTMLEntity.setParseAction(replaceHTMLEntity)
 
 # get some HTML
@@ -25,7 +25,7 @@ firstPass = (htmlComment | scriptBody | commonHTMLEntity |
              anyOpenTag | anyCloseTag ).suppress().transformString(targetHTML)
 
 # first pass leaves many blank lines, collapse these down
-repeatedNewlines = LineEnd() + OneOrMore(LineEnd())
+repeatedNewlines = LineEnd()*(2,)
 repeatedNewlines.setParseAction(replaceWith("\n\n"))
 secondPass = repeatedNewlines.transformString(firstPass)
 

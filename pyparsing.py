@@ -94,7 +94,7 @@ classes inherit from. Use the docstrings for examples of how to:
 """
 
 __version__ = "2.4.0"
-__versionTime__ = "02 Apr 2019 02:07 UTC"
+__versionTime__ = "07 Apr 2019 04:08 UTC"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -5415,10 +5415,13 @@ def _makeTags(tagStr, xml,
                    + suppress_GT)
     closeTag = Combine(_L("</") + tagStr + ">", adjacent=False)
 
-    openTag = openTag("start"+"".join(resname.replace(":"," ").title().split())).setName("<%s>" % resname)
+    openTag.setName("<%s>" % resname)
+    # add start<tagname> results name in parse action now that ungrouped names are not reported at two levels
+    openTag.addParseAction(lambda t: t.__setitem__("start"+"".join(resname.replace(":"," ").title().split()), t.copy()))
     closeTag = closeTag("end"+"".join(resname.replace(":"," ").title().split())).setName("</%s>" % resname)
     openTag.tag = resname
     closeTag.tag = resname
+    openTag.tag_body = SkipTo(closeTag())
     return openTag, closeTag
 
 def makeHTMLTags(tagStr):

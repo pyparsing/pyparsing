@@ -1584,11 +1584,8 @@ class ParseHTMLTagsTest(ParseTestCase):
             print_(test[s:e], "->", t.asList())
             (expectedType, expectedEmpty, expectedBG, expectedFG) = next(resIter)
 
-            tType = t.getName()
-            #~ print tType,"==",expectedType,"?"
-            self.assertTrue(tType in "startBody endBody".split(), "parsed token of unknown type '%s'" % tType)
-            self.assertEqual(tType, expectedType, "expected token of type %s, got %s" % (expectedType, tType))
-            if tType == "startBody":
+            print_(t.dump())
+            if "startBody" in t:
                 self.assertEqual(bool(t.empty), expectedEmpty,
                                  "expected %s token, got %s" % (expectedEmpty and "empty" or "not empty",
                                                                 t.empty and "empty" or "not empty"))
@@ -1596,11 +1593,12 @@ class ParseHTMLTagsTest(ParseTestCase):
                                  "failed to match BGCOLOR, expected %s, got %s" % (expectedBG, t.bgcolor))
                 self.assertEqual(t.fgcolor, expectedFG,
                                  "failed to match FGCOLOR, expected %s, got %s" % (expectedFG, t.bgcolor))
-            elif tType == "endBody":
-                #~ print "end tag"
+            elif "endBody" in t:
+                print_("end tag")
                 pass
             else:
                 print_("BAD!!!")
+
 
 class UpcaseDowncaseUnicode(ParseTestCase):
     def runTest(self):
@@ -3703,6 +3701,14 @@ class ParseResultsNamesInGroupWithDictTest(ParseTestCase):
         # U = list_num.parseString(test_string)
         # self.assertTrue("LIT_NUM" not in U.LIST.LIST_VALUES, "results name retained as sub in ungrouped named result")
 
+        a, aEnd = pp.makeHTMLTags('a')
+        attrs = a.parseString("<a href='blah'>")
+        print_(attrs.dump())
+        self.assertEqual(attrs.startA.href, 'blah')
+        self.assertEqual(attrs.asDict(), {'startA': {'href': 'blah', 'tag': 'a', 'empty': False},
+                                          'href': 'blah', 'tag': 'a', 'empty': False})
+
+
 class FollowedByTest(ParseTestCase):
     def runTest(self):
         import pyparsing as pp
@@ -3936,6 +3942,20 @@ class ParseResultsWithNameMatchFirst(ParseTestCase):
         self.assertEqual(list(expr.parseString('not the bird')['rexp']), 'not the bird'.split())
         self.assertEqual(list(expr.parseString('the bird')['rexp']), 'the bird'.split())
 
+        # test compatibility mode, restoring pre-2.3.1 behavior
+        with AutoReset(pp.__compat__, "collect_all_And_tokens"):
+            pp.__compat__.collect_all_And_tokens = False
+            expr_a = pp.Literal('not') + pp.Literal('the') + pp.Literal('bird')
+            expr_b = pp.Literal('the') + pp.Literal('bird')
+            expr = (expr_a | expr_b)('rexp')
+            expr.runTests("""\
+                not the bird
+                the bird
+            """)
+            self.assertEqual(expr.parseString('not the bird')['rexp'], 'not')
+            self.assertEqual(expr.parseString('the bird')['rexp'], 'the')
+
+
 class ParseResultsWithNameOr(ParseTestCase):
     def runTest(self):
         import pyparsing as pp
@@ -3970,13 +3990,6 @@ class ParseResultsWithNameOr(ParseTestCase):
             self.assertEqual(expr.parseString('not the bird')['rexp'], 'not')
             self.assertEqual(expr.parseString('the bird')['rexp'], 'the')
 
-            expr = (expr_a | expr_b)('rexp')
-            expr.runTests("""\
-                not the bird
-                the bird
-            """)
-            self.assertEqual(expr.parseString('not the bird')['rexp'], 'not')
-            self.assertEqual(expr.parseString('the bird')['rexp'], 'the')
 
 class EmptyDictDoesNotRaiseException(ParseTestCase):
     def runTest(self):

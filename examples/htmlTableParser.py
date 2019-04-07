@@ -23,12 +23,12 @@ a, a_end = pp.makeHTMLTags('a')
 strip_html = (pp.anyOpenTag | pp.anyCloseTag).suppress().transformString
 
 # expression for parsing <a href="url">text</a> links, returning a (text, url) tuple
-link = pp.Group(a + pp.SkipTo(a_end)('text') + a_end.suppress())
+link = pp.Group(a + a.tag_body('text') + a_end.suppress())
 link.addParseAction(lambda t: (t[0].text, t[0].href))
 
 # method to create table rows of header and data tags
 def table_row(start_tag, end_tag):
-    body = pp.SkipTo(end_tag)
+    body = start_tag.tag_body
     body.addParseAction(pp.tokenMap(str.strip),
                         pp.tokenMap(strip_html))
     row = pp.Group(tr.suppress()
