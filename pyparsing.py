@@ -94,7 +94,7 @@ classes inherit from. Use the docstrings for examples of how to:
 """
 
 __version__ = "2.4.0"
-__versionTime__ = "07 Apr 2019 12:40 UTC"
+__versionTime__ = "07 Apr 2019 18:28 UTC"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -2876,6 +2876,7 @@ class Word(Token):
     def __init__( self, initChars, bodyChars=None, min=1, max=0, exact=0, asKeyword=False, excludeChars=None ):
         super(Word,self).__init__()
         if excludeChars:
+            excludeChars = set(excludeChars)
             initChars = ''.join(c for c in initChars if c not in excludeChars)
             if bodyChars:
                 bodyChars = ''.join(c for c in bodyChars if c not in excludeChars)
@@ -2990,8 +2991,8 @@ class Char(Word):
     when defining a match of any single character in a string of
     characters.
     """
-    def __init__(self, charset):
-        super(Char, self).__init__(charset, exact=1)
+    def __init__(self, charset, asKeyword=False, excludeChars=None):
+        super(Char, self).__init__(charset, exact=1, asKeyword=asKeyword, excludeChars=excludeChars)
         self.reString = "[%s]" % _escapeRegexRangeChars(self.initCharsOrig)
         self.re = re.compile( self.reString )
 
