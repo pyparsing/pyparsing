@@ -7,26 +7,11 @@
 import statemachine
 import documentsignoffstate
 
+print('\n'.join(t.__name__ for t in documentsignoffstate.DocumentRevisionState.transitions()))
 
-class Document:
+class Document(documentsignoffstate.DocumentRevisionStateMixin):
     def __init__(self):
-        # start light in Red state
-        self._state = documentsignoffstate.New()
-
-    @property
-    def state(self):
-        return self._state
-
-    # get behavior/properties from current state
-    def __getattr__(self, attrname):
-        attr = getattr(self._state, attrname)
-        if isinstance(getattr(documentsignoffstate, attrname, None),
-                      documentsignoffstate.DocumentRevisionStateTransition):
-            return lambda : setattr(self, '_state', attr())
-        return attr
-
-    def __str__(self):
-        return "{0}: {1}".format(self.__class__.__name__, self._state)
+        self.initialize_state(documentsignoffstate.New())
 
 
 def run_demo():

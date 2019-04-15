@@ -8,20 +8,12 @@ import statemachine
 import trafficlightstate
 
 
-class TrafficLight:
+class TrafficLight(trafficlightstate.TrafficLightStateMixin):
     def __init__(self):
-        # start light in Red state
-        self._state = trafficlightstate.Red()
+        self.initialize_state(trafficlightstate.Red())
 
     def change(self):
         self._state = self._state.next_state()
-
-    # get light behavior/properties from current state
-    def __getattr__(self, attrname):
-        return getattr(self._state, attrname)
-
-    def __str__(self):
-        return "{0}: {1}".format(self.__class__.__name__, self._state)
 
 
 light = TrafficLight()

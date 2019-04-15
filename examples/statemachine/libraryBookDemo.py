@@ -1,25 +1,16 @@
+#
+# libraryBookDemo.py
+#
+# Simple statemachine demo, based on the state transitions given in librarybookstate.pystate
+#
+
 import statemachine
 import librarybookstate
 
 
-class Book:
+class Book(librarybookstate.BookStateMixin):
     def __init__(self):
-        self._state = librarybookstate.New()
-
-    @property
-    def state(self):
-        return self._state
-
-    # get behavior/properties from current state
-    def __getattr__(self, attrname):
-        attr = getattr(self._state, attrname)
-        if isinstance(getattr(librarybookstate, attrname, None),
-                      librarybookstate.BookStateTransition):
-            return lambda: setattr(self, '_state', attr())
-        return attr
-
-    def __str__(self):
-        return "{0}: {1}".format(self.__class__.__name__, self._state)
+        self.initialize_state(librarybookstate.New())
 
 
 class RestrictedBook(Book):
@@ -50,7 +41,8 @@ def run_demo():
     print(book)
     try:
         book.checkout()
-    except statemachine.InvalidTransitionException:
+    except Exception as e: # statemachine.InvalidTransitionException:
+        print(e)
         print('..cannot check out reserved book')
     book.release()
     print(book)
