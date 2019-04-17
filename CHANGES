@@ -2,6 +2,14 @@
 Change Log
 ==========
 
+Version 2.4.1 -
+----------------------
+- Updated statemachine example: refactored state transitions to use
+  overridden classmethods; added <statename>Mixin class to simplify
+  definition of application classes that "own" the state object and
+  delegate to it to model state-specific properties and behavior.
+
+
 Version 2.4.0 - April, 2019
 ---------------------------
 - Well, it looks like the API change that was introduced in 2.3.1 was more

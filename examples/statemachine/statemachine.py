@@ -49,6 +49,9 @@ namedStateMachine = (pp.Keyword("statemachine") + ident("name") + ":"
 
 
 def expand_state_definition(source, loc, tokens):
+    """
+    Parse action to convert statemachine to corresponding Python classes and methods
+    """
     indent = " " * (pp.col(loc, source) - 1)
     statedef = []
 
@@ -66,9 +69,11 @@ def expand_state_definition(source, loc, tokens):
         "class %s(object):" % baseStateClass,
         "    def __str__(self):",
         "        return self.__class__.__name__",
+
         "    @classmethod",
         "    def states(cls):",
         "        return list(cls.__subclasses__())",
+
         "    def next_state(self):",
         "        return self._next_state_class()",
     ])
@@ -106,6 +111,10 @@ stateMachine.setParseAction(expand_state_definition)
 
 
 def expand_named_state_definition(source, loc, tokens):
+    """
+    Parse action to convert statemachine with named transitions to corresponding Python
+    classes and methods
+    """
     indent = " " * (pp.col(loc, source) - 1)
     statedef = []
     # build list of states and transitions
@@ -152,15 +161,18 @@ def expand_named_state_definition(source, loc, tokens):
         "class %s(object):" % baseStateClass,
         "    def __str__(self):",
         "        return self.__class__.__name__",
+
         "    @classmethod",
         "    def states(cls):",
         "        return list(cls.__subclasses__())",
+
         "    @classmethod",
         "    def next_state(cls, name):",
         "        try:",
         "            return cls.tnmap[name]()",
         "        except KeyError:",
         "            raise InvalidTransitionException('%s does not support transition %r'% (cls.__name__, name))",
+
         "    def __bad_tn(name):",
         "        def _fn(cls):",
         "            raise InvalidTransitionException('%s does not support transition %r'% (cls.__name__, name))",
@@ -194,6 +206,7 @@ def expand_named_state_definition(source, loc, tokens):
         )
     ])
 
+    # define <state>Mixin class for application classes that delegate to the state
     statedef.extend([
         "class {baseStateClass}Mixin:".format(baseStateClass=baseStateClass),
         "    def __init__(self):",
@@ -216,7 +229,6 @@ def expand_named_state_definition(source, loc, tokens):
         "    def __str__(self):",
         "       return '{0}: {1}'.format(self.__class__.__name__, self._state)"
     ])
-
 
     return indent + ("\n" + indent).join(statedef) + "\n"
 
