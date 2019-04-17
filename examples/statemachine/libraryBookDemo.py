@@ -24,9 +24,9 @@ class RestrictedBook(Book):
     # specialized checkout to check permission of user first
     def checkout(self, user=None):
         if user in self._authorized_users:
-            self._state = self._state.checkout()
+            super().checkout()
         else:
-            raise Exception("{0} could not check out restricted book".format((user, "anonymous")[user is None]))
+            raise Exception("{0} could not check out restricted book".format(user if user is not None else "anonymous"))
 
 
 def run_demo():

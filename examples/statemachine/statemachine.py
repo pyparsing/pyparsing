@@ -219,17 +219,15 @@ def expand_named_state_definition(source, loc, tokens):
         "    def state(self):",
         "        return self._state",
 
-        "    # get behavior/properties from current state",
-        "    def __getattr__(self, attrname):",
-        "        attr = getattr(self._state, attrname)",
-        "        if attrname in {baseStateClass}.transition_names:".format(baseStateClass=baseStateClass),
-        "            return lambda x=self: setattr(x, '_state', attr())",
-        "        return attr",
-
         "    def __str__(self):",
         "       return '{0}: {1}'.format(self.__class__.__name__, self._state)"
     ])
 
+    # define transition methods to be delegated to the _state instance variable
+    statedef.extend(
+        "    def {tn_name}(self): self._state = self._state.{tn_name}()".format(tn_name=tn)
+        for tn in transitions
+    )
     return indent + ("\n" + indent).join(statedef) + "\n"
 
 namedStateMachine.setParseAction(expand_named_state_definition)
