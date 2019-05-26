@@ -4,10 +4,21 @@ Change Log
 
 Version 2.4.1 -
 ----------------------
+- Modified runTests to call postParse function before dumping out
+  the parsed results - allows for postParse to add further results,
+  such as indications of additional validation success/failure.
+
 - Updated statemachine example: refactored state transitions to use
   overridden classmethods; added <statename>Mixin class to simplify
   definition of application classes that "own" the state object and
   delegate to it to model state-specific properties and behavior.
+
+- Added example nested_markup.py, showing a simple wiki markup with
+  nested markup directives.
+
+- Rewrote delta_time.py example (renamed from deltaTime.py) to
+  fix some omitted formats and upgrade to latest pyparsing idioms,
+  beginning with writing an actual BNF.
 
 
 Version 2.4.0 - April, 2019

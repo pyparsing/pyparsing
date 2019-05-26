@@ -25,6 +25,7 @@ script:
  - PYTHONPATH=. python examples/romanNumerals.py
  - PYTHONPATH=. python examples/sexpParser.py
  - PYTHONPATH=. python examples/oc.py
+ - PYTHONPATH=. python examples/delta_time.py
 
 after_success:
   - codecov

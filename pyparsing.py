@@ -93,8 +93,8 @@ classes inherit from. Use the docstrings for examples of how to:
    namespace class
 """
 
-__version__ = "2.4.0"
-__versionTime__ = "07 Apr 2019 18:28 UTC"
+__version__ = "2.4.1"
+__versionTime__ = "26 May 2019 14:04 UTC"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -2535,7 +2535,6 @@ class ParserElement(object):
                 BOM = '\ufeff'
                 t = NL.transformString(t.lstrip(BOM))
                 result = self.parseString(t, parseAll=parseAll)
-                out.append(result.dump(full=fullDump))
                 success = success and not failureTests
                 if postParse is not None:
                     try:
@@ -2543,7 +2542,10 @@ class ParserElement(object):
                         if pp_value is not None:
                             out.append(str(pp_value))
                     except Exception as e:
+                        out.append(result.dump(full=fullDump))
                         out.append("{0} failed: {1}: {2}".format(postParse.__name__, type(e).__name__, e))
+                    else:
+                        out.append(result.dump(full=fullDump))
             except ParseBaseException as pe:
                 fatal = "(FATAL)" if isinstance(pe, ParseFatalException) else ""
                 if '\n' in t:
