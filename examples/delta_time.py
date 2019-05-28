@@ -67,7 +67,7 @@ at_ = CK("at")
 on_ = CK("on")
 
 couple = (pp.Optional(CK("a")) + CK("couple") + pp.Optional(CK("of"))).setParseAction(pp.replaceWith(2))
-a_qty = CK("a").setParseAction(pp.replaceWith(1))
+a_qty = (CK("a") | CK("an")).setParseAction(pp.replaceWith(1))
 the_qty = CK("the").setParseAction(pp.replaceWith(1))
 qty = integer | couple | a_qty | the_qty
 time_ref_present = pp.Empty().addParseAction(pp.replaceWith(True))('time_ref_present')
@@ -251,6 +251,7 @@ time_expression = time_and_day
 
 
 if __name__ == "__main__":
+    current_time = datetime.now()
     # test grammar
     tests = """\
         today
@@ -266,6 +267,7 @@ if __name__ == "__main__":
         3 days ago
         3 days from now
         a day ago
+        an hour ago
         in 2 weeks
         in 3 days at 5pm
         now
@@ -276,6 +278,7 @@ if __name__ == "__main__":
         in a couple of minutes
         20 seconds ago
         in 30 seconds
+        in an hour
         20 seconds before noon
         ten seconds before noon tomorrow
         noon
@@ -296,6 +299,9 @@ if __name__ == "__main__":
         last Sunday at 2pm
     """
 
+    time_of_day = timedelta(hours=current_time.hour,
+                            minutes=current_time.minute,
+                            seconds=current_time.second)
     expected = {
         'now' : timedelta(0),
         '10 minutes ago': timedelta(minutes=-10),
@@ -305,11 +311,27 @@ if __name__ == "__main__":
         'in a couple of minutes': timedelta(minutes=2),
         '20 seconds ago': timedelta(seconds=-20),
         'in 30 seconds': timedelta(seconds=30),
+        'in an hour': timedelta(hours=1),
         'a week from now': timedelta(days=7),
+        'a couple of days from now': timedelta(days=2),
+        'an hour ago': timedelta(hours=-1),
+        'a week from today': timedelta(days=7) - time_of_day,
+        'three weeks ago': timedelta(days=-21) - time_of_day,
+        'a day ago': timedelta(days=-1) - time_of_day,
+        'in a couple of days': timedelta(days=2) - time_of_day,
+        'a couple of days from today': timedelta(days=2) - time_of_day,
+        '2 weeks after today': timedelta(days=14) - time_of_day,
+        'the day after tomorrow': timedelta(days=2) - time_of_day,
+        'tomorrow': timedelta(days=1) - time_of_day,
+        'the day before yesterday': timedelta(days=-2) - time_of_day,
+        'yesterday': timedelta(days=-1) - time_of_day,
+        'today': -time_of_day,
     }
     def verify_offset(instring, parsed):
+        time_epsilon = timedelta(seconds=1)
         if instring in expected:
-            if parsed.time_offset == expected[instring]:
+            # allow up to a second time discrepancy due to test processing time
+            if (parsed.time_offset - expected[instring]) <= time_epsilon:
                 parsed['verify_offset'] = 'PASS'
             else:
                 parsed['verify_offset'] = 'FAIL'
