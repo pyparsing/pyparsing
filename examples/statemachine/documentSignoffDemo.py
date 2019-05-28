@@ -11,7 +11,7 @@ print('\n'.join(t.__name__ for t in documentsignoffstate.DocumentRevisionState.t
 
 class Document(documentsignoffstate.DocumentRevisionStateMixin):
     def __init__(self):
-        self.initialize_state(documentsignoffstate.New())
+        self.initialize_state(documentsignoffstate.New)
 
 
 def run_demo():

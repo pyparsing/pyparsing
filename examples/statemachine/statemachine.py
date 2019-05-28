@@ -90,6 +90,8 @@ def expand_state_definition(source, loc, tokens):
         "        self._state = None",
 
         "    def initialize_state(self, init_state):",
+        "        if isinstance(init_state, {baseStateClass}):".format(baseStateClass=baseStateClass),
+        "            init_state = init_state()",
         "        self._state = init_state",
 
         "    @property",
@@ -105,7 +107,7 @@ def expand_state_definition(source, loc, tokens):
         "       return '{0}: {1}'.format(self.__class__.__name__, self._state)",
         ])
 
-    return indent + ("\n" + indent).join(statedef) + "\n"
+    return ("\n" + indent).join(statedef) + "\n"
 
 stateMachine.setParseAction(expand_state_definition)
 
@@ -151,14 +153,11 @@ def expand_named_state_definition(source, loc, tokens):
     statedef.extend("{tn_name}.transitionName = '{tn_name}'".format(tn_name=tn)
                     for tn in transitions)
 
-    statedef.extend([
-        "from statemachine import InvalidTransitionException as BaseTransitionException",
-        "class InvalidTransitionException(BaseTransitionException): pass",
-    ])
-
     # define base class for state classes
     statedef.extend([
         "class %s(object):" % baseStateClass,
+        "    from statemachine import InvalidTransitionException as BaseTransitionException",
+        "    class InvalidTransitionException(BaseTransitionException): pass",
         "    def __str__(self):",
         "        return self.__class__.__name__",
 
@@ -171,11 +170,11 @@ def expand_named_state_definition(source, loc, tokens):
         "        try:",
         "            return cls.tnmap[name]()",
         "        except KeyError:",
-        "            raise InvalidTransitionException('%s does not support transition %r'% (cls.__name__, name))",
+        "            raise cls.InvalidTransitionException('%s does not support transition %r'% (cls.__name__, name))",
 
         "    def __bad_tn(name):",
         "        def _fn(cls):",
-        "            raise InvalidTransitionException('%s does not support transition %r'% (cls.__name__, name))",
+        "            raise cls.InvalidTransitionException('%s does not support transition %r'% (cls.__name__, name))",
         "        _fn.__name__ = name",
         "        return _fn",
     ])
@@ -228,7 +227,7 @@ def expand_named_state_definition(source, loc, tokens):
         "    def {tn_name}(self): self._state = self._state.{tn_name}()".format(tn_name=tn)
         for tn in transitions
     )
-    return indent + ("\n" + indent).join(statedef) + "\n"
+    return ("\n" + indent).join(statedef) + "\n"
 
 namedStateMachine.setParseAction(expand_named_state_definition)
 
