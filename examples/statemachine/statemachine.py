@@ -212,14 +212,22 @@ def expand_named_state_definition(source, loc, tokens):
         "        self._state = None",
 
         "    def initialize_state(self, init_state):",
+        "        if issubclass(init_state, {baseStateClass}):".format(baseStateClass=baseStateClass),
+        "            init_state = init_state()",
         "        self._state = init_state",
 
         "    @property",
         "    def state(self):",
         "        return self._state",
 
+        "    # get behavior/properties from current state",
+        "    def __getattr__(self, attrname):",
+        "        attr = getattr(self._state, attrname)",
+        "        return attr",
+
         "    def __str__(self):",
-        "       return '{0}: {1}'.format(self.__class__.__name__, self._state)"
+        "       return '{0}: {1}'.format(self.__class__.__name__, self._state)",
+
     ])
 
     # define transition methods to be delegated to the _state instance variable
