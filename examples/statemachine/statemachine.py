@@ -90,7 +90,7 @@ def expand_state_definition(source, loc, tokens):
         "        self._state = None",
 
         "    def initialize_state(self, init_state):",
-        "        if isinstance(init_state, {baseStateClass}):".format(baseStateClass=baseStateClass),
+        "        if issubclass(init_state, {baseStateClass}):".format(baseStateClass=baseStateClass),
         "            init_state = init_state()",
         "        self._state = init_state",
 
