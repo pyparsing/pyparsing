@@ -3,7 +3,9 @@
 #
 # Example of using the statemachine parser without importing a .pystate module.
 #
-# A vending machine that
+# A vending machine that dispenses candy and chips in a 4x4 grid, A1 thru D4.
+# To dispense a product, you must press an alpha button, then a digit button.
+#
 
 import statemachine
 
