@@ -39,7 +39,7 @@ __all__ = ["time_expression"]
 # basic grammar definitions
 def make_integer_word_expr(int_name, int_value):
     return pp.CaselessKeyword(int_name).addParseAction(pp.replaceWith(int_value))
-integer_word = pp.Or(make_integer_word_expr(int_str, int_value)
+integer_word = pp.MatchFirst(make_integer_word_expr(int_str, int_value)
                      for int_value, int_str
                      in enumerate("one two three four five six seven eight nine ten"
                                   " eleven twelve thirteen fourteen fifteen sixteen"
@@ -121,8 +121,8 @@ absolute_time_of_day.addParseAction(add_computed_time)
 time_units = hour | minute | second
 relative_time_reference = (qty('qty') + time_units('units') + ago('dir')
                            | qty('qty') + time_units('units')
-                                 + (from_ | before | after)('dir')
-                                 + pp.Group(absolute_time_of_day)('ref_time')
+                             + (from_ | before | after)('dir')
+                             + pp.Group(absolute_time_of_day)('ref_time')
                            | in_('dir') + qty('qty') + time_units('units')
                            )
 
@@ -164,14 +164,14 @@ def convert_abs_day_reference_to_date(t):
             daydiff = (nameddaynum + 7 - todaynum) % 7 or 7
         else:
             daydiff = -((todaynum + 7 - nameddaynum) % 7 or 7)
-        t["abs_date"] = datetime(now.year, now.month, now.day)+timedelta(daydiff)
+        t["abs_date"] = datetime(now.year, now.month, now.day) + timedelta(daydiff)
     else:
         name = t[0]
         t["abs_date"] = {
             "now"       : now,
             "today"     : datetime(now.year, now.month, now.day),
-            "yesterday" : datetime(now.year, now.month, now.day)+timedelta(days=-1),
-            "tomorrow"  : datetime(now.year, now.month, now.day)+timedelta(days=+1),
+            "yesterday" : datetime(now.year, now.month, now.day) + timedelta(days=-1),
+            "tomorrow"  : datetime(now.year, now.month, now.day) + timedelta(days=+1),
             }[name]
 
 absolute_day_reference = today | tomorrow | yesterday | now + time_ref_present | weekday_reference
@@ -279,6 +279,8 @@ if __name__ == "__main__":
         20 seconds ago
         in 30 seconds
         in an hour
+        in a couple hours
+        in a couple days
         20 seconds before noon
         ten seconds before noon tomorrow
         noon
@@ -286,6 +288,7 @@ if __name__ == "__main__":
         noon tomorrow
         6am tomorrow
         0800 yesterday
+        1700 tomorrow
         12:15 AM today
         3pm 2 days from today
         a week from today
@@ -312,21 +315,39 @@ if __name__ == "__main__":
         '20 seconds ago': timedelta(seconds=-20),
         'in 30 seconds': timedelta(seconds=30),
         'in an hour': timedelta(hours=1),
+        'in a couple hours': timedelta(hours=2),
         'a week from now': timedelta(days=7),
+        '3 days from now': timedelta(days=3),
         'a couple of days from now': timedelta(days=2),
         'an hour ago': timedelta(hours=-1),
+        'in a couple days': timedelta(days=2) - time_of_day,
         'a week from today': timedelta(days=7) - time_of_day,
         'three weeks ago': timedelta(days=-21) - time_of_day,
         'a day ago': timedelta(days=-1) - time_of_day,
         'in a couple of days': timedelta(days=2) - time_of_day,
         'a couple of days from today': timedelta(days=2) - time_of_day,
         '2 weeks after today': timedelta(days=14) - time_of_day,
+        'in 2 weeks': timedelta(days=14) - time_of_day,
         'the day after tomorrow': timedelta(days=2) - time_of_day,
         'tomorrow': timedelta(days=1) - time_of_day,
         'the day before yesterday': timedelta(days=-2) - time_of_day,
         'yesterday': timedelta(days=-1) - time_of_day,
         'today': -time_of_day,
+        'midnight': -time_of_day,
+        'in a day': timedelta(days=1) - time_of_day,
+        '3 days ago': timedelta(days=-3) - time_of_day,
+        'noon tomorrow': timedelta(days=1) - time_of_day + timedelta(hours=12),
+        '6am tomorrow': timedelta(days=1) - time_of_day + timedelta(hours=6),
+        '0800 yesterday': timedelta(days=-1) - time_of_day + timedelta(hours=8),
+        '1700 tomorrow':  timedelta(days=1) - time_of_day + timedelta(hours=17),
+        '12:15 AM today': -time_of_day + timedelta(minutes=15),
+        '3pm 2 days from today': timedelta(days=2) - time_of_day + timedelta(hours=15),
+        'ten seconds before noon tomorrow': timedelta(days=1) - time_of_day
+                                            + timedelta(hours=12) + timedelta(seconds=-10),
+        '20 seconds before noon': -time_of_day + timedelta(hours=12) + timedelta(seconds=-20),
+        'in 3 days at 5pm': timedelta(days=3) - time_of_day + timedelta(hours=17),
     }
+
     def verify_offset(instring, parsed):
         time_epsilon = timedelta(seconds=1)
         if instring in expected:
