@@ -69,7 +69,7 @@ on_ = CK("on")
 couple = (pp.Optional(CK("a")) + CK("couple") + pp.Optional(CK("of"))).setParseAction(pp.replaceWith(2))
 a_qty = (CK("a") | CK("an")).setParseAction(pp.replaceWith(1))
 the_qty = CK("the").setParseAction(pp.replaceWith(1))
-qty = integer | couple | a_qty | the_qty
+qty = pp.ungroup(integer | couple | a_qty | the_qty)
 time_ref_present = pp.Empty().addParseAction(pp.replaceWith(True))('time_ref_present')
 
 def fill_24hr_time_fields(t):
@@ -133,7 +133,7 @@ def compute_relative_time(t):
         t['ref_time'] = t.ref_time.computed_time
     delta_seconds = {'hour': 3600,
                      'minute': 60,
-                     'second': 1}[t.units] * t.qty[0]
+                     'second': 1}[t.units] * t.qty
     t['time_delta'] = timedelta(seconds=t.dir * delta_seconds)
 
 relative_time_reference.addParseAction(compute_relative_time)
@@ -193,7 +193,7 @@ def compute_relative_date(t):
         t['computed_date'] = t.ref_day
     else:
         t['computed_date'] = now.date()
-    day_diff = t.dir * t.qty[0] * {'week': 7, 'day': 1}[t.units]
+    day_diff = t.dir * t.qty * {'week': 7, 'day': 1}[t.units]
     t['date_delta'] = timedelta(days=day_diff)
 relative_day_reference.addParseAction(compute_relative_date)
 
@@ -206,8 +206,7 @@ day_reference.addParseAction(add_default_date_fields)
 
 # combine date and time expressions into single overall parser
 time_and_day = (time_reference + time_ref_present + pp.Optional(pp.Optional(on_) + day_reference)
-               | day_reference + pp.Optional(at_ + absolute_time_of_day + time_ref_present)
-                )
+               | day_reference + pp.Optional(at_ + absolute_time_of_day + time_ref_present))
 
 # parse actions for total time_and_day expression
 def save_original_string(s, l, t):
@@ -234,6 +233,9 @@ def compute_timestamp(t):
     if not t.time_ref_present:
         t['computed_dt'] = t.computed_dt.replace(hour=0, minute=0, second=0)
 
+    # add results name compatible with previous version
+    t['calculatedTime'] = t.computed_dt
+
     # add time_offset fields
     t['time_offset'] = t.computed_dt - t.relative_to
 
@@ -241,7 +243,7 @@ def remove_temp_keys(t):
     # strip out keys that are just used internally
     all_keys = list(t.keys())
     for k in all_keys:
-        if k not in ('computed_dt', 'original', 'relative_to', 'time_offset'):
+        if k not in ('computed_dt', 'original', 'relative_to', 'time_offset', 'calculatedTime'):
             del t[k]
 
 time_and_day.addParseAction(save_original_string, compute_timestamp, remove_temp_keys)
