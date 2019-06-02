@@ -2540,12 +2540,15 @@ class ParserElement(object):
                     try:
                         pp_value = postParse(t, result)
                         if pp_value is not None:
-                            out.append(str(pp_value))
+                            if isinstance(pp_value, ParseResults):
+                                out.append(pp_value.dump())
+                            else:
+                                out.append(str(pp_value))
                     except Exception as e:
                         out.append(result.dump(full=fullDump))
                         out.append("{0} failed: {1}: {2}".format(postParse.__name__, type(e).__name__, e))
-                    else:
-                        out.append(result.dump(full=fullDump))
+                else:
+                    out.append(result.dump(full=fullDump))
             except ParseBaseException as pe:
                 fatal = "(FATAL)" if isinstance(pe, ParseFatalException) else ""
                 if '\n' in t:
