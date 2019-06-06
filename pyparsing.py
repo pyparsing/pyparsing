@@ -87,6 +87,8 @@ classes inherit from. Use the docstrings for examples of how to:
    more complex ones
  - associate names with your parsed results using
    :class:`ParserElement.setResultsName`
+ - access the parsed data, which is returned as a :class:`ParseResults`
+   object
  - find some helpful expression short-cuts like :class:`delimitedList`
    and :class:`oneOf`
  - find more useful common expressions in the :class:`pyparsing_common`
@@ -94,7 +96,7 @@ classes inherit from. Use the docstrings for examples of how to:
 """
 
 __version__ = "2.4.1"
-__versionTime__ = "26 May 2019 14:04 UTC"
+__versionTime__ = "06 Jun 2019 03:33 UTC"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -1782,6 +1784,10 @@ class ParserElement(object):
         Execute the parse expression with the given string.
         This is the main interface to the client code, once the complete
         expression has been built.
+
+        Returns the parsed data as a :class:`ParseResults` object, which may be
+        accessed as a list, or as a dict or object with attributes if the given parser
+        includes results names.
 
         If you want the grammar to require that the entire input string be
         successfully parsed, then set ``parseAll`` to True (equivalent to ending
