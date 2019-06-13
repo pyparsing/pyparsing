@@ -6156,7 +6156,7 @@ class pyparsing_common:
     real = Regex(r'[+-]?\d*\.\d*').setName("real number").setParseAction(convertToFloat)
     """expression that parses a floating point number and returns a float"""
 
-    sci_real = Regex(r'[+-]?\d+([eE][+-]?\d+|\.\d*([eE][+-]?\d+)?)').setName("real number with scientific notation").setParseAction(convertToFloat)
+    sci_real = Regex(r'[+-]?\d*([eE][+-]?\d+|\.\d*([eE][+-]?\d+)?)').setName("real number with scientific notation").setParseAction(convertToFloat)
     """expression that parses a floating point number with optional
     scientific notation and returns a float"""
 
