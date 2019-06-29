@@ -4,6 +4,11 @@ Change Log
 
 Version 2.4.1 -
 ----------------------
+- Fixed issue #87, a regression in indented block.
+  Reported by Renz Bagaporo, who submitted a very nice repro
+  example, which makes the bug-fixing process a lot easier,
+  thanks!
+
 - Modified runTests to call postParse function before dumping out
   the parsed results - allows for postParse to add further results,
   such as indications of additional validation success/failure.

@@ -96,7 +96,7 @@ classes inherit from. Use the docstrings for examples of how to:
 """
 
 __version__ = "2.4.1"
-__versionTime__ = "06 Jun 2019 03:33 UTC"
+__versionTime__ = "29 Jun 2019 05:14 UTC"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -5921,21 +5921,24 @@ def indentedBlock(blockStatementExpr, indentStack, indent=True):
     def checkUnindent(s,l,t):
         if l >= len(s): return
         curCol = col(l,s)
-        if not(indentStack and curCol < indentStack[-1] and curCol <= indentStack[-2]):
+        if not(indentStack and curCol in indentStack):
             raise ParseException(s,l,"not an unindent")
-        indentStack.pop()
+        if curCol < indentStack[-1]:
+            indentStack.pop()
 
     NL = OneOrMore(LineEnd().setWhitespaceChars("\t ").suppress())
     INDENT = (Empty() + Empty().setParseAction(checkSubIndent)).setName('INDENT')
     PEER   = Empty().setParseAction(checkPeerIndent).setName('')
     UNDENT = Empty().setParseAction(checkUnindent).setName('UNINDENT')
     if indent:
-        smExpr = Group( Optional(NL) +
-            #~ FollowedBy(blockStatementExpr) +
-            INDENT + (OneOrMore( PEER + Group(blockStatementExpr) + Optional(NL) )) + UNDENT)
+        smExpr = Group(Optional(NL)
+                       + INDENT
+                       + OneOrMore(PEER + Group(blockStatementExpr) + Optional(NL))
+                       + UNDENT)
     else:
-        smExpr = Group( Optional(NL) +
-            (OneOrMore( PEER + Group(blockStatementExpr) + Optional(NL) )) )
+        smExpr = Group(Optional(NL)
+                       + OneOrMore(PEER + Group(blockStatementExpr) + Optional(NL))
+                       + UNDENT)
     smExpr.setFailAction(lambda a, b, c, d: reset_stack())
     blockStatementExpr.ignore(_bslash + LineEnd())
     return smExpr.setName('indented block')

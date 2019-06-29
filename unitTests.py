@@ -3817,12 +3817,78 @@ class UnicodeTests(ParseTestCase):
         self.assertEqual(result.asDict(), {u'şehir': u'İzmir', u'ülke': u'Türkiye', u'nüfus': 4279677},
                          "Failed to parse Turkish key-value pairs")
 
+
+class IndentedBlockExampleTest(ParseTestCase):
+    # Make sure example in indentedBlock docstring actually works!
+    def runTest(self):
+        from textwrap import dedent
+        from pyparsing import (Word, alphas, alphanums, indentedBlock, Optional, delimitedList, Group, Forward,
+                               nums, OneOrMore)
+        data = dedent('''
+        def A(z):
+          A1
+          B = 100
+          G = A2
+          A2
+          A3
+        B
+        def BB(a,b,c):
+          BB1
+          def BBA():
+            bba1
+            bba2
+            bba3
+        C
+        D
+        def spam(x,y):
+             def eggs(z):
+                 pass
+        ''')
+
+        indentStack = [1]
+        stmt = Forward()
+
+        identifier = Word(alphas, alphanums)
+        funcDecl = ("def" + identifier + Group("(" + Optional(delimitedList(identifier)) + ")") + ":")
+        func_body = indentedBlock(stmt, indentStack)
+        funcDef = Group(funcDecl + func_body)
+
+        rvalue = Forward()
+        funcCall = Group(identifier + "(" + Optional(delimitedList(rvalue)) + ")")
+        rvalue << (funcCall | identifier | Word(nums))
+        assignment = Group(identifier + "=" + rvalue)
+        stmt << (funcDef | assignment | identifier)
+
+        module_body = OneOrMore(stmt)
+
+        parseTree = module_body.parseString(data)
+        parseTree.pprint()
+        self.assertEqual(parseTree.asList(),
+                         [['def',
+                           'A',
+                           ['(', 'z', ')'],
+                           ':',
+                           [['A1'], [['B', '=', '100']], [['G', '=', 'A2']], ['A2'], ['A3']]],
+                          'B',
+                          ['def',
+                           'BB',
+                           ['(', 'a', 'b', 'c', ')'],
+                           ':',
+                           [['BB1'], [['def', 'BBA', ['(', ')'], ':', [['bba1'], ['bba2'], ['bba3']]]]]],
+                          'C',
+                          'D',
+                          ['def',
+                           'spam',
+                           ['(', 'x', 'y', ')'],
+                           ':',
+                           [[['def', 'eggs', ['(', 'z', ')'], ':', [['pass']]]]]]],
+                         "Failed indentedBlock example"
+                         )
+
+
 class IndentedBlockTest(ParseTestCase):
     # parse pseudo-yaml indented text
     def runTest(self):
-        if pp.ParserElement.packrat_cache:
-            print_("cannot test indentedBlock with packrat enabled")
-            return
         import textwrap
 
         EQ = pp.Suppress('=')
@@ -3852,6 +3918,57 @@ class IndentedBlockTest(ParseTestCase):
         self.assertEqual(result.a,        100, "invalid indented block result")
         self.assertEqual(result.c.c1,     200, "invalid indented block result")
         self.assertEqual(result.c.c2.c21, 999, "invalid indented block result")
+
+
+class IndentedBlockTest2(ParseTestCase):
+    # exercise indentedBlock with example posted in issue #87
+    def runTest(self):
+        from textwrap import dedent
+        from pyparsing import Word, alphas, alphanums, Suppress, Forward, indentedBlock, Literal, OneOrMore
+
+        indent_stack = [1]
+
+        key = Word(alphas, alphanums) + Suppress(":")
+        stmt = Forward()
+
+        suite = indentedBlock(stmt, indent_stack)
+        body = key + suite
+
+        pattern = (Word(alphas) + Suppress("(") + Word(alphas) + Suppress(")"))
+        stmt << pattern
+
+        def key_parse_action(toks):
+            print_("Parsing '%s'..." % toks[0])
+
+        key.setParseAction(key_parse_action)
+        header = Suppress("[") + Literal("test") + Suppress("]")
+        content = (header + OneOrMore(indentedBlock(body, indent_stack, False)))
+
+        contents = Forward()
+        suites = indentedBlock(content, indent_stack)
+
+        extra = Literal("extra") + Suppress(":") + suites
+        contents << (content | extra)
+
+        parser = OneOrMore(contents)
+
+        sample = dedent("""\
+        extra:
+            [test]
+            one0: 
+                two (three)
+            four0:
+                five (seven)
+        extra:
+            [test]
+            one1: 
+                two (three)
+            four1:
+                five (seven)
+        """)
+
+        success, _ = parser.runTests([sample])
+        self.assertTrue(success, "Failed indentedBlock test for issue #87")
 
 
 class IndentedBlockScanTest(ParseTestCase):
