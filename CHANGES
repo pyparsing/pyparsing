@@ -1447,7 +1447,7 @@ finally time to bump the minor rev number on pyparsing - so
         stack (multiple indentedBlock expressions
         within a single grammar should share a common indentStack)
     - indent - boolean indicating whether block must be indented
-        beyond the the current level; set to False for block of
+        beyond the current level; set to False for block of
         left-most statements (default=True)
 
   A valid block must contain at least one indented statement.

@@ -5829,7 +5829,7 @@ def indentedBlock(blockStatementExpr, indentStack, indent=True):
        (multiple statementWithIndentedBlock expressions within a single
        grammar should share a common indentStack)
      - indent - boolean indicating whether block must be indented beyond
-       the the current level; set to False for block of left-most
+       the current level; set to False for block of left-most
        statements (default= ``True``)
 
     A valid block must contain at least one ``blockStatement``.
