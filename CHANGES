@@ -13,6 +13,11 @@ Version 2.4.1 -
   indicating that all previously-defined parse actions for the
   expression should be cleared.
 
+- Modified pyparsing_common.real and sci_real to parse reals
+  without leading integer digits before the decimal point,
+  consistent with Python real number formats. Original PR #98
+  submitted by ansobolev.
+
 - Modified runTests to call postParse function before dumping out
   the parsed results - allows for postParse to add further results,
   such as indications of additional validation success/failure.

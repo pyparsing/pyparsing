@@ -3324,6 +3324,93 @@ class CommonExpressionsTest(ParseTestCase):
             self.assertEqual(type(result[0]), type(expected), "numeric parse failed (wrong type) (%s should be %s)" % (type(result[0]), type(expected)))
 
 
+class NumericExpressionsTest(ParseTestCase):
+    def runTest(self):
+        import pyparsing as pp
+        ppc = pp.pyparsing_common
+
+        real = ppc.real().setParseAction(None)
+        sci_real = ppc.sci_real().setParseAction(None)
+        signed_integer = ppc.signed_integer().setParseAction(None)
+
+        from itertools import product
+
+        def make_tests():
+            leading_sign = ['+', '-', '']
+            leading_digit = ['0', '']
+            dot = ['.', '']
+            decimal_digit = ['1', '']
+            e = ['e', 'E', '']
+            e_sign = ['+', '-', '']
+            e_int = ['22', '']
+            stray = ['9', '.', '']
+
+            seen = set()
+            for parts in product(leading_sign, stray, leading_digit, dot, decimal_digit, stray, e, e_sign, e_int,
+                                 stray):
+                parts_str = ''.join(parts)
+                if parts_str in seen:
+                    continue
+                seen.add(parts_str)
+                yield parts_str
+
+            print_(len(seen), "tests produced")
+
+        # collect tests into valid/invalid sets, depending on whether they evaluate to valid Python floats
+        valid_ints = set()
+        valid_reals = set()
+        valid_sci_reals = set()
+        invalid_ints = set()
+        invalid_reals = set()
+        invalid_sci_reals = set()
+
+        for test_str in make_tests():
+            if '.' in test_str or 'e' in test_str.lower():
+                try:
+                    float(test_str)
+                except ValueError:
+                    invalid_sci_reals.add(test_str)
+                    if 'e' not in test_str.lower():
+                        invalid_reals.add(test_str)
+                else:
+                    valid_sci_reals.add(test_str)
+                    if 'e' not in test_str.lower():
+                        valid_reals.add(test_str)
+
+            try:
+                int(test_str)
+            except ValueError:
+                invalid_ints.add(test_str)
+            else:
+                valid_ints.add(test_str)
+
+        suppress_results = {'printResults': False}
+        success, test_results = real.runTests(sorted(valid_reals, key=len), **suppress_results)
+        # if not success:
+        #     for test_string, result in test_results:
+        #         if isinstance(result, Exception):
+        #             print("{!r}: {}".format(test_string, result))
+
+        print_("real", ('FAIL', 'PASS')[success], "valid tests ({})".format(len(valid_reals)))
+        self.assertTrue(success, "failed real valid tests")
+        success, _ = sci_real.runTests(sorted(valid_sci_reals, key=len), **suppress_results)
+        print_("sci_real", ('FAIL', 'PASS')[success], "valid tests ({})".format(len(valid_sci_reals)))
+        self.assertTrue(success, "failed sci_real valid tests")
+        success, _ = signed_integer.runTests(sorted(valid_ints, key=len), **suppress_results)
+        print_("signed_integer", ('FAIL', 'PASS')[success], "valid tests ({})".format(len(valid_ints)))
+        self.assertTrue(success, "failed signed_integer valid tests")
+
+        success, _ = real.runTests(sorted(invalid_reals, key=len), failureTests=True, **suppress_results)
+        print_("real", ('FAIL', 'PASS')[success], "invalid tests ({})".format(len(invalid_reals)))
+        self.assertTrue(success, "failed real invalid tests")
+        success, _ = sci_real.runTests(sorted(invalid_sci_reals, key=len), failureTests=True, **suppress_results)
+        print_("sci_real", ('FAIL', 'PASS')[success], "invalid tests ({})".format(len(invalid_sci_reals)))
+        self.assertTrue(success, "failed sci_real invalid tests")
+        success, _ = signed_integer.runTests(sorted(invalid_ints, key=len), failureTests=True, **suppress_results)
+        print_("signed_integer", ('FAIL', 'PASS')[success], "invalid tests ({})".format(len(invalid_ints)))
+        self.assertTrue(success, "failed signed_integer invalid tests")
+
+
 class TokenMapTest(ParseTestCase):
     def runTest(self):
         from pyparsing import tokenMap, Word, hexnums, OneOrMore
