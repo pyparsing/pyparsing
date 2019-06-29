@@ -3009,6 +3009,20 @@ class TrimArityExceptionMaskingTest2(ParseTestCase):
 
         K()
 
+
+class ClearParseActionsTest(ParseTestCase):
+    def runTest(self):
+        import pyparsing as pp
+        ppc = pp.pyparsing_common
+
+        realnum = ppc.real()
+        self.assertEqual(realnum.parseString("3.14159")[0], 3.14159, "failed basic real number parsing")
+
+        # clear parse action that converts to float
+        realnum.setParseAction(None)
+        self.assertEqual(realnum.parseString("3.14159")[0], "3.14159", "failed clearing parse action")
+
+
 class OneOrMoreStopTest(ParseTestCase):
     def runTest(self):
         from pyparsing import (Word, OneOrMore, alphas, Keyword, CaselessKeyword,

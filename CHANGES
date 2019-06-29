@@ -9,6 +9,10 @@ Version 2.4.1 -
   example, which makes the bug-fixing process a lot easier,
   thanks!
 
+- Modified setParseAction to accept None as an argument,
+  indicating that all previously-defined parse actions for the
+  expression should be cleared.
+
 - Modified runTests to call postParse function before dumping out
   the parsed results - allows for postParse to add further results,
   such as indications of additional validation success/failure.

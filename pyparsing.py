@@ -96,7 +96,7 @@ classes inherit from. Use the docstrings for examples of how to:
 """
 
 __version__ = "2.4.1"
-__versionTime__ = "29 Jun 2019 05:25 UTC"
+__versionTime__ = "29 Jun 2019 06:17 UTC"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -1418,6 +1418,9 @@ class ParserElement(object):
         value from fn, and the modified list of tokens will replace the original.
         Otherwise, fn does not need to return any value.
 
+        If None is passed as the parse action, all previously added parse actions for this
+        expression are cleared.
+
         Optional keyword arguments:
         - callDuringTry = (default= ``False`` ) indicate if parse action should be run during lookaheads and alternate testing
 
@@ -1441,8 +1444,13 @@ class ParserElement(object):
             # note that integer fields are now ints, not strings
             date_str.parseString("1999/12/31")  # -> [1999, '/', 12, '/', 31]
         """
-        self.parseAction = list(map(_trim_arity, list(fns)))
-        self.callDuringTry = kwargs.get("callDuringTry", False)
+        if list(fns) == [None, ]:
+            self.parseAction = None
+        else:
+            if not all(callable(fn) for fn in fns):
+                raise TypeError("parse actions must be callable")
+            self.parseAction = list(map(_trim_arity, list(fns)))
+            self.callDuringTry = kwargs.get("callDuringTry", False)
         return self
 
     def addParseAction( self, *fns, **kwargs ):
