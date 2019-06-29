@@ -96,7 +96,7 @@ classes inherit from. Use the docstrings for examples of how to:
 """
 
 __version__ = "2.4.1"
-__versionTime__ = "29 Jun 2019 05:14 UTC"
+__versionTime__ = "29 Jun 2019 05:25 UTC"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -2550,6 +2550,8 @@ class ParserElement(object):
                                 out.append(pp_value.dump())
                             else:
                                 out.append(str(pp_value))
+                        else:
+                            out.append(result.dump())
                     except Exception as e:
                         out.append(result.dump(full=fullDump))
                         out.append("{0} failed: {1}: {2}".format(postParse.__name__, type(e).__name__, e))
