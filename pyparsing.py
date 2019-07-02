@@ -96,7 +96,7 @@ classes inherit from. Use the docstrings for examples of how to:
 """
 
 __version__ = "2.4.1"
-__versionTime__ = "29 Jun 2019 06:56 UTC"
+__versionTime__ = "02 Jul 2019 21:24 UTC"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -111,6 +111,7 @@ import pprint
 import traceback
 import types
 from datetime import datetime
+from operator import itemgetter
 
 try:
     # Python 3
@@ -1538,26 +1539,30 @@ class ParserElement(object):
 
     #~ @profile
     def _parseNoCache( self, instring, loc, doActions=True, callPreParse=True ):
+        TRY, MATCH, FAIL = 0, 1, 2
         debugging = ( self.debug ) #and doActions )
 
         if debugging or self.failAction:
             #~ print ("Match",self,"at loc",loc,"(%d,%d)" % ( lineno(loc,instring), col(loc,instring) ))
-            if (self.debugActions[0] ):
-                self.debugActions[0]( instring, loc, self )
-            if callPreParse and self.callPreparse:
-                preloc = self.preParse( instring, loc )
-            else:
-                preloc = loc
-            tokensStart = preloc
+            if self.debugActions[TRY]:
+                self.debugActions[TRY]( instring, loc, self )
             try:
-                try:
-                    loc,tokens = self.parseImpl( instring, preloc, doActions )
-                except IndexError:
-                    raise ParseException( instring, len(instring), self.errmsg, self )
-            except ParseBaseException as err:
+                if callPreParse and self.callPreparse:
+                    preloc = self.preParse(instring, loc)
+                else:
+                    preloc = loc
+                tokensStart = preloc
+                if self.mayIndexError or preloc >= len(instring):
+                    try:
+                        loc, tokens = self.parseImpl(instring, preloc, doActions)
+                    except IndexError:
+                        raise ParseException(instring, len(instring), self.errmsg, self)
+                else:
+                    loc, tokens = self.parseImpl(instring, preloc, doActions)
+            except Exception as err:
                 #~ print ("Exception raised:", err)
-                if self.debugActions[2]:
-                    self.debugActions[2]( instring, tokensStart, self, err )
+                if self.debugActions[FAIL]:
+                    self.debugActions[FAIL]( instring, tokensStart, self, err )
                 if self.failAction:
                     self.failAction( instring, tokensStart, self, err )
                 raise
@@ -1594,10 +1599,10 @@ class ParserElement(object):
                                                       self.resultsName,
                                                       asList=self.saveAsList and isinstance(tokens,(ParseResults,list)),
                                                       modal=self.modalResults )
-                except ParseBaseException as err:
+                except Exception as err:
                     #~ print "Exception raised in user parse action:", err
-                    if (self.debugActions[2] ):
-                        self.debugActions[2]( instring, tokensStart, self, err )
+                    if self.debugActions[FAIL]:
+                        self.debugActions[FAIL]( instring, tokensStart, self, err )
                     raise
             else:
                 for fn in self.parseAction:
@@ -1615,8 +1620,9 @@ class ParserElement(object):
                                                   modal=self.modalResults )
         if debugging:
             #~ print ("Matched",self,"->",retTokens.asList())
-            if (self.debugActions[1] ):
-                self.debugActions[1]( instring, tokensStart, loc, self, retTokens )
+            if self.debugActions[MATCH]:
+                self.debugActions[MATCH]( instring, tokensStart, loc, self, retTokens )
+                print("do_actions =", doActions)
 
         return loc, retTokens
 
@@ -3848,15 +3854,32 @@ class Or(ParseExpression):
                 matches.append((loc2, e))
 
         if matches:
-            matches.sort(key=lambda x: -x[0])
-            for _,e in matches:
+            # re-evaluate all matches in descending order of length of match, in case attached actions
+            # might change whether or how much they match of the input.
+            matches.sort(key=itemgetter(0), reverse=True)
+
+            longest = -1, None
+            for loc1, expr1 in matches:
+                if loc1 <= longest[0]:
+                    # already have a longer match than this one will deliver, we are done
+                    return longest
+
                 try:
-                    return e._parse( instring, loc, doActions )
+                    loc2, toks = expr1._parse(instring, loc, doActions)
                 except ParseException as err:
                     err.__traceback__ = None
                     if err.loc > maxExcLoc:
                         maxException = err
                         maxExcLoc = err.loc
+                else:
+                    if loc2 >= loc1:
+                        return loc2, toks
+                    # didn't match as much as before
+                    elif loc2 > longest[0]:
+                        longest = loc2, toks
+
+            if longest != (-1, None):
+                return longest
 
         if maxException is not None:
             maxException.msg = self.errmsg

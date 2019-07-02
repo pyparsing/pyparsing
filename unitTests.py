@@ -2860,7 +2860,23 @@ class PatientOrTest(ParseTestCase):
             failed = True
         else:
             failed = False
-            self.assertFalse(failed, "invalid logic in Or, fails on longest match with exception in parse action")
+        self.assertFalse(failed, "invalid logic in Or, fails on longest match with exception in parse action")
+
+        # from issue #93
+        word = pp.Word(pp.alphas).setName('word')
+        word_1 = pp.Word(pp.alphas).setName('word_1').addCondition(lambda t: len(t[0]) == 1)
+
+        a = word + (word_1 + word ^ word)
+        b = word * 3
+        c = a ^ b
+        c.streamline()
+        print_(c)
+        test_string = 'foo bar temp'
+        result = c.parseString(test_string)
+        print_(test_string, '->', result.asList())
+
+        self.assertEqual(result.asList(), test_string.split(), "failed to match longest choice")
+
 
 class EachWithOptionalWithResultsNameTest(ParseTestCase):
     def runTest(self):

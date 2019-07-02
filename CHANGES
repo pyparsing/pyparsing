@@ -4,6 +4,19 @@ Change Log
 
 Version 2.4.1 -
 ----------------------
+- While investigating issue #93, I found that Or and
+  addCondition could interact to select an alternative that
+  is not the longest match. This is because Or first checks
+  all alternatives for matches without running attached
+  parse actions or conditions, orders by longest match, and
+  then rechecks for matches with conditions and parse actions.
+  Some expressions, when checking with conditions, may end
+  up matching on a shorter token list than originally matched,
+  but would be selected because of its original priority.
+  This matching code has been expanded to do more extensive
+  searching for matches when a second-pass check matches a
+  smaller list than in the first pass.
+
 - Fixed issue #87, a regression in indented block.
   Reported by Renz Bagaporo, who submitted a very nice repro
   example, which makes the bug-fixing process a lot easier,
