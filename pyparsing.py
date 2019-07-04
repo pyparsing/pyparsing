@@ -3027,9 +3027,9 @@ class Word(Token):
             except Exception:
                 self.re = None
 
-    def parseImpl( self, instring, loc, doActions=True ):
+    def parseImpl(self, instring, loc, doActions=True):
         if self.re:
-            result = self.re.match(instring,loc)
+            result = self.re.match(instring, loc)
             if not result:
                 raise ParseException(instring, loc, self.errmsg, self)
 
@@ -3044,21 +3044,25 @@ class Word(Token):
         instrlen = len(instring)
         bodychars = self.bodyChars
         maxloc = start + self.maxLen
-        maxloc = min( maxloc, instrlen )
+        maxloc = min(maxloc, instrlen)
         while loc < maxloc and instring[loc] in bodychars:
             loc += 1
 
-        throwException = False
+        # matching operations are finished, should now check the unmatch cases
         if loc - start < self.minLen:
-            throwException = True
-        elif self.maxSpecified and loc < instrlen and instring[loc] in bodychars:
-            throwException = True
-        elif self.asKeyword:
-            if (start>0 and instring[start-1] in bodychars) or (loc<instrlen and instring[loc] in bodychars):
-                throwException = True
-
-        if throwException:
+            # matched string is not as long as required
             raise ParseException(instring, loc, self.errmsg, self)
+
+        if self.maxSpecified and \
+           loc < instrlen and instring[loc] in bodychars:
+            # matched part is longer than the maximum allowed
+            raise ParseException(instring, loc, self.errmsg, self)
+
+        if self.asKeyword:
+            if start > 0 and instring[start-1] in bodychars:
+                raise ParseException(instring, loc, self.errmsg, self)
+            if loc < instrlen and instring[loc] in bodychars:
+                raise ParseException(instring, loc, self.errmsg, self)
 
         return loc, instring[start:loc]
 
