@@ -1038,21 +1038,22 @@ class SkipToParserTests(ParseTestCase):
                     self.assertEqual(result.asDict(), expected_dict)
 
             # ellipses for SkipTo
-            a = ... + Literal("end")
+            # (use eval() to avoid syntax problems when running in Py2)
+            a = eval('... + Literal("end")') #, globals(), locals())
             a.streamline()
             print_(a)
             test(a, "start 123 end", ['start 123 ', 'end'], {'_skipped': 'start 123 '})
-            b = Literal("start") + ... + Literal("end")
+            b = eval('Literal("start") + ... + Literal("end")') #, globals(), locals())
             b.streamline()
             print_(b)
             test(b, "start 123 end", ['start', '123 ', 'end'], {'_skipped': '123 '})
-            c = Literal("start") + ...
+            c = eval('Literal("start") + ...') #, globals(), locals())
             print_(c)
             test(c, "start 123 end", None, None)
-            d = And(["start", ..., "end"])
+            d = eval('And(["start", ..., "end"])') #, globals(), locals())
             print_(d)
             test(d, "start 123 end", ['start', '123 ', 'end'], {'_skipped': '123 '})
-            e = And([..., "end"])
+            e = eval('And([..., "end"])') #, globals(), locals())
             print_(e)
             test(e, "start 123 end", ['start 123 ', 'end'], {'_skipped': 'start 123 '})
 
@@ -3084,7 +3085,7 @@ class OneOrMoreStopTest(ParseTestCase):
             self.assertEqual(test, expr, "Did not successfully stop on ending expression %r" % ender)
 
             if PY_3:
-                expr = BEGIN + body_word[...].stopOn(ender) + END
+                expr = eval('BEGIN + body_word[...].stopOn(ender) + END')
                 self.assertEqual(test, expr, "Did not successfully stop on ending expression %r" % ender)
 
         number = Word(nums+',.()').setName("number with optional commas")
@@ -3106,7 +3107,7 @@ class ZeroOrMoreStopTest(ParseTestCase):
             self.assertEqual(test, expr, "Did not successfully stop on ending expression %r" % ender)
 
             if PY_3:
-                expr = BEGIN + body_word[0, ...].stopOn(ender) + END
+                expr = eval('BEGIN + body_word[0, ...].stopOn(ender) + END')
                 self.assertEqual(test, expr, "Did not successfully stop on ending expression %r" % ender)
 
 class NestedAsDictTest(ParseTestCase):
