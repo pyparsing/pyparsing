@@ -993,7 +993,7 @@ class ReStringRangeTest(ParseTestCase):
 class SkipToParserTests(ParseTestCase):
     def runTest(self):
 
-        from pyparsing import Literal, SkipTo, cStyleComment, ParseBaseException
+        from pyparsing import Literal, SkipTo, cStyleComment, ParseBaseException, And
 
         thingToFind = Literal('working')
         testExpr = SkipTo(Literal(';'), include=True, ignore=cStyleComment) + thingToFind
@@ -1024,6 +1024,38 @@ class SkipToParserTests(ParseTestCase):
         expr = SkipTo(data + suffix)('prefix') + data + suffix
         result = expr.parseString(text)
         self.assertTrue(isinstance(result.prefix, str), "SkipTo created with wrong saveAsList attribute")
+
+        if PY_3:
+            def test(expr, test_string, expected_list, expected_dict):
+
+                try:
+                    result = expr.parseString("start 123 end")
+                except Exception as pe:
+                    if expected_list is not None:
+                        self.assertTrue(False, "{} failed to parse {!r}".format(expr, test_string))
+                else:
+                    self.assertEqual(result.asList(), expected_list)
+                    self.assertEqual(result.asDict(), expected_dict)
+
+            # ellipses for SkipTo
+            a = ... + Literal("end")
+            a.streamline()
+            print_(a)
+            test(a, "start 123 end", ['start 123 ', 'end'], {'_skipped': 'start 123 '})
+            b = Literal("start") + ... + Literal("end")
+            b.streamline()
+            print_(b)
+            test(b, "start 123 end", ['start', '123 ', 'end'], {'_skipped': '123 '})
+            c = Literal("start") + ...
+            print_(c)
+            test(c, "start 123 end", None, None)
+            d = And(["start", ..., "end"])
+            print_(d)
+            test(d, "start 123 end", ['start', '123 ', 'end'], {'_skipped': '123 '})
+            e = And([..., "end"])
+            print_(e)
+            test(e, "start 123 end", ['start 123 ', 'end'], {'_skipped': 'start 123 '})
+
 
 class CustomQuotesTest(ParseTestCase):
     def runTest(self):
@@ -3051,6 +3083,10 @@ class OneOrMoreStopTest(ParseTestCase):
             expr = BEGIN + OneOrMore(body_word, stopOn=ender) + END
             self.assertEqual(test, expr, "Did not successfully stop on ending expression %r" % ender)
 
+            if PY_3:
+                expr = BEGIN + body_word[...].stopOn(ender) + END
+                self.assertEqual(test, expr, "Did not successfully stop on ending expression %r" % ender)
+
         number = Word(nums+',.()').setName("number with optional commas")
         parser= (OneOrMore(Word(alphanums+'-/.'), stopOn=number)('id').setParseAction(' '.join)
                     + number('data'))
@@ -3068,6 +3104,10 @@ class ZeroOrMoreStopTest(ParseTestCase):
         for ender in (END, "END", CaselessKeyword("END")):
             expr = BEGIN + ZeroOrMore(body_word, stopOn=ender) + END
             self.assertEqual(test, expr, "Did not successfully stop on ending expression %r" % ender)
+
+            if PY_3:
+                expr = BEGIN + body_word[0, ...].stopOn(ender) + END
+                self.assertEqual(test, expr, "Did not successfully stop on ending expression %r" % ender)
 
 class NestedAsDictTest(ParseTestCase):
     def runTest(self):
@@ -4017,7 +4057,7 @@ class IndentedBlockTest(ParseTestCase):
         value <<= pp.pyparsing_common.integer | pp.QuotedString("'") | compound_value
         parser = pp.Dict(pp.OneOrMore(pp.Group(key_value)))
 
-        text = """\
+        text = """
             a = 100
             b = 101
             c =
@@ -4069,7 +4109,7 @@ class IndentedBlockTest2(ParseTestCase):
 
         parser = OneOrMore(contents)
 
-        sample = dedent("""\
+        sample = dedent("""
         extra:
             [test]
             one0: 

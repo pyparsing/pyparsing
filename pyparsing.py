@@ -96,7 +96,7 @@ classes inherit from. Use the docstrings for examples of how to:
 """
 
 __version__ = "2.4.1"
-__versionTime__ = "02 Jul 2019 21:24 UTC"
+__versionTime__ = "04 Jul 2019 04:40 UTC"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -2036,7 +2036,36 @@ class ParserElement(object):
         prints::
 
             Hello, World! -> ['Hello', ',', 'World', '!']
+
+        ``...`` may be used as a parse expression as a short form of :class:`SkipTo`.
+
+            Literal('start') + ... + Literal('end')
+
+        is equivalent to:
+
+            Literal('start') + SkipTo('end')("_skipped") + Literal('end')
+
+        Note that the skipped text is returned with '_skipped' as a results name.
+
         """
+
+        class _PendingSkip(ParserElement):
+            # internal placeholder class to hold a place were '...' is added to a parser element,
+            # once another ParserElement is added, this placeholder will be replaced with a
+            # SkipTo
+            def __init__(self, expr):
+                super(_PendingSkip, self).__init__()
+                self.name = str(expr + '').replace('""', '...')
+                self.expr = expr
+
+            def __add__(self, other):
+                return self.expr + SkipTo(other)("_skipped") + other
+
+            def parseImpl(self, *args):
+                raise Exception("use of `...` expression without following SkipTo target expression")
+
+        if other is Ellipsis:
+            return _PendingSkip(self)
         if isinstance( other, basestring ):
             other = ParserElement._literalStringClass( other )
         if not isinstance( other, ParserElement ):
@@ -2049,9 +2078,12 @@ class ParserElement(object):
         """
         Implementation of + operator when left operand is not a :class:`ParserElement`
         """
-        if isinstance( other, basestring ):
-            other = ParserElement._literalStringClass( other )
-        if not isinstance( other, ParserElement ):
+        if other is Ellipsis:
+            return SkipTo(self)("_skipped") + self
+
+        if isinstance(other, basestring):
+            other = ParserElement._literalStringClass(other)
+        if not isinstance(other, ParserElement):
             warnings.warn("Cannot combine element of type %s with ParserElement" % type(other),
                     SyntaxWarning, stacklevel=2)
             return None
@@ -2081,6 +2113,43 @@ class ParserElement(object):
             return None
         return other - self
 
+    def __getitem__(self, key):
+        """
+        use ``[]`` indexing notation as a short form for expression repetition:
+         - ``expr[n]`` is equivalent to ``expr*n``
+         - ``expr[m, n]`` is equivalent to ``expr*(m, n)``
+         - ``expr[n, ...]`` or ``expr[n,]`` is equivalent
+              to ``expr*n + ZeroOrMore(expr)``
+              (read as "at least n instances of ``expr``")
+         - ``expr[..., n]`` is equivalent to ``expr*(0,n)``
+              (read as "0 to n instances of ``expr``")
+         - ``expr[0, ...]`` is equivalent to ``ZeroOrMore(expr)``
+         - ``expr[1, ...]`` is equivalent to ``OneOrMore(expr)``
+         - ``expr[...]`` is equivalent to ``OneOrMore(expr)``
+         ``None`` may be used in place of ``...``.
+
+        Note that ``expr[..., n]`` and ``expr[m, n]``do not raise an exception
+        if more than ``n`` ``expr``s exist in the input stream.  If this behavior is
+        desired, then write ``expr[..., n] + ~expr``.
+       """
+
+        # convert single arg keys to tuples
+        try:
+            if isinstance(key, str):
+                key = (key,)
+            iter(key)
+        except TypeError:
+            key = (key,)
+
+        if len(key) > 2:
+            warnings.warn("only 1 or 2 index arguments supported ({}{})".format(key[:5],
+                                                                                '... [{}]'.format(len(key))
+                                                                                if len(key) > 5 else ''))
+
+        # clip to 2 elements
+        ret = self * tuple(key[:2])
+        return ret
+
     def __mul__(self,other):
         """
         Implementation of * operator, allows use of ``expr * 3`` in place of
@@ -2101,9 +2170,12 @@ class ParserElement(object):
         occurrences.  If this behavior is desired, then write
         ``expr*(None,n) + ~expr``
         """
+        if other is Ellipsis or other == (Ellipsis, ):
+            other = (1, None)
         if isinstance(other,int):
             minElements, optElements = other,0
-        elif isinstance(other,tuple):
+        elif isinstance(other, tuple):
+            other = tuple(o if o is not Ellipsis else None for o in other)
             other = (other + (None, None))[:2]
             if other[0] is None:
                 other = (0, other[1])
@@ -3626,8 +3698,8 @@ class ParseExpression(ParserElement):
         elif isinstance( exprs, Iterable ):
             exprs = list(exprs)
             # if sequence of strings provided, wrap with Literal
-            if all(isinstance(expr, basestring) for expr in exprs):
-                exprs = map(ParserElement._literalStringClass, exprs)
+            if any(isinstance(expr, basestring) for expr in exprs):
+                exprs = (ParserElement._literalStringClass(e) if isinstance(e, basestring) else e for e in exprs)
             self.exprs = list(exprs)
         else:
             try:
@@ -3635,9 +3707,6 @@ class ParseExpression(ParserElement):
             except TypeError:
                 self.exprs = [ exprs ]
         self.callPreparse = False
-
-    def __getitem__( self, i ):
-        return self.exprs[i]
 
     def append( self, other ):
         self.exprs.append( other )
@@ -3745,6 +3814,18 @@ class And(ParseExpression):
             self.leaveWhitespace()
 
     def __init__( self, exprs, savelist = True ):
+        if exprs and Ellipsis in exprs:
+            tmp = []
+            for i, expr in enumerate(exprs):
+                if expr is Ellipsis:
+                    if i < len(exprs)-1:
+                        skipto_arg = (Empty() + exprs[i+1]).exprs[-1]
+                        tmp.append(SkipTo(skipto_arg)("_skipped"))
+                    else:
+                        raise Exception("cannot construct And with sequence ending in ...")
+                else:
+                    tmp.append(expr)
+            exprs[:] = tmp
         super(And,self).__init__(exprs, savelist)
         self.mayReturnEmpty = all(e.mayReturnEmpty for e in self.exprs)
         self.setWhitespaceChars( self.exprs[0].whiteChars )
@@ -4350,7 +4431,13 @@ class _MultipleMatch(ParseElementEnhance):
         ender = stopOn
         if isinstance(ender, basestring):
             ender = ParserElement._literalStringClass(ender)
+        self.stopOn(ender)
+
+    def stopOn(self, ender):
+        if isinstance(ender, basestring):
+            ender = ParserElement._literalStringClass(ender)
         self.not_ender = ~ender if ender is not None else None
+        return self
 
     def parseImpl( self, instring, loc, doActions=True ):
         self_expr_parse = self.expr._parse

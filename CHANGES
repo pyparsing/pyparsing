@@ -4,6 +4,35 @@ Change Log
 
 Version 2.4.1 -
 ----------------------
+- A new shorthand notation has been added for repetition
+  expressions: expr[min, max], with '...' valid as a min
+  or max value:
+     - expr[...] is equivalent to OneOrMore(expr)
+     - expr[0, ...] is equivalent to ZeroOrMore(expr)
+     - expr[1, ...] is equivalent to OneOrMore(expr)
+     - expr[n, ...] or expr[n,] is equivalent
+          to expr*n + ZeroOrMore(expr)
+          (read as "n or more instances of expr")
+     - expr[..., n] is equivalent to expr*(0, n)
+     - expr[m, n] is equivalent to expr*(m, n)
+  Note that expr[..., n] and expr[m, n]do not raise an exception
+  if more than n exprs exist in the input stream.  If this
+  behavior is desired, then write expr[..., n] + ~expr.
+
+- '...' can also be used as short hand for SkipTo when used
+  in adding parse expressions to compose an And expression.
+
+      Literal('start') + ... + Literal('end')
+      And(['start', ..., 'end'])
+
+  are both equivalent to:
+
+      Literal('start') + SkipTo('end')("_skipped") + Literal('end')
+
+  The '...' form has the added benefit of not requiring repeating
+  the skip target expression. Note that the skipped text is
+  returned with '_skipped' as a results name.
+
 - While investigating issue #93, I found that Or and
   addCondition could interact to select an alternative that
   is not the longest match. This is because Or first checks
