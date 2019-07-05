@@ -33,6 +33,28 @@ Version 2.4.1 -
   the skip target expression. Note that the skipped text is
   returned with '_skipped' as a results name.
 
+  '...' can also be used as a "skip forward in case of error" expression:
+
+        expr = "start" + (Word(nums).setName("int") | ...) + "end"
+
+        expr.parseString("start 456 end")
+        ['start', '456', 'end']
+
+        expr.parseString("start 456 foo 789 end")
+        ['start', '456', 'foo 789 ', 'end']
+        - _skipped: 'foo 789 '
+
+        expr.parseString("start foo end")
+        ['start', 'foo ', 'end']
+        - _skipped: 'foo '
+
+        expr.parseString("start end")
+        ['start', '', 'end']
+        - _skipped: 'missing <int>'
+
+  Note that in all the error cases, the '_skipped' results name is
+  present, show the extra or missing items.
+
 - While investigating issue #93, I found that Or and
   addCondition could interact to select an alternative that
   is not the longest match. This is because Or first checks
@@ -50,6 +72,9 @@ Version 2.4.1 -
   Reported by Renz Bagaporo, who submitted a very nice repro
   example, which makes the bug-fixing process a lot easier,
   thanks!
+
+- Fixed MemoryError issue #85 and #91 with str generation for
+  Forwards. Thanks decalage2 and Harmon758 for your patience.
 
 - Modified setParseAction to accept None as an argument,
   indicating that all previously-defined parse actions for the

@@ -96,7 +96,7 @@ classes inherit from. Use the docstrings for examples of how to:
 """
 
 __version__ = "2.4.1"
-__versionTime__ = "05 Jul 2019 15:20 UTC"
+__versionTime__ = "05 Jul 2019 23:23 UTC"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -1248,6 +1248,7 @@ def _trim_arity(func, maxargs=2):
 
     return wrapper
 
+
 class ParserElement(object):
     """Abstract base level parser element class."""
     DEFAULT_WHITE_CHARS = " \n\t\r"
@@ -2048,24 +2049,9 @@ class ParserElement(object):
         Note that the skipped text is returned with '_skipped' as a results name.
 
         """
-
-        class _PendingSkip(ParserElement):
-            # internal placeholder class to hold a place were '...' is added to a parser element,
-            # once another ParserElement is added, this placeholder will be replaced with a
-            # SkipTo
-            def __init__(self, expr):
-                super(_PendingSkip, self).__init__()
-                self.name = str(expr + '').replace('""', '...')
-                self.expr = expr
-
-            def __add__(self, other):
-                return self.expr + SkipTo(other)("_skipped") + other
-
-            def parseImpl(self, *args):
-                raise Exception("use of `...` expression without following SkipTo target expression")
-
         if other is Ellipsis:
             return _PendingSkip(self)
+
         if isinstance( other, basestring ):
             other = ParserElement._literalStringClass( other )
         if not isinstance( other, ParserElement ):
@@ -2112,43 +2098,6 @@ class ParserElement(object):
                     SyntaxWarning, stacklevel=2)
             return None
         return other - self
-
-    def __getitem__(self, key):
-        """
-        use ``[]`` indexing notation as a short form for expression repetition:
-         - ``expr[n]`` is equivalent to ``expr*n``
-         - ``expr[m, n]`` is equivalent to ``expr*(m, n)``
-         - ``expr[n, ...]`` or ``expr[n,]`` is equivalent
-              to ``expr*n + ZeroOrMore(expr)``
-              (read as "at least n instances of ``expr``")
-         - ``expr[..., n]`` is equivalent to ``expr*(0,n)``
-              (read as "0 to n instances of ``expr``")
-         - ``expr[0, ...]`` is equivalent to ``ZeroOrMore(expr)``
-         - ``expr[1, ...]`` is equivalent to ``OneOrMore(expr)``
-         - ``expr[...]`` is equivalent to ``OneOrMore(expr)``
-         ``None`` may be used in place of ``...``.
-
-        Note that ``expr[..., n]`` and ``expr[m, n]``do not raise an exception
-        if more than ``n`` ``expr``s exist in the input stream.  If this behavior is
-        desired, then write ``expr[..., n] + ~expr``.
-       """
-
-        # convert single arg keys to tuples
-        try:
-            if isinstance(key, str):
-                key = (key,)
-            iter(key)
-        except TypeError:
-            key = (key,)
-
-        if len(key) > 2:
-            warnings.warn("only 1 or 2 index arguments supported ({0}{1})".format(key[:5],
-                                                                                '... [{0}]'.format(len(key))
-                                                                                if len(key) > 5 else ''))
-
-        # clip to 2 elements
-        ret = self * tuple(key[:2])
-        return ret
 
     def __mul__(self,other):
         """
@@ -2228,6 +2177,9 @@ class ParserElement(object):
         """
         Implementation of | operator - returns :class:`MatchFirst`
         """
+        if other is Ellipsis:
+            return _PendingSkip(self, must_skip=True)
+
         if isinstance( other, basestring ):
             other = ParserElement._literalStringClass( other )
         if not isinstance( other, ParserElement ):
@@ -2301,6 +2253,43 @@ class ParserElement(object):
         Implementation of ~ operator - returns :class:`NotAny`
         """
         return NotAny( self )
+
+    def __getitem__(self, key):
+        """
+        use ``[]`` indexing notation as a short form for expression repetition:
+         - ``expr[n]`` is equivalent to ``expr*n``
+         - ``expr[m, n]`` is equivalent to ``expr*(m, n)``
+         - ``expr[n, ...]`` or ``expr[n,]`` is equivalent
+              to ``expr*n + ZeroOrMore(expr)``
+              (read as "at least n instances of ``expr``")
+         - ``expr[..., n]`` is equivalent to ``expr*(0,n)``
+              (read as "0 to n instances of ``expr``")
+         - ``expr[0, ...]`` is equivalent to ``ZeroOrMore(expr)``
+         - ``expr[1, ...]`` is equivalent to ``OneOrMore(expr)``
+         - ``expr[...]`` is equivalent to ``OneOrMore(expr)``
+         ``None`` may be used in place of ``...``.
+
+        Note that ``expr[..., n]`` and ``expr[m, n]``do not raise an exception
+        if more than ``n`` ``expr``s exist in the input stream.  If this behavior is
+        desired, then write ``expr[..., n] + ~expr``.
+       """
+
+        # convert single arg keys to tuples
+        try:
+            if isinstance(key, str):
+                key = (key,)
+            iter(key)
+        except TypeError:
+            key = (key,)
+
+        if len(key) > 2:
+            warnings.warn("only 1 or 2 index arguments supported ({0}{1})".format(key[:5],
+                                                                                '... [{0}]'.format(len(key))
+                                                                                if len(key) > 5 else ''))
+
+        # clip to 2 elements
+        ret = self * tuple(key[:2])
+        return ret
 
     def __call__(self, name=None):
         """
@@ -2667,6 +2656,38 @@ class ParserElement(object):
             allResults.append((t, result))
 
         return success, allResults
+
+
+class _PendingSkip(ParserElement):
+    # internal placeholder class to hold a place were '...' is added to a parser element,
+    # once another ParserElement is added, this placeholder will be replaced with a SkipTo
+    def __init__(self, expr, must_skip=False):
+        super(_PendingSkip, self).__init__()
+        self.strRepr = str(expr + Empty()).replace('Empty', '...')
+        self.name = self.strRepr
+        self.anchor = expr
+        self.must_skip = must_skip
+
+    def __add__(self, other):
+        skipper = SkipTo(other).setName("...")("_skipped")
+        if self.must_skip:
+            def must_skip(t):
+                if not t._skipped:
+                    del t[0]
+                    t.pop("_skipped", None)
+            def show_skip(t):
+                if not t._skipped:
+                    t['_skipped'] = 'missing <' + repr(self.anchor) + '>'
+            return (self.anchor + skipper().addParseAction(must_skip)
+                    | skipper().addParseAction(show_skip)) + other
+
+        return self.anchor + skipper + other
+
+    def __repr__(self):
+        return self.strRepr
+
+    def parseImpl(self, *args):
+        raise Exception("use of `...` expression without following SkipTo target expression")
 
 
 class Token(ParserElement):
@@ -3834,6 +3855,16 @@ class And(ParseExpression):
         self.callPreparse = True
 
     def streamline(self):
+        # collapse any _PendingSkip's
+        if any(isinstance(e, ParseExpression) and isinstance(e.exprs[-1], _PendingSkip) for e in self.exprs[:-1]):
+            for i, e in enumerate(self.exprs[:-1]):
+                if e is None:
+                    continue
+                if (isinstance(e, ParseExpression) and isinstance(e.exprs[-1], _PendingSkip)):
+                    e.exprs[-1] = e.exprs[-1] + self.exprs[i+1]
+                    self.exprs[i+1] = None
+            self.exprs = [e for e in self.exprs if e is not None]
+
         super(And, self).streamline()
         self.mayReturnEmpty = all(e.mayReturnEmpty for e in self.exprs)
         return self

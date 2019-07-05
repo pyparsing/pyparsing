@@ -993,7 +993,7 @@ class ReStringRangeTest(ParseTestCase):
 class SkipToParserTests(ParseTestCase):
     def runTest(self):
 
-        from pyparsing import Literal, SkipTo, cStyleComment, ParseBaseException, And
+        from pyparsing import Literal, SkipTo, cStyleComment, ParseBaseException, And, Word, nums, Optional
 
         thingToFind = Literal('working')
         testExpr = SkipTo(Literal(';'), include=True, ignore=cStyleComment) + thingToFind
@@ -1029,9 +1029,9 @@ class SkipToParserTests(ParseTestCase):
             def test(expr, test_string, expected_list, expected_dict):
 
                 try:
-                    result = expr.parseString("start 123 end")
+                    result = expr.parseString(test_string)
                 except Exception as pe:
-                    if expected_list is not None:
+                    if any(expected is not None for expected in (expected_list, expected_dict)):
                         self.assertTrue(False, "{} failed to parse {!r}".format(expr, test_string))
                 else:
                     self.assertEqual(result.asList(), expected_list)
@@ -1056,6 +1056,19 @@ class SkipToParserTests(ParseTestCase):
             e = eval('And([..., "end"])') #, globals(), locals())
             print_(e)
             test(e, "start 123 end", ['start 123 ', 'end'], {'_skipped': 'start 123 '})
+            f = eval('"start" + (Word(nums).setName("int") | ...) + "end"')
+            f.streamline()
+            print_(f)
+            test(f, "start 456 end", ['start', '456', 'end'], {})
+            test(f, "start 123 456 end", ['start', '123', '456 ', 'end'], {'_skipped': '456 '})
+            test(f, "start end", ['start', '', 'end'], {'_skipped': 'missing <int>'})
+            g = eval('"start" + (Optional(Word(nums).setName("int")) | ...) + "end"')
+            g.streamline()
+            print_(g)
+            test(g, "start 456 end", ['start', '456', 'end'], {})
+            test(g, "start 123 456 end", ['start', '123', '456 ', 'end'], {'_skipped': '456 '})
+            test(g, "start foo end", ['start', 'foo ', 'end'], {'_skipped': 'foo '})
+            test(g, "start end", ['start', 'end'], {})
 
 
 class CustomQuotesTest(ParseTestCase):
