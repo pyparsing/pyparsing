@@ -2,11 +2,10 @@
 #
 # chemicalFormulas.py
 #
-# Copyright (c) 2003, Paul McGuire
+# Copyright (c) 2003,2019 Paul McGuire
 #
 
-from pyparsing import Word, Optional, OneOrMore, Group, ParseException, Regex
-from pyparsing import alphas
+import pyparsing as pp
 
 atomicWeight = {
     "O"  : 15.9994,
@@ -19,14 +18,14 @@ atomicWeight = {
 digits = "0123456789"
 
 # Version 1
-element = Word( alphas.upper(), alphas.lower(), max=2)
+element = pp.Word(pp.alphas.upper(), pp.alphas.lower(), max=2)
 # for stricter matching, use this Regex instead
 # element = Regex("A[cglmrstu]|B[aehikr]?|C[adeflmorsu]?|D[bsy]|"
 #                 "E[rsu]|F[emr]?|G[ade]|H[efgos]?|I[nr]?|Kr?|L[airu]|"
 #                 "M[dgnot]|N[abdeiop]?|Os?|P[abdmortu]?|R[abefghnu]|"
 #                 "S[bcegimnr]?|T[abcehilm]|U(u[bhopqst])?|V|W|Xe|Yb?|Z[nr]")
-elementRef = Group( element + Optional( Word( digits ), default="1" ) )
-formula = OneOrMore( elementRef )
+elementRef = pp.Group(element + pp.Optional(pp.Word(digits), default="1"))
+formula = elementRef[...]
 
 fn = lambda elemList : sum(atomicWeight[elem]*int(qty) for elem,qty in elemList)
 formula.runTests("""\
@@ -38,8 +37,8 @@ formula.runTests("""\
 print()
 
 # Version 2 - access parsed items by results name
-elementRef = Group( element("symbol") + Optional( Word( digits ), default="1" )("qty") )
-formula = OneOrMore( elementRef )
+elementRef = pp.Group(element("symbol") + pp.Optional(pp.Word(digits), default="1")("qty"))
+formula = elementRef[...]
 
 fn = lambda elemList : sum(atomicWeight[elem.symbol]*int(elem.qty) for elem in elemList)
 formula.runTests("""\
@@ -51,9 +50,9 @@ formula.runTests("""\
 print()
 
 # Version 3 - convert integers during parsing process
-integer = Word( digits ).setParseAction(lambda t:int(t[0]))
-elementRef = Group( element("symbol") + Optional( integer, default=1 )("qty") )
-formula = OneOrMore( elementRef )
+integer = pp.Word(digits).setParseAction(lambda t:int(t[0]))
+elementRef = pp.Group(element("symbol") + pp.Optional(integer, default=1)("qty"))
+formula = elementRef[...]
 
 fn = lambda elemList : sum(atomicWeight[elem.symbol]*elem.qty for elem in elemList)
 formula.runTests("""\
@@ -72,10 +71,10 @@ def cvt_subscript_int(s):
     for c in s[0]:
         ret = ret*10 + subscript_int_map[c]
     return ret
-subscript_int = Word(subscript_digits).addParseAction(cvt_subscript_int)
+subscript_int = pp.Word(subscript_digits).addParseAction(cvt_subscript_int)
 
-elementRef = Group( element("symbol") + Optional(subscript_int, default=1)("qty") )
-formula = OneOrMore( elementRef )
+elementRef = pp.Group(element("symbol") + pp.Optional(subscript_int, default=1)("qty"))
+formula = elementRef[...]
 formula.runTests("""\
     H₂O
     C₆H₅OH

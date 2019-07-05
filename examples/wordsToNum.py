@@ -3,13 +3,13 @@
 #
 # Sample parser grammar to read a number given in words, and return the numeric value.
 #
-from pyparsing import *
+import pyparsing as pp
 from operator import mul
 from functools import reduce
 
-def makeLit(s,val):
-    ret = CaselessLiteral(s).setName(s)
-    return ret.setParseAction( replaceWith(val) )
+def makeLit(s, val):
+    ret = pp.CaselessLiteral(s)
+    return ret.setParseAction(pp.replaceWith(val))
 
 unitDefinitions = [
     ("zero",       0),
@@ -38,7 +38,7 @@ unitDefinitions = [
     ("eighteen",  18),
     ("nineteen",  19),
     ]
-units = Or(makeLit(s,v) for s,v in unitDefinitions)
+units = pp.MatchFirst(makeLit(s,v) for s,v in sorted(unitDefinitions, key=lambda d: -len(d[0])))
 
 tensDefinitions = [
     ("ten",     10),
@@ -52,7 +52,7 @@ tensDefinitions = [
     ("eighty",  80),
     ("ninety",  90),
     ]
-tens = Or(makeLit(s,v) for s,v in tensDefinitions)
+tens = pp.MatchFirst(makeLit(s,v) for s,v in tensDefinitions)
 
 hundreds = makeLit("hundred", 100)
 
@@ -64,43 +64,47 @@ majorDefinitions = [
     ("quadrillion", int(1e15)),
     ("quintillion", int(1e18)),
     ]
-mag = Or(makeLit(s,v) for s,v in majorDefinitions)
+mag = pp.MatchFirst(makeLit(s,v) for s,v in majorDefinitions)
 
 wordprod = lambda t: reduce(mul,t)
-wordsum = lambda t: sum(t)
-numPart = (((( units + Optional(hundreds) ).setParseAction(wordprod) +
-               Optional(tens)).setParseAction(wordsum)
-               ^ tens )
-               + Optional(units) ).setParseAction(wordsum)
-numWords = OneOrMore( (numPart + Optional(mag)).setParseAction(wordprod)
-                    ).setParseAction(wordsum) + StringEnd()
-numWords.ignore(Literal("-"))
-numWords.ignore(CaselessLiteral("and"))
+numPart = ((((units + pp.Optional(hundreds)).setParseAction(wordprod)
+             + pp.Optional(tens)
+             ).setParseAction(sum)
+            ^ tens)
+           + pp.Optional(units)
+           ).setParseAction(sum)
+numWords = ((numPart + pp.Optional(mag)).setParseAction(wordprod)[...]).setParseAction(sum)
+numWords.setName("num word parser")
 
-def test(s,expected):
-    try:
-        fail_expected = (expected is None)
-        success, results_tup = numWords.runTests(s, failureTests=fail_expected)
-        assert success, "Failed test!"
-        if not fail_expected:
-            teststr, results = results_tup[0]
-            observed = results[0]
-            assert expected == observed, "incorrect parsed value, {0} -> {1}, should be {2}".format(teststr, observed, expected)
-    except Exception as exc:
-        print("{0}: {1}".format(type(exc).__name__, exc))
+numWords.ignore(pp.Literal("-"))
+numWords.ignore(pp.CaselessLiteral("and"))
 
-test("one hundred twenty hundred", None)
-test("one hundred and twennty", None)
-test("one hundred and twenty", 120)
-test("one hundred and three", 103)
-test("one hundred twenty-three", 123)
-test("one hundred and twenty three", 123)
-test("one hundred twenty three million", 123000000)
-test("one hundred and twenty three million", 123000000)
-test("one hundred twenty three million and three", 123000003)
-test("fifteen hundred and sixty five", 1565)
-test("seventy-seven thousand eight hundred and nineteen", 77819)
-test("seven hundred seventy-seven thousand seven hundred and seventy-seven", 777777)
-test("zero", 0)
-test("forty two", 42)
-test("fourty two", 42)
+tests = """
+    one hundred twenty hundred, None
+    one hundred and twennty, None
+    one hundred and twenty, 120
+    one hundred and three, 103
+    one hundred twenty-three, 123
+    one hundred and twenty three, 123
+    one hundred twenty three million, 123000000
+    one hundred and twenty three million, 123000000
+    one hundred twenty three million and three, 123000003
+    fifteen hundred and sixty five, 1565
+    seventy-seven thousand eight hundred and nineteen, 77819
+    seven hundred seventy-seven thousand seven hundred and seventy-seven, 777777
+    zero, 0
+    forty two, 42
+    fourty two, 42
+"""
+
+# use '| ...' to indicate "if omitted, skip to next" logic
+test_expr = (numWords('result') | ...) + ',' + (pp.pyparsing_common.integer('expected') | 'None')
+
+def verify_result(t):
+    if '_skipped' in t:
+        t['pass'] = False
+    elif 'expected' in t:
+        t['pass'] = t.result == t.expected
+test_expr.addParseAction(verify_result)
+
+test_expr.runTests(tests)

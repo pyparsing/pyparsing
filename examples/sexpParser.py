@@ -18,12 +18,12 @@ BNF reference: http://theory.lcs.mit.edu/~rivest/sexp.txt
 <sexp>    	:: <string> | <list>
 <string>   	:: <display>? <simple-string> ;
 <simple-string>	:: <raw> | <token> | <base-64> | <hexadecimal> |
-		           <quoted-string> ;
+                   <quoted-string> ;
 <display>  	:: "[" <simple-string> "]" ;
 <raw>      	:: <decimal> ":" <bytes> ;
 <decimal>  	:: <decimal-digit>+ ;
-		-- decimal numbers should have no unnecessary leading zeros
-<bytes> 	-- any string of bytes, of the indicated length
+        -- decimal numbers should have no unnecessary leading zeros
+<bytes>     -- any string of bytes, of the indicated length
 <token>    	:: <tokenchar>+ ;
 <base-64>  	:: <decimal>? "|" ( <base-64-char> | <whitespace> )* "|" ;
 <hexadecimal>   :: "#" ( <hex-digit> | <white-space> )* "#" ;
@@ -43,51 +43,51 @@ BNF reference: http://theory.lcs.mit.edu/~rivest/sexp.txt
 <null>        	:: "" ;
 """
 
-from pyparsing import *
+import pyparsing as pp
 from base64 import b64decode
 import pprint
 
-def verifyLen(s,l,t):
+
+def verify_length(s, l, t):
     t = t[0]
     if t.len is not None:
         t1len = len(t[1])
         if t1len != t.len:
-            raise ParseFatalException(s,l,\
-                    "invalid data of length %d, expected %s" % (t1len, t.len))
+            raise pp.ParseFatalException(s, l, "invalid data of length {0}, expected {1}".format(t1len, t.len))
     return t[1]
 
+
 # define punctuation literals
-LPAR, RPAR, LBRK, RBRK, LBRC, RBRC, VBAR = map(Suppress, "()[]{}|")
+LPAR, RPAR, LBRK, RBRK, LBRC, RBRC, VBAR, COLON = (pp.Suppress(c).setName(c) for c in "()[]{}|:")
 
-decimal = Regex(r'0|[1-9]\d*').setParseAction(lambda t: int(t[0]))
-hexadecimal = ("#" + OneOrMore(Word(hexnums)) + "#")\
-                .setParseAction(lambda t: int("".join(t[1:-1]),16))
-bytes = Word(printables)
-raw = Group(decimal("len") + Suppress(":") + bytes).setParseAction(verifyLen)
-token = Word(alphanums + "-./_:*+=")
-base64_ = Group(Optional(decimal|hexadecimal,default=None)("len") + VBAR
-    + OneOrMore(Word( alphanums +"+/=" )).setParseAction(lambda t: b64decode("".join(t)))
-    + VBAR).setParseAction(verifyLen)
+decimal = pp.Regex(r'-?0|[1-9]\d*').setParseAction(lambda t: int(t[0]))
+hexadecimal = ("#" + pp.Word(pp.hexnums)[...] + "#").setParseAction(lambda t: int("".join(t[1:-1]), 16))
+bytes = pp.Word(pp.printables)
+raw = pp.Group(decimal("len") + COLON + bytes).setParseAction(verify_length)
+base64_ = pp.Group(pp.Optional(decimal | hexadecimal, default=None)("len")
+                   + VBAR
+                   + pp.Word(pp.alphanums + "+/=")[...].setParseAction(lambda t: b64decode("".join(t)))
+                   + VBAR
+                   ).setParseAction(verify_length)
 
-qString = Group(Optional(decimal,default=None)("len") +
-                        dblQuotedString.setParseAction(removeQuotes)).setParseAction(verifyLen)
-simpleString = base64_ | raw | decimal | token | hexadecimal | qString
-
-# extended definitions
-decimal = Regex(r'-?0|[1-9]\d*').setParseAction(lambda t: int(t[0]))
-real = Regex(r"[+-]?\d+\.\d*([eE][+-]?\d+)?").setParseAction(lambda tokens: float(tokens[0]))
-token = Word(alphanums + "-./_:*+=!<>")
+real = pp.Regex(r"[+-]?\d+\.\d*([eE][+-]?\d+)?").setParseAction(lambda tokens: float(tokens[0]))
+token = pp.Word(pp.alphanums + "-./_:*+=!<>")
+qString = pp.Group(pp.Optional(decimal, default=None)("len")
+                   + pp.dblQuotedString.setParseAction(pp.removeQuotes)
+                   ).setParseAction(verify_length)
 
 simpleString = real | base64_ | raw | decimal | token | hexadecimal | qString
 
 display = LBRK + simpleString + RBRK
-string_ = Optional(display) + simpleString
+string_ = pp.Optional(display) + simpleString
 
-sexp = Forward()
-sexpList = Group(LPAR + ZeroOrMore(sexp) + RPAR)
-sexp << ( string_ | sexpList )
+sexp = pp.Forward()
+sexpList = pp.Group(LPAR + sexp[0, ...] + RPAR)
+sexp <<= string_ | sexpList
 
-######### Test data ###########
+
+#  Test data
+
 test00 = """(snicker "abc" (#03# |YWJj|))"""
 test01 = """(certificate
  (issuer
@@ -142,7 +142,7 @@ test07 = """(defun factorial (x)
 test51 = """(2:XX "abc" (#03# |YWJj|))"""
 test51error = """(3:XX "abc" (#03# |YWJj|))"""
 
-test52 =     """
+test52 = """
     (and
       (or (> uid 1000)
           (!= gid 20)
@@ -152,7 +152,6 @@ test52 =     """
     """
 
 # Run tests
-t = None
-alltests = [ globals()[t] for t in sorted(locals()) if t.startswith("test") ]
+alltests = [globals()[testname] for testname in sorted(locals()) if testname.startswith("test")]
 
 sexp.runTests(alltests, fullDump=False)
