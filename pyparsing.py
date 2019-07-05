@@ -96,7 +96,7 @@ classes inherit from. Use the docstrings for examples of how to:
 """
 
 __version__ = "2.4.1"
-__versionTime__ = "05 Jul 2019 04:57 UTC"
+__versionTime__ = "05 Jul 2019 15:20 UTC"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -4793,19 +4793,22 @@ class Forward(ParseElementEnhance):
     def __str__( self ):
         if hasattr(self, "name"):
             return self.name
+        if self.strRepr is not None:
+            return self.strRepr
 
-        # Avoid infinite recursion by setting a temporary name
-        self.name = self.__class__.__name__ + ": ..."
+        # Avoid infinite recursion by setting a temporary strRepr
+        self.strRepr = ": ..."
 
         # Use the string representation of main expression.
+        retString = '...'
         try:
             if self.expr is not None:
-                retString = _ustr(self.expr)
+                retString = _ustr(self.expr)[:1000]
             else:
                 retString = "None"
         finally:
-            self.name = self.__class__.__name__ + ": " + retString
-        return self.name
+            self.strRepr = self.__class__.__name__ + ": " + retString
+        return self.strRepr
 
     def copy(self):
         if self.expr is not None:

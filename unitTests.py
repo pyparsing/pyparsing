@@ -2981,7 +2981,7 @@ class SetNameTest(ParseTestCase):
             + | - term
             Forward: ?: term
             ?: term
-            Forward: {a | b | c [{d | e | f Forward: ...}]...}
+            Forward: {a | b | c [{d | e | f : ...}]...}
             int [, int]...
             (len) int...
             nested () expression
@@ -2992,6 +2992,7 @@ class SetNameTest(ParseTestCase):
 
         for t,e in zip(tests, expected):
             tname = str(t)
+            print_(tname)
             self.assertEqual(tname, e, "expression name mismatch, expected {0} got {1}".format(e, tname))
 
 class TrimArityExceptionMaskingTest(ParseTestCase):
