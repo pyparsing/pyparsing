@@ -117,8 +117,8 @@ class ParseTestCase(TestCase):
 
 class PyparsingTestInit(ParseTestCase):
     def setUp(self):
-        from pyparsing import __version__ as pyparsingVersion
-        print_("Beginning test of pyparsing, version", pyparsingVersion)
+        from pyparsing import __version__ as pyparsingVersion, __versionTime__ as pyparsingVersionTime
+        print_("Beginning test of pyparsing, version", pyparsingVersion, pyparsingVersionTime)
         print_("Python version", sys.version)
     def tearDown(self):
         pass
@@ -3386,6 +3386,8 @@ class NumericExpressionsTest(ParseTestCase):
         import pyparsing as pp
         ppc = pp.pyparsing_common
 
+        # disable parse actions that do type conversion so we don't accidentally trigger
+        # conversion exceptions when what we want to check is the parsing expression
         real = ppc.real().setParseAction(None)
         sci_real = ppc.sci_real().setParseAction(None)
         signed_integer = ppc.signed_integer().setParseAction(None)
@@ -3403,17 +3405,18 @@ class NumericExpressionsTest(ParseTestCase):
             stray = ['9', '.', '']
 
             seen = set()
+            seen.add('')
             for parts in product(leading_sign, stray, leading_digit, dot, decimal_digit, stray, e, e_sign, e_int,
                                  stray):
-                parts_str = ''.join(parts)
+                parts_str = ''.join(parts).strip()
                 if parts_str in seen:
                     continue
                 seen.add(parts_str)
                 yield parts_str
 
-            print_(len(seen), "tests produced")
+            print_(len(seen)-1, "tests produced")
 
-        # collect tests into valid/invalid sets, depending on whether they evaluate to valid Python floats
+        # collect tests into valid/invalid sets, depending on whether they evaluate to valid Python floats or ints
         valid_ints = set()
         valid_reals = set()
         valid_sci_reals = set()
@@ -3421,6 +3424,7 @@ class NumericExpressionsTest(ParseTestCase):
         invalid_reals = set()
         invalid_sci_reals = set()
 
+        # check which strings parse as valid floats or ints, and store in related valid or invalid test sets
         for test_str in make_tests():
             if '.' in test_str or 'e' in test_str.lower():
                 try:
@@ -3441,32 +3445,46 @@ class NumericExpressionsTest(ParseTestCase):
             else:
                 valid_ints.add(test_str)
 
+        # now try all the test sets against their respective expressions
+        all_pass = True
         suppress_results = {'printResults': False}
-        success, test_results = real.runTests(sorted(valid_reals, key=len), **suppress_results)
-        # if not success:
-        #     for test_string, result in test_results:
-        #         if isinstance(result, Exception):
-        #             print("{!r}: {}".format(test_string, result))
+        for expr, tests, is_fail, fn in zip([real, sci_real, signed_integer]*2,
+                                            [valid_reals, valid_sci_reals, valid_ints,
+                                             invalid_reals, invalid_sci_reals, invalid_ints],
+                                            [False, False, False, True, True, True],
+                                            [float, float, int]*2):
+            #
+            # success, test_results = expr.runTests(sorted(tests, key=len), failureTests=is_fail, **suppress_results)
+            # filter_result_fn = (lambda r: isinstance(r, Exception),
+            #                     lambda r: not isinstance(r, Exception))[is_fail]
+            # print_(expr, ('FAIL', 'PASS')[success], "{1}valid tests ({0})".format(len(tests),
+            #                                                                       'in' if is_fail else ''))
+            # if not success:
+            #     all_pass = False
+            #     for test_string, result in test_results:
+            #         if filter_result_fn(result):
+            #             try:
+            #                 test_value = fn(test_string)
+            #             except ValueError as ve:
+            #                 test_value = str(ve)
+            #             print_("{0!r}: {1} {2} {3}".format(test_string, result,
+            #                                                expr.matches(test_string, parseAll=True), test_value))
 
-        print_("real", ('FAIL', 'PASS')[success], "valid tests ({})".format(len(valid_reals)))
-        self.assertTrue(success, "failed real valid tests")
-        success, _ = sci_real.runTests(sorted(valid_sci_reals, key=len), **suppress_results)
-        print_("sci_real", ('FAIL', 'PASS')[success], "valid tests ({})".format(len(valid_sci_reals)))
-        self.assertTrue(success, "failed sci_real valid tests")
-        success, _ = signed_integer.runTests(sorted(valid_ints, key=len), **suppress_results)
-        print_("signed_integer", ('FAIL', 'PASS')[success], "valid tests ({})".format(len(valid_ints)))
-        self.assertTrue(success, "failed signed_integer valid tests")
+            success = True
+            for t in tests:
+                if expr.matches(t, parseAll=True):
+                    if is_fail:
+                        print_(t, "should fail but did not")
+                        success = False
+                else:
+                    if not is_fail:
+                        print_(t, "should not fail but did")
+                        success = False
+            print_(expr, ('FAIL', 'PASS')[success], "{1}valid tests ({0})".format(len(tests),
+                                                                                  'in' if is_fail else ''))
+            all_pass = all_pass and success
 
-        success, _ = real.runTests(sorted(invalid_reals, key=len), failureTests=True, **suppress_results)
-        print_("real", ('FAIL', 'PASS')[success], "invalid tests ({})".format(len(invalid_reals)))
-        self.assertTrue(success, "failed real invalid tests")
-        success, _ = sci_real.runTests(sorted(invalid_sci_reals, key=len), failureTests=True, **suppress_results)
-        print_("sci_real", ('FAIL', 'PASS')[success], "invalid tests ({})".format(len(invalid_sci_reals)))
-        self.assertTrue(success, "failed sci_real invalid tests")
-        success, _ = signed_integer.runTests(sorted(invalid_ints, key=len), failureTests=True, **suppress_results)
-        print_("signed_integer", ('FAIL', 'PASS')[success], "invalid tests ({})".format(len(invalid_ints)))
-        self.assertTrue(success, "failed signed_integer invalid tests")
-
+        self.assertTrue(all_pass, "failed one or more numeric tests")
 
 class TokenMapTest(ParseTestCase):
     def runTest(self):
