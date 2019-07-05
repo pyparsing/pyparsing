@@ -96,7 +96,7 @@ classes inherit from. Use the docstrings for examples of how to:
 """
 
 __version__ = "2.4.1"
-__versionTime__ = "04 Jul 2019 04:40 UTC"
+__versionTime__ = "05 Jul 2019 04:34 UTC"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -2142,8 +2142,8 @@ class ParserElement(object):
             key = (key,)
 
         if len(key) > 2:
-            warnings.warn("only 1 or 2 index arguments supported ({}{})".format(key[:5],
-                                                                                '... [{}]'.format(len(key))
+            warnings.warn("only 1 or 2 index arguments supported ({0}{1})".format(key[:5],
+                                                                                '... [{0}]'.format(len(key))
                                                                                 if len(key) > 5 else ''))
 
         # clip to 2 elements
@@ -2613,6 +2613,8 @@ class ParserElement(object):
         allResults = []
         comments = []
         success = True
+        NL = Literal(r'\n').addParseAction(replaceWith('\n')).ignore(quotedString)
+        BOM = u'\ufeff'
         for t in tests:
             if comment is not None and comment.matches(t, False) or comments and not t:
                 comments.append(t)
@@ -2623,10 +2625,23 @@ class ParserElement(object):
             comments = []
             try:
                 # convert newline marks to actual newlines, and strip leading BOM if present
-                NL = Literal(r'\n').addParseAction(replaceWith('\n')).ignore(quotedString)
-                BOM = '\ufeff'
                 t = NL.transformString(t.lstrip(BOM))
                 result = self.parseString(t, parseAll=parseAll)
+            except ParseBaseException as pe:
+                fatal = "(FATAL)" if isinstance(pe, ParseFatalException) else ""
+                if '\n' in t:
+                    out.append(line(pe.loc, t))
+                    out.append(' '*(col(pe.loc,t)-1) + '^' + fatal)
+                else:
+                    out.append(' '*pe.loc + '^' + fatal)
+                out.append("FAIL: " + str(pe))
+                success = success and failureTests
+                result = pe
+            except Exception as exc:
+                out.append("FAIL-EXCEPTION: " + str(exc))
+                success = success and failureTests
+                result = exc
+            else:
                 success = success and not failureTests
                 if postParse is not None:
                     try:
@@ -2643,20 +2658,6 @@ class ParserElement(object):
                         out.append("{0} failed: {1}: {2}".format(postParse.__name__, type(e).__name__, e))
                 else:
                     out.append(result.dump(full=fullDump))
-            except ParseBaseException as pe:
-                fatal = "(FATAL)" if isinstance(pe, ParseFatalException) else ""
-                if '\n' in t:
-                    out.append(line(pe.loc, t))
-                    out.append(' '*(col(pe.loc,t)-1) + '^' + fatal)
-                else:
-                    out.append(' '*pe.loc + '^' + fatal)
-                out.append("FAIL: " + str(pe))
-                success = success and failureTests
-                result = pe
-            except Exception as exc:
-                out.append("FAIL-EXCEPTION: " + str(exc))
-                success = success and failureTests
-                result = exc
 
             if printResults:
                 if fullDump:
