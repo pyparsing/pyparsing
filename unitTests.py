@@ -993,7 +993,7 @@ class ReStringRangeTest(ParseTestCase):
 class SkipToParserTests(ParseTestCase):
     def runTest(self):
 
-        from pyparsing import Literal, SkipTo, cStyleComment, ParseBaseException, And, Word, nums, Optional
+        from pyparsing import Literal, SkipTo, cStyleComment, ParseBaseException, And, Word, alphas, nums, Optional, NotAny
 
         thingToFind = Literal('working')
         testExpr = SkipTo(Literal(';'), include=True, ignore=cStyleComment) + thingToFind
@@ -1026,8 +1026,17 @@ class SkipToParserTests(ParseTestCase):
         self.assertTrue(isinstance(result.prefix, str), "SkipTo created with wrong saveAsList attribute")
 
         if PY_3:
-            def test(expr, test_string, expected_list, expected_dict):
+            def define_expr(s):
+                from pyparsing import Literal, And, Word, alphas, nums, Optional, NotAny
+                alpha_word = (~Literal("end") + Word(alphas, asKeyword=True)).setName("alpha")
+                num_word = Word(nums, asKeyword=True).setName("int")
 
+                ret = eval(s)
+                ret.streamline()
+                print_(ret)
+                return ret
+
+            def test(expr, test_string, expected_list, expected_dict):
                 try:
                     result = expr.parseString(test_string)
                 except Exception as pe:
@@ -1039,36 +1048,43 @@ class SkipToParserTests(ParseTestCase):
 
             # ellipses for SkipTo
             # (use eval() to avoid syntax problems when running in Py2)
-            a = eval('... + Literal("end")') #, globals(), locals())
-            a.streamline()
-            print_(a)
-            test(a, "start 123 end", ['start 123 ', 'end'], {'_skipped': 'start 123 '})
-            b = eval('Literal("start") + ... + Literal("end")') #, globals(), locals())
-            b.streamline()
-            print_(b)
-            test(b, "start 123 end", ['start', '123 ', 'end'], {'_skipped': '123 '})
-            c = eval('Literal("start") + ...') #, globals(), locals())
-            print_(c)
-            test(c, "start 123 end", None, None)
-            d = eval('And(["start", ..., "end"])') #, globals(), locals())
-            print_(d)
-            test(d, "start 123 end", ['start', '123 ', 'end'], {'_skipped': '123 '})
-            e = eval('And([..., "end"])') #, globals(), locals())
-            print_(e)
+            e = define_expr('... + Literal("end")')
             test(e, "start 123 end", ['start 123 ', 'end'], {'_skipped': 'start 123 '})
-            f = eval('"start" + (Word(nums).setName("int") | ...) + "end"')
-            f.streamline()
-            print_(f)
-            test(f, "start 456 end", ['start', '456', 'end'], {})
-            test(f, "start 123 456 end", ['start', '123', '456 ', 'end'], {'_skipped': '456 '})
-            test(f, "start end", ['start', '', 'end'], {'_skipped': 'missing <int>'})
-            g = eval('"start" + (Optional(Word(nums).setName("int")) | ...) + "end"')
-            g.streamline()
-            print_(g)
-            test(g, "start 456 end", ['start', '456', 'end'], {})
-            test(g, "start 123 456 end", ['start', '123', '456 ', 'end'], {'_skipped': '456 '})
-            test(g, "start foo end", ['start', 'foo ', 'end'], {'_skipped': 'foo '})
-            test(g, "start end", ['start', 'end'], {})
+
+            e = define_expr('Literal("start") + ... + Literal("end")')
+            test(e, "start 123 end", ['start', '123 ', 'end'], {'_skipped': '123 '})
+
+            e = define_expr('Literal("start") + ...')
+            test(e, "start 123 end", None, None)
+
+            e = define_expr('And(["start", ..., "end"])')
+            test(e, "start 123 end", ['start', '123 ', 'end'], {'_skipped': '123 '})
+
+            e = define_expr('And([..., "end"])')
+            test(e, "start 123 end", ['start 123 ', 'end'], {'_skipped': 'start 123 '})
+
+            e = define_expr('"start" + (num_word | ...) + "end"')
+            test(e, "start 456 end", ['start', '456', 'end'], {})
+            test(e, "start 123 456 end", ['start', '123', '456 ', 'end'], {'_skipped': '456 '})
+            test(e, "start end", ['start', '', 'end'], {'_skipped': 'missing <int>'})
+
+            e = define_expr('"start" + (alpha_word[0, ...] & num_word[0, ...] | ...) + "end"')
+            test(e, "start 456 red end", ['start', '456', 'red', 'end'], {})
+            test(e, "start red 456 end", ['start', 'red', '456', 'end'], {})
+            test(e, "start 456 red + end", ['start', '456', 'red', '+ ', 'end'], {'_skipped': '+ '})
+            test(e, "start red end", ['start', 'red', 'end'], {})
+            test(e, "start 456 end", ['start', '456', 'end'], {})
+            test(e, "start end", ['start', 'end'], {})
+            test(e, "start 456 + end", ['start', '456', '+ ', 'end'], {'_skipped': '+ '})
+
+            e = define_expr('"start" + (alpha_word[...] & num_word[...] | ...) + "end"')
+            test(e, "start 456 red end", ['start', '456', 'red', 'end'], {})
+            test(e, "start red 456 end", ['start', 'red', '456', 'end'], {})
+            test(e, "start 456 red + end", ['start', '456', 'red', '+ ', 'end'], {'_skipped': '+ '})
+            test(e, "start red end", ['start', 'red ', 'end'], {'_skipped': 'red '})
+            test(e, "start 456 end", ['start', '456 ', 'end'], {'_skipped': '456 '})
+            test(e, "start end", ['start', '', 'end'], {'_skipped': 'missing <{{alpha}... & {int}...}>'})
+            test(e, "start 456 + end", ['start', '456 + ', 'end'], {'_skipped': '456 + '})
 
 
 class CustomQuotesTest(ParseTestCase):
