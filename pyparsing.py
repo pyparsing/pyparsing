@@ -2044,10 +2044,11 @@ class ParserElement(object):
 
         is equivalent to:
 
-            Literal('start') + SkipTo('end')("_skipped") + Literal('end')
+            Literal('start') + SkipTo('end')("_skipped*") + Literal('end')
 
-        Note that the skipped text is returned with '_skipped' as a results name.
-
+        Note that the skipped text is returned with '_skipped' as a results name,
+        and to support having multiple skips in the same parser, the value returned is
+        a list of all skipped text.
         """
         if other is Ellipsis:
             return _PendingSkip(self)
@@ -2065,7 +2066,7 @@ class ParserElement(object):
         Implementation of + operator when left operand is not a :class:`ParserElement`
         """
         if other is Ellipsis:
-            return SkipTo(self)("_skipped") + self
+            return SkipTo(self)("_skipped*") + self
 
         if isinstance(other, basestring):
             other = ParserElement._literalStringClass(other)
@@ -2669,14 +2670,15 @@ class _PendingSkip(ParserElement):
         self.must_skip = must_skip
 
     def __add__(self, other):
-        skipper = SkipTo(other).setName("...")("_skipped")
+        skipper = SkipTo(other).setName("...")("_skipped*")
         if self.must_skip:
             def must_skip(t):
-                if not t._skipped:
+                if not t._skipped or t._skipped.asList() == ['']:
                     del t[0]
                     t.pop("_skipped", None)
             def show_skip(t):
-                if not t._skipped:
+                if t._skipped.asList()[-1:] == ['']:
+                    skipped = t.pop('_skipped')
                     t['_skipped'] = 'missing <' + repr(self.anchor) + '>'
             return (self.anchor + skipper().addParseAction(must_skip)
                     | skipper().addParseAction(show_skip)) + other
@@ -3842,7 +3844,7 @@ class And(ParseExpression):
                 if expr is Ellipsis:
                     if i < len(exprs)-1:
                         skipto_arg = (Empty() + exprs[i+1]).exprs[-1]
-                        tmp.append(SkipTo(skipto_arg)("_skipped"))
+                        tmp.append(SkipTo(skipto_arg)("_skipped*"))
                     else:
                         raise Exception("cannot construct And with sequence ending in ...")
                 else:

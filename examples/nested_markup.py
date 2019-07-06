@@ -27,11 +27,12 @@ bolded = ('bold' + markup_body).setParseAction(convert_markup_to_html("<B>", "</
 # another markup and parse action to parse links - again using transform string
 # to recursively parse any markup in the link text
 def convert_link_to_html(s, l, t):
-    t['link_text'] = wiki_markup.transformString(t['link_text'])
+    link_text, url = t._skipped
+    t['link_text'] = wiki_markup.transformString(link_text)
+    t['url'] = url
     return '<A href="{url}">{link_text}</A>'.format_map(t)
-urlRef = ('link'
-          + '{' + pp.SkipTo('->')('link_text') + '->' + pp.SkipTo('}')('url') + '}'
-          ).setParseAction(convert_link_to_html)
+
+urlRef = (pp.Keyword('link') + '{' + ... + '->' + ... + '}').setParseAction(convert_link_to_html)
 
 # now inject all the markup bits as possible markup expressions
 wiki_markup <<= urlRef | italicized | bolded

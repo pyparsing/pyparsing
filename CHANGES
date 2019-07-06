@@ -27,11 +27,12 @@ Version 2.4.1 -
 
   are both equivalent to:
 
-      Literal('start') + SkipTo('end')("_skipped") + Literal('end')
+      Literal('start') + SkipTo('end')("_skipped*") + Literal('end')
 
   The '...' form has the added benefit of not requiring repeating
   the skip target expression. Note that the skipped text is
-  returned with '_skipped' as a results name.
+  returned with '_skipped' as a results name, and that the contents of
+  `_skipped` will contain a list of text from all `...`s in the expression.
 
   '...' can also be used as a "skip forward in case of error" expression:
 
@@ -42,18 +43,20 @@ Version 2.4.1 -
 
         expr.parseString("start 456 foo 789 end")
         ['start', '456', 'foo 789 ', 'end']
-        - _skipped: 'foo 789 '
+        - _skipped: ['foo 789 ']
 
         expr.parseString("start foo end")
         ['start', 'foo ', 'end']
-        - _skipped: 'foo '
+        - _skipped: ['foo ']
 
         expr.parseString("start end")
         ['start', '', 'end']
-        - _skipped: 'missing <int>'
+        - _skipped: ['missing <int>']
 
   Note that in all the error cases, the '_skipped' results name is
-  present, show the extra or missing items.
+  present, showing a list of the extra or missing items.
+
+  This form is only valid when used with the '|' operator.
 
 - While investigating issue #93, I found that Or and
   addCondition could interact to select an alternative that

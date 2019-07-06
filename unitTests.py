@@ -1049,42 +1049,53 @@ class SkipToParserTests(ParseTestCase):
             # ellipses for SkipTo
             # (use eval() to avoid syntax problems when running in Py2)
             e = define_expr('... + Literal("end")')
-            test(e, "start 123 end", ['start 123 ', 'end'], {'_skipped': 'start 123 '})
+            test(e, "start 123 end", ['start 123 ', 'end'], {'_skipped': ['start 123 ']})
 
             e = define_expr('Literal("start") + ... + Literal("end")')
-            test(e, "start 123 end", ['start', '123 ', 'end'], {'_skipped': '123 '})
+            test(e, "start 123 end", ['start', '123 ', 'end'], {'_skipped': ['123 ']})
 
             e = define_expr('Literal("start") + ...')
             test(e, "start 123 end", None, None)
 
             e = define_expr('And(["start", ..., "end"])')
-            test(e, "start 123 end", ['start', '123 ', 'end'], {'_skipped': '123 '})
+            test(e, "start 123 end", ['start', '123 ', 'end'], {'_skipped': ['123 ']})
 
             e = define_expr('And([..., "end"])')
-            test(e, "start 123 end", ['start 123 ', 'end'], {'_skipped': 'start 123 '})
+            test(e, "start 123 end", ['start 123 ', 'end'], {'_skipped': ['start 123 ']})
 
             e = define_expr('"start" + (num_word | ...) + "end"')
             test(e, "start 456 end", ['start', '456', 'end'], {})
-            test(e, "start 123 456 end", ['start', '123', '456 ', 'end'], {'_skipped': '456 '})
-            test(e, "start end", ['start', '', 'end'], {'_skipped': 'missing <int>'})
+            test(e, "start 123 456 end", ['start', '123', '456 ', 'end'], {'_skipped': ['456 ']})
+            test(e, "start end", ['start', '', 'end'], {'_skipped': ['missing <int>']})
+
+            # e = define_expr('"start" + (num_word | ...)("inner") + "end"')
+            # test(e, "start 456 end", ['start', '456', 'end'], {'inner': '456'})
 
             e = define_expr('"start" + (alpha_word[0, ...] & num_word[0, ...] | ...) + "end"')
             test(e, "start 456 red end", ['start', '456', 'red', 'end'], {})
             test(e, "start red 456 end", ['start', 'red', '456', 'end'], {})
-            test(e, "start 456 red + end", ['start', '456', 'red', '+ ', 'end'], {'_skipped': '+ '})
+            test(e, "start 456 red + end", ['start', '456', 'red', '+ ', 'end'], {'_skipped': ['+ ']})
             test(e, "start red end", ['start', 'red', 'end'], {})
             test(e, "start 456 end", ['start', '456', 'end'], {})
             test(e, "start end", ['start', 'end'], {})
-            test(e, "start 456 + end", ['start', '456', '+ ', 'end'], {'_skipped': '+ '})
+            test(e, "start 456 + end", ['start', '456', '+ ', 'end'], {'_skipped': ['+ ']})
 
             e = define_expr('"start" + (alpha_word[...] & num_word[...] | ...) + "end"')
             test(e, "start 456 red end", ['start', '456', 'red', 'end'], {})
             test(e, "start red 456 end", ['start', 'red', '456', 'end'], {})
-            test(e, "start 456 red + end", ['start', '456', 'red', '+ ', 'end'], {'_skipped': '+ '})
-            test(e, "start red end", ['start', 'red ', 'end'], {'_skipped': 'red '})
-            test(e, "start 456 end", ['start', '456 ', 'end'], {'_skipped': '456 '})
-            test(e, "start end", ['start', '', 'end'], {'_skipped': 'missing <{{alpha}... & {int}...}>'})
-            test(e, "start 456 + end", ['start', '456 + ', 'end'], {'_skipped': '456 + '})
+            test(e, "start 456 red + end", ['start', '456', 'red', '+ ', 'end'], {'_skipped': ['+ ']})
+            test(e, "start red end", ['start', 'red ', 'end'], {'_skipped': ['red ']})
+            test(e, "start 456 end", ['start', '456 ', 'end'], {'_skipped': ['456 ']})
+            test(e, "start end", ['start', '', 'end'], {'_skipped': ['missing <{{alpha}... & {int}...}>']})
+            test(e, "start 456 + end", ['start', '456 + ', 'end'], {'_skipped': ['456 + ']})
+
+            e = define_expr('"start" + (alpha_word | ...) + (num_word | ...) + "end"')
+            test(e, "start red 456 end", ['start', 'red', '456', 'end'], {})
+            test(e, "start red end", ['start', 'red', '', 'end'], {'_skipped': ['missing <int>']})
+            test(e, "start end", ['start', '', '', 'end'], {'_skipped': ['missing <alpha>', 'missing <int>']})
+
+            e = define_expr('Literal("start") + ... + "+" + ... + "end"')
+            test(e, "start red + 456 end", ['start', 'red ', '+', '456 ', 'end'], {'_skipped': ['red ', '456 ']})
 
 
 class CustomQuotesTest(ParseTestCase):
@@ -4661,6 +4672,7 @@ if __name__ == '__main__':
     # run specific tests by including them in this list, otherwise
     # all tests will be run
     testclasses = [
+        SkipToParserTests
         ]
 
     if not testclasses:
