@@ -2,8 +2,8 @@
 Change Log
 ==========
 
-Version 2.4.1 -
-----------------------
+Version 2.4.1 - July, 2019
+--------------------------
 - A new shorthand notation has been added for repetition
   expressions: expr[min, max], with '...' valid as a min
   or max value:
@@ -57,6 +57,12 @@ Version 2.4.1 -
   present, showing a list of the extra or missing items.
 
   This form is only valid when used with the '|' operator.
+
+- Added ParseResults.from_dict classmethod, to simplify creation
+  of a ParseResults with results names. May be called with a dict
+  argument, or with a series of named arguments (or both). This
+  makes it easy to add a sub-level of named items to the parsed
+  tokens in a parse action.
 
 - While investigating issue #93, I found that Or and
   addCondition could interact to select an alternative that

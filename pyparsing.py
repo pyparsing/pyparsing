@@ -96,7 +96,7 @@ classes inherit from. Use the docstrings for examples of how to:
 """
 
 __version__ = "2.4.1"
-__versionTime__ = "05 Jul 2019 23:23 UTC"
+__versionTime__ = "07 Jul 2019 06:35 UTC"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -112,6 +112,7 @@ import traceback
 import types
 from datetime import datetime
 from operator import itemgetter
+import itertools
 
 try:
     # Python 3
@@ -1109,6 +1110,28 @@ class ParseResults(object):
 
     def __dir__(self):
         return (dir(type(self)) + list(self.keys()))
+
+    @classmethod
+    def from_dict(cls, other=None, **kwargs):
+        """
+        Helper classmethod to construct a ParseResults from either a dict or a sequence of named arguments,
+        preserving the name-value relations as results names.
+        """
+        if other is not None:
+            items = itertools.chain(other.items(), kwargs.items())
+        else:
+            items = kwargs.items()
+
+        def is_iterable(obj):
+            try: iter(obj)
+            except Exception: return False
+            else:
+                if PY_3:
+                    return not isinstance(obj, (str, bytes))
+                else:
+                    return not isinstance(obj, basestring)
+
+        return sum(cls([v], name=k, asList=is_iterable(v)) for k, v in items)
 
 MutableMapping.register(ParseResults)
 
