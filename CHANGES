@@ -4,6 +4,33 @@ Change Log
 
 Version 2.4.1 - July, 2019
 --------------------------
+- NOTE: Deprecated functions and features that will be dropped
+  in pyparsing 2.5.0 (planned next release):
+
+  . support for Python 2 - ongoing users running with
+    Python 2 can continue to use pyparsing 2.4.1
+
+  . ParseResults.asXML() - if used for debugging, switch
+    to using ParseResults.dump(); if used for data transfer,
+    use ParseResults.asDict() to convert to a nested Python
+    dict, which can then be converted to XML or JSON or
+    other transfer format
+
+  . operatorPrecedence synonym for infixNotation -
+    convert to calling infixNotation
+
+  . commaSeparatedList - convert to using
+    pyparsing_common.comma_separated_list
+
+  . upcaseTokens and downcaseTokens - convert to using
+    pyparsing_common.upcaseTokens and downcaseTokens
+
+  . __compat__.collect_all_And_tokens will not be settable to
+    False to revert to pre-2.3.1 results name behavior -
+    review use of names for hierarchical groups, and be sure
+    to use explicit pyparsing Groups to implement
+    hierarchical structures
+
 - A new shorthand notation has been added for repetition
   expressions: expr[min, max], with '...' valid as a min
   or max value:
@@ -15,7 +42,7 @@ Version 2.4.1 - July, 2019
           (read as "n or more instances of expr")
      - expr[..., n] is equivalent to expr*(0, n)
      - expr[m, n] is equivalent to expr*(m, n)
-  Note that expr[..., n] and expr[m, n]do not raise an exception
+  Note that expr[..., n] and expr[m, n] do not raise an exception
   if more than n exprs exist in the input stream.  If this
   behavior is desired, then write expr[..., n] + ~expr.
 
@@ -34,7 +61,7 @@ Version 2.4.1 - July, 2019
   returned with '_skipped' as a results name, and that the contents of
   `_skipped` will contain a list of text from all `...`s in the expression.
 
-  '...' can also be used as a "skip forward in case of error" expression:
+- '...' can also be used as a "skip forward in case of error" expression:
 
         expr = "start" + (Word(nums).setName("int") | ...) + "end"
 
@@ -119,7 +146,8 @@ Version 2.4.1 - July, 2019
 
 - Added example nested_markup.py, showing a simple wiki markup with
   nested markup directives, and illustrating the use of '...' for
-  skipping over input to match the next expression.
+  skipping over input to match the next expression. (This example
+  uses syntax that is not valid under Python 2.)
 
 - Rewrote delta_time.py example (renamed from deltaTime.py) to
   fix some omitted formats and upgrade to latest pyparsing idioms,
