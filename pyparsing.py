@@ -96,7 +96,7 @@ classes inherit from. Use the docstrings for examples of how to:
 """
 
 __version__ = "2.4.1"
-__versionTime__ = "07 Jul 2019 06:35 UTC"
+__versionTime__ = "08 Jul 2019 02:00 UTC"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -290,8 +290,15 @@ class ParseBaseException(Exception):
             raise AttributeError(aname)
 
     def __str__( self ):
-        return "%s (at char %d), (line:%d, col:%d)" % \
-                ( self.msg, self.loc, self.lineno, self.column )
+        if self.pstr:
+            if self.loc >= len(self.pstr):
+                foundstr = ', found end of text'
+            else:
+                foundstr = ', found %r' % self.pstr[self.loc:self.loc+1]
+        else:
+            foundstr = ''
+        return "%s%s  (at char %d), (line:%d, col:%d)" % \
+                ( self.msg, foundstr, self.loc, self.lineno, self.column )
     def __repr__( self ):
         return _ustr(self)
     def markInputline( self, markerString = ">!<" ):

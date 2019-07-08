@@ -58,6 +58,20 @@ Version 2.4.1 - July, 2019
 
   This form is only valid when used with the '|' operator.
 
+- Improved exception messages to show what was actually found, not
+  just what was expected.
+
+    word = pp.Word(pp.alphas)
+    pp.OneOrMore(word).parseString("aaa bbb 123", parseAll=True)
+
+  Former exception message:
+
+    pyparsing.ParseException: Expected end of text (at char 8), (line:1, col:9)
+
+  New exception message:
+
+    pyparsing.ParseException: Expected end of text, found '1' (at char 8), (line:1, col:9)
+
 - Added ParseResults.from_dict classmethod, to simplify creation
   of a ParseResults with results names. May be called with a dict
   argument, or with a series of named arguments (or both). This
@@ -104,7 +118,8 @@ Version 2.4.1 - July, 2019
   delegate to it to model state-specific properties and behavior.
 
 - Added example nested_markup.py, showing a simple wiki markup with
-  nested markup directives.
+  nested markup directives, and illustrating the use of '...' for
+  skipping over input to match the next expression.
 
 - Rewrote delta_time.py example (renamed from deltaTime.py) to
   fix some omitted formats and upgrade to latest pyparsing idioms,
