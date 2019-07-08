@@ -123,44 +123,6 @@ class PyparsingTestInit(ParseTestCase):
     def tearDown(self):
         pass
 
-if 0:
-    class ParseASMLTest(ParseTestCase):
-        def runTest(self):
-            import parseASML
-            files = [ ("A52759.txt", 2150, True, True, 0.38, 25, "21:47:17", "22:07:32", 235),
-                      ("24141506_P5107RM59_399A1457N1_PHS04", 373,True, True, 0.5, 1, "11:35:25", "11:37:05", 183),
-                      ("24141506_P5107RM59_399A1457N1_PHS04B", 373, True, True, 0.5, 1, "01:02:54", "01:04:49", 186),
-                      ("24157800_P5107RM74_399A1828M1_PHS04", 1141, True, False, 0.5, 13, "00:00:54", "23:59:48", 154) ]
-            for testFile,numToks,trkInpUsed,trkOutpUsed,maxDelta,numWafers,minProcBeg,maxProcEnd,maxLevStatsIV in files:
-                print_("Parsing",testFile,"...", end=' ')
-                #~ text = "\n".join( [ line for line in file(testFile) ] )
-                #~ results = parseASML.BNF().parseString( text )
-                results = parseASML.BNF().parseFile( testFile )
-                #~ pprint.pprint( results.asList() )
-                #~ pprint.pprint( results.batchData.asList() )
-                #~ print results.batchData.keys()
-
-                allToks = flatten( results.asList() )
-                self.assertTrue(len(allToks) == numToks,
-                    "wrong number of tokens parsed (%s), got %d, expected %d" % (testFile, len(allToks),numToks))
-                self.assertTrue(results.batchData.trackInputUsed == trkInpUsed, "error evaluating results.batchData.trackInputUsed")
-                self.assertTrue(results.batchData.trackOutputUsed == trkOutpUsed, "error evaluating results.batchData.trackOutputUsed")
-                self.assertTrue(results.batchData.maxDelta == maxDelta,"error evaluating results.batchData.maxDelta")
-                self.assertTrue(len(results.waferData) == numWafers, "did not read correct number of wafers")
-                self.assertTrue(min([wd.procBegin for wd in results.waferData]) == minProcBeg, "error reading waferData.procBegin")
-                self.assertTrue(max([results.waferData[k].procEnd for k in range(len(results.waferData))]) == maxProcEnd, "error reading waferData.procEnd")
-                self.assertTrue(sum(results.levelStatsIV['MAX']) == maxLevStatsIV, "error reading levelStatsIV")
-                self.assertTrue(sum(results.levelStatsIV.MAX) == maxLevStatsIV, "error reading levelStatsIV")
-                print_("OK")
-                print_(testFile,len(allToks))
-                #~ print "results.batchData.trackInputUsed =",results.batchData.trackInputUsed
-                #~ print "results.batchData.trackOutputUsed =",results.batchData.trackOutputUsed
-                #~ print "results.batchData.maxDelta =",results.batchData.maxDelta
-                #~ print len(results.waferData)," wafers"
-                #~ print min([wd.procBegin for wd in results.waferData])
-                #~ print max([results.waferData[k].procEnd for k in range(len(results.waferData))])
-                #~ print sum(results.levelStatsIV['MAX.'])
-
 
 class ParseFourFnTest(ParseTestCase):
     def runTest(self):
@@ -237,12 +199,7 @@ class ParseConfigFileTest(ParseTestCase):
                 iniFileLines = "\n".join(infile.read().splitlines())
             iniData = configParse.inifile_BNF().parseString( iniFileLines )
             print_(len(flatten(iniData.asList())))
-            #~ pprint.pprint( iniData.asList() )
-            #~ pprint.pprint( repr(iniData) )
-            #~ print len(iniData), len(flatten(iniData.asList()))
             print_(list(iniData.keys()))
-            #~ print iniData.users.keys()
-            #~ print
             self.assertEqual(len(flatten(iniData.asList())), numToks, "file %s not parsed correctly" % fnam)
             for chk in resCheckList:
                 var = iniData
@@ -269,23 +226,178 @@ class ParseJSONDataTest(ParseTestCase):
     def runTest(self):
         from examples.jsonParser import jsonObject
         from test.jsonParserTests import test1,test2,test3,test4,test5
-        from test.jsonParserTests import test1,test2,test3,test4,test5
 
         expected = [
-            [],
-            [],
-            [],
-            [],
-            [],
+            [['glossary',
+             [['title', 'example glossary'],
+              ['GlossDiv',
+               [['title', 'S'],
+                ['GlossList',
+                 [[['ID', 'SGML'],
+                   ['SortAs', 'SGML'],
+                   ['GlossTerm', 'Standard Generalized Markup Language'],
+                   ['Acronym', 'SGML'],
+                   ['LargestPrimeLessThan100', 97],
+                   ['AvogadroNumber', 6.02e+23],
+                   ['EvenPrimesGreaterThan2', None],
+                   ['PrimesLessThan10', [2, 3, 5, 7]],
+                   ['WMDsFound', False],
+                   ['IraqAlQaedaConnections', None],
+                   ['Abbrev', 'ISO 8879:1986'],
+                   ['GlossDef',
+                    'A meta-markup language, used to create markup languages such as '
+                    'DocBook.'],
+                   ['GlossSeeAlso', ['GML', 'XML', 'markup']],
+                   ['EmptyDict', []],
+                   ['EmptyList', [[]]]]]]]]]
+             ]]
+            ,
+            [['menu',
+             [['id', 'file'],
+              ['value', 'File:'],
+              ['popup',
+               [['menuitem',
+                 [[['value', 'New'], ['onclick', 'CreateNewDoc()']],
+                  [['value', 'Open'], ['onclick', 'OpenDoc()']],
+                  [['value', 'Close'], ['onclick', 'CloseDoc()']]]]]]]]]
+            ,
+            [['widget',
+             [['debug', 'on'],
+              ['window',
+               [['title', 'Sample Konfabulator Widget'],
+                ['name', 'main_window'],
+                ['width', 500],
+                ['height', 500]]],
+              ['image',
+               [['src', 'Images/Sun.png'],
+                ['name', 'sun1'],
+                ['hOffset', 250],
+                ['vOffset', 250],
+                ['alignment', 'center']]],
+              ['text',
+               [['data', 'Click Here'],
+                ['size', 36],
+                ['style', 'bold'],
+                ['name', 'text1'],
+                ['hOffset', 250],
+                ['vOffset', 100],
+                ['alignment', 'center'],
+                ['onMouseUp', 'sun1.opacity = (sun1.opacity / 100) * 90;']]]]]]
+            ,
+            [['web-app',
+             [['servlet',
+               [[['servlet-name', 'cofaxCDS'],
+                 ['servlet-class', 'org.cofax.cds.CDSServlet'],
+                 ['init-param',
+                  [['configGlossary:installationAt', 'Philadelphia, PA'],
+                   ['configGlossary:adminEmail', 'ksm@pobox.com'],
+                   ['configGlossary:poweredBy', 'Cofax'],
+                   ['configGlossary:poweredByIcon', '/images/cofax.gif'],
+                   ['configGlossary:staticPath', '/content/static'],
+                   ['templateProcessorClass', 'org.cofax.WysiwygTemplate'],
+                   ['templateLoaderClass', 'org.cofax.FilesTemplateLoader'],
+                   ['templatePath', 'templates'],
+                   ['templateOverridePath', ''],
+                   ['defaultListTemplate', 'listTemplate.htm'],
+                   ['defaultFileTemplate', 'articleTemplate.htm'],
+                   ['useJSP', False],
+                   ['jspListTemplate', 'listTemplate.jsp'],
+                   ['jspFileTemplate', 'articleTemplate.jsp'],
+                   ['cachePackageTagsTrack', 200],
+                   ['cachePackageTagsStore', 200],
+                   ['cachePackageTagsRefresh', 60],
+                   ['cacheTemplatesTrack', 100],
+                   ['cacheTemplatesStore', 50],
+                   ['cacheTemplatesRefresh', 15],
+                   ['cachePagesTrack', 200],
+                   ['cachePagesStore', 100],
+                   ['cachePagesRefresh', 10],
+                   ['cachePagesDirtyRead', 10],
+                   ['searchEngineListTemplate', 'forSearchEnginesList.htm'],
+                   ['searchEngineFileTemplate', 'forSearchEngines.htm'],
+                   ['searchEngineRobotsDb', 'WEB-INF/robots.db'],
+                   ['useDataStore', True],
+                   ['dataStoreClass', 'org.cofax.SqlDataStore'],
+                   ['redirectionClass', 'org.cofax.SqlRedirection'],
+                   ['dataStoreName', 'cofax'],
+                   ['dataStoreDriver', 'com.microsoft.jdbc.sqlserver.SQLServerDriver'],
+                   ['dataStoreUrl',
+                    'jdbc:microsoft:sqlserver://LOCALHOST:1433;DatabaseName=goon'],
+                   ['dataStoreUser', 'sa'],
+                   ['dataStorePassword', 'dataStoreTestQuery'],
+                   ['dataStoreTestQuery', "SET NOCOUNT ON;select test='test';"],
+                   ['dataStoreLogFile', '/usr/local/tomcat/logs/datastore.log'],
+                   ['dataStoreInitConns', 10],
+                   ['dataStoreMaxConns', 100],
+                   ['dataStoreConnUsageLimit', 100],
+                   ['dataStoreLogLevel', 'debug'],
+                   ['maxUrlLength', 500]]]],
+                [['servlet-name', 'cofaxEmail'],
+                 ['servlet-class', 'org.cofax.cds.EmailServlet'],
+                 ['init-param', [['mailHost', 'mail1'], ['mailHostOverride', 'mail2']]]],
+                [['servlet-name', 'cofaxAdmin'],
+                 ['servlet-class', 'org.cofax.cds.AdminServlet']],
+                [['servlet-name', 'fileServlet'],
+                 ['servlet-class', 'org.cofax.cds.FileServlet']],
+                [['servlet-name', 'cofaxTools'],
+                 ['servlet-class', 'org.cofax.cms.CofaxToolsServlet'],
+                 ['init-param',
+                  [['templatePath', 'toolstemplates/'],
+                   ['log', 1],
+                   ['logLocation', '/usr/local/tomcat/logs/CofaxTools.log'],
+                   ['logMaxSize', ''],
+                   ['dataLog', 1],
+                   ['dataLogLocation', '/usr/local/tomcat/logs/dataLog.log'],
+                   ['dataLogMaxSize', ''],
+                   ['removePageCache', '/content/admin/remove?cache=pages&id='],
+                   ['removeTemplateCache', '/content/admin/remove?cache=templates&id='],
+                   ['fileTransferFolder',
+                    '/usr/local/tomcat/webapps/content/fileTransferFolder'],
+                   ['lookInContext', 1],
+                   ['adminGroupID', 4],
+                   ['betaServer', True]]]]]],
+              ['servlet-mapping',
+               [['cofaxCDS', '/'],
+                ['cofaxEmail', '/cofaxutil/aemail/*'],
+                ['cofaxAdmin', '/admin/*'],
+                ['fileServlet', '/static/*'],
+                ['cofaxTools', '/tools/*']]],
+              ['taglib',
+               [['taglib-uri', 'cofax.tld'],
+                ['taglib-location', '/WEB-INF/tlds/cofax.tld']]]]]]
+            ,
+            [['menu',
+              [['header', 'SVG Viewer'],
+               ['items',
+                [[['id', 'Open']],
+                 [['id', 'OpenNew'], ['label', 'Open New']],
+                 None,
+                 [['id', 'ZoomIn'], ['label', 'Zoom In']],
+                 [['id', 'ZoomOut'], ['label', 'Zoom Out']],
+                 [['id', 'OriginalView'], ['label', 'Original View']],
+                 None,
+                 [['id', 'Quality']],
+                 [['id', 'Pause']],
+                 [['id', 'Mute']],
+                 None,
+                 [['id', 'Find'], ['label', 'Find...']],
+                 [['id', 'FindAgain'], ['label', 'Find Again']],
+                 [['id', 'Copy']],
+                 [['id', 'CopyAgain'], ['label', 'Copy Again']],
+                 [['id', 'CopySVG'], ['label', 'Copy SVG']],
+                 [['id', 'ViewSVG'], ['label', 'View SVG']],
+                 [['id', 'ViewSource'], ['label', 'View Source']],
+                 [['id', 'SaveAs'], ['label', 'Save As']],
+                 None,
+                 [['id', 'Help']],
+                 [['id', 'About'], ['label', 'About Adobe CVG Viewer...']]]]]]]
+            ,
             ]
 
-        for t,exp in zip((test1,test2,test3,test4,test5),expected):
+        for t, exp in zip((test1,test2,test3,test4,test5), expected):
             result = jsonObject.parseString(t)
-##            print result.dump()
             result.pprint()
-            print_()
-##            if result.asList() != exp:
-##                print "Expected %s, parsed results as %s" % (exp, result.asList())
+            self.assertEqual(result.asList(), exp, "failed test {0}".format(t))
 
 class ParseCommaSeparatedValuesTest(ParseTestCase):
     def runTest(self):
@@ -352,8 +464,7 @@ class ParseEBNFTest(ParseTestCase):
         print_('Parsing EBNF grammar with EBNF parser...')
         parsers = ebnf.parse(grammar, table)
         ebnf_parser = parsers['syntax']
-        #~ print ",\n ".join( str(parsers.keys()).split(", ") )
-        print_("-","\n- ".join( list(parsers.keys()) ))
+        print_("-","\n- ".join(parsers.keys()))
         self.assertEqual(len(list(parsers.keys())), 13, "failed to construct syntax grammar")
 
         print_('Parsing EBNF grammar with generated EBNF parser...')
@@ -473,10 +584,6 @@ class ParseIDLTest(ParseTestCase):
             )
 
 class ParseVerilogTest(ParseTestCase):
-    def runTest(self):
-        pass
-
-class RunExamplesTest(ParseTestCase):
     def runTest(self):
         pass
 
@@ -818,25 +925,18 @@ class ParseExpressionResultsTest(ParseTestCase):
     def runTest(self):
         from pyparsing import Word,alphas,OneOrMore,Optional,Group
 
-        a = Word("a",alphas).setName("A")
-        b = Word("b",alphas).setName("B")
-        c = Word("c",alphas).setName("C")
+        a = Word("a", alphas).setName("A")
+        b = Word("b", alphas).setName("B")
+        c = Word("c", alphas).setName("C")
         ab = (a + b).setName("AB")
         abc = (ab + c).setName("ABC")
         word = Word(alphas).setName("word")
 
-        #~ words = OneOrMore(word).setName("words")
         words = Group(OneOrMore(~a + word)).setName("words")
 
-        #~ phrase = words.setResultsName("Head") + \
-                    #~ ( abc ^ ab ^ a ).setResultsName("ABC") + \
-                    #~ words.setResultsName("Tail")
-        #~ phrase = words.setResultsName("Head") + \
-                    #~ ( abc | ab | a ).setResultsName("ABC") + \
-                    #~ words.setResultsName("Tail")
-        phrase = words("Head") + \
-                    Group( a + Optional(b + Optional(c)) )("ABC") + \
-                    words("Tail")
+        phrase = (words("Head")
+                  + Group(a + Optional(b + Optional(c)))("ABC")
+                  + words("Tail"))
 
         results = phrase.parseString("xavier yeti alpha beta charlie will beaver")
         print_(results,results.Head, results.ABC,results.Tail)
@@ -1212,28 +1312,9 @@ class RepeaterTest(ParseTestCase):
             ( "abc12abc:abc12abcdef", False ),
             ]
 
-        #~ for tst,result in tests:
-            #~ print tst,
-            #~ try:
-                #~ compoundSeq.parseString(tst)
-                #~ print "MATCH"
-                #~ assert result, "matched when shouldn't have matched"
-            #~ except ParseException:
-                #~ print "NO MATCH"
-                #~ assert not result, "didnt match but should have"
-
-        #~ for tst,result in tests:
-            #~ print tst,
-            #~ if compoundSeq == tst:
-                #~ print "MATCH"
-                #~ assert result, "matched when shouldn't have matched"
-            #~ else:
-                #~ print "NO MATCH"
-                #~ assert not result, "didnt match but should have"
-
-        for tst,result in tests:
+        for tst, result in tests:
             found = False
-            for tokens,start,end in compoundSeq.scanString(tst):
+            for tokens, start, end in compoundSeq.scanString(tst):
                 print_("match:", tokens.asList())
                 found = True
                 break
@@ -1254,8 +1335,6 @@ class RepeaterTest(ParseTestCase):
         for tst,result in tests:
             found = False
             for tokens,start,end in eSeq.scanString(tst):
-                #~ f,b,s = tokens
-                #~ print f,b,s
                 print_(tokens.asList())
                 found = True
             if not found:
@@ -1295,8 +1374,8 @@ class InfixNotationGrammarTest1(ParseTestCase):
         factop = Literal('!')
 
         expr = infixNotation( operand,
-            [("!", 1, opAssoc.LEFT),
-             ("^", 2, opAssoc.RIGHT),
+            [(factop, 1, opAssoc.LEFT),
+             (expop, 2, opAssoc.RIGHT),
              (signop, 1, opAssoc.RIGHT),
              (multop, 2, opAssoc.LEFT),
              (plusop, 2, opAssoc.LEFT),]
@@ -2229,14 +2308,6 @@ class VariableParseActionArgsTest(ParseTestCase):
             def __str__(self):
                 return ''.join(self)
 
-        #~ def ClassAsPANew(object):
-            #~ def __new__(cls, t):
-                #~ return object.__new__(cls, t)
-            #~ def __init__(self,t):
-                #~ self.t = t
-            #~ def __str__(self):
-                #~ return self.t
-
         from pyparsing import Literal,OneOrMore
 
         A = Literal("A").setParseAction(pa0)
@@ -2314,15 +2385,12 @@ class OriginalTextForTest(ParseTestCase):
         makeHTMLStartTag = lambda tag: originalTextFor(makeHTMLTags(tag)[0], asString=False)
 
         # use the lambda, Luke
-        #~ start, imge = makeHTMLTags('IMG')
         start = makeHTMLStartTag('IMG')
 
         # don't replace our fancy parse action with rfn,
         # append rfn to the list of parse actions
-        #~ start.setParseAction(rfn)
         start.addParseAction(rfn)
 
-        #start.setParseAction(lambda s,l,t:t.src)
         text = '''_<img src="images/cal.png"
             alt="cal image" width="16" height="15">_'''
         s = start.transformString(text)
