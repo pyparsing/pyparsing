@@ -294,7 +294,7 @@ class ParseBaseException(Exception):
             if self.loc >= len(self.pstr):
                 foundstr = ', found end of text'
             else:
-                foundstr = ', found %r' % self.pstr[self.loc:self.loc+1]
+                foundstr = (', found %r' % self.pstr[self.loc:self.loc+1]).replace(r'\\', '\\')
         else:
             foundstr = ''
         return "%s%s  (at char %d), (line:%d, col:%d)" % \
