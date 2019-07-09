@@ -30,9 +30,9 @@ if PY_3:
 else:
     def _print(*args, **kwargs):
         if 'end' in kwargs:
-            sys.stdout.write(' '.join(map(str,args)) + kwargs['end'], flush=True)
+            sys.stdout.write(' '.join(map(str,args)) + kwargs['end'])
         else:
-            sys.stdout.write(' '.join(map(str,args)) + '\n', flush=True)
+            sys.stdout.write(' '.join(map(str,args)) + '\n')
     print_ = _print
     from cStringIO import StringIO
 
