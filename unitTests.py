@@ -4387,9 +4387,14 @@ class ParseResultsWithNameOr(ParseTestCase):
         # test compatibility mode, restoring pre-2.3.1 behavior
         with AutoReset(pp.__compat__, "collect_all_And_tokens"):
             pp.__compat__.collect_all_And_tokens = False
+            pp.__diag__.warn_multiple_tokens_in_named_alternation = True
             expr_a = pp.Literal('not') + pp.Literal('the') + pp.Literal('bird')
             expr_b = pp.Literal('the') + pp.Literal('bird')
-            expr = (expr_a ^ expr_b)('rexp')
+            if PY_3:
+                with self.assertWarns(UserWarning, msg="failed to warn of And within alternation"):
+                    expr = (expr_a ^ expr_b)('rexp')
+            else:
+                expr = (expr_a ^ expr_b)('rexp')
             expr.runTests("""\
                 not the bird
                 the bird
@@ -4521,6 +4526,97 @@ class OneOfKeywordsTest(ParseTestCase):
         """, failureTests=True)
         self.assertTrue(success, "failed keyword oneOf failure tests")
 
+
+class WarnUngroupedNamedTokensTest(ParseTestCase):
+    """
+     - warn_ungrouped_named_tokens_in_collection - flag to enable warnings when a results
+       name is defined on a containing expression with ungrouped subexpressions that also
+       have results names (default=True)
+    """
+    def runTest(self):
+        import pyparsing as pp
+        ppc = pp.pyparsing_common
+
+        pp.__diag__.warn_ungrouped_named_tokens_in_collection = True
+
+        COMMA = pp.Suppress(',').setName("comma")
+        coord = (ppc.integer('x') + COMMA + ppc.integer('y'))
+
+        # this should emit a warning
+        if PY_3:
+            with self.assertWarns(UserWarning, msg="failed to warn with named repetition of"
+                                                   " ungrouped named expressions"):
+                path = coord[...].setResultsName('path')
+
+
+class WarnNameSetOnEmptyForwardTest(ParseTestCase):
+    """
+     - warn_name_set_on_empty_Forward - flag to enable warnings whan a Forward is defined
+       with a results name, but has no contents defined (default=False)
+    """
+    def runTest(self):
+        import pyparsing as pp
+
+        pp.__diag__.warn_name_set_on_empty_Forward = True
+
+        base = pp.Forward()
+
+        if PY_3:
+            with self.assertWarns(UserWarning, msg="failed to warn when naming an empty Forward expression"):
+                base("x")
+
+
+class WarnOnMultipleStringArgsToOneOfTest(ParseTestCase):
+    """
+     - warn_on_multiple_string_args_to_oneof - flag to enable warnings whan oneOf is
+       incorrectly called with multiple str arguments (default=True)
+    """
+    def runTest(self):
+        import pyparsing as pp
+
+        pp.__diag__.warn_on_multiple_string_args_to_oneof = True
+
+        if PY_3:
+            with self.assertWarns(UserWarning, msg="failed to warn when incorrectly calling oneOf(string, string)"):
+                a = pp.oneOf('A', 'B')
+
+
+class EnableDebugOnNamedExpressionsTest(ParseTestCase):
+    """
+     - enable_debug_on_named_expressions - flag to auto-enable debug on all subsequent
+       calls to ParserElement.setName() (default=False)
+    """
+    def runTest(self):
+        import pyparsing as pp
+        import textwrap
+
+        test_stdout = StringIO()
+
+        with AutoReset(sys, 'stdout', 'stderr'):
+            sys.stdout = test_stdout
+            sys.stderr = test_stdout
+
+            pp.__diag__.enable_debug_on_named_expressions = True
+            integer = pp.Word(pp.nums).setName('integer')
+
+            integer[...].parseString("1 2 3")
+
+        expected_debug_output = textwrap.dedent("""\
+            Match integer at loc 0(1,1)
+            Matched integer -> ['1']
+            Match integer at loc 1(1,2)
+            Matched integer -> ['2']
+            Match integer at loc 3(1,4)
+            Matched integer -> ['3']
+            Match integer at loc 5(1,6)
+            Exception raised:Expected integer, found end of text  (at char 5), (line:1, col:6)
+            """)
+        output = test_stdout.getvalue()
+        print_(output)
+        self.assertEquals(output,
+                          expected_debug_output,
+                          "failed to auto-enable debug on named expressions "
+                          "using enable_debug_on_named_expressions")
 
 
 class MiscellaneousParserTests(ParseTestCase):

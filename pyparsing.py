@@ -96,7 +96,7 @@ classes inherit from. Use the docstrings for examples of how to:
 """
 
 __version__ = "2.4.1"
-__versionTime__ = "08 Jul 2019 02:00 UTC"
+__versionTime__ = "09 Jul 2019 10:47 UTC"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -113,6 +113,7 @@ import types
 from datetime import datetime
 from operator import itemgetter
 import itertools
+from functools import wraps
 
 try:
     # Python 3
@@ -273,6 +274,19 @@ hexnums    = nums + "ABCDEFabcdef"
 alphanums  = alphas + nums
 _bslash    = chr(92)
 printables = "".join(c for c in string.printable if c not in string.whitespace)
+
+
+def conditionAsParseAction(fn, message=None, fatal=False):
+    msg = message if message is not None else "failed user-defined condition"
+    exc_type = ParseFatalException if fatal else ParseException
+    fn = _trim_arity(fn)
+
+    @wraps(fn)
+    def pa(s, l, t):
+        if not bool(fn(s, l, t)):
+            raise exc_type(s, l, msg)
+
+    return pa
 
 class ParseBaseException(Exception):
     """base exception class for all parsing runtime exceptions"""
@@ -1539,14 +1553,10 @@ class ParserElement(object):
 
             result = date_str.parseString("1999/12/31")  # -> Exception: Only support years 2000 and later (at char 0), (line:1, col:1)
         """
-        msg = kwargs.get("message", "failed user-defined condition")
-        exc_type = ParseFatalException if kwargs.get("fatal", False) else ParseException
         for fn in fns:
-            fn = _trim_arity(fn)
-            def pa(s,l,t):
-                if not bool(fn(s,l,t)):
-                    raise exc_type(s,l,msg)
-            self.parseAction.append(pa)
+            self.parseAction.append(conditionAsParseAction(fn, message=kwargs.get('message'),
+                                                           fatal=kwargs.get('fatal', False)))
+
         self.callDuringTry = self.callDuringTry or kwargs.get("callDuringTry", False)
         return self
 
@@ -1679,7 +1689,6 @@ class ParserElement(object):
             #~ print ("Matched",self,"->",retTokens.asList())
             if self.debugActions[MATCH]:
                 self.debugActions[MATCH]( instring, tokensStart, loc, self, retTokens )
-                print("do_actions =", doActions)
 
         return loc, retTokens
 
@@ -2560,7 +2569,8 @@ class ParserElement(object):
             return False
 
     def runTests(self, tests, parseAll=True, comment='#',
-                 fullDump=True, printResults=True, failureTests=False, postParse=None):
+                 fullDump=True, printResults=True, failureTests=False, postParse=None,
+                 file=None):
         """
         Execute the parse expression on a series of test strings, showing each
         test, the parsed results or where the parse failed. Quick and easy way to
@@ -2577,6 +2587,8 @@ class ParserElement(object):
          - failureTests - (default= ``False``) indicates if these tests are expected to fail parsing
          - postParse - (default= ``None``) optional callback for successful parse results; called as
               `fn(test_string, parse_results)` and returns a string to be added to the test output
+         - file - (default=``None``) optional file-like object to which test output will be written;
+              if None, will default to ``sys.stdout``
 
         Returns: a (success, results) tuple, where success indicates that all tests succeeded
         (or failed if ``failureTests`` is True), and the results contain a list of lines of each
@@ -2656,6 +2668,10 @@ class ParserElement(object):
             tests = list(map(str.strip, tests.rstrip().splitlines()))
         if isinstance(comment, basestring):
             comment = Literal(comment)
+        if file is None:
+            file = sys.stdout
+        print_ = file.write
+
         allResults = []
         comments = []
         success = True
@@ -2708,7 +2724,7 @@ class ParserElement(object):
             if printResults:
                 if fullDump:
                     out.append('')
-                print('\n'.join(out))
+                print_('\n'.join(out))
 
             allResults.append((t, result))
 
@@ -4097,7 +4113,8 @@ class Or(ParseExpression):
                 and __diag__.warn_multiple_tokens_in_named_alternation):
             if any(isinstance(e, And) for e in self.exprs):
                 warnings.warn("{0}: setting results name {1!r} on {2} expression "
-                              "may only return a single token for an And alternative".format(
+                              "may only return a single token for an And alternative, "
+                              "in future will return the full list of tokens".format(
                     "warn_multiple_tokens_in_named_alternation", name, type(self).__name__),
                     stacklevel=3)
 
@@ -4182,7 +4199,8 @@ class MatchFirst(ParseExpression):
                 and __diag__.warn_multiple_tokens_in_named_alternation):
             if any(isinstance(e, And) for e in self.exprs):
                 warnings.warn("{0}: setting results name {1!r} on {2} expression "
-                              "may only return a single token for an And alternative".format(
+                              "may only return a single token for an And alternative, "
+                              "in future will return the full list of tokens".format(
                     "warn_multiple_tokens_in_named_alternation", name, type(self).__name__),
                     stacklevel=3)
 

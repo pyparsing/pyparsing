@@ -27,9 +27,12 @@ Version 2.4.1 - July, 2019
 
   . __compat__.collect_all_And_tokens will not be settable to
     False to revert to pre-2.3.1 results name behavior -
-    review use of names for hierarchical groups, and be sure
-    to use explicit pyparsing Groups to implement
-    hierarchical structures
+    review use of names for MatchFirst and Or expressions
+    containing And expressions, as they will return the
+    complete list of parsed tokens, not just the first one.
+    Use __diag__.warn_multiple_tokens_in_named_alternation
+    (described below) to help identify those expressions
+    in your parsers that will have changed as a result.
 
 - A new shorthand notation has been added for repetition
   expressions: expr[min, max], with '...' valid as a min
@@ -118,9 +121,8 @@ Version 2.4.1 - July, 2019
 
   warn_multiple_tokens_in_named_alternation is intended to help
   those who currently have set __compat__.collect_all_And_tokens to
-  False as a workaround for using the pre-2.3.0 code with ungrouped
-  results names nested in an outer expression also having a results
-  name.
+  False as a workaround for using the pre-2.3.1 code with named
+  MatchFirst or Or expressions containing an And expression.
 
 - Added ParseResults.from_dict classmethod, to simplify creation
   of a ParseResults with results names. May be called with a dict
@@ -130,6 +132,20 @@ Version 2.4.1 - July, 2019
 
 - Added asKeyword argument (default=False) to oneOf, to force
   keyword-style matching on the generated expressions.
+
+- ParserElement.runTests now accepts an optional 'file' argument to
+  redirect test output to a file-like object (such as a StringIO,
+  or opened file). Default is to write to sys.stdout.
+
+- conditionAsParseAction is a helper method for constructing a
+  parse action method from a predicate function that simply
+  returns a boolean result. Useful for those places where a
+  predicate cannot be added using addCondition, but must be
+  converted to a parse action (such as in infixNotation). May be
+  used as a decorator if default message and exception types
+  can be used. See ParserElement.addCondition for more details
+  about the expected signature and behavior for predicate condition
+  methods.
 
 - While investigating issue #93, I found that Or and
   addCondition could interact to select an alternative that
