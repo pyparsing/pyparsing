@@ -157,10 +157,33 @@ __compat__.__doc__ = """
     
      - collect_all_And_tokens - flag to enable fix for Issue #63 that fixes erroneous grouping
        of results names when an And expression is nested within an Or or MatchFirst; set to 
-       True to enable bugfix to be released in pyparsing 2.4
+       True to enable bugfix released in pyparsing 2.3.0, or False to preserve
+       pre-2.3.0 handling of named results
 """
 __compat__.collect_all_And_tokens = True
 
+
+__diag__ = SimpleNamespace()
+__diag__.__doc__ = """
+Diagnostic configuration
+     - warn_multiple_tokens_in_named_alternation - flag to enable warnings when a results
+       name is defined on a MatchFirst or Or expression with one or more And subexpressions
+       (default=True) (only warns if __compat__.collect_all_And_tokens is False)
+     - warn_ungrouped_named_tokens_in_collection - flag to enable warnings when a results
+       name is defined on a containing expression with ungrouped subexpressions that also 
+       have results names (default=True)
+     - warn_name_set_on_empty_Forward - flag to enable warnings whan a Forward is defined
+       with a results name, but has no contents defined (default=False)
+     - warn_on_multiple_string_args_to_oneof - flag to enable warnings whan oneOf is
+       incorrectly called with multiple str arguments (default=True)
+     - enable_debug_on_named_expressions - flag to auto-enable debug on all subsequent 
+       calls to ParserElement.setName() (default=False)
+"""
+__diag__.warn_multiple_tokens_in_named_alternation = True
+__diag__.warn_ungrouped_named_tokens_in_collection = True
+__diag__.warn_name_set_on_empty_Forward = False
+__diag__.warn_on_multiple_string_args_to_oneof = True
+__diag__.enable_debug_on_named_expressions = False
 
 #~ sys.stderr.write( "testing pyparsing module, version %s, %s\n" % (__version__,__versionTime__ ) )
 
@@ -1385,8 +1408,8 @@ class ParserElement(object):
         """
         self.name = name
         self.errmsg = "Expected " + self.name
-        if hasattr(self,"exception"):
-            self.exception.msg = self.errmsg
+        if __diag__.enable_debug_on_named_expressions:
+            self.setDebug()
         return self
 
     def setResultsName( self, name, listAllMatches=False ):
@@ -1410,6 +1433,9 @@ class ParserElement(object):
             # equivalent form:
             date_str = integer("year") + '/' + integer("month") + '/' + integer("day")
         """
+        return self._setResultsName(name, listAllMatches)
+
+    def _setResultsName(self, name, listAllMatches=False):
         newself = self.copy()
         if name.endswith("*"):
             name = name[:-1]
@@ -2338,7 +2364,7 @@ class ParserElement(object):
             userdata = Word(alphas)("name") + Word(nums+"-")("socsecno")
         """
         if name is not None:
-            return self.setResultsName(name)
+            return self._setResultsName(name)
         else:
             return self.copy()
 
@@ -3843,6 +3869,20 @@ class ParseExpression(ParserElement):
         ret.exprs = [e.copy() for e in self.exprs]
         return ret
 
+    def _setResultsName(self, name, listAllMatches=False):
+        if __diag__.warn_ungrouped_named_tokens_in_collection:
+            for e in self.exprs:
+                if isinstance(e, ParserElement) and e.resultsName:
+                    warnings.warn("{0}: setting results name {1!r} on {2} expression "
+                                  "collides with {3!r} on contained expression".format("warn_ungrouped_named_tokens_in_collection",
+                                                                                       name,
+                                                                                       type(self).__name__,
+                                                                                       e.resultsName),
+                                  stacklevel=3)
+
+        return super(ParseExpression, self)._setResultsName(name, listAllMatches)
+
+
 class And(ParseExpression):
     """
     Requires all given :class:`ParseExpression` s to be found in the given order.
@@ -4052,6 +4092,17 @@ class Or(ParseExpression):
         for e in self.exprs:
             e.checkRecursion( subRecCheckList )
 
+    def _setResultsName(self, name, listAllMatches=False):
+        if (not __compat__.collect_all_And_tokens
+                and __diag__.warn_multiple_tokens_in_named_alternation):
+            if any(isinstance(e, And) for e in self.exprs):
+                warnings.warn("{0}: setting results name {1!r} on {2} expression "
+                              "may only return a single token for an And alternative".format(
+                    "warn_multiple_tokens_in_named_alternation", name, type(self).__name__),
+                    stacklevel=3)
+
+        return super(Or, self)._setResultsName(name, listAllMatches)
+
 
 class MatchFirst(ParseExpression):
     """Requires that at least one :class:`ParseExpression` is found. If
@@ -4125,6 +4176,17 @@ class MatchFirst(ParseExpression):
         subRecCheckList = parseElementList[:] + [ self ]
         for e in self.exprs:
             e.checkRecursion( subRecCheckList )
+
+    def _setResultsName(self, name, listAllMatches=False):
+        if (not __compat__.collect_all_And_tokens
+                and __diag__.warn_multiple_tokens_in_named_alternation):
+            if any(isinstance(e, And) for e in self.exprs):
+                warnings.warn("{0}: setting results name {1!r} on {2} expression "
+                              "may only return a single token for an And alternative".format(
+                    "warn_multiple_tokens_in_named_alternation", name, type(self).__name__),
+                    stacklevel=3)
+
+        return super(MatchFirst, self)._setResultsName(name, listAllMatches)
 
 
 class Each(ParseExpression):
@@ -4532,6 +4594,20 @@ class _MultipleMatch(ParseElementEnhance):
 
         return loc, tokens
 
+    def _setResultsName(self, name, listAllMatches=False):
+        if __diag__.warn_ungrouped_named_tokens_in_collection:
+            for e in [self.expr] + getattr(self.expr, 'exprs', []):
+                if isinstance(e, ParserElement) and e.resultsName:
+                    warnings.warn("{0}: setting results name {1!r} on {2} expression "
+                                  "collides with {3!r} on contained expression".format("warn_ungrouped_named_tokens_in_collection",
+                                                                                       name,
+                                                                                       type(self).__name__,
+                                                                                       e.resultsName),
+                                  stacklevel=3)
+
+        return super(_MultipleMatch, self)._setResultsName(name, listAllMatches)
+
+
 class OneOrMore(_MultipleMatch):
     """Repetition of one or more of the given expression.
 
@@ -4880,6 +4956,17 @@ class Forward(ParseElementEnhance):
             ret = Forward()
             ret <<= self
             return ret
+
+    def _setResultsName(self, name, listAllMatches=False):
+        if __diag__.warn_name_set_on_empty_Forward:
+            if self.expr is None:
+                warnings.warn("{0}: setting results name {0!r} on {1} expression "
+                              "that has no contained expression".format("warn_name_set_on_empty_Forward",
+                                                                        name,
+                                                                        type(self).__name__),
+                              stacklevel=3)
+
+        return super(Forward, self)._setResultsName(name, listAllMatches)
 
 class TokenConverter(ParseElementEnhance):
     """
@@ -5249,7 +5336,7 @@ def _escapeRegexRangeChars(s):
     s = s.replace("\t",r"\t")
     return _ustr(s)
 
-def oneOf( strs, caseless=False, useRegex=True ):
+def oneOf(strs, caseless=False, useRegex=True, asKeyword=False):
     """Helper to quickly define a set of alternative Literals, and makes
     sure to do longest-first testing when there is a conflict,
     regardless of the input order, but returns
@@ -5263,8 +5350,10 @@ def oneOf( strs, caseless=False, useRegex=True ):
        caseless
      - useRegex - (default= ``True``) - as an optimization, will
        generate a Regex object; otherwise, will generate
-       a :class:`MatchFirst` object (if ``caseless=True``, or if
+       a :class:`MatchFirst` object (if ``caseless=True`` or ``asKeyword=True``, or if
        creating a :class:`Regex` raises an exception)
+     - asKeyword - (default=``False``) - enforce Keyword-style matching on the
+       generated expressions
 
     Example::
 
@@ -5279,14 +5368,18 @@ def oneOf( strs, caseless=False, useRegex=True ):
 
         [['B', '=', '12'], ['AA', '=', '23'], ['B', '<=', 'AA'], ['AA', '>', '12']]
     """
+    if isinstance(caseless, basestring):
+        warnings.warn("More than one string argument passed to oneOf, pass "
+                      "choices as a list or space-delimited string", stacklevel=2)
+
     if caseless:
-        isequal = ( lambda a,b: a.upper() == b.upper() )
-        masks = ( lambda a,b: b.upper().startswith(a.upper()) )
-        parseElementClass = CaselessLiteral
+        isequal = (lambda a, b: a.upper() == b.upper())
+        masks = (lambda a, b: b.upper().startswith(a.upper()))
+        parseElementClass = CaselessKeyword if asKeyword else CaselessLiteral
     else:
-        isequal = ( lambda a,b: a == b )
-        masks = ( lambda a,b: b.startswith(a) )
-        parseElementClass = Literal
+        isequal = (lambda a, b: a == b)
+        masks = (lambda a, b: b.startswith(a))
+        parseElementClass = Keyword if asKeyword else Literal
 
     symbols = []
     if isinstance(strs,basestring):
@@ -5299,22 +5392,24 @@ def oneOf( strs, caseless=False, useRegex=True ):
     if not symbols:
         return NoMatch()
 
-    i = 0
-    while i < len(symbols)-1:
-        cur = symbols[i]
-        for j,other in enumerate(symbols[i+1:]):
-            if ( isequal(other, cur) ):
-                del symbols[i+j+1]
-                break
-            elif ( masks(cur, other) ):
-                del symbols[i+j+1]
-                symbols.insert(i,other)
-                cur = other
-                break
-        else:
-            i += 1
+    if not asKeyword:
+        # if not producing keywords, need to reorder to take care to avoid masking
+        # longer choices with shorter ones
+        i = 0
+        while i < len(symbols)-1:
+            cur = symbols[i]
+            for j, other in enumerate(symbols[i+1:]):
+                if (isequal(other, cur)):
+                    del symbols[i+j+1]
+                    break
+                elif (masks(cur, other)):
+                    del symbols[i+j+1]
+                    symbols.insert(i,other)
+                    break
+            else:
+                i += 1
 
-    if not caseless and useRegex:
+    if not (caseless or asKeyword) and useRegex:
         #~ print (strs,"->", "|".join( [ _escapeRegexChars(sym) for sym in symbols] ))
         try:
             if len(symbols)==len("".join(symbols)):
@@ -5324,7 +5419,6 @@ def oneOf( strs, caseless=False, useRegex=True ):
         except Exception:
             warnings.warn("Exception creating Regex for oneOf, building MatchFirst",
                     SyntaxWarning, stacklevel=2)
-
 
     # last resort, just use MatchFirst
     return MatchFirst(parseElementClass(sym) for sym in symbols).setName(' | '.join(symbols))

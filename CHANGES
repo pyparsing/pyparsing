@@ -99,11 +99,37 @@ Version 2.4.1 - July, 2019
 
     pyparsing.ParseException: Expected end of text, found '1' (at char 8), (line:1, col:9)
 
+- Added diagnostic switches to help detect and warn about common
+  parser construction mistakes, or enable additional parse
+  debugging. Switches are attached to the pyparsing.__diag__
+  namespace object:
+     - warn_multiple_tokens_in_named_alternation - flag to enable warnings when a results
+       name is defined on a MatchFirst or Or expression with one or more And subexpressions
+       (default=True)
+     - warn_ungrouped_named_tokens_in_collection - flag to enable warnings when a results
+       name is defined on a containing expression with ungrouped subexpressions that also
+       have results names (default=True)
+     - warn_name_set_on_empty_Forward - flag to enable warnings whan a Forward is defined
+       with a results name, but has no contents defined (default=True)
+     - warn_on_multiple_string_args_to_oneof - flag to enable warnings whan oneOf is
+       incorrectly called with multiple str arguments (default=True)
+     - enable_debug_on_named_expressions - flag to auto-enable debug on all subsequent
+       calls to ParserElement.setName() (default=False)
+
+  warn_multiple_tokens_in_named_alternation is intended to help
+  those who currently have set __compat__.collect_all_And_tokens to
+  False as a workaround for using the pre-2.3.0 code with ungrouped
+  results names nested in an outer expression also having a results
+  name.
+
 - Added ParseResults.from_dict classmethod, to simplify creation
   of a ParseResults with results names. May be called with a dict
   argument, or with a series of named arguments (or both). This
   makes it easy to add a sub-level of named items to the parsed
   tokens in a parse action.
+
+- Added asKeyword argument (default=False) to oneOf, to force
+  keyword-style matching on the generated expressions.
 
 - While investigating issue #93, I found that Or and
   addCondition could interact to select an alternative that

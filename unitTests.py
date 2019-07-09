@@ -30,9 +30,9 @@ if PY_3:
 else:
     def _print(*args, **kwargs):
         if 'end' in kwargs:
-            sys.stdout.write(' '.join(map(str,args)) + kwargs['end'])
+            sys.stdout.write(' '.join(map(str,args)) + kwargs['end'], flush=True)
         else:
-            sys.stdout.write(' '.join(map(str,args)) + '\n')
+            sys.stdout.write(' '.join(map(str,args)) + '\n', flush=True)
     print_ = _print
     from cStringIO import StringIO
 
@@ -4347,10 +4347,15 @@ class ParseResultsWithNameMatchFirst(ParseTestCase):
         # test compatibility mode, restoring pre-2.3.1 behavior
         with AutoReset(pp.__compat__, "collect_all_And_tokens"):
             pp.__compat__.collect_all_And_tokens = False
+            pp.__diag__.warn_multiple_tokens_in_named_alternation = True
             expr_a = pp.Literal('not') + pp.Literal('the') + pp.Literal('bird')
             expr_b = pp.Literal('the') + pp.Literal('bird')
-            expr = (expr_a | expr_b)('rexp')
-            expr.runTests("""\
+            if PY_3:
+                with self.assertWarns(UserWarning, msg="failed to warn of And within alternation"):
+                    expr = (expr_a | expr_b)('rexp')
+            else:
+                expr = (expr_a | expr_b)('rexp')
+            expr.runTests("""
                 not the bird
                 the bird
             """)
@@ -4487,6 +4492,35 @@ class CaselessKeywordVsKeywordCaselessTest(ParseTestCase):
         clist = crule.searchString('not yes').asList()
         print_(clist)
         self.assertEqual(flist, clist, "CaselessKeyword not working the same as Keyword(caseless=True)")
+
+
+class OneOfKeywordsTest(ParseTestCase):
+    def runTest(self):
+        import pyparsing as pp
+
+        literal_expr = pp.oneOf("a b c")
+        success, _ = literal_expr[...].runTests("""
+            # literal oneOf tests
+            a b c
+            a a a
+            abc
+        """)
+        self.assertTrue(success, "failed literal oneOf matching")
+
+        keyword_expr = pp.oneOf("a b c", asKeyword=True)
+        success, _ = keyword_expr[...].runTests("""
+            # keyword oneOf tests
+            a b c
+            a a a
+        """)
+        self.assertTrue(success, "failed keyword oneOf matching")
+
+        success, _ = keyword_expr[...].runTests("""
+            # keyword oneOf failure tests
+            abc
+        """, failureTests=True)
+        self.assertTrue(success, "failed keyword oneOf failure tests")
+
 
 
 class MiscellaneousParserTests(ParseTestCase):
@@ -4735,16 +4769,17 @@ suite = makeTestSuite()
 
 if __name__ == '__main__':
 
-    testRunner = TextTestRunner()
-
     # run specific tests by including them in this list, otherwise
     # all tests will be run
     testclasses = [
         ]
 
     if not testclasses:
+        testRunner = TextTestRunner()
         result = testRunner.run(suite)
     else:
+        # disable chaser '.' display
+        testRunner = TextTestRunner(verbosity=0)
         BUFFER_OUTPUT = False
         result = testRunner.run(makeTestSuiteTemp(testclasses))
 
