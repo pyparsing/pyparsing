@@ -96,7 +96,7 @@ classes inherit from. Use the docstrings for examples of how to:
 """
 
 __version__ = "2.4.1"
-__versionTime__ = "09 Jul 2019 10:47 UTC"
+__versionTime__ = "10 Jul 2019 03:49 UTC"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -188,7 +188,7 @@ __diag__.enable_debug_on_named_expressions = False
 
 #~ sys.stderr.write( "testing pyparsing module, version %s, %s\n" % (__version__,__versionTime__ ) )
 
-__all__ = [ '__version__', '__versionTime__', '__author__', '__compat__',
+__all__ = [ '__version__', '__versionTime__', '__author__', '__compat__', '__diag__',
 'And', 'CaselessKeyword', 'CaselessLiteral', 'CharsNotIn', 'Combine', 'Dict', 'Each', 'Empty',
 'FollowedBy', 'Forward', 'GoToColumn', 'Group', 'Keyword', 'LineEnd', 'LineStart', 'Literal',
 'PrecededBy', 'MatchFirst', 'NoMatch', 'NotAny', 'OneOrMore', 'OnlyOnce', 'Optional', 'Or',
@@ -207,6 +207,7 @@ __all__ = [ '__version__', '__versionTime__', '__author__', '__compat__',
 'stringStart', 'traceParseAction', 'unicodeString', 'upcaseTokens', 'withAttribute',
 'indentedBlock', 'originalTextFor', 'ungroup', 'infixNotation','locatedExpr', 'withClass',
 'CloseMatch', 'tokenMap', 'pyparsing_common', 'pyparsing_unicode', 'unicode_set',
+'conditionAsParseAction',
 ]
 
 system_version = tuple(sys.version_info)[:3]
