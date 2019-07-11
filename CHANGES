@@ -125,9 +125,8 @@ Version 2.4.1 - July, 2019
   MatchFirst or Or expressions containing an And expression.
 
 - Added ParseResults.from_dict classmethod, to simplify creation
-  of a ParseResults with results names. May be called with a dict
-  argument, or with a series of named arguments (or both). This
-  makes it easy to add a sub-level of named items to the parsed
+  of a ParseResults with results names using a dict, which may be nested.
+  This makes it easy to add a sub-level of named items to the parsed
   tokens in a parse action.
 
 - Added asKeyword argument (default=False) to oneOf, to force

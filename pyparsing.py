@@ -96,7 +96,7 @@ classes inherit from. Use the docstrings for examples of how to:
 """
 
 __version__ = "2.4.1"
-__versionTime__ = "11 Jul 2019 03:14 UTC"
+__versionTime__ = "11 Jul 2019 11:31 UTC"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -129,11 +129,11 @@ except ImportError:
 try:
     # Python 3
     from collections.abc import Iterable
-    from collections.abc import MutableMapping
+    from collections.abc import MutableMapping, Mapping
 except ImportError:
     # Python 2.7
     from collections import Iterable
-    from collections import MutableMapping
+    from collections import MutableMapping, Mapping
 
 try:
     from collections import OrderedDict as _OrderedDict
@@ -1174,26 +1174,32 @@ class ParseResults(object):
         return (dir(type(self)) + list(self.keys()))
 
     @classmethod
-    def from_dict(cls, other=None, **kwargs):
+    def from_dict(cls, other, name=None):
         """
-        Helper classmethod to construct a ParseResults from either a dict or a sequence of named arguments,
-        preserving the name-value relations as results names.
+        Helper classmethod to construct a ParseResults from a dict, preserving the
+        name-value relations as results names. If an optional 'name' argument is
+        given, a nested ParseResults will be returned
         """
-        if other is not None:
-            items = itertools.chain(other.items(), kwargs.items())
-        else:
-            items = kwargs.items()
-
         def is_iterable(obj):
-            try: iter(obj)
-            except Exception: return False
+            try:
+                iter(obj)
+            except Exception:
+                return False
             else:
                 if PY_3:
                     return not isinstance(obj, (str, bytes))
                 else:
                     return not isinstance(obj, basestring)
 
-        return sum(cls([v], name=k, asList=is_iterable(v)) for k, v in items)
+        ret = cls([])
+        for k, v in other.items():
+            if isinstance(v, Mapping):
+                ret += cls.from_dict(v, name=k)
+            else:
+                ret += cls([v], name=k, asList=is_iterable(v))
+        if name is not None:
+            ret = cls([ret], name=name)
+        return ret
 
 MutableMapping.register(ParseResults)
 
