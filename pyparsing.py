@@ -96,7 +96,7 @@ classes inherit from. Use the docstrings for examples of how to:
 """
 
 __version__ = "2.4.1"
-__versionTime__ = "10 Jul 2019 03:49 UTC"
+__versionTime__ = "11 Jul 2019 03:14 UTC"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -1054,7 +1054,7 @@ class ParseResults(object):
         else:
             return None
 
-    def dump(self, indent='', depth=0, full=True):
+    def dump(self, indent='', full=True, include_list=True, _depth=0):
         """
         Diagnostic method for listing out the contents of
         a :class:`ParseResults`. Accepts an optional ``indent`` argument so
@@ -1077,17 +1077,21 @@ class ParseResults(object):
         """
         out = []
         NL = '\n'
-        out.append( indent+_ustr(self.asList()) )
+        if include_list:
+            out.append(indent+_ustr(self.asList()))
+        else:
+            out.append('')
+
         if full:
             if self.haskeys():
                 items = sorted((str(k), v) for k,v in self.items())
                 for k,v in items:
                     if out:
                         out.append(NL)
-                    out.append( "%s%s- %s: " % (indent,('  '*depth), k) )
+                    out.append("%s%s- %s: " % (indent, ('  ' * _depth), k))
                     if isinstance(v,ParseResults):
                         if v:
-                            out.append( v.dump(indent,depth+1) )
+                            out.append(v.dump(indent=indent, full=full, include_list=include_list, _depth=_depth+1))
                         else:
                             out.append(_ustr(v))
                     else:
@@ -1096,9 +1100,22 @@ class ParseResults(object):
                 v = self
                 for i,vv in enumerate(v):
                     if isinstance(vv,ParseResults):
-                        out.append("\n%s%s[%d]:\n%s%s%s" % (indent,('  '*(depth)),i,indent,('  '*(depth+1)),vv.dump(indent,depth+1) ))
+                        out.append("\n%s%s[%d]:\n%s%s%s" % (indent,
+                                                            ('  ' * (_depth)),
+                                                            i,
+                                                            indent,
+                                                            ('  ' * (_depth+1)),
+                                                            vv.dump(indent=indent,
+                                                                    full=full,
+                                                                    include_list=include_list,
+                                                                    _depth=_depth+1)))
                     else:
-                        out.append("\n%s%s[%d]:\n%s%s%s" % (indent,('  '*(depth)),i,indent,('  '*(depth+1)),_ustr(vv)))
+                        out.append("\n%s%s[%d]:\n%s%s%s" % (indent,
+                                                            ('  ' * (_depth)),
+                                                            i,
+                                                            indent,
+                                                            ('  ' * (_depth+1)),
+                                                            _ustr(vv)))
 
         return "".join(out)
 
@@ -4699,7 +4716,6 @@ class _NullToken(object):
     def __str__(self):
         return ""
 
-_optionalNotMatched = _NullToken()
 class Optional(ParseElementEnhance):
     """Optional matching of the given expression.
 
@@ -4737,6 +4753,8 @@ class Optional(ParseElementEnhance):
              ^
         FAIL: Expected end of text (at char 5), (line:1, col:6)
     """
+    _optionalNotMatched = _NullToken()
+
     def __init__( self, expr, default=_optionalNotMatched ):
         super(Optional,self).__init__( expr, savelist=False )
         self.saveAsList = self.expr.saveAsList
@@ -4747,7 +4765,7 @@ class Optional(ParseElementEnhance):
         try:
             loc, tokens = self.expr._parse( instring, loc, doActions, callPreParse=False )
         except (ParseException,IndexError):
-            if self.defaultValue is not _optionalNotMatched:
+            if self.defaultValue is not self._optionalNotMatched:
                 if self.expr.resultsName:
                     tokens = ParseResults([ self.defaultValue ])
                     tokens[self.expr.resultsName] = self.defaultValue

@@ -113,7 +113,7 @@ Version 2.4.1 - July, 2019
        name is defined on a containing expression with ungrouped subexpressions that also
        have results names (default=True)
      - warn_name_set_on_empty_Forward - flag to enable warnings whan a Forward is defined
-       with a results name, but has no contents defined (default=True)
+       with a results name, but has no contents defined (default=False)
      - warn_on_multiple_string_args_to_oneof - flag to enable warnings whan oneOf is
        incorrectly called with multiple str arguments (default=True)
      - enable_debug_on_named_expressions - flag to auto-enable debug on all subsequent
