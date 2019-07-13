@@ -220,8 +220,10 @@ def main():
     print('')
     if failed:
         print(failed, "tests FAILED")
+        return 1
     else:
         print("all tests PASSED")
+        return 0
 
 if __name__=='__main__':
-    main()
+    exit(main())

@@ -38,7 +38,7 @@ def getLogLineBNF():
         ipAddress = delimitedList( integer, ".", combine=True )
 
         timeZoneOffset = Word("+-",nums)
-        month = Word(string.uppercase, string.lowercase, exact=3)
+        month = Word(string.ascii_uppercase, string.ascii_lowercase, exact=3)
         serverDateTime = Group( Suppress("[") +
                                 Combine( integer + "/" + month + "/" + integer +
                                         ":" + integer + ":" + integer + ":" + integer ) +
@@ -69,5 +69,4 @@ for line in testdata.split("\n"):
     #~ print repr(fields)
     #~ for k in fields.keys():
         #~ print "fields." + k + " =", fields[k]
-    print(fields.asXML("LOG"))
     print()

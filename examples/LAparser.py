@@ -359,20 +359,61 @@ def test():
 
      ]
 
-   for t in testcases:
-      name,input,expected = t
-      print(name)
-      print("   %s input"%input)
-      print("   %s expected"%expected)
-      result = parse(input)
-      print("   %s received"%result)
-      print("")
-      assert expected == result
+
+   all_passed = [True]
+
+   def post_test(test, parsed):
+
+      # copy exprStack to evaluate and clear before running next test
+      parsed_stack = exprStack[:]
+      exprStack.clear()
+
+      name, testcase, expected = next(tc for tc in testcases if tc[1] == test)
+
+      this_test_passed = False
+      try:
+          try:
+            result=_evaluateStack(parsed_stack)
+          except TypeError:
+            print("Unsupported operation on right side of '%s'.\nCheck for missing or incorrect tags on non-scalar operands."%input_string, file=sys.stderr)
+            raise
+          except UnaryUnsupportedError:
+            print("Unary negation is not supported for vectors and matrices: '%s'"%input_string, file=sys.stderr)
+            raise
+
+          # Create final assignment and print it.
+          if debug_flag: print("var=",targetvar)
+          if targetvar != None:
+              try:
+                result = _assignfunc(targetvar,result)
+              except TypeError:
+                print("Left side tag does not match right side of '%s'"%input_string, file=sys.stderr)
+                raise
+              except UnaryUnsupportedError:
+                print("Unary negation is not supported for vectors and matrices: '%s'"%input_string, file=sys.stderr)
+                raise
+
+          else:
+            print("Empty left side in '%s'"%input_string, file=sys.stderr)
+            raise TypeError
+
+          parsed['result'] = result
+          parsed['passed'] = this_test_passed = result == expected
+
+      finally:
+          all_passed[0] = all_passed[0] and this_test_passed
+          print('\n' + name)
+
+   equation.runTests((t[1] for t in testcases), postParse=post_test)
+
 
    ##TODO: Write testcases with invalid expressions and test that the expected
    ## exceptions are raised.
 
    print("Tests completed!")
+   print("PASSED" if all_passed[0] else "FAILED")
+   assert all_passed[0]
+
 ##----------------------------------------------------------------------------
 ## The following is executed only when this module is executed as
 ## command line script.  It runs a small test suite (see above)
@@ -380,8 +421,12 @@ def test():
 ## can enter expressions and see the resulting C code as output.
 
 if __name__ == '__main__':
-  # run testcases
-  test()
+
+  import sys
+  if not sys.flags.interactive:
+      # run testcases
+      test()
+      sys.exit(0)
 
   # input_string
   input_string=''
@@ -412,3 +457,6 @@ if __name__ == '__main__':
 
   # if user types 'quit' then say goodbye
   print("Good bye!")
+  import os
+  os._exit(0)
+

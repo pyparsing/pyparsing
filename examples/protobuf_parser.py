@@ -6,7 +6,7 @@
 #
 
 from pyparsing import (Word, alphas, alphanums, Regex, Suppress, Forward,
-    Group, oneOf, ZeroOrMore, Optional, delimitedList,
+    Keyword, Group, oneOf, ZeroOrMore, Optional, delimitedList,
     restOfLine, quotedString, Dict)
 
 ident = Word(alphas+"_",alphanums+"_").setName("identifier")

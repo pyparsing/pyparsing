@@ -1,7 +1,7 @@
 # commasep.py
 #
 # comma-separated list example, to illustrate the advantages of using
-# the pyparsing commaSeparatedList as opposed to string.split(","):
+# the pyparsing comma_separated_list as opposed to string.split(","):
 # - leading and trailing whitespace is implicitly trimmed from list elements
 # - list elements can be quoted strings, which can safely contain commas without breaking
 #    into separate elements
@@ -9,7 +9,8 @@
 # Copyright (c) 2004-2016, Paul McGuire
 #
 
-from pyparsing import commaSeparatedList
+import pyparsing as pp
+ppc = pp.pyparsing_common
 
 testData = [
     "a,b,c,100.2,,3",
@@ -20,4 +21,4 @@ testData = [
     "",
     ]
 
-commaSeparatedList.runTests(testData)
+ppc.comma_separated_list.runTests(testData)
