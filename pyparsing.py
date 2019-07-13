@@ -96,7 +96,7 @@ classes inherit from. Use the docstrings for examples of how to:
 """
 
 __version__ = "2.4.1"
-__versionTime__ = "11 Jul 2019 11:31 UTC"
+__versionTime__ = "13 Jul 2019 17:05 UTC"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -2554,17 +2554,17 @@ class ParserElement(object):
 
     def __eq__(self,other):
         if isinstance(other, ParserElement):
-            return self is other or vars(self) == vars(other)
+            super(ParserElement, self).__eq__(other)
         elif isinstance(other, basestring):
             return self.matches(other)
         else:
-            return super(ParserElement,self)==other
+            return super(ParserElement,self) == other
 
     def __ne__(self,other):
         return not (self == other)
 
     def __hash__(self):
-        return hash(id(self))
+        return id(self)
 
     def __req__(self,other):
         return self == other
@@ -2849,15 +2849,22 @@ class Literal(Token):
         self.mayReturnEmpty = False
         self.mayIndexError = False
 
-    # Performance tuning: this routine gets called a *lot*
-    # if this is a single character match string  and the first character matches,
-    # short-circuit as quickly as possible, and avoid calling startswith
-    #~ @profile
-    def parseImpl( self, instring, loc, doActions=True ):
-        if (instring[loc] == self.firstMatchChar and
-            (self.matchLen==1 or instring.startswith(self.match,loc)) ):
-            return loc+self.matchLen, self.match
+        # Performance tuning: modify __class__ to select
+        # a parseImpl optimized for single-character check
+        if self.matchLen == 1 and type(self) is Literal:
+            self.__class__ = _SingleCharLiteral
+
+    def parseImpl(self, instring, loc, doActions=True):
+        if instring[loc] == self.firstMatchChar and instring.startswith(self.match,loc):
+            return loc + self.matchLen, self.match
         raise ParseException(instring, loc, self.errmsg, self)
+
+class _SingleCharLiteral(Literal):
+    def parseImpl(self, instring, loc, doActions=True):
+        if instring[loc] == self.firstMatchChar:
+            return loc + 1, self.match
+        raise ParseException(instring, loc, self.errmsg, self)
+
 _L = Literal
 ParserElement._literalStringClass = Literal
 
@@ -3142,20 +3149,16 @@ class Word(Token):
                                       _escapeRegexRangeChars(self.bodyCharsOrig),)
             if self.asKeyword:
                 self.reString = r"\b"+self.reString+r"\b"
+
             try:
                 self.re = re.compile( self.reString )
             except Exception:
                 self.re = None
+            else:
+                self.re_match = self.re.match
+                self.__class__ = _WordRegex
 
     def parseImpl( self, instring, loc, doActions=True ):
-        if self.re:
-            result = self.re.match(instring,loc)
-            if not result:
-                raise ParseException(instring, loc, self.errmsg, self)
-
-            loc = result.end()
-            return loc, result.group()
-
         if instring[loc] not in self.initChars:
             raise ParseException(instring, loc, self.errmsg, self)
 
@@ -3188,7 +3191,6 @@ class Word(Token):
         except Exception:
             pass
 
-
         if self.strRepr is None:
 
             def charsAsStr(s):
@@ -3204,16 +3206,28 @@ class Word(Token):
 
         return self.strRepr
 
+class _WordRegex(Word):
+    def parseImpl( self, instring, loc, doActions=True ):
+        result = self.re_match(instring,loc)
+        if not result:
+            raise ParseException(instring, loc, self.errmsg, self)
 
-class Char(Word):
+        loc = result.end()
+        return loc, result.group()
+
+
+class Char(_WordRegex):
     """A short-cut class for defining ``Word(characters, exact=1)``,
     when defining a match of any single character in a string of
     characters.
     """
     def __init__(self, charset, asKeyword=False, excludeChars=None):
         super(Char, self).__init__(charset, exact=1, asKeyword=asKeyword, excludeChars=excludeChars)
-        self.reString = "[%s]" % _escapeRegexRangeChars(self.initCharsOrig)
-        self.re = re.compile( self.reString )
+        self.reString = "[%s]" % _escapeRegexRangeChars(''.join(self.initChars))
+        if asKeyword:
+            self.reString = r"\b%s\b" % self.reString
+        self.re = re.compile(self.reString)
+        self.re_match = self.re.match
 
 
 class Regex(Token):
@@ -3264,6 +3278,8 @@ class Regex(Token):
         else:
             raise ValueError("Regex may only be constructed with a string or a compiled RE object")
 
+        self.re_match = self.re.match
+
         self.name = _ustr(self)
         self.errmsg = "Expected " + self.name
         self.mayIndexError = False
@@ -3276,7 +3292,7 @@ class Regex(Token):
             self.parseImpl = self.parseImplAsMatch
 
     def parseImpl(self, instring, loc, doActions=True):
-        result = self.re.match(instring,loc)
+        result = self.re_match(instring,loc)
         if not result:
             raise ParseException(instring, loc, self.errmsg, self)
 
@@ -3289,7 +3305,7 @@ class Regex(Token):
         return loc, ret
 
     def parseImplAsGroupList(self, instring, loc, doActions=True):
-        result = self.re.match(instring,loc)
+        result = self.re_match(instring,loc)
         if not result:
             raise ParseException(instring, loc, self.errmsg, self)
 
@@ -3298,7 +3314,7 @@ class Regex(Token):
         return loc, ret
 
     def parseImplAsMatch(self, instring, loc, doActions=True):
-        result = self.re.match(instring,loc)
+        result = self.re_match(instring,loc)
         if not result:
             raise ParseException(instring, loc, self.errmsg, self)
 
@@ -3440,6 +3456,7 @@ class QuotedString(Token):
         try:
             self.re = re.compile(self.pattern, self.flags)
             self.reString = self.pattern
+            self.re_match  = self.re.match
         except sre_constants.error:
             warnings.warn("invalid pattern (%s) passed to Regex" % self.pattern,
                 SyntaxWarning, stacklevel=2)
@@ -3451,7 +3468,7 @@ class QuotedString(Token):
         self.mayReturnEmpty = True
 
     def parseImpl( self, instring, loc, doActions=True ):
-        result = instring[loc] == self.firstQuoteChar and self.re.match(instring,loc) or None
+        result = instring[loc] == self.firstQuoteChar and self.re_match(instring,loc) or None
         if not result:
             raise ParseException(instring, loc, self.errmsg, self)
 
@@ -4468,8 +4485,11 @@ class FollowedBy(ParseElementEnhance):
         self.mayReturnEmpty = True
 
     def parseImpl( self, instring, loc, doActions=True ):
+        # by using self._expr.parse and deleting the contents of the returned ParseResults list
+        # we keep any named results that were defined in the FollowedBy expression
         _, ret = self.expr._parse(instring, loc, doActions=doActions)
         del ret[:]
+
         return loc, ret
 
 
@@ -4715,6 +4735,7 @@ class ZeroOrMore(_MultipleMatch):
 
         return self.strRepr
 
+
 class _NullToken(object):
     def __bool__(self):
         return False
@@ -4759,9 +4780,9 @@ class Optional(ParseElementEnhance):
              ^
         FAIL: Expected end of text (at char 5), (line:1, col:6)
     """
-    _optionalNotMatched = _NullToken()
+    __optionalNotMatched = _NullToken()
 
-    def __init__( self, expr, default=_optionalNotMatched ):
+    def __init__( self, expr, default=__optionalNotMatched ):
         super(Optional,self).__init__( expr, savelist=False )
         self.saveAsList = self.expr.saveAsList
         self.defaultValue = default
@@ -4771,7 +4792,7 @@ class Optional(ParseElementEnhance):
         try:
             loc, tokens = self.expr._parse( instring, loc, doActions, callPreParse=False )
         except (ParseException,IndexError):
-            if self.defaultValue is not self._optionalNotMatched:
+            if self.defaultValue is not self.__optionalNotMatched:
                 if self.expr.resultsName:
                     tokens = ParseResults([ self.defaultValue ])
                     tokens[self.expr.resultsName] = self.defaultValue
