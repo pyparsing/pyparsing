@@ -1321,7 +1321,10 @@ def _trim_arity(func, maxargs=2):
                         if not extract_tb(tb, limit=2)[-1][:2] == pa_call_line_synth:
                             raise
                     finally:
-                        del tb
+                        try:
+                            del tb
+                        except NameError:
+                            pass
 
                 if limit[0] <= maxargs:
                     limit[0] += 1
@@ -1491,6 +1494,7 @@ class ParserElement(object):
             _parseMethod = self._parse
             def breaker(instring, loc, doActions=True, callPreParse=True):
                 import pdb
+                # this call to pdb.set_trace() is intentional, not a checkin error
                 pdb.set_trace()
                 return _parseMethod( instring, loc, doActions, callPreParse )
             breaker._originalParseMethod = _parseMethod
@@ -3915,11 +3919,11 @@ class ParseExpression(ParserElement):
 
         return self
 
-    def validate( self, validateTrace=[] ):
-        tmp = validateTrace[:]+[self]
+    def validate(self, validateTrace=None):
+        tmp = (validateTrace if validateTrace is not None else [])[:]+[self]
         for e in self.exprs:
             e.validate(tmp)
-        self.checkRecursion( [] )
+        self.checkRecursion([])
 
     def copy(self):
         ret = super(ParseExpression,self).copy()
