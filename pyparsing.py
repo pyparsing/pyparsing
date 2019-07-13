@@ -2556,9 +2556,12 @@ class ParserElement(object):
                 # catch and re-raise exception from here, clears out pyparsing internal stack trace
                 raise exc
 
-    def __eq__(self,other):
+    def __eq__(self, other):
         if isinstance(other, ParserElement):
-            super(ParserElement, self).__eq__(other)
+            if PY_3:
+                self is other or super(ParserElement, self).__eq__(other)
+            else:
+                return self is other or vars(self) == vars(other)
         elif isinstance(other, basestring):
             return self.matches(other)
         else:
