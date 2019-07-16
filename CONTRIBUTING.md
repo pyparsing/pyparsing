@@ -29,9 +29,10 @@ If you have a question on using pyparsing, there are a number of resources avail
   and Python features.
 
 - [submit an issue](https://github.com/pyparsing/pyparsing/issues) - If you have a problem with pyparsing that looks
-  like an actual bug, please submit an issue on GitHub. Some pyparsing behavior may be counter-intuitive, so try to
-  review some of the other resources first, or some of the other open and closed issues. Or post your question on SO
-  or reddit. But don't wait until you are desperate and frustrated - just ask! :)
+  like an actual bug, or have an idea for a feature to add to pyaprsing please submit an issue on GitHub. Some
+  pyparsing behavior may be counter-intuitive, so try to review some of the other resources first, or some of the
+  other open and closed issues. Or post your question on SO or reddit. But don't wait until you are desperate and
+  frustrated - just ask! :)
 
 
 ## Submitting changes
@@ -106,7 +107,7 @@ These coding styles are encouraged whether submitting code for core pyparsing or
       any_keyword = pp.MatchFirst(pp.Keyword(kw) 
                                   for kw in python_keywords))
 
-- Learn [The Classic Blunders]([http://](https://github.com/pyparsing/pyparsing/wiki/TheClassicBlunders)) and 
+- Learn [The Classic Blunders](https://github.com/pyparsing/pyparsing/wiki/The-Classic-Blunders) and 
   how to avoid them when developing new examples.
 
 - New features should be accompanied with updates to unitTests.py and a bullet in the CHANGES file.
