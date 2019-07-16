@@ -194,6 +194,19 @@ Version 2.4.1 - July, 2019
   fix some omitted formats and upgrade to latest pyparsing idioms,
   beginning with writing an actual BNF.
 
+- With the help and encouragement from several contributors, including
+  Matěj Cepl and Cengiz Kaygusuz, I've started cleaning up the internal
+  coding styles in core pyparsing, bringing it up to modern coding
+  practices from pyparsing's early development days dating back to
+  2003. Whitespace has been largely standardized along PEP8 guidelines,
+  removing extra spaces around parentheses, and adding them around
+  arithmetic operators and after colons and commas. I was going to hold
+  off on doing this work until after 2.4.1, but after cleaning up a
+  few trial classes, the difference was so significant that I continued
+  on to the rest of the core code base. This should facilitate future
+  work and submitted PRs, allowing them to focus on substantive code
+  changes, and not get sidetracked by whitespace issues.
+
 
 Version 2.4.0 - April, 2019
 ---------------------------
