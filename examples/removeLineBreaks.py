@@ -11,21 +11,20 @@
 #
 # Copyright 2006, by Paul McGuire
 #
-from pyparsing import *
+import pyparsing as pp
 
 # define an expression for the body of a line of text - use a parse action to reject any
 # empty lines
-def mustBeNonBlank(s,l,t):
-    if not t[0]:
-        raise ParseException(s,l,"line body can't be empty")
-lineBody = SkipTo(lineEnd).setParseAction(mustBeNonBlank)
+def mustBeNonBlank(s, l, t):
+    return bool(t[0])
+
+lineBody = pp.SkipTo(pp.lineEnd).addCondition(mustBeNonBlank, message="line body can't be empty")
 
 # now define a line with a trailing lineEnd, to be replaced with a space character
-textLine = lineBody + Suppress(lineEnd).setParseAction(replaceWith(" "))
+textLine = lineBody + pp.Suppress(pp.lineEnd).setParseAction(pp.replaceWith(" "))
 
 # define a paragraph, with a separating lineEnd, to be replaced with a double newline
-para = OneOrMore(textLine) + Suppress(lineEnd).setParseAction(replaceWith("\n\n"))
-
+para = pp.OneOrMore(textLine) + pp.Suppress(pp.lineEnd).setParseAction(pp.replaceWith("\n\n"))
 
 # run a test
 test = """
@@ -41,5 +40,6 @@ test = """
 print(para.transformString(test))
 
 # process an entire file
-z = para.transformString(open("Successful Methods of Public Speaking.txt").read())
-open("Successful Methods of Public Speaking(2).txt","w").write(z)
+original = open("Successful Methods of Public Speaking.txt").read()
+transformed = para.transformString(original)
+open("Successful Methods of Public Speaking(2).txt", "w").write(transformed)
