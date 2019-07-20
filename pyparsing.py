@@ -96,7 +96,7 @@ classes inherit from. Use the docstrings for examples of how to:
 """
 
 __version__ = "2.4.1"
-__versionTime__ = "16 Jul 2019 04:10 UTC"
+__versionTime__ = "20 Jul 2019 18:17 UTC"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -1542,7 +1542,7 @@ class ParserElement(object):
             date_str.parseString("1999/12/31")  # -> [1999, '/', 12, '/', 31]
         """
         if list(fns) == [None,]:
-            self.parseAction = None
+            self.parseAction = []
         else:
             if not all(callable(fn) for fn in fns):
                 raise TypeError("parse actions must be callable")

@@ -3180,6 +3180,10 @@ class ClearParseActionsTest(ParseTestCase):
         realnum.setParseAction(None)
         self.assertEqual(realnum.parseString("3.14159")[0], "3.14159", "failed clearing parse action")
 
+        # add a new parse action that tests if a '.' is prsent
+        realnum.addParseAction(lambda t: '.' in t[0])
+        self.assertEqual(realnum.parseString("3.14159")[0], True,
+                         "failed setting new parse action after clearing parse action")
 
 class OneOrMoreStopTest(ParseTestCase):
     def runTest(self):
