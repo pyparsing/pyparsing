@@ -96,7 +96,7 @@ classes inherit from. Use the docstrings for examples of how to:
 """
 
 __version__ = "2.4.2a1"
-__versionTime__ = "24 Jul 2019 01:26 UTC"
+__versionTime__ = "24 Jul 2019 05:06 UTC"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -2348,6 +2348,11 @@ class ParserElement(object):
         """
         return NotAny(self)
 
+    def __iter__(self):
+        # must implement __iter__ to override legacy use of sequential access to __getitem__ to
+        # iterate over a sequence
+        raise TypeError('%r object is not iterable' % self.__class__.__name__)
+
     def __getitem__(self, key):
         """
         use ``[]`` indexing notation as a short form for expression repetition:
@@ -3838,6 +3843,8 @@ class ParseExpression(ParserElement):
 
         if isinstance(exprs, basestring):
             self.exprs = [self._literalStringClass(exprs)]
+        elif isinstance(exprs, ParserElement):
+            self.exprs = [exprs]
         elif isinstance(exprs, Iterable):
             exprs = list(exprs)
             # if sequence of strings provided, wrap with Literal
@@ -3991,15 +3998,17 @@ class And(ParseExpression):
 
     def streamline(self):
         # collapse any _PendingSkip's
-        if any(isinstance(e, ParseExpression) and isinstance(e.exprs[-1], _PendingSkip) for e in self.exprs[:-1]):
-            for i, e in enumerate(self.exprs[:-1]):
-                if e is None:
-                    continue
-                if (isinstance(e, ParseExpression)
-                        and isinstance(e.exprs[-1], _PendingSkip)):
-                    e.exprs[-1] = e.exprs[-1] + self.exprs[i + 1]
-                    self.exprs[i + 1] = None
-            self.exprs = [e for e in self.exprs if e is not None]
+        if self.exprs:
+            if any(isinstance(e, ParseExpression) and e.exprs and isinstance(e.exprs[-1], _PendingSkip)
+                   for e in self.exprs[:-1]):
+                for i, e in enumerate(self.exprs[:-1]):
+                    if e is None:
+                        continue
+                    if (isinstance(e, ParseExpression)
+                            and e.exprs and isinstance(e.exprs[-1], _PendingSkip)):
+                        e.exprs[-1] = e.exprs[-1] + self.exprs[i + 1]
+                        self.exprs[i + 1] = None
+                self.exprs = [e for e in self.exprs if e is not None]
 
         super(And, self).streamline()
         self.mayReturnEmpty = all(e.mayReturnEmpty for e in self.exprs)
