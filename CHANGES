@@ -2,26 +2,26 @@
 Change Log
 ==========
 
-Version 2.4.2a - July, 2019
----------------------------
+Version 2.4.2a1 - July, 2019
+----------------------------
 It turns out I got the meaning of `[...]` absolutely backwards,
-so I've deleted 2.4.1 and am repushing this release as 2.4.2a
-for people to give it a try before I call it ready to go.
+so I've deleted 2.4.1 and am repushing this release as 2.4.2a1
+for people to give it a try before I can call it ready to go.
 
 The `expr[...]` notation was pushed out to be synonymous with
 `OneOrMore(expr)`, but this is really counter to most Python
 notations (and even other internal pyparsing notations as well).
 
-It also seems that I introduced an ugly bug in the changes made
-to Or, so 2.4.1 really needs to be unreleased. So sorry,
-everyone!
+It also seems that I introduced a problem by enabling some noisy
+diagnostics, and added a very subtle ParserElement-as-
+unintentional-iterator bug, so 2.4.1 really needs to be unreleased.
+So sorry, everyone!
 
 (Updated)
 - A new shorthand notation has been added for repetition
   expressions: expr[min, max], with '...' valid as a min
   or max value:
-     - expr[...] and expr[0, ...] are equivalent to
-       ZeroOrMore(expr)
+     - expr[...] and expr[0, ...] are equivalent to ZeroOrMore(expr)
      - expr[1, ...] is equivalent to OneOrMore(expr)
      - expr[n, ...] or expr[n,] is equivalent
           to expr*n + ZeroOrMore(expr)
@@ -32,12 +32,23 @@ everyone!
   if more than n exprs exist in the input stream.  If this
   behavior is desired, then write expr[..., n] + ~expr.
 
+  Better interpretation of [...] as ZeroOrMore raised by crowsonkb,
+  thanks for keeping me in line!
+
 - The defaults on all the `__diag__` switches have been set to False,
   to avoid getting alarming warnings. To use these diagnostics, set
-  them to True after importing pyparsing. Example:
+  them to True after importing pyparsing.
+
+  Example:
 
       import pyparsing as pp
       pp.__diag__.warn_multiple_tokens_in_named_alternation = True
+
+- Fixed bug introduced by the use of __getitem__ for repetition,
+  overlooking Python's legacy implementation of iteration
+  by sequentially calling __getitem__ with increasing numbers until
+  getting an IndexError. Found during investigation of problem
+  reported by murlock, merci!
 
 
 Version 2.4.1 - July, 2019
