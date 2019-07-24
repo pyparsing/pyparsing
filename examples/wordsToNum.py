@@ -73,7 +73,7 @@ numPart = ((((units + pp.Optional(hundreds)).setParseAction(wordprod)
             ^ tens)
            + pp.Optional(units)
            ).setParseAction(sum)
-numWords = ((numPart + pp.Optional(mag)).setParseAction(wordprod)[...]).setParseAction(sum)
+numWords = ((numPart + pp.Optional(mag)).setParseAction(wordprod)[1, ...]).setParseAction(sum)
 numWords.setName("num word parser")
 
 numWords.ignore(pp.Literal("-"))
