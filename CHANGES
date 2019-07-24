@@ -11,11 +11,13 @@ for people to give it a try before I can call it ready to go.
 The `expr[...]` notation was pushed out to be synonymous with
 `OneOrMore(expr)`, but this is really counter to most Python
 notations (and even other internal pyparsing notations as well).
+It should have been defined to be equivalent to ZeroOrMore(expr).
 
 It also seems that I introduced a problem by enabling some noisy
 diagnostics, and added a very subtle ParserElement-as-
 unintentional-iterator bug, so 2.4.1 really needs to be unreleased.
 So sorry, everyone!
+
 
 (Updated)
 - A new shorthand notation has been added for repetition

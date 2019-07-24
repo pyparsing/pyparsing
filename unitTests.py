@@ -4670,6 +4670,34 @@ class EnableDebugOnNamedExpressionsTest(ParseTestCase):
                           "using enable_debug_on_named_expressions")
 
 
+class UndesirableButCommonPracticesTest(ParseTestCase):
+    def runTest(self):
+        import pyparsing as pp
+        ppc = pp.pyparsing_common
+
+        # While these are valid constructs, and they are not encouraged
+        # there is apparently a lot of code out there using these
+        # coding styles.
+        #
+        # Even though they are not encouraged, we shouldn't break them.
+
+        # Create an And using a list of expressions instead of using '+' operator
+        expr = pp.And([pp.Word('abc'), pp.Word('123')])
+        expr.runTests("""
+            aaa 333
+            b 1
+            ababab 32123
+        """)
+
+        # Passing a single expression to a ParseExpression, when it really wants a sequence
+        expr = pp.Or(pp.Or(ppc.integer))
+        expr.runTests("""
+            123
+            456
+            abc
+        """)
+
+
 class MiscellaneousParserTests(ParseTestCase):
     def runTest(self):
 

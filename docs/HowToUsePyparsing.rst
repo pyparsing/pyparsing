@@ -148,9 +148,9 @@ Usage notes
   - ``expr[... ,n]`` is equivalent to ``expr*(0, n)``
     (read as "0 to n instances of expr")
 
-  - ``expr[...]`` is equivalent to ``ZeroOrMore(expr)``
+  - ``expr[...]`` and ``expr[0, ...]`` are equivalent to ``ZeroOrMore(expr)``
 
-  - ``expr[0, ...]`` is equivalent to ``ZeroOrMore(expr)``
+  - ``expr[1, ...]`` is equivalent to ``OneOrMore(expr)``
 
   Note that ``expr[..., n]`` does not raise an exception if
   more than n exprs exist in the input stream; that is,
