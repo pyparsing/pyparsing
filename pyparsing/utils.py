@@ -47,9 +47,13 @@ if PY_3:
     singleArgBuiltins = [sum, len, sorted, reversed, list, tuple, set, any, all, min, max]
 
 else:
+    from __builtin__ import unicode
+
     _MAX_INT = sys.maxint
     range = xrange
-    from __builtin__ import unicode
+    basestring = basestring
+    unichr = unichr
+
 
     def _ustr(obj):
         """Drop-in replacement for str(obj) that tries to be Unicode
@@ -68,6 +72,7 @@ else:
 
         except UnicodeEncodeError:
             # Else encode it
+            from pyparsing import Regex
             ret = unicode(obj).encode(sys.getdefaultencoding(), 'xmlcharrefreplace')
             xmlcharref = Regex(r'&#\d+;')
             xmlcharref.setParseAction(lambda t: '\\u' + hex(int(t[0][2:-1]))[2:])
