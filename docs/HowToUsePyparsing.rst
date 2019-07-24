@@ -57,8 +57,8 @@ or any other greeting of the form "<salutation>, <addressee>!"::
 
     from pyparsing import Word, alphas
 
-    greet = Word( alphas ) + "," + Word( alphas ) + "!"
-    greeting = greet.parseString( "Hello, World!" )
+    greet = Word(alphas) + "," + Word(alphas) + "!"
+    greeting = greet.parseString("Hello, World!")
     print greeting
 
 The parsed tokens are returned in the following form::
@@ -81,9 +81,9 @@ Usage notes
   string literals with ParseExpressions - they will be
   automatically converted to Literal objects.  For example::
 
-    integer  = Word( nums )            # simple unsigned integer
-    variable = Word( alphas, max=1 )   # single letter variable, such as x, z, m, etc.
-    arithOp  = Word( "+-*/", max=1 )   # arithmetic operators
+    integer  = Word(nums)            # simple unsigned integer
+    variable = Word(alphas, max=1)   # single letter variable, such as x, z, m, etc.
+    arithOp  = Word("+-*/", max=1)   # arithmetic operators
     equation = variable + "=" + integer + arithOp + integer    # will match "x=2+2", etc.
 
   In the definition of ``equation``, the string ``"="`` will get added as
@@ -126,38 +126,37 @@ Usage notes
     return the matched results as ['3', '.', '14159'].  By changing this
     expression to::
 
-      real = Combine( Word(nums) + '.' + Word(nums) )
+      real = Combine(Word(nums) + '.' + Word(nums))
 
     it will not match numbers with embedded spaces, and it will return a
     single concatenated string '3.14159' as the parsed token.
 
-- Repetition of expressions can be indicated using the '*' operator.  An
+- Repetition of expressions can be indicated using ``*`` or ``[]`` notation.  An
   expression may be multiplied by an integer value (to indicate an exact
-  repetition count), or by a tuple containing
-  two integers, or None and an integer, representing min and max repetitions
-  (with None representing no min or no max, depending whether it is the first or
+  repetition count), or indexed with a tuple, representing min and max repetitions
+  (with ``...`` representing no min or no max, depending whether it is the first or
   second tuple element).  See the following examples, where n is used to
   indicate an integer value:
 
   - ``expr*3`` is equivalent to ``expr + expr + expr``
 
-  - ``expr*(2,3)`` is equivalent to ``expr + expr + Optional(expr)``
+  - ``expr[2, 3]`` is equivalent to ``expr + expr + Optional(expr)``
 
-  - ``expr*(n,None)`` or ``expr*(n,)`` is equivalent
+  - ``expr[n, ...]`` or ``expr[n,]`` is equivalent
     to ``expr*n + ZeroOrMore(expr)`` (read as "at least n instances of expr")
 
-  - ``expr*(None,n)`` is equivalent to ``expr*(0,n)``
+  - ``expr[... ,n]`` is equivalent to ``expr*(0, n)``
     (read as "0 to n instances of expr")
 
-  - ``expr*(None,None)`` is equivalent to ``ZeroOrMore(expr)``
+  - ``expr[...]`` is equivalent to ``ZeroOrMore(expr)``
 
-  - ``expr*(1,None)`` is equivalent to ``OneOrMore(expr)``
+  - ``expr[0, ...]`` is equivalent to ``ZeroOrMore(expr)``
 
-  Note that ``expr*(None,n)`` does not raise an exception if
+  Note that ``expr[..., n]`` does not raise an exception if
   more than n exprs exist in the input stream; that is,
-  ``expr*(None,n)`` does not enforce a maximum number of expr
+  ``expr[..., n]`` does not enforce a maximum number of expr
   occurrences.  If this behavior is desired, then write
-  ``expr*(None,n) + ~expr``.
+  ``expr[..., n] + ~expr``.
 
 - ``MatchFirst`` expressions are matched left-to-right, and the first
   match found will skip all later expressions within, so be sure

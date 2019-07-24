@@ -95,8 +95,8 @@ classes inherit from. Use the docstrings for examples of how to:
    namespace class
 """
 
-__version__ = "2.5.0"
-__versionTime__ = "22 Jul 2019 10:25 UTC"
+__version__ = "2.4.2a1"
+__versionTime__ = "24 Jul 2019 01:26 UTC"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -165,24 +165,24 @@ __compat__.collect_all_And_tokens = True
 
 __diag__ = SimpleNamespace()
 __diag__.__doc__ = """
-Diagnostic configuration
+Diagnostic configuration (all default to False)
      - warn_multiple_tokens_in_named_alternation - flag to enable warnings when a results
        name is defined on a MatchFirst or Or expression with one or more And subexpressions
-       (default=True) (only warns if __compat__.collect_all_And_tokens is False)
+       (only warns if __compat__.collect_all_And_tokens is False)
      - warn_ungrouped_named_tokens_in_collection - flag to enable warnings when a results
        name is defined on a containing expression with ungrouped subexpressions that also
-       have results names (default=True)
+       have results names
      - warn_name_set_on_empty_Forward - flag to enable warnings whan a Forward is defined
-       with a results name, but has no contents defined (default=False)
+       with a results name, but has no contents defined
      - warn_on_multiple_string_args_to_oneof - flag to enable warnings whan oneOf is
-       incorrectly called with multiple str arguments (default=True)
+       incorrectly called with multiple str arguments
      - enable_debug_on_named_expressions - flag to auto-enable debug on all subsequent
-       calls to ParserElement.setName() (default=False)
+       calls to ParserElement.setName()
 """
-__diag__.warn_multiple_tokens_in_named_alternation = True
-__diag__.warn_ungrouped_named_tokens_in_collection = True
+__diag__.warn_multiple_tokens_in_named_alternation = False
+__diag__.warn_ungrouped_named_tokens_in_collection = False
 __diag__.warn_name_set_on_empty_Forward = False
-__diag__.warn_on_multiple_string_args_to_oneof = True
+__diag__.warn_on_multiple_string_args_to_oneof = False
 __diag__.enable_debug_on_named_expressions = False
 
 # ~ sys.stderr.write("testing pyparsing module, version %s, %s\n" % (__version__, __versionTime__))
@@ -2210,8 +2210,11 @@ class ParserElement(object):
         occurrences.  If this behavior is desired, then write
         ``expr*(None, n) + ~expr``
         """
-        if other is Ellipsis or other == (Ellipsis,):
-            other = (1, None)
+        if other is Ellipsis:
+            other = (0, None)
+        elif isinstance(other, tuple) and other[:1] == (Ellipsis,):
+            other = ((0, ) + other[1:] + (None,))[:2]
+
         if isinstance(other, int):
             minElements, optElements = other, 0
         elif isinstance(other, tuple):
@@ -2355,9 +2358,8 @@ class ParserElement(object):
               (read as "at least n instances of ``expr``")
          - ``expr[..., n]`` is equivalent to ``expr*(0, n)``
               (read as "0 to n instances of ``expr``")
-         - ``expr[0, ...]`` is equivalent to ``ZeroOrMore(expr)``
+         - ``expr[...]`` and ``expr[0, ...]`` are equivalent to ``ZeroOrMore(expr)``
          - ``expr[1, ...]`` is equivalent to ``OneOrMore(expr)``
-         - ``expr[...]`` is equivalent to ``OneOrMore(expr)``
          ``None`` may be used in place of ``...``.
 
         Note that ``expr[..., n]`` and ``expr[m, n]``do not raise an exception
@@ -2371,7 +2373,7 @@ class ParserElement(object):
                 key = (key,)
             iter(key)
         except TypeError:
-            key = (key,)
+            key = (key, key)
 
         if len(key) > 2:
             warnings.warn("only 1 or 2 index arguments supported ({0}{1})".format(key[:5],
@@ -4104,6 +4106,12 @@ class Or(ParseExpression):
             # re-evaluate all matches in descending order of length of match, in case attached actions
             # might change whether or how much they match of the input.
             matches.sort(key=itemgetter(0), reverse=True)
+
+            if not doActions:
+                # no further conditions or parse actions to change the selection of
+                # alternative, so the first match will be the best match
+                best_expr = matches[0][1]
+                return best_expr._parse(instring, loc, doActions)
 
             longest = -1, None
             for loc1, expr1 in matches:
