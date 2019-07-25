@@ -2,6 +2,52 @@
 Change Log
 ==========
 
+Version 2.4.1.1 - July 24, 2019
+-------------------------------
+This is a re-release of version 2.4.1 to restore the release history
+in PyPI, since the 2.4.1 release was deleted.
+
+There are 3 known issues in this release, which are fixed in
+the upcoming 2.4.2:
+
+- API change adding support for `expr[...]` - the original
+  code in 2.4.1 incorrectly implemented this as OneOrMore.
+  Code using this feature under this relase should explicitly
+  use `expr[0, ...]` for ZeroOrMore and `expr[1, ...]` for
+  OneOrMore. In 2.4.2 you will be able to write `expr[...]`
+  equivalent to `ZeroOrMore(expr)`.
+
+- Bug if composing And, Or, MatchFirst, or Each expressions
+  using an expression. This only affects code which uses
+  explicit expression construction using the And, Or, etc.
+  classes instead of using overloaded operators '+', '^', and
+  so on. If constructing an And using a single expression,
+  you may get an error that "cannot multiply ParserElement by
+  0 or (0, 0)" or a Python `IndexError`. Change code like
+
+    cmd = Or(Word(alphas))
+
+  to
+
+    cmd = Or([Word(alphas)])
+
+  (Note that this is not the recommended style for constructing
+  Or expressions.)
+
+- Some newly-added `__diag__` switches are enabled by default,
+  which may give rise to noisy user warnings for existing parsers.
+  You can disable them using:
+
+    import pyparsing as pp
+    pp.__diag__.warn_multiple_tokens_in_named_alternation = False
+    pp.__diag__.warn_ungrouped_named_tokens_in_collection = False
+    pp.__diag__.warn_name_set_on_empty_Forward = False
+    pp.__diag__.warn_on_multiple_string_args_to_oneof = False
+    pp.__diag__.enable_debug_on_named_expressions = False
+
+  In 2.4.2 these will all be set to False by default.
+
+
 Version 2.4.1 - July, 2019
 --------------------------
 - NOTE: Deprecated functions and features that will be dropped
