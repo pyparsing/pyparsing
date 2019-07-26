@@ -28,6 +28,7 @@ CONTRIBUTORS:
 
 SAMPLE USAGE:
 from booleansearchparser import BooleanSearchParser
+from __future__ import print_function
 bsp = BooleanSearchParser()
 text = u"wildcards at the begining of a search term "
 exprs= [
@@ -37,7 +38,7 @@ exprs= [
     u"terms or begin",  #False
 ]
 for expr in exprs:
-    print bsp.match(text,expr)
+    print (bsp.match(text,expr))
 
 #non-western samples
 text = u"안녕하세요, 당신은 어떠세요?"
@@ -47,7 +48,7 @@ exprs= [
     u"당신 or 당",  #False
 ]
 for expr in exprs:
-    print bsp.match(text,expr)
+    print (bsp.match(text,expr))
 -------------------------------------------------------------------------------
 Copyright (c) 2006, Estrate, the Netherlands
 All rights reserved.
@@ -86,6 +87,7 @@ TODO:
 - add more kinds of wildcards ('*' at the beginning and '*' inside a word)?
 
 """
+from __future__ import print_function
 from pyparsing import Word, alphanums, Keyword, Group, Combine, Forward, Suppress, Optional, OneOrMore, oneOf
 from sets import Set
 import re
@@ -265,7 +267,7 @@ class BooleanSearchParser:
         return Set()
 
     def GetBetween(self, min, max):
-        print min,max
+        print (min,max)
         return Set()
     """
     
@@ -481,6 +483,6 @@ class ParserTest(BooleanSearchParser):
             
 if __name__=='__main__':
     if ParserTest().Test():
-        print 'All tests OK'
+        print ('All tests OK')
     else:
-        print 'One or more tests FAILED'
+        print ('One or more tests FAILED')
