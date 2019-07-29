@@ -12,15 +12,20 @@ use of regular expressions. The pyparsing module provides a library of
 classes that client code uses to construct the grammar directly in
 Python code.
 
+(Since first writing this description of pyparsing in late 2003, this
+technique for developing parsers has become more widespread, under the
+name Parsing Expression Grammars - PEGs. See more information on PEGs at
+https://en.wikipedia.org/wiki/Parsing_expression_grammar.)
+
 Here is a program to parse “Hello, World!” (or any greeting of the form
 “salutation, addressee!”):
 
 .. code:: python
 
     from pyparsing import Word, alphas
-    greet = Word( alphas ) + "," + Word( alphas ) + "!"
+    greet = Word(alphas) + "," + Word(alphas) + "!"
     hello = "Hello, World!"
-    print(hello, "->", greet.parseString( hello ))
+    print(hello, "->", greet.parseString(hello))
 
 The program outputs the following::
 
