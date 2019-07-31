@@ -1,17 +1,24 @@
+# bigquery_view_parser.py
+#
 # A parser to extract table names from BigQuery view definitions.
 # This is based on the `select_parser.py` sample in pyparsing:
 # https://github.com/pyparsing/pyparsing/blob/master/examples/select_parser.py
+#
+# Michael Smedberg
+#
 
 from pyparsing import ParserElement, Suppress, Forward, CaselessKeyword
 from pyparsing import MatchFirst, alphas, alphanums, Combine, Word
-from pyparsing import quotedString, CharsNotIn, Optional, Group, ZeroOrMore
+from pyparsing import QuotedString, CharsNotIn, Optional, Group, ZeroOrMore
 from pyparsing import oneOf, delimitedList, restOfLine, cStyleComment
-from pyparsing import infixNotation, opAssoc, OneOrMore, Regex, QuotedString
-from pyparsing import nums
+from pyparsing import infixNotation, opAssoc, OneOrMore, Regex, nums
 
 
 class BigQueryViewParser:
     """Parser to extract table info from BigQuery view definitions"""
+    _parser = None
+    _table_identifiers = set()
+    _with_aliases = set()
 
     def get_table_names(self, sql_stmt):
         table_identifiers, with_aliases = self._parse(sql_stmt)
@@ -28,17 +35,25 @@ class BigQueryViewParser:
         # https://cloud.google.com/bigquery/docs/reference/standard-sql/lexical#case_sensitivity
         return tables
 
-    @staticmethod
-    def lowercase_of_tuple(tuple_to_lowercase):
+    def _parse(self, sql_stmt):
+        BigQueryViewParser._table_identifiers.clear()
+        BigQueryViewParser._with_aliases.clear()
+        BigQueryViewParser._get_parser().parseString(sql_stmt)
+
+        return (BigQueryViewParser._table_identifiers, BigQueryViewParser._with_aliases)
+
+    @classmethod
+    def lowercase_of_tuple(cls, tuple_to_lowercase):
         return tuple(x.lower() if x else None for x in tuple_to_lowercase)
 
-    @staticmethod
-    def lowercase_set_of_tuples(set_of_tuples):
+    @classmethod
+    def lowercase_set_of_tuples(cls, set_of_tuples):
         return set([BigQueryViewParser.lowercase_of_tuple(x) for x in set_of_tuples])
 
-    def _parse(self, sql_stmt):
-        table_identifiers = set()
-        with_aliases = set()
+    @classmethod
+    def _get_parser(cls):
+        if cls._parser is not None:
+            return cls._parser
 
         ParserElement.enablePackrat()
 
@@ -104,7 +119,7 @@ class BigQueryViewParser:
             TIMESTAMP_SUB, ARRAY, GENERATE_ARRAY, GENERATE_DATE_ARRAY,
             GENERATE_TIMESTAMP_ARRAY))
 
-        identifier_word = Word(alphas + "_" + "@" + "#", alphanums + "@" + "$" + "#" + "_")
+        identifier_word = Word(alphas + '_@#', alphanums + '@$#_')
         identifier = ~keyword + identifier_word.copy()
         collation_name = identifier.copy()
         # NOTE: Column names can be keywords.  Doc says they cannot, but in practice it seems to work.
@@ -118,16 +133,18 @@ class BigQueryViewParser:
         index_name = identifier.copy()
         function_name = identifier.copy()
         parameter_name = identifier.copy()
-        unquoted_sql_identifier = ~keyword + Word(alphanums + "$" + "_")
-        quoted_sql_identifier = ~keyword + (
-            quotedString('"') ^ Suppress('`')
+        # NOTE: The expression in a CASE statement can be an integer.  E.g. this is valid SQL:
+        # select CASE 1 WHEN 1 THEN -1 ELSE -2 END from test_table
+        unquoted_case_identifier = ~keyword + Word(alphanums + '$_')
+        quoted_case_identifier = ~keyword + (
+            QuotedString('"') ^ Suppress('`')
             + CharsNotIn('`') + Suppress('`')
         )
-        sql_identifier = (quoted_sql_identifier | unquoted_sql_identifier)
-        scoped_sql_identifier = (
-            Optional(sql_identifier + Suppress('.'))
-            + Optional(sql_identifier + Suppress('.'))
-            + sql_identifier
+        case_identifier = (quoted_case_identifier | unquoted_case_identifier)
+        case_expr = (
+            Optional(case_identifier + Suppress('.'))
+            + Optional(case_identifier + Suppress('.'))
+            + case_identifier
         )
 
         # expression
@@ -170,7 +187,7 @@ class BigQueryViewParser:
             | TIMESTAMP_SUB
         )
 
-        grouping_term = expr.copy()("grouping_term")
+        grouping_term = expr.copy()
         ordering_term = Group(
             expr('order_key')
             + Optional(COLLATE + collation_name('collate'))
@@ -298,7 +315,7 @@ class BigQueryViewParser:
         case_else = ELSE + expr.copy()("else")
         case_stmt = (
             CASE
-            + Optional(scoped_sql_identifier.copy())
+            + Optional(case_expr.copy())
             + case_clauses("case_clauses")
             + Optional(case_else) + END
         )("case")
@@ -428,7 +445,7 @@ class BigQueryViewParser:
         def record_table_identifier(t):
             identifier_list = t.asList()
             padded_list = [None] * (3 - len(identifier_list)) + identifier_list
-            table_identifiers.add(tuple(padded_list))
+            cls._table_identifiers.add(tuple(padded_list))
 
         standard_table_part = ~keyword + Word(alphanums + "_")
         standard_table_identifier = (
@@ -460,7 +477,7 @@ class BigQueryViewParser:
             third = identifier_list[-1]
             identifier_list = [first, second, third]
             padded_list = [None] * (3 - len(identifier_list)) + identifier_list
-            table_identifiers.add(tuple(padded_list))
+            cls._table_identifiers.add(tuple(padded_list))
 
         quotable_table_parts_identifier = (
             Suppress('"') + CharsNotIn('"') + Suppress('"')
@@ -582,13 +599,13 @@ class BigQueryViewParser:
         select_stmt = ungrouped_select_stmt | (LPAR + ungrouped_select_stmt + RPAR)
 
         # define comment format, and ignore them
-        sqlComment = (oneOf("-- #") + restOfLine | cStyleComment)
-        select_stmt.ignore(sqlComment)
+        sql_comment = (oneOf("-- #") + restOfLine | cStyleComment)
+        select_stmt.ignore(sql_comment)
 
         def record_with_alias(t):
             identifier_list = t.asList()
             padded_list = [None] * (3 - len(identifier_list)) + identifier_list
-            with_aliases.add(tuple(padded_list))
+            cls._with_aliases.add(tuple(padded_list))
 
         with_stmt = Forward().setName("with statement")
         with_clause = Group(
@@ -598,17 +615,13 @@ class BigQueryViewParser:
         )
         with_core = (WITH + delimitedList(with_clause))
         with_stmt << (with_core + ungrouped_select_stmt)
-        with_stmt.ignore(sqlComment)
+        with_stmt.ignore(sql_comment)
 
         select_or_with = (select_stmt | with_stmt)
         select_or_with_parens = LPAR + select_or_with + RPAR
 
-        (select_or_with | select_or_with_parens).parseString(sql_stmt)
-
-        return (table_identifiers, with_aliases)
-
-    def __init__(self):
-        pass
+        cls._parser = (select_or_with | select_or_with_parens)
+        return cls._parser
 
     TEST_CASES = [
         [
@@ -824,6 +837,8 @@ class BigQueryViewParser:
                 (None, None, "Employees"),
             ]
         ],
+
+        # A fragment from https://cloud.google.com/bigquery/docs/reference/standard-sql/navigation_functions
         [
             """
             SELECT 'Sophia Liu' as name,
@@ -842,6 +857,8 @@ class BigQueryViewParser:
             [
             ]
         ],
+
+        # From https://cloud.google.com/bigquery/docs/reference/standard-sql/navigation_functions
         [
             """
             WITH finishers AS
@@ -874,6 +891,8 @@ class BigQueryViewParser:
             [
             ]
         ],
+
+        # From https://cloud.google.com/bigquery/docs/reference/standard-sql/navigation_functions
         [
             """
                 WITH finishers AS
@@ -906,6 +925,8 @@ class BigQueryViewParser:
             [
             ]
         ],
+
+        # From https://cloud.google.com/bigquery/docs/reference/standard-sql/navigation_functions
         [
             """
             WITH finishers AS
@@ -942,6 +963,8 @@ class BigQueryViewParser:
             [
             ]
         ],
+
+        # From https://cloud.google.com/bigquery/docs/reference/standard-sql/navigation_functions
         [
             """
             WITH finishers AS
@@ -967,6 +990,8 @@ class BigQueryViewParser:
             [
             ]
         ],
+
+        # From https://cloud.google.com/bigquery/docs/reference/standard-sql/navigation_functions
         [
             """
             WITH finishers AS
@@ -992,6 +1017,8 @@ class BigQueryViewParser:
             [
             ]
         ],
+
+        # From https://cloud.google.com/bigquery/docs/reference/standard-sql/navigation_functions
         [
             """
             WITH finishers AS
@@ -1017,6 +1044,8 @@ class BigQueryViewParser:
             [
             ]
         ],
+
+        # From https://cloud.google.com/bigquery/docs/reference/standard-sql/navigation_functions
         [
             """
             SELECT
@@ -1030,6 +1059,8 @@ class BigQueryViewParser:
             [
             ]
         ],
+
+        # From https://cloud.google.com/bigquery/docs/reference/standard-sql/navigation_functions
         [
             """
             SELECT
@@ -1042,6 +1073,8 @@ class BigQueryViewParser:
             [
             ]
         ],
+
+        # From https://cloud.google.com/bigquery/docs/reference/standard-sql/timestamp_functions
         [
             """
             SELECT
@@ -1051,6 +1084,9 @@ class BigQueryViewParser:
             [
             ]
         ],
+
+        # Previously hosted on https://cloud.google.com/bigquery/docs/reference/standard-sql/timestamp_functions, but
+        # appears to no longer be there
         [
             """
             WITH date_hour_slots AS (
@@ -1459,14 +1495,11 @@ class BigQueryViewParser:
         ]
     ]
 
-    @classmethod
-    def test(cls):
+    def test(self):
         for test_index, test_case in enumerate(BigQueryViewParser.TEST_CASES):
             sql_stmt, expected_tables = test_case
 
-            parser = BigQueryViewParser()
-
-            found_tables = parser.get_table_names(sql_stmt)
+            found_tables = self.get_table_names(sql_stmt)
             expected_tables_set = set(expected_tables)
 
             if expected_tables_set != found_tables:
@@ -1474,4 +1507,4 @@ class BigQueryViewParser:
 
 
 if __name__ == '__main__':
-    BigQueryViewParser.test()
+    BigQueryViewParser().test()
