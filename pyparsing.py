@@ -1886,37 +1886,46 @@ class ParserElement(object):
 
     def parseString(self, instring, parseAll=False):
         """
-        Execute the parse expression with the given string.
-        This is the main interface to the client code, once the complete
-        expression has been built.
+        Parse a string with respect to the parser definition. This function is intended as the primary interface to the
+        client code.
 
-        Returns the parsed data as a :class:`ParseResults` object, which may be
-        accessed as a list, or as a dict or object with attributes if the given parser
-        includes results names.
+        :param instring: The input string to be parsed.
+        :param parseAll: If set, the entire input string must match the grammar.
+        :raises ParseException: Raised if ``parseAll`` is set and the input string does not match the whole grammar.
+        :returns: the parsed data as a :class:`ParseResults` object, which may be accessed as a `list`, a `dict`, or
+          an object with attributes if the given parser includes results names.
 
-        If you want the grammar to require that the entire input string be
-        successfully parsed, then set ``parseAll`` to True (equivalent to ending
-        the grammar with ``StringEnd()``).
+        If the input string is required to match the entire grammar, ``parseAll`` flag must be set to True. This
+        is also equivalent to ending the grammar with ``StringEnd()``.
 
-        Note: ``parseString`` implicitly calls ``expandtabs()`` on the input string,
-        in order to report proper column numbers in parse actions.
-        If the input string contains tabs and
-        the grammar uses parse actions that use the ``loc`` argument to index into the
-        string being parsed, you can ensure you have a consistent view of the input
-        string by:
+        To report proper column numbers, ``parseString`` operates on a copy of the input string where all tabs are
+        converted to spaces (8 spaces per tab, as per the default in ``string.expandtabs``). If the input string
+        contains tabs and the grammar uses parse actions that use the ``loc`` argument to index into the string
+        being parsed, one can ensure a consistent view of the input string by doing one of the following:
 
-        - calling ``parseWithTabs`` on your grammar before calling ``parseString``
-          (see :class:`parseWithTabs`)
-        - define your parse action using the full ``(s, loc, toks)`` signature, and
-          reference the input string using the parse action's ``s`` argument
-        - explictly expand the tabs in your input string before calling
-          ``parseString``
+        - calling ``parseWithTabs`` on your grammar before calling ``parseString`` (see :class:`parseWithTabs`),
+        - define your parse action using the full ``(s,loc,toks)`` signature, and reference the input string using the
+          parse action's ``s`` argument, or
+        - explicitly expand the tabs in your input string before calling ``parseString``.
 
-        Example::
+        Examples:
 
-            Word('a').parseString('aaaaabaaa')  # -> ['aaaaa']
-            Word('a').parseString('aaaaabaaa', parseAll=True)  # -> Exception: Expected end of text
+        By default, partial matches are OK.
+
+        >>> res = Word('a').parseString('aaaaabaaa')
+        (['aaaaa'], {})
+
+        The parsing behavior varies by the inheriting class of this abstract class. Please refer to the children
+        directly to see more examples.
+
+        It raises an exception if parseAll flag is set and instring does not match the whole grammar.
+
+        >>> Word('a').parseString('aaaaabaaa', parseAll=True)
+        Traceback (most recent call last):
+        ...
+        pyparsing.ParseException: Expected end of text (at char 5), (line:1, col:6)
         """
+        
         ParserElement.resetCache()
         if not self.streamlined:
             self.streamline()
