@@ -27,34 +27,35 @@
 # Uncomment the line below for readline support on interactive terminal
 # import readline
 from pyparsing import ParseException, Word, alphas, alphanums
-import math
 
 # Debugging flag can be set to either "debug_flag=True" or "debug_flag=False"
 debug_flag=False
 
 variables = {}
 
-from fourFn import BNF, exprStack, fn, opn
-def evaluateStack( s ):
-    op = s.pop()
-    if op == 'unary -':
-        return -evaluateStack( s )
-    if op in "+-*/^":
-        op2 = evaluateStack( s )
-        op1 = evaluateStack( s )
-        return opn[op]( op1, op2 )
-    elif op == "PI":
-        return math.pi # 3.1415926535
-    elif op == "E":
-        return math.e  # 2.718281828
-    elif op in fn:
-        return fn[op]( evaluateStack( s ) )
-    elif op[0].isalpha():
-        if op in variables:
-            return variables[op]
-        raise Exception("invalid identifier '%s'" % op)
-    else:
-        return float( op )
+from fourFn import BNF, exprStack, fn, opn, evaluate_stack
+
+# from fourFn import BNF, exprStack, fn, opn
+# def evaluateStack( s ):
+#     op = s.pop()
+#     if op == 'unary -':
+#         return -evaluateStack( s )
+#     if op in "+-*/^":
+#         op2 = evaluateStack( s )
+#         op1 = evaluateStack( s )
+#         return opn[op]( op1, op2 )
+#     elif op == "PI":
+#         return math.pi # 3.1415926535
+#     elif op == "E":
+#         return math.e  # 2.718281828
+#     elif op in fn:
+#         return fn[op]( evaluateStack( s ) )
+#     elif op[0].isalpha():
+#         if op in variables:
+#             return variables[op]
+#         raise Exception("invalid identifier '%s'" % op)
+#     else:
+#         return float( op )
 
 arithExpr = BNF()
 ident = Word(alphas, alphanums).setName("identifier")
@@ -81,18 +82,22 @@ if __name__ == '__main__':
     if input_string != '':
       # try parsing the input string
       try:
-        L=pattern.parseString(input_string, parseAll=True)
+        L = pattern.parseString(input_string, parseAll=True)
       except ParseException as err:
-        L=['Parse Failure', input_string, (str(err), err.line, err.column)]
+        L = ['Parse Failure', input_string, (str(err), err.line, err.column)]
 
       # show result of parsing the input string
       if debug_flag: print(input_string, "->", L)
       if len(L)==0 or L[0] != 'Parse Failure':
         if debug_flag: print("exprStack=", exprStack)
 
+        for i, ob in enumerate(exprStack):
+            if isinstance(ob, str) and ob in variables:
+                exprStack[i] = str(variables[ob])
+
         # calculate result , store a copy in ans , display the result to user
         try:
-          result=evaluateStack(exprStack)
+          result=evaluate_stack(exprStack)
         except Exception as e:
           print(str(e))
         else:
