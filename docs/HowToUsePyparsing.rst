@@ -821,7 +821,7 @@ Helper methods
 
   If an expression is not provided for the content argument, the nested
   expression will capture all whitespace-delimited content between delimiters
-vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv  as a list of separate values.
+  as a list of separate values.
 
   Use the ignoreExpr argument to define expressions that may contain
   opening or closing characters that should not be treated as opening
