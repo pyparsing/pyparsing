@@ -1171,7 +1171,7 @@ class SkipToParserTests(ParseTestCase):
             # e = define_expr('"start" + (num_word | ...)("inner") + "end"')
             # test(e, "start 456 end", ['start', '456', 'end'], {'inner': '456'})
 
-            e = define_expr('"start" + (alpha_word[0, ...] & num_word[0, ...] | ...) + "end"')
+            e = define_expr('"start" + (alpha_word[...] & num_word[...] | ...) + "end"')
             test(e, "start 456 red end", ['start', '456', 'red', 'end'], {})
             test(e, "start red 456 end", ['start', 'red', '456', 'end'], {})
             test(e, "start 456 red + end", ['start', '456', 'red', '+ ', 'end'], {'_skipped': ['+ ']})
@@ -1180,7 +1180,7 @@ class SkipToParserTests(ParseTestCase):
             test(e, "start end", ['start', 'end'], {})
             test(e, "start 456 + end", ['start', '456', '+ ', 'end'], {'_skipped': ['+ ']})
 
-            e = define_expr('"start" + (alpha_word[...] & num_word[...] | ...) + "end"')
+            e = define_expr('"start" + (alpha_word[1, ...] & num_word[1, ...] | ...) + "end"')
             test(e, "start 456 red end", ['start', '456', 'red', 'end'], {})
             test(e, "start red 456 end", ['start', 'red', '456', 'end'], {})
             test(e, "start 456 red + end", ['start', '456', 'red', '+ ', 'end'], {'_skipped': ['+ ']})
@@ -1196,6 +1196,53 @@ class SkipToParserTests(ParseTestCase):
 
             e = define_expr('Literal("start") + ... + "+" + ... + "end"')
             test(e, "start red + 456 end", ['start', 'red ', '+', '456 ', 'end'], {'_skipped': ['red ', '456 ']})
+
+class EllipsisRepetionTest(ParseTestCase):
+    def runTest(self):
+        import pyparsing as pp
+        import re
+
+        word = pp.Word(pp.alphas).setName("word")
+        num = pp.Word(pp.nums).setName("num")
+
+        exprs = [
+            word[...] + num,
+            word[0, ...] + num,
+            word[1, ...] + num,
+            word[2, ...] + num,
+            word[..., 3] + num,
+            word[2] + num,
+        ]
+
+        expected_res = [
+            r"([abcd]+ )*\d+",
+            r"([abcd]+ )*\d+",
+            r"([abcd]+ )+\d+",
+            r"([abcd]+ ){2,}\d+",
+            r"([abcd]+ ){0,3}\d+",
+            r"([abcd]+ ){2}\d+",
+        ]
+
+        tests = [
+            "aa bb cc dd 123",
+            "bb cc dd 123",
+            "cc dd 123",
+            "dd 123",
+            "123",
+        ]
+
+        all_success = True
+        for expr, expected_re in zip(exprs, expected_res):
+            successful_tests = [t for t in tests if re.match(expected_re, t)]
+            failure_tests = [t for t in tests if not re.match(expected_re, t)]
+            success1, _ = expr.runTests(successful_tests)
+            success2, _ = expr.runTests(failure_tests, failureTests=True)
+            all_success = all_success and success1 and success2
+            if not all_success:
+                print_("Failed expression:", expr)
+                break
+
+        self.assertTrue(all_success, "failed getItem_ellipsis test")
 
 
 class CustomQuotesTest(ParseTestCase):
@@ -4623,6 +4670,34 @@ class EnableDebugOnNamedExpressionsTest(ParseTestCase):
                           "using enable_debug_on_named_expressions")
 
 
+class UndesirableButCommonPracticesTest(ParseTestCase):
+    def runTest(self):
+        import pyparsing as pp
+        ppc = pp.pyparsing_common
+
+        # While these are valid constructs, and they are not encouraged
+        # there is apparently a lot of code out there using these
+        # coding styles.
+        #
+        # Even though they are not encouraged, we shouldn't break them.
+
+        # Create an And using a list of expressions instead of using '+' operator
+        expr = pp.And([pp.Word('abc'), pp.Word('123')])
+        expr.runTests("""
+            aaa 333
+            b 1
+            ababab 32123
+        """)
+
+        # Passing a single expression to a ParseExpression, when it really wants a sequence
+        expr = pp.Or(pp.Or(ppc.integer))
+        expr.runTests("""
+            123
+            456
+            abc
+        """)
+
+
 class MiscellaneousParserTests(ParseTestCase):
     def runTest(self):
 
@@ -4883,4 +4958,5 @@ if __name__ == '__main__':
         BUFFER_OUTPUT = False
         result = testRunner.run(makeTestSuiteTemp(testclasses))
 
+    sys.stdout.flush()
     exit(0 if result.wasSuccessful() else 1)

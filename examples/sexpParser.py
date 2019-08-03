@@ -61,12 +61,12 @@ def verify_length(s, l, t):
 LPAR, RPAR, LBRK, RBRK, LBRC, RBRC, VBAR, COLON = (pp.Suppress(c).setName(c) for c in "()[]{}|:")
 
 decimal = pp.Regex(r'-?0|[1-9]\d*').setParseAction(lambda t: int(t[0]))
-hexadecimal = ("#" + pp.Word(pp.hexnums)[...] + "#").setParseAction(lambda t: int("".join(t[1:-1]), 16))
+hexadecimal = ("#" + pp.Word(pp.hexnums)[1, ...] + "#").setParseAction(lambda t: int("".join(t[1:-1]), 16))
 bytes = pp.Word(pp.printables)
 raw = pp.Group(decimal("len") + COLON + bytes).setParseAction(verify_length)
 base64_ = pp.Group(pp.Optional(decimal | hexadecimal, default=None)("len")
                    + VBAR
-                   + pp.Word(pp.alphanums + "+/=")[...].setParseAction(lambda t: b64decode("".join(t)))
+                   + pp.Word(pp.alphanums + "+/=")[1, ...].setParseAction(lambda t: b64decode("".join(t)))
                    + VBAR
                    ).setParseAction(verify_length)
 
@@ -82,7 +82,7 @@ display = LBRK + simpleString + RBRK
 string_ = pp.Optional(display) + simpleString
 
 sexp = pp.Forward()
-sexpList = pp.Group(LPAR + sexp[0, ...] + RPAR)
+sexpList = pp.Group(LPAR + sexp[...] + RPAR)
 sexp <<= string_ | sexpList
 
 
