@@ -11,7 +11,7 @@
 # Copyright 2003-2019 by Paul McGuire
 #
 from pyparsing import (Literal, Word, Group, Forward, alphas, alphanums, Regex, ParseException,
-                       CaselessKeyword, Suppress, delimitedList)
+                       CaselessKeyword, Suppress, delimitedList, pyparsing_common as ppc, tokenMap)
 import math
 import operator
 
@@ -49,6 +49,8 @@ def BNF():
         # fnumber = Combine(Word("+-"+nums, nums) +
         #                    Optional("." + Optional(Word(nums))) +
         #                    Optional(e + Word("+-"+nums, nums)))
+        # or use provided pyparsing_common.number, but convert back to str:
+        # fnumber = ppc.number().addParseAction(lambda t: str(t[0]))
         fnumber = Regex(r"[+-]?\d+(?:\.\d*)?(?:[eE][+-]?\d+)?")
         ident = Word(alphas, alphanums+"_$")
 
@@ -62,9 +64,10 @@ def BNF():
         expr_list = delimitedList(Group(expr))
         # add parse action that replaces the function identifier with a (name, number of args) tuple
         fn_call = (ident + lpar - Group(expr_list) + rpar).setParseAction(lambda t: t.insert(0, (t.pop(0), len(t[0]))))
-        atom = (minus[...] +
-                (fn_call | pi | e | fnumber | ident).setParseAction(push_first)
-                | Group(lpar + expr + rpar)).setParseAction(push_unary_minus)
+        atom = (addop[...] +
+                ((fn_call | pi | e | fnumber | ident).setParseAction(push_first)
+                 | Group(lpar + expr + rpar))
+               ).setParseAction(push_unary_minus)
 
         # by defining exponentiation as "atom [ ^ factor ]..." instead of "atom [ ^ atom ]...", we get right-to-left
         # exponents, instead of left-to-right that is, 2^3^2 = 2^(3^2), not (2^3)^2.
@@ -183,6 +186,8 @@ if __name__ == "__main__":
     test("sgn(cos(PI/4))", 1)
     test("sgn(cos(PI/2))", 0)
     test("sgn(cos(PI*3/4))", -1)
+    test("+(sgn(cos(PI/4)))", 1)
+    test("-(sgn(cos(PI/4)))", -1)
 
 
 """
@@ -229,4 +234,6 @@ round(PI^2, 3) = 9.87 [('round', 2), [['PI', '^', '2'], ['3']]] => ['PI', '2', '
 sgn(cos(PI/4)) = 1 [('sgn', 1), [[('cos', 1), [['PI', '/', '4']]]]] => ['PI', '4', '/', ('cos', 1), ('sgn', 1)]
 sgn(cos(PI/2)) = 0 [('sgn', 1), [[('cos', 1), [['PI', '/', '2']]]]] => ['PI', '2', '/', ('cos', 1), ('sgn', 1)]
 sgn(cos(PI*3/4)) = -1 [('sgn', 1), [[('cos', 1), [['PI', '*', '3', '/', '4']]]]] => ['PI', '3', '*', '4', '/', ('cos', 1), ('sgn', 1)]
++(sgn(cos(PI/4))) = 1 ['+', [('sgn', 1), [[('cos', 1), [['PI', '/', '4']]]]]] => ['PI', '4', '/', ('cos', 1), ('sgn', 1)]
+-(sgn(cos(PI/4))) = -1 ['-', [('sgn', 1), [[('cos', 1), [['PI', '/', '4']]]]]] => ['PI', '4', '/', ('cos', 1), ('sgn', 1), 'unary -']
 """

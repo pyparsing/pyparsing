@@ -127,8 +127,9 @@ class PyparsingTestInit(ParseTestCase):
 class ParseFourFnTest(ParseTestCase):
     def runTest(self):
         import examples.fourFn as fourFn
+        import math
         def test(s, ans):
-            fourFn.exprStack = []
+            fourFn.exprStack[:] = []
             results = fourFn.BNF().parseString(s)
             try:
                 resultValue = fourFn.evaluate_stack(fourFn.exprStack)
@@ -137,10 +138,6 @@ class ParseFourFnTest(ParseTestCase):
             else:
                 self.assertTrue(resultValue == ans, "failed to evaluate %s, got %f" % (s, resultValue))
                 print_(s, "->", resultValue)
-
-
-        import math
-        e = math.exp(1)
 
         test("9", 9)
         test("-9", -9)
@@ -183,6 +180,8 @@ class ParseFourFnTest(ParseTestCase):
         test("sgn(cos(PI/4))", 1)
         test("sgn(cos(PI/2))", 0)
         test("sgn(cos(PI*3/4))", -1)
+        test("+(sgn(cos(PI/4)))", 1)
+        test("-(sgn(cos(PI/4)))", -1)
 
 class ParseSQLTest(ParseTestCase):
     def runTest(self):
