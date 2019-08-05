@@ -2909,6 +2909,31 @@ class OptionalEachTest(ParseTestCase):
         self.runTest3()
         self.runTest4()
 
+class EachWithParseFatalExceptionTest(ParseTestCase):
+    def runTest(self):
+        import pyparsing as pp
+        ppc = pp.pyparsing_common
+
+        option_expr = pp.Keyword('options') - '(' + ppc.integer + ')'
+        step_expr1 = pp.Keyword('step') - '(' + ppc.integer + ")"
+        step_expr2 = pp.Keyword('step') - '(' + ppc.integer + "Z" + ")"
+        step_expr = step_expr1 ^ step_expr2
+
+        parser = option_expr & step_expr[...]
+        tests = [
+            ("options(100) step(A)", "Expected integer, found 'A'  (at char 18), (line:1, col:19)"),
+            ("step(A) options(100)", "Expected integer, found 'A'  (at char 5), (line:1, col:6)"),
+            ("options(100) step(100A)", """Expected "Z", found 'A'  (at char 21), (line:1, col:22)"""),
+            ("options(100) step(22) step(100ZA)",
+             """Expected ")", found 'A'  (at char 31), (line:1, col:32)"""),
+        ]
+        test_lookup = dict(tests)
+
+        success, output = parser.runTests((t[0] for t in tests), failureTests=True)
+        for test_str, result in output:
+            self.assertEqual(test_lookup[test_str], str(result),
+                             "incorrect exception raised for test string {0!r}".format(test_str))
+
 class SumParseResultsTest(ParseTestCase):
     def runTest(self):
 

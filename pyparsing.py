@@ -95,8 +95,8 @@ classes inherit from. Use the docstrings for examples of how to:
    namespace class
 """
 
-__version__ = "2.4.2"
-__versionTime__ = "29 Jul 2019 02:58 UTC"
+__version__ = "2.5.0a1"
+__versionTime__ = "05 Aug 2019 00:46 UTC"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -111,7 +111,7 @@ import pprint
 import traceback
 import types
 from datetime import datetime
-from operator import itemgetter
+from operator import itemgetter, attrgetter
 import itertools
 from functools import wraps
 
@@ -1717,10 +1717,12 @@ class ParserElement(object):
 
         return loc, retTokens
 
-    def tryParse(self, instring, loc):
+    def tryParse(self, instring, loc, raise_fatal=False):
         try:
             return self._parse(instring, loc, doActions=False)[0]
         except ParseFatalException:
+            if raise_fatal:
+                raise
             raise ParseException(instring, loc, self.errmsg, self)
 
     def canParseNext(self, instring, loc):
@@ -4104,14 +4106,22 @@ class Or(ParseExpression):
         maxExcLoc = -1
         maxException = None
         matches = []
+        fatals = []
         for e in self.exprs:
             try:
-                loc2 = e.tryParse(instring, loc)
+                loc2 = e.tryParse(instring, loc, raise_fatal=True)
+            except ParseFatalException as pfe:
+                pfe.__traceback__ = None
+                pfe.parserElement = e
+                fatals.append(pfe)
+                maxException = None
+                maxExcLoc = -1
             except ParseException as err:
-                err.__traceback__ = None
-                if err.loc > maxExcLoc:
-                    maxException = err
-                    maxExcLoc = err.loc
+                if not fatals:
+                    err.__traceback__ = None
+                    if err.loc > maxExcLoc:
+                        maxException = err
+                        maxExcLoc = err.loc
             except IndexError:
                 if len(instring) > maxExcLoc:
                     maxException = ParseException(instring, len(instring), e.errmsg, self)
@@ -4153,6 +4163,14 @@ class Or(ParseExpression):
 
             if longest != (-1, None):
                 return longest
+
+        if fatals:
+            if len(fatals) > 1:
+                fatals.sort(key=lambda e: -e.loc)
+                if fatals[0].loc == fatals[1].loc:
+                    fatals.sort(key=lambda e: (-e.loc, -len(str(e.parserElement))))
+            max_fatal = fatals[0]
+            raise max_fatal
 
         if maxException is not None:
             maxException.msg = self.errmsg
@@ -4226,12 +4244,18 @@ class MatchFirst(ParseExpression):
     def parseImpl(self, instring, loc, doActions=True):
         maxExcLoc = -1
         maxException = None
+        fatals = []
         for e in self.exprs:
             try:
                 ret = e._parse(instring, loc, doActions)
                 return ret
+            except ParseFatalException as pfe:
+                pfe.__traceback__ = None
+                pfe.parserElement = e
+                fatals.append(pfe)
+                maxException = None
             except ParseException as err:
-                if err.loc > maxExcLoc:
+                if not fatals and err.loc > maxExcLoc:
                     maxException = err
                     maxExcLoc = err.loc
             except IndexError:
@@ -4240,12 +4264,19 @@ class MatchFirst(ParseExpression):
                     maxExcLoc = len(instring)
 
         # only got here if no expression matched, raise exception for match that made it the furthest
+        if fatals:
+            if len(fatals) > 1:
+                fatals.sort(key=lambda e: -e.loc)
+                if fatals[0].loc == fatals[1].loc:
+                    fatals.sort(key=lambda e: (-e.loc, -len(str(e.parserElement))))
+            max_fatal = fatals[0]
+            raise max_fatal
+
+        if maxException is not None:
+            maxException.msg = self.errmsg
+            raise maxException
         else:
-            if maxException is not None:
-                maxException.msg = self.errmsg
-                raise maxException
-            else:
-                raise ParseException(instring, loc, "no defined alternatives to match", self)
+            raise ParseException(instring, loc, "no defined alternatives to match", self)
 
     def __ior__(self, other):
         if isinstance(other, basestring):
@@ -4365,12 +4396,20 @@ class Each(ParseExpression):
         matchOrder = []
 
         keepMatching = True
+        failed = []
+        fatals = []
         while keepMatching:
             tmpExprs = tmpReqd + tmpOpt + self.multioptionals + self.multirequired
-            failed = []
+            failed.clear()
+            fatals.clear()
             for e in tmpExprs:
                 try:
-                    tmpLoc = e.tryParse(instring, tmpLoc)
+                    tmpLoc = e.tryParse(instring, tmpLoc, raise_fatal=True)
+                except ParseFatalException as pfe:
+                    pfe.__traceback__ = None
+                    pfe.parserElement = e
+                    fatals.append(pfe)
+                    failed.append(e)
                 except ParseException:
                     failed.append(e)
                 else:
@@ -4381,6 +4420,15 @@ class Each(ParseExpression):
                         tmpOpt.remove(e)
             if len(failed) == len(tmpExprs):
                 keepMatching = False
+
+        # look for any ParseFatalExceptions
+        if fatals:
+            if len(fatals) > 1:
+                fatals.sort(key=lambda e: -e.loc)
+                if fatals[0].loc == fatals[1].loc:
+                    fatals.sort(key=lambda e: (-e.loc, -len(str(e.parserElement))))
+            max_fatal = fatals[0]
+            raise max_fatal
 
         if tmpReqd:
             missing = ", ".join(_ustr(e) for e in tmpReqd)

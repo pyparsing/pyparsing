@@ -2,6 +2,20 @@
 Change Log
 ==========
 
+Version 2.5.0a1
+---------------
+- Removed Py2.x support and other deprecated features
+  (not yet implemented)
+
+- Fixed handling of ParseSyntaxExceptions raised as part of Each
+  expressions, when sub-expressions contain '-' backtrack
+  suppression. As part of resolution to a question posted by John
+  Greene on StackOverflow.
+
+- BigQueryViewParser.py added to examples directory, PR submitted
+  by Michael Smedberg, nice work!
+
+
 Version 2.4.2 - July, 2019
 --------------------------
 - Updated the shorthand notation that has been added for repetition
