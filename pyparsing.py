@@ -96,7 +96,7 @@ classes inherit from. Use the docstrings for examples of how to:
 """
 
 __version__ = "2.5.0a1"
-__versionTime__ = "06 Aug 2019 01:12 UTC"
+__versionTime__ = "06 Aug 2019 04:55 UTC"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -2843,7 +2843,7 @@ class CloseMatch(Token):
                     if len(mismatches) > maxMismatches:
                         break
             else:
-                loc = match_stringloc + 1
+                loc = start + match_stringloc + 1
                 results = ParseResults([instring[start:loc]])
                 results['original'] = match_string
                 results['mismatches'] = mismatches

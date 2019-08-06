@@ -38,6 +38,9 @@ Version 2.5.0a1
   suppression. As part of resolution to a question posted by John
   Greene on StackOverflow.
 
+- Fixed bug in CloseMatch where end location was incorrectly
+  computed; and updated partial_gene_match.py example.
+
 - BigQueryViewParser.py added to examples directory, PR submitted
   by Michael Smedberg, nice work!
 
