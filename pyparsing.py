@@ -96,7 +96,7 @@ classes inherit from. Use the docstrings for examples of how to:
 """
 
 __version__ = "2.5.0a1"
-__versionTime__ = "05 Aug 2019 04:52 UTC"
+__versionTime__ = "06 Aug 2019 01:12 UTC"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -124,7 +124,7 @@ except ImportError:
 
 from collections.abc import Iterable
 from collections.abc import MutableMapping, Mapping
-from collections import OrderedDict as _OrderedDict
+from collections import OrderedDict
 from types import SimpleNamespace
 
 # version compatibility configuration
@@ -136,9 +136,9 @@ __compat__.__doc__ = """
     and testing.
 
      - collect_all_And_tokens - flag to enable fix for Issue #63 that fixes erroneous grouping
-       of results names when an And expression is nested within an Or or MatchFirst; set to
-       True to enable bugfix released in pyparsing 2.3.0, or False to preserve
-       pre-2.3.0 handling of named results
+       of results names when an And expression is nested within an Or or MatchFirst; 
+       maintained for compatibility, but setting to False no longer restores pre-2.3.1
+       behavior
 """
 __compat__.collect_all_And_tokens = True
 
@@ -147,7 +147,6 @@ __diag__.__doc__ = """
 Diagnostic configuration (all default to False)
      - warn_multiple_tokens_in_named_alternation - flag to enable warnings when a results
        name is defined on a MatchFirst or Or expression with one or more And subexpressions
-       (only warns if __compat__.collect_all_And_tokens is False)
      - warn_ungrouped_named_tokens_in_collection - flag to enable warnings when a results
        name is defined on a containing expression with ungrouped subexpressions that also
        have results names
@@ -175,14 +174,14 @@ __all__ = ['__version__', '__versionTime__', '__author__', '__compat__', '__diag
            'Regex', 'SkipTo', 'StringEnd', 'StringStart', 'Suppress', 'Token', 'TokenConverter',
            'White', 'Word', 'WordEnd', 'WordStart', 'ZeroOrMore', 'Char',
            'alphanums', 'alphas', 'alphas8bit', 'anyCloseTag', 'anyOpenTag', 'cStyleComment', 'col',
-           'commaSeparatedList', 'commonHTMLEntity', 'countedArray', 'cppStyleComment', 'dblQuotedString',
-           'dblSlashComment', 'delimitedList', 'dictOf', 'downcaseTokens', 'empty', 'hexnums',
+           'commonHTMLEntity', 'countedArray', 'cppStyleComment', 'dblQuotedString',
+           'dblSlashComment', 'delimitedList', 'dictOf', 'empty', 'hexnums',
            'htmlComment', 'javaStyleComment', 'line', 'lineEnd', 'lineStart', 'lineno',
            'makeHTMLTags', 'makeXMLTags', 'matchOnlyAtCol', 'matchPreviousExpr', 'matchPreviousLiteral',
-           'nestedExpr', 'nullDebugAction', 'nums', 'oneOf', 'opAssoc', 'operatorPrecedence', 'printables',
+           'nestedExpr', 'nullDebugAction', 'nums', 'oneOf', 'opAssoc', 'printables',
            'punc8bit', 'pythonStyleComment', 'quotedString', 'removeQuotes', 'replaceHTMLEntity',
            'replaceWith', 'restOfLine', 'sglQuotedString', 'srange', 'stringEnd',
-           'stringStart', 'traceParseAction', 'unicodeString', 'upcaseTokens', 'withAttribute',
+           'stringStart', 'traceParseAction', 'unicodeString', 'withAttribute',
            'indentedBlock', 'originalTextFor', 'ungroup', 'infixNotation', 'locatedExpr', 'withClass',
            'CloseMatch', 'tokenMap', 'pyparsing_common', 'pyparsing_unicode', 'unicode_set',
            'conditionAsParseAction',
@@ -1571,7 +1570,7 @@ class ParserElement(object):
         def __init__(self, size):
             self.not_in_cache = not_in_cache = object()
 
-            cache = _OrderedDict()
+            cache = OrderedDict()
 
             def get(self, key):
                 return cache.get(key, not_in_cache)
@@ -1697,17 +1696,18 @@ class ParserElement(object):
         By default, partial matches are OK.
 
         >>> res = Word('a').parseString('aaaaabaaa')
-        (['aaaaa'], {})
+        >>> print(res)
+        ['aaaaa']
 
         The parsing behavior varies by the inheriting class of this abstract class. Please refer to the children
         directly to see more examples.
 
         It raises an exception if parseAll flag is set and instring does not match the whole grammar.
 
-        >>> Word('a').parseString('aaaaabaaa', parseAll=True)
+        >>> res = Word('a').parseString('aaaaabaaa', parseAll=True)
         Traceback (most recent call last):
         ...
-        pyparsing.ParseException: Expected end of text (at char 5), (line:1, col:6)
+        pyparsing.ParseException: Expected end of text, found 'b'  (at char 5), (line:1, col:6)
         """
         
         ParserElement.resetCache()
@@ -2490,7 +2490,7 @@ class ParserElement(object):
         (Note that this is a raw string literal, you must include the leading 'r'.)
         """
         if isinstance(tests, str_type):
-            tests = list(map(str.strip, tests.rstrip().splitlines()))
+            tests = list(map(type(tests).strip, tests.rstrip().splitlines()))
         if isinstance(comment, str_type):
             comment = Literal(comment)
         if file is None:
@@ -3877,8 +3877,7 @@ class Or(ParseExpression):
 
     def streamline(self):
         super().streamline()
-        if __compat__.collect_all_And_tokens:
-            self.saveAsList = any(e.saveAsList for e in self.exprs)
+        self.saveAsList = any(e.saveAsList for e in self.exprs)
         return self
 
     def parseImpl(self, instring, loc, doActions=True):
@@ -3978,8 +3977,7 @@ class Or(ParseExpression):
             e.checkRecursion(subRecCheckList)
 
     def _setResultsName(self, name, listAllMatches=False):
-        if (not __compat__.collect_all_And_tokens
-                and __diag__.warn_multiple_tokens_in_named_alternation):
+        if __diag__.warn_multiple_tokens_in_named_alternation:
             if any(isinstance(e, And) for e in self.exprs):
                 warnings.warn("{0}: setting results name {1!r} on {2} expression "
                               "may only return a single token for an And alternative, "
@@ -4016,8 +4014,7 @@ class MatchFirst(ParseExpression):
 
     def streamline(self):
         super().streamline()
-        if __compat__.collect_all_And_tokens:
-            self.saveAsList = any(e.saveAsList for e in self.exprs)
+        self.saveAsList = any(e.saveAsList for e in self.exprs)
         return self
 
     def parseImpl(self, instring, loc, doActions=True):
@@ -4077,8 +4074,7 @@ class MatchFirst(ParseExpression):
             e.checkRecursion(subRecCheckList)
 
     def _setResultsName(self, name, listAllMatches=False):
-        if (not __compat__.collect_all_And_tokens
-                and __diag__.warn_multiple_tokens_in_named_alternation):
+        if __diag__.warn_multiple_tokens_in_named_alternation:
             if any(isinstance(e, And) for e in self.exprs):
                 warnings.warn("{0}: setting results name {1!r} on {2} expression "
                               "may only return a single token for an And alternative, "
@@ -5598,14 +5594,6 @@ def tokenMap(func, *args):
 
     return pa
 
-upcaseTokens = tokenMap(lambda t: str(t).upper())
-"""(Deprecated) Helper parse action to convert tokens to upper case.
-Deprecated in favor of :class:`pyparsing_common.upcaseTokens`"""
-
-downcaseTokens = tokenMap(lambda t: str(t).lower())
-"""(Deprecated) Helper parse action to convert tokens to lower case.
-Deprecated in favor of :class:`pyparsing_common.downcaseTokens`"""
-
 def _makeTags(tagStr, xml,
               suppress_LT=Suppress("<"),
               suppress_GT=Suppress(">")):
@@ -5628,7 +5616,7 @@ def _makeTags(tagStr, xml,
         tagAttrValue = quotedString.copy().setParseAction(removeQuotes) | Word(printables, excludeChars=">")
         openTag = (suppress_LT
                    + tagStr("tag")
-                   + Dict(ZeroOrMore(Group(tagAttrName.setParseAction(downcaseTokens)
+                   + Dict(ZeroOrMore(Group(tagAttrName.setParseAction(lambda t: t[0].lower())
                                            + Optional(Suppress("=") + tagAttrValue))))
                    + Optional("/", default=[False])("empty").setParseAction(lambda s, l, t: t[0] == '/')
                    + suppress_GT)
@@ -5917,10 +5905,6 @@ def infixNotation(baseExpr, opList, lpar=Suppress('('), rpar=Suppress(')')):
     ret <<= lastExpr
     return ret
 
-operatorPrecedence = infixNotation
-"""(Deprecated) Former name of :class:`infixNotation`, will be
-dropped in a future release."""
-
 dblQuotedString = Combine(Regex(r'"(?:[^"\n\r\\]|(?:"")|(?:\\(?:[^x]|x[0-9a-fA-F]+)))*') + '"').setName("string enclosed in double quotes")
 sglQuotedString = Combine(Regex(r"'(?:[^'\n\r\\]|(?:'')|(?:\\(?:[^x]|x[0-9a-fA-F]+)))*") + "'").setName("string enclosed in single quotes")
 quotedString = Combine(Regex(r'"(?:[^"\n\r\\]|(?:"")|(?:\\(?:[^x]|x[0-9a-fA-F]+)))*') + '"'
@@ -6186,16 +6170,6 @@ javaStyleComment = cppStyleComment
 
 pythonStyleComment = Regex(r"#.*").setName("Python style comment")
 "Comment of the form ``# ... (to end of line)``"
-
-_commasepitem = Combine(OneOrMore(Word(printables, excludeChars=',')
-                                  + Optional(Word(" \t")
-                                             + ~Literal(",") + ~LineEnd()))).streamline().setName("commaItem")
-commaSeparatedList = delimitedList(Optional(quotedString.copy() | _commasepitem, default="")).setName("commaSeparatedList")
-"""(Deprecated) Predefined expression of 1 or more printable words or
-quoted strings, separated by commas.
-
-This expression is deprecated in favor of :class:`pyparsing_common.comma_separated_list`.
-"""
 
 # some other useful expressions - using lower-case class name since we are really using this as a namespace
 class pyparsing_common:
@@ -6485,16 +6459,16 @@ class pyparsing_common:
     _commasepitem = Combine(OneOrMore(~Literal(",")
                                       + ~LineEnd()
                                       + Word(printables, excludeChars=',')
-                                      + Optional(White(" \t")))).streamline().setName("commaItem")
-    comma_separated_list = delimitedList(Optional(quotedString.copy()
-                                                  | _commasepitem, default='')
+                                      + Optional(White(" \t") + ~FollowedBy(LineEnd() | ',')))
+                            ).streamline().setName("commaItem")
+    comma_separated_list = delimitedList(Optional(quotedString.copy() | _commasepitem, default='')
                                          ).setName("comma separated list")
-    """Predefined expression of 1 or more printable words or quoted strings, separated by commas."""
+    """Predefined expression of 1 or more printable words or quoted strin gs, separated by commas."""
 
-    upcaseTokens = staticmethod(tokenMap(lambda t: str(t).upper()))
+    upcaseTokens = staticmethod(tokenMap(lambda t: t.upper()))
     """Parse action to convert tokens to upper case."""
 
-    downcaseTokens = staticmethod(tokenMap(lambda t: str(t).lower()))
+    downcaseTokens = staticmethod(tokenMap(lambda t: t.lower()))
     """Parse action to convert tokens to lower case."""
 
 
@@ -6658,19 +6632,19 @@ pyparsing_unicode.देवनागरी = pyparsing_unicode.Devanagari
 
 if __name__ == "__main__":
 
-    selectToken    = CaselessLiteral("select")
-    fromToken      = CaselessLiteral("from")
+    selectToken  = CaselessLiteral("select")
+    fromToken = CaselessLiteral("from")
 
-    ident          = Word(alphas, alphanums + "_$")
+    ident = Word(alphas, alphanums + "_$")
 
-    columnName     = delimitedList(ident, ".", combine=True).setParseAction(upcaseTokens)
+    columnName = delimitedList(ident, ".", combine=True).setParseAction(pyparsing_common.upcaseTokens)
     columnNameList = Group(delimitedList(columnName)).setName("columns")
-    columnSpec     = ('*' | columnNameList)
+    columnSpec = ('*' | columnNameList)
 
-    tableName      = delimitedList(ident, ".", combine=True).setParseAction(upcaseTokens)
-    tableNameList  = Group(delimitedList(tableName)).setName("tables")
+    tableName = delimitedList(ident, ".", combine=True).setParseAction(pyparsing_common.upcaseTokens)
+    tableNameList = Group(delimitedList(tableName)).setName("tables")
 
-    simpleSQL      = selectToken("command") + columnSpec("columns") + fromToken + tableNameList("tables")
+    simpleSQL = selectToken("command") + columnSpec("columns") + fromToken + tableNameList("tables")
 
     # demo runTests method, including embedded comments in test string
     simpleSQL.runTests("""

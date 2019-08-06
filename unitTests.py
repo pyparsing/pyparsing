@@ -425,7 +425,7 @@ class ParseJSONDataTest(ParseTestCase):
 
 class ParseCommaSeparatedValuesTest(ParseTestCase):
     def runTest(self):
-        from pyparsing import commaSeparatedList
+        from pyparsing import pyparsing_common as ppc
 
         testData = [
             "a,b,c,100.2,,3",
@@ -444,7 +444,7 @@ class ParseCommaSeparatedValuesTest(ParseTestCase):
             ]
         for line, tests in zip(testData, testVals):
             print_("Parsing: %r ->" % line, end=' ')
-            results = commaSeparatedList.parseString(line)
+            results = ppc.comma_separated_list.parseString(line)
             print_(results.asList())
             for t in tests:
                 if not(len(results) > t[0] and results[t[0]] == t[1]):
@@ -1717,6 +1717,7 @@ class UpcaseDowncaseUnicode(ParseTestCase):
 
         import pyparsing as pp
         from pyparsing import pyparsing_unicode as ppu
+        from pyparsing import pyparsing_common as ppc
         import sys
         if PY_3:
             unichr = chr
@@ -1729,26 +1730,26 @@ class UpcaseDowncaseUnicode(ParseTestCase):
         else:
             ualphas = "".join(unichr(i) for i in list(range(0xd800)) + list(range(0xe000, sys.maxunicode))
                                 if unichr(i).isalpha())
-        uword = pp.Word(ualphas).setParseAction(pp.upcaseTokens)
+        uword = pp.Word(ualphas).setParseAction(ppc.upcaseTokens)
 
         print_ = lambda *args: None
         print_(uword.searchString(a))
 
-        uword = pp.Word(ualphas).setParseAction(pp.downcaseTokens)
+        uword = pp.Word(ualphas).setParseAction(ppc.downcaseTokens)
 
         print_(uword.searchString(a))
 
-        kw = pp.Keyword('mykey', caseless=True).setParseAction(pp.upcaseTokens)('rname')
+        kw = pp.Keyword('mykey', caseless=True).setParseAction(ppc.upcaseTokens)('rname')
         ret = kw.parseString('mykey')
         print_(ret.rname)
         self.assertEqual(ret.rname, 'MYKEY', "failed to upcase with named result")
 
-        kw = pp.Keyword('mykey', caseless=True).setParseAction(pp.pyparsing_common.upcaseTokens)('rname')
+        kw = pp.Keyword('mykey', caseless=True).setParseAction(ppc.upcaseTokens)('rname')
         ret = kw.parseString('mykey')
         print_(ret.rname)
         self.assertEqual(ret.rname, 'MYKEY', "failed to upcase with named result (pyparsing_common)")
 
-        kw = pp.Keyword('MYKEY', caseless=True).setParseAction(pp.pyparsing_common.downcaseTokens)('rname')
+        kw = pp.Keyword('MYKEY', caseless=True).setParseAction(ppc.downcaseTokens)('rname')
         ret = kw.parseString('mykey')
         print_(ret.rname)
         self.assertEqual(ret.rname, 'mykey', "failed to upcase with named result")
@@ -4333,7 +4334,7 @@ class ParseResultsWithNameMatchFirst(ParseTestCase):
         self.assertEqual(list(expr.parseString('not the bird')['rexp']), 'not the bird'.split())
         self.assertEqual(list(expr.parseString('the bird')['rexp']), 'the bird'.split())
 
-        # test compatibility mode, restoring pre-2.3.1 behavior
+        # test compatibility mode, no longer restoring pre-2.3.1 behavior
         with AutoReset(pp.__compat__, "collect_all_And_tokens"):
             pp.__compat__.collect_all_And_tokens = False
             pp.__diag__.warn_multiple_tokens_in_named_alternation = True
@@ -4348,8 +4349,8 @@ class ParseResultsWithNameMatchFirst(ParseTestCase):
                 not the bird
                 the bird
             """)
-            self.assertEqual(expr.parseString('not the bird')['rexp'], 'not')
-            self.assertEqual(expr.parseString('the bird')['rexp'], 'the')
+            self.assertEqual(list(expr.parseString('not the bird')['rexp']), 'not the bird'.split())
+            self.assertEqual(list(expr.parseString('the bird')['rexp']), 'the bird'.split())
 
 
 class ParseResultsWithNameOr(ParseTestCase):
@@ -4373,7 +4374,7 @@ class ParseResultsWithNameOr(ParseTestCase):
         self.assertEqual(list(expr.parseString('not the bird')['rexp']), 'not the bird'.split())
         self.assertEqual(list(expr.parseString('the bird')['rexp']), 'the bird'.split())
 
-        # test compatibility mode, restoring pre-2.3.1 behavior
+        # test compatibility mode, no longer restoring pre-2.3.1 behavior
         with AutoReset(pp.__compat__, "collect_all_And_tokens"):
             pp.__compat__.collect_all_And_tokens = False
             pp.__diag__.warn_multiple_tokens_in_named_alternation = True
@@ -4388,8 +4389,8 @@ class ParseResultsWithNameOr(ParseTestCase):
                 not the bird
                 the bird
             """)
-            self.assertEqual(expr.parseString('not the bird')['rexp'], 'not')
-            self.assertEqual(expr.parseString('the bird')['rexp'], 'the')
+            self.assertEqual(list(expr.parseString('not the bird')['rexp']), 'not the bird'.split())
+            self.assertEqual(list(expr.parseString('the bird')['rexp']), 'the bird'.split())
 
 
 class EmptyDictDoesNotRaiseException(ParseTestCase):

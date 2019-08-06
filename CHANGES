@@ -8,6 +8,31 @@ Version 2.5.0a1
   now requires Python 3.5 or later. If you are using an earlier
   version of Python, you must use a Pyparsing 2.4.x version
 
+  Deprecated features removed:
+  . ParseResults.asXML() - if used for debugging, switch
+    to using ParseResults.dump(); if used for data transfer,
+    use ParseResults.asDict() to convert to a nested Python
+    dict, which can then be converted to XML or JSON or
+    other transfer format
+
+  . operatorPrecedence synonym for infixNotation -
+    convert to calling infixNotation
+
+  . commaSeparatedList - convert to using
+    pyparsing_common.comma_separated_list
+
+  . upcaseTokens and downcaseTokens - convert to using
+    pyparsing_common.upcaseTokens and downcaseTokens
+
+  . __compat__.collect_all_And_tokens will not be settable to
+    False to revert to pre-2.3.1 results name behavior -
+    review use of names for MatchFirst and Or expressions
+    containing And expressions, as they will return the
+    complete list of parsed tokens, not just the first one.
+    Use `__diag__.warn_multiple_tokens_in_named_alternation`
+    to help identify those expressions in your parsers that
+    will have changed as a result.
+
 - Fixed handling of ParseSyntaxExceptions raised as part of Each
   expressions, when sub-expressions contain '-' backtrack
   suppression. As part of resolution to a question posted by John
