@@ -41,7 +41,8 @@ LBRACE, RBRACE, LPAR, RPAR, SEMI = map(pp.Suppress, "{}();")
 EQ = pp.Literal('=')
 
 keywords = (WHILE, IF, PRINT, PUTC, ELSE) = map(pp.Keyword, "while if print putc else".split())
-identifier = ~(pp.MatchFirst(keywords)) + pp.pyparsing_common.identifier
+any_keyword = pp.MatchFirst(keywords)
+identifier = ~any_keyword + pp.pyparsing_common.identifier
 integer = pp.pyparsing_common.integer
 string =  pp.QuotedString('"', convertWhitespaceEscapes=False).setName("quoted string")
 char = pp.Regex(r"'\\?.'")
@@ -66,7 +67,7 @@ while_stmt = pp.Group(WHILE - paren_expr + stmt)
 if_stmt = pp.Group(IF - paren_expr + stmt + pp.Optional(ELSE + stmt))
 print_stmt = pp.Group(PRINT - pp.Group(LPAR + prt_list + RPAR) + SEMI)
 putc_stmt = pp.Group(PUTC - paren_expr + SEMI)
-stmt_list = pp.Group(LBRACE + pp.ZeroOrMore(stmt) + RBRACE)
+stmt_list = pp.Group(LBRACE + stmt[...] + RBRACE)
 stmt <<= (pp.Group(SEMI)
           | assignment_stmt
           | while_stmt
@@ -76,7 +77,7 @@ stmt <<= (pp.Group(SEMI)
           | stmt_list
           ).setName("statement")
 
-code = pp.ZeroOrMore(stmt)
+code = stmt[...]
 code.ignore(pp.cppStyleComment)
 
 

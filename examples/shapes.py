@@ -3,7 +3,7 @@
 #   A sample program showing how parse actions can convert parsed
 # strings into a data type or object.
 #
-# Copyright 2012, Paul T. McGuire
+# Copyright 2012, 2019 Paul T. McGuire
 #
 
 # define class hierarchy of Shape classes, with polymorphic area method
@@ -12,10 +12,10 @@ class Shape(object):
         self.__dict__.update(tokens.asDict())
 
     def area(self):
-        raise NotImplementedException()
+        raise NotImplemented()
 
     def __str__(self):
-        return "<{0}>: {1}".format(self.__class__.__name__, self.__dict__)
+        return "<{0}>: {1}".format(self.__class__.__name__, vars(self))
 
 class Square(Shape):
     def area(self):
@@ -30,9 +30,9 @@ class Circle(Shape):
         return 3.14159 * self.radius**2
 
 
-from pyparsing import *
+import pyparsing as pp
 
-number = Regex(r'-?\d+(\.\d*)?').setParseAction(lambda t:float(t[0]))
+number = pp.Regex(r'-?\d+(\.\d*)?').setParseAction(lambda t: float(t[0]))
 
 # Shape expressions:
 #   square : S <centerx> <centery> <side>
