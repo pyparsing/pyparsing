@@ -96,7 +96,7 @@ classes inherit from. Use the docstrings for examples of how to:
 """
 
 __version__ = "2.5.0a1"
-__versionTime__ = "06 Aug 2019 04:55 UTC"
+__versionTime__ = "09 Aug 2019 11:27 UTC"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -6015,7 +6015,7 @@ def nestedExpr(opener="(", closer=")", content=None, ignoreExpr=quotedString.cop
     ret.setName('nested %s%s expression' % (opener, closer))
     return ret
 
-def indentedBlock(blockStatementExpr, indentStack, indent=True):
+def indentedBlock(blockStatementExpr, indentStack, indent=True, backup_stacks=[]):
     """Helper method for defining space-delimited indentation blocks,
     such as those used to define block statements in Python source code.
 
@@ -6096,10 +6096,10 @@ def indentedBlock(blockStatementExpr, indentStack, indent=True):
           ':',
           [[['def', 'eggs', ['(', 'z', ')'], ':', [['pass']]]]]]]
     """
-    backup_stack = indentStack[:]
+    backup_stacks.append(indentStack[:])
 
     def reset_stack():
-        indentStack[:] = backup_stack
+        indentStack[:] = backup_stacks[-1]
 
     def checkPeerIndent(s, l, t):
         if l >= len(s): return
@@ -6136,7 +6136,10 @@ def indentedBlock(blockStatementExpr, indentStack, indent=True):
     else:
         smExpr = Group(Optional(NL)
                        + OneOrMore(PEER + Group(blockStatementExpr) + Optional(NL))
-                       + UNDENT)
+                       + Optional(UNDENT))
+
+    # add a parse action to remove backup_stack from list of backups
+    smExpr.addParseAction(lambda: backup_stacks.pop(-1) and None if backup_stacks else None)
     smExpr.setFailAction(lambda a, b, c, d: reset_stack())
     blockStatementExpr.ignore(_bslash + LineEnd())
     return smExpr.setName('indented block')

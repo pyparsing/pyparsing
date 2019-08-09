@@ -4217,12 +4217,12 @@ class IndentedBlockTest2(ParseTestCase):
 
         key.setParseAction(key_parse_action)
         header = Suppress("[") + Literal("test") + Suppress("]")
-        content = (header + OneOrMore(indentedBlock(body, indent_stack, False)))
+        content = (header - OneOrMore(indentedBlock(body, indent_stack, False)))
 
         contents = Forward()
         suites = indentedBlock(content, indent_stack)
 
-        extra = Literal("extra") + Suppress(":") + suites
+        extra = Literal("extra") + Suppress(":") - suites
         contents << (content | extra)
 
         parser = OneOrMore(contents)
@@ -4245,6 +4245,41 @@ class IndentedBlockTest2(ParseTestCase):
         success, _ = parser.runTests([sample])
         self.assertTrue(success, "Failed indentedBlock test for issue #87")
 
+        sample2 = dedent("""
+        extra:
+            [test]
+            one: 
+                two (three)
+            four:
+                five (seven)
+        extra:
+            [test]
+            one: 
+                two (three)
+            four:
+                five (seven)
+        
+            [test]
+            one: 
+                two (three)
+            four:
+                five (seven)
+
+            [test]
+            eight: 
+                nine (ten)
+            eleven:
+                twelve (thirteen)
+
+            fourteen:
+                fifteen (sixteen)
+            seventeen:
+                eighteen (nineteen)
+        """)
+
+        del indent_stack[1:]
+        success, _ = parser.runTests([sample2])
+        self.assertTrue(success, "Failed indentedBlock multi-block test for issue #87")
 
 class IndentedBlockScanTest(ParseTestCase):
     def get_parser(self):
