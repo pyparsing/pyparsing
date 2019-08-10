@@ -33,6 +33,23 @@ Version 2.5.0a1
     to help identify those expressions in your parsers that
     will have changed as a result.
 
+- Expanded __diag__ and __compat__ to actual classes instead of
+  just namespaces, to add some helpful behavior:
+  - enable() and .disable() methods to give extra
+    help when setting or clearing flags (detects invalid
+    flag names, detects when trying to set a __compat__ flag
+    that is no longer settable). Use these methods now to
+    set or clear flags, instead of directly setting to True or
+    False.
+
+        import pyparsing as pp
+        pp.__diag__.enable("warn_multiple_tokens_in_named_alternation")
+
+  - __diag__.enable_all_warnings() is another helper that sets
+    all "warn*" diagnostics to True.
+
+        pp.__diag__.enable_all_warnings()
+
 - Fixed handling of ParseSyntaxExceptions raised as part of Each
   expressions, when sub-expressions contain '-' backtrack
   suppression. As part of resolution to a question posted by John
@@ -40,6 +57,10 @@ Version 2.5.0a1
 
 - Fixed bug in CloseMatch where end location was incorrectly
   computed; and updated partial_gene_match.py example.
+
+- Fixed bug in indentedBlock with a parser using two different
+  types of nested indented blocks with different indent values,
+  but sharing the same indent stack, submitted by renzbagaporo.
 
 - BigQueryViewParser.py added to examples directory, PR submitted
   by Michael Smedberg, nice work!

@@ -4356,6 +4356,17 @@ class IndentedBlockScanTest(ParseTestCase):
         self.assertEqual(len(r6), 1)
 
 
+class InvalidDiagSettingTest(ParseTestCase):
+    def runTest(self):
+        import pyparsing as pp
+
+        with self.assertRaises(ValueError, msg="failed to raise exception when setting non-existent __diag__"):
+            pp.__diag__.enable("xyzzy")
+
+        with self.assertWarns(UserWarning, msg="failed to warn disabling 'collect_all_And_tokens"):
+            pp.__compat__.disable("collect_all_And_tokens")
+
+
 class ParseResultsWithNameMatchFirst(ParseTestCase):
     def runTest(self):
         import pyparsing as pp
@@ -4370,9 +4381,10 @@ class ParseResultsWithNameMatchFirst(ParseTestCase):
         self.assertEqual(list(expr.parseString('the bird')['rexp']), 'the bird'.split())
 
         # test compatibility mode, no longer restoring pre-2.3.1 behavior
-        with AutoReset(pp.__compat__, "collect_all_And_tokens"):
+        with AutoReset(pp.__compat__, "collect_all_And_tokens"), \
+                AutoReset(pp.__diag__, "warn_multiple_tokens_in_named_alternation"):
             pp.__compat__.collect_all_And_tokens = False
-            pp.__diag__.warn_multiple_tokens_in_named_alternation = True
+            pp.__diag__.enable("warn_multiple_tokens_in_named_alternation")
             expr_a = pp.Literal('not') + pp.Literal('the') + pp.Literal('bird')
             expr_b = pp.Literal('the') + pp.Literal('bird')
             if PY_3:
@@ -4410,9 +4422,10 @@ class ParseResultsWithNameOr(ParseTestCase):
         self.assertEqual(list(expr.parseString('the bird')['rexp']), 'the bird'.split())
 
         # test compatibility mode, no longer restoring pre-2.3.1 behavior
-        with AutoReset(pp.__compat__, "collect_all_And_tokens"):
+        with AutoReset(pp.__compat__, "collect_all_And_tokens"), \
+                AutoReset(pp.__diag__, "warn_multiple_tokens_in_named_alternation"):
             pp.__compat__.collect_all_And_tokens = False
-            pp.__diag__.warn_multiple_tokens_in_named_alternation = True
+            pp.__diag__.enable("warn_multiple_tokens_in_named_alternation")
             expr_a = pp.Literal('not') + pp.Literal('the') + pp.Literal('bird')
             expr_b = pp.Literal('the') + pp.Literal('bird')
             if PY_3:
@@ -4562,16 +4575,17 @@ class WarnUngroupedNamedTokensTest(ParseTestCase):
         import pyparsing as pp
         ppc = pp.pyparsing_common
 
-        pp.__diag__.warn_ungrouped_named_tokens_in_collection = True
+        with AutoReset(pp.__diag__, "warn_ungrouped_named_tokens_in_collection"):
+            pp.__diag__.enable("warn_ungrouped_named_tokens_in_collection")
 
-        COMMA = pp.Suppress(',').setName("comma")
-        coord = (ppc.integer('x') + COMMA + ppc.integer('y'))
+            COMMA = pp.Suppress(',').setName("comma")
+            coord = (ppc.integer('x') + COMMA + ppc.integer('y'))
 
-        # this should emit a warning
-        if PY_3:
-            with self.assertWarns(UserWarning, msg="failed to warn with named repetition of"
-                                                   " ungrouped named expressions"):
-                path = coord[...].setResultsName('path')
+            # this should emit a warning
+            if PY_3:
+                with self.assertWarns(UserWarning, msg="failed to warn with named repetition of"
+                                                       " ungrouped named expressions"):
+                    path = coord[...].setResultsName('path')
 
 
 class WarnNameSetOnEmptyForwardTest(ParseTestCase):
@@ -4582,13 +4596,14 @@ class WarnNameSetOnEmptyForwardTest(ParseTestCase):
     def runTest(self):
         import pyparsing as pp
 
-        pp.__diag__.warn_name_set_on_empty_Forward = True
+        with AutoReset(pp.__diag__, "warn_name_set_on_empty_Forward"):
+            pp.__diag__.enable("warn_name_set_on_empty_Forward")
 
-        base = pp.Forward()
+            base = pp.Forward()
 
-        if PY_3:
-            with self.assertWarns(UserWarning, msg="failed to warn when naming an empty Forward expression"):
-                base("x")
+            if PY_3:
+                with self.assertWarns(UserWarning, msg="failed to warn when naming an empty Forward expression"):
+                    base("x")
 
 
 class WarnOnMultipleStringArgsToOneOfTest(ParseTestCase):
@@ -4599,11 +4614,12 @@ class WarnOnMultipleStringArgsToOneOfTest(ParseTestCase):
     def runTest(self):
         import pyparsing as pp
 
-        pp.__diag__.warn_on_multiple_string_args_to_oneof = True
+        with AutoReset(pp.__diag__, "warn_on_multiple_string_args_to_oneof"):
+            pp.__diag__.enable("warn_on_multiple_string_args_to_oneof")
 
-        if PY_3:
-            with self.assertWarns(UserWarning, msg="failed to warn when incorrectly calling oneOf(string, string)"):
-                a = pp.oneOf('A', 'B')
+            if PY_3:
+                with self.assertWarns(UserWarning, msg="failed to warn when incorrectly calling oneOf(string, string)"):
+                    a = pp.oneOf('A', 'B')
 
 
 class EnableDebugOnNamedExpressionsTest(ParseTestCase):
@@ -4615,33 +4631,34 @@ class EnableDebugOnNamedExpressionsTest(ParseTestCase):
         import pyparsing as pp
         import textwrap
 
-        test_stdout = StringIO()
+        with AutoReset(pp.__diag__, "enable_debug_on_named_expressions"):
+            test_stdout = StringIO()
 
-        with AutoReset(sys, 'stdout', 'stderr'):
-            sys.stdout = test_stdout
-            sys.stderr = test_stdout
+            with AutoReset(sys, 'stdout', 'stderr'):
+                sys.stdout = test_stdout
+                sys.stderr = test_stdout
 
-            pp.__diag__.enable_debug_on_named_expressions = True
-            integer = pp.Word(pp.nums).setName('integer')
+                pp.__diag__.enable("enable_debug_on_named_expressions")
+                integer = pp.Word(pp.nums).setName('integer')
 
-            integer[...].parseString("1 2 3")
+                integer[...].parseString("1 2 3")
 
-        expected_debug_output = textwrap.dedent("""\
-            Match integer at loc 0(1,1)
-            Matched integer -> ['1']
-            Match integer at loc 1(1,2)
-            Matched integer -> ['2']
-            Match integer at loc 3(1,4)
-            Matched integer -> ['3']
-            Match integer at loc 5(1,6)
-            Exception raised:Expected integer, found end of text  (at char 5), (line:1, col:6)
-            """)
-        output = test_stdout.getvalue()
-        print_(output)
-        self.assertEquals(output,
-                          expected_debug_output,
-                          "failed to auto-enable debug on named expressions "
-                          "using enable_debug_on_named_expressions")
+            expected_debug_output = textwrap.dedent("""\
+                Match integer at loc 0(1,1)
+                Matched integer -> ['1']
+                Match integer at loc 1(1,2)
+                Matched integer -> ['2']
+                Match integer at loc 3(1,4)
+                Matched integer -> ['3']
+                Match integer at loc 5(1,6)
+                Exception raised:Expected integer, found end of text  (at char 5), (line:1, col:6)
+                """)
+            output = test_stdout.getvalue()
+            print_(output)
+            self.assertEquals(output,
+                              expected_debug_output,
+                              "failed to auto-enable debug on named expressions "
+                              "using enable_debug_on_named_expressions")
 
 
 class UndesirableButCommonPracticesTest(ParseTestCase):
@@ -4670,6 +4687,42 @@ class UndesirableButCommonPracticesTest(ParseTestCase):
             456
             abc
         """)
+
+class EnableWarnDiagsTest(ParseTestCase):
+    def runTest(self):
+        import pyparsing as pp
+        import pprint
+
+        def filtered_vars(var_dict):
+            dunders = [nm for nm in var_dict if nm.startswith('__')]
+            return {k: v for k, v in var_dict.items()
+                        if isinstance(v, bool) and k not in dunders}
+
+        pprint.pprint(filtered_vars(vars(pp.__diag__)), width=30)
+
+        warn_names = pp.__diag__._warning_names
+        other_names = pp.__diag__._debug_names
+
+        # make sure they are off by default
+        for diag_name in warn_names:
+            self.assertFalse(getattr(pp.__diag__, diag_name), "__diag__.{} not set to True".format(diag_name))
+
+        with AutoReset(pp.__diag__, *warn_names):
+            # enable all warn_* diag_names
+            pp.__diag__.enable_all_warnings()
+            pprint.pprint(filtered_vars(vars(pp.__diag__)), width=30)
+
+            # make sure they are on after being enabled
+            for diag_name in warn_names:
+                self.assertTrue(getattr(pp.__diag__, diag_name), "__diag__.{} not set to True".format(diag_name))
+
+            # non-warn diag_names must be enabled individually
+            for diag_name in other_names:
+                self.assertFalse(getattr(pp.__diag__, diag_name), "__diag__.{} not set to True".format(diag_name))
+
+        # make sure they are off after AutoReset
+        for diag_name in warn_names:
+            self.assertFalse(getattr(pp.__diag__, diag_name), "__diag__.{} not set to True".format(diag_name))
 
 
 class MiscellaneousParserTests(ParseTestCase):
