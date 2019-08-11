@@ -4,11 +4,9 @@
 #
 # Unit tests for pyparsing module
 #
-# Copyright 2002-2018, Paul McGuire
+# Copyright 2002-2019, Paul McGuire
 #
 #
-from __future__ import division
-
 from unittest import TestCase, TestSuite, TextTestRunner
 import datetime
 from pyparsing import ParseException
@@ -16,25 +14,15 @@ import pyparsing as pp
 
 import sys
 
-PY_3 = sys.version.startswith('3')
-if PY_3:
-    import builtins
-    print_ = getattr(builtins, "print")
+import builtins
+print_ = print
 
-    # catch calls to builtin print(), should be print_
-    def printX(*args, **kwargs):
-        raise Exception("Test coding error: using print() directly, should use print_()")
-    globals()['print'] = printX
+# catch calls to builtin print(), should be print_
+def printX(*args, **kwargs):
+    raise Exception("Test coding error: using print() directly, should use print_()")
+globals()['print'] = printX
 
-    from io import StringIO
-else:
-    def _print(*args, **kwargs):
-        if 'end' in kwargs:
-            sys.stdout.write(' '.join(map(str, args)) + kwargs['end'])
-        else:
-            sys.stdout.write(' '.join(map(str, args)) + '\n')
-    print_ = _print
-    from cStringIO import StringIO
+from io import StringIO
 
 
 # see which Python implementation we are running
@@ -65,7 +53,7 @@ class ParseTest(TestCase):
         pass
 """
 
-class AutoReset(object):
+class resetting(object):
     def __init__(self, *args):
         ob = args[0]
         attrnames = args[1:]
@@ -91,7 +79,7 @@ class ParseTestCase(TestCase):
         buffered_stdout = StringIO()
 
         try:
-            with AutoReset(sys, 'stdout', 'stderr'):
+            with resetting(sys, 'stdout', 'stderr'):
                 try:
                     if BUFFER_OUTPUT:
                         sys.stdout = buffered_stdout
@@ -971,7 +959,7 @@ class ReStringRangeTest(ParseTestCase):
             (r"[-A]"),
             (r"[\x21]"),
             #(r"[а-яА-ЯёЁA-Z$_\041α-ω]".decode('utf-8')),
-            (u'[\u0430-\u044f\u0410-\u042f\u0451\u0401ABCDEFGHIJKLMNOPQRSTUVWXYZ$_\041\u03b1-\u03c9]'),
+            ('[\u0430-\u044f\u0410-\u042f\u0451\u0401ABCDEFGHIJKLMNOPQRSTUVWXYZ$_\041\u03b1-\u03c9]'),
             )
         expectedResults = (
             "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
@@ -982,7 +970,7 @@ class ReStringRangeTest(ParseTestCase):
             " !\"#$%&'()*+,-./0",
             "!\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~",
             #~ "¡¢£¤¥¦§¨©ª«¬­®¯°±²³´µ¶·¸¹º»¼½¾¿ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖ×ØÙÚÛÜÝÞßàáâãäåæçèéêëìíîïðñòóôõö÷øùúûüýþ",
-            u'\xa1\xa2\xa3\xa4\xa5\xa6\xa7\xa8\xa9\xaa\xab\xac\xad\xae\xaf\xb0\xb1\xb2\xb3\xb4\xb5\xb6\xb7\xb8\xb9\xba\xbb\xbc\xbd\xbe\xbf\xc0\xc1\xc2\xc3\xc4\xc5\xc6\xc7\xc8\xc9\xca\xcb\xcc\xcd\xce\xcf\xd0\xd1\xd2\xd3\xd4\xd5\xd6\xd7\xd8\xd9\xda\xdb\xdc\xdd\xde\xdf\xe0\xe1\xe2\xe3\xe4\xe5\xe6\xe7\xe8\xe9\xea\xeb\xec\xed\xee\xef\xf0\xf1\xf2\xf3\xf4\xf5\xf6\xf7\xf8\xf9\xfa\xfb\xfc\xfd\xfe',
+            '\xa1\xa2\xa3\xa4\xa5\xa6\xa7\xa8\xa9\xaa\xab\xac\xad\xae\xaf\xb0\xb1\xb2\xb3\xb4\xb5\xb6\xb7\xb8\xb9\xba\xbb\xbc\xbd\xbe\xbf\xc0\xc1\xc2\xc3\xc4\xc5\xc6\xc7\xc8\xc9\xca\xcb\xcc\xcd\xce\xcf\xd0\xd1\xd2\xd3\xd4\xd5\xd6\xd7\xd8\xd9\xda\xdb\xdc\xdd\xde\xdf\xe0\xe1\xe2\xe3\xe4\xe5\xe6\xe7\xe8\xe9\xea\xeb\xec\xed\xee\xef\xf0\xf1\xf2\xf3\xf4\xf5\xf6\xf7\xf8\xf9\xfa\xfb\xfc\xfd\xfe',
             " !\"#$%&'()*+,-./0",
             "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789",
             "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_",
@@ -995,7 +983,7 @@ class ReStringRangeTest(ParseTestCase):
             "A-",
             "-A",
             "!",
-            u"абвгдежзийклмнопрстуфхцчшщъыьэюяАБВГДЕЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯёЁABCDEFGHIJKLMNOPQRSTUVWXYZ$_!αβγδεζηθικλμνξοπρςστυφχψω",
+            "абвгдежзийклмнопрстуфхцчшщъыьэюяАБВГДЕЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯёЁABCDEFGHIJKLMNOPQRSTUVWXYZ$_!αβγδεζηθικλμνξοπρςστυφχψω",
             )
         for test in zip(testCases, expectedResults):
             t, exp = test
@@ -1038,77 +1026,69 @@ class SkipToParserTests(ParseTestCase):
         result = expr.parseString(text)
         self.assertTrue(isinstance(result.prefix, str), "SkipTo created with wrong saveAsList attribute")
 
-        if PY_3:
-            def define_expr(s):
-                from pyparsing import Literal, And, Word, alphas, nums, Optional, NotAny
-                alpha_word = (~Literal("end") + Word(alphas, asKeyword=True)).setName("alpha")
-                num_word = Word(nums, asKeyword=True).setName("int")
+        from pyparsing import Literal, And, Word, alphas, nums, Optional, NotAny
+        alpha_word = (~Literal("end") + Word(alphas, asKeyword=True)).setName("alpha")
+        num_word = Word(nums, asKeyword=True).setName("int")
 
-                ret = eval(s)
-                ret.streamline()
-                print_(ret)
-                return ret
+        def test(expr, test_string, expected_list, expected_dict):
+            try:
+                result = expr.parseString(test_string)
+            except Exception as pe:
+                if any(expected is not None for expected in (expected_list, expected_dict)):
+                    self.assertTrue(False, "{} failed to parse {!r}".format(expr, test_string))
+            else:
+                self.assertEqual(result.asList(), expected_list)
+                self.assertEqual(result.asDict(), expected_dict)
 
-            def test(expr, test_string, expected_list, expected_dict):
-                try:
-                    result = expr.parseString(test_string)
-                except Exception as pe:
-                    if any(expected is not None for expected in (expected_list, expected_dict)):
-                        self.assertTrue(False, "{} failed to parse {!r}".format(expr, test_string))
-                else:
-                    self.assertEqual(result.asList(), expected_list)
-                    self.assertEqual(result.asDict(), expected_dict)
+        # ellipses for SkipTo
+        e = ... + Literal("end")
+        test(e, "start 123 end", ['start 123 ', 'end'], {'_skipped': ['start 123 ']})
 
-            # ellipses for SkipTo
-            # (use eval() to avoid syntax problems when running in Py2)
-            e = define_expr('... + Literal("end")')
-            test(e, "start 123 end", ['start 123 ', 'end'], {'_skipped': ['start 123 ']})
+        e = Literal("start") + ... + Literal("end")
+        test(e, "start 123 end", ['start', '123 ', 'end'], {'_skipped': ['123 ']})
 
-            e = define_expr('Literal("start") + ... + Literal("end")')
-            test(e, "start 123 end", ['start', '123 ', 'end'], {'_skipped': ['123 ']})
+        e = Literal("start") + ...
+        test(e, "start 123 end", None, None)
 
-            e = define_expr('Literal("start") + ...')
-            test(e, "start 123 end", None, None)
+        e = And(["start", ..., "end"])
+        test(e, "start 123 end", ['start', '123 ', 'end'], {'_skipped': ['123 ']})
 
-            e = define_expr('And(["start", ..., "end"])')
-            test(e, "start 123 end", ['start', '123 ', 'end'], {'_skipped': ['123 ']})
+        e = And([..., "end"])
+        test(e, "start 123 end", ['start 123 ', 'end'], {'_skipped': ['start 123 ']})
 
-            e = define_expr('And([..., "end"])')
-            test(e, "start 123 end", ['start 123 ', 'end'], {'_skipped': ['start 123 ']})
+        e = "start" + (num_word | ...) + "end"
+        test(e, "start 456 end", ['start', '456', 'end'], {})
+        test(e, "start 123 456 end", ['start', '123', '456 ', 'end'], {'_skipped': ['456 ']})
+        test(e, "start end", ['start', '', 'end'], {'_skipped': ['missing <int>']})
 
-            e = define_expr('"start" + (num_word | ...) + "end"')
-            test(e, "start 456 end", ['start', '456', 'end'], {})
-            test(e, "start 123 456 end", ['start', '123', '456 ', 'end'], {'_skipped': ['456 ']})
-            test(e, "start end", ['start', '', 'end'], {'_skipped': ['missing <int>']})
+        # e = define_expr('"start" + (num_word | ...)("inner") + "end"')
+        # test(e, "start 456 end", ['start', '456', 'end'], {'inner': '456'})
 
-            # e = define_expr('"start" + (num_word | ...)("inner") + "end"')
-            # test(e, "start 456 end", ['start', '456', 'end'], {'inner': '456'})
+        e = "start" + (alpha_word[...] & num_word[...] | ...) + "end"
+        test(e, "start 456 red end", ['start', '456', 'red', 'end'], {})
+        test(e, "start red 456 end", ['start', 'red', '456', 'end'], {})
+        test(e, "start 456 red + end", ['start', '456', 'red', '+ ', 'end'], {'_skipped': ['+ ']})
+        test(e, "start red end", ['start', 'red', 'end'], {})
+        test(e, "start 456 end", ['start', '456', 'end'], {})
+        test(e, "start end", ['start', 'end'], {})
+        test(e, "start 456 + end", ['start', '456', '+ ', 'end'], {'_skipped': ['+ ']})
 
-            e = define_expr('"start" + (alpha_word[...] & num_word[...] | ...) + "end"')
-            test(e, "start 456 red end", ['start', '456', 'red', 'end'], {})
-            test(e, "start red 456 end", ['start', 'red', '456', 'end'], {})
-            test(e, "start 456 red + end", ['start', '456', 'red', '+ ', 'end'], {'_skipped': ['+ ']})
-            test(e, "start red end", ['start', 'red', 'end'], {})
-            test(e, "start 456 end", ['start', '456', 'end'], {})
-            test(e, "start end", ['start', 'end'], {})
-            test(e, "start 456 + end", ['start', '456', '+ ', 'end'], {'_skipped': ['+ ']})
+        e = "start" + (alpha_word[1, ...] & num_word[1, ...] | ...) + "end"
+        test(e, "start 456 red end", ['start', '456', 'red', 'end'], {})
+        test(e, "start red 456 end", ['start', 'red', '456', 'end'], {})
+        test(e, "start 456 red + end", ['start', '456', 'red', '+ ', 'end'], {'_skipped': ['+ ']})
+        test(e, "start red end", ['start', 'red ', 'end'], {'_skipped': ['red ']})
+        test(e, "start 456 end", ['start', '456 ', 'end'], {'_skipped': ['456 ']})
+        test(e, "start end", ['start', '', 'end'], {'_skipped': ['missing <{{alpha}... & {int}...}>']})
+        test(e, "start 456 + end", ['start', '456 + ', 'end'], {'_skipped': ['456 + ']})
 
-            e = define_expr('"start" + (alpha_word[1, ...] & num_word[1, ...] | ...) + "end"')
-            test(e, "start 456 red end", ['start', '456', 'red', 'end'], {})
-            test(e, "start red 456 end", ['start', 'red', '456', 'end'], {})
-            test(e, "start 456 red + end", ['start', '456', 'red', '+ ', 'end'], {'_skipped': ['+ ']})
-            test(e, "start red end", ['start', 'red ', 'end'], {'_skipped': ['red ']})
-            test(e, "start 456 end", ['start', '456 ', 'end'], {'_skipped': ['456 ']})
-            test(e, "start end", ['start', '', 'end'], {'_skipped': ['missing <{{alpha}... & {int}...}>']})
-            test(e, "start 456 + end", ['start', '456 + ', 'end'], {'_skipped': ['456 + ']})
+        e = "start" + (alpha_word | ...) + (num_word | ...) + "end"
+        test(e, "start red 456 end", ['start', 'red', '456', 'end'], {})
+        test(e, "start red end", ['start', 'red', '', 'end'], {'_skipped': ['missing <int>']})
+        test(e, "start end", ['start', '', '', 'end'], {'_skipped': ['missing <alpha>', 'missing <int>']})
 
-            e = define_expr('"start" + (alpha_word | ...) + (num_word | ...) + "end"')
-            test(e, "start red 456 end", ['start', 'red', '456', 'end'], {})
-            test(e, "start red end", ['start', 'red', '', 'end'], {'_skipped': ['missing <int>']})
-            test(e, "start end", ['start', '', '', 'end'], {'_skipped': ['missing <alpha>', 'missing <int>']})
-
-            e = define_expr('Literal("start") + ... + "+" + ... + "end"')
-            test(e, "start red + 456 end", ['start', 'red ', '+', '456 ', 'end'], {'_skipped': ['red ', '456 ']})
+        e = Literal("start") + ... + "+" + ... + "end"
+        test(e, "start red + 456 end", ['start', 'red ', '+', '456 ', 'end'], {'_skipped': ['red ', '456 ']})
 
 class EllipsisRepetionTest(ParseTestCase):
     def runTest(self):
@@ -1719,17 +1699,13 @@ class UpcaseDowncaseUnicode(ParseTestCase):
         from pyparsing import pyparsing_unicode as ppu
         from pyparsing import pyparsing_common as ppc
         import sys
-        if PY_3:
-            unichr = chr
-        else:
-            from __builtin__ import unichr
 
-        a = u'\u00bfC\u00f3mo esta usted?'
+        a = '\u00bfC\u00f3mo esta usted?'
         if not JYTHON_ENV:
             ualphas = ppu.alphas
         else:
-            ualphas = "".join(unichr(i) for i in list(range(0xd800)) + list(range(0xe000, sys.maxunicode))
-                                if unichr(i).isalpha())
+            ualphas = "".join(chr(i) for i in list(range(0xd800)) + list(range(0xe000, sys.maxunicode))
+                                if chr(i).isalpha())
         uword = pp.Word(ualphas).setParseAction(ppc.upcaseTokens)
 
         print_ = lambda *args: None
@@ -1756,13 +1732,13 @@ class UpcaseDowncaseUnicode(ParseTestCase):
 
         if not IRON_PYTHON_ENV:
             #test html data
-            html = u"<TR class=maintxt bgColor=#ffffff> \
+            html = "<TR class=maintxt bgColor=#ffffff> \
                 <TD vAlign=top>Производитель, модель</TD> \
                 <TD vAlign=top><STRONG>BenQ-Siemens CF61</STRONG></TD> \
             "#.decode('utf-8')
 
-            # u'Manufacturer, model
-            text_manuf = u'Производитель, модель'
+            # 'Manufacturer, model
+            text_manuf = 'Производитель, модель'
             manufacturer = pp.Literal(text_manuf)
 
             td_start, td_end = pp.makeHTMLTags("td")
@@ -2051,7 +2027,7 @@ class LineStartTest(ParseTestCase):
         success = test_patt.runTests(fail_tests, failureTests=True)[0]
         self.assertTrue(success, "failed LineStart failure mode tests (1)")
 
-        with AutoReset(pp.ParserElement, "DEFAULT_WHITE_CHARS"):
+        with resetting(pp.ParserElement, "DEFAULT_WHITE_CHARS"):
             print_(r'no \n in default whitespace chars')
             pp.ParserElement.setDefaultWhitespaceChars(' ')
 
@@ -2091,7 +2067,7 @@ class LineStartTest(ParseTestCase):
             print_()
             self.assertEqual(test[s], 'A', 'failed LineStart with insignificant newlines')
 
-        with AutoReset(pp.ParserElement, "DEFAULT_WHITE_CHARS"):
+        with resetting(pp.ParserElement, "DEFAULT_WHITE_CHARS"):
             pp.ParserElement.setDefaultWhitespaceChars(' ')
             for t, s, e in (pp.LineStart() + 'AAA').scanString(test):
                 print_(s, e, pp.lineno(s, test), pp.line(s, test), ord(test[s]))
@@ -3017,17 +2993,13 @@ class UnicodeExpressionTest(ParseTestCase):
     def runTest(self):
         from pyparsing import Literal, ParseException
 
-        z = 'a' | Literal(u'\u1111')
+        z = 'a' | Literal('\u1111')
         z.streamline()
         try:
             z.parseString('b')
         except ParseException as pe:
-            if not PY_3:
-                self.assertEqual(pe.msg, r'''Expected {"a" | "\u1111"}''',
-                                 "Invalid error message raised, got %r" % pe.msg)
-            else:
-                self.assertEqual(pe.msg, r'''Expected {"a" | "ᄑ"}''',
-                                 "Invalid error message raised, got %r" % pe.msg)
+            self.assertEqual(pe.msg, r'''Expected {"a" | "ᄑ"}''',
+                             "Invalid error message raised, got %r" % pe.msg)
 
 class SetNameTest(ParseTestCase):
     def runTest(self):
@@ -3093,10 +3065,7 @@ class TrimArityExceptionMaskingTest(ParseTestCase):
     def runTest(self):
         from pyparsing import Word
 
-        invalid_message = [
-            "<lambda>() takes exactly 1 argument (0 given)",
-            "<lambda>() missing 1 required positional argument: 't'"
-            ][PY_3]
+        invalid_message = "<lambda>() missing 1 required positional argument: 't'"
         try:
             Word('a').setParseAction(lambda t: t[0] + 1).parseString('aaa')
         except Exception as e:
@@ -3113,10 +3082,7 @@ class TrimArityExceptionMaskingTest2(ParseTestCase):
 
             from pyparsing import Word
 
-            invalid_message = [
-                "<lambda>() takes exactly 1 argument (0 given)",
-                "<lambda>() missing 1 required positional argument: 't'"
-                ][PY_3]
+            invalid_message = "<lambda>() missing 1 required positional argument: 't'"
             try:
                 Word('a').setParseAction(lambda t: t[0] + 1).parseString('aaa')
             except Exception as e:
@@ -3183,9 +3149,8 @@ class OneOrMoreStopTest(ParseTestCase):
             expr = BEGIN + OneOrMore(body_word, stopOn=ender) + END
             self.assertEqual(test, expr, "Did not successfully stop on ending expression %r" % ender)
 
-            if PY_3:
-                expr = eval('BEGIN + body_word[...].stopOn(ender) + END')
-                self.assertEqual(test, expr, "Did not successfully stop on ending expression %r" % ender)
+            expr = BEGIN + body_word[...].stopOn(ender) + END
+            self.assertEqual(test, expr, "Did not successfully stop on ending expression %r" % ender)
 
         number = Word(nums + ',.()').setName("number with optional commas")
         parser= (OneOrMore(Word(alphanums + '-/.'), stopOn=number)('id').setParseAction(' '.join)
@@ -3205,9 +3170,8 @@ class ZeroOrMoreStopTest(ParseTestCase):
             expr = BEGIN + ZeroOrMore(body_word, stopOn=ender) + END
             self.assertEqual(test, expr, "Did not successfully stop on ending expression %r" % ender)
 
-            if PY_3:
-                expr = eval('BEGIN + body_word[0, ...].stopOn(ender) + END')
-                self.assertEqual(test, expr, "Did not successfully stop on ending expression %r" % ender)
+            expr = BEGIN + body_word[0, ...].stopOn(ender) + END
+            self.assertEqual(test, expr, "Did not successfully stop on ending expression %r" % ender)
 
 class NestedAsDictTest(ParseTestCase):
     def runTest(self):
@@ -3749,7 +3713,7 @@ class InlineLiteralsUsingTest(ParseTestCase):
 
         from pyparsing import ParserElement, Suppress, Literal, CaselessLiteral, Word, alphas, oneOf, CaselessKeyword, nums
 
-        with AutoReset(ParserElement, "_literalStringClass"):
+        with resetting(ParserElement, "_literalStringClass"):
             ParserElement.inlineLiteralsUsing(Suppress)
             wd = Word(alphas)
             result = (wd + ',' + wd + oneOf("! . ?")).parseString("Hello, World!")
@@ -3830,7 +3794,7 @@ class DefaultKeywordCharsTest(ParseTestCase):
         else:
             pass
 
-        with AutoReset(pp.Keyword, "DEFAULT_KEYWORD_CHARS"):
+        with resetting(pp.Keyword, "DEFAULT_KEYWORD_CHARS"):
             pp.Keyword.setDefaultKeywordChars(pp.alphas)
             try:
                 pp.Keyword("start").parseString("start1000")
@@ -3853,7 +3817,7 @@ class DefaultKeywordCharsTest(ParseTestCase):
         else:
             pass
 
-        with AutoReset(pp.Keyword, "DEFAULT_KEYWORD_CHARS"):
+        with resetting(pp.Keyword, "DEFAULT_KEYWORD_CHARS"):
             pp.Keyword.setDefaultKeywordChars(pp.alphas)
             try:
                 pp.CaselessKeyword("START").parseString("start1000")
@@ -4002,9 +3966,10 @@ class SetBreakTest(ParseTestCase):
     Temporarily monkeypatches pdb.set_trace.
     """
     def runTest(self):
-        was_called = []
+        was_called = False
         def mock_set_trace():
-            was_called.append(True)
+            nonlocal was_called
+            was_called = True
 
         import pyparsing as pp
         wd = pp.Word(pp.alphas)
@@ -4012,12 +3977,12 @@ class SetBreakTest(ParseTestCase):
 
         print_("Before parsing with setBreak:", was_called)
         import pdb
-        with AutoReset(pdb, "set_trace"):
+        with resetting(pdb, "set_trace"):
             pdb.set_trace = mock_set_trace
             wd.parseString("ABC")
 
         print_("After parsing with setBreak:", was_called)
-        self.assertTrue(bool(was_called), "set_trace wasn't called by setBreak")
+        self.assertTrue(was_called, "set_trace wasn't called by setBreak")
 
 class UnicodeTests(ParseTestCase):
     def runTest(self):
@@ -4055,10 +4020,10 @@ class UnicodeTests(ParseTestCase):
         greet = pp.Word(alphas) + ',' + pp.Word(alphas) + '!'
 
         # input string
-        hello = u"Καλημέρα, κόσμε!"
+        hello = "Καλημέρα, κόσμε!"
         result = greet.parseString(hello)
         print_(result)
-        self.assertTrue(result.asList() == [u'Καλημέρα', ',', u'κόσμε', '!'],
+        self.assertTrue(result.asList() == ['Καλημέρα', ',', 'κόσμε', '!'],
                         "Failed to parse Greek 'Hello, World!' using pyparsing_unicode.Greek.alphas")
 
         # define a custom unicode range using multiple inheritance
@@ -4089,7 +4054,7 @@ class UnicodeTests(ParseTestCase):
         result = pp.Dict(pp.OneOrMore(pp.Group(key_value))).parseString(sample)
 
         print_(result.asDict())
-        self.assertEqual(result.asDict(), {u'şehir': u'İzmir', u'ülke': u'Türkiye', u'nüfus': 4279677},
+        self.assertEqual(result.asDict(), {'şehir': 'İzmir', 'ülke': 'Türkiye', 'nüfus': 4279677},
                          "Failed to parse Turkish key-value pairs")
 
 
@@ -4381,17 +4346,15 @@ class ParseResultsWithNameMatchFirst(ParseTestCase):
         self.assertEqual(list(expr.parseString('the bird')['rexp']), 'the bird'.split())
 
         # test compatibility mode, no longer restoring pre-2.3.1 behavior
-        with AutoReset(pp.__compat__, "collect_all_And_tokens"), \
-                AutoReset(pp.__diag__, "warn_multiple_tokens_in_named_alternation"):
+        with resetting(pp.__compat__, "collect_all_And_tokens"), \
+             resetting(pp.__diag__, "warn_multiple_tokens_in_named_alternation"):
             pp.__compat__.collect_all_And_tokens = False
             pp.__diag__.enable("warn_multiple_tokens_in_named_alternation")
             expr_a = pp.Literal('not') + pp.Literal('the') + pp.Literal('bird')
             expr_b = pp.Literal('the') + pp.Literal('bird')
-            if PY_3:
-                with self.assertWarns(UserWarning, msg="failed to warn of And within alternation"):
-                    expr = (expr_a | expr_b)('rexp')
-            else:
+            with self.assertWarns(UserWarning, msg="failed to warn of And within alternation"):
                 expr = (expr_a | expr_b)('rexp')
+
             expr.runTests("""
                 not the bird
                 the bird
@@ -4422,17 +4385,16 @@ class ParseResultsWithNameOr(ParseTestCase):
         self.assertEqual(list(expr.parseString('the bird')['rexp']), 'the bird'.split())
 
         # test compatibility mode, no longer restoring pre-2.3.1 behavior
-        with AutoReset(pp.__compat__, "collect_all_And_tokens"), \
-                AutoReset(pp.__diag__, "warn_multiple_tokens_in_named_alternation"):
+        with resetting(pp.__compat__, "collect_all_And_tokens"), \
+             resetting(pp.__diag__, "warn_multiple_tokens_in_named_alternation"):
             pp.__compat__.collect_all_And_tokens = False
             pp.__diag__.enable("warn_multiple_tokens_in_named_alternation")
             expr_a = pp.Literal('not') + pp.Literal('the') + pp.Literal('bird')
             expr_b = pp.Literal('the') + pp.Literal('bird')
-            if PY_3:
-                with self.assertWarns(UserWarning, msg="failed to warn of And within alternation"):
-                    expr = (expr_a ^ expr_b)('rexp')
-            else:
+
+            with self.assertWarns(UserWarning, msg="failed to warn of And within alternation"):
                 expr = (expr_a ^ expr_b)('rexp')
+
             expr.runTests("""\
                 not the bird
                 the bird
@@ -4458,11 +4420,6 @@ class EmptyDictDoesNotRaiseException(ParseTestCase):
         try:
             print_(key_value_dict.parseString("").dump())
         except pp.ParseException as pe:
-            exc = pe
-            if not hasattr(exc, '__traceback__'):
-                # Python 2 compatibility
-                etype, value, traceback = sys.exc_info()
-                exc.__traceback__ = traceback
             print_(pp.ParseException.explain(pe))
         else:
             self.assertTrue(False, "failed to raise exception when matching empty string")
@@ -4475,22 +4432,12 @@ class ExplainExceptionTest(ParseTestCase):
         try:
             expr.parseString("123 355")
         except pp.ParseException as pe:
-            exc = pe
-            if not hasattr(exc, '__traceback__'):
-                # Python 2 compatibility
-                etype, value, traceback = sys.exc_info()
-                exc.__traceback__ = traceback
             print_(pp.ParseException.explain(pe, depth=0))
 
         expr = pp.Word(pp.nums).setName("int") - pp.Word(pp.alphas).setName("word")
         try:
             expr.parseString("123 355 (test using ErrorStop)")
         except pp.ParseSyntaxException as pe:
-            exc = pe
-            if not hasattr(exc, '__traceback__'):
-                # Python 2 compatibility
-                etype, value, traceback = sys.exc_info()
-                exc.__traceback__ = traceback
             print_(pp.ParseException.explain(pe))
 
         integer = pp.Word(pp.nums).setName("int").addParseAction(lambda t: int(t[0]))
@@ -4503,22 +4450,12 @@ class ExplainExceptionTest(ParseTestCase):
         expr.addParseAction(divide_args)
         pp.ParserElement.enablePackrat()
         print_()
-        # ~ print(expr.parseString("125 25"))
 
         try:
             expr.parseString("123 0")
         except pp.ParseException as pe:
-            exc = pe
-            if not hasattr(exc, '__traceback__'):
-                # Python 2 compatibility
-                etype, value, traceback = sys.exc_info()
-                exc.__traceback__ = traceback
             print_(pp.ParseException.explain(pe))
         except Exception as exc:
-            if not hasattr(exc, '__traceback__'):
-                # Python 2 compatibility
-                etype, value, traceback = sys.exc_info()
-                exc.__traceback__ = traceback
             print_(pp.ParseException.explain(exc))
             raise
 
@@ -4575,17 +4512,16 @@ class WarnUngroupedNamedTokensTest(ParseTestCase):
         import pyparsing as pp
         ppc = pp.pyparsing_common
 
-        with AutoReset(pp.__diag__, "warn_ungrouped_named_tokens_in_collection"):
+        with resetting(pp.__diag__, "warn_ungrouped_named_tokens_in_collection"):
             pp.__diag__.enable("warn_ungrouped_named_tokens_in_collection")
 
             COMMA = pp.Suppress(',').setName("comma")
             coord = (ppc.integer('x') + COMMA + ppc.integer('y'))
 
             # this should emit a warning
-            if PY_3:
-                with self.assertWarns(UserWarning, msg="failed to warn with named repetition of"
-                                                       " ungrouped named expressions"):
-                    path = coord[...].setResultsName('path')
+            with self.assertWarns(UserWarning, msg="failed to warn with named repetition of"
+                                                   " ungrouped named expressions"):
+                path = coord[...].setResultsName('path')
 
 
 class WarnNameSetOnEmptyForwardTest(ParseTestCase):
@@ -4596,14 +4532,13 @@ class WarnNameSetOnEmptyForwardTest(ParseTestCase):
     def runTest(self):
         import pyparsing as pp
 
-        with AutoReset(pp.__diag__, "warn_name_set_on_empty_Forward"):
+        with resetting(pp.__diag__, "warn_name_set_on_empty_Forward"):
             pp.__diag__.enable("warn_name_set_on_empty_Forward")
 
             base = pp.Forward()
 
-            if PY_3:
-                with self.assertWarns(UserWarning, msg="failed to warn when naming an empty Forward expression"):
-                    base("x")
+            with self.assertWarns(UserWarning, msg="failed to warn when naming an empty Forward expression"):
+                base("x")
 
 
 class WarnOnMultipleStringArgsToOneOfTest(ParseTestCase):
@@ -4614,12 +4549,11 @@ class WarnOnMultipleStringArgsToOneOfTest(ParseTestCase):
     def runTest(self):
         import pyparsing as pp
 
-        with AutoReset(pp.__diag__, "warn_on_multiple_string_args_to_oneof"):
+        with resetting(pp.__diag__, "warn_on_multiple_string_args_to_oneof"):
             pp.__diag__.enable("warn_on_multiple_string_args_to_oneof")
 
-            if PY_3:
-                with self.assertWarns(UserWarning, msg="failed to warn when incorrectly calling oneOf(string, string)"):
-                    a = pp.oneOf('A', 'B')
+            with self.assertWarns(UserWarning, msg="failed to warn when incorrectly calling oneOf(string, string)"):
+                a = pp.oneOf('A', 'B')
 
 
 class EnableDebugOnNamedExpressionsTest(ParseTestCase):
@@ -4631,10 +4565,10 @@ class EnableDebugOnNamedExpressionsTest(ParseTestCase):
         import pyparsing as pp
         import textwrap
 
-        with AutoReset(pp.__diag__, "enable_debug_on_named_expressions"):
+        with resetting(pp.__diag__, "enable_debug_on_named_expressions"):
             test_stdout = StringIO()
 
-            with AutoReset(sys, 'stdout', 'stderr'):
+            with resetting(sys, 'stdout', 'stderr'):
                 sys.stdout = test_stdout
                 sys.stderr = test_stdout
 
@@ -4707,7 +4641,7 @@ class EnableWarnDiagsTest(ParseTestCase):
         for diag_name in warn_names:
             self.assertFalse(getattr(pp.__diag__, diag_name), "__diag__.{} not set to True".format(diag_name))
 
-        with AutoReset(pp.__diag__, *warn_names):
+        with resetting(pp.__diag__, *warn_names):
             # enable all warn_* diag_names
             pp.__diag__.enable_all_warnings()
             pprint.pprint(filtered_vars(vars(pp.__diag__)), width=30)

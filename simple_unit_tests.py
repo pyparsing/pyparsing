@@ -7,12 +7,7 @@
 #
 # Copyright (c) 2018  Paul T. McGuire
 #
-from __future__ import division
-
-try:
-    import unittest2 as unittest
-except ImportError:
-    import unittest
+import unittest
 import pyparsing as pp
 from collections import namedtuple
 from datetime import datetime
@@ -29,15 +24,6 @@ class PyparsingExpressionTestCase(unittest.TestCase):
     given text strings. Subclasses must define a class attribute 'tests' which
     is a list of PpTestSpec instances.
     """
-    
-    if not hasattr(unittest.TestCase, 'subTest'):
-        # Python 2 compatibility
-        from contextlib import contextmanager
-        @contextmanager
-        def subTest(self, **params):
-            print('subTest:', params)
-            yield
-    
     tests = []
     def runTest(self):
         if self.__class__ is PyparsingExpressionTestCase:
@@ -83,11 +69,6 @@ class PyparsingExpressionTestCase(unittest.TestCase):
                     try:
                         parsefn(test_spec.text)
                     except Exception as exc:
-                        if not hasattr(exc, '__traceback__'):
-                            # Python 2 compatibility
-                            from sys import exc_info
-                            etype, value, traceback = exc_info()
-                            exc.__traceback__ = traceback
                         print(pp.ParseException.explain(exc))
                         self.assertEqual(exc.loc, test_spec.expected_fail_locn)
                     else:
@@ -474,10 +455,6 @@ suite = unittest.TestSuite(cls() for cls in test_case_classes)
 # ============ MAIN ================
 
 if __name__ == '__main__':
-    import sys
-    if sys.version_info[0] < 3:
-        print("simple_unit_tests.py requires Python 3.x - exiting...")
-        exit(0)
 
     result = unittest.TextTestRunner().run(suite)
 
