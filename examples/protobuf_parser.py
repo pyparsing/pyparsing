@@ -15,7 +15,7 @@ integer = Regex(r"[+-]?\d+")
 LBRACE,RBRACE,LBRACK,RBRACK,LPAR,RPAR,EQ,SEMI = map(Suppress,"{}[]()=;")
 
 kwds = """message required optional repeated enum extensions extends extend
-          to package service rpc returns true false option import"""
+          to package service rpc returns true false option import syntax"""
 for kw in kwds.split():
     exec("{0}_ = Keyword('{1}')".format(kw.upper(), kw))
 
@@ -27,8 +27,8 @@ typespec = oneOf("""double float int32 int64 uint32 uint64 sint32 sint64
                     fixed32 fixed64 sfixed32 sfixed64 bool string bytes""") | ident
 rvalue = integer | TRUE_ | FALSE_ | ident
 fieldDirective = LBRACK + Group(ident + EQ + rvalue) + RBRACK
-fieldDefn = (( REQUIRED_ | OPTIONAL_ | REPEATED_ )("fieldQualifier") -
-              typespec("typespec") + ident("ident") + EQ + integer("fieldint") + ZeroOrMore(fieldDirective) + SEMI)
+fieldDefnPrefix =  REQUIRED_ | OPTIONAL_ | REPEATED_
+fieldDefn = (Optional(fieldDefnPrefix) + typespec("typespec") + ident("ident") + EQ + integer("fieldint") + ZeroOrMore(fieldDirective) + SEMI)
 
 # enumDefn ::= 'enum' ident '{' { ident '=' integer ';' }* '}'
 enumDefn = ENUM_("typespec") - ident('name') + LBRACE + Dict( ZeroOrMore( Group(ident + EQ + integer + SEMI) ))('values') + RBRACE
@@ -50,6 +50,8 @@ methodDefn = (RPC_ - ident("methodName") +
 # serviceDefn ::= 'service' ident '{' methodDefn* '}'
 serviceDefn = SERVICE_ - ident("serviceName") + LBRACE + ZeroOrMore(Group(methodDefn)) + RBRACE
 
+syntaxDefn = SYNTAX_ + EQ - quotedString("syntaxString") + SEMI
+
 # packageDirective ::= 'package' ident [ '.' ident]* ';'
 packageDirective = Group(PACKAGE_ - delimitedList(ident, '.', combine=True) + SEMI)
 
@@ -59,7 +61,7 @@ importDirective = IMPORT_ - quotedString("importFileSpec") + SEMI
 
 optionDirective = OPTION_ - ident("optionName") + EQ + quotedString("optionValue") + SEMI
 
-topLevelStatement = Group(messageDefn | messageExtension | enumDefn | serviceDefn | importDirective | optionDirective)
+topLevelStatement = Group(messageDefn | messageExtension | enumDefn | serviceDefn | importDirective | optionDirective | syntaxDefn)
 
 parser = Optional(packageDirective) + ZeroOrMore(topLevelStatement)
 
@@ -97,4 +99,15 @@ message AddressBook {
   repeated Person person = 1;
 }"""
 
-parser.runTests([test1, test2])
+test3 = """syntax = "proto3";
+
+import "test.proto";
+
+message SearchRequest {
+  string query = 1;
+  int32 page_number = 2;
+  int32 result_per_page = 3;
+}
+"""
+
+parser.runTests([test1, test2, test3])
