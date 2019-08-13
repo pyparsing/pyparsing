@@ -59,7 +59,7 @@ or any other greeting of the form "<salutation>, <addressee>!"::
 
     greet = Word(alphas) + "," + Word(alphas) + "!"
     greeting = greet.parseString("Hello, World!")
-    print greeting
+    print(greeting)
 
 The parsed tokens are returned in the following form::
 
@@ -691,10 +691,10 @@ Exception classes and Troubleshooting
   ParseExceptions have attributes loc, msg, line, lineno, and column; to view the
   text line and location where the reported ParseException occurs, use::
 
-    except ParseException, err:
-        print err.line
-        print " " * (err.column - 1) + "^"
-        print err
+    except ParseException as err:
+        print(err.line)
+        print(" " * (err.column - 1) + "^")
+        print(err)
 
 - ``RecursiveGrammarException`` - exception returned by ``validate()`` if
   the grammar contains a recursive infinite loop, such as::
