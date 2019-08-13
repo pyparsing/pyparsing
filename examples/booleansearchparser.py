@@ -21,11 +21,6 @@ Requirements:
 * Pyparsing
 
 
-CONTRIBUTORS:
-- Guiem Bosch
-- Francesc Garcia
-
-
 SAMPLE USAGE:
 from booleansearchparser import BooleanSearchParser
 from __future__ import print_function
@@ -80,6 +75,8 @@ CONTRIBUTORS:
 - Steven Mooij
 - Rudolph Froger
 - Paul McGuire
+- Guiem Bosch
+- Francesc Garcia
 
 TODO:
 - add more docs
@@ -89,7 +86,6 @@ TODO:
 """
 from __future__ import print_function
 from pyparsing import Word, alphanums, Keyword, Group, Combine, Forward, Suppress, Optional, OneOrMore, oneOf
-from sets import Set
 import re
 import string
 alphabet_ranges = [
@@ -152,7 +148,7 @@ class BooleanSearchParser:
         )
         #suport for non-wester alphabets
         for r in alphabet_ranges:
-            alphabet += u''.join(unichr(c) for c in xrange(*r) if not unichr(c).isspace())
+            alphabet += u''.join(chr(c) for c in range(*r) if not chr(c).isspace())
         
         operatorWord = Group(
             Word(alphabet+'*')
@@ -213,7 +209,7 @@ class BooleanSearchParser:
         function GetQuoted to only return the subset of ID's that contain the
         literal string.
         """
-        #r = Set()
+        #r = set()
         r = False
         search_terms = []
         for item in argument:
@@ -264,15 +260,15 @@ class BooleanSearchParser:
     
     """
     def GetKeyword(self, name, value):
-        return Set()
+        return set()
 
     def GetBetween(self, min, max):
         print (min,max)
-        return Set()
+        return set()
     """
     
     def GetQuotes(self, search_string, tmp_result):
-        return self.text.count(search_string) > 0
+        return search_string in self.text
     
 
     def GetNot(self, not_set):
@@ -286,7 +282,7 @@ class BooleanSearchParser:
         >>> string.punctuation
         '!"#$%&\'()*+,-./:;<=>?@[\\]^_`{|}~'
         """
-        #it will keep @, # and _
+        #it will keep @, # and 
         #usernames and hashtags can contain dots, so a double check is done
         r = re.compile(r'[\s{}]+'.format(re.escape('!"$%&\'()*+,-/:;<=>?[\\]^`{|}~')))
         _words  = r.split(text)
@@ -355,126 +351,36 @@ class ParserTest(BooleanSearchParser):
         
         texts_matcheswith = {
             "halp thinks he needs help": [
-                "25", 
-                "22", 
-                "20", 
-                "21", 
-                "11", 
-                "17", 
-                "16", 
-                "23", 
-                "34", 
-                "1", 
-                "0", 
-                "5", 
-                "7", 
-                "6", 
-                "9", 
-                "8"
+                "25", "22", "20", "21", "11", "17", "16", "23", "34", "1", "0", "5", "7", "6", "9", "8"
             ], 
             "he needs halp": [
-                "24", 
-                "25", 
-                "20", 
-                "11", 
-                "10", 
-                "12", 
-                "34", 
-                "6"
+                "24", "25", "20", "11", "10", "12", "34", "6"
             ], 
             "help": [
-                "25", 
-                "20", 
-                "12", 
-                "17", 
-                "16", 
-                "1", 
-                "0", 
-                "5", 
-                "6"
+                "25", "20", "12", "17", "16", "1", "0", "5", "6"
             ], 
             "help hilp": [
-                "25", 
-                "22", 
-                "20", 
-                "32", 
-                "21", 
-                "12", 
-                "17", 
-                "16", 
-                "19", 
-                "31", 
-                "23", 
-                "1", 
-                "0", 
-                "5", 
-                "4", 
-                "7", 
-                "6", 
-                "9", 
-                "8", 
-                "33"
+                "25", "22", "20", "32", "21", "12", "17", "16", "19", "31", "23", "1", "0", "5", "4", "7", "6", "9", "8", "33"
             ], 
             "help me please hulp": [
-                "30", 
-                "25", 
-                "27", 
-                "20", 
-                "13", 
-                "12", 
-                "15", 
-                "14", 
-                "17", 
-                "16", 
-                "19", 
-                "18", 
-                "23", 
-                "29", 
-                "1", 
-                "0", 
-                "3", 
-                "2", 
-                "5", 
-                "4", 
-                "6", 
-                "9"
+                "30", "25", "27", "20", "13", "12", "15", "14", "17", "16", "19", "18", "23", "29", "1", "0", "3", "2", "5", "4", "6", "9"
             ], 
             "helper": [
-                "20", 
-                "10", 
-                "12", 
-                "16"
+                "20", "10", "12", "16"
             ], 
             "hulp hilp": [
-                "25", 
-                "27", 
-                "20", 
-                "21", 
-                "10", 
-                "12", 
-                "14", 
-                "17", 
-                "19", 
-                "23", 
-                "1", 
-                "5", 
-                "4", 
-                "7", 
-                "6", 
-                "9"
+                "25", "27", "20", "21", "10", "12", "14", "17", "19", "23", "1", "5", "4", "7", "6", "9"
             ], 
             "nothing": [
-                "25", 
-                "10", 
-                "12"
+                "25", "10", "12"
             ]
         }
 
         
         all_ok = True
-        for text,matches in texts_matcheswith.iteritems():
+        for text,matches in texts_matcheswith.items():
             _matches = []
-            for _id,expr in exprs.iteritems():
+            for _id,expr in exprs.items():
                 if self.match(text,expr):
                     _matches.append(_id)
             all_ok = all_ok and sorted(texts_matcheswith[text])==sorted(_matches) 
