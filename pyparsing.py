@@ -1752,21 +1752,23 @@ class ParserElement(object):
         ...
         pyparsing.ParseException: Expected end of text, found 'b'  (at char 5), (line:1, col:6)
         """
-        
+        if parseAll:
+            parser = self + StringEnd()
+            return parser.parseString(instring)
+
         ParserElement.resetCache()
+
         if not self.streamlined:
             self.streamline()
-            # ~ self.saveAsList = True
+
         for e in self.ignoreExprs:
             e.streamline()
+
         if not self.keepTabs:
             instring = instring.expandtabs()
+
         try:
             loc, tokens = self._parse(instring, 0)
-            if parseAll:
-                loc = self.preParse(instring, loc)
-                se = Empty() + StringEnd()
-                se._parse(instring, loc)
         except ParseBaseException as exc:
             if ParserElement.verbose_stacktrace:
                 raise
