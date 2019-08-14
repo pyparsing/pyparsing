@@ -1,10 +1,10 @@
 # This file contains the configuration for Scrutinizer-CI, a tool we use for software quality purposes.
 build:
   environment:
-    python: 3.6.3
+    python: 3.7.2
 
     variables:
-      PYTHON_VERSIONS: 'jython-2.7.1 pypy2.7-5.10.0 pypy3.5-5.10.1 2.7.15 3.3.6 3.4.5 3.5.6'
+      PYTHON_VERSIONS: 'pypy3.5-6.0.0 3.5.6 3.6.3'
 
   dependencies:
     override:
