@@ -171,3 +171,8 @@ venv.bak/
 .mypy_cache/
 
 # End of https://www.gitignore.io/api/python,pycharm
+
+# For developers on OSX
+.DS_Store
+
+
