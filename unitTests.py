@@ -3855,10 +3855,15 @@ class ParseActionExceptionTest(ParseTestCase):
         try:
             expr.parseString('1 + 2')
         except Exception as e:
-            self.assertTrue(hasattr(e, '__cause__'), "no __cause__ attribute in the raised exception")
-            self.assertTrue(e.__cause__ is not None, "__cause__ not propagated to outer exception")
-            self.assertTrue(type(e.__cause__) == IndexError, "__cause__ references wrong exception")
-            traceback.print_exc()
+            print_traceback = True
+            try:
+                self.assertTrue(hasattr(e, '__cause__'), "no __cause__ attribute in the raised exception")
+                self.assertTrue(e.__cause__ is not None, "__cause__ not propagated to outer exception")
+                self.assertTrue(type(e.__cause__) == IndexError, "__cause__ references wrong exception")
+                print_traceback = False
+            finally:
+                if print_traceback:
+                    traceback.print_exc()
         else:
             self.assertTrue(False, "Expected ParseException not raised")
 
@@ -4801,7 +4806,8 @@ class MiscellaneousParserTests(ParseTestCase):
         # test creating Literal with empty string
         if "J" in runtests:
             print('verify non-fatal usage of Literal("")')
-            e = pp.Literal("")
+            with self.assertWarns(SyntaxWarning, msg="failed to warn use of empty string for Literal"):
+                e = pp.Literal("")
             try:
                 e.parseString("SLJFD")
             except Exception as e:
