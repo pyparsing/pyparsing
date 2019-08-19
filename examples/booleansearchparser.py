@@ -5,7 +5,7 @@ Boolean Search query parser (Based on searchparser: https://github.com/pyparsing
 
 version 2018-07-22
 
-This search query parser uses the excellent Pyparsing module 
+This search query parser uses the excellent Pyparsing module
 (http://pyparsing.sourceforge.net/) to parse search queries by users.
 It handles:
 
@@ -19,7 +19,6 @@ It handles:
 Requirements:
 * Python
 * Pyparsing
-
 
 SAMPLE USAGE:
 from booleansearchparser import BooleanSearchParser
@@ -54,7 +53,7 @@ are permitted provided that the following conditions are met:
 * Redistributions of source code must retain the above copyright notice, this
   list of conditions and the following disclaimer.
 * Redistributions in binary form must reproduce the above copyright notice,
-  this list of conditions and the following disclaimer in the documentation 
+  this list of conditions and the following disclaimer in the documentation
   and/or other materials provided with the distribution.
 * Neither the name of Estrate nor the names of its contributors may be used
   to endorse or promote products derived from this software without specific
@@ -65,8 +64,8 @@ ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
 WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
 DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
 ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
-(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; 
-LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON 
+(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
 ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT 
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS 
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
@@ -85,9 +84,15 @@ TODO:
 
 """
 from __future__ import print_function
-from pyparsing import Word, alphanums, Keyword, Group, Combine, Forward, Suppress, Optional, OneOrMore, oneOf
+from pyparsing import Word, alphanums, Keyword, Group, Forward, Suppress, OneOrMore, oneOf
 import re
-import string
+
+# Py2 compatibility
+try:
+    _unichr = unichr
+except NameError:
+    _unichr = chr
+
 alphabet_ranges = [
     ##CYRILIC: https://en.wikipedia.org/wiki/Cyrillic_(Unicode_block)
     [int("0400",16), int("04FF",16)],
@@ -124,14 +129,14 @@ class BooleanSearchParser:
         self._parser    = self.parser()
         self.text       = ''
         self.words      = []
-    
+
     def parser(self):
         """
         This function returns a parser.
         The grammar should be like most full text search engines (Google, Tsearch, Lucene).
-        
+
         Grammar:
-        - a query consists of alphanumeric words, with an optional '*' 
+        - a query consists of alphanumeric words, with an optional '*'
           wildcard at the end or the begining of a word
         - a sequence of words between quotes is a literal string
         - words can be used together by using operators ('and' or 'or')
@@ -141,29 +146,27 @@ class BooleanSearchParser:
         - if an operator is missing, use an 'and' operator
         """
         operatorOr = Forward()
-        
-        alphabet  = ( 
-            u'*'+
-            alphanums
-        )
-        #suport for non-wester alphabets
+
+        alphabet = alphanums
+
+        #suport for non-western alphabets
         for r in alphabet_ranges:
-            alphabet += u''.join(chr(c) for c in range(*r) if not chr(c).isspace())
-        
+            alphabet += u''.join(_unichr(c) for c in range(*r) if not _unichr(c).isspace())
+
         operatorWord = Group(
-            Word(alphabet+'*')
-        ).setResultsName('word') 
-       
-        
+            Word(alphabet + '*')
+        ).setResultsName('word*')
+
+
         operatorQuotesContent = Forward()
         operatorQuotesContent << (
             (operatorWord + operatorQuotesContent) | operatorWord
         )
-        
+
         operatorQuotes = Group(
             Suppress('"') + operatorQuotesContent + Suppress('"')
         ).setResultsName("quotes") | operatorWord
-        
+
         operatorParenthesis = Group(
             (Suppress("(") + operatorOr + Suppress(")"))
         ).setResultsName("parenthesis") | operatorQuotes
@@ -177,31 +180,31 @@ class BooleanSearchParser:
         operatorAnd << (
             Group(
                 operatorNot + Suppress(Keyword("and", caseless=True)) + operatorAnd
-            ).setResultsName("and")| 
+            ).setResultsName("and")|
             Group(
                 operatorNot + OneOrMore(~oneOf("and or") + operatorAnd)
-            ).setResultsName("and") | 
+            ).setResultsName("and") |
             operatorNot
         )
-        
+
         operatorOr << (Group(
             operatorAnd + Suppress(Keyword("or", caseless=True)) + operatorOr
         ).setResultsName("or") | operatorAnd)
 
         return operatorOr.parseString
+
     def evaluateAnd(self, argument):
-        return self.evaluate(argument[0]) and (self.evaluate(argument[1]))
-        
+        return all(self.evaluate(arg) for arg in argument)
+
     def evaluateOr(self, argument):
-        return self.evaluate(argument[0]) or self.evaluate(argument[1])
-        
+        return any(self.evaluate(arg) for arg in argument)
 
     def evaluateNot(self, argument):
         return self.GetNot(self.evaluate(argument[0]))
 
     def evaluateParenthesis(self, argument):
         return self.evaluate(argument[0])
-    
+
     def evaluateQuotes(self, argument):
         """Evaluate quoted strings
 
@@ -216,7 +219,7 @@ class BooleanSearchParser:
             search_terms.append(item[0])
             r = r and self.evaluate(item)
         return self.GetQuotes(' '.join(search_terms), r)
-    
+
     def evaluateWord(self, argument):
         wildcard_count = argument[0].count(u"*")
         if wildcard_count > 0:
@@ -232,15 +235,15 @@ class BooleanSearchParser:
                     if matched:
                         break
                 return matched
-        
+
         return self.GetWord(argument[0])
 
     def evaluateWordWildcardPrefix(self, argument):
         return self.GetWordWildcard(argument[0], method = "endswith")
-    
+
     def evaluateWordWildcardSufix(self, argument):
         return self.GetWordWildcard(argument[0], method = "startswith")
-    
+
     def evaluate(self, argument):
         return self._methods[argument.getName()](argument)
 
@@ -257,7 +260,7 @@ class BooleanSearchParser:
             if matched:
                 break
         return matched
-    
+
     """
     def GetKeyword(self, name, value):
         return set()
@@ -266,15 +269,15 @@ class BooleanSearchParser:
         print (min,max)
         return set()
     """
-    
+
     def GetQuotes(self, search_string, tmp_result):
         return search_string in self.text
-    
+
 
     def GetNot(self, not_set):
         return not not_set
 
-        
+
     def _split_words(self,text):
         words = []
         """
@@ -282,7 +285,7 @@ class BooleanSearchParser:
         >>> string.punctuation
         '!"#$%&\'()*+,-./:;<=>?@[\\]^_`{|}~'
         """
-        #it will keep @, # and 
+        #it will keep @, # and
         #usernames and hashtags can contain dots, so a double check is done
         r = re.compile(r'[\s{}]+'.format(re.escape('!"$%&\'()*+,-/:;<=>?[\\]^`{|}~')))
         _words  = r.split(text)
@@ -291,104 +294,112 @@ class BooleanSearchParser:
                 for __w in _w.split("."):
                     words.append(__w)
                 continue
-            
+
             words.append(_w)
-        
+
         return words
-    
+
     def match(self,text,expr):
         self.text   = text
         self.words  = self._split_words(text)
-        
-        return self.Parse(expr)
-        
 
+        return self.Parse(expr)
 
 
 class ParserTest(BooleanSearchParser):
     """Tests the parser with some search queries
     tests containts a dictionary with tests and expected results.
     """
-    
+
     def Test(self):
         exprs = {
-            '0' : 'help', 
-            '1' : 'help or hulp', 
-            '2' : 'help and hulp', 
-            '3' : 'help hulp', 
-            '4' : 'help and hulp or hilp', 
-            '5' : 'help or hulp and hilp', 
-            '6' : 'help or hulp or hilp or halp', 
-            '7' : '(help or hulp) and (hilp or halp)', 
-            '8' : 'help and (hilp or halp)', 
-            '9' : '(help and (hilp or halp)) or hulp', 
-            '10': 'not help', 
-            '11': 'not hulp and halp', 
-            '12': 'not (help and halp)', 
-            '13': '"help me please"', 
-            '14': '"help me please" or hulp', 
-            '15': '"help me please" or (hulp and halp)', 
-            '16': 'help*', 
-            '17': 'help or hulp*', 
-            '18': 'help* and hulp', 
-            '19': 'help and hulp* or hilp', 
-            '20': 'help* or hulp or hilp or halp', 
-            '21': '(help or hulp*) and (hilp* or halp)', 
-            '22': 'help* and (hilp* or halp*)', 
-            '23': '(help and (hilp* or halp)) or hulp*', 
-            '24': 'not help* and halp', 
-            '25': 'not (help* and helpe*)', 
-            '26': '"help* me please"', 
-            '27': '"help* me* please" or hulp*', 
-            '28': '"help me please*" or (hulp and halp)', 
-            '29': '"help me please" not (hulp and halp)', 
-            '30': '"help me please" hulp', 
-            '31': 'help and hilp and not holp', 
-            '32': 'help hilp not holp', 
+            '0' : 'help',
+            '1' : 'help or hulp',
+            '2' : 'help and hulp',
+            '3' : 'help hulp',
+            '4' : 'help and hulp or hilp',
+            '5' : 'help or hulp and hilp',
+            '6' : 'help or hulp or hilp or halp',
+            '7' : '(help or hulp) and (hilp or halp)',
+            '8' : 'help and (hilp or halp)',
+            '9' : '(help and (hilp or halp)) or hulp',
+            '10': 'not help',
+            '11': 'not hulp and halp',
+            '12': 'not (help and halp)',
+            '13': '"help me please"',
+            '14': '"help me please" or hulp',
+            '15': '"help me please" or (hulp and halp)',
+            '16': 'help*',
+            '17': 'help or hulp*',
+            '18': 'help* and hulp',
+            '19': 'help and hulp* or hilp',
+            '20': 'help* or hulp or hilp or halp',
+            '21': '(help or hulp*) and (hilp* or halp)',
+            '22': 'help* and (hilp* or halp*)',
+            '23': '(help and (hilp* or halp)) or hulp*',
+            '24': 'not help* and halp',
+            '25': 'not (help* and helpe*)',
+            '26': '"help* me please"',
+            '27': '"help* me* please" or hulp*',
+            '28': '"help me please*" or (hulp and halp)',
+            '29': '"help me please" not (hulp and halp)',
+            '30': '"help me please" hulp',
+            '31': 'help and hilp and not holp',
+            '32': 'help hilp not holp',
             '33': 'help hilp and not holp',
-            '34': '*lp and halp'
+            '34': '*lp and halp',
+            '35': u'*신은 and 어떠세요',
         }
-        
+
         texts_matcheswith = {
             "halp thinks he needs help": [
                 "25", "22", "20", "21", "11", "17", "16", "23", "34", "1", "0", "5", "7", "6", "9", "8"
-            ], 
+            ],
             "he needs halp": [
                 "24", "25", "20", "11", "10", "12", "34", "6"
-            ], 
+            ],
             "help": [
                 "25", "20", "12", "17", "16", "1", "0", "5", "6"
-            ], 
+            ],
             "help hilp": [
                 "25", "22", "20", "32", "21", "12", "17", "16", "19", "31", "23", "1", "0", "5", "4", "7", "6", "9", "8", "33"
-            ], 
+            ],
             "help me please hulp": [
                 "30", "25", "27", "20", "13", "12", "15", "14", "17", "16", "19", "18", "23", "29", "1", "0", "3", "2", "5", "4", "6", "9"
-            ], 
+            ],
             "helper": [
                 "20", "10", "12", "16"
-            ], 
+            ],
             "hulp hilp": [
                 "25", "27", "20", "21", "10", "12", "14", "17", "19", "23", "1", "5", "4", "7", "6", "9"
-            ], 
+            ],
             "nothing": [
                 "25", "10", "12"
+            ],
+            u"안녕하세요, 당신은 어떠세요?": [
+                "10", "12", "25", "35"
             ]
         }
 
-        
         all_ok = True
-        for text,matches in texts_matcheswith.items():
+        for text, matches in texts_matcheswith.items():
             _matches = []
-            for _id,expr in exprs.items():
-                if self.match(text,expr):
+            for _id, expr in exprs.items():
+                if self.match(text, expr):
                     _matches.append(_id)
-            all_ok = all_ok and sorted(texts_matcheswith[text])==sorted(_matches) 
-        
+
+            test_passed = sorted(matches) == sorted(_matches)
+            if not test_passed:
+                print('Failed', repr(text), 'expected', matches, 'matched', _matches)
+
+            all_ok = all_ok and test_passed
+
         return all_ok
-            
+
 if __name__=='__main__':
     if ParserTest().Test():
         print ('All tests OK')
+        exit(0)
     else:
         print ('One or more tests FAILED')
+        exit(1)
