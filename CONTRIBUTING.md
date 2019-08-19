@@ -77,6 +77,8 @@ These coding styles are encouraged whether submitting code for core pyparsing or
                           + some_other_long_thing
                           + even_another_long_thing)
 
+- Maximum line length is 120 characters.
+
 - Changes to core pyparsing must be compatible back to Py3.5 without conditionalizing. Later Py3 features may be
   used in examples by way of illustration.
 
@@ -91,6 +93,8 @@ These coding styles are encouraged whether submitting code for core pyparsing or
       # if necessary
       ppc = pp.pyparsing_common
       ppu = pp.pyparsing_unicode
+
+  Submitted examples *must* by Python 3 compatible.
 
 - Where possible use operators to create composite parse expressions:
 
