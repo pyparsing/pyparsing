@@ -55,6 +55,13 @@ Version 2.5.0a1
   suppression. As part of resolution to a question posted by John
   Greene on StackOverflow.
 
+- Potentially *huge* performance enhancement when parsing Word
+  expressions built from pyparsing_unicode character sets. Word now
+  internally converts ranges of consecutive characters to regex
+  character ranges (converting "0123456789" to "0-9" for instance),
+  resulting in as much as 50X improvement in performance! Work
+  inspired by a question posted by Midnighter on StackOverflow.
+
 - Fixed bug in CloseMatch where end location was incorrectly
   computed; and updated partial_gene_match.py example.
 
@@ -64,6 +71,10 @@ Version 2.5.0a1
 
 - BigQueryViewParser.py added to examples directory, PR submitted
   by Michael Smedberg, nice work!
+
+- booleansearchparser.py added to examples directory, PR submitted
+  by xecgr. Builds on searchparser.py, adding support for '*'
+  wildcards and non-Western alphabets.
 
 
 Version 2.4.2 - July, 2019

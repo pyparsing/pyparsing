@@ -96,7 +96,7 @@ classes inherit from. Use the docstrings for examples of how to:
 """
 
 __version__ = "2.5.0a1"
-__versionTime__ = "10 Aug 2019 11:56 UTC"
+__versionTime__ = "19 Aug 2019 03:39 UTC"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -238,16 +238,6 @@ str_type = (str, bytes)
 singleArgBuiltins = [sum, len, sorted, reversed, list, tuple, set, any, all, min, max]
 
 _generatorType = type((y for y in range(1)))
-
-def _xml_escape(data):
-    """Escape &, <, >, ", ', etc. in a string of data."""
-
-    # ampersand must be replaced first
-    from_symbols = '&><"\''
-    to_symbols = ('&' + s + ';' for s in "amp gt lt quot apos".split())
-    for from_, to_ in zip(from_symbols, to_symbols):
-        data = data.replace(from_, to_)
-    return data
 
 alphas = string.ascii_uppercase + string.ascii_lowercase
 nums = "0123456789"
@@ -2987,13 +2977,13 @@ class Word(Token):
 
         if ' ' not in self.initCharsOrig + self.bodyCharsOrig and (min == 1 and max == 0 and exact == 0):
             if self.bodyCharsOrig == self.initCharsOrig:
-                self.reString = "[%s]+" % _escapeRegexRangeChars(self.initCharsOrig)
+                self.reString = "[%s]+" % _collapseAndEscapeRegexRangeChars(self.initCharsOrig)
             elif len(self.initCharsOrig) == 1:
                 self.reString = "%s[%s]*" % (re.escape(self.initCharsOrig),
-                                             _escapeRegexRangeChars(self.bodyCharsOrig),)
+                                             _collapseAndEscapeRegexRangeChars(self.bodyCharsOrig),)
             else:
-                self.reString = "[%s][%s]*" % (_escapeRegexRangeChars(self.initCharsOrig),
-                                               _escapeRegexRangeChars(self.bodyCharsOrig),)
+                self.reString = "[%s][%s]*" % (_collapseAndEscapeRegexRangeChars(self.initCharsOrig),
+                                               _collapseAndEscapeRegexRangeChars(self.bodyCharsOrig),)
             if self.asKeyword:
                 self.reString = r"\b" + self.reString + r"\b"
 
@@ -3071,7 +3061,7 @@ class Char(_WordRegex):
     """
     def __init__(self, charset, asKeyword=False, excludeChars=None):
         super().__init__(charset, exact=1, asKeyword=asKeyword, excludeChars=excludeChars)
-        self.reString = "[%s]" % _escapeRegexRangeChars(''.join(self.initChars))
+        self.reString = "[%s]" % _collapseAndEscapeRegexRangeChars(self.initChars)
         if asKeyword:
             self.reString = r"\b%s\b" % self.reString
         self.re = re.compile(self.reString)
@@ -5300,6 +5290,34 @@ def _escapeRegexRangeChars(s):
     s = s.replace("\n", r"\n")
     s = s.replace("\t", r"\t")
     return str(s)
+
+def _collapseAndEscapeRegexRangeChars(s):
+    def is_consecutive(c):
+        c_int = ord(c)
+        is_consecutive.prev, prev = c_int, is_consecutive.prev
+        if c_int - prev > 1:
+            is_consecutive.value = next(is_consecutive.counter)
+        return is_consecutive.value
+
+    is_consecutive.prev = 0
+    is_consecutive.counter = itertools.count()
+    is_consecutive.value = -1
+
+    def escape_re_range_char(c):
+        return '\\' + c if c in r"\^-]" else c
+
+    ret = []
+    for _, chars in itertools.groupby(sorted(s), key=is_consecutive):
+        first = last = next(chars)
+        for c in chars:
+            last = c
+        if first == last:
+            ret.append(first)
+        else:
+            ret.append("{}-{}".format(escape_re_range_char(first),
+                                      escape_re_range_char(last)))
+    return ''.join(ret)
+
 
 def oneOf(strs, caseless=False, useRegex=True, asKeyword=False):
     """Helper to quickly define a set of alternative Literals, and makes
