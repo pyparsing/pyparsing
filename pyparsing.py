@@ -141,6 +141,7 @@ class __config_flags:
                                                                                dname,
                                                                                cls._type_desc,
                                                                                str(getattr(cls, dname)).upper()))
+            return
         if dname in cls._all_names:
             setattr(cls, dname, value)
         else:
@@ -1053,7 +1054,7 @@ class ParseResults(object):
             except Exception:
                 return False
             else:
-                return not isinstance(obj, (str, bytes))
+                return not isinstance(obj, str_type)
 
         ret = cls([])
         for k, v in other.items():
@@ -5312,7 +5313,7 @@ def _collapseAndEscapeRegexRangeChars(s):
         for c in chars:
             last = c
         if first == last:
-            ret.append(first)
+            ret.append(escape_re_range_char(first))
         else:
             ret.append("{}-{}".format(escape_re_range_char(first),
                                       escape_re_range_char(last)))
