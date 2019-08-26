@@ -948,8 +948,7 @@ class ReStringRangeTest(ParseTestCase):
             (r"[A-]"),
             (r"[-A]"),
             (r"[\x21]"),
-            #(r"[а-яА-ЯёЁA-Z$_\041α-ω]".decode('utf-8')),
-            ('[\u0430-\u044f\u0410-\u042f\u0451\u0401ABCDEFGHIJKLMNOPQRSTUVWXYZ$_\041\u03b1-\u03c9]'),
+            (r"[а-яА-ЯёЁA-Z$_\041α-ω]")
             )
         expectedResults = (
             "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
@@ -959,8 +958,7 @@ class ReStringRangeTest(ParseTestCase):
             " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~",
             " !\"#$%&'()*+,-./0",
             "!\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~",
-            #~ "¡¢£¤¥¦§¨©ª«¬­®¯°±²³´µ¶·¸¹º»¼½¾¿ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖ×ØÙÚÛÜÝÞßàáâãäåæçèéêëìíîïðñòóôõö÷øùúûüýþ",
-            '\xa1\xa2\xa3\xa4\xa5\xa6\xa7\xa8\xa9\xaa\xab\xac\xad\xae\xaf\xb0\xb1\xb2\xb3\xb4\xb5\xb6\xb7\xb8\xb9\xba\xbb\xbc\xbd\xbe\xbf\xc0\xc1\xc2\xc3\xc4\xc5\xc6\xc7\xc8\xc9\xca\xcb\xcc\xcd\xce\xcf\xd0\xd1\xd2\xd3\xd4\xd5\xd6\xd7\xd8\xd9\xda\xdb\xdc\xdd\xde\xdf\xe0\xe1\xe2\xe3\xe4\xe5\xe6\xe7\xe8\xe9\xea\xeb\xec\xed\xee\xef\xf0\xf1\xf2\xf3\xf4\xf5\xf6\xf7\xf8\xf9\xfa\xfb\xfc\xfd\xfe',
+            "¡¢£¤¥¦§¨©ª«¬­®¯°±²³´µ¶·¸¹º»¼½¾¿ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖ×ØÙÚÛÜÝÞßàáâãäåæçèéêëìíîïðñòóôõö÷øùúûüýþ",
             " !\"#$%&'()*+,-./0",
             "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789",
             "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_",
@@ -4667,12 +4665,14 @@ class WordInternalReRangesTest(ParseTestCase):
         self.assertEqual(pp.Word(pp.alphas8bit).reString, "[À-ÖØ-öø-ÿ]+", "failed to generate correct internal re")
 
         esc_chars = r"\^-]"
-        for esc_char in esc_chars:
+        esc_chars2 = r"*+.?["
+        for esc_char in esc_chars + esc_chars2:
             # test escape char as first character in range
             next_char = chr(ord(esc_char) + 1)
             prev_char = chr(ord(esc_char) - 1)
             esc_word = pp.Word(esc_char + next_char)
-            expected = r"[\{}-{}{}]+".format(esc_char, '\\' if next_char in esc_chars else '', next_char)
+            expected = r"[{}{}-{}{}]+".format('\\' if esc_char in esc_chars else '', esc_char,
+                                              '\\' if next_char in esc_chars else '', next_char)
             print("Testing escape char: {} -> {} re: '{}')".format(esc_char, esc_word, esc_word.reString))
             self.assertEqual(esc_word.reString, expected, "failed to generate correct internal re")
             test_string = ''.join(random.choice([esc_char, next_char]) for __ in range(16))
@@ -4682,7 +4682,8 @@ class WordInternalReRangesTest(ParseTestCase):
 
             # test escape char as last character in range
             esc_word = pp.Word(prev_char + esc_char)
-            expected = r"[{}{}-\{}]+".format('\\' if prev_char in esc_chars else '', prev_char, esc_char)
+            expected = r"[{}{}-{}{}]+".format('\\' if prev_char in esc_chars else '', prev_char,
+                                              '\\' if esc_char in esc_chars else '', esc_char)
             print("Testing escape char: {} -> {} re: '{}')".format(esc_char, esc_word, esc_word.reString))
             self.assertEqual(esc_word.reString, expected, "failed to generate correct internal re")
             test_string = ''.join(random.choice([esc_char, prev_char]) for __ in range(16))
@@ -4694,7 +4695,8 @@ class WordInternalReRangesTest(ParseTestCase):
             next_char = chr(ord(esc_char) + 1)
             prev_char = chr(ord(esc_char) - 1)
             esc_word = pp.Word(esc_char + next_char)
-            expected = r"[\{}-{}{}]+".format(esc_char, '\\' if next_char in esc_chars else '', next_char)
+            expected = r"[{}{}-{}{}]+".format('\\' if esc_char in esc_chars else '', esc_char,
+                                              '\\' if next_char in esc_chars else '', next_char)
             print("Testing escape char: {} -> {} re: '{}')".format(esc_char, esc_word, esc_word.reString))
             self.assertEqual(esc_word.reString, expected, "failed to generate correct internal re")
             test_string = ''.join(random.choice([esc_char, next_char]) for __ in range(16))
@@ -4704,7 +4706,7 @@ class WordInternalReRangesTest(ParseTestCase):
 
             # test escape char as only character in range
             esc_word = pp.Word(esc_char + esc_char, pp.alphas.upper())
-            expected = r"[\{}][A-Z]*".format(esc_char)
+            expected = r"[{}{}][A-Z]*".format('\\' if esc_char in esc_chars else '', esc_char)
             print("Testing escape char: {} -> {} re: '{}')".format(esc_char, esc_word, esc_word.reString))
             self.assertEqual(esc_word.reString, expected, "failed to generate correct internal re")
             test_string = esc_char + ''.join(random.choice(pp.alphas.upper()) for __ in range(16))
