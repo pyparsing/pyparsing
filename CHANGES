@@ -33,6 +33,17 @@ Version 3.0.0a1
     to help identify those expressions in your parsers that
     will have changed as a result.
 
+- POTENTIAL API CHANGE:
+  ZeroOrMore expressions that have results names will now
+  include empty lists for their name if no matches are found.
+  Previously, no named result would be present. Code that tested
+  for the presence of any expressions using "if name in results:"
+  will now always return True. This code will need to change to
+  "if name in results and results[name]:" or just
+  "if results[name]:". Also, any parser unit tests that check the
+  asDict() contents will now see additional entries for parsers
+  having named ZeroOrMore expressions, whose values will be `[]`.
+
 - Expanded __diag__ and __compat__ to actual classes instead of
   just namespaces, to add some helpful behavior:
   - enable() and .disable() methods to give extra

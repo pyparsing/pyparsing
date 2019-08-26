@@ -96,7 +96,7 @@ classes inherit from. Use the docstrings for examples of how to:
 """
 
 __version__ = "3.0.0a1"
-__versionTime__ = "26 Aug 2019 01:46 UTC"
+__versionTime__ = "26 Aug 2019 11:15 UTC"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -4615,7 +4615,7 @@ class ZeroOrMore(_MultipleMatch):
         try:
             return super().parseImpl(instring, loc, doActions)
         except (ParseException, IndexError):
-            return loc, []
+            return loc, ParseResults([], name=self.resultsName)
 
     def __str__(self):
         if hasattr(self, "name"):

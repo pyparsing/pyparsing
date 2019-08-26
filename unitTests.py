@@ -1125,6 +1125,74 @@ class EllipsisRepetionTest(ParseTestCase):
 
         self.assertTrue(all_success, "failed getItem_ellipsis test")
 
+class EllipsisRepetionWithResultsNamesTest(ParseTestCase):
+    def runTest(self):
+        import pyparsing as pp
+
+        label = pp.Word(pp.alphas)
+        val = pp.pyparsing_common.integer()
+        parser = label('label') + pp.ZeroOrMore(val)('values')
+
+        _, results = parser.runTests("""
+            a 1
+            b 1 2 3
+            c
+            """)
+        expected = [
+            (['a', 1], {'label': 'a', 'values': [1]}),
+            (['b', 1, 2, 3], {'label': 'b', 'values': [1, 2, 3]}),
+            (['c'], {'label': 'c', 'values': []}),
+        ]
+        for obs, exp in zip(results, expected):
+            test, result = obs
+            exp_list, exp_dict = exp
+            self.assertEqual(result.asList(), exp_list,
+                             "list mismatch {!r}, expected {!r}, actual {!r}".format(test, exp_list, result.asList()))
+            self.assertEqual(result.asDict(), exp_dict,
+                             "dict mismatch {!r}, expected {!r}, actual {!r}".format(test, exp_dict, result.asDict()))
+
+        parser = label('label') + val[...]('values')
+
+        _, results = parser.runTests("""
+            a 1
+            b 1 2 3
+            c
+            """)
+        expected = [
+            (['a', 1], {'label': 'a', 'values': [1]}),
+            (['b', 1, 2, 3], {'label': 'b', 'values': [1, 2, 3]}),
+            (['c'], {'label': 'c', 'values': []}),
+        ]
+        for obs, exp in zip(results, expected):
+            test, result = obs
+            exp_list, exp_dict = exp
+            self.assertEqual(result.asList(), exp_list,
+                             "list mismatch {!r}, expected {!r}, actual {!r}".format(test, exp_list, result.asList()))
+            self.assertEqual(result.asDict(), exp_dict,
+                             "dict mismatch {!r}, expected {!r}, actual {!r}".format(test, exp_dict, result.asDict()))
+
+        pt = pp.Group(val('x') + pp.Suppress(',') + val('y'))
+        parser = label('label') + pt[...]("points")
+        _, results = parser.runTests("""
+            a 1,1
+            b 1,1 2,2 3,3
+            c
+            """)
+        expected = [
+            (['a', [1, 1]], {'label': 'a', 'points': [{'x': 1, 'y': 1}]}),
+            (['b', [1, 1], [2, 2], [3, 3]], {'label': 'b', 'points': [{'x': 1, 'y': 1},
+                                                                        {'x': 2, 'y': 2},
+                                                                        {'x': 3, 'y': 3}]}),
+            (['c'], {'label': 'c', 'points': []}),
+        ]
+        for obs, exp in zip(results, expected):
+            test, result = obs
+            exp_list, exp_dict = exp
+            self.assertEqual(result.asList(), exp_list,
+                             "list mismatch {!r}, expected {!r}, actual {!r}".format(test, exp_list, result.asList()))
+            self.assertEqual(result.asDict(), exp_dict,
+                             "dict mismatch {!r}, expected {!r}, actual {!r}".format(test, exp_dict, result.asDict()))
+
 
 class CustomQuotesTest(ParseTestCase):
     def runTest(self):
