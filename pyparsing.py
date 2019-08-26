@@ -95,8 +95,8 @@ classes inherit from. Use the docstrings for examples of how to:
    namespace class
 """
 
-__version__ = "2.5.0a1"
-__versionTime__ = "19 Aug 2019 03:39 UTC"
+__version__ = "3.0.0a1"
+__versionTime__ = "26 Aug 2019 01:46 UTC"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -2579,10 +2579,9 @@ class ParserElement(object):
                         out.append("{0} failed: {1}: {2}".format(postParse.__name__, type(e).__name__, e))
                 else:
                     out.append(result.dump(full=fullDump))
+                out.append('')
 
             if printResults:
-                if fullDump:
-                    out.append('')
                 print_('\n'.join(out))
 
             allResults.append((t, result))
@@ -4014,8 +4013,8 @@ class Or(ParseExpression):
         if __diag__.warn_multiple_tokens_in_named_alternation:
             if any(isinstance(e, And) for e in self.exprs):
                 warnings.warn("{0}: setting results name {1!r} on {2} expression "
-                              "may only return a single token for an And alternative, "
-                              "in future will return the full list of tokens".format(
+                              "will return a list of all parsed tokens in an And alternative, "
+                              "in prior versions only the first token was returned".format(
                     "warn_multiple_tokens_in_named_alternation", name, type(self).__name__),
                     stacklevel=3)
 
@@ -4278,6 +4277,8 @@ class ParseElementEnhance(ParserElement):
         if isinstance(expr, str_type):
             if issubclass(self._literalStringClass, Token):
                 expr = self._literalStringClass(expr)
+            elif issubclass(type(self), self._literalStringClass):
+                expr = Literal(expr)
             else:
                 expr = self._literalStringClass(Literal(expr))
         self.expr = expr
