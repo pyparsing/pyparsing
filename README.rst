@@ -1,7 +1,7 @@
 PyParsing -- A Python Parsing Module
 ====================================
 
-|Build Status|
+|Build Status| |Coverage|
 
 Introduction
 ============
@@ -72,3 +72,5 @@ See CHANGES file.
 
 .. |Build Status| image:: https://travis-ci.org/pyparsing/pyparsing.svg?branch=master
    :target: https://travis-ci.org/pyparsing/pyparsing
+.. |Coverage| image:: https://codecov.io/gh/pyparsing/pyparsing/branch/master/graph/badge.svg
+  :target: https://codecov.io/gh/pyparsing/pyparsing
