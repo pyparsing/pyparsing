@@ -62,7 +62,7 @@ BUFFER_OUTPUT = True
 
 class ParseTestCase(TestCase):
     def __init__(self):
-        super(ParseTestCase, self).__init__(methodName='_runTest')
+        super().__init__(methodName='_runTest')
 
     def _runTest(self):
 
@@ -101,6 +101,108 @@ class PyparsingTestInit(ParseTestCase):
     def tearDown(self):
         pass
 
+
+class UpdateDefaultWhitespaceTest(ParseTestCase):
+    def runTest(self):
+        import pyparsing as pp
+
+        prev_default_whitespace_chars = pp.ParserElement.DEFAULT_WHITE_CHARS
+        try:
+            pp.dblQuotedString.copyDefaultWhiteChars = False
+            pp.ParserElement.setDefaultWhitespaceChars(" \t")
+            self.assertEqual(set(pp.sglQuotedString.whiteChars), set(" \t"),
+                             "setDefaultWhitespaceChars did not update sglQuotedString")
+            self.assertEqual(set(pp.dblQuotedString.whiteChars), set(prev_default_whitespace_chars),
+                             "setDefaultWhitespaceChars updated dblQuotedString but should not")
+        finally:
+            pp.dblQuotedString.copyDefaultWhiteChars = True
+            pp.ParserElement.setDefaultWhitespaceChars(prev_default_whitespace_chars)
+
+            self.assertEqual(set(pp.dblQuotedString.whiteChars), set(prev_default_whitespace_chars),
+                             "setDefaultWhitespaceChars updated dblQuotedString")
+
+        try:
+            pp.ParserElement.setDefaultWhitespaceChars(" \t")
+            self.assertNotEqual(set(pp.dblQuotedString.whiteChars), set(prev_default_whitespace_chars),
+                                "setDefaultWhitespaceChars updated dblQuotedString but should not")
+
+            EOL = pp.LineEnd().suppress().setName("EOL")
+
+            # Identifiers is a string + optional $
+            identifier = pp.Combine(pp.Word(pp.alphas) + pp.Optional("$"))
+
+            # Literals (number or double quoted string)
+            literal = pp.pyparsing_common.number | pp.dblQuotedString
+            expression = literal | identifier
+            # expression.setName("expression").setDebug()
+            # pp.pyparsing_common.number.setDebug()
+            # pp.pyparsing_common.integer.setDebug()
+
+            line_number = pp.pyparsing_common.integer
+
+            # Keywords
+            PRINT = pp.CaselessKeyword("print")
+            print_stmt = PRINT - pp.ZeroOrMore(expression | ";")
+            statement = print_stmt
+            code_line = pp.Group(line_number + statement + EOL)
+            program = pp.ZeroOrMore(code_line)
+
+            test = """\
+            10 print 123;
+            20 print 234; 567;
+            30 print 890
+            """
+
+            parsed_program = program.parseString(test)
+            print(parsed_program.dump())
+            self.assertEqual(len(parsed_program), 3, "failed to apply new whitespace chars to existing builtins")
+
+        finally:
+            pp.ParserElement.setDefaultWhitespaceChars(prev_default_whitespace_chars)
+
+class UpdateDefaultWhitespace2Test(ParseTestCase):
+    def runTest(self):
+        import pyparsing as pp
+        ppc = pp.pyparsing_common
+
+        prev_default_whitespace_chars = pp.ParserElement.DEFAULT_WHITE_CHARS
+        try:
+            expr_tests = [
+                (pp.dblQuotedString, '"abc"'),
+                (pp.sglQuotedString, "'def'"),
+                (ppc.integer, "123"),
+                (ppc.number, "4.56"),
+                (ppc.identifier, "a_bc"),
+            ]
+            NL = pp.LineEnd()
+
+            for expr, test_str in expr_tests:
+                parser = pp.Group(expr[1, ...] + pp.Optional(NL))[1, ...]
+                test_string = '\n'.join([test_str]*3)
+                result = parser.parseString(test_string, parseAll=True)
+                print(result.dump())
+                self.assertEqual(len(result), 1, "failed {!r}".format(test_string))
+
+            pp.ParserElement.setDefaultWhitespaceChars(" \t")
+
+            for expr, test_str in expr_tests:
+                parser = pp.Group(expr[1, ...] + pp.Optional(NL))[1, ...]
+                test_string = '\n'.join([test_str]*3)
+                result = parser.parseString(test_string, parseAll=True)
+                print(result.dump())
+                self.assertEqual(len(result), 3, "failed {!r}".format(test_string))
+
+            pp.ParserElement.setDefaultWhitespaceChars(" \n\t")
+
+            for expr, test_str in expr_tests:
+                parser = pp.Group(expr[1, ...] + pp.Optional(NL))[1, ...]
+                test_string = '\n'.join([test_str]*3)
+                result = parser.parseString(test_string, parseAll=True)
+                print(result.dump())
+                self.assertEqual(len(result), 1, "failed {!r}".format(test_string))
+
+        finally:
+            pp.ParserElement.setDefaultWhitespaceChars(prev_default_whitespace_chars)
 
 class ParseFourFnTest(ParseTestCase):
     def runTest(self):
@@ -2083,7 +2185,9 @@ class LineStartTest(ParseTestCase):
         success = test_patt.runTests(fail_tests, failureTests=True)[0]
         self.assertTrue(success, "failed LineStart failure mode tests (1)")
 
-        with resetting(pp.ParserElement, "DEFAULT_WHITE_CHARS"):
+        # with resetting(pp.ParserElement, "DEFAULT_WHITE_CHARS"):
+        prev_default_whitespace_chars = pp.ParserElement.DEFAULT_WHITE_CHARS
+        try:
             print(r'no \n in default whitespace chars')
             pp.ParserElement.setDefaultWhitespaceChars(' ')
 
@@ -2103,6 +2207,8 @@ class LineStartTest(ParseTestCase):
 
             success = test_patt.runTests(fail_tests, failureTests=True)[0]
             self.assertTrue(success, "failed LineStart failure mode tests (3)")
+        finally:
+            pp.ParserElement.setDefaultWhitespaceChars(prev_default_whitespace_chars)
 
         test = """\
         AAA 1
@@ -2123,12 +2229,15 @@ class LineStartTest(ParseTestCase):
             print()
             self.assertEqual(test[s], 'A', 'failed LineStart with insignificant newlines')
 
-        with resetting(pp.ParserElement, "DEFAULT_WHITE_CHARS"):
+        # with resetting(pp.ParserElement, "DEFAULT_WHITE_CHARS"):
+        try:
             pp.ParserElement.setDefaultWhitespaceChars(' ')
             for t, s, e in (pp.LineStart() + 'AAA').scanString(test):
                 print(s, e, pp.lineno(s, test), pp.line(s, test), ord(test[s]))
                 print()
                 self.assertEqual(test[s], 'A', 'failed LineStart with insignificant newlines')
+        finally:
+            pp.ParserElement.setDefaultWhitespaceChars(prev_default_whitespace_chars)
 
 
 class LineAndStringEndTest(ParseTestCase):

@@ -1206,6 +1206,11 @@ class ParserElement(object):
         """
         ParserElement.DEFAULT_WHITE_CHARS = chars
 
+        # update whitespace all parse expressions defined in this module
+        for expr in _builtin_exprs:
+            if expr.copyDefaultWhiteChars:
+                expr.whiteChars = chars
+
     @staticmethod
     def inlineLiteralsUsing(cls):
         """
@@ -2252,13 +2257,13 @@ class ParserElement(object):
         self.skipWhitespace = False
         return self
 
-    def setWhitespaceChars(self, chars):
+    def setWhitespaceChars(self, chars, copy_defaults=False):
         """
         Overrides the default whitespace chars
         """
         self.skipWhitespace = True
         self.whiteChars = chars
-        self.copyDefaultWhiteChars = False
+        self.copyDefaultWhiteChars = copy_defaults
         return self
 
     def parseWithTabs(self):
@@ -3462,7 +3467,8 @@ class White(Token):
     def __init__(self, ws=" \t\r\n", min=1, max=0, exact=0):
         super().__init__()
         self.matchWhite = ws
-        self.setWhitespaceChars("".join(c for c in self.whiteChars if c not in self.matchWhite))
+        self.setWhitespaceChars("".join(c for c in self.whiteChars if c not in self.matchWhite),
+                                copy_defaults=True)
         # ~ self.leaveWhitespace()
         self.name = ("".join(White.whiteStrs[c] for c in self.matchWhite))
         self.mayReturnEmpty = True
@@ -3565,7 +3571,8 @@ class LineEnd(_PositionToken):
     """
     def __init__(self):
         super().__init__()
-        self.setWhitespaceChars(ParserElement.DEFAULT_WHITE_CHARS.replace("\n", ""))
+        self.setWhitespaceChars(ParserElement.DEFAULT_WHITE_CHARS.replace("\n", ""),
+                                copy_defaults=False)
         self.errmsg = "Expected end of line"
 
     def parseImpl(self, instring, loc, doActions=True):
@@ -3815,7 +3822,8 @@ class And(ParseExpression):
             exprs[:] = tmp
         super().__init__(exprs, savelist)
         self.mayReturnEmpty = all(e.mayReturnEmpty for e in self.exprs)
-        self.setWhitespaceChars(self.exprs[0].whiteChars)
+        self.setWhitespaceChars(self.exprs[0].whiteChars,
+                                copy_defaults=self.exprs[0].copyDefaultWhiteChars)
         self.skipWhitespace = self.exprs[0].skipWhitespace
         self.callPreparse = True
 
@@ -4286,7 +4294,7 @@ class ParseElementEnhance(ParserElement):
         if expr is not None:
             self.mayIndexError = expr.mayIndexError
             self.mayReturnEmpty = expr.mayReturnEmpty
-            self.setWhitespaceChars(expr.whiteChars)
+            self.setWhitespaceChars(expr.whiteChars, copy_defaults=expr.copyDefaultWhiteChars)
             self.skipWhitespace = expr.skipWhitespace
             self.saveAsList = expr.saveAsList
             self.callPreparse = expr.callPreparse
@@ -4856,7 +4864,7 @@ class Forward(ParseElementEnhance):
         self.strRepr = None
         self.mayIndexError = self.expr.mayIndexError
         self.mayReturnEmpty = self.expr.mayReturnEmpty
-        self.setWhitespaceChars(self.expr.whiteChars)
+        self.setWhitespaceChars(self.expr.whiteChars, copy_defaults=self.expr.copyDefaultWhiteChars)
         self.skipWhitespace = self.expr.skipWhitespace
         self.saveAsList = self.expr.saveAsList
         self.ignoreExprs.extend(self.expr.ignoreExprs)
@@ -6766,3 +6774,8 @@ if __name__ == "__main__":
     pyparsing_common.uuid.runTests("""
         12345678-1234-5678-1234-567812345678
         """)
+
+# build list of built-in expressions, for future reference if a global default value
+# gets updated
+_builtin_exprs = [v for v in itertools.chain(vars().values(), vars(pyparsing_common).values())
+                  if isinstance(v, ParserElement)]

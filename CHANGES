@@ -44,6 +44,18 @@ Version 3.0.0a1
   asDict() contents will now see additional entries for parsers
   having named ZeroOrMore expressions, whose values will be `[]`.
 
+- POTENTIAL API CHANGE:
+  Fixed a bug in which calls to ParserElement.setDefaultWhitespaceChars
+  did not change whitespace definitions on any pyparsing built-in
+  expressions defined at import time (such as quotedString, or those
+  defined in pyparsing_common). This would lead to confusion when
+  built-in expressions would not use updated default whitespace
+  characters. Now a call to ParserElement.setDefaultWhitespaceChars
+  will also go and update all pyparsing built-ins to use the new
+  default whitespace characters. (Note that this will only modify
+  expressions defined within the pyparsing module.) Prompted by
+  work on a StackOverflow question posted by jtiai.
+
 - Expanded __diag__ and __compat__ to actual classes instead of
   just namespaces, to add some helpful behavior:
   - enable() and .disable() methods to give extra
