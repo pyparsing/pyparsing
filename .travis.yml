@@ -28,4 +28,4 @@ script:
  - PYTHONPATH=. python examples/eval_arith.py
 
 after_success:
-  - codecov
+  - codecov run unitTests.py
