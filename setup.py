@@ -3,7 +3,7 @@
 """Setup script for the pyparsing module distribution."""
 
 from setuptools import setup
-from pyparsing import __version__ as pyparsing_version
+from pyparsing import __version__ as pyparsing_version, __doc__ as pyparsing_description
 
 modules = ["pyparsing",]
 
@@ -11,6 +11,7 @@ setup(# Distribution meta-data
     name = "pyparsing",
     version = pyparsing_version,
     description = "Python parsing module",
+    long_description = pyparsing_description,
     author = "Paul McGuire",
     author_email = "ptmcg@users.sourceforge.net",
     url = "https://github.com/pyparsing/pyparsing/",
