@@ -29,7 +29,7 @@ If you have a question on using pyparsing, there are a number of resources avail
   and Python features.
 
 - [submit an issue](https://github.com/pyparsing/pyparsing/issues) - If you have a problem with pyparsing that looks
-  like an actual bug, or have an idea for a feature to add to pyaprsing please submit an issue on GitHub. Some
+  like an actual bug, or have an idea for a feature to add to pyparsing please submit an issue on GitHub. Some
   pyparsing behavior may be counter-intuitive, so try to review some of the other resources first, or some of the
   other open and closed issues. Or post your question on SO or reddit. But don't wait until you are desperate and
   frustrated - just ask! :)
