@@ -73,6 +73,9 @@ Version 3.0.0a1
 
         pp.__diag__.enable_all_warnings()
 
+- New namespace, assert methods and classes added to support writing unit tests.
+  (MORE TBD)
+
 - Fixed handling of ParseSyntaxExceptions raised as part of Each
   expressions, when sub-expressions contain '-' backtrack
   suppression. As part of resolution to a question posted by John

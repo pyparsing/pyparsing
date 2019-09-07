@@ -96,7 +96,7 @@ classes inherit from. Use the docstrings for examples of how to:
 """
 
 __version__ = "3.0.0a1"
-__versionTime__ = "02 Sep 2019 16:36 UTC"
+__versionTime__ = "07 Sep 2019 03:49 UTC"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -114,8 +114,9 @@ from datetime import datetime
 from operator import itemgetter, attrgetter
 import itertools
 from functools import wraps
-
 from itertools import filterfalse
+from contextlib import contextmanager
+import unittest
 
 try:
     from _thread import RLock
@@ -6704,6 +6705,102 @@ pyparsing_unicode.ไทย = pyparsing_unicode.Thai
 pyparsing_unicode.देवनागरी = pyparsing_unicode.Devanagari
 
 
+class pyparsing_test:
+    """
+    namespace class for classes useful in writing unit tests
+    """
+    class ParseTestContext:
+        def __init__(self):
+            self._save_context = {}
+
+        def __enter__(self):
+            self._save_context['default_whitespace'] = ParserElement.DEFAULT_WHITE_CHARS
+            self._save_context['default_keyword_chars'] = Keyword.DEFAULT_KEYWORD_CHARS
+            self._save_context['literal_string_class'] = ParserElement._literalStringClass
+            self._save_context['packrat_enabled'] = ParserElement._packratEnabled
+            return self
+
+        def __exit__(self, *args):
+            # reset pyparsing global state
+            if ParserElement.DEFAULT_WHITE_CHARS != self._save_context['default_whitespace']:
+                ParserElement.setDefaultWhitespaceChars(self._save_context['default_whitespace'])
+            Keyword.DEFAULT_KEYWORD_CHARS = self._save_context['default_keyword_chars']
+            ParserElement.inlineLiteralsUsing(self._save_context['literal_string_class'])
+            for diagname in __diag__._all_names:
+                __diag__.disable(diagname)
+            ParserElement._packratEnabled = self._save_context['packrat_enabled']
+
+
+    class ParseResultsAsserts(unittest.TestCase):
+
+        def assertParseResultsEquals(self, result, expected_list=None, expected_dict=None, msg=None):
+            """
+            Unit test assertion to compare a ParseResults object with an optional expected_list,
+            and compare any defined results names with an optional expected_dict.
+            :param result:
+            :param expected_list:
+            :param expected_dict:
+            :param msg:
+            :return:
+            """
+            if expected_list is not None:
+                self.assertEqual(expected_list, result.asList(), msg=msg)
+            if expected_dict is not None:
+                self.assertEqual(expected_dict, result.asDict(), msg=msg)
+
+        def assertRunTestResults(self, run_tests_report, expected_parse_results=None, msg=None):
+            """
+            Unit test assertion to evaluate output of ParserElement.runTests(). If a list of
+            list-dict tuples is given as the expected_parse_results argument, then these are zipped
+            with the report tuples returned by runTests and evaluated using assertParseResultsEquals.
+            Finally, asserts that the overall runTests() success value is True.
+
+            :param run_tests_report: tuple(bool, [tuple(str, ParseResults or Exception)]) returned from runTests
+            :param expected_parse_results (optional): [tuple(str, list, dict, Exception)]
+            :param msg:
+            :return: None
+            """
+            run_test_success, run_test_results = run_tests_report
+
+            if expected_parse_results is not None:
+                merged = [(*rpt, expected) for rpt, expected in zip(run_test_results, expected_parse_results)]
+                for test_string, result, expected in merged:
+                    # expected should be a tuple containing a list and/or a dict or an exception,
+                    # and optional failure message string
+                    # an empty tuple will skip any result validation
+                    fail_msg = next((exp for exp in expected if isinstance(exp, str)), None)
+                    expected_exception = next((exp for exp in expected
+                                               if isinstance(exp, type) and issubclass(exp, Exception)), None)
+                    if expected_exception is not None:
+                        with self.assertRaises(expected_exception=expected_exception, msg=fail_msg or msg):
+                            if isinstance(result, Exception):
+                                raise result
+                    else:
+                        expected_list = next((exp for exp in expected if isinstance(exp, list)), None)
+                        expected_dict = next((exp for exp in expected if isinstance(exp, dict)), None)
+                        if (expected_list, expected_dict) != (None, None):
+                            self.assertParseResultsEquals(result,
+                                                          expected_list=expected_list, expected_dict=expected_dict,
+                                                          msg=fail_msg or msg)
+                        else:
+                            # warning here maybe?
+                            print("no validation for {!r}".format(test_string))
+
+            # do this last, in case some specific test results can be reported instead
+            self.assertTrue(run_test_success, msg=msg if msg is not None else "failed runTests")
+
+        @contextmanager
+        def assertRaisesParseException(self, exc_type=ParseException, msg=None):
+            with self.assertRaises(exc_type, msg=msg):
+                yield
+
+
+# build list of built-in expressions, for future reference if a global default value
+# gets updated
+_builtin_exprs = [v for v in itertools.chain(vars().values(), vars(pyparsing_common).values())
+                  if isinstance(v, ParserElement)]
+
+
 if __name__ == "__main__":
 
     selectToken  = CaselessLiteral("select")
@@ -6774,8 +6871,3 @@ if __name__ == "__main__":
     pyparsing_common.uuid.runTests("""
         12345678-1234-5678-1234-567812345678
         """)
-
-# build list of built-in expressions, for future reference if a global default value
-# gets updated
-_builtin_exprs = [v for v in itertools.chain(vars().values(), vars(pyparsing_common).values())
-                  if isinstance(v, ParserElement)]
