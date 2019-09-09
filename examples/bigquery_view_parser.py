@@ -566,6 +566,8 @@ class BigQueryViewParser:
             )
         )
 
+        window_select_clause = WINDOW + identifier + AS + LPAR + window_specification + RPAR
+
         select_core = (
             SELECT
             + Optional(DISTINCT | ALL)
@@ -580,6 +582,9 @@ class BigQueryViewParser:
             + Optional(
                 ORDER + BY
                 + Group(delimitedList(ordering_term))("order_by_terms")
+            )
+            + Optional(
+                delimitedList(window_select_clause)
             )
         )
         grouped_select_core = select_core | (LPAR + select_core + RPAR)
@@ -1491,6 +1496,20 @@ class BigQueryViewParser:
             """,
             [
                 (None, None, 'x'),
+            ]
+        ],
+        [
+            """
+            WITH x AS (
+                SELECT a
+                FROM b
+                WINDOW w as (PARTITION BY a)
+            )
+            SELECT y FROM z
+            """,
+            [
+                (None, None, 'b'),
+                (None, None, 'z')
             ]
         ]
     ]
