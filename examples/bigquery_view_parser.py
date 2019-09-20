@@ -80,7 +80,7 @@ class BigQueryViewParser:
             COVAR_POP, COVAR_SAMP, STDDEV_POP, STDDEV_SAMP, STDDEV, VAR_POP,
             VAR_SAMP, VARIANCE, TIMESTAMP_ADD, TIMESTAMP_SUB, GENERATE_ARRAY,
             GENERATE_DATE_ARRAY, GENERATE_TIMESTAMP_ARRAY, FOR, SYSTEMTIME, AS,
-            OF, WINDOW
+            OF, WINDOW, RESPECT, IGNORE, NULLS
         ) = map(CaselessKeyword,
                 """
             UNION, ALL, AND, INTERSECT, EXCEPT, COLLATE, ASC, DESC, ON, USING,
@@ -101,7 +101,7 @@ class BigQueryViewParser:
             COVAR_POP, COVAR_SAMP, STDDEV_POP, STDDEV_SAMP, STDDEV, VAR_POP,
             VAR_SAMP, VARIANCE, TIMESTAMP_ADD, TIMESTAMP_SUB, GENERATE_ARRAY,
             GENERATE_DATE_ARRAY, GENERATE_TIMESTAMP_ARRAY, FOR, SYSTEMTIME, AS,
-            OF, WINDOW
+            OF, WINDOW, RESPECT, IGNORE, NULLS
                  """.replace(",", "").split())
 
         keyword_nonfunctions = MatchFirst((
@@ -197,7 +197,7 @@ class BigQueryViewParser:
         function_arg = expr.copy()("function_arg")
         function_args = Optional(
             "*"
-            | Optional(DISTINCT) + delimitedList(function_arg)
+            | Optional(DISTINCT) + delimitedList(function_arg) + Optional((RESPECT | IGNORE) + NULLS)
         )("function_args")
         function_call = (
             (function_name | keyword)("function_name")
@@ -1509,6 +1509,17 @@ class BigQueryViewParser:
             """,
             [
                 (None, None, 'b'),
+                (None, None, 'z')
+            ]
+        ],
+
+        [
+            """
+            SELECT DISTINCT
+                FIRST_VALUE(x IGNORE NULLS) OVER (PARTITION BY y)
+            FROM z
+            """,
+            [
                 (None, None, 'z')
             ]
         ]
