@@ -214,7 +214,7 @@ class ParseFourFnTest(ParseTestCase):
             try:
                 resultValue = fourFn.evaluate_stack(fourFn.exprStack)
             except Exception:
-                self.assertIsNone(ans, "exception raised for expression {0!r}".format(s))
+                self.assertIsNone(ans, "exception raised for expression {!r}".format(s))
             else:
                 self.assertTrue(resultValue == ans, "failed to evaluate %s, got %f" % (s, resultValue))
                 print(s, "->", resultValue)
@@ -272,12 +272,12 @@ class ParseSQLTest(ParseTestCase):
                 sqlToks = flatten(simpleSQL.simpleSQL.parseString(s).asList())
                 print(s, sqlToks, len(sqlToks))
                 self.assertEqual(len(sqlToks), numToks,
-                                 "invalid parsed tokens, expected {0}, found {1} ({2})".format(numToks,
+                                 "invalid parsed tokens, expected {}, found {} ({})".format(numToks,
                                                                                             len(sqlToks),
                                                                                             sqlToks))
             except ParseException as e:
                 if errloc >= 0:
-                    self.assertEqual(e.loc, errloc, "expected error at {0}, found at {1}".format(errloc, e.loc))
+                    self.assertEqual(e.loc, errloc, "expected error at {}, found at {}".format(errloc, e.loc))
 
         test("SELECT * from XYZZY, ABC", 6)
         test("select * from SYS.XYZZY", 5)
@@ -311,7 +311,7 @@ class ParseConfigFileTest(ParseTestCase):
                     var = getattr(var, attr)
                 print(chk[0], var, chk[1])
                 self.assertEqual(var, chk[1],
-                                 "ParseConfigFileTest: failed to parse ini {0!r} as expected {1}, found {2}".format(chk[0],
+                                 "ParseConfigFileTest: failed to parse ini {!r} as expected {}, found {}".format(chk[0],
                                                                                                                  chk[1],
                                                                                                                  var))
             print("OK")
@@ -501,7 +501,7 @@ class ParseJSONDataTest(ParseTestCase):
         for t, exp in zip((test1, test2, test3, test4, test5), expected):
             result = jsonObject.parseString(t)
             result.pprint()
-            self.assertEqual(result.asList(), exp, "failed test {0}".format(t))
+            self.assertEqual(result.asList(), exp, "failed test {}".format(t))
 
 class ParseCommaSeparatedValuesTest(ParseTestCase):
     def runTest(self):
@@ -1806,7 +1806,7 @@ class ParseResultsWithNamedTupleTest(ParseTestCase):
         print(repr(res))
         print(res.Achar)
         self.assertEqual(res.Achar, ("A", "Z"),
-                         "Failed accessing named results containing a tuple, got {0!r}".format(res.Achar))
+                         "Failed accessing named results containing a tuple, got {!r}".format(res.Achar))
 
 
 class ParseHTMLTagsTest(ParseTestCase):
@@ -2087,11 +2087,11 @@ class PrecededByTest(ParseTestCase):
             print(result)
 
             self.assertEqual(result.asList(), expected_list,
-                             "Erroneous tokens for {0}: expected {1}, got {2}".format(expr,
+                             "Erroneous tokens for {}: expected {}, got {}".format(expr,
                                                                                    expected_list,
                                                                                    result.asList()))
             self.assertEqual(result.asDict(), expected_dict,
-                             "Erroneous named results for {0}: expected {1}, got {2}".format(expr,
+                             "Erroneous named results for {}: expected {}, got {}".format(expr,
                                                                                           expected_dict,
                                                                                           result.asDict()))
 
@@ -2963,7 +2963,7 @@ class EachWithParseFatalExceptionTest(ParseTestCase):
         success, output = parser.runTests((t[0] for t in tests), failureTests=True)
         for test_str, result in output:
             self.assertEqual(test_lookup[test_str], str(result),
-                             "incorrect exception raised for test string {0!r}".format(test_str))
+                             "incorrect exception raised for test string {!r}".format(test_str))
 
 class SumParseResultsTest(ParseTestCase):
     def runTest(self):
@@ -3224,7 +3224,7 @@ class SetNameTest(ParseTestCase):
         for t, e in zip(tests, expected):
             tname = str(t)
             print(tname)
-            self.assertEqual(tname, e, "expression name mismatch, expected {0} got {1}".format(e, tname))
+            self.assertEqual(tname, e, "expression name mismatch, expected {} got {}".format(e, tname))
 
 class TrimArityExceptionMaskingTest(ParseTestCase):
     def runTest(self):
@@ -3436,7 +3436,7 @@ class RunTestsPostParseTest(ParseTestCase):
         accum = []
         def eval_fraction(test, result):
             accum.append((test, result.asList()))
-            return "eval: {0}".format(result.numerator / result.denominator)
+            return "eval: {}".format(result.numerator / result.denominator)
 
         success = fraction.runTests("""\
             1/2
@@ -3685,7 +3685,7 @@ class NumericExpressionsTest(ParseTestCase):
             # success, test_results = expr.runTests(sorted(tests, key=len), failureTests=is_fail, **suppress_results)
             # filter_result_fn = (lambda r: isinstance(r, Exception),
             #                     lambda r: not isinstance(r, Exception))[is_fail]
-            # print(expr, ('FAIL', 'PASS')[success], "{1}valid tests ({0})".format(len(tests),
+            # print(expr, ('FAIL', 'PASS')[success], "{} valid tests ({})".format(len(tests),
             #                                                                       'in' if is_fail else ''))
             # if not success:
             #     all_pass = False
@@ -3695,7 +3695,7 @@ class NumericExpressionsTest(ParseTestCase):
             #                 test_value = fn(test_string)
             #             except ValueError as ve:
             #                 test_value = str(ve)
-            #             print("{0!r}: {1} {2} {3}".format(test_string, result,
+            #             print("{!r}: {} {} {}".format(test_string, result,
             #                                                expr.matches(test_string, parseAll=True), test_value))
 
             success = True
@@ -3708,8 +3708,8 @@ class NumericExpressionsTest(ParseTestCase):
                     if not is_fail:
                         print(t, "should not fail but did")
                         success = False
-            print(expr, ('FAIL', 'PASS')[success], "{1}valid tests ({0})".format(len(tests),
-                                                                                  'in' if is_fail else ''))
+            print(expr, ('FAIL', 'PASS')[success], "{}valid tests ({})".format('in' if is_fail else '',
+                                                                                len(tests)))
             all_pass = all_pass and success
 
         self.assertTrue(all_pass, "failed one or more numeric tests")
@@ -4005,14 +4005,14 @@ class LiteralExceptionTest(ParseTestCase):
 
         for cls in (pp.Literal, pp.CaselessLiteral, pp.Keyword, pp.CaselessKeyword,
              pp.Word, pp.Regex):
-            expr = cls('xyz')#.setName('{0}_expr'.format(cls.__name__.lower()))
+            expr = cls('xyz')#.setName('{}_expr'.format(cls.__name__.lower()))
 
             try:
                 expr.parseString(' ')
             except Exception as e:
                 print(cls.__name__, str(e))
                 self.assertTrue(isinstance(e, pp.ParseBaseException),
-                                "class {0} raised wrong exception type {1}".format(cls.__name__, type(e).__name__))
+                                "class {} raised wrong exception type {}".format(cls.__name__, type(e).__name__))
 
 class ParseActionExceptionTest(ParseTestCase):
     def runTest(self):

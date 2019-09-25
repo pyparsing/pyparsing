@@ -47,7 +47,7 @@ and the strings are auto-converted to :class:`Literal` expressions)::
     greet = Word(alphas) + "," + Word(alphas) + "!"
 
     hello = "Hello, World!"
-    print (hello, "->", greet.parseString(hello))
+    print(hello, "->", greet.parseString(hello))
 
 The program outputs the following::
 
@@ -96,7 +96,7 @@ classes inherit from. Use the docstrings for examples of how to:
 """
 
 __version__ = "3.0.0a1"
-__versionTime__ = "02 Sep 2019 16:36 UTC"
+__versionTime__ = "25 Sep 2019 22:27 UTC"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -107,6 +107,7 @@ import warnings
 import re
 import sre_constants
 import collections
+from collections.abc import Iterable, MutableMapping, Mapping
 import pprint
 import traceback
 import types
@@ -114,18 +115,8 @@ from datetime import datetime
 from operator import itemgetter, attrgetter
 import itertools
 from functools import wraps
-
 from itertools import filterfalse
-
-try:
-    from _thread import RLock
-except ImportError:
-    from threading import RLock
-
-from collections.abc import Iterable
-from collections.abc import MutableMapping, Mapping
-from collections import OrderedDict
-from types import SimpleNamespace
+from threading import RLock
 
 
 class __config_flags:
@@ -137,10 +128,8 @@ class __config_flags:
     @classmethod
     def _set(cls, dname, value):
         if dname in cls._fixed_names:
-            warnings.warn("{}.{} {} is {} and cannot be overridden".format(cls.__name__,
-                                                                               dname,
-                                                                               cls._type_desc,
-                                                                               str(getattr(cls, dname)).upper()))
+            warnings.warn("{}.{} {} is {} and cannot be overridden".format(cls.__name__, dname, cls._type_desc,
+                                                                           str(getattr(cls, dname)).upper()))
             return
         if dname in cls._all_names:
             setattr(cls, dname, value)
@@ -238,7 +227,7 @@ str_type = (str, bytes)
 # build list of single arg builtins, that can be used as parse actions
 singleArgBuiltins = [sum, len, sorted, reversed, list, tuple, set, any, all, min, max]
 
-_generatorType = type((y for y in range(1)))
+_generatorType = types.GeneratorType
 
 alphas = string.ascii_uppercase + string.ascii_lowercase
 nums = "0123456789"
@@ -249,6 +238,16 @@ printables = "".join(c for c in string.printable if c not in string.whitespace)
 
 
 def conditionAsParseAction(fn, message=None, fatal=False):
+    """
+    Function to convert a simple predicate function that returns True or False
+    into a parse action. Can be used in places when a parse action is required
+    and ParserElement.addCondition cannot be used (such as when adding a condition
+    to an operator level in infixNotation).
+
+    Optional keyword arguments:
+    - message = define a custom message to be used in the raised exception
+    - fatal = if True, will raise ParseFatalException to stop parsing immediately; otherwise will raise ParseException
+    """
     msg = message if message is not None else "failed user-defined condition"
     exc_type = ParseFatalException if fatal else ParseException
     fn = _trim_arity(fn)
@@ -378,7 +377,7 @@ class ParseException(ParseBaseException):
         if isinstance(exc, ParseBaseException):
             ret.append(exc.line)
             ret.append(' ' * (exc.col - 1) + '^')
-        ret.append("{0}: {1}".format(type(exc).__name__, exc))
+        ret.append("{}: {}".format(type(exc).__name__, exc))
 
         if depth > 0:
             callers = inspect.getinnerframes(exc.__traceback__, context=depth)
@@ -395,19 +394,18 @@ class ParseException(ParseBaseException):
                     seen.add(f_self)
 
                     self_type = type(f_self)
-                    ret.append("{0}.{1} - {2}".format(self_type.__module__,
-                                                      self_type.__name__,
-                                                      f_self))
+                    ret.append("{}.{} - {}".format(self_type.__module__, self_type.__name__, f_self))
+
                 elif f_self is not None:
                     self_type = type(f_self)
-                    ret.append("{0}.{1}".format(self_type.__module__,
-                                                self_type.__name__))
+                    ret.append("{}.{}".format(self_type.__module__, self_type.__name__))
+
                 else:
                     code = frm.f_code
                     if code.co_name in ('wrapper', '<module>'):
                         continue
 
-                    ret.append("{0}".format(code.co_name))
+                    ret.append("{}".format(code.co_name))
 
                 depth -= 1
                 if not depth:
@@ -506,7 +504,7 @@ class ParseResults(object):
         - year: 1999
     """
     def __new__(cls, toklist=None, name=None, asList=True, modal=True):
-        if isinstance(toklist, cls):
+        if isinstance(toklist, ParseResults):
             return toklist
         retobj = object.__new__(cls)
         retobj.__doinit = True
@@ -854,18 +852,13 @@ class ParseResults(object):
             print(json.dumps(result)) # -> Exception: TypeError: ... is not JSON serializable
             print(json.dumps(result.asDict())) # -> {"month": "31", "day": "1999", "year": "12"}
         """
-        item_fn = self.items
-
-        def toItem(obj):
+        def to_item(obj):
             if isinstance(obj, ParseResults):
-                if obj.haskeys():
-                    return obj.asDict()
-                else:
-                    return [toItem(v) for v in obj]
+                return obj.asDict() if obj.haskeys() else [to_item(v) for v in obj]
             else:
                 return obj
 
-        return dict((k, toItem(v)) for k, v in item_fn())
+        return dict((k, to_item(v)) for k, v in self.items())
 
     def copy(self):
         """
@@ -877,13 +870,6 @@ class ParseResults(object):
         ret.__accumNames.update(self.__accumNames)
         ret.__name = self.__name
         return ret
-
-    def __lookup(self, sub):
-        for k, vlist in self.__tokdict.items():
-            for v, loc in vlist:
-                if sub is v:
-                    return k
-        return None
 
     def getName(self):
         r"""
@@ -914,10 +900,9 @@ class ParseResults(object):
             return self.__name
         elif self.__parent:
             par = self.__parent()
-            if par:
-                return par.__lookup(self)
-            else:
-                return None
+            def lookup(self, sub):
+                return next((k for k, vlist in par.__tokdict.items() for v, loc in vlist if sub is v), None)
+            return lookup(self) if par else None
         elif (len(self) == 1
               and len(self.__tokdict) == 1
               and next(iter(self.__tokdict.values()))[0][1] in (0, -1)):
@@ -948,10 +933,7 @@ class ParseResults(object):
         """
         out = []
         NL = '\n'
-        if include_list:
-            out.append(indent + str(self.asList()))
-        else:
-            out.append('')
+        out.append(indent + str(self.asList()) if include_list else '')
 
         if full:
             if self.haskeys():
@@ -1099,10 +1081,7 @@ def line(loc, strg):
        """
     lastCR = strg.rfind("\n", 0, loc)
     nextCR = strg.find("\n", loc)
-    if nextCR >= 0:
-        return strg[lastCR + 1:nextCR]
-    else:
-        return strg[lastCR + 1:]
+    return strg[lastCR + 1:nextCR] if nextCR >= 0 else strg[lastCR + 1:]
 
 def _defaultStartDebugAction(instring, loc, expr):
     print(("Match " + str(expr) + " at loc " + str(loc) + "(%d,%d)" % (lineno(loc, instring), col(loc, instring))))
@@ -1417,7 +1396,10 @@ class ParserElement(object):
 
         Optional keyword arguments:
         - message = define a custom message to be used in the raised exception
-        - fatal   = if True, will raise ParseFatalException to stop parsing immediately; otherwise will raise ParseException
+        - fatal = if True, will raise ParseFatalException to stop parsing immediately; otherwise will raise
+          ParseException
+        - callDuringTry = boolean to indicate if this method should be called during internal tryParse calls,
+          default=False
 
         Example::
 
@@ -1426,7 +1408,8 @@ class ParserElement(object):
             year_int.addCondition(lambda toks: toks[0] >= 2000, message="Only support years 2000 and later")
             date_str = year_int + '/' + integer + '/' + integer
 
-            result = date_str.parseString("1999/12/31")  # -> Exception: Only support years 2000 and later (at char 0), (line:1, col:1)
+            result = date_str.parseString("1999/12/31")  # -> Exception: Only support years 2000 and later (at char 0),
+                                                                         (line:1, col:1)
         """
         for fn in fns:
             self.parseAction.append(conditionAsParseAction(fn, message=kwargs.get('message'),
@@ -1485,7 +1468,7 @@ class ParserElement(object):
         debugging = (self.debug)  # and doActions)
 
         if debugging or self.failAction:
-            # ~ print ("Match", self, "at loc", loc, "(%d, %d)" % (lineno(loc, instring), col(loc, instring)))
+            # ~ print("Match", self, "at loc", loc, "(%d, %d)" % (lineno(loc, instring), col(loc, instring)))
             if self.debugActions[TRY]:
                 self.debugActions[TRY](instring, loc, self)
             try:
@@ -1502,7 +1485,7 @@ class ParserElement(object):
                 else:
                     loc, tokens = self.parseImpl(instring, preloc, doActions)
             except Exception as err:
-                # ~ print ("Exception raised:", err)
+                # ~ print("Exception raised:", err)
                 if self.debugActions[FAIL]:
                     self.debugActions[FAIL](instring, tokensStart, self, err)
                 if self.failAction:
@@ -1561,7 +1544,7 @@ class ParserElement(object):
                                                   asList=self.saveAsList and isinstance(tokens, (ParseResults, list)),
                                                   modal=self.modalResults)
         if debugging:
-            # ~ print ("Matched", self, "->", retTokens.asList())
+            # ~ print("Matched", self, "->", retTokens.asList())
             if self.debugActions[MATCH]:
                 self.debugActions[MATCH](instring, tokensStart, loc, self, retTokens)
 
@@ -1608,8 +1591,7 @@ class ParserElement(object):
     class _FifoCache(object):
         def __init__(self, size):
             self.not_in_cache = not_in_cache = object()
-
-            cache = OrderedDict()
+            cache = collections.OrderedDict()
 
             def get(self, key):
                 return cache.get(key, not_in_cache)
@@ -1954,7 +1936,7 @@ class ParserElement(object):
 
             greet = Word(alphas) + "," + Word(alphas) + "!"
             hello = "Hello, World!"
-            print (hello, "->", greet.parseString(hello))
+            print(hello, "->", greet.parseString(hello))
 
         prints::
 
@@ -2206,15 +2188,15 @@ class ParserElement(object):
 
         # convert single arg keys to tuples
         try:
-            if isinstance(key, str):
+            if isinstance(key, str_type):
                 key = (key,)
             iter(key)
         except TypeError:
             key = (key, key)
 
         if len(key) > 2:
-            warnings.warn("only 1 or 2 index arguments supported ({0}{1})".format(key[:5],
-                                                                                '... [{0}]'.format(len(key))
+            warnings.warn("only 1 or 2 index arguments supported ({}{})".format(key[:5],
+                                                                                '... [{}]'.format(len(key))
                                                                                 if len(key) > 5 else ''))
 
         # clip to 2 elements
@@ -2393,12 +2375,13 @@ class ParserElement(object):
                 raise exc
 
     def __eq__(self, other):
-        if isinstance(other, ParserElement):
-            return self is other or super().__eq__(other)
+        if self is other:
+            return True
         elif isinstance(other, str_type):
             return self.matches(other)
-        else:
-            return super().__eq__(other)
+        elif isinstance(other, ParserElement):
+            return vars(self) == vars(other)
+        return False
 
     def __ne__(self, other):
         return not (self == other)
@@ -2581,7 +2564,7 @@ class ParserElement(object):
                             out.append(result.dump())
                     except Exception as e:
                         out.append(result.dump(full=fullDump))
-                        out.append("{0} failed: {1}: {2}".format(postParse.__name__, type(e).__name__, e))
+                        out.append("{} failed: {}: {}".format(postParse.__name__, type(e).__name__, e))
                 else:
                     out.append(result.dump(full=fullDump))
                 out.append('')
@@ -3773,8 +3756,8 @@ class ParseExpression(ParserElement):
         if __diag__.warn_ungrouped_named_tokens_in_collection:
             for e in self.exprs:
                 if isinstance(e, ParserElement) and e.resultsName:
-                    warnings.warn("{0}: setting results name {1!r} on {2} expression "
-                                  "collides with {3!r} on contained expression".format("warn_ungrouped_named_tokens_in_collection",
+                    warnings.warn("{}: setting results name {!r} on {} expression "
+                                  "collides with {!r} on contained expression".format("warn_ungrouped_named_tokens_in_collection",
                                                                                        name,
                                                                                        type(self).__name__,
                                                                                        e.resultsName),
@@ -4020,7 +4003,7 @@ class Or(ParseExpression):
     def _setResultsName(self, name, listAllMatches=False):
         if __diag__.warn_multiple_tokens_in_named_alternation:
             if any(isinstance(e, And) for e in self.exprs):
-                warnings.warn("{0}: setting results name {1!r} on {2} expression "
+                warnings.warn("{}: setting results name {!r} on {} expression "
                               "will return a list of all parsed tokens in an And alternative, "
                               "in prior versions only the first token was returned".format(
                     "warn_multiple_tokens_in_named_alternation", name, type(self).__name__),
@@ -4117,7 +4100,7 @@ class MatchFirst(ParseExpression):
     def _setResultsName(self, name, listAllMatches=False):
         if __diag__.warn_multiple_tokens_in_named_alternation:
             if any(isinstance(e, And) for e in self.exprs):
-                warnings.warn("{0}: setting results name {1!r} on {2} expression "
+                warnings.warn("{}: setting results name {!r} on {} expression "
                               "may only return a single token for an And alternative, "
                               "in future will return the full list of tokens".format(
                     "warn_multiple_tokens_in_named_alternation", name, type(self).__name__),
@@ -4426,7 +4409,7 @@ class PrecededBy(ParseElementEnhance):
         self.mayReturnEmpty = True
         self.mayIndexError = False
         self.exact = False
-        if isinstance(expr, str):
+        if isinstance(expr, str_type):
             retreat = len(expr)
             self.exact = True
         elif isinstance(expr, (Literal, Keyword)):
@@ -4559,8 +4542,8 @@ class _MultipleMatch(ParseElementEnhance):
         if __diag__.warn_ungrouped_named_tokens_in_collection:
             for e in [self.expr] + getattr(self.expr, 'exprs', []):
                 if isinstance(e, ParserElement) and e.resultsName:
-                    warnings.warn("{0}: setting results name {1!r} on {2} expression "
-                                  "collides with {3!r} on contained expression".format("warn_ungrouped_named_tokens_in_collection",
+                    warnings.warn("{}: setting results name {!r} on {} expression "
+                                  "collides with {!r} on contained expression".format("warn_ungrouped_named_tokens_in_collection",
                                                                                        name,
                                                                                        type(self).__name__,
                                                                                        e.resultsName),
@@ -4925,7 +4908,7 @@ class Forward(ParseElementEnhance):
     def _setResultsName(self, name, listAllMatches=False):
         if __diag__.warn_name_set_on_empty_Forward:
             if self.expr is None:
-                warnings.warn("{0}: setting results name {0!r} on {1} expression "
+                warnings.warn("{}: setting results name {!r} on {} expression "
                               "that has no contained expression".format("warn_name_set_on_empty_Forward",
                                                                         name,
                                                                         type(self).__name__),
@@ -5403,7 +5386,7 @@ def oneOf(strs, caseless=False, useRegex=True, asKeyword=False):
                 i += 1
 
     if not (caseless or asKeyword) and useRegex:
-        # ~ print (strs, "->", "|".join([_escapeRegexChars(sym) for sym in symbols]))
+        # ~ print(strs, "->", "|".join([_escapeRegexChars(sym) for sym in symbols]))
         try:
             if len(symbols) == len("".join(symbols)):
                 return Regex("[%s]" % "".join(_escapeRegexRangeChars(sym) for sym in symbols)).setName(' | '.join(symbols))
@@ -5843,7 +5826,7 @@ def withClass(classname, namespace=''):
     classattr = "%s:class" % namespace if namespace else "class"
     return withAttribute(**{classattr: classname})
 
-opAssoc = SimpleNamespace()
+opAssoc = types.SimpleNamespace()
 opAssoc.LEFT = object()
 opAssoc.RIGHT = object()
 
