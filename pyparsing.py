@@ -185,7 +185,13 @@ __diag__.warn_name_set_on_empty_Forward = False
 __diag__.warn_on_multiple_string_args_to_oneof = False
 __diag__.enable_debug_on_named_expressions = False
 
-# ~ sys.stderr.write("testing pyparsing module, version %s, %s\n" % (__version__, __versionTime__))
+def _enable_all_warnings():
+    __diag__.warn_multiple_tokens_in_named_alternation = True
+    __diag__.warn_ungrouped_named_tokens_in_collection = True
+    __diag__.warn_name_set_on_empty_Forward = True
+    __diag__.warn_on_multiple_string_args_to_oneof = True
+__diag__.enable_all_warnings = _enable_all_warnings
+
 
 __all__ = ['__version__', '__versionTime__', '__author__', '__compat__', '__diag__',
            'And', 'CaselessKeyword', 'CaselessLiteral', 'CharsNotIn', 'Combine', 'Dict', 'Each', 'Empty',
@@ -3152,13 +3158,13 @@ class Word(Token):
 
         if ' ' not in self.initCharsOrig + self.bodyCharsOrig and (min == 1 and max == 0 and exact == 0):
             if self.bodyCharsOrig == self.initCharsOrig:
-                self.reString = "[%s]+" % _escapeRegexRangeChars(self.initCharsOrig)
+                self.reString = "[%s]+" % _collapseAndEscapeRegexRangeChars(self.initCharsOrig)
             elif len(self.initCharsOrig) == 1:
                 self.reString = "%s[%s]*" % (re.escape(self.initCharsOrig),
-                                             _escapeRegexRangeChars(self.bodyCharsOrig),)
+                                             _collapseAndEscapeRegexRangeChars(self.bodyCharsOrig),)
             else:
-                self.reString = "[%s][%s]*" % (_escapeRegexRangeChars(self.initCharsOrig),
-                                               _escapeRegexRangeChars(self.bodyCharsOrig),)
+                self.reString = "[%s][%s]*" % (_collapseAndEscapeRegexRangeChars(self.initCharsOrig),
+                                               _collapseAndEscapeRegexRangeChars(self.bodyCharsOrig),)
             if self.asKeyword:
                 self.reString = r"\b" + self.reString + r"\b"
 
@@ -3236,7 +3242,7 @@ class Char(_WordRegex):
     """
     def __init__(self, charset, asKeyword=False, excludeChars=None):
         super(Char, self).__init__(charset, exact=1, asKeyword=asKeyword, excludeChars=excludeChars)
-        self.reString = "[%s]" % _escapeRegexRangeChars(''.join(self.initChars))
+        self.reString = "[%s]" % _collapseAndEscapeRegexRangeChars(''.join(self.initChars))
         if asKeyword:
             self.reString = r"\b%s\b" % self.reString
         self.re = re.compile(self.reString)
@@ -3444,17 +3450,17 @@ class QuotedString(Token):
         if multiline:
             self.flags = re.MULTILINE | re.DOTALL
             self.pattern = r'%s(?:[^%s%s]' % (re.escape(self.quoteChar),
-                                              _escapeRegexRangeChars(self.endQuoteChar[0]),
-                                              (escChar is not None and _escapeRegexRangeChars(escChar) or ''))
+                                              _collapseAndEscapeRegexRangeChars(self.endQuoteChar[0]),
+                                              (escChar is not None and _collapseAndEscapeRegexRangeChars(escChar) or ''))
         else:
             self.flags = 0
             self.pattern = r'%s(?:[^%s\n\r%s]' % (re.escape(self.quoteChar),
-                                                  _escapeRegexRangeChars(self.endQuoteChar[0]),
-                                                  (escChar is not None and _escapeRegexRangeChars(escChar) or ''))
+                                                  _collapseAndEscapeRegexRangeChars(self.endQuoteChar[0]),
+                                                  (escChar is not None and _collapseAndEscapeRegexRangeChars(escChar) or ''))
         if len(self.endQuoteChar) > 1:
             self.pattern += (
                 '|(?:' + ')|(?:'.join("%s[^%s]" % (re.escape(self.endQuoteChar[:i]),
-                                                   _escapeRegexRangeChars(self.endQuoteChar[i]))
+                                                   _collapseAndEscapeRegexRangeChars(self.endQuoteChar[i]))
                                       for i in range(len(self.endQuoteChar) - 1, 0, -1)) + ')')
 
         if escQuote:
@@ -5417,13 +5423,32 @@ def matchPreviousExpr(expr):
     rep.setName('(prev) ' + _ustr(expr))
     return rep
 
-def _escapeRegexRangeChars(s):
-    # ~  escape these chars: ^-]
-    for c in r"\^-]":
-        s = s.replace(c, _bslash + c)
-    s = s.replace("\n", r"\n")
-    s = s.replace("\t", r"\t")
-    return _ustr(s)
+def _collapseAndEscapeRegexRangeChars(s):
+    def is_consecutive(c):
+        c_int = ord(c)
+        is_consecutive.prev, prev = c_int, is_consecutive.prev
+        if c_int - prev > 1:
+            is_consecutive.value = next(is_consecutive.counter)
+        return is_consecutive.value
+
+    is_consecutive.prev = 0
+    is_consecutive.counter = itertools.count()
+    is_consecutive.value = -1
+
+    def escape_re_range_char(c):
+        return '\\' + c if c in r"\^-]" else c
+
+    ret = []
+    for _, chars in itertools.groupby(sorted(s), key=is_consecutive):
+        first = last = next(chars)
+        for c in chars:
+            last = c
+        if first == last:
+            ret.append(escape_re_range_char(first))
+        else:
+            ret.append("{0}-{1}".format(escape_re_range_char(first),
+                                        escape_re_range_char(last)))
+    return ''.join(ret)
 
 def oneOf(strs, caseless=False, useRegex=True, asKeyword=False):
     """Helper to quickly define a set of alternative Literals, and makes
@@ -5502,7 +5527,7 @@ def oneOf(strs, caseless=False, useRegex=True, asKeyword=False):
         # ~ print (strs, "->", "|".join([_escapeRegexChars(sym) for sym in symbols]))
         try:
             if len(symbols) == len("".join(symbols)):
-                return Regex("[%s]" % "".join(_escapeRegexRangeChars(sym) for sym in symbols)).setName(' | '.join(symbols))
+                return Regex("[%s]" % "".join(_collapseAndEscapeRegexRangeChars(sym) for sym in symbols)).setName(' | '.join(symbols))
             else:
                 return Regex("|".join(re.escape(sym) for sym in symbols)).setName(' | '.join(symbols))
         except Exception:
