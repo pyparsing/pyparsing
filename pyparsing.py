@@ -96,7 +96,7 @@ classes inherit from. Use the docstrings for examples of how to:
 """
 
 __version__ = "2.4.3"
-__versionTime__ = "25 Sep 2019 22:10 UTC"
+__versionTime__ = "25 Sep 2019 23:51 UTC"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -5423,32 +5423,13 @@ def matchPreviousExpr(expr):
     rep.setName('(prev) ' + _ustr(expr))
     return rep
 
-def _collapseAndEscapeRegexRangeChars(s):
-    def is_consecutive(c):
-        c_int = ord(c)
-        is_consecutive.prev, prev = c_int, is_consecutive.prev
-        if c_int - prev > 1:
-            is_consecutive.value = next(is_consecutive.counter)
-        return is_consecutive.value
-
-    is_consecutive.prev = 0
-    is_consecutive.counter = itertools.count()
-    is_consecutive.value = -1
-
-    def escape_re_range_char(c):
-        return '\\' + c if c in r"\^-]" else c
-
-    ret = []
-    for _, chars in itertools.groupby(sorted(s), key=is_consecutive):
-        first = last = next(chars)
-        for c in chars:
-            last = c
-        if first == last:
-            ret.append(escape_re_range_char(first))
-        else:
-            ret.append("{0}-{1}".format(escape_re_range_char(first),
-                                        escape_re_range_char(last)))
-    return ''.join(ret)
+def _escapeRegexRangeChars(s):
+    # ~  escape these chars: ^-]
+    for c in r"\^-]":
+        s = s.replace(c, _bslash + c)
+    s = s.replace("\n", r"\n")
+    s = s.replace("\t", r"\t")
+    return _ustr(s)
 
 def oneOf(strs, caseless=False, useRegex=True, asKeyword=False):
     """Helper to quickly define a set of alternative Literals, and makes
