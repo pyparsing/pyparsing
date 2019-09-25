@@ -95,8 +95,8 @@ classes inherit from. Use the docstrings for examples of how to:
    namespace class
 """
 
-__version__ = "2.4.2"
-__versionTime__ = "29 Jul 2019 02:58 UTC"
+__version__ = "2.4.3"
+__versionTime__ = "25 Sep 2019 22:10 UTC"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -2561,15 +2561,13 @@ class ParserElement(object):
                 raise exc
 
     def __eq__(self, other):
-        if isinstance(other, ParserElement):
-            if PY_3:
-                self is other or super(ParserElement, self).__eq__(other)
-            else:
-                return self is other or vars(self) == vars(other)
+        if self is other:
+            return True
         elif isinstance(other, basestring):
             return self.matches(other)
-        else:
-            return super(ParserElement, self) == other
+        elif isinstance(other, ParserElement):
+            return vars(self) == vars(other)
+        return False
 
     def __ne__(self, other):
         return not (self == other)
