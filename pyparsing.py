@@ -3158,13 +3158,13 @@ class Word(Token):
 
         if ' ' not in self.initCharsOrig + self.bodyCharsOrig and (min == 1 and max == 0 and exact == 0):
             if self.bodyCharsOrig == self.initCharsOrig:
-                self.reString = "[%s]+" % _collapseAndEscapeRegexRangeChars(self.initCharsOrig)
+                self.reString = "[%s]+" % _escapeRegexRangeChars(self.initCharsOrig)
             elif len(self.initCharsOrig) == 1:
                 self.reString = "%s[%s]*" % (re.escape(self.initCharsOrig),
-                                             _collapseAndEscapeRegexRangeChars(self.bodyCharsOrig),)
+                                             _escapeRegexRangeChars(self.bodyCharsOrig),)
             else:
-                self.reString = "[%s][%s]*" % (_collapseAndEscapeRegexRangeChars(self.initCharsOrig),
-                                               _collapseAndEscapeRegexRangeChars(self.bodyCharsOrig),)
+                self.reString = "[%s][%s]*" % (_escapeRegexRangeChars(self.initCharsOrig),
+                                               _escapeRegexRangeChars(self.bodyCharsOrig),)
             if self.asKeyword:
                 self.reString = r"\b" + self.reString + r"\b"
 
@@ -3242,7 +3242,7 @@ class Char(_WordRegex):
     """
     def __init__(self, charset, asKeyword=False, excludeChars=None):
         super(Char, self).__init__(charset, exact=1, asKeyword=asKeyword, excludeChars=excludeChars)
-        self.reString = "[%s]" % _collapseAndEscapeRegexRangeChars(''.join(self.initChars))
+        self.reString = "[%s]" % _escapeRegexRangeChars(''.join(self.initChars))
         if asKeyword:
             self.reString = r"\b%s\b" % self.reString
         self.re = re.compile(self.reString)
@@ -3450,17 +3450,17 @@ class QuotedString(Token):
         if multiline:
             self.flags = re.MULTILINE | re.DOTALL
             self.pattern = r'%s(?:[^%s%s]' % (re.escape(self.quoteChar),
-                                              _collapseAndEscapeRegexRangeChars(self.endQuoteChar[0]),
-                                              (escChar is not None and _collapseAndEscapeRegexRangeChars(escChar) or ''))
+                                              _escapeRegexRangeChars(self.endQuoteChar[0]),
+                                              (escChar is not None and _escapeRegexRangeChars(escChar) or ''))
         else:
             self.flags = 0
             self.pattern = r'%s(?:[^%s\n\r%s]' % (re.escape(self.quoteChar),
-                                                  _collapseAndEscapeRegexRangeChars(self.endQuoteChar[0]),
-                                                  (escChar is not None and _collapseAndEscapeRegexRangeChars(escChar) or ''))
+                                                  _escapeRegexRangeChars(self.endQuoteChar[0]),
+                                                  (escChar is not None and _escapeRegexRangeChars(escChar) or ''))
         if len(self.endQuoteChar) > 1:
             self.pattern += (
                 '|(?:' + ')|(?:'.join("%s[^%s]" % (re.escape(self.endQuoteChar[:i]),
-                                                   _collapseAndEscapeRegexRangeChars(self.endQuoteChar[i]))
+                                                   _escapeRegexRangeChars(self.endQuoteChar[i]))
                                       for i in range(len(self.endQuoteChar) - 1, 0, -1)) + ')')
 
         if escQuote:

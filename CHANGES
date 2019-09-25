@@ -8,8 +8,7 @@ Version 2.4.3 - September, 2019
   create a recursion error at parser definition time. Thanks to
   Michael Clerx for the assist. (Addresses issue #123)
 
-- Backport from pyparsing 3.0.0 of __diag__.enable_all_warnings()
-  and performance enhancement to Word.
+- Backport from pyparsing 3.0.0 of __diag__.enable_all_warnings().
 
 
 Version 2.4.2 - July, 2019
