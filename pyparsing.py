@@ -6727,6 +6727,26 @@ class pyparsing_test:
             if expected_dict is not None:
                 self.assertEqual(expected_dict, result.asDict(), msg=msg)
 
+        def assertParseAndCheckList(self, expr, test_string, expected_list, msg=None, verbose=True):
+            """
+            Convenience wrapper assert to test a parser element and input string, and assert that
+            the resulting ParseResults.asList() is equal to the expected_list.
+            """
+            result = expr.parseString(test_string, parseAll=True)
+            if verbose:
+                print(result.dump())
+            self.assertParseResultsEquals(result, expected_list=expected_list, msg=msg)
+
+        def assertParseAndCheckDict(self, expr, test_string, expected_dict, msg=None, verbose=True):
+            """
+            Convenience wrapper assert to test a parser element and input string, and assert that
+            the resulting ParseResults.asDict() is equal to the expected_dict.
+            """
+            result = expr.parseString(test_string, parseAll=True)
+            if verbose:
+                print(result.dump())
+            self.assertParseResultsEquals(result, expected_dict=expected_dict, msg=msg)
+
         def assertRunTestResults(self, run_tests_report, expected_parse_results=None, msg=None):
             """
             Unit test assertion to evaluate output of ParserElement.runTests(). If a list of

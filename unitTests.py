@@ -3908,35 +3908,39 @@ class InlineLiteralsUsingTest(ParseTestCase):
         self.assertEqual(len(result), 4, "inlineLiteralsUsing(Literal) failed!")
 
         ParserElement.inlineLiteralsUsing(CaselessKeyword)
-        result = ("SELECT" + wd + "FROM" + wd).parseString("select color from colors")
         # WAS:
+        # result = ("SELECT" + wd + "FROM" + wd).parseString("select color from colors")
         # self.assertEqual(result.asList(), "SELECT color FROM colors".split(),
         #                  "inlineLiteralsUsing(CaselessKeyword) failed!")
-        self.assertParseResultsEquals(result, "SELECT color FROM colors".split(),
+        self.assertParseAndCheckList("SELECT" + wd + "FROM" + wd,
+                                     "select color from colors",
+                                     expected_list=['SELECT', 'color', 'FROM', 'colors'],
                                       msg="inlineLiteralsUsing(CaselessKeyword) failed!")
 
         ParserElement.inlineLiteralsUsing(CaselessLiteral)
-        result = ("SELECT" + wd + "FROM" + wd).parseString("select color from colors")
+        # result = ("SELECT" + wd + "FROM" + wd).parseString("select color from colors")
         # self.assertEqual(result.asList(), "SELECT color FROM colors".split(),
         #                  "inlineLiteralsUsing(CaselessLiteral) failed!")
-        self.assertParseResultsEquals(result, "SELECT color FROM colors".split(),
+        self.assertParseAndCheckList("SELECT" + wd + "FROM" + wd,
+                                     "select color from colors",
+                                     expected_list=['SELECT', 'color', 'FROM', 'colors'],
                                       msg="inlineLiteralsUsing(CaselessLiteral) failed!")
 
         integer = Word(nums)
         ParserElement.inlineLiteralsUsing(Literal)
         date_str = integer("year") + '/' + integer("month") + '/' + integer("day")
-        result = date_str.parseString("1999/12/31")
+        # result = date_str.parseString("1999/12/31")
         # self.assertEqual(result.asList(), ['1999', '/', '12', '/', '31'], "inlineLiteralsUsing(example 1) failed!")
-        self.assertParseResultsEquals(result, expected_list=['1999', '/', '12', '/', '31'],
+        self.assertParseAndCheckList(date_str, "1999/12/31", expected_list=['1999', '/', '12', '/', '31'],
                                       msg="inlineLiteralsUsing(example 1) failed!")
 
         # change to Suppress
         ParserElement.inlineLiteralsUsing(Suppress)
         date_str = integer("year") + '/' + integer("month") + '/' + integer("day")
 
-        result = date_str.parseString("1999/12/31")  # -> ['1999', '12', '31']
+        # result = date_str.parseString("1999/12/31")  # -> ['1999', '12', '31']
         # self.assertEqual(result.asList(), ['1999', '12', '31'], "inlineLiteralsUsing(example 2) failed!")
-        self.assertParseResultsEquals(result, expected_list=['1999', '12', '31'],
+        self.assertParseAndCheckList(date_str, "1999/12/31", expected_list=['1999', '12', '31'],
                                       msg="inlineLiteralsUsing(example 2) failed!")
 
 class CloseMatchTest(ParseTestCase):
