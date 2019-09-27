@@ -11,6 +11,7 @@ import unittest
 import pyparsing as pp
 from collections import namedtuple
 from datetime import datetime
+ppt = pp.pyparsing_test
 
 # Test spec data class for specifying simple pyparsing test cases
 PpTestSpec = namedtuple("PpTestSpec", "desc expr text parse_fn "
@@ -18,7 +19,7 @@ PpTestSpec = namedtuple("PpTestSpec", "desc expr text parse_fn "
 PpTestSpec.__new__.__defaults__ = ('', pp.Empty(), '', 'parseString', None, None, None)
 
 
-class PyparsingExpressionTestCase(unittest.TestCase):
+class PyparsingExpressionTestCase(ppt.ParseResultsAsserts, unittest.TestCase):
     """
     Base pyparsing testing class to parse various pyparsing expressions against
     given text strings. Subclasses must define a class attribute 'tests' which
@@ -50,10 +51,9 @@ class PyparsingExpressionTestCase(unittest.TestCase):
                     if test_spec.parse_fn == 'parseString':
                         print(result.dump())
                         # compare results against given list and/or dict
-                        if test_spec.expected_list is not None:
-                            self.assertEqual(result.asList(), test_spec.expected_list)
-                        if test_spec.expected_dict is not None:
-                            self.assertEqual(result.asDict(), test_spec.expected_dict)
+                        self.assertParseResultsEquals(result,
+                                                      expected_list=test_spec.expected_list,
+                                                      expected_dict=test_spec.expected_dict)
                     elif test_spec.parse_fn == 'transformString':
                         print(result)
                         # compare results against given list and/or dict
@@ -66,13 +66,13 @@ class PyparsingExpressionTestCase(unittest.TestCase):
                             self.assertEqual([result], test_spec.expected_list)
                 else:
                     # expect fail
-                    try:
-                        parsefn(test_spec.text)
-                    except Exception as exc:
-                        print(pp.ParseException.explain(exc))
-                        self.assertEqual(exc.loc, test_spec.expected_fail_locn)
-                    else:
-                        self.assertTrue(False, "failed to raise expected exception")
+                    with self.assertRaisesParseException():
+                        try:
+                            parsefn(test_spec.text)
+                        except Exception as exc:
+                            print(pp.ParseException.explain(exc))
+                            self.assertEqual(exc.loc, test_spec.expected_fail_locn)
+                            raise
 
 
 # =========== TEST DEFINITIONS START HERE ==============
