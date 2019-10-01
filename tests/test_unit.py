@@ -7,13 +7,15 @@
 # Copyright 2002-2019, Paul McGuire
 #
 #
-from unittest import skipIf, TestCase, TestSuite, TextTestRunner
 import datetime
-from pyparsing import ParseException
-import pyparsing as pp
-ppt = pp.pyparsing_test
 import sys
 from io import StringIO
+from unittest import skipIf, TestCase
+
+import pyparsing as pp
+from pyparsing import ParseException, ParserElement
+
+ppt = pp.pyparsing_test
 
 
 # see which Python implementation we are running
