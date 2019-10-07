@@ -1,4 +1,4 @@
-include pyparsing.py
+include pyparsing/*.py
 include HowToUsePyparsing.rst pyparsingClassDiagram.*
 include README.md CODE_OF_CONDUCT.rst CHANGES LICENSE CONTRIBUTING.md modules.rst
 include examples/*.py examples/Setup.ini examples/*.dfm examples/*.ics examples/*.html examples/*.h examples/*.g examples/statemachine/*
