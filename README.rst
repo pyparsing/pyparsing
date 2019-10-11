@@ -6,6 +6,9 @@ PyParsing -- A Python Parsing Module
 Introduction
 ============
 
+This version of pyparsing imports regex as re if regex is installed.
+It therefore allows for the definition of expressions that can be matched in a fuzzy way.
+
 The pyparsing module is an alternative approach to creating and
 executing simple grammars, vs. the traditional lex/yacc approach, or the
 use of regular expressions. The pyparsing module provides a library of
