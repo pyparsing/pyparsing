@@ -9,11 +9,12 @@
       <excludeFolder url="file://$MODULE_DIR$/venv" />
       <excludeFolder url="file://$MODULE_DIR$/working" />
     </content>
-    <orderEntry type="jdk" jdkName="Python 3.5" jdkType="Python SDK" />
+    <orderEntry type="jdk" jdkName="Python 3.7 (cs)" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="library" name="R User Library" level="project" />
+    <orderEntry type="library" name="R Skeletons" level="application" />
   </component>
   <component name="ReSTService">
-    <option name="workdir" value="$MODULE_DIR$" />
     <option name="DOC_DIR" value="$MODULE_DIR$" />
   </component>
   <component name="TestRunnerService">

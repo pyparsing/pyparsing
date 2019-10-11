@@ -104,7 +104,26 @@ from weakref import ref as wkref
 import copy
 import sys
 import warnings
-import re
+regex_found = False
+if sys.version_info >= (2, 0) and sys.version_info < (3,0):
+    import imp
+    try:
+        imp.find_module('eggs')
+        regex_found = True
+    except ImportError:
+        regex_found = False
+if sys.version_info >= (3, 0) and sys.version_info <= (3,3):
+    import importlib
+    regex_loader = importlib.find_loader('regex')
+    regex_found = regex_loader is not None
+if sys.version_info >= (3, 4):
+    import importlib
+    regex_spec = importlib.util.find_spec("regex")
+    regex_found = regex_spec is not None
+if regex_found:
+    import regex as re
+else:
+    import re
 import sre_constants
 import collections
 from collections.abc import Iterable, MutableMapping, Mapping
