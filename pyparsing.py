@@ -117,8 +117,8 @@ if sys.version_info >= (3, 0) and sys.version_info <= (3,3):
     regex_loader = importlib.find_loader('regex')
     regex_found = regex_loader is not None
 if sys.version_info >= (3, 4):
-    import importlib
-    regex_spec = importlib.util.find_spec("regex")
+    from importlib.util import find_spec
+    regex_spec = find_spec("regex")
     regex_found = regex_spec is not None
 if regex_found:
     import regex as re
