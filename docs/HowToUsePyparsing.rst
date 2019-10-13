@@ -148,9 +148,9 @@ Usage notes
   - ``expr[... ,n]`` is equivalent to ``expr*(0, n)``
     (read as "0 to n instances of expr")
 
-  - ``expr[...]`` is equivalent to ``ZeroOrMore(expr)``
+  - ``expr[...]`` and ``expr[0, ...]`` are equivalent to ``ZeroOrMore(expr)``
 
-  - ``expr[0, ...]`` is equivalent to ``ZeroOrMore(expr)``
+  - ``expr[1, ...]`` is equivalent to ``OneOrMore(expr)``
 
   Note that ``expr[..., n]`` does not raise an exception if
   more than n exprs exist in the input stream; that is,
@@ -174,7 +174,7 @@ Usage notes
 - If parsing the contents of an entire file, pass it to the
   ``parseFile`` method using::
 
-    expr.parseFile( sourceFile )
+    expr.parseFile(sourceFile)
 
 - ``ParseExceptions`` will report the location where an expected token
   or expression failed to match.  For example, if we tried to use our
@@ -210,15 +210,15 @@ Usage notes
   contains optional elements.  You can also shortcut
   the ``setResultsName`` call::
 
-    stats = "AVE:" + realNum.setResultsName("average") + \
-            "MIN:" + realNum.setResultsName("min") + \
-            "MAX:" + realNum.setResultsName("max")
+    stats = ("AVE:" + realNum.setResultsName("average")
+             + "MIN:" + realNum.setResultsName("min")
+             + "MAX:" + realNum.setResultsName("max"))
 
   can now be written as this::
 
-    stats = "AVE:" + realNum("average") + \
-            "MIN:" + realNum("min") + \
-            "MAX:" + realNum("max")
+    stats = ("AVE:" + realNum("average")
+             + "MIN:" + realNum("min")
+             + "MAX:" + realNum("max"))
 
 - Be careful when defining parse actions that modify global variables or
   data structures (as in ``fourFn.py``), especially for low level tokens
@@ -235,18 +235,18 @@ Classes in the pyparsing module
 ``ParserElement`` - abstract base class for all pyparsing classes;
 methods for code to use are:
 
-- ``parseString( sourceString, parseAll=False )`` - only called once, on the overall
+- ``parseString(sourceString, parseAll=False)`` - only called once, on the overall
   matching pattern; returns a ParseResults_ object that makes the
   matched tokens available as a list, and optionally as a dictionary,
   or as an object with named attributes; if parseAll is set to True, then
   parseString will raise a ParseException if the grammar does not process
   the complete input string.
 
-- ``parseFile( sourceFile )`` - a convenience function, that accepts an
+- ``parseFile(sourceFile)`` - a convenience function, that accepts an
   input file object or filename.  The file contents are passed as a
   string to ``parseString()``.  ``parseFile`` also supports the ``parseAll`` argument.
 
-- ``scanString( sourceString )`` - generator function, used to find and
+- ``scanString(sourceString)`` - generator function, used to find and
   extract matching text in the given source string; for each matched text,
   returns a tuple of:
 
@@ -260,19 +260,19 @@ methods for code to use are:
   random matches, instead of exhaustively defining the grammar for the entire
   source text (as would be required with ``parseString``).
 
-- ``transformString( sourceString )`` - convenience wrapper function for
+- ``transformString(sourceString)`` - convenience wrapper function for
   ``scanString``, to process the input source string, and replace matching
   text with the tokens returned from parse actions defined in the grammar
   (see setParseAction_).
 
-- ``searchString( sourceString )`` - another convenience wrapper function for
+- ``searchString(sourceString)`` - another convenience wrapper function for
   ``scanString``, returns a list of the matching tokens returned from each
   call to ``scanString``.
 
-- ``setName( name )`` - associate a short descriptive name for this
+- ``setName(name)`` - associate a short descriptive name for this
   element, useful in displaying exceptions and trace information
 
-- ``setResultsName( string, listAllMatches=False )`` - name to be given
+- ``setResultsName(string, listAllMatches=False)`` - name to be given
   to tokens matching
   the element; if multiple tokens within
   a repetition group (such as ``ZeroOrMore`` or ``delimitedList``) the
@@ -287,9 +287,8 @@ methods for code to use are:
 
 .. _setParseAction:
 
-- ``setParseAction( *fn )`` - specify one or more functions to call after successful
-  matching of the element; each function is defined as ``fn( s,
-  loc, toks )``, where:
+- ``setParseAction(*fn)`` - specify one or more functions to call after successful
+  matching of the element; each function is defined as ``fn(s, loc, toks)``, where:
 
   - ``s`` is the original parse string
 
@@ -305,12 +304,12 @@ methods for code to use are:
   lambda - here is an example of using a parse action to convert matched
   integer tokens from strings to integers::
 
-    intNumber = Word(nums).setParseAction( lambda s,l,t: [ int(t[0]) ] )
+    intNumber = Word(nums).setParseAction(lambda s,l,t: [int(t[0])])
 
   If ``fn`` does not modify the ``toks`` list, it does not need to return
   anything at all.
 
-- ``setBreak( breakFlag=True )`` - if breakFlag is True, calls pdb.set_break()
+- ``setBreak(breakFlag=True)`` - if breakFlag is True, calls pdb.set_break()
   as this expression is about to be parsed
 
 - ``copy()`` - returns a copy of a ParserElement; can be used to use the same
@@ -321,11 +320,11 @@ methods for code to use are:
   whitespace before starting matching (mostly used internally to the
   pyparsing module, rarely used by client code)
 
-- ``setWhitespaceChars( chars )`` - define the set of chars to be ignored
+- ``setWhitespaceChars(chars)`` - define the set of chars to be ignored
   as whitespace before trying to match a specific ParserElement, in place of the
   default set of whitespace (space, tab, newline, and return)
 
-- ``setDefaultWhitespaceChars( chars )`` - class-level method to override
+- ``setDefaultWhitespaceChars(chars)`` - class-level method to override
   the default set of whitespace chars for all subsequently created ParserElements
   (including copies); useful when defining grammars that treat one or more of the
   default whitespace characters as significant (such as a line-sensitive grammar, to
@@ -334,12 +333,12 @@ methods for code to use are:
 - ``suppress()`` - convenience function to suppress the output of the
   given element, instead of wrapping it with a Suppress object.
 
-- ``ignore( expr )`` - function to specify parse expression to be
+- ``ignore(expr)`` - function to specify parse expression to be
   ignored while matching defined patterns; can be called
   repeatedly to specify multiple expressions; useful to specify
   patterns of comment syntax, for example
 
-- ``setDebug( dbgFlag=True )`` - function to enable/disable tracing output
+- ``setDebug(dbgFlag=True)`` - function to enable/disable tracing output
   when trying to match this element
 
 - ``validate()`` - function to verify that the defined grammar does not
@@ -390,8 +389,8 @@ Basic ParserElement subclasses
   are not.  To
   define an identifier using a Word, use either of the following::
 
-  - Word( alphas+"_", alphanums+"_" )
-  - Word( srange("[a-zA-Z_]"), srange("[a-zA-Z0-9_]") )
+  - Word(alphas+"_", alphanums+"_")
+  - Word(srange("[a-zA-Z_]"), srange("[a-zA-Z0-9_]"))
 
   If only one
   string given, it specifies that the same character set defined
@@ -399,8 +398,8 @@ Basic ParserElement subclasses
   define an identifier that can only be composed of capital letters and
   underscores, use::
 
-  - Word( "ABCDEFGHIJKLMNOPQRSTUVWXYZ_" )
-  - Word( srange("[A-Z_]") )
+  - Word("ABCDEFGHIJKLMNOPQRSTUVWXYZ_")
+  - Word(srange("[A-Z_]"))
 
   A Word may
   also be constructed with any of the following optional parameters:
@@ -485,11 +484,11 @@ Expression subclasses
   operator; multiple expressions can be Anded together using the '*'
   operator as in::
 
-    ipAddress = Word(nums) + ('.'+Word(nums))*3
+    ipAddress = Word(nums) + ('.' + Word(nums)) * 3
 
   A tuple can be used as the multiplier, indicating a min/max::
 
-    usPhoneNumber = Word(nums) + ('-'+Word(nums))*(1,2)
+    usPhoneNumber = Word(nums) + ('-' + Word(nums)) * (1,2)
 
   A special form of ``And`` is created if the '-' operator is used
   instead of the '+' operator.  In the ipAddress example above, if
@@ -664,7 +663,7 @@ Other classes
       extraction instead of list extraction.
 
     - new named elements can be added (in a parse action, for instance), using the same
-      syntax as adding an item to a dict (``parseResults["X"]="new item"``); named elements can be removed using ``del parseResults["X"]``
+      syntax as adding an item to a dict (``parseResults["X"] = "new item"``); named elements can be removed using ``del parseResults["X"]``
 
   - as a nested list
 
@@ -694,7 +693,7 @@ Exception classes and Troubleshooting
 
     except ParseException, err:
         print err.line
-        print " "*(err.column-1) + "^"
+        print " " * (err.column - 1) + "^"
         print err
 
 - ``RecursiveGrammarException`` - exception returned by ``validate()`` if
@@ -723,7 +722,7 @@ Miscellaneous attributes and methods
 Helper methods
 --------------
 
-- ``delimitedList( expr, delim=',')`` - convenience function for
+- ``delimitedList(expr, delim=',')`` - convenience function for
   matching one or more occurrences of expr, separated by delim.
   By default, the delimiters are suppressed, so the returned results contain
   only the separate list elements.  Can optionally specify ``combine=True``,
@@ -731,32 +730,32 @@ Helper methods
   combined value (useful for scoped variables, such as ``"a.b.c"``, or
   ``"a::b::c"``, or paths such as ``"a/b/c"``).
 
-- ``countedArray( expr )`` - convenience function for a pattern where an list of
+- ``countedArray(expr)`` - convenience function for a pattern where an list of
   instances of the given expression are preceded by an integer giving the count of
   elements in the list.  Returns an expression that parses the leading integer,
   reads exactly that many expressions, and returns the array of expressions in the
   parse results - the leading integer is suppressed from the results (although it
   is easily reconstructed by using len on the returned array).
 
-- ``oneOf( string, caseless=False )`` - convenience function for quickly declaring an
+- ``oneOf(string, caseless=False)`` - convenience function for quickly declaring an
   alternative set of ``Literal`` tokens, by splitting the given string on
   whitespace boundaries.  The tokens are sorted so that longer
   matches are attempted first; this ensures that a short token does
   not mask a longer one that starts with the same characters. If ``caseless=True``,
   will create an alternative set of CaselessLiteral tokens.
 
-- ``dictOf( key, value )`` - convenience function for quickly declaring a
-  dictionary pattern of ``Dict( ZeroOrMore( Group( key + value ) ) )``.
+- ``dictOf(key, value)`` - convenience function for quickly declaring a
+  dictionary pattern of ``Dict(ZeroOrMore(Group(key + value)))``.
 
-- ``makeHTMLTags( tagName )`` and ``makeXMLTags( tagName )`` - convenience
+- ``makeHTMLTags(tagName)`` and ``makeXMLTags(tagName)`` - convenience
   functions to create definitions of opening and closing tag expressions.  Returns
   a pair of expressions, for the corresponding <tag> and </tag> strings.  Includes
   support for attributes in the opening tag, such as <tag attr1="abc"> - attributes
   are returned as keyed tokens in the returned ParseResults.  ``makeHTMLTags`` is less
   restrictive than ``makeXMLTags``, especially with respect to case sensitivity.
 
-- ``infixNotation(baseOperand, operatorList)`` - (formerly named ``operatorPrecedence``) convenience function to define a
-  grammar for parsing infix notation
+- ``infixNotation(baseOperand, operatorList)`` - (formerly named ``operatorPrecedence``)
+  convenience function to define a grammar for parsing infix notation
   expressions with a hierarchical precedence of operators. To use the ``infixNotation``
   helper:
 
@@ -832,7 +831,7 @@ Helper methods
   then pass None for this argument.
 
 
-- ``indentedBlock( statementExpr, indentationStackVar, indent=True)`` -
+- ``indentedBlock(statementExpr, indentationStackVar, indent=True)`` -
   function to define an indented block of statements, similar to
   indentation-based blocking in Python source code:
 
@@ -852,7 +851,7 @@ Helper methods
 
 .. _originalTextFor:
 
-- ``originalTextFor( expr )`` - helper function to preserve the originally parsed text, regardless of any
+- ``originalTextFor(expr)`` - helper function to preserve the originally parsed text, regardless of any
   token processing or conversion done by the contained expression.  For instance, the following expression::
 
         fullName = Word(alphas) + Word(alphas)
@@ -862,23 +861,23 @@ Helper methods
 
         fullName = originalTextFor(Word(alphas) + Word(alphas))
 
-- ``ungroup( expr )`` - function to "ungroup" returned tokens; useful
+- ``ungroup(expr)`` - function to "ungroup" returned tokens; useful
   to undo the default behavior of And to always group the returned tokens, even
   if there is only one in the list. (New in 1.5.6)
 
-- ``lineno( loc, string )`` - function to give the line number of the
+- ``lineno(loc, string)`` - function to give the line number of the
   location within the string; the first line is line 1, newlines
   start new rows
 
-- ``col( loc, string )`` - function to give the column number of the
+- ``col(loc, string)`` - function to give the column number of the
   location within the string; the first column is column 1,
   newlines reset the column number to 1
 
-- ``line( loc, string )`` - function to retrieve the line of text
-  representing ``lineno( loc, string )``; useful when printing out diagnostic
+- ``line(loc, string)`` - function to retrieve the line of text
+  representing ``lineno(loc, string)``; useful when printing out diagnostic
   messages for exceptions
 
-- ``srange( rangeSpec )`` - function to define a string of characters,
+- ``srange(rangeSpec)`` - function to define a string of characters,
   given a string of the form used by regexp string ranges, such as ``"[0-9]"`` for
   all numeric digits, ``"[A-Z_]"`` for uppercase characters plus underscore, and
   so on (note that rangeSpec does not include support for generic regular
@@ -915,9 +914,9 @@ Helper parse actions
 
   ``withAttribute`` can be called with:
 
-  - keyword arguments, as in ``(class="Customer",align="right")``, or
+  - keyword arguments, as in ``(class="Customer", align="right")``, or
 
-  - a list of name-value tuples, as in ``( ("ns1:class", "Customer"), ("ns2:align","right") )``
+  - a list of name-value tuples, as in ``(("ns1:class", "Customer"), ("ns2:align", "right"))``
 
   An attribute can be specified to have the special value
   ``withAttribute.ANY_VALUE``, which will match any value - use this to
@@ -928,7 +927,7 @@ Helper parse actions
 
 - ``upcaseTokens`` - converts all matched tokens to uppercase
 
-- ``matchOnlyAtCol( columnNumber )`` - a parse action that verifies that
+- ``matchOnlyAtCol(columnNumber)`` - a parse action that verifies that
   an expression was matched at a particular column, raising a
   ParseException if matching at a different column number; useful when parsing
   tabular data

@@ -95,8 +95,8 @@ classes inherit from. Use the docstrings for examples of how to:
    namespace class
 """
 
-__version__ = "2.4.2a1"
-__versionTime__ = "24 Jul 2019 01:26 UTC"
+__version__ = "2.4.3"
+__versionTime__ = "25 Sep 2019 23:51 UTC"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -185,7 +185,13 @@ __diag__.warn_name_set_on_empty_Forward = False
 __diag__.warn_on_multiple_string_args_to_oneof = False
 __diag__.enable_debug_on_named_expressions = False
 
-# ~ sys.stderr.write("testing pyparsing module, version %s, %s\n" % (__version__, __versionTime__))
+def _enable_all_warnings():
+    __diag__.warn_multiple_tokens_in_named_alternation = True
+    __diag__.warn_ungrouped_named_tokens_in_collection = True
+    __diag__.warn_name_set_on_empty_Forward = True
+    __diag__.warn_on_multiple_string_args_to_oneof = True
+__diag__.enable_all_warnings = _enable_all_warnings
+
 
 __all__ = ['__version__', '__versionTime__', '__author__', '__compat__', '__diag__',
            'And', 'CaselessKeyword', 'CaselessLiteral', 'CharsNotIn', 'Combine', 'Dict', 'Each', 'Empty',
@@ -2348,6 +2354,11 @@ class ParserElement(object):
         """
         return NotAny(self)
 
+    def __iter__(self):
+        # must implement __iter__ to override legacy use of sequential access to __getitem__ to
+        # iterate over a sequence
+        raise TypeError('%r object is not iterable' % self.__class__.__name__)
+
     def __getitem__(self, key):
         """
         use ``[]`` indexing notation as a short form for expression repetition:
@@ -2556,15 +2567,13 @@ class ParserElement(object):
                 raise exc
 
     def __eq__(self, other):
-        if isinstance(other, ParserElement):
-            if PY_3:
-                self is other or super(ParserElement, self).__eq__(other)
-            else:
-                return self is other or vars(self) == vars(other)
+        if self is other:
+            return True
         elif isinstance(other, basestring):
             return self.matches(other)
-        else:
-            return super(ParserElement, self) == other
+        elif isinstance(other, ParserElement):
+            return vars(self) == vars(other)
+        return False
 
     def __ne__(self, other):
         return not (self == other)
@@ -3838,6 +3847,8 @@ class ParseExpression(ParserElement):
 
         if isinstance(exprs, basestring):
             self.exprs = [self._literalStringClass(exprs)]
+        elif isinstance(exprs, ParserElement):
+            self.exprs = [exprs]
         elif isinstance(exprs, Iterable):
             exprs = list(exprs)
             # if sequence of strings provided, wrap with Literal
@@ -3991,15 +4002,17 @@ class And(ParseExpression):
 
     def streamline(self):
         # collapse any _PendingSkip's
-        if any(isinstance(e, ParseExpression) and isinstance(e.exprs[-1], _PendingSkip) for e in self.exprs[:-1]):
-            for i, e in enumerate(self.exprs[:-1]):
-                if e is None:
-                    continue
-                if (isinstance(e, ParseExpression)
-                        and isinstance(e.exprs[-1], _PendingSkip)):
-                    e.exprs[-1] = e.exprs[-1] + self.exprs[i + 1]
-                    self.exprs[i + 1] = None
-            self.exprs = [e for e in self.exprs if e is not None]
+        if self.exprs:
+            if any(isinstance(e, ParseExpression) and e.exprs and isinstance(e.exprs[-1], _PendingSkip)
+                   for e in self.exprs[:-1]):
+                for i, e in enumerate(self.exprs[:-1]):
+                    if e is None:
+                        continue
+                    if (isinstance(e, ParseExpression)
+                            and e.exprs and isinstance(e.exprs[-1], _PendingSkip)):
+                        e.exprs[-1] = e.exprs[-1] + self.exprs[i + 1]
+                        self.exprs[i + 1] = None
+                self.exprs = [e for e in self.exprs if e is not None]
 
         super(And, self).streamline()
         self.mayReturnEmpty = all(e.mayReturnEmpty for e in self.exprs)
@@ -5495,7 +5508,7 @@ def oneOf(strs, caseless=False, useRegex=True, asKeyword=False):
         # ~ print (strs, "->", "|".join([_escapeRegexChars(sym) for sym in symbols]))
         try:
             if len(symbols) == len("".join(symbols)):
-                return Regex("[%s]" % "".join(_escapeRegexRangeChars(sym) for sym in symbols)).setName(' | '.join(symbols))
+                return Regex("[%s]" % "".join(_collapseAndEscapeRegexRangeChars(sym) for sym in symbols)).setName(' | '.join(symbols))
             else:
                 return Regex("|".join(re.escape(sym) for sym in symbols)).setName(' | '.join(symbols))
         except Exception:

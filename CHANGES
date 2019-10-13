@@ -2,26 +2,20 @@
 Change Log
 ==========
 
-Version 2.4.2a - July, 2019
----------------------------
-It turns out I got the meaning of `[...]` absolutely backwards,
-so I've deleted 2.4.1 and am repushing this release as 2.4.2a
-for people to give it a try before I call it ready to go.
+Version 2.4.3 - September, 2019
+-------------------------------
+- Fixed a bug in ParserElement.__eq__ that would for some parsers
+  create a recursion error at parser definition time. Thanks to
+  Michael Clerx for the assist. (Addresses issue #123)
 
-The `expr[...]` notation was pushed out to be synonymous with
-`OneOrMore(expr)`, but this is really counter to most Python
-notations (and even other internal pyparsing notations as well).
+- Backport from pyparsing 3.0.0 of __diag__.enable_all_warnings().
 
-It also seems that I introduced an ugly bug in the changes made
-to Or, so 2.4.1 really needs to be unreleased. So sorry,
-everyone!
 
-(Updated)
-- A new shorthand notation has been added for repetition
-  expressions: expr[min, max], with '...' valid as a min
-  or max value:
-     - expr[...] and expr[0, ...] are equivalent to
-       ZeroOrMore(expr)
+Version 2.4.2 - July, 2019
+--------------------------
+- Updated the shorthand notation that has been added for repetition
+  expressions: expr[min, max], with '...' valid as a min or max value:
+     - expr[...] and expr[0, ...] are equivalent to ZeroOrMore(expr)
      - expr[1, ...] is equivalent to OneOrMore(expr)
      - expr[n, ...] or expr[n,] is equivalent
           to expr*n + ZeroOrMore(expr)
@@ -32,12 +26,90 @@ everyone!
   if more than n exprs exist in the input stream.  If this
   behavior is desired, then write expr[..., n] + ~expr.
 
+  Better interpretation of [...] as ZeroOrMore raised by crowsonkb,
+  thanks for keeping me in line!
+
+  If upgrading from 2.4.1 or 2.4.1.1 and you have used `expr[...]`
+  for `OneOrMore(expr)`, it must be updated to `expr[1, ...]`.
+
 - The defaults on all the `__diag__` switches have been set to False,
   to avoid getting alarming warnings. To use these diagnostics, set
-  them to True after importing pyparsing. Example:
+  them to True after importing pyparsing.
+
+  Example:
 
       import pyparsing as pp
       pp.__diag__.warn_multiple_tokens_in_named_alternation = True
+
+- Fixed bug introduced by the use of __getitem__ for repetition,
+  overlooking Python's legacy implementation of iteration
+  by sequentially calling __getitem__ with increasing numbers until
+  getting an IndexError. Found during investigation of problem
+  reported by murlock, merci!
+
+
+Version 2.4.2a1 - July, 2019
+----------------------------
+It turns out I got the meaning of `[...]` absolutely backwards,
+so I've deleted 2.4.1 and am repushing this release as 2.4.2a1
+for people to give it a try before I can call it ready to go.
+
+The `expr[...]` notation was pushed out to be synonymous with
+`OneOrMore(expr)`, but this is really counter to most Python
+notations (and even other internal pyparsing notations as well).
+It should have been defined to be equivalent to ZeroOrMore(expr).
+
+- Changed [...] to emit ZeroOrMore instead of OneOrMore.
+
+- Removed code that treats ParserElements like iterables.
+
+- Change all __diag__ switches to False.
+
+
+Version 2.4.1.1 - July 24, 2019
+-------------------------------
+This is a re-release of version 2.4.1 to restore the release history
+in PyPI, since the 2.4.1 release was deleted.
+
+There are 3 known issues in this release, which are fixed in
+the upcoming 2.4.2:
+
+- API change adding support for `expr[...]` - the original
+  code in 2.4.1 incorrectly implemented this as OneOrMore.
+  Code using this feature under this relase should explicitly
+  use `expr[0, ...]` for ZeroOrMore and `expr[1, ...]` for
+  OneOrMore. In 2.4.2 you will be able to write `expr[...]`
+  equivalent to `ZeroOrMore(expr)`.
+
+- Bug if composing And, Or, MatchFirst, or Each expressions
+  using an expression. This only affects code which uses
+  explicit expression construction using the And, Or, etc.
+  classes instead of using overloaded operators '+', '^', and
+  so on. If constructing an And using a single expression,
+  you may get an error that "cannot multiply ParserElement by
+  0 or (0, 0)" or a Python `IndexError`. Change code like
+
+    cmd = Or(Word(alphas))
+
+  to
+
+    cmd = Or([Word(alphas)])
+
+  (Note that this is not the recommended style for constructing
+  Or expressions.)
+
+- Some newly-added `__diag__` switches are enabled by default,
+  which may give rise to noisy user warnings for existing parsers.
+  You can disable them using:
+
+    import pyparsing as pp
+    pp.__diag__.warn_multiple_tokens_in_named_alternation = False
+    pp.__diag__.warn_ungrouped_named_tokens_in_collection = False
+    pp.__diag__.warn_name_set_on_empty_Forward = False
+    pp.__diag__.warn_on_multiple_string_args_to_oneof = False
+    pp.__diag__.enable_debug_on_named_expressions = False
+
+  In 2.4.2 these will all be set to False by default.
 
 
 Version 2.4.1 - July, 2019
