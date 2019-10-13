@@ -93,6 +93,9 @@ Version 3.0.0a1
   resulting in as much as 50X improvement in performance! Work
   inspired by a question posted by Midnighter on StackOverflow.
 
+- Fixed bug in PrecededBy which caused infinite recursion, issue #127
+  submitted by EdwardJB.
+
 - Fixed bug in CloseMatch where end location was incorrectly
   computed; and updated partial_gene_match.py example.
 

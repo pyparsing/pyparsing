@@ -96,7 +96,7 @@ classes inherit from. Use the docstrings for examples of how to:
 """
 
 __version__ = "3.0.0a1"
-__versionTime__ = "27 Sep 2019 10:27 UTC"
+__versionTime__ = "13 Oct 2019 05:28 UTC"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -4426,6 +4426,7 @@ class PrecededBy(ParseElementEnhance):
         self.retreat = retreat
         self.errmsg = "not preceded by " + str(expr)
         self.skipWhitespace = False
+        self.parseAction.append(lambda s, l, t: t.__delitem__(slice(None, None)))
 
     def parseImpl(self, instring, loc=0, doActions=True):
         if self.exact:
@@ -4436,19 +4437,18 @@ class PrecededBy(ParseElementEnhance):
         else:
             # retreat specified a maximum lookbehind window, iterate
             test_expr = self.expr + StringEnd()
-            instring_slice = instring[:loc]
+            instring_slice = instring[max(0, loc - self.retreat):loc]
             last_expr = ParseException(instring, loc, self.errmsg)
-            for offset in range(1, min(loc, self.retreat + 1)):
+            for offset in range(1, min(loc, self.retreat + 1)+1):
                 try:
-                    _, ret = test_expr._parse(instring_slice, loc - offset)
+                    # print('trying', offset, instring_slice, repr(instring_slice[loc - offset:]))
+                    _, ret = test_expr._parse(instring_slice, len(instring_slice) - offset)
                 except ParseBaseException as pbe:
                     last_expr = pbe
                 else:
                     break
             else:
                 raise last_expr
-        # return empty list of tokens, but preserve any defined results names
-        del ret[:]
         return loc, ret
 
 

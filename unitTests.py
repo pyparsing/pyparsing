@@ -2069,10 +2069,27 @@ class PrecededByTest(ParseTestCase):
             (finicky_num, [2939], {}),
             (very_boring_num, [404], {}),
             ]:
-            print(expr.searchString(s))
+            # print(expr.searchString(s))
             result = sum(expr.searchString(s))
             print(result.dump())
             self.assertParseResultsEquals(result, expected_list, expected_dict)
+
+        # infinite loop test - from Issue #127
+        string_test = 'notworking'
+        # negs = pp.Or(['not', 'un'])('negs')
+        negs_pb = pp.PrecededBy('not', retreat=100)('negs_lb')
+        # negs_pb = pp.PrecededBy(negs, retreat=100)('negs_lb')
+        pattern = (negs_pb + pp.Literal('working'))('main')
+
+        results = pattern.searchString(string_test)
+        try:
+            print(results.dump())
+        except RecursionError:
+            self.assertTrue(False, "got maximum excursion limit exception")
+        else:
+            self.assertTrue(True, "got maximum excursion limit exception")
+
+
 
 class CountedArrayTest(ParseTestCase):
     def runTest(self):
