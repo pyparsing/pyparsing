@@ -96,7 +96,7 @@ classes inherit from. Use the docstrings for examples of how to:
 """
 
 __version__ = "2.4.3"
-__versionTime__ = "25 Sep 2019 23:51 UTC"
+__versionTime__ = "13 Oct 2019 19:20 UTC"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -212,7 +212,7 @@ __all__ = ['__version__', '__versionTime__', '__author__', '__compat__', '__diag
            'stringStart', 'traceParseAction', 'unicodeString', 'upcaseTokens', 'withAttribute',
            'indentedBlock', 'originalTextFor', 'ungroup', 'infixNotation', 'locatedExpr', 'withClass',
            'CloseMatch', 'tokenMap', 'pyparsing_common', 'pyparsing_unicode', 'unicode_set',
-           'conditionAsParseAction',
+           'conditionAsParseAction', 're',
            ]
 
 system_version = tuple(sys.version_info)[:3]
@@ -3256,14 +3256,32 @@ class Regex(Token):
     If the given regex contains named groups (defined using ``(?P<name>...)``),
     these will be preserved as named parse results.
 
+    If instead of the Python stdlib re module you wish to use a different RE module
+    (such as the `regex` module), you can replace it by either building your
+    Regex object with a compiled RE that was compiled using regex, or by replacing
+    the imported `re` module in pyparsing with the `regex` module:
+
+
     Example::
 
         realnum = Regex(r"[+-]?\d+\.\d*")
         date = Regex(r'(?P<year>\d{4})-(?P<month>\d\d?)-(?P<day>\d\d?)')
         # ref: https://stackoverflow.com/questions/267399/how-do-you-match-only-valid-roman-numerals-with-a-regular-expression
         roman = Regex(r"M{0,4}(CM|CD|D?{0,3})(XC|XL|L?X{0,3})(IX|IV|V?I{0,3})")
+
+        import regex
+        parser = pp.Regex(regex.compile(r'[0-9]'))
+
+        # or
+
+        import pyparsing
+        pyparsing.re = regex
+
+        # both of these will use the regex module to compile their internal re's
+        parser = pp.Regex(r'[0-9]')
+        parser = pp.Word(pp.nums)
+
     """
-    compiledREtype = type(re.compile("[A-Z]"))
     def __init__(self, pattern, flags=0, asGroupList=False, asMatch=False):
         """The parameters ``pattern`` and ``flags`` are passed
         to the ``re.compile()`` function as-is. See the Python
@@ -3288,13 +3306,13 @@ class Regex(Token):
                               SyntaxWarning, stacklevel=2)
                 raise
 
-        elif isinstance(pattern, Regex.compiledREtype):
+        elif hasattr(pattern, 'pattern') and hasattr(pattern, 'match'):
             self.re = pattern
-            self.pattern = self.reString = str(pattern)
+            self.pattern = self.reString = pattern.pattern
             self.flags = flags
 
         else:
-            raise ValueError("Regex may only be constructed with a string or a compiled RE object")
+            raise TypeError("Regex may only be constructed with a string or a compiled RE object")
 
         self.re_match = self.re.match
 

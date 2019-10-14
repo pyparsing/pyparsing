@@ -2,15 +2,16 @@
 Change Log
 ==========
 
-Version 2.4.3 - September, 2019
--------------------------------
+Version 2.4.3 - October, 2019
+-----------------------------
 - Fixed a bug in ParserElement.__eq__ that would for some parsers
   create a recursion error at parser definition time. Thanks to
   Michael Clerx for the assist. (Addresses issue #123)
 
 - Backports from pyparsing 3.0.0:
-  . __diag__.enable_all_warnings().
+  . __diag__.enable_all_warnings()
   . Fixed bug in PrecededBy which caused infinite recursion, issue #127
+  . support for using regex-compiled RE to construct Regex expressions
 
 
 Version 2.4.2 - July, 2019
