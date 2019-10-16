@@ -2095,6 +2095,22 @@ class PrecededByTest(ParseTestCase):
                                                                                           expected_dict,
                                                                                           result.asDict()))
 
+        # infinite loop test - from Issue #127
+        string_test = 'notworking'
+        # negs = pp.Or(['not', 'un'])('negs')
+        negs_pb = pp.PrecededBy('not', retreat=100)('negs_lb')
+        # negs_pb = pp.PrecededBy(negs, retreat=100)('negs_lb')
+        pattern = pp.Group(negs_pb + pp.Literal('working'))('main')
+
+        results = pattern.searchString(string_test)
+        try:
+            print(results.dump())
+        except RecursionError:
+            self.assertTrue(False, "got maximum excursion limit exception")
+        else:
+            self.assertTrue(True, "got maximum excursion limit exception")
+
+
 class CountedArrayTest(ParseTestCase):
     def runTest(self):
         from pyparsing import Word, nums, OneOrMore, countedArray

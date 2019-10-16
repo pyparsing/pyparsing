@@ -3352,6 +3352,7 @@ class PrecededBy(ParseElementEnhance):
         self.retreat = retreat
         self.errmsg = "not preceded by " + str(expr)
         self.skipWhitespace = False
+        self.parseAction.append(lambda s, l, t: t.__delitem__(slice(None, None)))
 
     def parseImpl(self, instring, loc=0, doActions=True):
         if self.exact:
@@ -3364,7 +3365,7 @@ class PrecededBy(ParseElementEnhance):
             test_expr = self.expr + StringEnd()
             instring_slice = instring[max(0, loc - self.retreat):loc]
             last_expr = ParseException(instring, loc, self.errmsg)
-            for offset in range(1, min(loc, self.retreat + 1)+1):
+            for offset in range(1, min(loc, self.retreat + 1) + 1):
                 try:
                     # print('trying', offset, instring_slice, repr(instring_slice[loc - offset:]))
                     _, ret = test_expr._parse(instring_slice, len(instring_slice) - offset)
@@ -3374,8 +3375,6 @@ class PrecededBy(ParseElementEnhance):
                     break
             else:
                 raise last_expr
-        # return empty list of tokens, but preserve any defined results names
-        del ret[:]
         return loc, ret
 
 
