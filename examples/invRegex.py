@@ -17,7 +17,7 @@ from pyparsing import (Literal, oneOf, printables, ParserElement, Combine,
     SkipTo, infixNotation, ParseFatalException, Word, nums, opAssoc,
     Suppress, ParseResults, srange)
 
-class CharacterRangeEmitter(object):
+class CharacterRangeEmitter:
     def __init__(self,chars):
         # remove duplicate chars in character range, but preserve original order
         seen = set()
@@ -28,56 +28,50 @@ class CharacterRangeEmitter(object):
         return '['+self.charset+']'
     def makeGenerator(self):
         def genChars():
-            for s in self.charset:
-                yield s
+            yield from self.charset
         return genChars
 
-class OptionalEmitter(object):
+class OptionalEmitter:
     def __init__(self,expr):
         self.expr = expr
     def makeGenerator(self):
         def optionalGen():
             yield ""
-            for s in self.expr.makeGenerator()():
-                yield s
+            yield from self.expr.makeGenerator()()
         return optionalGen
 
-class DotEmitter(object):
+class DotEmitter:
     def makeGenerator(self):
         def dotGen():
-            for c in printables:
-                yield c
+            yield from printables
         return dotGen
 
-class GroupEmitter(object):
+class GroupEmitter:
     def __init__(self,exprs):
         self.exprs = ParseResults(exprs)
     def makeGenerator(self):
         def groupGen():
             def recurseList(elist):
                 if len(elist)==1:
-                    for s in elist[0].makeGenerator()():
-                        yield s
+                    yield from elist[0].makeGenerator()()
                 else:
                     for s in elist[0].makeGenerator()():
                         for s2 in recurseList(elist[1:]):
                             yield s + s2
             if self.exprs:
-                for s in recurseList(self.exprs):
-                    yield s
+                yield from recurseList(self.exprs)
         return groupGen
 
-class AlternativeEmitter(object):
+class AlternativeEmitter:
     def __init__(self,exprs):
         self.exprs = exprs
     def makeGenerator(self):
         def altGen():
             for e in self.exprs:
-                for s in e.makeGenerator()():
-                    yield s
+                yield from e.makeGenerator()()
         return altGen
 
-class LiteralEmitter(object):
+class LiteralEmitter:
     def __init__(self,lit):
         self.lit = lit
     def __str__(self):

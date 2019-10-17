@@ -18,7 +18,7 @@ class TrafficLight(trafficlightstate.TrafficLightStateMixin):
 
 light = TrafficLight()
 for i in range(10):
-    print("{0} {1}".format(light, ("STOP", "GO")[light.cars_can_go]))
+    print("{} {}".format(light, ("STOP", "GO")[light.cars_can_go]))
     light.crossing_signal()
     light.delay()
     print()

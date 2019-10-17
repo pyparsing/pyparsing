@@ -103,7 +103,7 @@ class SearchQueryParser:
         ).setResultsName("quotes") | operatorWord
 
         operatorParenthesis = Group(
-            (Suppress("(") + operatorOr + Suppress(")"))
+            Suppress("(") + operatorOr + Suppress(")")
         ).setResultsName("parenthesis") | operatorQuotes
 
         operatorNot = Forward()

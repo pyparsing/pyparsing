@@ -102,7 +102,7 @@ def getUDType(typestr):
     key = typestr.rstrip(" *")
     if key not in typemap:
         user_defined_types.add(key)
-        typemap[key] = "{0}_{1}".format(module, key)
+        typemap[key] = "{}_{}".format(module, key)
 
 def typeAsCtypes(typestr):
     if typestr in typemap:
@@ -140,13 +140,13 @@ for en_,_,_ in enum_def.scanString(c_header):
         enum_constants.append( (ev.name, ev.value) )
 
 print("from ctypes import *")
-print("{0} = CDLL('{1}.dll')".format(module, module))
+print("{} = CDLL('{}.dll')".format(module, module))
 print()
 print("# user defined types")
 for tdname,tdtyp in typedefs:
-    print("{0} = {1}".format(tdname, typemap[tdtyp]))
+    print("{} = {}".format(tdname, typemap[tdtyp]))
 for fntd in fn_typedefs:
-    print("{0} = CFUNCTYPE({1})".format(fntd.fn_name,
+    print("{} = CFUNCTYPE({})".format(fntd.fn_name,
         ',\n    '.join(typeAsCtypes(a.argtype) for a in fntd.fn_args)))
 for udtype in user_defined_types:
     print("class %s(Structure): pass" % typemap[udtype])
@@ -154,19 +154,19 @@ for udtype in user_defined_types:
 print()
 print("# constant definitions")
 for en,ev in enum_constants:
-    print("{0} = {1}".format(en,ev))
+    print("{} = {}".format(en,ev))
 
 print()
 print("# functions")
 for fn in functions:
-    prefix = "{0}.{1}".format(module, fn.fn_name)
+    prefix = "{}.{}".format(module, fn.fn_name)
 
-    print("{0}.restype = {1}".format(prefix, typeAsCtypes(fn.fn_type)))
+    print("{}.restype = {}".format(prefix, typeAsCtypes(fn.fn_type)))
     if fn.varargs:
         print("# warning - %s takes variable argument list" % prefix)
         del fn.fn_args[-1]
 
     if fn.fn_args.asList() != [['void']]:
-        print("{0}.argtypes = ({1},)".format(prefix, ','.join(typeAsCtypes(a.argtype) for a in fn.fn_args)))
+        print("{}.argtypes = ({},)".format(prefix, ','.join(typeAsCtypes(a.argtype) for a in fn.fn_args)))
     else:
         print("%s.argtypes = ()" % (prefix))

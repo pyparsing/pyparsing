@@ -2,7 +2,6 @@
 #
 # Copyright, 2006, by Paul McGuire
 #
-from __future__ import print_function
 import pyparsing as pp
 
 

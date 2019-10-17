@@ -77,12 +77,12 @@ def msg(txt):
 def debug(ftn, txt):
     """Used for debugging."""
     if debug_p:
-        sys.stdout.write("{0}.{1}:{2}\n".format(modname, ftn, txt))
+        sys.stdout.write("{}.{}:{}\n".format(modname, ftn, txt))
         sys.stdout.flush()
 
 def fatal(ftn, txt):
     """If can't continue."""
-    msg = "{0}.{1}:FATAL:{2}\n".format(modname, ftn, txt)
+    msg = "{}.{}:FATAL:{}\n".format(modname, ftn, txt)
     raise SystemExit(msg)
 
 def usage():
@@ -138,18 +138,18 @@ class ParseFileLineByLine:
         definition file is available __init__ will then create some pyparsing
         helper variables.  """
         if mode not in ['r', 'w', 'a']:
-            raise IOError(0, 'Illegal mode: ' + repr(mode))
+            raise OSError(0, 'Illegal mode: ' + repr(mode))
 
         if string.find(filename, ':/') > 1: # URL
             if mode == 'w':
-                raise IOError("can't write to a URL")
+                raise OSError("can't write to a URL")
             import urllib.request, urllib.parse, urllib.error
             self.file = urllib.request.urlopen(filename)
         else:
             filename = os.path.expanduser(filename)
             if mode == 'r' or mode == 'a':
                 if not os.path.exists(filename):
-                    raise IOError(2, 'No such file or directory: ' + filename)
+                    raise OSError(2, 'No such file or directory: ' + filename)
             filen, file_extension = os.path.splitext(filename)
             command_dict = {
               ('.Z', 'r'):

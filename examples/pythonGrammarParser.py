@@ -130,14 +130,14 @@ testlist1: test (',' test)*
 encoding_decl: NAME
 """
 
-class SemanticGroup(object):
+class SemanticGroup:
     def __init__(self,contents):
         self.contents = contents
         while self.contents[-1].__class__ == self.__class__:
             self.contents = self.contents[:-1] + self.contents[-1].contents
 
     def __str__(self):
-        return "{0}({1})".format(self.label,
+        return "{}({})".format(self.label,
                 " ".join([isinstance(c,str) and c or str(c) for c in self.contents]) )
 
 class OrList(SemanticGroup):
@@ -164,7 +164,7 @@ class Atom(SemanticGroup):
             self.contents = contents[0]
 
     def __str__(self):
-        return "{0}{1}".format(self.rep, self.contents)
+        return "{}{}".format(self.rep, self.contents)
 
 def makeGroupObject(cls):
     def groupAction(s,l,t):

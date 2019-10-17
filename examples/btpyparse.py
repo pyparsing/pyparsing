@@ -14,7 +14,7 @@ from pyparsing import (Regex, Suppress, ZeroOrMore, Group, Optional, Forward,
                        SkipTo, CaselessLiteral, Dict)
 
 
-class Macro(object):
+class Macro:
     """ Class to encapsulate undefined macro references """
     def __init__(self, name):
         self.name = name

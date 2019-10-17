@@ -46,7 +46,7 @@ class VendingMachine(VendingMachineStateMixin):
 
     def press_alpha_button(self):
         try:
-            super(VendingMachine, self).press_alpha_button()
+            super().press_alpha_button()
         except VendingMachineState.InvalidTransitionException as ite:
             print(ite)
         else:
@@ -54,7 +54,7 @@ class VendingMachine(VendingMachineStateMixin):
 
     def press_digit_button(self):
         try:
-            super(VendingMachine, self).press_digit_button()
+            super().press_digit_button()
         except VendingMachineState.InvalidTransitionException as ite:
             print(ite)
         else:
@@ -63,7 +63,7 @@ class VendingMachine(VendingMachineStateMixin):
 
     def dispense(self):
         try:
-            super(VendingMachine, self).dispense()
+            super().dispense()
         except VendingMachineState.InvalidTransitionException as ite:
             print(ite)
         else:

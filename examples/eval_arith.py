@@ -11,7 +11,7 @@
 from pyparsing import Word, nums, alphas, Combine, oneOf, \
     opAssoc, infixNotation, Literal
 
-class EvalConstant(object):
+class EvalConstant:
     "Class to evaluate a parsed constant or variable"
     vars_ = {}
     def __init__(self, tokens):
@@ -22,7 +22,7 @@ class EvalConstant(object):
         else:
             return float(self.value)
 
-class EvalSignOp(object):
+class EvalSignOp:
     "Class to evaluate expressions with a leading + or - sign"
     def __init__(self, tokens):
         self.sign, self.value = tokens[0]
@@ -39,7 +39,7 @@ def operatorOperands(tokenlist):
         except StopIteration:
             break
 
-class EvalPowerOp(object):
+class EvalPowerOp:
     "Class to evaluate multiplication and division expressions"
     def __init__(self, tokens):
         self.value = tokens[0]
@@ -49,7 +49,7 @@ class EvalPowerOp(object):
             res = val.eval()**res
         return res
 
-class EvalMultOp(object):
+class EvalMultOp:
     "Class to evaluate multiplication and division expressions"
     def __init__(self, tokens):
         self.value = tokens[0]
@@ -62,7 +62,7 @@ class EvalMultOp(object):
                 prod /= val.eval()
         return prod
 
-class EvalAddOp(object):
+class EvalAddOp:
     "Class to evaluate addition and subtraction expressions"
     def __init__(self, tokens):
         self.value = tokens[0]
@@ -75,7 +75,7 @@ class EvalAddOp(object):
                 sum -= val.eval()
         return sum
 
-class EvalComparisonOp(object):
+class EvalComparisonOp:
     "Class to evaluate comparison expressions"
     opMap = {
         "<" : lambda a,b : a < b,

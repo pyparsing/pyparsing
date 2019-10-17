@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # escrito por Marco Alfonso, 2004 Noviembre
 
 # importamos los símbolos requeridos desde el módulo

@@ -32,7 +32,7 @@ def enumerateDoors(l):
     out.append(l[-1])
     return " ".join(out)
 
-class Room(object):
+class Room:
     def __init__(self, desc):
         self.desc = desc
         self.inv = []
@@ -66,21 +66,21 @@ class Room(object):
                 is_form = "are"
             else:
                 is_form = "is"
-            print("There {0} {1} here.".format(is_form, enumerateItems(visibleItems)))
+            print("There {} {} here.".format(is_form, enumerateItems(visibleItems)))
         else:
             print("You see %s." % (enumerateItems(visibleItems)))
 
 
 class Exit(Room):
     def __init__(self):
-        super(Exit,self).__init__("")
+        super().__init__("")
 
     def enter(self,player):
         player.gameOver = True
 
 
 
-class Item(object):
+class Item:
     items = {}
     def __init__(self, desc):
         self.desc = desc
@@ -116,7 +116,7 @@ class Item(object):
 
 class OpenableItem(Item):
     def __init__(self, desc, contents=None):
-        super(OpenableItem,self).__init__(desc)
+        super().__init__(desc)
         self.isOpenable = True
         self.isOpened = False
         if contents is not None:
@@ -143,7 +143,7 @@ class OpenableItem(Item):
                 self.desc = self.desc[5:]
 
 
-class Command(object):
+class Command:
     "Base class for commands"
     def __init__(self, verb, verbProg):
         self.verb = verb
@@ -163,7 +163,7 @@ class Command(object):
 
 class MoveCommand(Command):
     def __init__(self, quals):
-        super(MoveCommand,self).__init__("MOVE", "moving")
+        super().__init__("MOVE", "moving")
         self.direction = quals.direction[0]
 
     @staticmethod
@@ -189,7 +189,7 @@ class MoveCommand(Command):
 
 class TakeCommand(Command):
     def __init__(self, quals):
-        super(TakeCommand,self).__init__("TAKE", "taking")
+        super().__init__("TAKE", "taking")
         self.subject = quals.item
 
     @staticmethod
@@ -211,7 +211,7 @@ class TakeCommand(Command):
 
 class DropCommand(Command):
     def __init__(self, quals):
-        super(DropCommand,self).__init__("DROP", "dropping")
+        super().__init__("DROP", "dropping")
         self.subject = quals.item
 
     @staticmethod
@@ -229,7 +229,7 @@ class DropCommand(Command):
 
 class InventoryCommand(Command):
     def __init__(self, quals):
-        super(InventoryCommand,self).__init__("INV", "taking inventory")
+        super().__init__("INV", "taking inventory")
 
     @staticmethod
     def helpDescription():
@@ -240,7 +240,7 @@ class InventoryCommand(Command):
 
 class LookCommand(Command):
     def __init__(self, quals):
-        super(LookCommand,self).__init__("LOOK", "looking")
+        super().__init__("LOOK", "looking")
 
     @staticmethod
     def helpDescription():
@@ -251,7 +251,7 @@ class LookCommand(Command):
 
 class DoorsCommand(Command):
     def __init__(self, quals):
-        super(DoorsCommand,self).__init__("DOORS", "looking for doors")
+        super().__init__("DOORS", "looking for doors")
 
     @staticmethod
     def helpDescription():
@@ -276,7 +276,7 @@ class DoorsCommand(Command):
 
 class UseCommand(Command):
     def __init__(self, quals):
-        super(UseCommand,self).__init__("USE", "using")
+        super().__init__("USE", "using")
         self.subject = Item.items[quals.usedObj]
         if quals.targetObj:
             self.target = Item.items[quals.targetObj]
@@ -300,7 +300,7 @@ class UseCommand(Command):
 
 class OpenCommand(Command):
     def __init__(self, quals):
-        super(OpenCommand,self).__init__("OPEN", "opening")
+        super().__init__("OPEN", "opening")
         self.subject = Item.items[quals.item]
 
     @staticmethod
@@ -323,7 +323,7 @@ class OpenCommand(Command):
 
 class CloseCommand(Command):
     def __init__(self, quals):
-        super(CloseCommand,self).__init__("CLOSE", "closing")
+        super().__init__("CLOSE", "closing")
         self.subject = Item.items[quals.item]
 
     @staticmethod
@@ -346,7 +346,7 @@ class CloseCommand(Command):
 
 class QuitCommand(Command):
     def __init__(self, quals):
-        super(QuitCommand,self).__init__("QUIT", "quitting")
+        super().__init__("QUIT", "quitting")
 
     @staticmethod
     def helpDescription():
@@ -358,7 +358,7 @@ class QuitCommand(Command):
 
 class HelpCommand(Command):
     def __init__(self, quals):
-        super(HelpCommand,self).__init__("HELP", "helping")
+        super().__init__("HELP", "helping")
 
     @staticmethod
     def helpDescription():
@@ -385,7 +385,7 @@ class HelpCommand(Command):
 class AppParseException(ParseException):
     pass
 
-class Parser(object):
+class Parser:
     def __init__(self):
         self.bnf = self.makeBNF()
 
@@ -469,7 +469,7 @@ class Parser(object):
                                    "???",
                                    "What?" ] ))
 
-class Player(object):
+class Player:
     def __init__(self, name):
         self.name = name
         self.gameOver = False

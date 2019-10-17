@@ -15,7 +15,7 @@ class Book(librarybookstate.BookStateMixin):
 
 class RestrictedBook(Book):
     def __init__(self):
-        super(RestrictedBook, self).__init__()
+        super().__init__()
         self._authorized_users = []
 
     def authorize(self, name):
@@ -26,7 +26,7 @@ class RestrictedBook(Book):
         if user in self._authorized_users:
             super().checkout()
         else:
-            raise Exception("{0} could not check out restricted book".format(user if user is not None else "anonymous"))
+            raise Exception("{} could not check out restricted book".format(user if user is not None else "anonymous"))
 
 
 def run_demo():

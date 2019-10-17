@@ -1,5 +1,3 @@
-#-*- coding: utf-8 -*-
-# vim:fileencoding=utf-8
 """
 Boolean Search query parser (Based on searchparser: https://github.com/pyparsing/pyparsing/blob/master/examples/searchparser.py)
 
@@ -83,7 +81,6 @@ TODO:
 - add more kinds of wildcards ('*' at the beginning and '*' inside a word)?
 
 """
-from __future__ import print_function
 from pyparsing import Word, alphanums, Keyword, Group, Forward, Suppress, OneOrMore, oneOf
 import re
 
@@ -146,7 +143,7 @@ class BooleanSearchParser:
 
         #suport for non-western alphabets
         for r in alphabet_ranges:
-            alphabet += u''.join(chr(c) for c in range(*r) if not chr(c).isspace())
+            alphabet += ''.join(chr(c) for c in range(*r) if not chr(c).isspace())
 
         operatorWord = Group(
             Word(alphabet + '*')
@@ -163,7 +160,7 @@ class BooleanSearchParser:
         ).setResultsName("quotes") | operatorWord
 
         operatorParenthesis = Group(
-            (Suppress("(") + operatorOr + Suppress(")"))
+            Suppress("(") + operatorOr + Suppress(")")
         ).setResultsName("parenthesis") | operatorQuotes
 
         operatorNot = Forward()
@@ -216,14 +213,14 @@ class BooleanSearchParser:
         return self.GetQuotes(' '.join(search_terms), r)
 
     def evaluateWord(self, argument):
-        wildcard_count = argument[0].count(u"*")
+        wildcard_count = argument[0].count("*")
         if wildcard_count > 0:
-            if wildcard_count == 1 and argument[0].startswith(u"*"):
+            if wildcard_count == 1 and argument[0].startswith("*"):
                 return self.GetWordWildcard(argument[0][1:], method = "endswith")
-            if wildcard_count == 1 and argument[0].endswith(u"*"):
+            if wildcard_count == 1 and argument[0].endswith("*"):
                 return self.GetWordWildcard(argument[0][:-1], method = "startswith")
             else:
-                _regex  = argument[0].replace(u"*",u".+")
+                _regex  = argument[0].replace("*",".+")
                 matched = False
                 for w in self.words:
                     matched = bool(re.search(_regex,w))
@@ -343,7 +340,7 @@ class ParserTest(BooleanSearchParser):
             '32': 'help hilp not holp',
             '33': 'help hilp and not holp',
             '34': '*lp and halp',
-            '35': u'*신은 and 어떠세요',
+            '35': '*신은 and 어떠세요',
         }
 
         texts_matcheswith = {
@@ -371,7 +368,7 @@ class ParserTest(BooleanSearchParser):
             "nothing": [
                 "25", "10", "12"
             ],
-            u"안녕하세요, 당신은 어떠세요?": [
+            "안녕하세요, 당신은 어떠세요?": [
                 "10", "12", "25", "35"
             ]
         }

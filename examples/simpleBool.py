@@ -16,7 +16,7 @@ from pyparsing import infixNotation, opAssoc, Keyword, Word, alphas
 
 # define classes to be built at parse time, as each matching
 # expression type is parsed
-class BoolOperand(object):
+class BoolOperand:
     def __init__(self,t):
         self.label = t[0]
         self.value = eval(t[0])
@@ -27,7 +27,7 @@ class BoolOperand(object):
     __repr__ = __str__
 
 
-class BoolBinOp(object):
+class BoolBinOp:
     def __init__(self,t):
         self.args = t[0][0::2]
     def __str__(self):
@@ -46,7 +46,7 @@ class BoolOr(BoolBinOp):
     reprsymbol = '|'
     evalop = any
 
-class BoolNot(object):
+class BoolNot:
     def __init__(self,t):
         self.arg = t[0][1]
     def __bool__(self):

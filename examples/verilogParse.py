@@ -540,7 +540,7 @@ def Verilog_BNF():
         """
         portRef = subscrIdentifier
         portExpr = portRef | Group( LBRACE + delimitedList( portRef ) + RBRACE )
-        port = portExpr | Group( ( DOT + identifier + LPAR + portExpr + RPAR ) )
+        port = portExpr | Group(  DOT + identifier + LPAR + portExpr + RPAR  )
 
         moduleHdr = Group ( oneOf("module macromodule") + identifier +
                  Optional( LPAR + Group( Optional( delimitedList(
