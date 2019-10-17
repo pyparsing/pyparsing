@@ -33,6 +33,11 @@ Version 3.0.0a1
     to help identify those expressions in your parsers that
     will have changed as a result.
 
+- Removed support for running `python setup.py test`. The setuptools
+  maintainers consider the test command deprecated (see
+  <https://github.com/pypa/setuptools/issues/1684>). To run the Pyparsing test,
+  use the command `tox`.
+
 - POTENTIAL API CHANGE:
   ZeroOrMore expressions that have results names will now
   include empty lists for their name if no matches are found.
