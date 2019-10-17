@@ -8,7 +8,6 @@
 #
 import pyparsing as pp
 ppc = pp.pyparsing_common
-from contextlib import closing
 
 try:
     import urllib.request
@@ -27,7 +26,7 @@ timeServerPattern = (tdStart + hostname("hostname") + tdEnd
 
 # get list of time servers
 nistTimeServerURL = "https://tf.nist.gov/tf-cgi/servers.cgi#"
-with closing(urlopen(nistTimeServerURL)) as serverListPage:
+with urlopen(nistTimeServerURL) as serverListPage:
     serverListHTML = serverListPage.read().decode("UTF-8")
 
 addrs = {}

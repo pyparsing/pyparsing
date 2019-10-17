@@ -4,12 +4,11 @@
 #
 import pyparsing as pp
 
-import urllib.request
-from contextlib import closing
+from urllib.request import urlopen
 
 # read in a bunch of genomic data
 data_url = "http://toxodb.org/common/downloads/release-6.0/Tgondii/TgondiiApicoplastORFsNAs_ToxoDB-6.0.fasta"
-with closing(urllib.request.urlopen(data_url)) as datafile:
+with urlopen(data_url) as datafile:
     fastasrc = datafile.read().decode()
 
 # define parser to extract gene definitions

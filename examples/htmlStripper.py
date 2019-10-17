@@ -6,8 +6,8 @@
 #
 # Copyright (c) 2006, 2016, Paul McGuire
 #
-from contextlib import closing
-import urllib.request, urllib.parse, urllib.error
+import urllib.parse, urllib.error
+from urllib.request import urlopen
 from pyparsing import (makeHTMLTags, commonHTMLEntity, replaceHTMLEntity,
     htmlComment, anyOpenTag, anyCloseTag, LineEnd, OneOrMore, replaceWith)
 
@@ -17,7 +17,7 @@ commonHTMLEntity.setParseAction(replaceHTMLEntity)
 
 # get some HTML
 targetURL = "https://wiki.python.org/moin/PythonDecoratorLibrary"
-with closing(urllib.request.urlopen( targetURL )) as targetPage:
+with urlopen( targetURL ) as targetPage:
     targetHTML = targetPage.read().decode("UTF-8")
 
 # first pass, strip out tags and translate entities
