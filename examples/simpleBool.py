@@ -25,7 +25,7 @@ class BoolOperand(object):
     def __str__(self):
         return self.label
     __repr__ = __str__
-    __nonzero__ = __bool__
+
 
 class BoolBinOp(object):
     def __init__(self,t):
@@ -36,7 +36,7 @@ class BoolBinOp(object):
     def __bool__(self):
         return self.evalop(bool(a) for a in self.args)
     __nonzero__ = __bool__
-    __repr__ = __str__
+
 
 class BoolAnd(BoolBinOp):
     reprsymbol = '&'
@@ -55,7 +55,7 @@ class BoolNot(object):
     def __str__(self):
         return "~" + str(self.arg)
     __repr__ = __str__
-    __nonzero__ = __bool__
+
 
 TRUE = Keyword("True")
 FALSE = Keyword("False")
