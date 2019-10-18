@@ -1,7 +1,6 @@
 # URL extractor
 # Copyright 2004, Paul McGuire
 from pyparsing import makeHTMLTags
-import urllib.parse, urllib.error
 from urllib.request import urlopen
 import pprint
 

@@ -11,7 +11,7 @@
 # Copyright 2003-2019 by Paul McGuire
 #
 from pyparsing import (Literal, Word, Group, Forward, alphas, alphanums, Regex, ParseException,
-                       CaselessKeyword, Suppress, delimitedList, pyparsing_common as ppc, tokenMap)
+                       CaselessKeyword, Suppress, delimitedList)
 import math
 import operator
 
