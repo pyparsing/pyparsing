@@ -1,8 +1,7 @@
 # URL extractor
 # Copyright 2004, Paul McGuire
 from pyparsing import makeHTMLTags, pyparsing_common as ppc
-import urllib.request
-from contextlib import closing
+from urllib.request import urlopen
 import pprint
 
 linkOpenTag, linkCloseTag = makeHTMLTags('a')
@@ -14,7 +13,7 @@ linkBody.addParseAction(lambda toks: ' '.join(toks[0].strip().split()))
 link = linkOpenTag + linkBody("body") + linkCloseTag.suppress()
 
 # Go get some HTML with some links in it.
-with closing(urllib.request.urlopen("https://www.cnn.com/")) as serverListPage:
+with urlopen("https://www.cnn.com/") as serverListPage:
     htmlText = serverListPage.read().decode("UTF-8")
 
 # scanString is a generator that loops through the input htmlText, and for each
