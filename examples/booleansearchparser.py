@@ -87,11 +87,6 @@ from __future__ import print_function
 from pyparsing import Word, alphanums, Keyword, Group, Forward, Suppress, OneOrMore, oneOf
 import re
 
-# Py2 compatibility
-try:
-    _unichr = unichr
-except NameError:
-    _unichr = chr
 
 alphabet_ranges = [
     ##CYRILIC: https://en.wikipedia.org/wiki/Cyrillic_(Unicode_block)
@@ -151,7 +146,7 @@ class BooleanSearchParser:
 
         #suport for non-western alphabets
         for r in alphabet_ranges:
-            alphabet += u''.join(_unichr(c) for c in range(*r) if not _unichr(c).isspace())
+            alphabet += u''.join(chr(c) for c in range(*r) if not chr(c).isspace())
 
         operatorWord = Group(
             Word(alphabet + '*')
