@@ -2385,9 +2385,6 @@ class ParserElement(object):
             return vars(self) == vars(other)
         return False
 
-    def __ne__(self, other):
-        return not (self == other)
-
     def __hash__(self):
         return id(self)
 
