@@ -112,7 +112,7 @@ import pprint
 import traceback
 import types
 from datetime import datetime
-from operator import itemgetter, attrgetter
+from operator import itemgetter
 import itertools
 from functools import wraps
 from itertools import filterfalse

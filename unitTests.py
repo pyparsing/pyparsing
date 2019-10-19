@@ -1081,7 +1081,7 @@ class ReStringRangeTest(ParseTestCase):
 class SkipToParserTests(ParseTestCase):
     def runTest(self):
 
-        from pyparsing import Literal, SkipTo, cStyleComment, ParseBaseException, And, Word, alphas, nums, Optional, NotAny
+        from pyparsing import Literal, SkipTo, cStyleComment, ParseBaseException, And, Word, alphas, nums
 
         thingToFind = Literal('working')
         testExpr = SkipTo(Literal(';'), include=True, ignore=cStyleComment) + thingToFind
@@ -1113,7 +1113,7 @@ class SkipToParserTests(ParseTestCase):
         result = expr.parseString(text)
         self.assertTrue(isinstance(result.prefix, str), "SkipTo created with wrong saveAsList attribute")
 
-        from pyparsing import Literal, And, Word, alphas, nums, Optional, NotAny
+        from pyparsing import Literal, And, Word, alphas, nums
         alpha_word = (~Literal("end") + Word(alphas, asKeyword=True)).setName("alpha")
         num_word = Word(nums, asKeyword=True).setName("int")
 
