@@ -8,13 +8,7 @@
 #
 import pyparsing as pp
 ppc = pp.pyparsing_common
-
-try:
-    import urllib.request
-    urlopen = urllib.request.urlopen
-except ImportError:
-    import urllib
-    urlopen = urllib.urlopen
+from urllib.request import urlopen
 
 integer = pp.Word(pp.nums)
 ipAddress = ppc.ipv4_address()
