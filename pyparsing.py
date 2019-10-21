@@ -6734,25 +6734,34 @@ class pyparsing_test:
             self._save_context = {}
 
         def __enter__(self):
+            self.save()
+
+        def __exit__(self, *args):
+            self.restore()
+
+        def save(self):
             self._save_context['default_whitespace'] = ParserElement.DEFAULT_WHITE_CHARS
             self._save_context['default_keyword_chars'] = Keyword.DEFAULT_KEYWORD_CHARS
             self._save_context['literal_string_class'] = ParserElement._literalStringClass
             self._save_context['packrat_enabled'] = ParserElement._packratEnabled
+            self._save_context['packrat_parse'] = ParserElement._parse
             self._save_context['__diag__'] = {name: getattr(__diag__, name) for name in __diag__._all_names}
+            self._save_context['__compat__'] = {"collect_all_And_tokens": __compat__.collect_all_And_tokens}
             return self
 
-        def __exit__(self, *args):
-            # reset pyparsing global state
-            if ParserElement.DEFAULT_WHITE_CHARS != self._save_context['default_whitespace']:
-                ParserElement.setDefaultWhitespaceChars(self._save_context['default_whitespace'])
+        def restore(self):
+            # restore pyparsing global state to what was saved
+            ParserElement.setDefaultWhitespaceChars(self._save_context['default_whitespace'])
             Keyword.DEFAULT_KEYWORD_CHARS = self._save_context['default_keyword_chars']
             ParserElement.inlineLiteralsUsing(self._save_context['literal_string_class'])
+            ParserElement._packratEnabled = self._save_context['packrat_enabled']
+            ParserElement._parse = self._save_context['packrat_parse']
             for name, value in self._save_context['__diag__'].items():
                 (__diag__.enable if value else __diag__.disable)(name)
-            ParserElement._packratEnabled = self._save_context['packrat_enabled']
+            for name, value in self._save_context['__compat__'].items():
+                setattr(__compat__, name, value)
 
-
-    class ParseResultsAsserts(unittest.TestCase):
+    class TestParseResultsAsserts(unittest.TestCase):
 
         def assertParseResultsEquals(self, result, expected_list=None, expected_dict=None, msg=None):
             """
