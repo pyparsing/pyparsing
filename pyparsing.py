@@ -6318,18 +6318,18 @@ def indentedBlock(blockStatementExpr, indentStack, indent=True):
         if curCol < indentStack[-1]:
             indentStack.pop()
 
-    NL = OneOrMore(LineEnd().setWhitespaceChars("\t ").suppress())
+    NL = OneOrMore(LineEnd().setWhitespaceChars("\t ").suppress(), stopOn=StringEnd())
     INDENT = (Empty() + Empty().setParseAction(checkSubIndent)).setName('INDENT')
     PEER   = Empty().setParseAction(checkPeerIndent).setName('')
     UNDENT = Empty().setParseAction(checkUnindent).setName('UNINDENT')
     if indent:
         smExpr = Group(Optional(NL)
                        + INDENT
-                       + OneOrMore(PEER + Group(blockStatementExpr) + Optional(NL))
+                       + OneOrMore(PEER + Group(blockStatementExpr) + Optional(NL), stopOn=StringEnd())
                        + UNDENT)
     else:
         smExpr = Group(Optional(NL)
-                       + OneOrMore(PEER + Group(blockStatementExpr) + Optional(NL))
+                       + OneOrMore(PEER + Group(blockStatementExpr) + Optional(NL), stopOn=StringEnd())
                        + UNDENT)
     smExpr.setFailAction(lambda a, b, c, d: reset_stack())
     blockStatementExpr.ignore(_bslash + LineEnd())

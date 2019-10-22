@@ -8,6 +8,10 @@ Version 2.4.3 - October, 2019
   create a recursion error at parser definition time. Thanks to
   Michael Clerx for the assist. (Addresses issue #123)
 
+- Fixed bug in indentedBlock where a block that ended at the end
+  of the input string could cause pyaprsing to loop forever. Raised
+  as part of discussion on StackOverflow with geckos.
+
 - Backports from pyparsing 3.0.0:
   . __diag__.enable_all_warnings()
   . Fixed bug in PrecededBy which caused infinite recursion, issue #127
