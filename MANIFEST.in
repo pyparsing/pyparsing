@@ -5,4 +5,4 @@ include examples/*.py examples/Setup.ini examples/*.dfm examples/*.ics examples/
 recursive-include docs *
 prune docs/_build/*
 recursive-include tests *
-include setup.py
+include setup.py tox.ini
