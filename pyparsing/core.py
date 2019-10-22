@@ -17,7 +17,7 @@ from itertools import filterfalse
 from threading import RLock
 
 from . util import col, line, lineno
-from . util import __diag__, __compat__, _FifoCache, _UnboundedCache
+from . util import _FifoCache, _UnboundedCache, __config_flags
 from . exceptions import *
 from . actions import *
 from . results import ParseResults, _ParseResultsWithOffset
@@ -25,6 +25,63 @@ from . results import ParseResults, _ParseResultsWithOffset
 system_version = tuple(sys.version_info)[:3]
 _MAX_INT = sys.maxsize
 str_type = (str, bytes)
+
+class __compat__(__config_flags):
+    """
+    A cross-version compatibility configuration for pyparsing features that will be
+    released in a future version. By setting values in this configuration to True,
+    those features can be enabled in prior versions for compatibility development
+    and testing.
+
+     - collect_all_And_tokens - flag to enable fix for Issue #63 that fixes erroneous grouping
+       of results names when an And expression is nested within an Or or MatchFirst;
+       maintained for compatibility, but setting to False no longer restores pre-2.3.1
+       behavior
+    """
+    _type_desc = "compatibility"
+
+    collect_all_And_tokens = True
+
+    _all_names = [__ for __ in locals() if not __.startswith('_')]
+    _fixed_names = """
+        collect_all_And_tokens
+        """.split()
+
+class __diag__(__config_flags):
+    """
+    Diagnostic configuration (all default to False)
+     - warn_multiple_tokens_in_named_alternation - flag to enable warnings when a results
+       name is defined on a MatchFirst or Or expression with one or more And subexpressions
+     - warn_ungrouped_named_tokens_in_collection - flag to enable warnings when a results
+       name is defined on a containing expression with ungrouped subexpressions that also
+       have results names
+     - warn_name_set_on_empty_Forward - flag to enable warnings whan a Forward is defined
+       with a results name, but has no contents defined
+     - warn_on_multiple_string_args_to_oneof - flag to enable warnings whan oneOf is
+       incorrectly called with multiple str arguments
+     - enable_debug_on_named_expressions - flag to auto-enable debug on all subsequent
+       calls to ParserElement.setName()
+    """
+    _type_desc = "diagnostic"
+
+    warn_multiple_tokens_in_named_alternation = False
+    warn_ungrouped_named_tokens_in_collection = False
+    warn_name_set_on_empty_Forward = False
+    warn_on_multiple_string_args_to_oneof = False
+    enable_debug_on_named_expressions = False
+
+    _all_names = [__ for __ in locals() if not __.startswith('_')]
+    _warning_names = [name for name in _all_names if name.startswith("warn")]
+    _debug_names = [name for name in _all_names if name.startswith("enable_debug")]
+
+    @classmethod
+    def enable_all_warnings(cls):
+        for name in cls._warning_names:
+            cls.enable(name)
+
+# hide abstract class
+del __config_flags
+
 
 # build list of single arg builtins, that can be used as parse actions
 singleArgBuiltins = [sum, len, sorted, reversed, list, tuple, set, any, all, min, max]
