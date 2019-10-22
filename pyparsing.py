@@ -3258,9 +3258,7 @@ class Regex(Token):
 
     If instead of the Python stdlib re module you wish to use a different RE module
     (such as the `regex` module), you can replace it by either building your
-    Regex object with a compiled RE that was compiled using regex, or by replacing
-    the imported `re` module in pyparsing with the `regex` module:
-
+    Regex object with a compiled RE that was compiled using regex:
 
     Example::
 
@@ -3269,17 +3267,10 @@ class Regex(Token):
         # ref: https://stackoverflow.com/questions/267399/how-do-you-match-only-valid-roman-numerals-with-a-regular-expression
         roman = Regex(r"M{0,4}(CM|CD|D?{0,3})(XC|XL|L?X{0,3})(IX|IV|V?I{0,3})")
 
+        # use regex module instead of stdlib re module to construct a Regex using
+        # a compiled regular expression
         import regex
         parser = pp.Regex(regex.compile(r'[0-9]'))
-
-        # or
-
-        import pyparsing
-        pyparsing.re = regex
-
-        # both of these will use the regex module to compile their internal re's
-        parser = pp.Regex(r'[0-9]')
-        parser = pp.Word(pp.nums)
 
     """
     def __init__(self, pattern, flags=0, asGroupList=False, asMatch=False):
