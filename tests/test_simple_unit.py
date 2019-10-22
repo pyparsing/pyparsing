@@ -11,7 +11,9 @@ import unittest
 import pyparsing as pp
 from collections import namedtuple
 from datetime import datetime
+
 ppt = pp.pyparsing_test
+TestParseResultsAsserts = ppt.TestParseResultsAsserts
 
 # Test spec data class for specifying simple pyparsing test cases
 PpTestSpec = namedtuple("PpTestSpec", "desc expr text parse_fn "
@@ -19,7 +21,7 @@ PpTestSpec = namedtuple("PpTestSpec", "desc expr text parse_fn "
 PpTestSpec.__new__.__defaults__ = ('', pp.Empty(), '', 'parseString', None, None, None)
 
 
-class PyparsingExpressionTestCase(ppt.ParseResultsAsserts, unittest.TestCase):
+class PyparsingExpressionTestCase(TestParseResultsAsserts):
     """
     Base pyparsing testing class to parse various pyparsing expressions against
     given text strings. Subclasses must define a class attribute 'tests' which

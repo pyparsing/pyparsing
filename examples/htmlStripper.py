@@ -6,10 +6,9 @@
 #
 # Copyright (c) 2006, 2016, Paul McGuire
 #
-import urllib.parse, urllib.error
 from urllib.request import urlopen
 from pyparsing import (makeHTMLTags, commonHTMLEntity, replaceHTMLEntity,
-    htmlComment, anyOpenTag, anyCloseTag, LineEnd, OneOrMore, replaceWith)
+    htmlComment, anyOpenTag, anyCloseTag, LineEnd, replaceWith)
 
 scriptOpen, scriptClose = makeHTMLTags("script")
 scriptBody = scriptOpen + scriptOpen.tag_body + scriptClose

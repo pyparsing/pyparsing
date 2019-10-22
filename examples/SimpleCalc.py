@@ -33,7 +33,7 @@ debug_flag=False
 
 variables = {}
 
-from fourFn import BNF, exprStack, fn, opn, evaluate_stack
+from fourFn import BNF, exprStack, evaluate_stack
 
 # from fourFn import BNF, exprStack, fn, opn
 # def evaluateStack( s ):

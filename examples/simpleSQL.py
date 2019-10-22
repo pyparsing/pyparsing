@@ -8,11 +8,11 @@
 from pyparsing import Word, delimitedList, Optional, \
     Group, alphas, alphanums, Forward, oneOf, quotedString, \
     infixNotation, opAssoc, \
-    ZeroOrMore, restOfLine, CaselessKeyword, pyparsing_common as ppc
+    restOfLine, CaselessKeyword, pyparsing_common as ppc
 
 # define SQL tokens
 selectStmt = Forward()
-SELECT, FROM, WHERE, AND, OR, IN, IS, NOT, NULL = map(CaselessKeyword, 
+SELECT, FROM, WHERE, AND, OR, IN, IS, NOT, NULL = map(CaselessKeyword,
     "select from where and or in is not null".split())
 NOT_NULL = NOT + NULL
 

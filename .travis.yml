@@ -13,15 +13,7 @@ install:
   - pip install codecov
 
 script:
- - python unitTests.py
- - python simple_unit_tests.py
- - PYTHONPATH=. python examples/numerics.py
- - PYTHONPATH=. python examples/TAP.py
- - PYTHONPATH=. python examples/romanNumerals.py
- - PYTHONPATH=. python examples/sexpParser.py
- - PYTHONPATH=. python examples/oc.py
- - PYTHONPATH=. python examples/delta_time.py
- - PYTHONPATH=. python examples/eval_arith.py
+ - python -m unittest discover tests
 
 after_success:
-  - codecov run unitTests.py
+  - codecov run -m unittest tests.test_unit
