@@ -1289,6 +1289,7 @@ class Test2_WithoutPackrat(TestParseResultsAsserts):
         second = matchPreviousLiteral(first).setName("repeat(word1Literal)")
 
         seq = first + bridge + second
+        print(seq.streamline())
 
         tests = [
             ("abc12abc", True),
@@ -1311,6 +1312,7 @@ class Test2_WithoutPackrat(TestParseResultsAsserts):
         # retest using matchPreviousExpr instead of matchPreviousLiteral
         second = matchPreviousExpr(first).setName("repeat(word1expr)")
         seq = first + bridge + second
+        print(seq.streamline())
 
         tests = [
             ("abc12abc", True),
@@ -4519,7 +4521,6 @@ class Test2_WithoutPackrat(TestParseResultsAsserts):
             return t[0] / t[1]
 
         expr.addParseAction(divide_args)
-        pp.ParserElement.enablePackrat()
         print()
 
         try:
