@@ -33,7 +33,7 @@ class pyparsing_test:
         def __init__(self):
             self._save_context = {}
 
-        def __enter__(self):
+        def save(self):
             self._save_context['default_whitespace'] = ParserElement.DEFAULT_WHITE_CHARS
             self._save_context['default_keyword_chars'] = Keyword.DEFAULT_KEYWORD_CHARS
             self._save_context['literal_string_class'] = ParserElement._literalStringClass
@@ -41,7 +41,7 @@ class pyparsing_test:
             self._save_context['__diag__'] = {name: getattr(__diag__, name) for name in __diag__._all_names}
             return self
 
-        def __exit__(self, *args):
+        def restore(self):
             # reset pyparsing global state
             if ParserElement.DEFAULT_WHITE_CHARS != self._save_context['default_whitespace']:
                 ParserElement.setDefaultWhitespaceChars(self._save_context['default_whitespace'])
@@ -51,8 +51,14 @@ class pyparsing_test:
                 (__diag__.enable if value else __diag__.disable)(name)
             ParserElement._packratEnabled = self._save_context['packrat_enabled']
 
+        def __enter__(self):
+            return self.save()
 
-    class ParseResultsAsserts(unittest.TestCase):
+        def __exit__(self, *args):
+            return self.restore()
+
+
+    class TestParseResultsAsserts(unittest.TestCase):
 
         def assertParseResultsEquals(self, result, expected_list=None, expected_dict=None, msg=None):
             """
