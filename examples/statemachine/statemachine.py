@@ -8,14 +8,7 @@ import sys
 import os
 import types
 import importlib
-try:
-    import urllib.parse
-    url_parse = urllib.parse.urlparse
-except ImportError:
-    print("import error, Python 2 not supported")
-    raise
-    import urllib
-    url_parse = urllib.parse
+from urllib.parse import urlparse
 
 
 DEBUG = False
@@ -271,7 +264,7 @@ class SuffixImporter(object):
         sys.path.append(cls.trigger_url())
 
     def __init__(self, path_entry):
-        pr = url_parse(str(path_entry))
+        pr = urlparse(str(path_entry))
         if pr.scheme != self.scheme or pr.path != self.suffix:
             raise ImportError()
         self.path_entry = path_entry

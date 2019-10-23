@@ -33,6 +33,11 @@ Version 3.0.0a1
     to help identify those expressions in your parsers that
     will have changed as a result.
 
+- Removed support for running `python setup.py test`. The setuptools
+  maintainers consider the test command deprecated (see
+  <https://github.com/pypa/setuptools/issues/1684>). To run the Pyparsing test,
+  use the command `tox`.
+
 - POTENTIAL API CHANGE:
   ZeroOrMore expressions that have results names will now
   include empty lists for their name if no matches are found.
@@ -73,6 +78,42 @@ Version 3.0.0a1
 
         pp.__diag__.enable_all_warnings()
 
+- New namespace, assert methods and classes added to support writing
+  unit tests.
+  - assertParseResultsEquals
+  - assertParseAndCheckList
+  - assertParseAndCheckDict
+  - assertRunTestResults
+  - assertRaisesParseException
+  - reset_pyparsing_context context manager, to restore pyparsing
+    config settings
+
+- Enhanced the Regex class to be compatible with re's compiled with the
+  re-equivalent regex module. Individual expressions can be built with
+  regex compiled expressions using:
+
+    import pyparsing as pp
+    import regex
+
+    # would use regex for this expression
+    integer_parser = pp.Regex(regex.compile(r'\d+'))
+
+  You can also replace the use of the re module as it is used internally
+  by pyparsing in a number of classes by overwriting pyparsing's imported
+  re symbol:
+
+    import pyparsing as pp
+    import regex
+    pp.re = regex  # redirects all internal re usage in pyparsing to regex
+
+    # would now use regex instead of re to compile this string
+    integer_parser = pp.Regex(r'\d+')
+
+    # would also now use regex internally instead of re
+    integer_parser = pp.Word(pp.nums)
+
+  Inspired by PR submitted by bjrnfrdnnd on GitHub, very nice!
+
 - Fixed handling of ParseSyntaxExceptions raised as part of Each
   expressions, when sub-expressions contain '-' backtrack
   suppression. As part of resolution to a question posted by John
@@ -84,6 +125,9 @@ Version 3.0.0a1
   character ranges (converting "0123456789" to "0-9" for instance),
   resulting in as much as 50X improvement in performance! Work
   inspired by a question posted by Midnighter on StackOverflow.
+
+- Fixed bug in PrecededBy which caused infinite recursion, issue #127
+  submitted by EdwardJB.
 
 - Fixed bug in CloseMatch where end location was incorrectly
   computed; and updated partial_gene_match.py example.

@@ -47,7 +47,7 @@ and the strings are auto-converted to :class:`Literal` expressions)::
     greet = Word(alphas) + "," + Word(alphas) + "!"
 
     hello = "Hello, World!"
-    print (hello, "->", greet.parseString(hello))
+    print(hello, "->", greet.parseString(hello))
 
 The program outputs the following::
 
@@ -96,7 +96,7 @@ classes inherit from. Use the docstrings for examples of how to:
 """
 
 __version__ = "3.0.0a1"
-__versionTime__ = "02 Sep 2019 16:36 UTC"
+__versionTime__ = "13 Oct 2019 05:49 UTC"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -107,25 +107,18 @@ import warnings
 import re
 import sre_constants
 import collections
+from collections.abc import Iterable, MutableMapping, Mapping
 import pprint
 import traceback
 import types
 from datetime import datetime
-from operator import itemgetter, attrgetter
+from operator import itemgetter
 import itertools
 from functools import wraps
-
 from itertools import filterfalse
-
-try:
-    from _thread import RLock
-except ImportError:
-    from threading import RLock
-
-from collections.abc import Iterable
-from collections.abc import MutableMapping, Mapping
-from collections import OrderedDict
-from types import SimpleNamespace
+from threading import RLock
+from contextlib import contextmanager
+import unittest
 
 
 class __config_flags:
@@ -137,10 +130,8 @@ class __config_flags:
     @classmethod
     def _set(cls, dname, value):
         if dname in cls._fixed_names:
-            warnings.warn("{}.{} {} is {} and cannot be overridden".format(cls.__name__,
-                                                                               dname,
-                                                                               cls._type_desc,
-                                                                               str(getattr(cls, dname)).upper()))
+            warnings.warn("{}.{} {} is {} and cannot be overridden".format(cls.__name__, dname, cls._type_desc,
+                                                                           str(getattr(cls, dname)).upper()))
             return
         if dname in cls._all_names:
             setattr(cls, dname, value)
@@ -228,7 +219,7 @@ __all__ = ['__version__', '__versionTime__', '__author__', '__compat__', '__diag
            'stringStart', 'traceParseAction', 'unicodeString', 'withAttribute',
            'indentedBlock', 'originalTextFor', 'ungroup', 'infixNotation', 'locatedExpr', 'withClass',
            'CloseMatch', 'tokenMap', 'pyparsing_common', 'pyparsing_unicode', 'unicode_set',
-           'conditionAsParseAction',
+           'conditionAsParseAction', 'pyparsing_test', 're',
            ]
 
 system_version = tuple(sys.version_info)[:3]
@@ -238,7 +229,7 @@ str_type = (str, bytes)
 # build list of single arg builtins, that can be used as parse actions
 singleArgBuiltins = [sum, len, sorted, reversed, list, tuple, set, any, all, min, max]
 
-_generatorType = type((y for y in range(1)))
+_generatorType = types.GeneratorType
 
 alphas = string.ascii_uppercase + string.ascii_lowercase
 nums = "0123456789"
@@ -249,6 +240,16 @@ printables = "".join(c for c in string.printable if c not in string.whitespace)
 
 
 def conditionAsParseAction(fn, message=None, fatal=False):
+    """
+    Function to convert a simple predicate function that returns True or False
+    into a parse action. Can be used in places when a parse action is required
+    and ParserElement.addCondition cannot be used (such as when adding a condition
+    to an operator level in infixNotation).
+
+    Optional keyword arguments:
+    - message = define a custom message to be used in the raised exception
+    - fatal = if True, will raise ParseFatalException to stop parsing immediately; otherwise will raise ParseException
+    """
     msg = message if message is not None else "failed user-defined condition"
     exc_type = ParseFatalException if fatal else ParseException
     fn = _trim_arity(fn)
@@ -378,7 +379,7 @@ class ParseException(ParseBaseException):
         if isinstance(exc, ParseBaseException):
             ret.append(exc.line)
             ret.append(' ' * (exc.col - 1) + '^')
-        ret.append("{0}: {1}".format(type(exc).__name__, exc))
+        ret.append("{}: {}".format(type(exc).__name__, exc))
 
         if depth > 0:
             callers = inspect.getinnerframes(exc.__traceback__, context=depth)
@@ -395,19 +396,18 @@ class ParseException(ParseBaseException):
                     seen.add(f_self)
 
                     self_type = type(f_self)
-                    ret.append("{0}.{1} - {2}".format(self_type.__module__,
-                                                      self_type.__name__,
-                                                      f_self))
+                    ret.append("{}.{} - {}".format(self_type.__module__, self_type.__name__, f_self))
+
                 elif f_self is not None:
                     self_type = type(f_self)
-                    ret.append("{0}.{1}".format(self_type.__module__,
-                                                self_type.__name__))
+                    ret.append("{}.{}".format(self_type.__module__, self_type.__name__))
+
                 else:
                     code = frm.f_code
                     if code.co_name in ('wrapper', '<module>'):
                         continue
 
-                    ret.append("{0}".format(code.co_name))
+                    ret.append("{}".format(code.co_name))
 
                 depth -= 1
                 if not depth:
@@ -506,7 +506,7 @@ class ParseResults(object):
         - year: 1999
     """
     def __new__(cls, toklist=None, name=None, asList=True, modal=True):
-        if isinstance(toklist, cls):
+        if isinstance(toklist, ParseResults):
             return toklist
         retobj = object.__new__(cls)
         retobj.__doinit = True
@@ -854,18 +854,13 @@ class ParseResults(object):
             print(json.dumps(result)) # -> Exception: TypeError: ... is not JSON serializable
             print(json.dumps(result.asDict())) # -> {"month": "31", "day": "1999", "year": "12"}
         """
-        item_fn = self.items
-
-        def toItem(obj):
+        def to_item(obj):
             if isinstance(obj, ParseResults):
-                if obj.haskeys():
-                    return obj.asDict()
-                else:
-                    return [toItem(v) for v in obj]
+                return obj.asDict() if obj.haskeys() else [to_item(v) for v in obj]
             else:
                 return obj
 
-        return dict((k, toItem(v)) for k, v in item_fn())
+        return dict((k, to_item(v)) for k, v in self.items())
 
     def copy(self):
         """
@@ -877,13 +872,6 @@ class ParseResults(object):
         ret.__accumNames.update(self.__accumNames)
         ret.__name = self.__name
         return ret
-
-    def __lookup(self, sub):
-        for k, vlist in self.__tokdict.items():
-            for v, loc in vlist:
-                if sub is v:
-                    return k
-        return None
 
     def getName(self):
         r"""
@@ -914,10 +902,9 @@ class ParseResults(object):
             return self.__name
         elif self.__parent:
             par = self.__parent()
-            if par:
-                return par.__lookup(self)
-            else:
-                return None
+            def lookup(self, sub):
+                return next((k for k, vlist in par.__tokdict.items() for v, loc in vlist if sub is v), None)
+            return lookup(self) if par else None
         elif (len(self) == 1
               and len(self.__tokdict) == 1
               and next(iter(self.__tokdict.values()))[0][1] in (0, -1)):
@@ -948,10 +935,7 @@ class ParseResults(object):
         """
         out = []
         NL = '\n'
-        if include_list:
-            out.append(indent + str(self.asList()))
-        else:
-            out.append('')
+        out.append(indent + str(self.asList()) if include_list else '')
 
         if full:
             if self.haskeys():
@@ -1099,10 +1083,7 @@ def line(loc, strg):
        """
     lastCR = strg.rfind("\n", 0, loc)
     nextCR = strg.find("\n", loc)
-    if nextCR >= 0:
-        return strg[lastCR + 1:nextCR]
-    else:
-        return strg[lastCR + 1:]
+    return strg[lastCR + 1:nextCR] if nextCR >= 0 else strg[lastCR + 1:]
 
 def _defaultStartDebugAction(instring, loc, expr):
     print(("Match " + str(expr) + " at loc " + str(loc) + "(%d,%d)" % (lineno(loc, instring), col(loc, instring))))
@@ -1417,7 +1398,10 @@ class ParserElement(object):
 
         Optional keyword arguments:
         - message = define a custom message to be used in the raised exception
-        - fatal   = if True, will raise ParseFatalException to stop parsing immediately; otherwise will raise ParseException
+        - fatal = if True, will raise ParseFatalException to stop parsing immediately; otherwise will raise
+          ParseException
+        - callDuringTry = boolean to indicate if this method should be called during internal tryParse calls,
+          default=False
 
         Example::
 
@@ -1426,7 +1410,8 @@ class ParserElement(object):
             year_int.addCondition(lambda toks: toks[0] >= 2000, message="Only support years 2000 and later")
             date_str = year_int + '/' + integer + '/' + integer
 
-            result = date_str.parseString("1999/12/31")  # -> Exception: Only support years 2000 and later (at char 0), (line:1, col:1)
+            result = date_str.parseString("1999/12/31")  # -> Exception: Only support years 2000 and later (at char 0),
+                                                                         (line:1, col:1)
         """
         for fn in fns:
             self.parseAction.append(conditionAsParseAction(fn, message=kwargs.get('message'),
@@ -1485,7 +1470,7 @@ class ParserElement(object):
         debugging = (self.debug)  # and doActions)
 
         if debugging or self.failAction:
-            # ~ print ("Match", self, "at loc", loc, "(%d, %d)" % (lineno(loc, instring), col(loc, instring)))
+            # ~ print("Match", self, "at loc", loc, "(%d, %d)" % (lineno(loc, instring), col(loc, instring)))
             if self.debugActions[TRY]:
                 self.debugActions[TRY](instring, loc, self)
             try:
@@ -1502,7 +1487,7 @@ class ParserElement(object):
                 else:
                     loc, tokens = self.parseImpl(instring, preloc, doActions)
             except Exception as err:
-                # ~ print ("Exception raised:", err)
+                # ~ print("Exception raised:", err)
                 if self.debugActions[FAIL]:
                     self.debugActions[FAIL](instring, tokensStart, self, err)
                 if self.failAction:
@@ -1561,7 +1546,7 @@ class ParserElement(object):
                                                   asList=self.saveAsList and isinstance(tokens, (ParseResults, list)),
                                                   modal=self.modalResults)
         if debugging:
-            # ~ print ("Matched", self, "->", retTokens.asList())
+            # ~ print("Matched", self, "->", retTokens.asList())
             if self.debugActions[MATCH]:
                 self.debugActions[MATCH](instring, tokensStart, loc, self, retTokens)
 
@@ -1608,8 +1593,7 @@ class ParserElement(object):
     class _FifoCache(object):
         def __init__(self, size):
             self.not_in_cache = not_in_cache = object()
-
-            cache = OrderedDict()
+            cache = collections.OrderedDict()
 
             def get(self, key):
                 return cache.get(key, not_in_cache)
@@ -1954,7 +1938,7 @@ class ParserElement(object):
 
             greet = Word(alphas) + "," + Word(alphas) + "!"
             hello = "Hello, World!"
-            print (hello, "->", greet.parseString(hello))
+            print(hello, "->", greet.parseString(hello))
 
         prints::
 
@@ -2206,15 +2190,15 @@ class ParserElement(object):
 
         # convert single arg keys to tuples
         try:
-            if isinstance(key, str):
+            if isinstance(key, str_type):
                 key = (key,)
             iter(key)
         except TypeError:
             key = (key, key)
 
         if len(key) > 2:
-            warnings.warn("only 1 or 2 index arguments supported ({0}{1})".format(key[:5],
-                                                                                '... [{0}]'.format(len(key))
+            warnings.warn("only 1 or 2 index arguments supported ({}{})".format(key[:5],
+                                                                                '... [{}]'.format(len(key))
                                                                                 if len(key) > 5 else ''))
 
         # clip to 2 elements
@@ -2393,15 +2377,13 @@ class ParserElement(object):
                 raise exc
 
     def __eq__(self, other):
-        if isinstance(other, ParserElement):
-            return self is other or super().__eq__(other)
+        if self is other:
+            return True
         elif isinstance(other, str_type):
             return self.matches(other)
-        else:
-            return super().__eq__(other)
-
-    def __ne__(self, other):
-        return not (self == other)
+        elif isinstance(other, ParserElement):
+            return vars(self) == vars(other)
+        return False
 
     def __hash__(self):
         return id(self)
@@ -2581,7 +2563,7 @@ class ParserElement(object):
                             out.append(result.dump())
                     except Exception as e:
                         out.append(result.dump(full=fullDump))
-                        out.append("{0} failed: {1}: {2}".format(postParse.__name__, type(e).__name__, e))
+                        out.append("{} failed: {}: {}".format(postParse.__name__, type(e).__name__, e))
                 else:
                     out.append(result.dump(full=fullDump))
                 out.append('')
@@ -3080,14 +3062,32 @@ class Regex(Token):
     If the given regex contains named groups (defined using ``(?P<name>...)``),
     these will be preserved as named parse results.
 
+    If instead of the Python stdlib re module you wish to use a different RE module
+    (such as the `regex` module), you can replace it by either building your
+    Regex object with a compiled RE that was compiled using regex, or by replacing
+    the imported `re` module in pyparsing with the `regex` module:
+
+
     Example::
 
         realnum = Regex(r"[+-]?\d+\.\d*")
         date = Regex(r'(?P<year>\d{4})-(?P<month>\d\d?)-(?P<day>\d\d?)')
         # ref: https://stackoverflow.com/questions/267399/how-do-you-match-only-valid-roman-numerals-with-a-regular-expression
         roman = Regex(r"M{0,4}(CM|CD|D?{0,3})(XC|XL|L?X{0,3})(IX|IV|V?I{0,3})")
+
+        import regex
+        parser = pp.Regex(regex.compile(r'[0-9]'))
+
+        # or
+
+        import pyparsing
+        pyparsing.re = regex
+
+        # both of these will use the regex module to compile their internal re's
+        parser = pp.Regex(r'[0-9]')
+        parser = pp.Word(pp.nums)
+
     """
-    compiledREtype = type(re.compile("[A-Z]"))
     def __init__(self, pattern, flags=0, asGroupList=False, asMatch=False):
         """The parameters ``pattern`` and ``flags`` are passed
         to the ``re.compile()`` function as-is. See the Python
@@ -3112,13 +3112,13 @@ class Regex(Token):
                               SyntaxWarning, stacklevel=2)
                 raise
 
-        elif isinstance(pattern, Regex.compiledREtype):
+        elif hasattr(pattern, 'pattern') and hasattr(pattern, 'match'):
             self.re = pattern
-            self.pattern = self.reString = str(pattern)
+            self.pattern = self.reString = pattern.pattern
             self.flags = flags
 
         else:
-            raise ValueError("Regex may only be constructed with a string or a compiled RE object")
+            raise TypeError("Regex may only be constructed with a string or a compiled RE object")
 
         self.re_match = self.re.match
 
@@ -3773,8 +3773,8 @@ class ParseExpression(ParserElement):
         if __diag__.warn_ungrouped_named_tokens_in_collection:
             for e in self.exprs:
                 if isinstance(e, ParserElement) and e.resultsName:
-                    warnings.warn("{0}: setting results name {1!r} on {2} expression "
-                                  "collides with {3!r} on contained expression".format("warn_ungrouped_named_tokens_in_collection",
+                    warnings.warn("{}: setting results name {!r} on {} expression "
+                                  "collides with {!r} on contained expression".format("warn_ungrouped_named_tokens_in_collection",
                                                                                        name,
                                                                                        type(self).__name__,
                                                                                        e.resultsName),
@@ -4020,7 +4020,7 @@ class Or(ParseExpression):
     def _setResultsName(self, name, listAllMatches=False):
         if __diag__.warn_multiple_tokens_in_named_alternation:
             if any(isinstance(e, And) for e in self.exprs):
-                warnings.warn("{0}: setting results name {1!r} on {2} expression "
+                warnings.warn("{}: setting results name {!r} on {} expression "
                               "will return a list of all parsed tokens in an And alternative, "
                               "in prior versions only the first token was returned".format(
                     "warn_multiple_tokens_in_named_alternation", name, type(self).__name__),
@@ -4117,7 +4117,7 @@ class MatchFirst(ParseExpression):
     def _setResultsName(self, name, listAllMatches=False):
         if __diag__.warn_multiple_tokens_in_named_alternation:
             if any(isinstance(e, And) for e in self.exprs):
-                warnings.warn("{0}: setting results name {1!r} on {2} expression "
+                warnings.warn("{}: setting results name {!r} on {} expression "
                               "may only return a single token for an And alternative, "
                               "in future will return the full list of tokens".format(
                     "warn_multiple_tokens_in_named_alternation", name, type(self).__name__),
@@ -4426,7 +4426,7 @@ class PrecededBy(ParseElementEnhance):
         self.mayReturnEmpty = True
         self.mayIndexError = False
         self.exact = False
-        if isinstance(expr, str):
+        if isinstance(expr, str_type):
             retreat = len(expr)
             self.exact = True
         elif isinstance(expr, (Literal, Keyword)):
@@ -4441,6 +4441,7 @@ class PrecededBy(ParseElementEnhance):
         self.retreat = retreat
         self.errmsg = "not preceded by " + str(expr)
         self.skipWhitespace = False
+        self.parseAction.append(lambda s, l, t: t.__delitem__(slice(None, None)))
 
     def parseImpl(self, instring, loc=0, doActions=True):
         if self.exact:
@@ -4451,19 +4452,18 @@ class PrecededBy(ParseElementEnhance):
         else:
             # retreat specified a maximum lookbehind window, iterate
             test_expr = self.expr + StringEnd()
-            instring_slice = instring[:loc]
+            instring_slice = instring[max(0, loc - self.retreat):loc]
             last_expr = ParseException(instring, loc, self.errmsg)
-            for offset in range(1, min(loc, self.retreat + 1)):
+            for offset in range(1, min(loc, self.retreat + 1)+1):
                 try:
-                    _, ret = test_expr._parse(instring_slice, loc - offset)
+                    # print('trying', offset, instring_slice, repr(instring_slice[loc - offset:]))
+                    _, ret = test_expr._parse(instring_slice, len(instring_slice) - offset)
                 except ParseBaseException as pbe:
                     last_expr = pbe
                 else:
                     break
             else:
                 raise last_expr
-        # return empty list of tokens, but preserve any defined results names
-        del ret[:]
         return loc, ret
 
 
@@ -4559,8 +4559,8 @@ class _MultipleMatch(ParseElementEnhance):
         if __diag__.warn_ungrouped_named_tokens_in_collection:
             for e in [self.expr] + getattr(self.expr, 'exprs', []):
                 if isinstance(e, ParserElement) and e.resultsName:
-                    warnings.warn("{0}: setting results name {1!r} on {2} expression "
-                                  "collides with {3!r} on contained expression".format("warn_ungrouped_named_tokens_in_collection",
+                    warnings.warn("{}: setting results name {!r} on {} expression "
+                                  "collides with {!r} on contained expression".format("warn_ungrouped_named_tokens_in_collection",
                                                                                        name,
                                                                                        type(self).__name__,
                                                                                        e.resultsName),
@@ -4925,7 +4925,7 @@ class Forward(ParseElementEnhance):
     def _setResultsName(self, name, listAllMatches=False):
         if __diag__.warn_name_set_on_empty_Forward:
             if self.expr is None:
-                warnings.warn("{0}: setting results name {0!r} on {1} expression "
+                warnings.warn("{}: setting results name {!r} on {} expression "
                               "that has no contained expression".format("warn_name_set_on_empty_Forward",
                                                                         name,
                                                                         type(self).__name__),
@@ -5403,7 +5403,7 @@ def oneOf(strs, caseless=False, useRegex=True, asKeyword=False):
                 i += 1
 
     if not (caseless or asKeyword) and useRegex:
-        # ~ print (strs, "->", "|".join([_escapeRegexChars(sym) for sym in symbols]))
+        # ~ print(strs, "->", "|".join([_escapeRegexChars(sym) for sym in symbols]))
         try:
             if len(symbols) == len("".join(symbols)):
                 return Regex("[%s]" % "".join(_escapeRegexRangeChars(sym) for sym in symbols)).setName(' | '.join(symbols))
@@ -5843,7 +5843,7 @@ def withClass(classname, namespace=''):
     classattr = "%s:class" % namespace if namespace else "class"
     return withAttribute(**{classattr: classname})
 
-opAssoc = SimpleNamespace()
+opAssoc = types.SimpleNamespace()
 opAssoc.LEFT = object()
 opAssoc.RIGHT = object()
 
@@ -6704,6 +6704,146 @@ pyparsing_unicode.ไทย = pyparsing_unicode.Thai
 pyparsing_unicode.देवनागरी = pyparsing_unicode.Devanagari
 
 
+class pyparsing_test:
+    """
+    namespace class for classes useful in writing unit tests
+    """
+    class reset_pyparsing_context:
+        """
+        Context manager to be used when writing unit tests that modify pyparsing config values:
+         - packrat parsing
+         - default whitespace characters
+         - default keyword characters
+         - literal string auto-conversion class
+         - __diag__ settings
+
+        Example:
+            with reset_pyparsing_context():
+                # test that literals used to construct a grammar are automatically suppressed
+                ParserElement.inlineLiteralsUsing(Suppress)
+
+                term = Word(alphas) | Word(nums)
+                group = Group('(' + term[...] + ')')
+
+                # assert that the '()' characters are not included in the parsed tokens
+                self.assertParseAndCheckLisst(group, "(abc 123 def)", ['abc', '123', 'def'])
+
+            # after exiting context manager, literals are converted to Literal expressions again
+        """
+        def __init__(self):
+            self._save_context = {}
+
+        def __enter__(self):
+            self.save()
+
+        def __exit__(self, *args):
+            self.restore()
+
+        def save(self):
+            self._save_context['default_whitespace'] = ParserElement.DEFAULT_WHITE_CHARS
+            self._save_context['default_keyword_chars'] = Keyword.DEFAULT_KEYWORD_CHARS
+            self._save_context['literal_string_class'] = ParserElement._literalStringClass
+            self._save_context['packrat_enabled'] = ParserElement._packratEnabled
+            self._save_context['packrat_parse'] = ParserElement._parse
+            self._save_context['__diag__'] = {name: getattr(__diag__, name) for name in __diag__._all_names}
+            self._save_context['__compat__'] = {"collect_all_And_tokens": __compat__.collect_all_And_tokens}
+            return self
+
+        def restore(self):
+            # restore pyparsing global state to what was saved
+            ParserElement.setDefaultWhitespaceChars(self._save_context['default_whitespace'])
+            Keyword.DEFAULT_KEYWORD_CHARS = self._save_context['default_keyword_chars']
+            ParserElement.inlineLiteralsUsing(self._save_context['literal_string_class'])
+            ParserElement._packratEnabled = self._save_context['packrat_enabled']
+            ParserElement._parse = self._save_context['packrat_parse']
+            for name, value in self._save_context['__diag__'].items():
+                (__diag__.enable if value else __diag__.disable)(name)
+            for name, value in self._save_context['__compat__'].items():
+                setattr(__compat__, name, value)
+
+    class TestParseResultsAsserts(unittest.TestCase):
+
+        def assertParseResultsEquals(self, result, expected_list=None, expected_dict=None, msg=None):
+            """
+            Unit test assertion to compare a ParseResults object with an optional expected_list,
+            and compare any defined results names with an optional expected_dict.
+            """
+            if expected_list is not None:
+                self.assertEqual(expected_list, result.asList(), msg=msg)
+            if expected_dict is not None:
+                self.assertEqual(expected_dict, result.asDict(), msg=msg)
+
+        def assertParseAndCheckList(self, expr, test_string, expected_list, msg=None, verbose=True):
+            """
+            Convenience wrapper assert to test a parser element and input string, and assert that
+            the resulting ParseResults.asList() is equal to the expected_list.
+            """
+            result = expr.parseString(test_string, parseAll=True)
+            if verbose:
+                print(result.dump())
+            self.assertParseResultsEquals(result, expected_list=expected_list, msg=msg)
+
+        def assertParseAndCheckDict(self, expr, test_string, expected_dict, msg=None, verbose=True):
+            """
+            Convenience wrapper assert to test a parser element and input string, and assert that
+            the resulting ParseResults.asDict() is equal to the expected_dict.
+            """
+            result = expr.parseString(test_string, parseAll=True)
+            if verbose:
+                print(result.dump())
+            self.assertParseResultsEquals(result, expected_dict=expected_dict, msg=msg)
+
+        def assertRunTestResults(self, run_tests_report, expected_parse_results=None, msg=None):
+            """
+            Unit test assertion to evaluate output of ParserElement.runTests(). If a list of
+            list-dict tuples is given as the expected_parse_results argument, then these are zipped
+            with the report tuples returned by runTests and evaluated using assertParseResultsEquals.
+            Finally, asserts that the overall runTests() success value is True.
+
+            :param run_tests_report: tuple(bool, [tuple(str, ParseResults or Exception)]) returned from runTests
+            :param expected_parse_results (optional): [tuple(str, list, dict, Exception)]
+            """
+            run_test_success, run_test_results = run_tests_report
+
+            if expected_parse_results is not None:
+                merged = [(*rpt, expected) for rpt, expected in zip(run_test_results, expected_parse_results)]
+                for test_string, result, expected in merged:
+                    # expected should be a tuple containing a list and/or a dict or an exception,
+                    # and optional failure message string
+                    # an empty tuple will skip any result validation
+                    fail_msg = next((exp for exp in expected if isinstance(exp, str)), None)
+                    expected_exception = next((exp for exp in expected
+                                               if isinstance(exp, type) and issubclass(exp, Exception)), None)
+                    if expected_exception is not None:
+                        with self.assertRaises(expected_exception=expected_exception, msg=fail_msg or msg):
+                            if isinstance(result, Exception):
+                                raise result
+                    else:
+                        expected_list = next((exp for exp in expected if isinstance(exp, list)), None)
+                        expected_dict = next((exp for exp in expected if isinstance(exp, dict)), None)
+                        if (expected_list, expected_dict) != (None, None):
+                            self.assertParseResultsEquals(result,
+                                                          expected_list=expected_list, expected_dict=expected_dict,
+                                                          msg=fail_msg or msg)
+                        else:
+                            # warning here maybe?
+                            print("no validation for {!r}".format(test_string))
+
+            # do this last, in case some specific test results can be reported instead
+            self.assertTrue(run_test_success, msg=msg if msg is not None else "failed runTests")
+
+        @contextmanager
+        def assertRaisesParseException(self, exc_type=ParseException, msg=None):
+            with self.assertRaises(exc_type, msg=msg):
+                yield
+
+
+# build list of built-in expressions, for future reference if a global default value
+# gets updated
+_builtin_exprs = [v for v in itertools.chain(vars().values(), vars(pyparsing_common).values())
+                  if isinstance(v, ParserElement)]
+
+
 if __name__ == "__main__":
 
     selectToken  = CaselessLiteral("select")
@@ -6774,8 +6914,3 @@ if __name__ == "__main__":
     pyparsing_common.uuid.runTests("""
         12345678-1234-5678-1234-567812345678
         """)
-
-# build list of built-in expressions, for future reference if a global default value
-# gets updated
-_builtin_exprs = [v for v in itertools.chain(vars().values(), vars(pyparsing_common).values())
-                  if isinstance(v, ParserElement)]

@@ -2,7 +2,10 @@
 
 """Setup script for the pyparsing module distribution."""
 
-from setuptools import setup
+try:
+    from setuptools import setup
+except ImportError:
+    from distutils.core import setup
 from pyparsing import __version__ as pyparsing_version, __doc__ as pyparsing_description
 
 modules = ["pyparsing",]
@@ -19,7 +22,6 @@ setup(# Distribution meta-data
     license = "MIT License",
     py_modules = modules,
     python_requires='>=3.5',
-    test_suite="unitTests.suite",
     classifiers=[
         'Development Status :: 5 - Production/Stable',
         'Intended Audience :: Developers',
@@ -31,5 +33,9 @@ setup(# Distribution meta-data
         'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
+        'Programming Language :: Python :: 3.8',
+        'Programming Language :: Python :: 3 :: Only',
+        'Programming Language :: Python :: Implementation :: CPython',
+        'Programming Language :: Python :: Implementation :: PyPy',
         ]
     )

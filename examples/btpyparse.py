@@ -22,8 +22,6 @@ class Macro(object):
         return 'Macro("%s")' % self.name
     def __eq__(self, other):
         return self.name == other.name
-    def __ne__(self, other):
-        return self.name != other.name
 
 
 # Character literals
