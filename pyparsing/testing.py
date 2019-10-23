@@ -2,7 +2,7 @@
 from contextlib import contextmanager
 import unittest
 
-from . core import ParserElement, ParseResults, ParseException, Keyword, __diag__
+from . core import ParserElement, ParseResults, ParseException, Keyword, __diag__, __compat__
 
 class pyparsing_test:
     """
@@ -38,7 +38,9 @@ class pyparsing_test:
             self._save_context['default_keyword_chars'] = Keyword.DEFAULT_KEYWORD_CHARS
             self._save_context['literal_string_class'] = ParserElement._literalStringClass
             self._save_context['packrat_enabled'] = ParserElement._packratEnabled
+            self._save_context['packrat_parse'] = ParserElement._parse
             self._save_context['__diag__'] = {name: getattr(__diag__, name) for name in __diag__._all_names}
+            self._save_context['__compat__'] = {"collect_all_And_tokens": __compat__.collect_all_And_tokens}
             return self
 
         def restore(self):
@@ -50,6 +52,8 @@ class pyparsing_test:
             for name, value in self._save_context['__diag__'].items():
                 (__diag__.enable if value else __diag__.disable)(name)
             ParserElement._packratEnabled = self._save_context['packrat_enabled']
+            ParserElement._parse = self._save_context['packrat_parse']
+            __compat__.collect_all_And_tokens = self._save_context['__compat__']
 
         def __enter__(self):
             return self.save()
