@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #
 # unitTests.py
 #
@@ -7,7 +6,6 @@
 # Copyright 2002-2019, Paul McGuire
 #
 #
-from __future__ import absolute_import
 
 import datetime
 import sys
@@ -48,7 +46,7 @@ class ParseTest(TestCase):
         pass
 """
 
-class resetting(object):
+class resetting:
     def __init__(self, *args):
         ob = args[0]
         attrnames = args[1:]
@@ -190,7 +188,7 @@ class Test2_WithoutPackrat(TestParseResultsAsserts):
             except Exception:
                 self.assertIsNone(ans, "exception raised for expression {!r}".format(s))
             else:
-                self.assertTrue(resultValue == ans, "failed to evaluate %s, got %f" % (s, resultValue))
+                self.assertTrue(resultValue == ans, "failed to evaluate {}, got {:f}".format(s, resultValue))
                 print(s, "->", resultValue)
 
         test("9", 9)
@@ -557,12 +555,12 @@ class Test2_WithoutPackrat(TestParseResultsAsserts):
                 tokens.pprint()
                 tokens = flatten(tokens.asList())
                 print(len(tokens))
-                self.assertEqual(len(tokens), numToks, "error matching IDL string, %s -> %s" % (strng, str(tokens)))
+                self.assertEqual(len(tokens), numToks, "error matching IDL string, {} -> {}".format(strng, str(tokens)))
             except ParseException as err:
                 print(err.line)
                 print(" " * (err.column-1) + "^")
                 print(err)
-                self.assertEqual(numToks, 0, "unexpected ParseException while parsing %s, %s" % (strng, str(err)))
+                self.assertEqual(numToks, 0, "unexpected ParseException while parsing {}, {}".format(strng, str(err)))
                 self.assertEqual(err.loc, errloc,
                                  "expected ParseException at %d, found exception at %d" % (errloc, err.loc))
 
@@ -1030,7 +1028,7 @@ class Test2_WithoutPackrat(TestParseResultsAsserts):
             t, exp = test
             res = pp.srange(t)
             #print(t, "->", res)
-            self.assertEqual(res, exp, "srange error, srange(%r)->'%r', expected '%r'" % (t, res, exp))
+            self.assertEqual(res, exp, "srange error, srange({!r})->'{!r}', expected '{!r}'".format(t, res, exp))
 
     def testSkipToParserTests(self):
 
@@ -1044,9 +1042,9 @@ class Test2_WithoutPackrat(TestParseResultsAsserts):
                 print(testExpr.parseString(someText))
                 self.assertFalse(fail_expected, "expected failure but no exception raised")
             except Exception as e:
-                print("Exception %s while parsing string %s" % (e, repr(someText)))
+                print("Exception {} while parsing string {}".format(e, repr(someText)))
                 self.assertTrue(fail_expected and isinstance(e, ParseBaseException),
-                                "Exception %s while parsing string %s" % (e, repr(someText)))
+                                "Exception {} while parsing string {}".format(e, repr(someText)))
 
         # This first test works, as the SkipTo expression is immediately following the ignore expression (cStyleComment)
         tryToParse('some text /* comment with ; in */; working')
@@ -1257,7 +1255,7 @@ class Test2_WithoutPackrat(TestParseResultsAsserts):
             print(expected)
             self.assertEqual(quoteExpr.searchString(testString)[0][0],
                              expected,
-                             "failed to match %s, expected '%s', got '%s'" % (quoteExpr, expected,
+                             "failed to match {}, expected '{}', got '{}'".format(quoteExpr, expected,
                                                                               quoteExpr.searchString(testString)[0]))
             print()
 
@@ -1305,7 +1303,7 @@ class Test2_WithoutPackrat(TestParseResultsAsserts):
                 found = True
             if not found:
                 print("No literal match in", tst)
-            self.assertEqual(found, result, "Failed repeater for test: %s, matching %s" % (tst, str(seq)))
+            self.assertEqual(found, result, "Failed repeater for test: {}, matching {}".format(tst, str(seq)))
         print()
 
         # retest using matchPreviousExpr instead of matchPreviousLiteral
@@ -1325,7 +1323,7 @@ class Test2_WithoutPackrat(TestParseResultsAsserts):
                 found = True
             if not found:
                 print("No expression match in", tst)
-            self.assertEqual(found, result, "Failed repeater for test: %s, matching %s" % (tst, str(seq)))
+            self.assertEqual(found, result, "Failed repeater for test: {}, matching {}".format(tst, str(seq)))
 
         print()
 
@@ -1353,7 +1351,7 @@ class Test2_WithoutPackrat(TestParseResultsAsserts):
                 break
             if not found:
                 print("No expression match in", tst)
-            self.assertEqual(found, result, "Failed repeater for test: %s, matching %s" % (tst, str(seq)))
+            self.assertEqual(found, result, "Failed repeater for test: {}, matching {}".format(tst, str(seq)))
 
         print()
         eFirst = Word(nums)
@@ -1372,7 +1370,7 @@ class Test2_WithoutPackrat(TestParseResultsAsserts):
                 found = True
             if not found:
                 print("No match in", tst)
-            self.assertEqual(found, result, "Failed repeater for test: %s, matching %s" % (tst, str(seq)))
+            self.assertEqual(found, result, "Failed repeater for test: {}, matching {}".format(tst, str(seq)))
 
     def testRecursiveCombine(self):
         from pyparsing import Forward, Word, alphas, nums, Optional, Combine
@@ -1447,7 +1445,7 @@ class Test2_WithoutPackrat(TestParseResultsAsserts):
         from pyparsing import infixNotation, Word, alphas, oneOf, opAssoc
 
         boolVars = { "True":True, "False":False }
-        class BoolOperand(object):
+        class BoolOperand:
             reprsymbol = ''
             def __init__(self, t):
                 self.args = t[0][0::2]
@@ -1599,7 +1597,7 @@ class Test2_WithoutPackrat(TestParseResultsAsserts):
         multop = oneOf('* /')
         plusop = oneOf('+ -')
 
-        class ExprNode(object):
+        class ExprNode:
             def __init__(self, tokens):
                 self.tokens = tokens[0]
 
@@ -1658,7 +1656,7 @@ class Test2_WithoutPackrat(TestParseResultsAsserts):
             parsed = expr.parseString(t)
             eval_value = parsed[0].eval()
             self.assertEqual(eval_value, eval(t),
-                             "Error evaluating %r, expected %r, got %r" % (t, eval(t), eval_value))
+                             "Error evaluating {!r}, expected {!r}, got {!r}".format(t, eval(t), eval_value))
 
 
     def testParseResultsPickle(self):
@@ -1714,7 +1712,7 @@ class Test2_WithoutPackrat(TestParseResultsAsserts):
                 newresult = pickle.loads(pickleString)
             print(newresult.dump())
             self.assertEqual(newresult.dump(), result.dump(),
-                             "failed to pickle/unpickle ParseResults: expected %r, got %r" % (result, newresult))
+                             "failed to pickle/unpickle ParseResults: expected {!r}, got {!r}".format(result, newresult))
 
     def testParseResultsWithNamedTuple(self):
 
@@ -1758,12 +1756,12 @@ class Test2_WithoutPackrat(TestParseResultsAsserts):
             print(t.dump())
             if "startBody" in t:
                 self.assertEqual(bool(t.empty), expectedEmpty,
-                                 "expected %s token, got %s" % (expectedEmpty and "empty" or "not empty",
+                                 "expected {} token, got {}".format(expectedEmpty and "empty" or "not empty",
                                                                 t.empty and "empty" or "not empty"))
                 self.assertEqual(t.bgcolor, expectedBG,
-                                 "failed to match BGCOLOR, expected %s, got %s" % (expectedBG, t.bgcolor))
+                                 "failed to match BGCOLOR, expected {}, got {}".format(expectedBG, t.bgcolor))
                 self.assertEqual(t.fgcolor, expectedFG,
-                                 "failed to match FGCOLOR, expected %s, got %s" % (expectedFG, t.bgcolor))
+                                 "failed to match FGCOLOR, expected {}, got {}".format(expectedFG, t.bgcolor))
             elif "endBody" in t:
                 print("end tag")
                 pass
@@ -1836,7 +1834,7 @@ class Test2_WithoutPackrat(TestParseResultsAsserts):
             if shouldPass:
                 try:
                     result = expression.parseString(instring)
-                    print('%s correctly matched %s' % (repr(expression), repr(instring)))
+                    print('{} correctly matched {}'.format(repr(expression), repr(instring)))
                     if expectedString != result[0]:
                         print('\tbut failed to match the pattern as expected:')
                         print('\tproduced %s instead of %s' % \
@@ -1848,7 +1846,7 @@ class Test2_WithoutPackrat(TestParseResultsAsserts):
             else:
                 try:
                     result = expression.parseString(instring)
-                    print('%s incorrectly matched %s' % (repr(expression), repr(instring)))
+                    print('{} incorrectly matched {}'.format(repr(expression), repr(instring)))
                     print('\tproduced %s as a result' % repr(result[0]))
                 except pp.ParseException:
                     print('%s correctly failed to match %s' % \
@@ -2211,60 +2209,60 @@ class Test2_WithoutPackrat(TestParseResultsAsserts):
         pa2 = lambda l, t: t
         pa1 = lambda t: t
         pa0 = lambda : None
-        class Callable3(object):
+        class Callable3:
             def __call__(self, s, l, t):
                 return t
-        class Callable2(object):
+        class Callable2:
             def __call__(self, l, t):
                 return t
-        class Callable1(object):
+        class Callable1:
             def __call__(self, t):
                 return t
-        class Callable0(object):
+        class Callable0:
             def __call__(self):
                 return
-        class CallableS3(object):
+        class CallableS3:
             #~ @staticmethod
             def __call__(s, l, t):
                 return t
             __call__=staticmethod(__call__)
-        class CallableS2(object):
+        class CallableS2:
             #~ @staticmethod
             def __call__(l, t):
                 return t
             __call__=staticmethod(__call__)
-        class CallableS1(object):
+        class CallableS1:
             #~ @staticmethod
             def __call__(t):
                 return t
             __call__=staticmethod(__call__)
-        class CallableS0(object):
+        class CallableS0:
             #~ @staticmethod
             def __call__():
                 return
             __call__=staticmethod(__call__)
-        class CallableC3(object):
+        class CallableC3:
             #~ @classmethod
             def __call__(cls, s, l, t):
                 return t
             __call__=classmethod(__call__)
-        class CallableC2(object):
+        class CallableC2:
             #~ @classmethod
             def __call__(cls, l, t):
                 return t
             __call__=classmethod(__call__)
-        class CallableC1(object):
+        class CallableC1:
             #~ @classmethod
             def __call__(cls, t):
                 return t
             __call__=classmethod(__call__)
-        class CallableC0(object):
+        class CallableC0:
             #~ @classmethod
             def __call__(cls):
                 return
             __call__=classmethod(__call__)
 
-        class parseActionHolder(object):
+        class parseActionHolder:
             #~ @staticmethod
             def pa3(s, l, t):
                 return t
@@ -2286,26 +2284,26 @@ class Test2_WithoutPackrat(TestParseResultsAsserts):
             print(args)
             return args[2]
 
-        class ClassAsPA0(object):
+        class ClassAsPA0:
             def __init__(self):
                 pass
             def __str__(self):
                 return "A"
 
-        class ClassAsPA1(object):
+        class ClassAsPA1:
             def __init__(self, t):
                 print("making a ClassAsPA1")
                 self.t = t
             def __str__(self):
                 return self.t[0]
 
-        class ClassAsPA2(object):
+        class ClassAsPA2:
             def __init__(self, l, t):
                 self.t = t
             def __str__(self):
                 return self.t[0]
 
-        class ClassAsPA3(object):
+        class ClassAsPA3:
             def __init__(self, s, l, t):
                 self.t = t
             def __str__(self):
@@ -2426,7 +2424,7 @@ class Test2_WithoutPackrat(TestParseResultsAsserts):
         program = varDec | funcDef
         input = 'int f(){}'
         results = program.parseString(input)
-        print("Parsed '%s' as %s" % (input, results.asList()))
+        print("Parsed '{}' as {}".format(input, results.asList()))
         self.assertEqual(results.asList(), ['int', 'f', '(', ')', '{}'], "Error in packrat parsing")
 
     def testPackratParsingCacheCopyTest2(self):
@@ -2509,7 +2507,7 @@ class Test2_WithoutPackrat(TestParseResultsAsserts):
             result = expr.searchString(data)
 
             print(result.dump())
-            self.assertEqual(result.asList(), exp, "Failed test, expected %s, got %s" % (expected, result.asList()))
+            self.assertEqual(result.asList(), exp, "Failed test, expected {}, got {}".format(expected, result.asList()))
 
     def testNestedExpressions(self):
         """
@@ -2538,7 +2536,7 @@ class Test2_WithoutPackrat(TestParseResultsAsserts):
         expected = [[['ax', '+', 'by'], '*C']]
         result = expr.parseString(teststring)
         print(result.dump())
-        self.assertEqual(result.asList(), expected, "Defaults didn't work. That's a bad sign. Expected: %s, got: %s" % (expected, result))
+        self.assertEqual(result.asList(), expected, "Defaults didn't work. That's a bad sign. Expected: {}, got: {}".format(expected, result))
 
         #Going through non-defaults, one by one; trying to think of anything
         #odd that might not be properly handled.
@@ -2551,7 +2549,7 @@ class Test2_WithoutPackrat(TestParseResultsAsserts):
         expr = nestedExpr("[")
         result = expr.parseString(teststring)
         print(result.dump())
-        self.assertEqual(result.asList(), expected, "Non-default opener didn't work. Expected: %s, got: %s" % (expected, result))
+        self.assertEqual(result.asList(), expected, "Non-default opener didn't work. Expected: {}, got: {}".format(expected, result))
 
         #Change closer
         print("\nNon-default closer")
@@ -2561,7 +2559,7 @@ class Test2_WithoutPackrat(TestParseResultsAsserts):
         expr = nestedExpr(closer="]")
         result = expr.parseString(teststring)
         print(result.dump())
-        self.assertEqual(result.asList(), expected, "Non-default closer didn't work. Expected: %s, got: %s" % (expected, result))
+        self.assertEqual(result.asList(), expected, "Non-default closer didn't work. Expected: {}, got: {}".format(expected, result))
 
         # #Multicharacter opener, closer
         # opener = "bar"
@@ -2577,7 +2575,7 @@ class Test2_WithoutPackrat(TestParseResultsAsserts):
         # expr = nestedExpr(opener, closer)
         result = expr.parseString(teststring)
         print(result.dump())
-        self.assertEqual(result.asList(), expected, "Multicharacter opener and closer didn't work. Expected: %s, got: %s" % (expected, result))
+        self.assertEqual(result.asList(), expected, "Multicharacter opener and closer didn't work. Expected: {}, got: {}".format(expected, result))
 
         #Lisp-ish comments
         print("\nUse ignore expression (1)")
@@ -2593,7 +2591,7 @@ class Test2_WithoutPackrat(TestParseResultsAsserts):
         expr = nestedExpr(ignoreExpr=comment)
         result = expr.parseString(teststring)
         print(result.dump())
-        self.assertEqual(result.asList(), expected , "Lisp-ish comments (\";; <...> $\") didn't work. Expected: %s, got: %s" % (expected, result))
+        self.assertEqual(result.asList(), expected , "Lisp-ish comments (\";; <...> $\") didn't work. Expected: {}, got: {}".format(expected, result))
 
 
         #Lisp-ish comments, using a standard bit of pyparsing, and an Or.
@@ -2612,7 +2610,7 @@ class Test2_WithoutPackrat(TestParseResultsAsserts):
         result = expr.parseString(teststring)
         print(result.dump())
         self.assertEqual(result.asList(), expected ,
-                         "Lisp-ish comments (\";; <...> $\") and quoted strings didn't work. Expected: %s, got: %s" % (expected, result))
+                         "Lisp-ish comments (\";; <...> $\") and quoted strings didn't work. Expected: {}, got: {}".format(expected, result))
 
     def testWordExclude(self):
         from pyparsing import Word, printables
@@ -2636,7 +2634,7 @@ class Test2_WithoutPackrat(TestParseResultsAsserts):
             ]
         for s, parseAllFlag, shouldSucceed in tests:
             try:
-                print("'%s' parseAll=%s (shouldSucceed=%s)" % (s, parseAllFlag, shouldSucceed))
+                print("'{}' parseAll={} (shouldSucceed={})".format(s, parseAllFlag, shouldSucceed))
                 testExpr.parseString(s, parseAll=parseAllFlag)
                 self.assertTrue(shouldSucceed, "successfully parsed when should have failed")
             except ParseException as pe:
@@ -2654,7 +2652,7 @@ class Test2_WithoutPackrat(TestParseResultsAsserts):
             ]
         for s, parseAllFlag, shouldSucceed in tests:
             try:
-                print("'%s' parseAll=%s (shouldSucceed=%s)" % (s, parseAllFlag, shouldSucceed))
+                print("'{}' parseAll={} (shouldSucceed={})".format(s, parseAllFlag, shouldSucceed))
                 testExpr.parseString(s, parseAll=parseAllFlag)
                 self.assertTrue(shouldSucceed, "successfully parsed when should have failed")
             except ParseException as pe:
@@ -2674,7 +2672,7 @@ class Test2_WithoutPackrat(TestParseResultsAsserts):
             ]
         for s, parseAllFlag, shouldSucceed in tests:
             try:
-                print("'%s' parseAll=%s (shouldSucceed=%s)" % (s, parseAllFlag, shouldSucceed))
+                print("'{}' parseAll={} (shouldSucceed={})".format(s, parseAllFlag, shouldSucceed))
                 testExpr.parseString(s, parseAll=parseAllFlag)
                 self.assertTrue(shouldSucceed, "successfully parsed when should have failed")
             except ParseException as pe:
@@ -2761,7 +2759,7 @@ class Test2_WithoutPackrat(TestParseResultsAsserts):
                 ]]
             print(results)
             print()
-            self.assertEqual(results, expected, "Failed WordBoundaryTest, expected %s, got %s" % (expected, results))
+            self.assertEqual(results, expected, "Failed WordBoundaryTest, expected {}, got {}".format(expected, results))
 
     def testRequiredEach(self):
         from pyparsing import Keyword
@@ -2894,7 +2892,7 @@ class Test2_WithoutPackrat(TestParseResultsAsserts):
         results = (res1, res2, res3, res4,)
         for test, expected in zip(tests, results):
             person = sum(person_data.searchString(test))
-            result = "ID:%s DOB:%s INFO:%s" % (person.id, person.dob, person.info)
+            result = "ID:{} DOB:{} INFO:{}".format(person.id, person.dob, person.info)
             print(test)
             print(expected)
             print(result)
@@ -2902,7 +2900,7 @@ class Test2_WithoutPackrat(TestParseResultsAsserts):
                 print(pd.dump())
             print()
             self.assertEqual(expected, result,
-                             "Failed to parse '%s' correctly, \nexpected '%s', got '%s'" % (test, expected, result))
+                             "Failed to parse '{}' correctly, \nexpected '{}', got '{}'".format(test, expected, result))
 
     def testMarkInputLine(self):
 
@@ -2955,9 +2953,9 @@ class Test2_WithoutPackrat(TestParseResultsAsserts):
             print("EXP:", val, remaining)
             print("GOT:", ret, result.asList())
             print(ret, result.asList())
-            self.assertEqual(ret, val, "wrong value returned, got %r, expected %r" % (ret, val))
+            self.assertEqual(ret, val, "wrong value returned, got {!r}, expected {!r}".format(ret, val))
             self.assertEqual(remaining, result.asList(),
-                             "list is in wrong state after pop, got %r, expected %r" % (result.asList(), remaining))
+                             "list is in wrong state after pop, got {!r}, expected {!r}".format(result.asList(), remaining))
             print()
 
         prevlist = result.asList()
@@ -2965,9 +2963,9 @@ class Test2_WithoutPackrat(TestParseResultsAsserts):
         print(ret)
         print(result.asList())
         self.assertEqual(ret, "noname",
-                         "default value not successfully returned, got %r, expected %r" % (ret, "noname"))
+                         "default value not successfully returned, got {!r}, expected {!r}".format(ret, "noname"))
         self.assertEqual(result.asList(), prevlist,
-                         "list is in wrong state after pop, got %r, expected %r" % (result.asList(), remaining))
+                         "list is in wrong state after pop, got {!r}, expected {!r}".format(result.asList(), remaining))
 
 
     def testAddCondition(self):
@@ -3271,7 +3269,7 @@ class Test2_WithoutPackrat(TestParseResultsAsserts):
         def convert_to_int(t):
             return int(t[0])
 
-        class Z(object):
+        class Z:
             def __call__(self, other):
                 return other[0] * 1000
 
@@ -3492,8 +3490,8 @@ class Test2_WithoutPackrat(TestParseResultsAsserts):
 
         for test, result in results:
             expected = ast.literal_eval(test)
-            self.assertEqual(result[0], expected, "numeric parse failed (wrong value) (%s should be %s)" % (result[0], expected))
-            self.assertEqual(type(result[0]), type(expected), "numeric parse failed (wrong type) (%s should be %s)" % (type(result[0]), type(expected)))
+            self.assertEqual(result[0], expected, "numeric parse failed (wrong value) ({} should be {})".format(result[0], expected))
+            self.assertEqual(type(result[0]), type(expected), "numeric parse failed (wrong type) ({} should be {})".format(type(result[0]), type(expected)))
 
 
     def testNumericExpressions(self):
@@ -3849,7 +3847,7 @@ class Test2_WithoutPackrat(TestParseResultsAsserts):
         for r, exp in zip(results, expected):
             if exp is not None:
                 self.assertEquals(r[1].mismatches, exp,
-                                  "fail CloseMatch between %r and %r" % (searchseq.match_string, r[0]))
+                                  "fail CloseMatch between {!r} and {!r}".format(searchseq.match_string, r[0]))
             print(r[0], 'exc: %s' % r[1] if exp is None and isinstance(r[1], Exception)
                                           else ("no match", "match")[r[1].mismatches == exp])
 
@@ -4103,7 +4101,7 @@ class Test2_WithoutPackrat(TestParseResultsAsserts):
         EQ = pp.Suppress('=')
         key_value = key + EQ + value
 
-        sample = u"""\
+        sample = """\
             şehir=İzmir
             ülke=Türkiye
             nüfus=4279677"""
@@ -5005,8 +5003,8 @@ class PickleTest_Greeting():
         self.greetee = toks[1]
 
     def __repr__(self):
-        return "%s: {%s}" % (self.__class__.__name__,
-                             ', '.join('%r: %r' % (k, getattr(self, k)) for k in sorted(self.__dict__)))
+        return "{}: {{{}}}".format(self.__class__.__name__,
+                             ', '.join('{!r}: {!r}'.format(k, getattr(self, k)) for k in sorted(self.__dict__)))
 
 
 class Test3_EnablePackratParsing(TestCase):

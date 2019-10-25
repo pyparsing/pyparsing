@@ -109,7 +109,7 @@ attribute_value_pair << Group(
     | generic_attribute_value_pair
     )
 
-object_declaration = Group((OBJECT + object_name + COLON + object_type))
+object_declaration = Group(OBJECT + object_name + COLON + object_type)
 object_attributes = Group(ZeroOrMore(attribute_value_pair))
 
 nested_object = Forward()

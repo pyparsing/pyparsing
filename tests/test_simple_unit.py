@@ -42,7 +42,7 @@ class PyparsingExpressionTestCase(TestParseResultsAsserts):
             #    the location against an expected value
             with self.subTest(test_spec=test_spec):
                 test_spec.expr.streamline()
-                print("\n{0} - {1}({2})".format(test_spec.desc,
+                print("\n{} - {}({})".format(test_spec.desc,
                                                 type(test_spec.expr).__name__,
                                                 test_spec.expr))
 
@@ -366,7 +366,7 @@ class TestTransformStringUsingParseActions(PyparsingExpressionTestCase):
     }
     def markup_convert(t):
         htmltag = TestTransformStringUsingParseActions.markup_convert_map[t.markup_symbol]
-        return "<{0}>{1}</{2}>".format(htmltag, t.body, htmltag)
+        return "<{}>{}</{}>".format(htmltag, t.body, htmltag)
 
     tests = [
         PpTestSpec(

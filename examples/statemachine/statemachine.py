@@ -72,10 +72,10 @@ def expand_state_definition(source, loc, tokens):
     ])
 
     # define all state classes
-    statedef.extend("class {0}({1}): pass".format(s, baseStateClass) for s in states)
+    statedef.extend("class {}({}): pass".format(s, baseStateClass) for s in states)
 
     # define state->state transitions
-    statedef.extend("{0}._next_state_class = {1}".format(s, fromTo[s]) for s in states if s in fromTo)
+    statedef.extend("{}._next_state_class = {}".format(s, fromTo[s]) for s in states if s in fromTo)
 
     statedef.extend([
         "class {baseStateClass}Mixin:".format(baseStateClass=baseStateClass),
@@ -178,20 +178,20 @@ def expand_named_state_definition(source, loc, tokens):
         for tn in transitions)
 
     # define all state classes
-    statedef.extend("class %s(%s): pass" % (s, baseStateClass)
+    statedef.extend("class {}({}): pass".format(s, baseStateClass)
                     for s in states)
 
     # define state transition methods for valid transitions from each state
     for s in states:
         trns = list(fromTo[s].items())
         # statedef.append("%s.tnmap = {%s}" % (s, ", ".join("%s:%s" % tn for tn in trns)))
-        statedef.extend("%s.%s = classmethod(lambda cls: %s())" % (s, tn_, to_)
+        statedef.extend("{}.{} = classmethod(lambda cls: {}())".format(s, tn_, to_)
                         for tn_, to_ in trns)
 
     statedef.extend([
         "{baseStateClass}.transitions = classmethod(lambda cls: [{transition_class_list}])".format(
             baseStateClass=baseStateClass,
-            transition_class_list = ', '.join("cls.{0}".format(tn) for tn in transitions)
+            transition_class_list = ', '.join("cls.{}".format(tn) for tn in transitions)
         ),
         "{baseStateClass}.transition_names = [tn.__name__ for tn in {baseStateClass}.transitions()]".format(
             baseStateClass=baseStateClass
@@ -236,7 +236,7 @@ namedStateMachine.setParseAction(expand_named_state_definition)
 # ======================================================================
 # NEW STUFF - Matt Anderson, 2009-11-26
 # ======================================================================
-class SuffixImporter(object):
+class SuffixImporter:
     """An importer designed using the mechanism defined in :pep:`302`. I read
     the PEP, and also used Doug Hellmann's PyMOTW article `Modules and
     Imports`_, as a pattern.
@@ -279,7 +279,7 @@ class SuffixImporter(object):
             # it probably isn't even a filesystem path
             finder = sys.path_importer_cache.get(dirpath)
             if isinstance(finder, (type(None), importlib.machinery.FileFinder)):
-                checkpath = os.path.join(dirpath, '{0}.{1}'.format(fullname, self.suffix))
+                checkpath = os.path.join(dirpath, '{}.{}'.format(fullname, self.suffix))
                 yield checkpath
 
     def find_module(self, fullname, path=None):
@@ -337,4 +337,4 @@ class PystateImporter(SuffixImporter):
 PystateImporter.register()
 
 if DEBUG:
-    print("registered {0!r} importer".format(PystateImporter.suffix))
+    print("registered {!r} importer".format(PystateImporter.suffix))

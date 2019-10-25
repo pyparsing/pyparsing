@@ -1,4 +1,3 @@
-# vim:fileencoding=utf-8
 #
 # greetingInKorean.py
 #

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #
 # chemicalFormulas.py
 #
@@ -33,7 +32,7 @@ formula.runTests("""\
     C6H5OH
     NaCl
     """,
-    fullDump=False, postParse=lambda _, tokens: "Molecular weight: {0}".format(fn(tokens)))
+    fullDump=False, postParse=lambda _, tokens: "Molecular weight: {}".format(fn(tokens)))
 print()
 
 # Version 2 - access parsed items by results name
@@ -46,7 +45,7 @@ formula.runTests("""\
     C6H5OH
     NaCl
     """,
-    fullDump=False, postParse=lambda _, tokens: "Molecular weight: {0}".format(fn(tokens)))
+    fullDump=False, postParse=lambda _, tokens: "Molecular weight: {}".format(fn(tokens)))
 print()
 
 # Version 3 - convert integers during parsing process
@@ -60,12 +59,12 @@ formula.runTests("""\
     C6H5OH
     NaCl
     """,
-    fullDump=False, postParse=lambda _, tokens: "Molecular weight: {0}".format(fn(tokens)))
+    fullDump=False, postParse=lambda _, tokens: "Molecular weight: {}".format(fn(tokens)))
 print()
 
 # Version 4 - parse and convert integers as subscript digits
 subscript_digits = "₀₁₂₃₄₅₆₇₈₉"
-subscript_int_map = dict((e[1], e[0]) for e in enumerate(subscript_digits))
+subscript_int_map = {e[1]: e[0] for e in enumerate(subscript_digits)}
 def cvt_subscript_int(s):
     ret = 0
     for c in s[0]:
@@ -80,5 +79,5 @@ formula.runTests("""\
     C₆H₅OH
     NaCl
     """,
-    fullDump=False, postParse=lambda _, tokens: "Molecular weight: {0}".format(fn(tokens)))
+    fullDump=False, postParse=lambda _, tokens: "Molecular weight: {}".format(fn(tokens)))
 print()

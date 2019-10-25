@@ -26,10 +26,10 @@ class BigQueryViewParser:
         # Table names and alias names might differ by case, but that's not
         # relevant- aliases are not case sensitive
         lower_aliases = BigQueryViewParser.lowercase_set_of_tuples(with_aliases)
-        tables = set([
+        tables = {
             x for x in table_identifiers
             if not BigQueryViewParser.lowercase_of_tuple(x) in lower_aliases
-        ])
+        }
 
         # Table names ARE case sensitive as described at
         # https://cloud.google.com/bigquery/docs/reference/standard-sql/lexical#case_sensitivity
@@ -48,7 +48,7 @@ class BigQueryViewParser:
 
     @classmethod
     def lowercase_set_of_tuples(cls, set_of_tuples):
-        return set([BigQueryViewParser.lowercase_of_tuple(x) for x in set_of_tuples])
+        return {BigQueryViewParser.lowercase_of_tuple(x) for x in set_of_tuples}
 
     @classmethod
     def _get_parser(cls):
@@ -311,7 +311,7 @@ class BigQueryViewParser:
 
         case_when = WHEN + expr.copy()("when")
         case_then = THEN + expr.copy()("then")
-        case_clauses = Group(ZeroOrMore((case_when + case_then)))
+        case_clauses = Group(ZeroOrMore(case_when + case_then))
         case_else = ELSE + expr.copy()("else")
         case_stmt = (
             CASE

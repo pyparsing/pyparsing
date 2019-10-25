@@ -60,13 +60,13 @@ roman_int_map = {}
 for expected, (t, s, e) in enumerate(romanNumeral.scanString(tests), start=1):
     orig = tests[s:e]
     if t[0] != expected:
-        print("{0} {1} {2}".format("==>", t, orig))
+        print("{} {} {}".format("==>", t, orig))
     roman_int_map[orig] = t[0]
 
 def verify_value(s, tokens):
     expected = roman_int_map[s]
     if tokens[0] != expected:
-        raise Exception("incorrect value for {0} ({1}), expected {2}".format(s, tokens[0], expected ))
+        raise Exception("incorrect value for {} ({}), expected {}".format(s, tokens[0], expected ))
 
 romanNumeral.runTests("""\
     XVI

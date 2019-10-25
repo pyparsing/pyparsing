@@ -17,7 +17,7 @@ LBRACE,RBRACE,LBRACK,RBRACK,LPAR,RPAR,EQ,SEMI = map(Suppress,"{}[]()=;")
 kwds = """message required optional repeated enum extensions extends extend
           to package service rpc returns true false option import syntax"""
 for kw in kwds.split():
-    exec("{0}_ = Keyword('{1}')".format(kw.upper(), kw))
+    exec("{}_ = Keyword('{}')".format(kw.upper(), kw))
 
 messageBody = Forward()
 

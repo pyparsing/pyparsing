@@ -62,7 +62,7 @@ bailLine = Group(Literal("Bail out!")("BAIL") +
 tapOutputParser = Optional(Group(plan)("plan") + NL) & \
             Group(OneOrMore((testLine|bailLine) + NL))("tests")
 
-class TAPTest(object):
+class TAPTest:
     def __init__(self,results):
         self.num = results.testNumber
         self.passed = (results.passed=="ok")
@@ -77,7 +77,7 @@ class TAPTest(object):
         ret.skipped = True
         return ret
 
-class TAPSummary(object):
+class TAPSummary:
     def __init__(self,results):
         self.passedTests = []
         self.failedTests = []

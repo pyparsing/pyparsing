@@ -30,7 +30,7 @@ OneOrMore(wd).parseString(data)
 
 # demonstrate returning an object from a parse action, containing more information
 # than just the matching token text
-class Token(object):
+class Token:
     def __init__(self, st, locn, tokString):
         self.tokenString = tokString
         self.locn = locn
