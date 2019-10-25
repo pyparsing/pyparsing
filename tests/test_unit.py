@@ -1,5 +1,5 @@
 #
-# unitTests.py
+# test_unit.py
 #
 # Unit tests for pyparsing module
 #
@@ -61,8 +61,6 @@ class resetting:
         for attr, value in zip(self.save_attrs, self.save_values):
             setattr(self.ob, attr, value)
 
-BUFFER_OUTPUT = True
-
 
 class Test1_PyparsingTestInit(TestCase):
     def runTest(self):
@@ -95,7 +93,7 @@ class Test2_WithoutPackrat(TestParseResultsAsserts):
             self.assertEqual(set(pp.dblQuotedString.whiteChars), set(prev_default_whitespace_chars),
                              "setDefaultWhitespaceChars updated dblQuotedString")
 
-        try:
+        with ppt.reset_pyparsing_context():
             pp.ParserElement.setDefaultWhitespaceChars(" \t")
             self.assertNotEqual(set(pp.dblQuotedString.whiteChars), set(prev_default_whitespace_chars),
                                 "setDefaultWhitespaceChars updated dblQuotedString but should not")
@@ -131,15 +129,11 @@ class Test2_WithoutPackrat(TestParseResultsAsserts):
             print(parsed_program.dump())
             self.assertEqual(len(parsed_program), 3, "failed to apply new whitespace chars to existing builtins")
 
-        finally:
-            pp.ParserElement.setDefaultWhitespaceChars(prev_default_whitespace_chars)
-
     def testUpdateDefaultWhitespace2(self):
         import pyparsing as pp
         ppc = pp.pyparsing_common
 
-        prev_default_whitespace_chars = pp.ParserElement.DEFAULT_WHITE_CHARS
-        try:
+        with ppt.reset_pyparsing_context():
             expr_tests = [
                 (pp.dblQuotedString, '"abc"'),
                 (pp.sglQuotedString, "'def'"),
@@ -173,9 +167,6 @@ class Test2_WithoutPackrat(TestParseResultsAsserts):
                 result = parser.parseString(test_string, parseAll=True)
                 print(result.dump())
                 self.assertEqual(len(result), 1, "failed {!r}".format(test_string))
-
-        finally:
-            pp.ParserElement.setDefaultWhitespaceChars(prev_default_whitespace_chars)
 
     def testParseFourFn(self):
         import examples.fourFn as fourFn
@@ -2094,9 +2085,7 @@ class Test2_WithoutPackrat(TestParseResultsAsserts):
         success = test_patt.runTests(fail_tests, failureTests=True)[0]
         self.assertTrue(success, "failed LineStart failure mode tests (1)")
 
-        # with resetting(pp.ParserElement, "DEFAULT_WHITE_CHARS"):
-        prev_default_whitespace_chars = pp.ParserElement.DEFAULT_WHITE_CHARS
-        try:
+        with ppt.reset_pyparsing_context():
             print(r'no \n in default whitespace chars')
             pp.ParserElement.setDefaultWhitespaceChars(' ')
 
@@ -2116,8 +2105,6 @@ class Test2_WithoutPackrat(TestParseResultsAsserts):
 
             success = test_patt.runTests(fail_tests, failureTests=True)[0]
             self.assertTrue(success, "failed LineStart failure mode tests (3)")
-        finally:
-            pp.ParserElement.setDefaultWhitespaceChars(prev_default_whitespace_chars)
 
         test = """\
         AAA 1
@@ -2138,15 +2125,12 @@ class Test2_WithoutPackrat(TestParseResultsAsserts):
             print()
             self.assertEqual(test[s], 'A', 'failed LineStart with insignificant newlines')
 
-        # with resetting(pp.ParserElement, "DEFAULT_WHITE_CHARS"):
-        try:
+        with ppt.reset_pyparsing_context():
             pp.ParserElement.setDefaultWhitespaceChars(' ')
             for t, s, e in (pp.LineStart() + 'AAA').scanString(test):
                 print(s, e, pp.lineno(s, test), pp.line(s, test), ord(test[s]))
                 print()
                 self.assertEqual(test[s], 'A', 'failed LineStart with insignificant newlines')
-        finally:
-            pp.ParserElement.setDefaultWhitespaceChars(prev_default_whitespace_chars)
 
 
     def testLineAndStringEnd(self):
@@ -3862,7 +3846,7 @@ class Test2_WithoutPackrat(TestParseResultsAsserts):
         except pp.ParseException:
             self.assertTrue(False, "failed to match keyword using updated keyword chars")
 
-        with resetting(pp.Keyword, "DEFAULT_KEYWORD_CHARS"):
+        with ppt.reset_pyparsing_context():
             pp.Keyword.setDefaultKeywordChars(pp.alphas)
             try:
                 pp.Keyword("start").parseString("start1000")
@@ -3877,7 +3861,7 @@ class Test2_WithoutPackrat(TestParseResultsAsserts):
         except pp.ParseException:
             self.assertTrue(False, "failed to match keyword using updated keyword chars")
 
-        with resetting(pp.Keyword, "DEFAULT_KEYWORD_CHARS"):
+        with ppt.reset_pyparsing_context():
             pp.Keyword.setDefaultKeywordChars(pp.alphas)
             try:
                 pp.CaselessKeyword("START").parseString("start1000")
@@ -4030,7 +4014,7 @@ class Test2_WithoutPackrat(TestParseResultsAsserts):
 
         print("Before parsing with setBreak:", was_called)
         import pdb
-        with resetting(pdb, "set_trace"):
+        with ppt.reset_pyparsing_context():
             pdb.set_trace = mock_set_trace
             wd.parseString("ABC")
 
@@ -4400,8 +4384,7 @@ class Test2_WithoutPackrat(TestParseResultsAsserts):
                                       {'rexp': ['the', 'bird']})
 
         # test compatibility mode, no longer restoring pre-2.3.1 behavior
-        with resetting(pp.__compat__, "collect_all_And_tokens"), \
-             resetting(pp.__diag__, "warn_multiple_tokens_in_named_alternation"):
+        with ppt.reset_pyparsing_context():
             pp.__compat__.collect_all_And_tokens = False
             pp.__diag__.enable("warn_multiple_tokens_in_named_alternation")
             expr_a = pp.Literal('not') + pp.Literal('the') + pp.Literal('bird')
@@ -4456,8 +4439,7 @@ class Test2_WithoutPackrat(TestParseResultsAsserts):
                                       {'rexp': ['the', 'bird']})
 
         # test compatibility mode, no longer restoring pre-2.3.1 behavior
-        with resetting(pp.__compat__, "collect_all_And_tokens"), \
-             resetting(pp.__diag__, "warn_multiple_tokens_in_named_alternation"):
+        with ppt.reset_pyparsing_context():
             pp.__compat__.collect_all_And_tokens = False
             pp.__diag__.enable("warn_multiple_tokens_in_named_alternation")
             expr_a = pp.Literal('not') + pp.Literal('the') + pp.Literal('bird')
@@ -4578,7 +4560,7 @@ class Test2_WithoutPackrat(TestParseResultsAsserts):
         import pyparsing as pp
         ppc = pp.pyparsing_common
 
-        with resetting(pp.__diag__, "warn_ungrouped_named_tokens_in_collection"):
+        with ppt.reset_pyparsing_context():
             pp.__diag__.enable("warn_ungrouped_named_tokens_in_collection")
 
             COMMA = pp.Suppress(',').setName("comma")
@@ -4597,7 +4579,7 @@ class Test2_WithoutPackrat(TestParseResultsAsserts):
         """
         import pyparsing as pp
 
-        with resetting(pp.__diag__, "warn_name_set_on_empty_Forward"):
+        with ppt.reset_pyparsing_context():
             pp.__diag__.enable("warn_name_set_on_empty_Forward")
 
             base = pp.Forward()
@@ -4613,7 +4595,7 @@ class Test2_WithoutPackrat(TestParseResultsAsserts):
         """
         import pyparsing as pp
 
-        with resetting(pp.__diag__, "warn_on_multiple_string_args_to_oneof"):
+        with ppt.reset_pyparsing_context():
             pp.__diag__.enable("warn_on_multiple_string_args_to_oneof")
 
             with self.assertWarns(UserWarning, msg="failed to warn when incorrectly calling oneOf(string, string)"):
@@ -4628,7 +4610,7 @@ class Test2_WithoutPackrat(TestParseResultsAsserts):
         import pyparsing as pp
         import textwrap
 
-        with resetting(pp.__diag__, "enable_debug_on_named_expressions"):
+        with ppt.reset_pyparsing_context():
             test_stdout = StringIO()
 
             with resetting(sys, 'stdout', 'stderr'):
@@ -4702,7 +4684,7 @@ class Test2_WithoutPackrat(TestParseResultsAsserts):
         for diag_name in warn_names:
             self.assertFalse(getattr(pp.__diag__, diag_name), "__diag__.{} not set to True".format(diag_name))
 
-        with resetting(pp.__diag__, *warn_names):
+        with ppt.reset_pyparsing_context():
             # enable all warn_* diag_names
             pp.__diag__.enable_all_warnings()
             pprint.pprint(filtered_vars(vars(pp.__diag__)), width=30)

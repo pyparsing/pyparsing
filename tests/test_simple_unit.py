@@ -1,5 +1,5 @@
 #
-# simple_unit_tests.py
+# test_simple_unit.py
 #
 # While these unit tests *do* perform low-level unit testing of the classes in pyparsing,
 # this testing module should also serve an instructional purpose, to clearly show simple passing
