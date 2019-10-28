@@ -13,132 +13,24 @@ DOT, STAR = map(Literal, ".*")
 select_stmt = Forward().setName("select statement")
 
 # keywords
-(
-    UNION,
-    ALL,
-    AND,
-    INTERSECT,
-    EXCEPT,
-    COLLATE,
-    ASC,
-    DESC,
-    ON,
-    USING,
-    NATURAL,
-    INNER,
-    CROSS,
-    LEFT,
-    OUTER,
-    JOIN,
-    AS,
-    INDEXED,
-    NOT,
-    SELECT,
-    DISTINCT,
-    FROM,
-    WHERE,
-    GROUP,
-    BY,
-    HAVING,
-    ORDER,
-    BY,
-    LIMIT,
-    OFFSET,
-    OR,
-) = map(
-    CaselessKeyword,
-    """UNION, ALL, AND, INTERSECT,
- EXCEPT, COLLATE, ASC, DESC, ON, USING, NATURAL, INNER, CROSS, LEFT, OUTER, JOIN, AS, INDEXED, NOT, SELECT,
- DISTINCT, FROM, WHERE, GROUP, BY, HAVING, ORDER, BY, LIMIT, OFFSET, OR""".replace(
-        ",", ""
-    ).split(),
-)
-(
-    CAST,
-    ISNULL,
-    NOTNULL,
-    NULL,
-    IS,
-    BETWEEN,
-    ELSE,
-    END,
-    CASE,
-    WHEN,
-    THEN,
-    EXISTS,
-    IN,
-    LIKE,
-    GLOB,
-    REGEXP,
-    MATCH,
-    ESCAPE,
-    CURRENT_TIME,
-    CURRENT_DATE,
-    CURRENT_TIMESTAMP,
-) = map(
-    CaselessKeyword,
-    """CAST, ISNULL, NOTNULL, NULL, IS, BETWEEN, ELSE, END, CASE, WHEN, THEN, EXISTS, IN, LIKE, GLOB,
- REGEXP, MATCH, ESCAPE, CURRENT_TIME, CURRENT_DATE, CURRENT_TIMESTAMP""".replace(
-        ",", ""
-    ).split(),
-)
-keyword = MatchFirst(
-    (
-        UNION,
-        ALL,
-        INTERSECT,
-        EXCEPT,
-        COLLATE,
-        ASC,
-        DESC,
-        ON,
-        USING,
-        NATURAL,
-        INNER,
-        CROSS,
-        LEFT,
-        OUTER,
-        JOIN,
-        AS,
-        INDEXED,
-        NOT,
-        SELECT,
-        DISTINCT,
-        FROM,
-        WHERE,
-        GROUP,
-        BY,
-        HAVING,
-        ORDER,
-        BY,
-        LIMIT,
-        OFFSET,
-        CAST,
-        ISNULL,
-        NOTNULL,
-        NULL,
-        IS,
-        BETWEEN,
-        ELSE,
-        END,
-        CASE,
-        WHEN,
-        THEN,
-        EXISTS,
-        COLLATE,
-        IN,
-        LIKE,
-        GLOB,
-        REGEXP,
-        MATCH,
-        ESCAPE,
-        CURRENT_TIME,
-        CURRENT_DATE,
-        CURRENT_TIMESTAMP,
-    )
-)
+keywords = {
+    k: CaselessKeyword(k)
+    for k in """\
+    UNION ALL AND INTERSECT EXCEPT COLLATE ASC DESC ON USING NATURAL INNER CROSS LEFT OUTER JOIN AS INDEXED NOT
+    SELECT DISTINCT FROM WHERE GROUP BY HAVING ORDER LIMIT OFFSET OR CAST ISNULL NOTNULL NULL IS BETWEEN ELSE END
+    CASE WHEN THEN EXISTS IN LIKE GLOB REGEXP MATCH ESCAPE CURRENT_TIME CURRENT_DATE CURRENT_TIMESTAMP TRUE FALSE
+    """.split()
+}
+vars().update(keywords)
+
+keyword = MatchFirst(keywords.values())
 
 identifier = ~keyword + Word(alphas, alphanums + "_")
+
+quoted_identifier = QuotedString('"', escQuote='""')
+identifier = (~keyword + Word(alphas, alphanums + "_")).setParseAction(
+    pyparsing_common.downcaseTokens
+) | quoted_identifier
 collation_name = identifier.copy()
 column_name = identifier.copy()
 column_alias = identifier.copy()
@@ -149,17 +41,20 @@ function_name = identifier.copy()
 parameter_name = identifier.copy()
 database_name = identifier.copy()
 
+comment = "--" + restOfLine
+
 # expression
 expr = Forward().setName("expression")
 
-integer = Regex(r"[+-]?\d+")
-numeric_literal = Regex(r"\d+(\.\d*)?([eE][+-]?\d+)?")
-string_literal = QuotedString("'")
+numeric_literal = pyparsing_common.number
+string_literal = QuotedString("'", escQuote="''")
 blob_literal = Regex(r"[xX]'[0-9A-Fa-f]+'")
 literal_value = (
     numeric_literal
     | string_literal
     | blob_literal
+    | TRUE
+    | FALSE
     | NULL
     | CURRENT_TIME
     | CURRENT_DATE
@@ -272,6 +167,8 @@ select_stmt << (
     )
 )
 
+select_stmt.ignore(comment)
+
 tests = """\
     select * from xyzzy where z > 100
     select * from xyzzy where z > 100 order by zz
@@ -291,5 +188,23 @@ tests = """\
     SELECT emp.eid, fname,lname FROM scott.employee as emp
     SELECT ename, lname, emp.eid FROM scott.employee as emp
     select emp.salary * (1.0 + emp.bonus) as salary_plus_bonus from scott.employee as emp
+    SELECT * FROM abcd WHERE (ST_Overlaps("GEOM", 'POINT(0 0)'))
+    SELECT * FROM abcd WHERE CAST(foo AS REAL) > -999.123
+    SELECT * FROM abcd WHERE bar BETWEEN +180 AND +10E9
+    SELECT * FROM abcd WHERE CAST(foo AS REAL) < (4 + -9.876E-4)
+    SELECT SomeFunc(99)
+    SELECT * FROM abcd WHERE ST_X(ST_Centroid(geom)) BETWEEN (-180*2) AND (180*2)
+    SELECT * FROM abcd WHERE a
+    SELECT * FROM abcd WHERE snowy_things REGEXP '[⛄️☃️☃🎿🏂🌨❄️⛷🏔🗻❄︎❆❅]'
+    SELECT * FROM abcd WHERE a."b" IN 4
+    SELECT * FROM abcd WHERE a."b" In ('4')
+    SELECT * FROM "a".b AS "E" WHERE "E"."C" >= CURRENT_Time
+    SELECT * FROM abcd WHERE "dave" != "Dave" -- names & things ☃️
+    SELECT * FROM a WHERE a.dave is not null
+    SELECT * FROM abcd WHERE pete == FALSE or peter is true
+    SELECT * FROM abcd WHERE a >= 10 * (2 + 3)
+    SELECT * FROM abcd WHERE frank = 'is ''scary'''
+    SELECT * FROM abcd WHERE "identifier with ""quotes"" and a trailing space " IS NOT FALSE
+    SELECT * FROM abcd WHERE blobby == x'C0FFEE'  -- hex
 """
 select_stmt.runTests(tests)
