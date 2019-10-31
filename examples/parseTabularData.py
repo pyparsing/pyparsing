@@ -7,7 +7,7 @@
 #
 # Copyright 2015, Paul McGuire
 #
-from pyparsing import col,Word,Optional,alphas,nums
+from pyparsing import col, Word, Optional, alphas, nums
 
 table = """\
          1         2
@@ -19,32 +19,41 @@ GREEN      3       5
 PURPLE     8"""
 
 # function to create column-specific parse conditions
-def mustMatchCols(startloc,endloc):
-    return lambda s,l,t: startloc <= col(l,s) <= endloc
+def mustMatchCols(startloc, endloc):
+    return lambda s, l, t: startloc <= col(l, s) <= endloc
+
 
 # helper to define values in a space-delimited table
 # (change empty_cell_is_zero to True if a value of 0 is desired for empty cells)
 def tableValue(expr, colstart, colend):
     empty_cell_is_zero = False
     if empty_cell_is_zero:
-        return Optional(expr.copy().addCondition(mustMatchCols(colstart,colend),
-                                        message="text not in expected columns"),
-                        default=0)
+        return Optional(
+            expr.copy().addCondition(
+                mustMatchCols(colstart, colend), message="text not in expected columns"
+            ),
+            default=0,
+        )
     else:
-        return Optional(expr.copy().addCondition(mustMatchCols(colstart,colend),
-                                        message="text not in expected columns"))
+        return Optional(
+            expr.copy().addCondition(
+                mustMatchCols(colstart, colend), message="text not in expected columns"
+            )
+        )
 
 
 # define the grammar for this simple table
 colorname = Word(alphas)
 integer = Word(nums).setParseAction(lambda t: int(t[0])).setName("integer")
-row = (colorname("name") +
-        tableValue(integer, 11, 12)("S") +
-        tableValue(integer, 15, 16)("M") +
-        tableValue(integer, 19, 20)("L"))
+row = (
+    colorname("name")
+    + tableValue(integer, 11, 12)("S")
+    + tableValue(integer, 15, 16)("M")
+    + tableValue(integer, 19, 20)("L")
+)
 
 # parse the sample text - skip over the header and counter lines
 for line in table.splitlines()[3:]:
     print(line)
     print(row.parseString(line).dump())
-    print('')
+    print("")

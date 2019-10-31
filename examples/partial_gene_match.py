@@ -17,12 +17,19 @@ Sample header:
 >NC_001799-6-2978-2778 | organism=Toxoplasma_gondii_RH | location=NC_001799:2778-2978(-) | length=201
 """
 integer = pp.pyparsing_common.integer
-genebit = pp.Group(">" + pp.Word(pp.alphanums.upper() + "-_")("gene_id")
-                   + "|" + pp.Word(pp.printables)("organism")
-                   + "|" + pp.Word(pp.printables)("location")
-                   + "|" + "length=" + integer("gene_len")
-                   + pp.LineEnd()
-                   + pp.Word("ACGTN")[1, ...].addParseAction(''.join)("gene"))
+genebit = pp.Group(
+    ">"
+    + pp.Word(pp.alphanums.upper() + "-_")("gene_id")
+    + "|"
+    + pp.Word(pp.printables)("organism")
+    + "|"
+    + pp.Word(pp.printables)("location")
+    + "|"
+    + "length="
+    + integer("gene_len")
+    + pp.LineEnd()
+    + pp.Word("ACGTN")[1, ...].addParseAction("".join)("gene")
+)
 
 # read gene data from .fasta file - takes just a few seconds
 # An important aspect of this parsing process is the reassembly of all the separate lines of the
@@ -45,12 +52,17 @@ for g in genedata:
             show_header = False
 
         matched = t[0]
-        mismatches = t['mismatches']
+        mismatches = t["mismatches"]
         print("MATCH:", searchseq.match_string)
         print("FOUND:", matched)
         if mismatches:
-            print("      ", ''.join('*' if i in mismatches else ' '
-                                    for i, c in enumerate(searchseq.match_string)))
+            print(
+                "      ",
+                "".join(
+                    "*" if i in mismatches else " "
+                    for i, c in enumerate(searchseq.match_string)
+                ),
+            )
         else:
             print("<exact match>")
         print("at location", startLoc)

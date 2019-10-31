@@ -23,13 +23,12 @@
 #
 
 
-
 # Uncomment the line below for readline support on interactive terminal
 # import readline
 from pyparsing import ParseException, Word, alphas, alphanums
 
 # Debugging flag can be set to either "debug_flag=True" or "debug_flag=False"
-debug_flag=False
+debug_flag = False
 
 variables = {}
 
@@ -59,64 +58,67 @@ from fourFn import BNF, exprStack, evaluate_stack
 
 arithExpr = BNF()
 ident = Word(alphas, alphanums).setName("identifier")
-assignment = ident("varname") + '=' + arithExpr
+assignment = ident("varname") + "=" + arithExpr
 pattern = assignment | arithExpr
 
-if __name__ == '__main__':
-  # input_string
-  input_string=''
+if __name__ == "__main__":
+    # input_string
+    input_string = ""
 
-  # Display instructions on how to quit the program
-  print("Type in the string to be parsed or 'quit' to exit the program")
-  input_string = input("> ")
-
-  while input_string.strip().lower() != 'quit':
-    if input_string.strip().lower() == 'debug':
-        debug_flag=True
-        input_string = input("> ")
-        continue
-
-    # Reset to an empty exprStack
-    del exprStack[:]
-
-    if input_string != '':
-      # try parsing the input string
-      try:
-        L = pattern.parseString(input_string, parseAll=True)
-      except ParseException as err:
-        L = ['Parse Failure', input_string, (str(err), err.line, err.column)]
-
-      # show result of parsing the input string
-      if debug_flag: print(input_string, "->", L)
-      if len(L)==0 or L[0] != 'Parse Failure':
-        if debug_flag: print("exprStack=", exprStack)
-
-        for i, ob in enumerate(exprStack):
-            if isinstance(ob, str) and ob in variables:
-                exprStack[i] = str(variables[ob])
-
-        # calculate result , store a copy in ans , display the result to user
-        try:
-          result=evaluate_stack(exprStack)
-        except Exception as e:
-          print(str(e))
-        else:
-          variables['ans']=result
-          print(result)
-
-          # Assign result to a variable if required
-          if L.varname:
-            variables[L.varname] = result
-          if debug_flag: print("variables=", variables)
-      else:
-        print('Parse Failure')
-        err_str, err_line, err_col = L[-1]
-        print(err_line)
-        print(" "*(err_col-1) + "^")
-        print(err_str)
-
-    # obtain new input string
+    # Display instructions on how to quit the program
+    print("Type in the string to be parsed or 'quit' to exit the program")
     input_string = input("> ")
 
-  # if user type 'quit' then say goodbye
-  print("Good bye!")
+    while input_string.strip().lower() != "quit":
+        if input_string.strip().lower() == "debug":
+            debug_flag = True
+            input_string = input("> ")
+            continue
+
+        # Reset to an empty exprStack
+        del exprStack[:]
+
+        if input_string != "":
+            # try parsing the input string
+            try:
+                L = pattern.parseString(input_string, parseAll=True)
+            except ParseException as err:
+                L = ["Parse Failure", input_string, (str(err), err.line, err.column)]
+
+            # show result of parsing the input string
+            if debug_flag:
+                print(input_string, "->", L)
+            if len(L) == 0 or L[0] != "Parse Failure":
+                if debug_flag:
+                    print("exprStack=", exprStack)
+
+                for i, ob in enumerate(exprStack):
+                    if isinstance(ob, str) and ob in variables:
+                        exprStack[i] = str(variables[ob])
+
+                # calculate result , store a copy in ans , display the result to user
+                try:
+                    result = evaluate_stack(exprStack)
+                except Exception as e:
+                    print(str(e))
+                else:
+                    variables["ans"] = result
+                    print(result)
+
+                    # Assign result to a variable if required
+                    if L.varname:
+                        variables[L.varname] = result
+                    if debug_flag:
+                        print("variables=", variables)
+            else:
+                print("Parse Failure")
+                err_str, err_line, err_col = L[-1]
+                print(err_line)
+                print(" " * (err_col - 1) + "^")
+                print(err_str)
+
+        # obtain new input string
+        input_string = input("> ")
+
+    # if user type 'quit' then say goodbye
+    print("Good bye!")

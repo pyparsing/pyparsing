@@ -44,28 +44,32 @@ lease 192.168.0.239 {
 """
 
 from pyparsing import *
-import datetime,time
+import datetime, time
 
-LBRACE,RBRACE,SEMI,QUOTE = map(Suppress,'{};"')
-ipAddress = Combine(Word(nums) + ('.' + Word(nums))*3)
-hexint = Word(hexnums,exact=2)
-macAddress = Combine(hexint + (':'+hexint)*5)
+LBRACE, RBRACE, SEMI, QUOTE = map(Suppress, '{};"')
+ipAddress = Combine(Word(nums) + ("." + Word(nums)) * 3)
+hexint = Word(hexnums, exact=2)
+macAddress = Combine(hexint + (":" + hexint) * 5)
 hdwType = Word(alphanums)
 
-yyyymmdd = Combine((Word(nums,exact=4)|Word(nums,exact=2))+
-                    ('/'+Word(nums,exact=2))*2)
-hhmmss = Combine(Word(nums,exact=2)+(':'+Word(nums,exact=2))*2)
-dateRef = oneOf(list("0123456"))("weekday") + yyyymmdd("date") + \
-                                                        hhmmss("time")
+yyyymmdd = Combine(
+    (Word(nums, exact=4) | Word(nums, exact=2)) + ("/" + Word(nums, exact=2)) * 2
+)
+hhmmss = Combine(Word(nums, exact=2) + (":" + Word(nums, exact=2)) * 2)
+dateRef = oneOf(list("0123456"))("weekday") + yyyymmdd("date") + hhmmss("time")
+
 
 def utcToLocalTime(tokens):
-    utctime = datetime.datetime.strptime("%(date)s %(time)s" % tokens,
-                                                    "%Y/%m/%d %H:%M:%S")
-    localtime = utctime-datetime.timedelta(0,time.timezone,0)
-    tokens["utcdate"],tokens["utctime"] = tokens["date"],tokens["time"]
-    tokens["localdate"],tokens["localtime"] = str(localtime).split()
+    utctime = datetime.datetime.strptime(
+        "%(date)s %(time)s" % tokens, "%Y/%m/%d %H:%M:%S"
+    )
+    localtime = utctime - datetime.timedelta(0, time.timezone, 0)
+    tokens["utcdate"], tokens["utctime"] = tokens["date"], tokens["time"]
+    tokens["localdate"], tokens["localtime"] = str(localtime).split()
     del tokens["date"]
     del tokens["time"]
+
+
 dateRef.setParseAction(utcToLocalTime)
 
 startsStmt = "starts" + dateRef + SEMI
@@ -76,12 +80,18 @@ hdwStmt = "hardware" + hdwType("type") + macAddress("mac") + SEMI
 uidStmt = "uid" + QuotedString('"')("uid") + SEMI
 bindingStmt = "binding" + Word(alphanums) + Word(alphanums) + SEMI
 
-leaseStatement = startsStmt | endsStmt | tstpStmt | tsfpStmt | hdwStmt | \
-                                                        uidStmt | bindingStmt
-leaseDef = "lease" + ipAddress("ipaddress") + LBRACE + \
-                            Dict(ZeroOrMore(Group(leaseStatement))) + RBRACE
+leaseStatement = (
+    startsStmt | endsStmt | tstpStmt | tsfpStmt | hdwStmt | uidStmt | bindingStmt
+)
+leaseDef = (
+    "lease"
+    + ipAddress("ipaddress")
+    + LBRACE
+    + Dict(ZeroOrMore(Group(leaseStatement)))
+    + RBRACE
+)
 
 for lease in leaseDef.searchString(sample):
     print(lease.dump())
-    print(lease.ipaddress,'->',lease.hardware.mac)
+    print(lease.ipaddress, "->", lease.hardware.mac)
     print()

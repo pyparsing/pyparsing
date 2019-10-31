@@ -14,7 +14,7 @@ koreanWord = Word(koreanChars, min=2)
 greet = koreanWord + "," + koreanWord + "!"
 
 # input string
-hello = '안녕, 여러분!' #"Hello, World!" in Korean
+hello = "안녕, 여러분!"  # "Hello, World!" in Korean
 
 # parse input string
 print(greet.parseString(hello))

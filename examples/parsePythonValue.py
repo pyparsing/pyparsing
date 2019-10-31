@@ -5,52 +5,55 @@
 import pyparsing as pp
 
 
-cvtBool = lambda t:t[0]=='True'
+cvtBool = lambda t: t[0] == "True"
 cvtInt = lambda toks: int(toks[0])
 cvtReal = lambda toks: float(toks[0])
-cvtTuple = lambda toks : tuple(toks.asList())
+cvtTuple = lambda toks: tuple(toks.asList())
 cvtDict = lambda toks: dict(toks.asList())
 cvtList = lambda toks: [toks.asList()]
 
 # define punctuation as suppressed literals
-lparen, rparen, lbrack, rbrack, lbrace, rbrace, colon, comma = map(pp.Suppress,"()[]{}:,")
+lparen, rparen, lbrack, rbrack, lbrace, rbrace, colon, comma = map(
+    pp.Suppress, "()[]{}:,"
+)
 
-integer = pp.Regex(r"[+-]?\d+").setName("integer").setParseAction(cvtInt )
+integer = pp.Regex(r"[+-]?\d+").setName("integer").setParseAction(cvtInt)
 real = pp.Regex(r"[+-]?\d+\.\d*([Ee][+-]?\d+)?").setName("real").setParseAction(cvtReal)
 tupleStr = pp.Forward()
 listStr = pp.Forward()
 dictStr = pp.Forward()
 
-pp.unicodeString.setParseAction(lambda t:t[0][2:-1])
-pp.quotedString.setParseAction(lambda t:t[0][1:-1])
+pp.unicodeString.setParseAction(lambda t: t[0][2:-1])
+pp.quotedString.setParseAction(lambda t: t[0][1:-1])
 boolLiteral = pp.oneOf("True False").setParseAction(cvtBool)
 noneLiteral = pp.Literal("None").setParseAction(pp.replaceWith(None))
 
-listItem = (real
-            | integer
-            | pp.quotedString
-            | pp.unicodeString
-            | boolLiteral
-            | noneLiteral
-            | pp.Group(listStr)
-            | tupleStr
-            | dictStr)
+listItem = (
+    real
+    | integer
+    | pp.quotedString
+    | pp.unicodeString
+    | boolLiteral
+    | noneLiteral
+    | pp.Group(listStr)
+    | tupleStr
+    | dictStr
+)
 
-tupleStr << (lparen
-             + pp.Optional(pp.delimitedList(listItem))
-             + pp.Optional(comma)
-             + rparen)
+tupleStr << (
+    lparen + pp.Optional(pp.delimitedList(listItem)) + pp.Optional(comma) + rparen
+)
 tupleStr.setParseAction(cvtTuple)
 
-listStr << (lbrack
-            + pp.Optional(pp.delimitedList(listItem) + pp.Optional(comma))
-            + rbrack)
+listStr << (
+    lbrack + pp.Optional(pp.delimitedList(listItem) + pp.Optional(comma)) + rbrack
+)
 listStr.setParseAction(cvtList, lambda t: t[0])
 
 dictEntry = pp.Group(listItem + colon + listItem)
-dictStr << (lbrace
-            + pp.Optional(pp.delimitedList(dictEntry) + pp.Optional(comma))
-            + rbrace)
+dictStr << (
+    lbrace + pp.Optional(pp.delimitedList(dictEntry) + pp.Optional(comma)) + rbrace
+)
 dictStr.setParseAction(cvtDict)
 
 tests = """['a', 100, ('A', [101,102]), 3.14, [ +2.718, 'xyzzy', -1.414] ]

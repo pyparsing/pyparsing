@@ -11,7 +11,7 @@ mollit anim id est laborum"""
 
 # find all words beginning with a vowel
 vowels = "aeiouAEIOU"
-initialVowelWord = Word(vowels,alphas)
+initialVowelWord = Word(vowels, alphas)
 
 # Unfortunately, searchString will advance character by character through
 # the input text, so it will detect that the initial "Lorem" is not an
@@ -20,34 +20,38 @@ initialVowelWord = Word(vowels,alphas)
 # consonants, but we will just throw them away when we match them. The key is
 # that, in having been matched, the parser will skip over them entirely when
 # looking for initialVowelWords.
-consonants = ''.join(c for c in alphas if c not in vowels)
+consonants = "".join(c for c in alphas if c not in vowels)
 initialConsWord = Word(consonants, alphas).suppress()
 
 # using scanString to locate where tokens are matched
-for t,start,end in (initialConsWord|initialVowelWord).scanString(text):
+for t, start, end in (initialConsWord | initialVowelWord).scanString(text):
     if t:
-        print(start,':', t[0])
+        print(start, ":", t[0])
 
 # add parse action to annotate the parsed tokens with their location in the
 # input string
-def addLocnToTokens(s,l,t):
-    t['locn'] = l
-    t['word'] = t[0]
+def addLocnToTokens(s, l, t):
+    t["locn"] = l
+    t["word"] = t[0]
+
+
 initialVowelWord.setParseAction(addLocnToTokens)
 
 for ivowelInfo in (initialConsWord | initialVowelWord).searchString(text):
     if not ivowelInfo:
         continue
-    print(ivowelInfo.locn, ':', ivowelInfo.word)
+    print(ivowelInfo.locn, ":", ivowelInfo.word)
 
 
 # alternative - add an Empty that will save the current location
 def location(name):
-    return Empty().setParseAction(lambda s,l,t: t.__setitem__(name,l))
+    return Empty().setParseAction(lambda s, l, t: t.__setitem__(name, l))
+
+
 locateInitialVowels = location("locn") + initialVowelWord("word")
 
 # search through the input text
 for ivowelInfo in (initialConsWord | locateInitialVowels).searchString(text):
     if not ivowelInfo:
         continue
-    print(ivowelInfo.locn, ':', ivowelInfo.word)
+    print(ivowelInfo.locn, ":", ivowelInfo.word)

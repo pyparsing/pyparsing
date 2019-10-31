@@ -7,7 +7,12 @@
 import statemachine
 import documentsignoffstate
 
-print('\n'.join(t.__name__ for t in documentsignoffstate.DocumentRevisionState.transitions()))
+print(
+    "\n".join(
+        t.__name__ for t in documentsignoffstate.DocumentRevisionState.transitions()
+    )
+)
+
 
 class Document(documentsignoffstate.DocumentRevisionStateMixin):
     def __init__(self):
@@ -27,16 +32,16 @@ def run_demo():
 
     while not isinstance(doc._state, documentsignoffstate.Approved):
 
-        print('...submit')
+        print("...submit")
         doc.submit()
         print(doc)
         print(doc.state.description)
 
-        if random.randint(1,10) > 3:
-            print('...reject')
+        if random.randint(1, 10) > 3:
+            print("...reject")
             doc.reject()
         else:
-            print('...approve')
+            print("...approve")
             doc.approve()
 
         print(doc)
@@ -46,5 +51,6 @@ def run_demo():
     print(doc)
     print(doc.state.description)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     run_demo()

@@ -1,15 +1,24 @@
 from searchparser import SearchQueryParser
 
-products = [ "grape juice", "grape jelly", "orange juice", "orange jujubees",
-    "strawberry jam", "prune juice", "prune butter", "orange marmalade",
-    "grapefruit juice" ]
+products = [
+    "grape juice",
+    "grape jelly",
+    "orange juice",
+    "orange jujubees",
+    "strawberry jam",
+    "prune juice",
+    "prune butter",
+    "orange marmalade",
+    "grapefruit juice",
+]
+
 
 class FruitSearchParser(SearchQueryParser):
     def GetWord(self, word):
-        return { p for p in products if p.startswith(word + " ") }
+        return {p for p in products if p.startswith(word + " ")}
 
     def GetWordWildcard(self, word):
-        return { p for p in products if p.startswith(word[:-1]) }
+        return {p for p in products if p.startswith(word[:-1])}
 
     def GetQuotes(self, search_string, tmp_result):
         result = set()
@@ -17,7 +26,7 @@ class FruitSearchParser(SearchQueryParser):
         return result
 
     def GetNot(self, not_set):
-        return set( products ) - not_set
+        return set(products) - not_set
 
 
 parser = FruitSearchParser()
@@ -31,4 +40,4 @@ tests = """\
 for t in tests:
     print(t.strip())
     print(parser.Parse(t))
-    print('')
+    print("")

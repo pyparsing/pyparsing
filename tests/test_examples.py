@@ -6,9 +6,8 @@ import unittest
 
 
 class TestExamples(unittest.TestCase):
-
     def _run(self, name):
-        import_module('examples.'+name)
+        import_module("examples." + name)
 
     def test_numerics(self):
         self._run("numerics")
@@ -30,4 +29,3 @@ class TestExamples(unittest.TestCase):
 
     def test_eval_arith(self):
         self._run("eval_arith")
-

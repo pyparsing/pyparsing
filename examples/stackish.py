@@ -28,43 +28,66 @@ SPACE White space is basically ignored. This is interesting because since
     separation character and perform reasonable diffs on two structures.
 """
 
-from pyparsing import Suppress,Word,nums,alphas,alphanums,Combine,oneOf,\
-        Optional,QuotedString,Forward,Group,ZeroOrMore,srange
+from pyparsing import (
+    Suppress,
+    Word,
+    nums,
+    alphas,
+    alphanums,
+    Combine,
+    oneOf,
+    Optional,
+    QuotedString,
+    Forward,
+    Group,
+    ZeroOrMore,
+    srange,
+)
 
-MARK,UNMARK,AT,COLON,QUOTE = map(Suppress,"[]@:'")
+MARK, UNMARK, AT, COLON, QUOTE = map(Suppress, "[]@:'")
 
 NUMBER = Word(nums)
-NUMBER.setParseAction(lambda t:int(t[0]))
+NUMBER.setParseAction(lambda t: int(t[0]))
 FLOAT = Combine(oneOf("+ -") + Word(nums) + "." + Optional(Word(nums)))
-FLOAT.setParseAction(lambda t:float(t[0]))
+FLOAT.setParseAction(lambda t: float(t[0]))
 STRING = QuotedString('"', multiline=True)
-WORD = Word(alphas,alphanums+"_:")
+WORD = Word(alphas, alphanums + "_:")
 ATTRIBUTE = Combine(AT + WORD)
 
 strBody = Forward()
+
+
 def setBodyLength(tokens):
-    strBody << Word(srange(r'[\0x00-\0xffff]'), exact=int(tokens[0]))
+    strBody << Word(srange(r"[\0x00-\0xffff]"), exact=int(tokens[0]))
     return ""
-BLOB = Combine(QUOTE + Word(nums).setParseAction(setBodyLength) +
-                                COLON + strBody + QUOTE)
+
+
+BLOB = Combine(
+    QUOTE + Word(nums).setParseAction(setBodyLength) + COLON + strBody + QUOTE
+)
 
 item = Forward()
+
+
 def assignUsing(s):
     def assignPA(tokens):
         if s in tokens:
             tokens[tokens[s]] = tokens[0]
             del tokens[s]
+
     return assignPA
-GROUP = (MARK +
-         Group( ZeroOrMore(
-                    (item +
-                     Optional(ATTRIBUTE)("attr")
-                    ).setParseAction(assignUsing("attr"))
-                )
-               ) +
-         ( WORD("name") | UNMARK )
-        ).setParseAction(assignUsing("name"))
-item << (NUMBER | FLOAT | STRING | BLOB | GROUP )
+
+
+GROUP = (
+    MARK
+    + Group(
+        ZeroOrMore(
+            (item + Optional(ATTRIBUTE)("attr")).setParseAction(assignUsing("attr"))
+        )
+    )
+    + (WORD("name") | UNMARK)
+).setParseAction(assignUsing("name"))
+item << (NUMBER | FLOAT | STRING | BLOB | GROUP)
 
 tests = """\
 [ '10:1234567890' @name 25 @age +0.45 @percentage person:zed

@@ -5,14 +5,27 @@
 #  Copyright 2010, Paul McGuire
 #
 
-from pyparsing import (Word, alphas, alphanums, Regex, Suppress, Forward,
-    Group, oneOf, ZeroOrMore, Optional, delimitedList,
-    restOfLine, quotedString, Dict)
+from pyparsing import (
+    Word,
+    alphas,
+    alphanums,
+    Regex,
+    Suppress,
+    Forward,
+    Group,
+    oneOf,
+    ZeroOrMore,
+    Optional,
+    delimitedList,
+    restOfLine,
+    quotedString,
+    Dict,
+)
 
-ident = Word(alphas+"_",alphanums+"_").setName("identifier")
+ident = Word(alphas + "_", alphanums + "_").setName("identifier")
 integer = Regex(r"[+-]?\d+")
 
-LBRACE,RBRACE,LBRACK,RBRACK,LPAR,RPAR,EQ,SEMI = map(Suppress,"{}[]()=;")
+LBRACE, RBRACE, LBRACK, RBRACK, LPAR, RPAR, EQ, SEMI = map(Suppress, "{}[]()=;")
 
 kwds = """message required optional repeated enum extensions extends extend
           to package service rpc returns true false option import syntax"""
@@ -23,15 +36,34 @@ messageBody = Forward()
 
 messageDefn = MESSAGE_ - ident("messageId") + LBRACE + messageBody("body") + RBRACE
 
-typespec = oneOf("""double float int32 int64 uint32 uint64 sint32 sint64
-                    fixed32 fixed64 sfixed32 sfixed64 bool string bytes""") | ident
+typespec = (
+    oneOf(
+        """double float int32 int64 uint32 uint64 sint32 sint64
+                    fixed32 fixed64 sfixed32 sfixed64 bool string bytes"""
+    )
+    | ident
+)
 rvalue = integer | TRUE_ | FALSE_ | ident
 fieldDirective = LBRACK + Group(ident + EQ + rvalue) + RBRACK
-fieldDefnPrefix =  REQUIRED_ | OPTIONAL_ | REPEATED_
-fieldDefn = (Optional(fieldDefnPrefix) + typespec("typespec") + ident("ident") + EQ + integer("fieldint") + ZeroOrMore(fieldDirective) + SEMI)
+fieldDefnPrefix = REQUIRED_ | OPTIONAL_ | REPEATED_
+fieldDefn = (
+    Optional(fieldDefnPrefix)
+    + typespec("typespec")
+    + ident("ident")
+    + EQ
+    + integer("fieldint")
+    + ZeroOrMore(fieldDirective)
+    + SEMI
+)
 
 # enumDefn ::= 'enum' ident '{' { ident '=' integer ';' }* '}'
-enumDefn = ENUM_("typespec") - ident('name') + LBRACE + Dict( ZeroOrMore( Group(ident + EQ + integer + SEMI) ))('values') + RBRACE
+enumDefn = (
+    ENUM_("typespec")
+    - ident("name")
+    + LBRACE
+    + Dict(ZeroOrMore(Group(ident + EQ + integer + SEMI)))("values")
+    + RBRACE
+)
 
 # extensionsDefn ::= 'extensions' integer 'to' integer ';'
 extensionsDefn = EXTENSIONS_ - integer + TO_ + integer + SEMI
@@ -40,28 +72,52 @@ extensionsDefn = EXTENSIONS_ - integer + TO_ + integer + SEMI
 messageExtension = EXTEND_ - ident + LBRACE + messageBody + RBRACE
 
 # messageBody ::= { fieldDefn | enumDefn | messageDefn | extensionsDefn | messageExtension }*
-messageBody << Group(ZeroOrMore( Group(fieldDefn | enumDefn | messageDefn | extensionsDefn | messageExtension) ))
+messageBody << Group(
+    ZeroOrMore(
+        Group(fieldDefn | enumDefn | messageDefn | extensionsDefn | messageExtension)
+    )
+)
 
 # methodDefn ::= 'rpc' ident '(' [ ident ] ')' 'returns' '(' [ ident ] ')' ';'
-methodDefn = (RPC_ - ident("methodName") +
-              LPAR + Optional(ident("methodParam")) + RPAR +
-              RETURNS_ + LPAR + Optional(ident("methodReturn")) + RPAR)
+methodDefn = (
+    RPC_
+    - ident("methodName")
+    + LPAR
+    + Optional(ident("methodParam"))
+    + RPAR
+    + RETURNS_
+    + LPAR
+    + Optional(ident("methodReturn"))
+    + RPAR
+)
 
 # serviceDefn ::= 'service' ident '{' methodDefn* '}'
-serviceDefn = SERVICE_ - ident("serviceName") + LBRACE + ZeroOrMore(Group(methodDefn)) + RBRACE
+serviceDefn = (
+    SERVICE_ - ident("serviceName") + LBRACE + ZeroOrMore(Group(methodDefn)) + RBRACE
+)
 
 syntaxDefn = SYNTAX_ + EQ - quotedString("syntaxString") + SEMI
 
 # packageDirective ::= 'package' ident [ '.' ident]* ';'
-packageDirective = Group(PACKAGE_ - delimitedList(ident, '.', combine=True) + SEMI)
+packageDirective = Group(PACKAGE_ - delimitedList(ident, ".", combine=True) + SEMI)
 
-comment = '//' + restOfLine
+comment = "//" + restOfLine
 
 importDirective = IMPORT_ - quotedString("importFileSpec") + SEMI
 
-optionDirective = OPTION_ - ident("optionName") + EQ + quotedString("optionValue") + SEMI
+optionDirective = (
+    OPTION_ - ident("optionName") + EQ + quotedString("optionValue") + SEMI
+)
 
-topLevelStatement = Group(messageDefn | messageExtension | enumDefn | serviceDefn | importDirective | optionDirective | syntaxDefn)
+topLevelStatement = Group(
+    messageDefn
+    | messageExtension
+    | enumDefn
+    | serviceDefn
+    | importDirective
+    | optionDirective
+    | syntaxDefn
+)
 
 parser = Optional(packageDirective) + ZeroOrMore(topLevelStatement)
 

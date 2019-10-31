@@ -22,11 +22,24 @@
 # Copyright 2008, by Paul McGuire
 #
 
-from pyparsing import ParserElement,LineEnd,Optional,Word,nums,Regex,\
-    Literal,CaselessLiteral,Group,OneOrMore,Suppress,restOfLine,\
-    FollowedBy,empty
+from pyparsing import (
+    ParserElement,
+    LineEnd,
+    Optional,
+    Word,
+    nums,
+    Regex,
+    Literal,
+    CaselessLiteral,
+    Group,
+    OneOrMore,
+    Suppress,
+    restOfLine,
+    FollowedBy,
+    empty,
+)
 
-__all__ = ['tapOutputParser', 'TAPTest', 'TAPSummary']
+__all__ = ["tapOutputParser", "TAPTest", "TAPSummary"]
 
 # newlines are significant whitespace, so set default skippable
 # whitespace to just spaces and tabs
@@ -34,51 +47,58 @@ ParserElement.setDefaultWhitespaceChars(" \t")
 NL = LineEnd().suppress()
 
 integer = Word(nums)
-plan = '1..' + integer("ubound")
+plan = "1.." + integer("ubound")
 
-OK,NOT_OK = map(Literal,['ok','not ok'])
-testStatus = (OK | NOT_OK)
+OK, NOT_OK = map(Literal, ["ok", "not ok"])
+testStatus = OK | NOT_OK
 
 description = Regex("[^#\n]+")
-description.setParseAction(lambda t:t[0].lstrip('- '))
+description.setParseAction(lambda t: t[0].lstrip("- "))
 
-TODO,SKIP = map(CaselessLiteral,'TODO SKIP'.split())
-directive = Group(Suppress('#') + (TODO + restOfLine |
-    FollowedBy(SKIP) +
-        restOfLine.copy().setParseAction(lambda t:['SKIP',t[0]]) ))
+TODO, SKIP = map(CaselessLiteral, "TODO SKIP".split())
+directive = Group(
+    Suppress("#")
+    + (
+        TODO + restOfLine
+        | FollowedBy(SKIP) + restOfLine.copy().setParseAction(lambda t: ["SKIP", t[0]])
+    )
+)
 
 commentLine = Suppress("#") + empty + restOfLine
 
 testLine = Group(
-    Optional(OneOrMore(commentLine + NL))("comments") +
-    testStatus("passed") +
-    Optional(integer)("testNumber") +
-    Optional(description)("description") +
-    Optional(directive)("directive")
-    )
-bailLine = Group(Literal("Bail out!")("BAIL") +
-                    empty + Optional(restOfLine)("reason"))
+    Optional(OneOrMore(commentLine + NL))("comments")
+    + testStatus("passed")
+    + Optional(integer)("testNumber")
+    + Optional(description)("description")
+    + Optional(directive)("directive")
+)
+bailLine = Group(Literal("Bail out!")("BAIL") + empty + Optional(restOfLine)("reason"))
 
-tapOutputParser = Optional(Group(plan)("plan") + NL) & \
-            Group(OneOrMore((testLine|bailLine) + NL))("tests")
+tapOutputParser = Optional(Group(plan)("plan") + NL) & Group(
+    OneOrMore((testLine | bailLine) + NL)
+)("tests")
+
 
 class TAPTest:
-    def __init__(self,results):
+    def __init__(self, results):
         self.num = results.testNumber
-        self.passed = (results.passed=="ok")
+        self.passed = results.passed == "ok"
         self.skipped = self.todo = False
         if results.directive:
-            self.skipped = (results.directive[0][0]=='SKIP')
-            self.todo = (results.directive[0][0]=='TODO')
+            self.skipped = results.directive[0][0] == "SKIP"
+            self.todo = results.directive[0][0] == "TODO"
+
     @classmethod
-    def bailedTest(cls,num):
+    def bailedTest(cls, num):
         ret = TAPTest(empty.parseString(""))
         ret.num = num
         ret.skipped = True
         return ret
 
+
 class TAPSummary:
-    def __init__(self,results):
+    def __init__(self, results):
         self.passedTests = []
         self.failedTests = []
         self.skippedTests = []
@@ -86,22 +106,22 @@ class TAPSummary:
         self.bonusTests = []
         self.bail = False
         if results.plan:
-            expected = list(range(1, int(results.plan.ubound)+1))
+            expected = list(range(1, int(results.plan.ubound) + 1))
         else:
-            expected = list(range(1,len(results.tests)+1))
+            expected = list(range(1, len(results.tests) + 1))
 
-        for i,res in enumerate(results.tests):
+        for i, res in enumerate(results.tests):
             # test for bail out
             if res.BAIL:
-                #~ print "Test suite aborted: " + res.reason
-                #~ self.failedTests += expected[i:]
+                # ~ print "Test suite aborted: " + res.reason
+                # ~ self.failedTests += expected[i:]
                 self.bail = True
-                self.skippedTests += [ TAPTest.bailedTest(ii) for ii in expected[i:] ]
+                self.skippedTests += [TAPTest.bailedTest(ii) for ii in expected[i:]]
                 self.bailReason = res.reason
                 break
 
-            #~ print res.dump()
-            testnum = i+1
+            # ~ print res.dump()
+            testnum = i + 1
             if res.testNumber != "":
                 if testnum != int(res.testNumber):
                     print("ERROR! test %(testNumber)s out of sequence" % res)
@@ -113,30 +133,36 @@ class TAPSummary:
                 self.passedTests.append(test)
             else:
                 self.failedTests.append(test)
-            if test.skipped: self.skippedTests.append(test)
-            if test.todo: self.todoTests.append(test)
-            if test.todo and test.passed: self.bonusTests.append(test)
+            if test.skipped:
+                self.skippedTests.append(test)
+            if test.todo:
+                self.todoTests.append(test)
+            if test.todo and test.passed:
+                self.bonusTests.append(test)
 
-        self.passedSuite = not self.bail and (set(self.failedTests)-set(self.todoTests) == set())
+        self.passedSuite = not self.bail and (
+            set(self.failedTests) - set(self.todoTests) == set()
+        )
 
     def summary(self, showPassed=False, showAll=False):
-        testListStr = lambda tl : "[" + ",".join(str(t.num) for t in tl) + "]"
+        testListStr = lambda tl: "[" + ",".join(str(t.num) for t in tl) + "]"
         summaryText = []
         if showPassed or showAll:
-            summaryText.append( "PASSED: %s" % testListStr(self.passedTests) )
+            summaryText.append("PASSED: %s" % testListStr(self.passedTests))
         if self.failedTests or showAll:
-            summaryText.append( "FAILED: %s" % testListStr(self.failedTests) )
+            summaryText.append("FAILED: %s" % testListStr(self.failedTests))
         if self.skippedTests or showAll:
-            summaryText.append( "SKIPPED: %s" % testListStr(self.skippedTests) )
+            summaryText.append("SKIPPED: %s" % testListStr(self.skippedTests))
         if self.todoTests or showAll:
-            summaryText.append( "TODO: %s" % testListStr(self.todoTests) )
+            summaryText.append("TODO: %s" % testListStr(self.todoTests))
         if self.bonusTests or showAll:
-            summaryText.append( "BONUS: %s" % testListStr(self.bonusTests) )
+            summaryText.append("BONUS: %s" % testListStr(self.bonusTests))
         if self.passedSuite:
-            summaryText.append( "PASSED" )
+            summaryText.append("PASSED")
         else:
-            summaryText.append( "FAILED" )
+            summaryText.append("FAILED")
         return "\n".join(summaryText)
+
 
 # create TAPSummary objects from tapOutput parsed results, by setting
 # class as parse action
@@ -210,7 +236,7 @@ if __name__ == "__main__":
         1..7
         """
 
-    for test in (test1,test2,test3,test4,test5,test6):
+    for test in (test1, test2, test3, test4, test5, test6):
         print(test)
         tapResult = tapOutputParser.parseString(test)[0]
         print(tapResult.summary(showAll=True))

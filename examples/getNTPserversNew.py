@@ -7,16 +7,25 @@
 # September, 2010 - updated to more current use of setResultsName, new NIST URL
 #
 import pyparsing as pp
+
 ppc = pp.pyparsing_common
 from urllib.request import urlopen
 
 integer = pp.Word(pp.nums)
 ipAddress = ppc.ipv4_address()
-hostname = pp.delimitedList(pp.Word(pp.alphas, pp.alphanums+"-_"), ".", combine=True)
+hostname = pp.delimitedList(pp.Word(pp.alphas, pp.alphanums + "-_"), ".", combine=True)
 tdStart, tdEnd = pp.makeHTMLTags("td")
-timeServerPattern = (tdStart + hostname("hostname") + tdEnd
-                     + tdStart + ipAddress("ipAddr") + tdEnd
-                     + tdStart + tdStart.tag_body("loc") + tdEnd)
+timeServerPattern = (
+    tdStart
+    + hostname("hostname")
+    + tdEnd
+    + tdStart
+    + ipAddress("ipAddr")
+    + tdEnd
+    + tdStart
+    + tdStart.tag_body("loc")
+    + tdEnd
+)
 
 # get list of time servers
 nistTimeServerURL = "https://tf.nist.gov/tf-cgi/servers.cgi#"

@@ -19,15 +19,19 @@ testData = """
 """
 
 # define grammar for datatable
-heading = (pp.Literal(
-"+-------+------+------+------+------+------+------+------+------+") +
-"|       |  A1  |  B1  |  C1  |  D1  |  A2  |  B2  |  C2  |  D2  |" +
-"+=======+======+======+======+======+======+======+======+======+").suppress()
+heading = (
+    pp.Literal("+-------+------+------+------+------+------+------+------+------+")
+    + "|       |  A1  |  B1  |  C1  |  D1  |  A2  |  B2  |  C2  |  D2  |"
+    + "+=======+======+======+======+======+======+======+======+======+"
+).suppress()
 vert = pp.Literal("|").suppress()
 number = pp.Word(pp.nums)
-rowData = pp.Group( vert + pp.Word(pp.alphas) + vert + pp.delimitedList(number,"|") + vert )
+rowData = pp.Group(
+    vert + pp.Word(pp.alphas) + vert + pp.delimitedList(number, "|") + vert
+)
 trailing = pp.Literal(
-"+-------+------+------+------+------+------+------+------+------+").suppress()
+    "+-------+------+------+------+------+------+------+------+------+"
+).suppress()
 
 datatable = heading + pp.Dict(pp.ZeroOrMore(rowData)) + trailing
 
@@ -42,7 +46,7 @@ data.pprint()
 print("data keys=", list(data.keys()))
 
 # use dict-style access to values
-print("data['min']=", data['min'])
+print("data['min']=", data["min"])
 
 # use attribute-style access to values (if key is a valid Python identifier)
 print("data.max", data.max)

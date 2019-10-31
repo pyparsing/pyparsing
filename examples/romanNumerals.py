@@ -5,26 +5,40 @@
 
 import pyparsing as pp
 
+
 def romanNumeralLiteral(numeralString, value):
     return pp.Literal(numeralString).setParseAction(pp.replaceWith(value))
 
-one         = romanNumeralLiteral("I", 1)
-four        = romanNumeralLiteral("IV", 4)
-five        = romanNumeralLiteral("V", 5)
-nine        = romanNumeralLiteral("IX", 9)
-ten         = romanNumeralLiteral("X", 10)
-forty       = romanNumeralLiteral("XL", 40)
-fifty       = romanNumeralLiteral("L", 50)
-ninety      = romanNumeralLiteral("XC", 90)
-onehundred  = romanNumeralLiteral("C", 100)
+
+one = romanNumeralLiteral("I", 1)
+four = romanNumeralLiteral("IV", 4)
+five = romanNumeralLiteral("V", 5)
+nine = romanNumeralLiteral("IX", 9)
+ten = romanNumeralLiteral("X", 10)
+forty = romanNumeralLiteral("XL", 40)
+fifty = romanNumeralLiteral("L", 50)
+ninety = romanNumeralLiteral("XC", 90)
+onehundred = romanNumeralLiteral("C", 100)
 fourhundred = romanNumeralLiteral("CD", 400)
 fivehundred = romanNumeralLiteral("D", 500)
 ninehundred = romanNumeralLiteral("CM", 900)
 onethousand = romanNumeralLiteral("M", 1000)
 
-numeral = (onethousand | ninehundred | fivehundred | fourhundred
-           | onehundred | ninety | fifty | forty | ten | nine | five
-           | four | one).leaveWhitespace()
+numeral = (
+    onethousand
+    | ninehundred
+    | fivehundred
+    | fourhundred
+    | onehundred
+    | ninety
+    | fifty
+    | forty
+    | ten
+    | nine
+    | five
+    | four
+    | one
+).leaveWhitespace()
 
 romanNumeral = numeral[1, ...].setParseAction(sum)
 
@@ -52,8 +66,9 @@ def makeRomanNumeral(n):
     n, ret = addDigits(n, 1, "I", ret)
     return ret
 
+
 # make a string of all roman numerals from I to MMMMM
-tests = " ".join(makeRomanNumeral(i) for i in range(1, 5000+1))
+tests = " ".join(makeRomanNumeral(i) for i in range(1, 5000 + 1))
 
 # parse each roman numeral, and populate map for validation below
 roman_int_map = {}
@@ -63,17 +78,24 @@ for expected, (t, s, e) in enumerate(romanNumeral.scanString(tests), start=1):
         print("{} {} {}".format("==>", t, orig))
     roman_int_map[orig] = t[0]
 
+
 def verify_value(s, tokens):
     expected = roman_int_map[s]
     if tokens[0] != expected:
-        raise Exception("incorrect value for {} ({}), expected {}".format(s, tokens[0], expected ))
+        raise Exception(
+            "incorrect value for {} ({}), expected {}".format(s, tokens[0], expected)
+        )
 
-romanNumeral.runTests("""\
+
+romanNumeral.runTests(
+    """\
     XVI
     XXXIX
     XIV
     XIX
     MCMLXXX
     MMVI
-    """, fullDump=False,
-    postParse=verify_value)
+    """,
+    fullDump=False,
+    postParse=verify_value,
+)

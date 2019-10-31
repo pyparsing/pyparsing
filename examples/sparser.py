@@ -43,7 +43,7 @@ EXAMPLES:
 #    675 Mass Ave, Cambridge, MA 02139, USA.
 """
 
-#===imports======================
+# ===imports======================
 import sys
 import os
 import getopt
@@ -51,28 +51,29 @@ import getopt
 from pyparsing import *
 
 
-#===globals======================
+# ===globals======================
 modname = "sparser"
 __version__ = "0.1"
 
 
-#--option args--
+# --option args--
 debug_p = 0
-#opt_b=None  #string arg, default is undefined
+# opt_b=None  #string arg, default is undefined
 
 
-#---positional args, default is empty---
+# ---positional args, default is empty---
 pargs = []
 
 
-#---other---
+# ---other---
 
 
-#===utilities====================
+# ===utilities====================
 def msg(txt):
     """Send message to stdout."""
     sys.stdout.write(txt)
     sys.stdout.flush()
+
 
 def debug(ftn, txt):
     """Used for debugging."""
@@ -80,27 +81,32 @@ def debug(ftn, txt):
         sys.stdout.write("{}.{}:{}\n".format(modname, ftn, txt))
         sys.stdout.flush()
 
+
 def fatal(ftn, txt):
     """If can't continue."""
     msg = "{}.{}:FATAL:{}\n".format(modname, ftn, txt)
     raise SystemExit(msg)
+
 
 def usage():
     """Prints the docstring."""
     print(__doc__)
 
 
-
-#====================================
+# ====================================
 class ToInteger(TokenConverter):
     """Converter to make token into an integer."""
-    def postParse( self, instring, loc, tokenlist ):
+
+    def postParse(self, instring, loc, tokenlist):
         return int(tokenlist[0])
+
 
 class ToFloat(TokenConverter):
     """Converter to make token into a float."""
-    def postParse( self, instring, loc, tokenlist ):
+
+    def postParse(self, instring, loc, tokenlist):
         return float(tokenlist[0])
+
 
 class ParseFileLineByLine:
     """
@@ -133,47 +139,42 @@ class ParseFileLineByLine:
     '"a"' (append, not supported for .Z files).
     """
 
-    def __init__(self, filename, mode = 'r'):
+    def __init__(self, filename, mode="r"):
         """Opens input file, and if available the definition file.  If the
         definition file is available __init__ will then create some pyparsing
         helper variables.  """
-        if mode not in ['r', 'w', 'a']:
-            raise OSError(0, 'Illegal mode: ' + repr(mode))
+        if mode not in ["r", "w", "a"]:
+            raise OSError(0, "Illegal mode: " + repr(mode))
 
-        if string.find(filename, ':/') > 1: # URL
-            if mode == 'w':
+        if string.find(filename, ":/") > 1:  # URL
+            if mode == "w":
                 raise OSError("can't write to a URL")
             import urllib.request, urllib.parse, urllib.error
+
             self.file = urllib.request.urlopen(filename)
         else:
             filename = os.path.expanduser(filename)
-            if mode == 'r' or mode == 'a':
+            if mode == "r" or mode == "a":
                 if not os.path.exists(filename):
-                    raise OSError(2, 'No such file or directory: ' + filename)
+                    raise OSError(2, "No such file or directory: " + filename)
             filen, file_extension = os.path.splitext(filename)
             command_dict = {
-              ('.Z', 'r'):
-                "self.file = os.popen('uncompress -c ' + filename, mode)",
-              ('.gz', 'r'):
-                "self.file = gzip.GzipFile(filename, 'rb')",
-              ('.bz2', 'r'):
-                "self.file = os.popen('bzip2 -dc ' + filename, mode)",
-              ('.Z', 'w'):
-                "self.file = os.popen('compress > ' + filename, mode)",
-              ('.gz', 'w'):
-                "self.file = gzip.GzipFile(filename, 'wb')",
-              ('.bz2', 'w'):
-                "self.file = os.popen('bzip2 > ' + filename, mode)",
-              ('.Z', 'a'):
-                "raise IOError, (0, 'Can\'t append to .Z files')",
-              ('.gz', 'a'):
-                "self.file = gzip.GzipFile(filename, 'ab')",
-              ('.bz2', 'a'):
-                "raise IOError, (0, 'Can\'t append to .bz2 files')",
-                           }
+                (".Z", "r"): "self.file = os.popen('uncompress -c ' + filename, mode)",
+                (".gz", "r"): "self.file = gzip.GzipFile(filename, 'rb')",
+                (".bz2", "r"): "self.file = os.popen('bzip2 -dc ' + filename, mode)",
+                (".Z", "w"): "self.file = os.popen('compress > ' + filename, mode)",
+                (".gz", "w"): "self.file = gzip.GzipFile(filename, 'wb')",
+                (".bz2", "w"): "self.file = os.popen('bzip2 > ' + filename, mode)",
+                (".Z", "a"): "raise IOError, (0, 'Can't append to .Z files')",
+                (".gz", "a"): "self.file = gzip.GzipFile(filename, 'ab')",
+                (".bz2", "a"): "raise IOError, (0, 'Can't append to .bz2 files')",
+            }
 
-            exec(command_dict.get((file_extension, mode),
-                                  'self.file = open(filename, mode)'))
+            exec(
+                command_dict.get(
+                    (file_extension, mode), "self.file = open(filename, mode)"
+                )
+            )
 
         self.grammar = None
 
@@ -209,64 +210,64 @@ class ParseFileLineByLine:
         decimal_sep = "."
         sign = oneOf("+ -")
         # part of printables without decimal_sep, +, -
-        special_chars = string.replace('!"#$%&\'()*,./:;<=>?@[\\]^_`{|}~',
-                                       decimal_sep, "")
-        integer = ToInteger(
-                  Combine(Optional(sign) +
-                          Word(nums))).setName("integer")
-        positive_integer = ToInteger(
-                           Combine(Optional("+") +
-                                   Word(nums))).setName("integer")
-        negative_integer = ToInteger(
-                           Combine("-" +
-                                   Word(nums))).setName("integer")
+        special_chars = string.replace(
+            "!\"#$%&'()*,./:;<=>?@[\\]^_`{|}~", decimal_sep, ""
+        )
+        integer = ToInteger(Combine(Optional(sign) + Word(nums))).setName("integer")
+        positive_integer = ToInteger(Combine(Optional("+") + Word(nums))).setName(
+            "integer"
+        )
+        negative_integer = ToInteger(Combine("-" + Word(nums))).setName("integer")
         real = ToFloat(
-               Combine(Optional(sign) +
-                       Word(nums) +
-                       decimal_sep +
-                       Optional(Word(nums)) +
-                       Optional(oneOf("E e") +
-                                Word(nums)))).setName("real")
+            Combine(
+                Optional(sign)
+                + Word(nums)
+                + decimal_sep
+                + Optional(Word(nums))
+                + Optional(oneOf("E e") + Word(nums))
+            )
+        ).setName("real")
         positive_real = ToFloat(
-                        Combine(Optional("+") +
-                                Word(nums) +
-                                decimal_sep +
-                                Optional(Word(nums)) +
-                                Optional(oneOf("E e") +
-                                         Word(nums)))).setName("real")
+            Combine(
+                Optional("+")
+                + Word(nums)
+                + decimal_sep
+                + Optional(Word(nums))
+                + Optional(oneOf("E e") + Word(nums))
+            )
+        ).setName("real")
         negative_real = ToFloat(
-                        Combine("-" +
-                                Word(nums) +
-                                decimal_sep +
-                                Optional(Word(nums)) +
-                                Optional(oneOf("E e") +
-                                         Word(nums)))).setName("real")
-        qString = ( sglQuotedString | dblQuotedString ).setName("qString")
+            Combine(
+                "-"
+                + Word(nums)
+                + decimal_sep
+                + Optional(Word(nums))
+                + Optional(oneOf("E e") + Word(nums))
+            )
+        ).setName("real")
+        qString = (sglQuotedString | dblQuotedString).setName("qString")
 
         # add other characters we should skip over between interesting fields
         integer_junk = Optional(
-                       Suppress(
-                       Word(alphas +
-                            special_chars +
-                            decimal_sep))).setName("integer_junk")
-        real_junk = Optional(
-                    Suppress(
-                    Word(alphas +
-                         special_chars))).setName("real_junk")
+            Suppress(Word(alphas + special_chars + decimal_sep))
+        ).setName("integer_junk")
+        real_junk = Optional(Suppress(Word(alphas + special_chars))).setName(
+            "real_junk"
+        )
         qString_junk = SkipTo(qString).setName("qString_junk")
 
         # Now that 'integer', 'real', and 'qString' have been assigned I can
         # execute the definition file.
-        exec(compile(open(self.parsedef).read(), self.parsedef, 'exec'))
+        exec(compile(open(self.parsedef).read(), self.parsedef, "exec"))
 
         # Build the grammar, combination of the 'integer', 'real, 'qString',
         # and '*_junk' variables assigned above in the order specified in the
         # definition file.
         grammar = []
         for nam, expr in parse:
-            grammar.append( eval(expr.name + "_junk"))
-            grammar.append( expr.setResultsName(nam) )
-        self.grammar = And( grammar[1:] + [restOfLine] )
+            grammar.append(eval(expr.name + "_junk"))
+            grammar.append(expr.setResultsName(nam))
+        self.grammar = And(grammar[1:] + [restOfLine])
 
     def __del__(self):
         """Delete (close) the file wrapper."""
@@ -325,7 +326,7 @@ class ParseFileLineByLine:
         self.file.flush()
 
 
-#=============================
+# =============================
 def main(pargs):
     """This should only be used for testing. The primary mode of operation is
     as an imported library.
@@ -336,28 +337,29 @@ def main(pargs):
         print(i)
 
 
-#-------------------------
-if __name__ == '__main__':
+# -------------------------
+if __name__ == "__main__":
     ftn = "main"
-    opts, pargs = getopt.getopt(sys.argv[1:], 'hvd',
-                 ['help', 'version', 'debug', 'bb='])
+    opts, pargs = getopt.getopt(
+        sys.argv[1:], "hvd", ["help", "version", "debug", "bb="]
+    )
     for opt in opts:
-        if opt[0] == '-h' or opt[0] == '--help':
-            print(modname+": version="+__version__)
+        if opt[0] == "-h" or opt[0] == "--help":
+            print(modname + ": version=" + __version__)
             usage()
             sys.exit(0)
-        elif opt[0] == '-v' or opt[0] == '--version':
-            print(modname+": version="+__version__)
+        elif opt[0] == "-v" or opt[0] == "--version":
+            print(modname + ": version=" + __version__)
             sys.exit(0)
-        elif opt[0] == '-d' or opt[0] == '--debug':
+        elif opt[0] == "-d" or opt[0] == "--debug":
             debug_p = 1
-        elif opt[0] == '--bb':
+        elif opt[0] == "--bb":
             opt_b = opt[1]
 
-    #---make the object and run it---
+    # ---make the object and run it---
     main(pargs)
 
-#===Revision Log===
-#Created by mkpythonproj:
-#2006-02-06  Tim Cera
+# ===Revision Log===
+# Created by mkpythonproj:
+# 2006-02-06  Tim Cera
 #

@@ -27,4 +27,4 @@ for toks, strt, end in link.scanString(htmlText):
 # from a matched URL.
 pprint.pprint(
     {toks.body: toks.startA.href for toks, strt, end in link.scanString(htmlText)}
-    )
+)

@@ -52,28 +52,40 @@ def verify_length(s, l, t):
     if t.len is not None:
         t1len = len(t[1])
         if t1len != t.len:
-            raise pp.ParseFatalException(s, l, "invalid data of length {}, expected {}".format(t1len, t.len))
+            raise pp.ParseFatalException(
+                s, l, "invalid data of length {}, expected {}".format(t1len, t.len)
+            )
     return t[1]
 
 
 # define punctuation literals
-LPAR, RPAR, LBRK, RBRK, LBRC, RBRC, VBAR, COLON = (pp.Suppress(c).setName(c) for c in "()[]{}|:")
+LPAR, RPAR, LBRK, RBRK, LBRC, RBRC, VBAR, COLON = (
+    pp.Suppress(c).setName(c) for c in "()[]{}|:"
+)
 
-decimal = pp.Regex(r'-?0|[1-9]\d*').setParseAction(lambda t: int(t[0]))
-hexadecimal = ("#" + pp.Word(pp.hexnums)[1, ...] + "#").setParseAction(lambda t: int("".join(t[1:-1]), 16))
+decimal = pp.Regex(r"-?0|[1-9]\d*").setParseAction(lambda t: int(t[0]))
+hexadecimal = ("#" + pp.Word(pp.hexnums)[1, ...] + "#").setParseAction(
+    lambda t: int("".join(t[1:-1]), 16)
+)
 bytes = pp.Word(pp.printables)
 raw = pp.Group(decimal("len") + COLON + bytes).setParseAction(verify_length)
-base64_ = pp.Group(pp.Optional(decimal | hexadecimal, default=None)("len")
-                   + VBAR
-                   + pp.Word(pp.alphanums + "+/=")[1, ...].setParseAction(lambda t: b64decode("".join(t)))
-                   + VBAR
-                   ).setParseAction(verify_length)
+base64_ = pp.Group(
+    pp.Optional(decimal | hexadecimal, default=None)("len")
+    + VBAR
+    + pp.Word(pp.alphanums + "+/=")[1, ...].setParseAction(
+        lambda t: b64decode("".join(t))
+    )
+    + VBAR
+).setParseAction(verify_length)
 
-real = pp.Regex(r"[+-]?\d+\.\d*([eE][+-]?\d+)?").setParseAction(lambda tokens: float(tokens[0]))
+real = pp.Regex(r"[+-]?\d+\.\d*([eE][+-]?\d+)?").setParseAction(
+    lambda tokens: float(tokens[0])
+)
 token = pp.Word(pp.alphanums + "-./_:*+=!<>")
-qString = pp.Group(pp.Optional(decimal, default=None)("len")
-                   + pp.dblQuotedString.setParseAction(pp.removeQuotes)
-                   ).setParseAction(verify_length)
+qString = pp.Group(
+    pp.Optional(decimal, default=None)("len")
+    + pp.dblQuotedString.setParseAction(pp.removeQuotes)
+).setParseAction(verify_length)
 
 simpleString = real | base64_ | raw | decimal | token | hexadecimal | qString
 
@@ -151,6 +163,8 @@ test52 = """
     """
 
 # Run tests
-alltests = [globals()[testname] for testname in sorted(locals()) if testname.startswith("test")]
+alltests = [
+    globals()[testname] for testname in sorted(locals()) if testname.startswith("test")
+]
 
 sexp.runTests(alltests, fullDump=False)

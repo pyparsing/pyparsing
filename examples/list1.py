@@ -11,8 +11,9 @@ from pyparsing import *
 lbrack = Literal("[")
 rbrack = Literal("]")
 integer = Word(nums).setName("integer")
-real = Combine(Optional(oneOf("+ -")) + Word(nums) + "." +
-               Optional(Word(nums))).setName("real")
+real = Combine(
+    Optional(oneOf("+ -")) + Word(nums) + "." + Optional(Word(nums))
+).setName("real")
 
 listItem = real | integer | quotedString
 
@@ -26,12 +27,15 @@ print(listStr.parseString(test))
 # second pass, cleanup and add converters
 lbrack = Literal("[").suppress()
 rbrack = Literal("]").suppress()
-cvtInt = lambda s,l,toks: int(toks[0])
-cvtReal = lambda s,l,toks: float(toks[0])
-integer = Word(nums).setName("integer").setParseAction( cvtInt )
-real = Combine(Optional(oneOf("+ -")) + Word(nums) + "." +
-               Optional(Word(nums))).setName("real").setParseAction( cvtReal )
-listItem = real | integer | quotedString.setParseAction( removeQuotes )
+cvtInt = lambda s, l, toks: int(toks[0])
+cvtReal = lambda s, l, toks: float(toks[0])
+integer = Word(nums).setName("integer").setParseAction(cvtInt)
+real = (
+    Combine(Optional(oneOf("+ -")) + Word(nums) + "." + Optional(Word(nums)))
+    .setName("real")
+    .setParseAction(cvtReal)
+)
+listItem = real | integer | quotedString.setParseAction(removeQuotes)
 
 listStr = lbrack + delimitedList(listItem) + rbrack
 
@@ -45,8 +49,8 @@ lbrack, rbrack = map(Suppress, "[]")
 cvtInt = tokenMap(int)
 cvtReal = tokenMap(float)
 
-integer = Word(nums).setName("integer").setParseAction( cvtInt )
-real = Regex(r"[+-]?\d+\.\d*").setName("real").setParseAction( cvtReal )
+integer = Word(nums).setName("integer").setParseAction(cvtInt)
+real = Regex(r"[+-]?\d+\.\d*").setName("real").setParseAction(cvtReal)
 
 listStr = Forward()
 listItem = real | integer | quotedString.setParseAction(removeQuotes) | Group(listStr)

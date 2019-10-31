@@ -10,6 +10,7 @@
 #
 
 import pyparsing as pp
+
 ppc = pp.pyparsing_common
 
 testData = [
@@ -19,6 +20,6 @@ testData = [
     "John Doe, 123 Main St., Cleveland, Ohio",
     "Jane Doe, 456 St. James St., Los Angeles , California ",
     "",
-    ]
+]
 
 ppc.comma_separated_list.runTests(testData)

@@ -7,7 +7,7 @@
 
 from pyparsing import *
 
-integer = Word(nums).setParseAction(lambda t : int(t[0]))
+integer = Word(nums).setParseAction(lambda t: int(t[0]))
 
 # make an expression that will match a list of ints (which
 # will be converted to actual ints by the parse action attached
@@ -23,7 +23,7 @@ for fn in (sum, max, min, len, sorted, reversed, list, tuple, set, any, all):
     fn_name = fn.__name__
     if fn is reversed:
         # reversed returns an iterator, we really want to show the list of items
-        fn = lambda x : list(reversed(x))
+        fn = lambda x: list(reversed(x))
 
     # show how each builtin works as a free-standing parse action
     print(fn_name, nums.setParseAction(fn).parseString(test))

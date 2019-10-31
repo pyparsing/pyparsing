@@ -36,11 +36,14 @@ value
 import pyparsing as pp
 from pyparsing import pyparsing_common as ppc
 
+
 def make_keyword(kwd_str, kwd_value):
     return pp.Keyword(kwd_str).setParseAction(pp.replaceWith(kwd_value))
-TRUE  = make_keyword("true", True)
+
+
+TRUE = make_keyword("true", True)
 FALSE = make_keyword("false", False)
-NULL  = make_keyword("null", None)
+NULL = make_keyword("null", None)
 
 LBRACK, RBRACK, LBRACE, RBRACE, COLON = map(pp.Suppress, "[]{}:")
 
@@ -49,9 +52,11 @@ jsonNumber = ppc.number()
 
 jsonObject = pp.Forward()
 jsonValue = pp.Forward()
-jsonElements = pp.delimitedList( jsonValue )
+jsonElements = pp.delimitedList(jsonValue)
 jsonArray = pp.Group(LBRACK + pp.Optional(jsonElements, []) + RBRACK)
-jsonValue << (jsonString | jsonNumber | pp.Group(jsonObject)  | jsonArray | TRUE | FALSE | NULL)
+jsonValue << (
+    jsonString | jsonNumber | pp.Group(jsonObject) | jsonArray | TRUE | FALSE | NULL
+)
 memberDef = pp.Group(jsonString + COLON + jsonValue)
 jsonMembers = pp.delimitedList(memberDef)
 jsonObject << pp.Dict(LBRACE + pp.Optional(jsonMembers) + RBRACE)
@@ -94,12 +99,14 @@ if __name__ == "__main__":
     results = jsonObject.parseString(testdata)
     results.pprint()
     print()
+
     def testPrint(x):
         print(type(x), repr(x))
+
     print(list(results.glossary.GlossDiv.GlossList.keys()))
-    testPrint( results.glossary.title )
-    testPrint( results.glossary.GlossDiv.GlossList.ID )
-    testPrint( results.glossary.GlossDiv.GlossList.FalseValue )
-    testPrint( results.glossary.GlossDiv.GlossList.Acronym )
-    testPrint( results.glossary.GlossDiv.GlossList.EvenPrimesGreaterThan2 )
-    testPrint( results.glossary.GlossDiv.GlossList.PrimesLessThan10 )
+    testPrint(results.glossary.title)
+    testPrint(results.glossary.GlossDiv.GlossList.ID)
+    testPrint(results.glossary.GlossDiv.GlossList.FalseValue)
+    testPrint(results.glossary.GlossDiv.GlossList.Acronym)
+    testPrint(results.glossary.GlossDiv.GlossList.EvenPrimesGreaterThan2)
+    testPrint(results.glossary.GlossDiv.GlossList.PrimesLessThan10)

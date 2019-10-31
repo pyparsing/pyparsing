@@ -1,14 +1,14 @@
-#~ url = "http://cmsdoc.cern.ch/cms/test/aprom/phedex/dev/gowri/datasvc/tbedi/requestDetails"
-#~ params = {'format':'json'}
-#~ import urllib
-#~ eparams = urllib.urlencode(params)
-#~ import urllib2
-#~ request = urllib2.Request(url,eparams)
-#~ response = urllib2.urlopen(request)
-#~ s = response.read()
-#~ response.close()
+# ~ url = "http://cmsdoc.cern.ch/cms/test/aprom/phedex/dev/gowri/datasvc/tbedi/requestDetails"
+# ~ params = {'format':'json'}
+# ~ import urllib
+# ~ eparams = urllib.urlencode(params)
+# ~ import urllib2
+# ~ request = urllib2.Request(url,eparams)
+# ~ response = urllib2.urlopen(request)
+# ~ s = response.read()
+# ~ response.close()
 
-#~ print s
+# ~ print s
 
 s = """
 {"phedex":{"request":[{"last_update":"1188037561", "numofapproved":"1",
@@ -1903,14 +1903,14 @@ from jsonParser import jsonObject
 
 data = jsonObject.parseString(s)
 
-#~ from pprint import pprint
-#~ pprint( data[0].asList() )
-#~ print
-#~ print data.dump()
+# ~ from pprint import pprint
+# ~ pprint( data[0].asList() )
+# ~ print
+# ~ print data.dump()
 print(data.phedex.call_time)
 print(data.phedex.instance)
 print(data.phedex.request_call)
 print(len(data.phedex.request))
 for req in data.phedex.request[:10]:
-    #~ print req.dump()
+    # ~ print req.dump()
     print("-", req.id, req.last_update)
