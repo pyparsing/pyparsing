@@ -10,24 +10,40 @@
 #
 # Copyright 2003-2019 by Paul McGuire
 #
-from pyparsing import (Literal, Word, Group, Forward, alphas, alphanums, Regex, ParseException,
-                       CaselessKeyword, Suppress, delimitedList)
+from pyparsing import (
+    Literal,
+    Word,
+    Group,
+    Forward,
+    alphas,
+    alphanums,
+    Regex,
+    ParseException,
+    CaselessKeyword,
+    Suppress,
+    delimitedList,
+)
 import math
 import operator
 
 exprStack = []
 
+
 def push_first(toks):
     exprStack.append(toks[0])
 
+
 def push_unary_minus(toks):
     for t in toks:
-        if t == '-':
-            exprStack.append('unary -')
+        if t == "-":
+            exprStack.append("unary -")
         else:
             break
 
+
 bnf = None
+
+
 def BNF():
     """
     expop   :: '^'
@@ -52,7 +68,7 @@ def BNF():
         # or use provided pyparsing_common.number, but convert back to str:
         # fnumber = ppc.number().addParseAction(lambda t: str(t[0]))
         fnumber = Regex(r"[+-]?\d+(?:\.\d*)?(?:[eE][+-]?\d+)?")
-        ident = Word(alphas, alphanums+"_$")
+        ident = Word(alphas, alphanums + "_$")
 
         plus, minus, mult, div = map(Literal, "+-*/")
         lpar, rpar = map(Suppress, "()")
@@ -63,11 +79,16 @@ def BNF():
         expr = Forward()
         expr_list = delimitedList(Group(expr))
         # add parse action that replaces the function identifier with a (name, number of args) tuple
-        fn_call = (ident + lpar - Group(expr_list) + rpar).setParseAction(lambda t: t.insert(0, (t.pop(0), len(t[0]))))
-        atom = (addop[...] +
-                ((fn_call | pi | e | fnumber | ident).setParseAction(push_first)
-                 | Group(lpar + expr + rpar))
-               ).setParseAction(push_unary_minus)
+        fn_call = (ident + lpar - Group(expr_list) + rpar).setParseAction(
+            lambda t: t.insert(0, (t.pop(0), len(t[0])))
+        )
+        atom = (
+            addop[...]
+            + (
+                (fn_call | pi | e | fnumber | ident).setParseAction(push_first)
+                | Group(lpar + expr + rpar)
+            )
+        ).setParseAction(push_unary_minus)
 
         # by defining exponentiation as "atom [ ^ factor ]..." instead of "atom [ ^ atom ]...", we get right-to-left
         # exponents, instead of left-to-right that is, 2^3^2 = 2^(3^2), not (2^3)^2.
@@ -78,6 +99,7 @@ def BNF():
         bnf = expr
     return bnf
 
+
 # map operator symbols to corresponding arithmetic operations
 epsilon = 1e-12
 opn = {
@@ -85,8 +107,8 @@ opn = {
     "-": operator.sub,
     "*": operator.mul,
     "/": operator.truediv,
-    "^": operator.pow
-    }
+    "^": operator.pow,
+}
 
 fn = {
     "sin": math.sin,
@@ -96,14 +118,15 @@ fn = {
     "abs": abs,
     "trunc": lambda a: int(a),
     "round": round,
-    "sgn": lambda a: -1 if a < -epsilon else 1 if a > epsilon else 0
-    }
+    "sgn": lambda a: -1 if a < -epsilon else 1 if a > epsilon else 0,
+}
+
 
 def evaluate_stack(s):
     op, num_args = s.pop(), 0
     if isinstance(op, tuple):
         op, num_args = op
-    if op == 'unary -':
+    if op == "unary -":
         return -evaluate_stack(s)
     if op in "+-*/^":
         # note: operands are pushed onto the stack in reverse order
@@ -113,7 +136,7 @@ def evaluate_stack(s):
     elif op == "PI":
         return math.pi  # 3.1415926535
     elif op == "E":
-        return math.e   # 2.718281828
+        return math.e  # 2.718281828
     elif op in fn:
         # note: args are pushed onto the stack in reverse order
         args = reversed([evaluate_stack(s) for _ in range(num_args)])
@@ -152,37 +175,37 @@ if __name__ == "__main__":
     test("9 + 3 + 6", 9 + 3 + 6)
     test("9 + 3 / 11", 9 + 3.0 / 11)
     test("(9 + 3)", (9 + 3))
-    test("(9+3) / 11", (9+3.0) / 11)
+    test("(9+3) / 11", (9 + 3.0) / 11)
     test("9 - 12 - 6", 9 - 12 - 6)
     test("9 - (12 - 6)", 9 - (12 - 6))
-    test("2*3.14159", 2*3.14159)
-    test("3.1415926535*3.1415926535 / 10", 3.1415926535*3.1415926535 / 10)
+    test("2*3.14159", 2 * 3.14159)
+    test("3.1415926535*3.1415926535 / 10", 3.1415926535 * 3.1415926535 / 10)
     test("PI * PI / 10", math.pi * math.pi / 10)
-    test("PI*PI/10", math.pi*math.pi/10)
-    test("PI^2", math.pi**2)
-    test("round(PI^2)", round(math.pi**2))
-    test("6.02E23 * 8.048", 6.02E23 * 8.048)
+    test("PI*PI/10", math.pi * math.pi / 10)
+    test("PI^2", math.pi ** 2)
+    test("round(PI^2)", round(math.pi ** 2))
+    test("6.02E23 * 8.048", 6.02e23 * 8.048)
     test("e / 3", math.e / 3)
-    test("sin(PI/2)", math.sin(math.pi/2))
-    test("10+sin(PI/4)^2", 10 + math.sin(math.pi/4)**2)
+    test("sin(PI/2)", math.sin(math.pi / 2))
+    test("10+sin(PI/4)^2", 10 + math.sin(math.pi / 4) ** 2)
     test("trunc(E)", int(math.e))
     test("trunc(-E)", int(-math.e))
     test("round(E)", round(math.e))
     test("round(-E)", round(-math.e))
-    test("E^PI", math.e**math.pi)
+    test("E^PI", math.e ** math.pi)
     test("exp(0)", 1)
     test("exp(1)", math.e)
-    test("2^3^2", 2**3**2)
-    test("(2^3)^2", (2**3)**2)
-    test("2^3+2", 2**3+2)
-    test("2^3+5", 2**3+5)
-    test("2^9", 2**9)
+    test("2^3^2", 2 ** 3 ** 2)
+    test("(2^3)^2", (2 ** 3) ** 2)
+    test("2^3+2", 2 ** 3 + 2)
+    test("2^3+5", 2 ** 3 + 5)
+    test("2^9", 2 ** 9)
     test("sgn(-2)", -1)
     test("sgn(0)", 0)
     test("sgn(0.1)", 1)
     test("foo(0.1)", None)
     test("round(E, 3)", round(math.e, 3))
-    test("round(PI^2, 3)", round(math.pi**2, 3))
+    test("round(PI^2, 3)", round(math.pi ** 2, 3))
     test("sgn(cos(PI/4))", 1)
     test("sgn(cos(PI/2))", 0)
     test("sgn(cos(PI*3/4))", -1)

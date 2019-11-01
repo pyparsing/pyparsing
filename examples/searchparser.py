@@ -57,19 +57,29 @@ TODO:
 - ask someone to check my English texts
 - add more kinds of wildcards ('*' at the beginning and '*' inside a word)?
 """
-from pyparsing import Word, alphanums, Keyword, Group, Combine, Forward, Suppress, OneOrMore, oneOf
+from pyparsing import (
+    Word,
+    alphanums,
+    Keyword,
+    Group,
+    Combine,
+    Forward,
+    Suppress,
+    OneOrMore,
+    oneOf,
+)
+
 
 class SearchQueryParser:
-
     def __init__(self):
         self._methods = {
-            'and': self.evaluateAnd,
-            'or': self.evaluateOr,
-            'not': self.evaluateNot,
-            'parenthesis': self.evaluateParenthesis,
-            'quotes': self.evaluateQuotes,
-            'word': self.evaluateWord,
-            'wordwildcard': self.evaluateWordWildcard,
+            "and": self.evaluateAnd,
+            "or": self.evaluateOr,
+            "not": self.evaluateNot,
+            "parenthesis": self.evaluateParenthesis,
+            "quotes": self.evaluateQuotes,
+            "word": self.evaluateWord,
+            "wordwildcard": self.evaluateWordWildcard,
         }
         self._parser = self.parser()
 
@@ -90,37 +100,52 @@ class SearchQueryParser:
         """
         operatorOr = Forward()
 
-        operatorWord = Group(Combine(Word(alphanums) + Suppress('*'))).setResultsName('wordwildcard') | \
-                            Group(Word(alphanums)).setResultsName('word')
+        operatorWord = Group(Combine(Word(alphanums) + Suppress("*"))).setResultsName(
+            "wordwildcard"
+        ) | Group(Word(alphanums)).setResultsName("word")
 
         operatorQuotesContent = Forward()
-        operatorQuotesContent << (
-            (operatorWord + operatorQuotesContent) | operatorWord
+        operatorQuotesContent << ((operatorWord + operatorQuotesContent) | operatorWord)
+
+        operatorQuotes = (
+            Group(Suppress('"') + operatorQuotesContent + Suppress('"')).setResultsName(
+                "quotes"
+            )
+            | operatorWord
         )
 
-        operatorQuotes = Group(
-            Suppress('"') + operatorQuotesContent + Suppress('"')
-        ).setResultsName("quotes") | operatorWord
-
-        operatorParenthesis = Group(
-            Suppress("(") + operatorOr + Suppress(")")
-        ).setResultsName("parenthesis") | operatorQuotes
+        operatorParenthesis = (
+            Group(Suppress("(") + operatorOr + Suppress(")")).setResultsName(
+                "parenthesis"
+            )
+            | operatorQuotes
+        )
 
         operatorNot = Forward()
-        operatorNot << (Group(
-            Suppress(Keyword("not", caseless=True)) + operatorNot
-        ).setResultsName("not") | operatorParenthesis)
+        operatorNot << (
+            Group(Suppress(Keyword("not", caseless=True)) + operatorNot).setResultsName(
+                "not"
+            )
+            | operatorParenthesis
+        )
 
         operatorAnd = Forward()
-        operatorAnd << (Group(
-            operatorNot + Suppress(Keyword("and", caseless=True)) + operatorAnd
-        ).setResultsName("and") | Group(
-            operatorNot + OneOrMore(~oneOf("and or") + operatorAnd)
-        ).setResultsName("and") | operatorNot)
+        operatorAnd << (
+            Group(
+                operatorNot + Suppress(Keyword("and", caseless=True)) + operatorAnd
+            ).setResultsName("and")
+            | Group(
+                operatorNot + OneOrMore(~oneOf("and or") + operatorAnd)
+            ).setResultsName("and")
+            | operatorNot
+        )
 
-        operatorOr << (Group(
-            operatorAnd + Suppress(Keyword("or", caseless=True)) + operatorOr
-        ).setResultsName("or") | operatorAnd)
+        operatorOr << (
+            Group(
+                operatorAnd + Suppress(Keyword("or", caseless=True)) + operatorOr
+            ).setResultsName("or")
+            | operatorAnd
+        )
 
         return operatorOr.parseString
 
@@ -151,7 +176,7 @@ class SearchQueryParser:
                 r = self.evaluate(item)
             else:
                 r = r.intersection(self.evaluate(item))
-        return self.GetQuotes(' '.join(search_terms), r)
+        return self.GetQuotes(" ".join(search_terms), r)
 
     def evaluateWord(self, argument):
         return self.GetWord(argument[0])
@@ -163,7 +188,7 @@ class SearchQueryParser:
         return self._methods[argument.getName()](argument)
 
     def Parse(self, query):
-        #print self._parser(query)[0]
+        # print self._parser(query)[0]
         return self.evaluate(self._parser(query)[0])
 
     def GetWord(self, word):
@@ -183,70 +208,71 @@ class ParserTest(SearchQueryParser):
     """Tests the parser with some search queries
     tests containts a dictionary with tests and expected results.
     """
+
     tests = {
-        'help': {1, 2, 4, 5},
-        'help or hulp': {1, 2, 3, 4, 5},
-        'help and hulp': {2},
-        'help hulp': {2},
-        'help and hulp or hilp': {2, 3, 4},
-        'help or hulp and hilp': {1, 2, 3, 4, 5},
-        'help or hulp or hilp or halp': {1, 2, 3, 4, 5, 6},
-        '(help or hulp) and (hilp or halp)': {3, 4, 5},
-        'help and (hilp or halp)': {4, 5},
-        '(help and (hilp or halp)) or hulp': {2, 3, 4, 5},
-        'not help': {3, 6, 7, 8},
-        'not hulp and halp': {5, 6},
-        'not (help and halp)': {1, 2, 3, 4, 6, 7, 8},
+        "help": {1, 2, 4, 5},
+        "help or hulp": {1, 2, 3, 4, 5},
+        "help and hulp": {2},
+        "help hulp": {2},
+        "help and hulp or hilp": {2, 3, 4},
+        "help or hulp and hilp": {1, 2, 3, 4, 5},
+        "help or hulp or hilp or halp": {1, 2, 3, 4, 5, 6},
+        "(help or hulp) and (hilp or halp)": {3, 4, 5},
+        "help and (hilp or halp)": {4, 5},
+        "(help and (hilp or halp)) or hulp": {2, 3, 4, 5},
+        "not help": {3, 6, 7, 8},
+        "not hulp and halp": {5, 6},
+        "not (help and halp)": {1, 2, 3, 4, 6, 7, 8},
         '"help me please"': {2},
         '"help me please" or hulp': {2, 3},
         '"help me please" or (hulp and halp)': {2},
-        'help*': {1, 2, 4, 5, 8},
-        'help or hulp*': {1, 2, 3, 4, 5},
-        'help* and hulp': {2},
-        'help and hulp* or hilp': {2, 3, 4},
-        'help* or hulp or hilp or halp': {1, 2, 3, 4, 5, 6, 8},
-        '(help or hulp*) and (hilp* or halp)': {3, 4, 5},
-        'help* and (hilp* or halp*)': {4, 5},
-        '(help and (hilp* or halp)) or hulp*': {2, 3, 4, 5},
-        'not help* and halp': {6},
-        'not (help* and helpe*)': {1, 2, 3, 4, 5, 6, 7},
+        "help*": {1, 2, 4, 5, 8},
+        "help or hulp*": {1, 2, 3, 4, 5},
+        "help* and hulp": {2},
+        "help and hulp* or hilp": {2, 3, 4},
+        "help* or hulp or hilp or halp": {1, 2, 3, 4, 5, 6, 8},
+        "(help or hulp*) and (hilp* or halp)": {3, 4, 5},
+        "help* and (hilp* or halp*)": {4, 5},
+        "(help and (hilp* or halp)) or hulp*": {2, 3, 4, 5},
+        "not help* and halp": {6},
+        "not (help* and helpe*)": {1, 2, 3, 4, 5, 6, 7},
         '"help* me please"': {2},
         '"help* me* please" or hulp*': {2, 3},
         '"help me please*" or (hulp and halp)': {2},
         '"help me please" not (hulp and halp)': {2},
         '"help me please" hulp': {2},
-        'help and hilp and not holp': {4},
-        'help hilp not holp': {4},
-        'help hilp and not holp': {4},
+        "help and hilp and not holp": {4},
+        "help hilp not holp": {4},
+        "help hilp and not holp": {4},
     }
 
     docs = {
-        1: 'help',
-        2: 'help me please hulp',
-        3: 'hulp hilp',
-        4: 'help hilp',
-        5: 'halp thinks he needs help',
-        6: 'he needs halp',
-        7: 'nothing',
-        8: 'helper',
+        1: "help",
+        2: "help me please hulp",
+        3: "hulp hilp",
+        4: "help hilp",
+        5: "halp thinks he needs help",
+        6: "he needs halp",
+        7: "nothing",
+        8: "helper",
     }
 
     index = {
-        'help': {1, 2, 4, 5},
-        'me': {2},
-        'please': {2},
-        'hulp': {2, 3},
-        'hilp': {3, 4},
-        'halp': {5, 6},
-        'thinks': {5},
-        'he': {5, 6},
-        'needs': {5, 6},
-        'nothing': {7},
-        'helper': {8},
+        "help": {1, 2, 4, 5},
+        "me": {2},
+        "please": {2},
+        "hulp": {2, 3},
+        "hilp": {3, 4},
+        "halp": {5, 6},
+        "thinks": {5},
+        "he": {5, 6},
+        "needs": {5, 6},
+        "nothing": {7},
+        "helper": {8},
     }
 
     def GetWord(self, word):
-        if (word in self.index):
+        if word in self.index:
             return self.index[word]
         else:
             return set()
@@ -254,7 +280,7 @@ class ParserTest(SearchQueryParser):
     def GetWordWildcard(self, word):
         result = set()
         for item in list(self.index.keys()):
-            if word == item[0:len(word)]:
+            if word == item[0 : len(word)]:
                 result = result.union(self.index[item])
         return result
 
@@ -275,18 +301,19 @@ class ParserTest(SearchQueryParser):
             print(item)
             r = self.Parse(item)
             e = self.tests[item]
-            print('Result: %s' % r)
-            print('Expect: %s' % e)
+            print("Result: %s" % r)
+            print("Expect: %s" % e)
             if e == r:
-                print('Test OK')
+                print("Test OK")
             else:
                 all_ok = False
-                print('>>>>>>>>>>>>>>>>>>>>>>Test ERROR<<<<<<<<<<<<<<<<<<<<<')
-            print('')
+                print(">>>>>>>>>>>>>>>>>>>>>>Test ERROR<<<<<<<<<<<<<<<<<<<<<")
+            print("")
         return all_ok
 
-if __name__=='__main__':
+
+if __name__ == "__main__":
     if ParserTest().Test():
-        print('All tests OK')
+        print("All tests OK")
     else:
-        print('One or more tests FAILED')
+        print("One or more tests FAILED")

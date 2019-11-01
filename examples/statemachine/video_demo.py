@@ -20,25 +20,29 @@ v = Video("Die Hard.mp4")
 
 while True:
     print(v.state)
-    cmd = input("Command ({})> ".format('/'.join(videostate.VideoState.transition_names))).lower().strip()
+    cmd = (
+        input("Command ({})> ".format("/".join(videostate.VideoState.transition_names)))
+        .lower()
+        .strip()
+    )
     if not cmd:
         continue
 
-    if cmd in ('?', 'h', 'help'):
-        print('enter a transition {!r}'.format(videostate.VideoState.transition_names))
-        print(' q - quit')
-        print(' ?, h, help - this message')
+    if cmd in ("?", "h", "help"):
+        print("enter a transition {!r}".format(videostate.VideoState.transition_names))
+        print(" q - quit")
+        print(" ?, h, help - this message")
         continue
 
     # quitting out
-    if cmd.startswith('q'):
+    if cmd.startswith("q"):
         break
 
     # get transition function for given command
     state_transition_fn = getattr(v, cmd, None)
 
     if state_transition_fn is None:
-        print('???')
+        print("???")
         continue
 
     # invoke the input transition, handle invalid commands

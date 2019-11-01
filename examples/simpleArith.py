@@ -9,15 +9,15 @@
 
 from pyparsing import *
 
-integer = Word(nums).setParseAction(lambda t:int(t[0]))
-variable = Word(alphas,exact=1)
+integer = Word(nums).setParseAction(lambda t: int(t[0]))
+variable = Word(alphas, exact=1)
 operand = integer | variable
 
-expop = Literal('^')
-signop = oneOf('+ -')
-multop = oneOf('* /')
-plusop = oneOf('+ -')
-factop = Literal('!')
+expop = Literal("^")
+signop = oneOf("+ -")
+multop = oneOf("* /")
+plusop = oneOf("+ -")
+factop = Literal("!")
 
 # To use the infixNotation helper:
 #   1.  Define the "atom" operand term of the grammar.
@@ -43,24 +43,29 @@ factop = Literal('!')
 #       this expression to parse input strings, or incorporate it
 #       into a larger, more complex grammar.
 #
-expr = infixNotation( operand,
-    [("!", 1, opAssoc.LEFT),
-     ("^", 2, opAssoc.RIGHT),
-     (signop, 1, opAssoc.RIGHT),
-     (multop, 2, opAssoc.LEFT),
-     (plusop, 2, opAssoc.LEFT),]
-    )
+expr = infixNotation(
+    operand,
+    [
+        ("!", 1, opAssoc.LEFT),
+        ("^", 2, opAssoc.RIGHT),
+        (signop, 1, opAssoc.RIGHT),
+        (multop, 2, opAssoc.LEFT),
+        (plusop, 2, opAssoc.LEFT),
+    ],
+)
 
-test = ["9 + 2 + 3",
-        "9 + 2 * 3",
-        "(9 + 2) * 3",
-        "(9 + -2) * 3",
-        "(9 + -2) * 3^2^2",
-        "(9! + -2) * 3^2^2",
-        "M*X + B",
-        "M*(X + B)",
-        "1+2*-3^4*5+-+-6",]
+test = [
+    "9 + 2 + 3",
+    "9 + 2 * 3",
+    "(9 + 2) * 3",
+    "(9 + -2) * 3",
+    "(9 + -2) * 3^2^2",
+    "(9! + -2) * 3^2^2",
+    "M*X + B",
+    "M*(X + B)",
+    "1+2*-3^4*5+-+-6",
+]
 for t in test:
     print(t)
     print(expr.parseString(t))
-    print('')
+    print("")

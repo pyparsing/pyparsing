@@ -8,11 +8,11 @@
 from pyparsing import oneOf, OneOrMore, printables, StringEnd
 
 test = "The quick brown fox named 'Aloysius' lives at 123 Main Street (and jumps over lazy dogs in his spare time)."
-nonAlphas = [ c for c in printables if not c.isalpha() ]
+nonAlphas = [c for c in printables if not c.isalpha()]
 
 print("Extract vowels, consonants, and special characters from this test string:")
 print("'" + test + "'")
-print('')
+print("")
 
 print("Define grammar using normal results names")
 print("(only last matching symbol is saved)")
@@ -26,7 +26,7 @@ print(results)
 print(results.vowels)
 print(results.cons)
 print(results.others)
-print('')
+print("")
 
 
 print("Define grammar using results names, with listAllMatches=True")
@@ -40,12 +40,12 @@ letters = OneOrMore(cons | vowels | other)
 results = letters.parseString(test, parseAll=True)
 print(results)
 print(sorted(set(results)))
-print('')
+print("")
 print(results.vowels)
 print(sorted(set(results.vowels)))
-print('')
+print("")
 print(results.cons)
 print(sorted(set(results.cons)))
-print('')
+print("")
 print(results.others)
 print(sorted(set(results.others)))

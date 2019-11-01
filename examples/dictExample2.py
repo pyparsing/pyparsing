@@ -6,7 +6,17 @@
 #
 # Copyright (c) 2004, Paul McGuire
 #
-from pyparsing import Literal, Word, Group, Dict, ZeroOrMore, alphas, nums, delimitedList, pyparsing_common as ppc
+from pyparsing import (
+    Literal,
+    Word,
+    Group,
+    Dict,
+    ZeroOrMore,
+    alphas,
+    nums,
+    delimitedList,
+    pyparsing_common as ppc,
+)
 
 testData = """
 +-------+------+------+------+------+------+------+------+------+
@@ -25,34 +35,34 @@ number = ppc.integer
 
 vert = Literal("|").suppress()
 
-rowDelim = ("+" + ZeroOrMore( underline + "+" ) ).suppress()
+rowDelim = ("+" + ZeroOrMore(underline + "+")).suppress()
 columnHeader = Group(vert + vert + delimitedList(Word(alphas + nums), "|") + vert)
 
 heading = rowDelim + columnHeader("columns") + rowDelim
-rowData = Group( vert + Word(alphas) + vert + delimitedList(number,"|") + vert )
+rowData = Group(vert + Word(alphas) + vert + delimitedList(number, "|") + vert)
 trailing = rowDelim
 
-datatable = heading + Dict( ZeroOrMore(rowData) ) + trailing
+datatable = heading + Dict(ZeroOrMore(rowData)) + trailing
 
 # now parse data and print results
 data = datatable.parseString(testData)
 print(data.dump())
 print("data keys=", list(data.keys()))
-print("data['min']=", data['min'])
-print("sum(data['min']) =", sum(data['min']))
+print("data['min']=", data["min"])
+print("sum(data['min']) =", sum(data["min"]))
 print("data.max =", data.max)
 print("sum(data.max) =", sum(data.max))
 
 # now print transpose of data table, using column labels read from table header and
 # values from data lists
 print()
-print(" " * 5, end=' ')
-for i in range(1,len(data)):
-    print("|%5s" % data[i][0], end=' ')
+print(" " * 5, end=" ")
+for i in range(1, len(data)):
+    print("|%5s" % data[i][0], end=" ")
 print()
-print(("-" * 6) + ("+------" * (len(data)-1)))
+print(("-" * 6) + ("+------" * (len(data) - 1)))
 for i in range(len(data.columns)):
-    print("%5s" % data.columns[i], end=' ')
+    print("%5s" % data.columns[i], end=" ")
     for j in range(len(data) - 1):
-        print('|%5s' % data[j + 1][i + 1], end=' ')
+        print("|%5s" % data[j + 1][i + 1], end=" ")
     print()

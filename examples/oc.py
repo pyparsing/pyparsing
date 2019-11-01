@@ -71,13 +71,15 @@ The following is a description of the OC grammar:
 """
 
 from pyparsing import *
+
 ParserElement.enablePackrat()
 
-LPAR,RPAR,LBRACK,RBRACK,LBRACE,RBRACE,SEMI,COMMA = map(Suppress, "()[]{};,")
-INT, CHAR, WHILE, DO, IF, ELSE, RETURN = map(Keyword,
-    "int char while do if else return".split())
+LPAR, RPAR, LBRACK, RBRACK, LBRACE, RBRACE, SEMI, COMMA = map(Suppress, "()[]{};,")
+INT, CHAR, WHILE, DO, IF, ELSE, RETURN = map(
+    Keyword, "int char while do if else return".split()
+)
 
-NAME = Word(alphas+"_", alphanums+"_")
+NAME = Word(alphas + "_", alphanums + "_")
 integer = Regex(r"[+-]?\d+")
 char = Regex(r"'.'")
 string_ = dblQuotedString
@@ -86,19 +88,20 @@ TYPE = Group((INT | CHAR) + ZeroOrMore("*"))
 expr = Forward()
 func_call = Group(NAME + LPAR + Group(Optional(delimitedList(expr))) + RPAR)
 operand = func_call | NAME | integer | char | string_
-expr <<= (infixNotation(operand,
+expr <<= infixNotation(
+    operand,
     [
-    (oneOf('! - *'), 1, opAssoc.RIGHT),
-    (oneOf('++ --'), 1, opAssoc.RIGHT),
-    (oneOf('++ --'), 1, opAssoc.LEFT),
-    (oneOf('* / %'), 2, opAssoc.LEFT),
-    (oneOf('+ -'), 2, opAssoc.LEFT),
-    (oneOf('< == > <= >= !='), 2, opAssoc.LEFT),
-    (Regex(r'(?<!=)=(?!=)'), 2, opAssoc.LEFT),
-    ]) +
-    Optional( LBRACK + expr + RBRACK |
-              LPAR + Group(Optional(delimitedList(expr))) + RPAR )
-    )
+        (oneOf("! - *"), 1, opAssoc.RIGHT),
+        (oneOf("++ --"), 1, opAssoc.RIGHT),
+        (oneOf("++ --"), 1, opAssoc.LEFT),
+        (oneOf("* / %"), 2, opAssoc.LEFT),
+        (oneOf("+ -"), 2, opAssoc.LEFT),
+        (oneOf("< == > <= >= !="), 2, opAssoc.LEFT),
+        (Regex(r"(?<!=)=(?!=)"), 2, opAssoc.LEFT),
+    ],
+) + Optional(
+    LBRACK + expr + RBRACK | LPAR + Group(Optional(delimitedList(expr))) + RPAR
+)
 
 stmt = Forward()
 
@@ -107,34 +110,46 @@ whilestmt = WHILE - LPAR + expr + RPAR + stmt
 dowhilestmt = DO - stmt + WHILE + LPAR + expr + RPAR + SEMI
 returnstmt = RETURN - expr + SEMI
 
-stmt << Group( ifstmt |
-          whilestmt |
-          dowhilestmt |
-          returnstmt |
-          expr + SEMI |
-          LBRACE + ZeroOrMore(stmt) + RBRACE |
-          SEMI)
+stmt << Group(
+    ifstmt
+    | whilestmt
+    | dowhilestmt
+    | returnstmt
+    | expr + SEMI
+    | LBRACE + ZeroOrMore(stmt) + RBRACE
+    | SEMI
+)
 
 vardecl = Group(TYPE + NAME + Optional(LBRACK + integer + RBRACK)) + SEMI
 
 arg = Group(TYPE + NAME)
 body = ZeroOrMore(vardecl) + ZeroOrMore(stmt)
-fundecl = Group(TYPE + NAME + LPAR + Optional(Group(delimitedList(arg))) + RPAR +
-            LBRACE + Group(body) + RBRACE)
+fundecl = Group(
+    TYPE
+    + NAME
+    + LPAR
+    + Optional(Group(delimitedList(arg)))
+    + RPAR
+    + LBRACE
+    + Group(body)
+    + RBRACE
+)
 decl = fundecl | vardecl
 program = ZeroOrMore(decl)
 
 program.ignore(cStyleComment)
 
 # set parser element names
-for vname in ("ifstmt whilestmt dowhilestmt returnstmt TYPE "
-               "NAME fundecl vardecl program arg body stmt".split()):
+for vname in (
+    "ifstmt whilestmt dowhilestmt returnstmt TYPE "
+    "NAME fundecl vardecl program arg body stmt".split()
+):
     v = vars()[vname]
     v.setName(vname)
 
-#~ for vname in "fundecl stmt".split():
-    #~ v = vars()[vname]
-    #~ v.setDebug()
+# ~ for vname in "fundecl stmt".split():
+# ~ v = vars()[vname]
+# ~ v.setDebug()
 
 test = r"""
 /* A factorial program */

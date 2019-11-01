@@ -16,7 +16,7 @@ from pyparsing import *
 
 # define the structure of a macro definition (the empty term is used
 # to advance to the next non-whitespace character)
-identifier = Word(alphas+"_",alphanums+"_")
+identifier = Word(alphas + "_", alphanums + "_")
 macroDef = "#def" + identifier("macro") + empty + restOfLine("value")
 
 # define a placeholder for defined macros - initially nothing
@@ -27,15 +27,17 @@ macroExpr << NoMatch()
 macros = {}
 
 # parse action for macro definitions
-def processMacroDefn(s,l,t):
+def processMacroDefn(s, l, t):
     macroVal = macroExpander.transformString(t.value)
     macros[t.macro] = macroVal
     macroExpr << MatchFirst(map(Keyword, macros.keys()))
     return "#def " + t.macro + " " + macroVal
 
+
 # parse action to replace macro references with their respective definition
-def processMacroRef(s,l,t):
+def processMacroRef(s, l, t):
     return macros[t[0]]
+
 
 # attach parse actions to expressions
 macroExpr.setParseAction(processMacroRef)
@@ -43,7 +45,6 @@ macroDef.setParseAction(processMacroDefn)
 
 # define pattern for scanning through the input string
 macroExpander = macroExpr | macroDef
-
 
 
 # test macro substitution using transformString

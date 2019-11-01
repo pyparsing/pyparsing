@@ -7,7 +7,7 @@
 #
 BNF = """
     stmt_list           =   {stmt} ;
- 
+
     stmt                =   ';'
                           | Identifier '=' expr ';'
                           | 'while' paren_expr stmt
@@ -16,11 +16,11 @@ BNF = """
                           | 'putc' paren_expr ';'
                           | '{' stmt_list '}'
                           ;
- 
+
     paren_expr          =   '(' expr ')' ;
- 
+
     prt_list            =   string | expr {',' String | expr} ;
- 
+
     expr                =   and_expr            {'||' and_expr} ;
     and_expr            =   equality_expr       {'&&' equality_expr} ;
     equality_expr       =   relational_expr     [('==' | '!=') relational_expr] ;
@@ -35,28 +35,33 @@ BNF = """
 """
 
 import pyparsing as pp
+
 pp.ParserElement.enablePackrat()
 
 LBRACE, RBRACE, LPAR, RPAR, SEMI = map(pp.Suppress, "{}();")
-EQ = pp.Literal('=')
+EQ = pp.Literal("=")
 
-keywords = (WHILE, IF, PRINT, PUTC, ELSE) = map(pp.Keyword, "while if print putc else".split())
+keywords = (WHILE, IF, PRINT, PUTC, ELSE) = map(
+    pp.Keyword, "while if print putc else".split()
+)
 any_keyword = pp.MatchFirst(keywords)
 identifier = ~any_keyword + pp.pyparsing_common.identifier
 integer = pp.pyparsing_common.integer
-string =  pp.QuotedString('"', convertWhitespaceEscapes=False).setName("quoted string")
+string = pp.QuotedString('"', convertWhitespaceEscapes=False).setName("quoted string")
 char = pp.Regex(r"'\\?.'")
 
-expr = pp.infixNotation(identifier | integer | char,
-                        [
-                            (pp.oneOf("+ - !"), 1, pp.opAssoc.RIGHT,),
-                            (pp.oneOf("* / %"), 2, pp.opAssoc.LEFT, ),
-                            (pp.oneOf("+ -"), 2, pp.opAssoc.LEFT,),
-                            (pp.oneOf("< <= > >="), 2, pp.opAssoc.LEFT,),
-                            (pp.oneOf("== !="), 2, pp.opAssoc.LEFT,),
-                            (pp.oneOf("&&"), 2, pp.opAssoc.LEFT,),
-                            (pp.oneOf("||"), 2, pp.opAssoc.LEFT,),
-                        ])
+expr = pp.infixNotation(
+    identifier | integer | char,
+    [
+        (pp.oneOf("+ - !"), 1, pp.opAssoc.RIGHT,),
+        (pp.oneOf("* / %"), 2, pp.opAssoc.LEFT,),
+        (pp.oneOf("+ -"), 2, pp.opAssoc.LEFT,),
+        (pp.oneOf("< <= > >="), 2, pp.opAssoc.LEFT,),
+        (pp.oneOf("== !="), 2, pp.opAssoc.LEFT,),
+        (pp.oneOf("&&"), 2, pp.opAssoc.LEFT,),
+        (pp.oneOf("||"), 2, pp.opAssoc.LEFT,),
+    ],
+)
 
 prt_list = pp.Group(pp.delimitedList(string | expr))
 paren_expr = pp.Group(LPAR + expr + RPAR)
@@ -68,28 +73,29 @@ if_stmt = pp.Group(IF - paren_expr + stmt + pp.Optional(ELSE + stmt))
 print_stmt = pp.Group(PRINT - pp.Group(LPAR + prt_list + RPAR) + SEMI)
 putc_stmt = pp.Group(PUTC - paren_expr + SEMI)
 stmt_list = pp.Group(LBRACE + stmt[...] + RBRACE)
-stmt <<= (pp.Group(SEMI)
-          | assignment_stmt
-          | while_stmt
-          | if_stmt
-          | print_stmt
-          | putc_stmt
-          | stmt_list
-          ).setName("statement")
+stmt <<= (
+    pp.Group(SEMI)
+    | assignment_stmt
+    | while_stmt
+    | if_stmt
+    | print_stmt
+    | putc_stmt
+    | stmt_list
+).setName("statement")
 
 code = stmt[...]
 code.ignore(pp.cppStyleComment)
 
 
 tests = [
-    r'''
+    r"""
         count = 1;
         while (count < 10) {
             print("count is: ", count, "\n");
             count = count + 1;
         }
-    ''',
-    r'''
+    """,
+    r"""
         /*
          Simple prime number generator
          */
@@ -110,64 +116,64 @@ tests = [
             }
         }
         print("Total primes found: ", count, "\n");
-    ''',
-    r'''
+    """,
+    r"""
         /*
           Hello world
          */
-        print("Hello, World!\n");    
-    ''',
-    r'''
+        print("Hello, World!\n");
+    """,
+    r"""
         /*
           Show Ident and Integers
          */
         phoenix_number = 142857;
         print(phoenix_number, "\n");
-    ''',
-    r'''
+    """,
+    r"""
         /*** test printing, embedded \n and comments with lots of '*' ***/
         print(42);
         print("\nHello World\nGood Bye\nok\n");
         print("Print a slash n - \\n.\n");
-    ''',
-    r'''
+    """,
+    r"""
         /* 100 Doors */
         i = 1;
         while (i * i <= 100) {
             print("door ", i * i, " is open\n");
             i = i + 1;
         }
-    ''',
-    r'''
+    """,
+    r"""
         a = (-1 * ((-1 * (5 * 15)) / 10));
         print(a, "\n");
         b = -a;
         print(b, "\n");
         print(-b, "\n");
         print(-(1), "\n");
-    ''',
-    r'''
+    """,
+    r"""
         print(---------------------------------+++5, "\n");
         print(((((((((3 + 2) * ((((((2))))))))))))), "\n");
-         
+
         if (1) { if (1) { if (1) { if (1) { if (1) { print(15, "\n"); } } } } }
-    ''',
-    r'''
+    """,
+    r"""
         /* Compute the gcd of 1071, 1029:  21 */
-         
+
         a = 1071;
         b = 1029;
-         
+
         while (b != 0) {
             new_a = b;
             b     = a % b;
             a     = new_a;
         }
         print(a);
-    ''',
-    r'''
+    """,
+    r"""
         /* 12 factorial is 479001600 */
-         
+
         n = 12;
         result = 1;
         i = 1;
@@ -176,10 +182,10 @@ tests = [
             i = i + 1;
         }
         print(result);
-    ''',
-    r'''
+    """,
+    r"""
         /* fibonacci of 44 is 701408733 */
-         
+
         n = 44;
         i = 1;
         a = 0;
@@ -191,8 +197,8 @@ tests = [
             i = i + 1;
         }
         print(w, "\n");
-    ''',
-    r'''
+    """,
+    r"""
         /* FizzBuzz */
         i = 1;
         while (i <= 100) {
@@ -204,12 +210,12 @@ tests = [
                 print("Buzz");
             else
                 print(i);
-         
+
             print("\n");
             i = i + 1;
         }
-    ''',
-    r'''
+    """,
+    r"""
         /* 99 bottles */
         bottles = 99;
         while (bottles > 0) {
@@ -219,8 +225,8 @@ tests = [
             bottles = bottles - 1;
             print(bottles, " bottles of beer on the wall\n\n");
         }
-    ''',
-    r'''
+    """,
+    r"""
          {
         /*
          This is an integer ascii Mandelbrot generator
@@ -231,9 +237,9 @@ tests = [
             bottom_edge = -300;
             x_step      =    7;
             y_step      =   15;
-         
+
             max_iter    =  200;
-         
+
             y0 = top_edge;
             while (y0 > bottom_edge) {
                 x0 = left_edge;
@@ -263,10 +269,11 @@ tests = [
                 y0 = y0 - y_step;
             }
         }
-    ''',
+    """,
 ]
 
 import sys
+
 sys.setrecursionlimit(2000)
 
 for test in tests:

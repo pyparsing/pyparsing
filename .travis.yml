@@ -2,18 +2,25 @@ language: python
 
 matrix:
   include:
-    - python: 3.5
-    - python: 3.6
-    - python: 3.7
     - python: 3.8
+      env: TOXENV=black
+    - python: 3.5
+      env: TOXENV=py35
+    - python: 3.6
+      env: TOXENV=py36
+    - python: 3.7
+      env: TOXENV=py37
+    - python: 3.8
+      env: TOXENV=py38
     - python: pypy3
+      env: TOXENV=pypy3
   fast_finish: true
 
 install:
-  - pip install codecov
+  - pip install tox codecov
 
 script:
- - python -m unittest
+ - tox
 
 after_success:
-  - codecov run -m unittest tests.test_unit
+  - codecov

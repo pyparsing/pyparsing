@@ -11,85 +11,122 @@
 # - () grouping
 # - | alternation
 #
-__all__ = ["count","invert"]
+__all__ = ["count", "invert"]
 
-from pyparsing import (Literal, oneOf, printables, ParserElement, Combine,
-    SkipTo, infixNotation, ParseFatalException, Word, nums, opAssoc,
-    Suppress, ParseResults, srange)
+from pyparsing import (
+    Literal,
+    oneOf,
+    printables,
+    ParserElement,
+    Combine,
+    SkipTo,
+    infixNotation,
+    ParseFatalException,
+    Word,
+    nums,
+    opAssoc,
+    Suppress,
+    ParseResults,
+    srange,
+)
+
 
 class CharacterRangeEmitter:
-    def __init__(self,chars):
+    def __init__(self, chars):
         # remove duplicate chars in character range, but preserve original order
         seen = set()
-        self.charset = "".join( seen.add(c) or c for c in chars if c not in seen )
+        self.charset = "".join(seen.add(c) or c for c in chars if c not in seen)
+
     def __str__(self):
-        return '['+self.charset+']'
+        return "[" + self.charset + "]"
+
     def __repr__(self):
-        return '['+self.charset+']'
+        return "[" + self.charset + "]"
+
     def makeGenerator(self):
         def genChars():
             yield from self.charset
+
         return genChars
 
+
 class OptionalEmitter:
-    def __init__(self,expr):
+    def __init__(self, expr):
         self.expr = expr
+
     def makeGenerator(self):
         def optionalGen():
             yield ""
             yield from self.expr.makeGenerator()()
+
         return optionalGen
+
 
 class DotEmitter:
     def makeGenerator(self):
         def dotGen():
             yield from printables
+
         return dotGen
 
+
 class GroupEmitter:
-    def __init__(self,exprs):
+    def __init__(self, exprs):
         self.exprs = ParseResults(exprs)
+
     def makeGenerator(self):
         def groupGen():
             def recurseList(elist):
-                if len(elist)==1:
+                if len(elist) == 1:
                     yield from elist[0].makeGenerator()()
                 else:
                     for s in elist[0].makeGenerator()():
                         for s2 in recurseList(elist[1:]):
                             yield s + s2
+
             if self.exprs:
                 yield from recurseList(self.exprs)
+
         return groupGen
 
+
 class AlternativeEmitter:
-    def __init__(self,exprs):
+    def __init__(self, exprs):
         self.exprs = exprs
+
     def makeGenerator(self):
         def altGen():
             for e in self.exprs:
                 yield from e.makeGenerator()()
+
         return altGen
 
+
 class LiteralEmitter:
-    def __init__(self,lit):
+    def __init__(self, lit):
         self.lit = lit
+
     def __str__(self):
-        return "Lit:"+self.lit
+        return "Lit:" + self.lit
+
     def __repr__(self):
-        return "Lit:"+self.lit
+        return "Lit:" + self.lit
+
     def makeGenerator(self):
         def litGen():
             yield self.lit
+
         return litGen
+
 
 def handleRange(toks):
     return CharacterRangeEmitter(srange(toks[0]))
 
+
 def handleRepetition(toks):
-    toks=toks[0]
+    toks = toks[0]
     if toks[1] in "*+":
-        raise ParseFatalException("",0,"unbounded repetition operators not supported")
+        raise ParseFatalException("", 0, "unbounded repetition operators not supported")
     if toks[1] == "?":
         return OptionalEmitter(toks[0])
     if "count" in toks:
@@ -100,23 +137,25 @@ def handleRepetition(toks):
         optcount = maxcount - mincount
         if optcount:
             opt = OptionalEmitter(toks[0])
-            for i in range(1,optcount):
-                opt = OptionalEmitter(GroupEmitter([toks[0],opt]))
+            for i in range(1, optcount):
+                opt = OptionalEmitter(GroupEmitter([toks[0], opt]))
             return GroupEmitter([toks[0]] * mincount + [opt])
         else:
             return [toks[0]] * mincount
+
 
 def handleLiteral(toks):
     lit = ""
     for t in toks:
         if t[0] == "\\":
             if t[1] == "t":
-                lit += '\t'
+                lit += "\t"
             else:
                 lit += t[1]
         else:
             lit += t
     return LiteralEmitter(lit)
+
 
 def handleMacro(toks):
     macroChar = toks[0][1]
@@ -127,59 +166,73 @@ def handleMacro(toks):
     elif macroChar == "s":
         return LiteralEmitter(" ")
     else:
-        raise ParseFatalException("",0,"unsupported macro character (" + macroChar + ")")
+        raise ParseFatalException(
+            "", 0, "unsupported macro character (" + macroChar + ")"
+        )
+
 
 def handleSequence(toks):
     return GroupEmitter(toks[0])
 
+
 def handleDot():
     return CharacterRangeEmitter(printables)
+
 
 def handleAlternative(toks):
     return AlternativeEmitter(toks[0])
 
 
 _parser = None
+
+
 def parser():
     global _parser
     if _parser is None:
         ParserElement.setDefaultWhitespaceChars("")
-        lbrack,rbrack,lbrace,rbrace,lparen,rparen,colon,qmark = map(Literal,"[]{}():?")
+        lbrack, rbrack, lbrace, rbrace, lparen, rparen, colon, qmark = map(
+            Literal, "[]{}():?"
+        )
 
         reMacro = Combine("\\" + oneOf(list("dws")))
         escapedChar = ~reMacro + Combine("\\" + oneOf(list(printables)))
-        reLiteralChar = "".join(c for c in printables if c not in r"\[]{}().*?+|") + " \t"
+        reLiteralChar = (
+            "".join(c for c in printables if c not in r"\[]{}().*?+|") + " \t"
+        )
 
-        reRange = Combine(lbrack + SkipTo(rbrack,ignore=escapedChar) + rbrack)
-        reLiteral = ( escapedChar | oneOf(list(reLiteralChar)) )
+        reRange = Combine(lbrack + SkipTo(rbrack, ignore=escapedChar) + rbrack)
+        reLiteral = escapedChar | oneOf(list(reLiteralChar))
         reNonCaptureGroup = Suppress("?:")
         reDot = Literal(".")
         repetition = (
-            ( lbrace + Word(nums)("count") + rbrace ) |
-            ( lbrace + Word(nums)("minCount")+","+ Word(nums)("maxCount") + rbrace ) |
-            oneOf(list("*+?"))
-            )
+            (lbrace + Word(nums)("count") + rbrace)
+            | (lbrace + Word(nums)("minCount") + "," + Word(nums)("maxCount") + rbrace)
+            | oneOf(list("*+?"))
+        )
 
         reRange.setParseAction(handleRange)
         reLiteral.setParseAction(handleLiteral)
         reMacro.setParseAction(handleMacro)
         reDot.setParseAction(handleDot)
 
-        reTerm = ( reLiteral | reRange | reMacro | reDot | reNonCaptureGroup)
-        reExpr = infixNotation( reTerm,
+        reTerm = reLiteral | reRange | reMacro | reDot | reNonCaptureGroup
+        reExpr = infixNotation(
+            reTerm,
             [
-            (repetition, 1, opAssoc.LEFT, handleRepetition),
-            (None, 2, opAssoc.LEFT, handleSequence),
-            (Suppress('|'), 2, opAssoc.LEFT, handleAlternative),
-            ]
-            )
+                (repetition, 1, opAssoc.LEFT, handleRepetition),
+                (None, 2, opAssoc.LEFT, handleSequence),
+                (Suppress("|"), 2, opAssoc.LEFT, handleAlternative),
+            ],
+        )
         _parser = reExpr
 
     return _parser
 
+
 def count(gen):
     """Simple function to count the number of elements returned by a generator."""
     return sum(1 for _ in gen)
+
 
 def invert(regex):
     r"""Call this routine as a generator to return all the strings that
@@ -189,6 +242,7 @@ def invert(regex):
     """
     invReGenerator = GroupEmitter(parser().parseString(regex)).makeGenerator()
     return invReGenerator()
+
 
 def main():
     tests = r"""
@@ -225,12 +279,15 @@ def main():
     [ABCDEFG](?:#|##|b|bb)?(?:maj|min|m|sus|aug|dim)?[0-9]?(?:/[ABCDEFG](?:#|##|b|bb)?)?
     (Fri|Mon|S(atur|un)|T(hur|ue)s|Wednes)day
     A(pril|ugust)|((Dec|Nov|Sept)em|Octo)ber|(Febr|Jan)uary|Ju(ly|ne)|Ma(rch|y)
-    """.split('\n')
+    """.split(
+        "\n"
+    )
 
     for t in tests:
         t = t.strip()
-        if not t: continue
-        print('-'*50)
+        if not t:
+            continue
+        print("-" * 50)
         print(t)
         try:
             num = count(invert(t))
@@ -243,9 +300,10 @@ def main():
                     break
         except ParseFatalException as pfe:
             print(pfe.msg)
-            print('')
+            print("")
             continue
-        print('')
+        print("")
+
 
 if __name__ == "__main__":
     main()

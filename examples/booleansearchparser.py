@@ -64,8 +64,8 @@ DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
 ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
 (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
 LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
-ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT 
-(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS 
+ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 CONTRIBUTORS:
@@ -81,46 +81,56 @@ TODO:
 - add more kinds of wildcards ('*' at the beginning and '*' inside a word)?
 
 """
-from pyparsing import Word, alphanums, Keyword, Group, Forward, Suppress, OneOrMore, oneOf
+from pyparsing import (
+    Word,
+    alphanums,
+    Keyword,
+    Group,
+    Forward,
+    Suppress,
+    OneOrMore,
+    oneOf,
+)
 import re
 
 
 alphabet_ranges = [
     ##CYRILIC: https://en.wikipedia.org/wiki/Cyrillic_(Unicode_block)
-    [int("0400",16), int("04FF",16)],
+    [int("0400", 16), int("04FF", 16)],
     ##THAI: https://en.wikipedia.org/wiki/Thai_(Unicode_block)
-    [int("0E00",16), int("0E7F",16)],
+    [int("0E00", 16), int("0E7F", 16)],
     ##ARABIC: https://en.wikipedia.org/wiki/Arabic_(Unicode_block) (Arabic (0600–06FF)+ Syriac (0700–074F)+ Arabic Supplement (0750–077F) )
-    [int("0600",16), int("07FF",16)],
+    [int("0600", 16), int("07FF", 16)],
     ##CHINESE: https://en.wikipedia.org/wiki/CJK_Unified_Ideographs_(Unicode_block)
-    [int("0400",16), int("09FF",16)],
-    #JAPANESE : https://en.wikipedia.org/wiki/Japanese_writing_system
-    [int("3040",16), int("30FF",16)],
-    #KOREAN : https://en.wikipedia.org/wiki/Hangul
-    [int("AC00",16), int("D7AF",16)],
-    [int("1100",16), int("11FF",16)],
-    [int("3130",16), int("318F",16)],
-    [int("3200",16), int("32FF",16)],
-    [int("A960",16), int("A97F",16)],
-    [int("D7B0",16), int("D7FF",16)],
-    [int("FF00",16), int("FFEF",16)],
+    [int("0400", 16), int("09FF", 16)],
+    # JAPANESE : https://en.wikipedia.org/wiki/Japanese_writing_system
+    [int("3040", 16), int("30FF", 16)],
+    # KOREAN : https://en.wikipedia.org/wiki/Hangul
+    [int("AC00", 16), int("D7AF", 16)],
+    [int("1100", 16), int("11FF", 16)],
+    [int("3130", 16), int("318F", 16)],
+    [int("3200", 16), int("32FF", 16)],
+    [int("A960", 16), int("A97F", 16)],
+    [int("D7B0", 16), int("D7FF", 16)],
+    [int("FF00", 16), int("FFEF", 16)],
 ]
-class BooleanSearchParser:
 
-    def __init__(self,only_parse=False):
+
+class BooleanSearchParser:
+    def __init__(self, only_parse=False):
         self._methods = {
-            'and': self.evaluateAnd,
-            'or': self.evaluateOr,
-            'not': self.evaluateNot,
-            'parenthesis': self.evaluateParenthesis,
-            'quotes': self.evaluateQuotes,
-            'word': self.evaluateWord,
-            'wordwildcardprefix': self.evaluateWordWildcardPrefix,
-            'wordwildcardsufix': self.evaluateWordWildcardSufix,
+            "and": self.evaluateAnd,
+            "or": self.evaluateOr,
+            "not": self.evaluateNot,
+            "parenthesis": self.evaluateParenthesis,
+            "quotes": self.evaluateQuotes,
+            "word": self.evaluateWord,
+            "wordwildcardprefix": self.evaluateWordWildcardPrefix,
+            "wordwildcardsufix": self.evaluateWordWildcardSufix,
         }
-        self._parser    = self.parser()
-        self.text       = ''
-        self.words      = []
+        self._parser = self.parser()
+        self.text = ""
+        self.words = []
 
     def parser(self):
         """
@@ -141,47 +151,54 @@ class BooleanSearchParser:
 
         alphabet = alphanums
 
-        #suport for non-western alphabets
+        # suport for non-western alphabets
         for r in alphabet_ranges:
-            alphabet += ''.join(chr(c) for c in range(*r) if not chr(c).isspace())
+            alphabet += "".join(chr(c) for c in range(*r) if not chr(c).isspace())
 
-        operatorWord = Group(
-            Word(alphabet + '*')
-        ).setResultsName('word*')
-
+        operatorWord = Group(Word(alphabet + "*")).setResultsName("word*")
 
         operatorQuotesContent = Forward()
-        operatorQuotesContent << (
-            (operatorWord + operatorQuotesContent) | operatorWord
+        operatorQuotesContent << ((operatorWord + operatorQuotesContent) | operatorWord)
+
+        operatorQuotes = (
+            Group(Suppress('"') + operatorQuotesContent + Suppress('"')).setResultsName(
+                "quotes"
+            )
+            | operatorWord
         )
 
-        operatorQuotes = Group(
-            Suppress('"') + operatorQuotesContent + Suppress('"')
-        ).setResultsName("quotes") | operatorWord
-
-        operatorParenthesis = Group(
-            Suppress("(") + operatorOr + Suppress(")")
-        ).setResultsName("parenthesis") | operatorQuotes
+        operatorParenthesis = (
+            Group(Suppress("(") + operatorOr + Suppress(")")).setResultsName(
+                "parenthesis"
+            )
+            | operatorQuotes
+        )
 
         operatorNot = Forward()
-        operatorNot << (Group(
-            Suppress(Keyword("not", caseless=True)) + operatorNot
-        ).setResultsName("not") | operatorParenthesis)
+        operatorNot << (
+            Group(Suppress(Keyword("not", caseless=True)) + operatorNot).setResultsName(
+                "not"
+            )
+            | operatorParenthesis
+        )
 
         operatorAnd = Forward()
         operatorAnd << (
             Group(
                 operatorNot + Suppress(Keyword("and", caseless=True)) + operatorAnd
-            ).setResultsName("and")|
-            Group(
+            ).setResultsName("and")
+            | Group(
                 operatorNot + OneOrMore(~oneOf("and or") + operatorAnd)
-            ).setResultsName("and") |
-            operatorNot
+            ).setResultsName("and")
+            | operatorNot
         )
 
-        operatorOr << (Group(
-            operatorAnd + Suppress(Keyword("or", caseless=True)) + operatorOr
-        ).setResultsName("or") | operatorAnd)
+        operatorOr << (
+            Group(
+                operatorAnd + Suppress(Keyword("or", caseless=True)) + operatorOr
+            ).setResultsName("or")
+            | operatorAnd
+        )
 
         return operatorOr.parseString
 
@@ -204,26 +221,26 @@ class BooleanSearchParser:
         function GetQuoted to only return the subset of ID's that contain the
         literal string.
         """
-        #r = set()
+        # r = set()
         r = False
         search_terms = []
         for item in argument:
             search_terms.append(item[0])
             r = r and self.evaluate(item)
-        return self.GetQuotes(' '.join(search_terms), r)
+        return self.GetQuotes(" ".join(search_terms), r)
 
     def evaluateWord(self, argument):
         wildcard_count = argument[0].count("*")
         if wildcard_count > 0:
             if wildcard_count == 1 and argument[0].startswith("*"):
-                return self.GetWordWildcard(argument[0][1:], method = "endswith")
+                return self.GetWordWildcard(argument[0][1:], method="endswith")
             if wildcard_count == 1 and argument[0].endswith("*"):
-                return self.GetWordWildcard(argument[0][:-1], method = "startswith")
+                return self.GetWordWildcard(argument[0][:-1], method="startswith")
             else:
-                _regex  = argument[0].replace("*",".+")
+                _regex = argument[0].replace("*", ".+")
                 matched = False
                 for w in self.words:
-                    matched = bool(re.search(_regex,w))
+                    matched = bool(re.search(_regex, w))
                     if matched:
                         break
                 return matched
@@ -231,10 +248,10 @@ class BooleanSearchParser:
         return self.GetWord(argument[0])
 
     def evaluateWordWildcardPrefix(self, argument):
-        return self.GetWordWildcard(argument[0], method = "endswith")
+        return self.GetWordWildcard(argument[0], method="endswith")
 
     def evaluateWordWildcardSufix(self, argument):
-        return self.GetWordWildcard(argument[0], method = "startswith")
+        return self.GetWordWildcard(argument[0], method="startswith")
 
     def evaluate(self, argument):
         return self._methods[argument.getName()](argument)
@@ -245,10 +262,10 @@ class BooleanSearchParser:
     def GetWord(self, word):
         return word in self.words
 
-    def GetWordWildcard(self, word, method = "startswith"):
+    def GetWordWildcard(self, word, method="startswith"):
         matched = False
         for w in self.words:
-            matched = getattr(w,method)(word)
+            matched = getattr(w, method)(word)
             if matched:
                 break
         return matched
@@ -265,24 +282,22 @@ class BooleanSearchParser:
     def GetQuotes(self, search_string, tmp_result):
         return search_string in self.text
 
-
     def GetNot(self, not_set):
         return not not_set
 
-
-    def _split_words(self,text):
+    def _split_words(self, text):
         words = []
         """
         >>> import string
         >>> string.punctuation
         '!"#$%&\'()*+,-./:;<=>?@[\\]^_`{|}~'
         """
-        #it will keep @, # and
-        #usernames and hashtags can contain dots, so a double check is done
-        r = re.compile(r'[\s{}]+'.format(re.escape('!"$%&\'()*+,-/:;<=>?[\\]^`{|}~')))
-        _words  = r.split(text)
+        # it will keep @, # and
+        # usernames and hashtags can contain dots, so a double check is done
+        r = re.compile(r"[\s{}]+".format(re.escape("!\"$%&'()*+,-/:;<=>?[\\]^`{|}~")))
+        _words = r.split(text)
         for _w in _words:
-            if '.' in _w and not _w.startswith("#") and not _w.startswith("@"):
+            if "." in _w and not _w.startswith("#") and not _w.startswith("@"):
                 for __w in _w.split("."):
                     words.append(__w)
                 continue
@@ -291,9 +306,9 @@ class BooleanSearchParser:
 
         return words
 
-    def match(self,text,expr):
-        self.text   = text
-        self.words  = self._split_words(text)
+    def match(self, text, expr):
+        self.text = text
+        self.words = self._split_words(text)
 
         return self.Parse(expr)
 
@@ -305,72 +320,132 @@ class ParserTest(BooleanSearchParser):
 
     def Test(self):
         exprs = {
-            '0' : 'help',
-            '1' : 'help or hulp',
-            '2' : 'help and hulp',
-            '3' : 'help hulp',
-            '4' : 'help and hulp or hilp',
-            '5' : 'help or hulp and hilp',
-            '6' : 'help or hulp or hilp or halp',
-            '7' : '(help or hulp) and (hilp or halp)',
-            '8' : 'help and (hilp or halp)',
-            '9' : '(help and (hilp or halp)) or hulp',
-            '10': 'not help',
-            '11': 'not hulp and halp',
-            '12': 'not (help and halp)',
-            '13': '"help me please"',
-            '14': '"help me please" or hulp',
-            '15': '"help me please" or (hulp and halp)',
-            '16': 'help*',
-            '17': 'help or hulp*',
-            '18': 'help* and hulp',
-            '19': 'help and hulp* or hilp',
-            '20': 'help* or hulp or hilp or halp',
-            '21': '(help or hulp*) and (hilp* or halp)',
-            '22': 'help* and (hilp* or halp*)',
-            '23': '(help and (hilp* or halp)) or hulp*',
-            '24': 'not help* and halp',
-            '25': 'not (help* and helpe*)',
-            '26': '"help* me please"',
-            '27': '"help* me* please" or hulp*',
-            '28': '"help me please*" or (hulp and halp)',
-            '29': '"help me please" not (hulp and halp)',
-            '30': '"help me please" hulp',
-            '31': 'help and hilp and not holp',
-            '32': 'help hilp not holp',
-            '33': 'help hilp and not holp',
-            '34': '*lp and halp',
-            '35': '*신은 and 어떠세요',
+            "0": "help",
+            "1": "help or hulp",
+            "2": "help and hulp",
+            "3": "help hulp",
+            "4": "help and hulp or hilp",
+            "5": "help or hulp and hilp",
+            "6": "help or hulp or hilp or halp",
+            "7": "(help or hulp) and (hilp or halp)",
+            "8": "help and (hilp or halp)",
+            "9": "(help and (hilp or halp)) or hulp",
+            "10": "not help",
+            "11": "not hulp and halp",
+            "12": "not (help and halp)",
+            "13": '"help me please"',
+            "14": '"help me please" or hulp',
+            "15": '"help me please" or (hulp and halp)',
+            "16": "help*",
+            "17": "help or hulp*",
+            "18": "help* and hulp",
+            "19": "help and hulp* or hilp",
+            "20": "help* or hulp or hilp or halp",
+            "21": "(help or hulp*) and (hilp* or halp)",
+            "22": "help* and (hilp* or halp*)",
+            "23": "(help and (hilp* or halp)) or hulp*",
+            "24": "not help* and halp",
+            "25": "not (help* and helpe*)",
+            "26": '"help* me please"',
+            "27": '"help* me* please" or hulp*',
+            "28": '"help me please*" or (hulp and halp)',
+            "29": '"help me please" not (hulp and halp)',
+            "30": '"help me please" hulp',
+            "31": "help and hilp and not holp",
+            "32": "help hilp not holp",
+            "33": "help hilp and not holp",
+            "34": "*lp and halp",
+            "35": "*신은 and 어떠세요",
         }
 
         texts_matcheswith = {
             "halp thinks he needs help": [
-                "25", "22", "20", "21", "11", "17", "16", "23", "34", "1", "0", "5", "7", "6", "9", "8"
+                "25",
+                "22",
+                "20",
+                "21",
+                "11",
+                "17",
+                "16",
+                "23",
+                "34",
+                "1",
+                "0",
+                "5",
+                "7",
+                "6",
+                "9",
+                "8",
             ],
-            "he needs halp": [
-                "24", "25", "20", "11", "10", "12", "34", "6"
-            ],
-            "help": [
-                "25", "20", "12", "17", "16", "1", "0", "5", "6"
-            ],
+            "he needs halp": ["24", "25", "20", "11", "10", "12", "34", "6"],
+            "help": ["25", "20", "12", "17", "16", "1", "0", "5", "6"],
             "help hilp": [
-                "25", "22", "20", "32", "21", "12", "17", "16", "19", "31", "23", "1", "0", "5", "4", "7", "6", "9", "8", "33"
+                "25",
+                "22",
+                "20",
+                "32",
+                "21",
+                "12",
+                "17",
+                "16",
+                "19",
+                "31",
+                "23",
+                "1",
+                "0",
+                "5",
+                "4",
+                "7",
+                "6",
+                "9",
+                "8",
+                "33",
             ],
             "help me please hulp": [
-                "30", "25", "27", "20", "13", "12", "15", "14", "17", "16", "19", "18", "23", "29", "1", "0", "3", "2", "5", "4", "6", "9"
+                "30",
+                "25",
+                "27",
+                "20",
+                "13",
+                "12",
+                "15",
+                "14",
+                "17",
+                "16",
+                "19",
+                "18",
+                "23",
+                "29",
+                "1",
+                "0",
+                "3",
+                "2",
+                "5",
+                "4",
+                "6",
+                "9",
             ],
-            "helper": [
-                "20", "10", "12", "16"
-            ],
+            "helper": ["20", "10", "12", "16"],
             "hulp hilp": [
-                "25", "27", "20", "21", "10", "12", "14", "17", "19", "23", "1", "5", "4", "7", "6", "9"
+                "25",
+                "27",
+                "20",
+                "21",
+                "10",
+                "12",
+                "14",
+                "17",
+                "19",
+                "23",
+                "1",
+                "5",
+                "4",
+                "7",
+                "6",
+                "9",
             ],
-            "nothing": [
-                "25", "10", "12"
-            ],
-            "안녕하세요, 당신은 어떠세요?": [
-                "10", "12", "25", "35"
-            ]
+            "nothing": ["25", "10", "12"],
+            "안녕하세요, 당신은 어떠세요?": ["10", "12", "25", "35"],
         }
 
         all_ok = True
@@ -382,16 +457,17 @@ class ParserTest(BooleanSearchParser):
 
             test_passed = sorted(matches) == sorted(_matches)
             if not test_passed:
-                print('Failed', repr(text), 'expected', matches, 'matched', _matches)
+                print("Failed", repr(text), "expected", matches, "matched", _matches)
 
             all_ok = all_ok and test_passed
 
         return all_ok
 
-if __name__=='__main__':
+
+if __name__ == "__main__":
     if ParserTest().Test():
-        print ('All tests OK')
+        print("All tests OK")
         exit(0)
     else:
-        print ('One or more tests FAILED')
+        print("One or more tests FAILED")
         exit(1)

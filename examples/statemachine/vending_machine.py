@@ -22,10 +22,13 @@ statemachine VendingMachineState:
 """
 
 # convert state machine text to state classes
-generated = statemachine.namedStateMachine.transformString(vending_machine_state_description)
+generated = statemachine.namedStateMachine.transformString(
+    vending_machine_state_description
+)
 # print(generated)
 # exec generated code to define state classes and state mixin
 exec(generated)
+
 
 class VendingMachine(VendingMachineStateMixin):
     def __init__(self):
@@ -42,7 +45,7 @@ class VendingMachine(VendingMachineStateMixin):
             self._pressed = button
             self.press_digit_button()
         else:
-            print('Did not recognize button {!r}'.format(str(button)))
+            print("Did not recognize button {!r}".format(str(button)))
 
     def press_alpha_button(self):
         try:

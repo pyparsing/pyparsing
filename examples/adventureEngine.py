@@ -8,59 +8,64 @@ from pyparsing import *
 import random
 import string
 
-def aOrAn( item ):
+
+def aOrAn(item):
     if item.desc[0] in "aeiou":
         return "an " + item.desc
     else:
         return "a " + item.desc
 
+
 def enumerateItems(l):
-    if len(l) == 0: return "nothing"
+    if len(l) == 0:
+        return "nothing"
     out = []
     if len(l) > 1:
-        out.append(', '.join(aOrAn(item) for item in l[:-1]))
-        out.append('and')
+        out.append(", ".join(aOrAn(item) for item in l[:-1]))
+        out.append("and")
     out.append(aOrAn(l[-1]))
     return " ".join(out)
 
+
 def enumerateDoors(l):
-    if len(l) == 0: return ""
+    if len(l) == 0:
+        return ""
     out = []
     if len(l) > 1:
-        out.append(', '.join(l[:-1]))
+        out.append(", ".join(l[:-1]))
         out.append("and")
     out.append(l[-1])
     return " ".join(out)
+
 
 class Room:
     def __init__(self, desc):
         self.desc = desc
         self.inv = []
         self.gameOver = False
-        self.doors = [None,None,None,None]
+        self.doors = [None, None, None, None]
 
-    def __getattr__(self,attr):
-        return \
-            {
-            "n":self.doors[0],
-            "s":self.doors[1],
-            "e":self.doors[2],
-            "w":self.doors[3],
-            }[attr]
+    def __getattr__(self, attr):
+        return {
+            "n": self.doors[0],
+            "s": self.doors[1],
+            "e": self.doors[2],
+            "w": self.doors[3],
+        }[attr]
 
-    def enter(self,player):
+    def enter(self, player):
         if self.gameOver:
             player.gameOver = True
 
     def addItem(self, it):
         self.inv.append(it)
 
-    def removeItem(self,it):
+    def removeItem(self, it):
         self.inv.remove(it)
 
     def describe(self):
         print(self.desc)
-        visibleItems = [ it for it in self.inv if it.isVisible ]
+        visibleItems = [it for it in self.inv if it.isVisible]
         if random.random() > 0.5:
             if len(visibleItems) > 1:
                 is_form = "are"
@@ -75,13 +80,13 @@ class Exit(Room):
     def __init__(self):
         super().__init__("")
 
-    def enter(self,player):
+    def enter(self, player):
         player.gameOver = True
-
 
 
 class Item:
     items = {}
+
     def __init__(self, desc):
         self.desc = desc
         self.isDeadly = False
@@ -106,13 +111,14 @@ class Item:
 
     def isUsable(self, player, target):
         if self.usableConditionTest:
-            return self.usableConditionTest( player, target )
+            return self.usableConditionTest(player, target)
         else:
             return False
 
     def useItem(self, player, target):
         if self.useAction:
             self.useAction(player, self, target)
+
 
 class OpenableItem(Item):
     def __init__(self, desc, contents=None):
@@ -121,7 +127,9 @@ class OpenableItem(Item):
         self.isOpened = False
         if contents is not None:
             if isinstance(contents, Item):
-                self.contents = [contents,]
+                self.contents = [
+                    contents,
+                ]
             else:
                 self.contents = contents
         else:
@@ -132,7 +140,7 @@ class OpenableItem(Item):
             self.isOpened = not self.isOpened
             if self.contents is not None:
                 for item in self.contents:
-                    player.room.addItem( item )
+                    player.room.addItem(item)
                 self.contents = []
             self.desc = "open " + self.desc
 
@@ -145,6 +153,7 @@ class OpenableItem(Item):
 
 class Command:
     "Base class for commands"
+
     def __init__(self, verb, verbProg):
         self.verb = verb
         self.verbProg = verbProg
@@ -156,8 +165,8 @@ class Command:
     def _doCommand(self, player):
         pass
 
-    def __call__(self, player ):
-        print(self.verbProg.capitalize()+"...")
+    def __call__(self, player):
+        print(self.verbProg.capitalize() + "...")
         self._doCommand(player)
 
 
@@ -173,16 +182,9 @@ class MoveCommand(Command):
 
     def _doCommand(self, player):
         rm = player.room
-        nextRoom = rm.doors[
-            {
-            "N":0,
-            "S":1,
-            "E":2,
-            "W":3,
-            }[self.direction]
-            ]
+        nextRoom = rm.doors[{"N": 0, "S": 1, "E": 2, "W": 3,}[self.direction]]
         if nextRoom:
-            player.moveTo( nextRoom )
+            player.moveTo(nextRoom)
         else:
             print("Can't go that way.")
 
@@ -227,6 +229,7 @@ class DropCommand(Command):
         else:
             print("You don't have %s." % (aOrAn(subj)))
 
+
 class InventoryCommand(Command):
     def __init__(self, quals):
         super().__init__("INV", "taking inventory")
@@ -236,7 +239,8 @@ class InventoryCommand(Command):
         return "INVENTORY or INV or I - lists what items you have"
 
     def _doCommand(self, player):
-        print("You have %s." % enumerateItems( player.inv ))
+        print("You have %s." % enumerateItems(player.inv))
+
 
 class LookCommand(Command):
     def __init__(self, quals):
@@ -248,6 +252,7 @@ class LookCommand(Command):
 
     def _doCommand(self, player):
         player.room.describe()
+
 
 class DoorsCommand(Command):
     def __init__(self, quals):
@@ -267,12 +272,16 @@ class DoorsCommand(Command):
                 reply = "There is a door to the "
             else:
                 reply = "There are doors to the "
-            doorNames = [ {0:"north", 1:"south", 2:"east", 3:"west"}[i]
-                          for i,d in enumerate(rm.doors) if d is not None ]
-            #~ print doorNames
-            reply += enumerateDoors( doorNames )
+            doorNames = [
+                {0: "north", 1: "south", 2: "east", 3: "west"}[i]
+                for i, d in enumerate(rm.doors)
+                if d is not None
+            ]
+            # ~ print doorNames
+            reply += enumerateDoors(doorNames)
             reply += "."
             print(reply)
+
 
 class UseCommand(Command):
     def __init__(self, quals):
@@ -291,12 +300,13 @@ class UseCommand(Command):
         rm = player.room
         availItems = rm.inv + player.inv
         if self.subject in availItems:
-            if self.subject.isUsable( player, self.target ):
-                self.subject.useItem( player, self.target )
+            if self.subject.isUsable(player, self.target):
+                self.subject.useItem(player, self.target)
             else:
                 print("You can't use that here.")
         else:
             print("There is no %s here to use." % self.subject)
+
 
 class OpenCommand(Command):
     def __init__(self, quals):
@@ -309,17 +319,18 @@ class OpenCommand(Command):
 
     def _doCommand(self, player):
         rm = player.room
-        availItems = rm.inv+player.inv
+        availItems = rm.inv + player.inv
         if self.subject in availItems:
             if self.subject.isOpenable:
                 if not self.subject.isOpened:
-                    self.subject.openItem( player )
+                    self.subject.openItem(player)
                 else:
                     print("It's already open.")
             else:
                 print("You can't open that.")
         else:
             print("There is no %s here to open." % self.subject)
+
 
 class CloseCommand(Command):
     def __init__(self, quals):
@@ -332,17 +343,18 @@ class CloseCommand(Command):
 
     def _doCommand(self, player):
         rm = player.room
-        availItems = rm.inv+player.inv
+        availItems = rm.inv + player.inv
         if self.subject in availItems:
             if self.subject.isOpenable:
                 if self.subject.isOpened:
-                    self.subject.closeItem( player )
+                    self.subject.closeItem(player)
                 else:
                     print("You can't close that, it's not open.")
             else:
                 print("You can't close that.")
         else:
             print("There is no %s here to close." % self.subject)
+
 
 class QuitCommand(Command):
     def __init__(self, quals):
@@ -355,6 +367,7 @@ class QuitCommand(Command):
     def _doCommand(self, player):
         print("Ok....")
         player.gameOver = True
+
 
 class HelpCommand(Command):
     def __init__(self, quals):
@@ -378,12 +391,14 @@ class HelpCommand(Command):
             DoorsCommand,
             QuitCommand,
             HelpCommand,
-            ]:
+        ]:
             print("  - %s" % cmd.helpDescription())
         print()
 
+
 class AppParseException(ParseException):
     pass
+
 
 class Parser:
     def __init__(self):
@@ -392,8 +407,9 @@ class Parser:
     def makeBNF(self):
         invVerb = oneOf("INV INVENTORY I", caseless=True)
         dropVerb = oneOf("DROP LEAVE", caseless=True)
-        takeVerb = oneOf("TAKE PICKUP", caseless=True) | \
-            (CaselessLiteral("PICK") + CaselessLiteral("UP") )
+        takeVerb = oneOf("TAKE PICKUP", caseless=True) | (
+            CaselessLiteral("PICK") + CaselessLiteral("UP")
+        )
         moveVerb = oneOf("MOVE GO", caseless=True) | empty
         useVerb = oneOf("USE U", caseless=True)
         openVerb = oneOf("OPEN O", caseless=True)
@@ -401,21 +417,24 @@ class Parser:
         quitVerb = oneOf("QUIT Q", caseless=True)
         lookVerb = oneOf("LOOK L", caseless=True)
         doorsVerb = CaselessLiteral("DOORS")
-        helpVerb = oneOf("H HELP ?",caseless=True)
+        helpVerb = oneOf("H HELP ?", caseless=True)
 
-        itemRef = OneOrMore(Word(alphas)).setParseAction( self.validateItemName )
-        nDir = oneOf("N NORTH",caseless=True).setParseAction(replaceWith("N"))
-        sDir = oneOf("S SOUTH",caseless=True).setParseAction(replaceWith("S"))
-        eDir = oneOf("E EAST",caseless=True).setParseAction(replaceWith("E"))
-        wDir = oneOf("W WEST",caseless=True).setParseAction(replaceWith("W"))
+        itemRef = OneOrMore(Word(alphas)).setParseAction(self.validateItemName)
+        nDir = oneOf("N NORTH", caseless=True).setParseAction(replaceWith("N"))
+        sDir = oneOf("S SOUTH", caseless=True).setParseAction(replaceWith("S"))
+        eDir = oneOf("E EAST", caseless=True).setParseAction(replaceWith("E"))
+        wDir = oneOf("W WEST", caseless=True).setParseAction(replaceWith("W"))
         moveDirection = nDir | sDir | eDir | wDir
 
         invCommand = invVerb
         dropCommand = dropVerb + itemRef("item")
         takeCommand = takeVerb + itemRef("item")
-        useCommand = useVerb + itemRef("usedObj") + \
-            Optional(oneOf("IN ON",caseless=True)) + \
-            Optional(itemRef,default=None)("targetObj")
+        useCommand = (
+            useVerb
+            + itemRef("usedObj")
+            + Optional(oneOf("IN ON", caseless=True))
+            + Optional(itemRef, default=None)("targetObj")
+        )
         openCommand = openVerb + itemRef("item")
         closeCommand = closeVerb + itemRef("item")
         moveCommand = moveVerb + moveDirection("direction")
@@ -438,22 +457,24 @@ class Parser:
         helpCommand.setParseAction(HelpCommand)
 
         # define parser using all command expressions
-        return ( invCommand |
-                  useCommand |
-                  openCommand |
-                  closeCommand |
-                  dropCommand |
-                  takeCommand |
-                  moveCommand |
-                  lookCommand |
-                  doorsCommand |
-                  helpCommand |
-                  quitCommand )("command") + LineEnd()
+        return (
+            invCommand
+            | useCommand
+            | openCommand
+            | closeCommand
+            | dropCommand
+            | takeCommand
+            | moveCommand
+            | lookCommand
+            | doorsCommand
+            | helpCommand
+            | quitCommand
+        )("command") + LineEnd()
 
-    def validateItemName(self,s,l,t):
+    def validateItemName(self, s, l, t):
         iname = " ".join(t)
         if iname not in Item.items:
-            raise AppParseException(s,l,"No such item '%s'." % iname)
+            raise AppParseException(s, l, "No such item '%s'." % iname)
         return iname
 
     def parseCmd(self, cmdstr):
@@ -463,11 +484,18 @@ class Parser:
         except AppParseException as pe:
             print(pe.msg)
         except ParseException as pe:
-            print(random.choice([ "Sorry, I don't understand that.",
-                                   "Huh?",
-                                   "Excuse me?",
-                                   "???",
-                                   "What?" ] ))
+            print(
+                random.choice(
+                    [
+                        "Sorry, I don't understand that.",
+                        "Huh?",
+                        "Excuse me?",
+                        "???",
+                        "What?",
+                    ]
+                )
+            )
+
 
 class Player:
     def __init__(self, name):
@@ -485,20 +513,20 @@ class Player:
         else:
             rm.describe()
 
-    def take(self,it):
+    def take(self, it):
         if it.isDeadly:
             print("Aaaagh!...., the %s killed me!" % it)
             self.gameOver = True
         else:
             self.inv.append(it)
 
-    def drop(self,it):
+    def drop(self, it):
         self.inv.remove(it)
         if it.isFragile:
             it.breakItem()
 
 
-def createRooms( rm ):
+def createRooms(rm):
     """
     create rooms, using multiline string showing map layout
     string contains symbols for the following:
@@ -521,8 +549,8 @@ def createRooms( rm ):
 
     # scan through input string looking for connections between rooms
     rows = rm.split("\n")
-    for row,line in enumerate(rows):
-        for col,c in enumerate(line):
+    for row, line in enumerate(rows):
+        for col, c in enumerate(line):
             if c in string.ascii_letters:
                 room = ret[c]
                 n = None
@@ -533,46 +561,52 @@ def createRooms( rm ):
                 # look in neighboring cells for connection symbols (must take
                 # care to guard that neighboring cells exist before testing
                 # contents)
-                if col > 0 and line[col-1] in "<-":
-                    other = line[col-2]
+                if col > 0 and line[col - 1] in "<-":
+                    other = line[col - 2]
                     w = ret[other]
-                if col < len(line)-1 and line[col+1] in "->":
-                    other = line[col+2]
+                if col < len(line) - 1 and line[col + 1] in "->":
+                    other = line[col + 2]
                     e = ret[other]
-                if row > 1 and col < len(rows[row-1]) and rows[row-1][col] in '|^':
-                    other = rows[row-2][col]
+                if row > 1 and col < len(rows[row - 1]) and rows[row - 1][col] in "|^":
+                    other = rows[row - 2][col]
                     n = ret[other]
-                if row < len(rows)-1 and col < len(rows[row+1]) and rows[row+1][col] in '|.':
-                    other = rows[row+2][col]
+                if (
+                    row < len(rows) - 1
+                    and col < len(rows[row + 1])
+                    and rows[row + 1][col] in "|."
+                ):
+                    other = rows[row + 2][col]
                     s = ret[other]
 
                 # set connections to neighboring rooms
-                room.doors=[n,s,e,w]
+                room.doors = [n, s, e, w]
 
     return ret
 
-# put items in rooms
-def putItemInRoom(i,r):
-    if isinstance(r,str):
-        r = rooms[r]
-    r.addItem( Item.items[i] )
 
-def playGame(p,startRoom):
+# put items in rooms
+def putItemInRoom(i, r):
+    if isinstance(r, str):
+        r = rooms[r]
+    r.addItem(Item.items[i])
+
+
+def playGame(p, startRoom):
     # create parser
     parser = Parser()
-    p.moveTo( startRoom )
+    p.moveTo(startRoom)
     while not p.gameOver:
         cmdstr = input(">> ")
         cmd = parser.parseCmd(cmdstr)
         if cmd is not None:
-            cmd.command( p )
+            cmd.command(p)
     print()
     print("You ended the game with:")
     for i in p.inv:
         print(" -", aOrAn(i))
 
 
-#====================
+# ====================
 # start game definition
 roomMap = """
      d-Z
@@ -583,7 +617,7 @@ roomMap = """
      |
      A
 """
-rooms = createRooms( roomMap )
+rooms = createRooms(roomMap)
 rooms["A"].desc = "You are standing on the front porch of a wooden shack."
 rooms["b"].desc = "You are in a garden."
 rooms["c"].desc = "You are in a kitchen."
@@ -595,29 +629,39 @@ rooms["q"].gameOver = True
 
 # define global variables for referencing rooms
 frontPorch = rooms["A"]
-garden     = rooms["b"]
-kitchen    = rooms["c"]
-backPorch  = rooms["d"]
-library    = rooms["e"]
-patio      = rooms["f"]
+garden = rooms["b"]
+kitchen = rooms["c"]
+backPorch = rooms["d"]
+library = rooms["e"]
+patio = rooms["f"]
 
 # create items
-itemNames = """sword.diamond.apple.flower.coin.shovel.book.mirror.telescope.gold bar""".split(".")
+itemNames = """sword.diamond.apple.flower.coin.shovel.book.mirror.telescope.gold bar""".split(
+    "."
+)
 for itemName in itemNames:
-    Item( itemName )
+    Item(itemName)
 Item.items["apple"].isDeadly = True
 Item.items["mirror"].isFragile = True
 Item.items["coin"].isVisible = False
-Item.items["shovel"].usableConditionTest = ( lambda p,t: p.room is garden )
-def useShovel(p,subj,target):
+Item.items["shovel"].usableConditionTest = lambda p, t: p.room is garden
+
+
+def useShovel(p, subj, target):
     coin = Item.items["coin"]
     if not coin.isVisible and coin in p.room.inv:
         coin.isVisible = True
+
+
 Item.items["shovel"].useAction = useShovel
 
 Item.items["telescope"].isTakeable = False
-def useTelescope(p,subj,target):
+
+
+def useTelescope(p, subj, target):
     print("You don't see anything.")
+
+
 Item.items["telescope"].useAction = useTelescope
 
 OpenableItem("treasure chest", Item.items["gold bar"])
@@ -642,7 +686,7 @@ putItemInRoom("treasure chest", patio)
 
 # create player
 plyr = Player("Bob")
-plyr.take( Item.items["sword"] )
+plyr.take(Item.items["sword"])
 
 # start game
-playGame( plyr, frontPorch )
+playGame(plyr, frontPorch)

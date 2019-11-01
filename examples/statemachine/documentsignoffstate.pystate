@@ -7,7 +7,7 @@
 # example using named state transitions
 
 # This implements a state model for submitting,
-# approving, activating, and purging document 
+# approving, activating, and purging document
 # revisions in a document management system.
 #
 # The state model looks like:
@@ -16,7 +16,7 @@
 #    |
 #    | (create)
 #    |
-#    v 
+#    v
 #   Editing ----------------------------------------------+
 #    |   ^                                                |
 #    |   |                                                |
@@ -50,7 +50,7 @@
 # just an example of a state machine with named transitions.
 #
 
-   
+
 statemachine DocumentRevisionState:
     New      -( create     )-> Editing
     Editing  -( cancel     )-> Deleted

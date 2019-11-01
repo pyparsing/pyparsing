@@ -23,7 +23,7 @@ identifier = Word(alphas)
 classIdent = identifier("classname")  # note that this also makes a copy of identifier
 classHead = "class" + classIdent
 classBody = "..."
-classEnd = "end" + matchPreviousLiteral(classIdent) + ';'
+classEnd = "end" + matchPreviousLiteral(classIdent) + ";"
 classDefn = classHead + classBody + classEnd
 
 # use this form to catch syntax error
