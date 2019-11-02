@@ -2919,32 +2919,24 @@ class Test2_WithoutPackrat(TestParseResultsAsserts):
                 return
 
         class CallableS3:
-            # ~ @staticmethod
+            @staticmethod
             def __call__(s, l, t):
                 return t
 
-            __call__ = staticmethod(__call__)
-
         class CallableS2:
-            # ~ @staticmethod
+            @staticmethod
             def __call__(l, t):
                 return t
 
-            __call__ = staticmethod(__call__)
-
         class CallableS1:
-            # ~ @staticmethod
+            @staticmethod
             def __call__(t):
                 return t
 
-            __call__ = staticmethod(__call__)
-
         class CallableS0:
-            # ~ @staticmethod
+            @staticmethod
             def __call__():
                 return
-
-            __call__ = staticmethod(__call__)
 
         class CallableC3:
             # ~ @classmethod
@@ -2975,26 +2967,21 @@ class Test2_WithoutPackrat(TestParseResultsAsserts):
             __call__ = classmethod(__call__)
 
         class parseActionHolder:
-            # ~ @staticmethod
+            @staticmethod
             def pa3(s, l, t):
                 return t
 
-            pa3 = staticmethod(pa3)
-            # ~ @staticmethod
+            @staticmethod
             def pa2(l, t):
                 return t
 
-            pa2 = staticmethod(pa2)
-            # ~ @staticmethod
+            @staticmethod
             def pa1(t):
                 return t
 
-            pa1 = staticmethod(pa1)
-            # ~ @staticmethod
+            @staticmethod
             def pa0():
                 return
-
-            pa0 = staticmethod(pa0)
 
         def paArgs(*args):
             print(args)
