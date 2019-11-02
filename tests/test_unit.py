@@ -1714,14 +1714,8 @@ class Test2_WithoutPackrat(TestParseResultsAsserts):
             r"""==sdf\:j=lz::--djf: sl=^^=kfsjf
             sdlfjs ==sdf\:j=ls::--djf: sl==kfsjf""",
         )
-        try:
-            bad1 = QuotedString("", "\\")
-        except SyntaxError as se:
-            pass
-        else:
-            self.assertTrue(
-                False, "failed to raise SyntaxError with empty quote string"
-            )
+        with self.assertRaises(SyntaxError):
+            QuotedString("", "\\")
 
     def testRepeater(self):
         from pyparsing import (
@@ -2590,34 +2584,14 @@ class Test2_WithoutPackrat(TestParseResultsAsserts):
             "incorrect Regex.sub result with callable",
         )
 
-        try:
-            expr = pp.Regex(r"<(.*?)>", asMatch=True).sub(lambda m: m.group(1).upper())
-        except SyntaxError:
-            pass
-        else:
-            self.assertTrue(
-                False, "failed to warn using a Regex.sub(callable) with asMatch=True"
-            )
+        with self.assertRaises(SyntaxError):
+            pp.Regex(r"<(.*?)>", asMatch=True).sub(lambda m: m.group(1).upper())
 
-        try:
-            expr = pp.Regex(r"<(.*?)>", asGroupList=True).sub(
-                lambda m: m.group(1).upper()
-            )
-        except SyntaxError:
-            pass
-        else:
-            self.assertTrue(
-                False, "failed to warn using a Regex.sub() with asGroupList=True"
-            )
+        with self.assertRaises(SyntaxError):
+            pp.Regex(r"<(.*?)>", asGroupList=True).sub(lambda m: m.group(1).upper())
 
-        try:
-            expr = pp.Regex(r"<(.*?)>", asGroupList=True).sub("")
-        except SyntaxError:
-            pass
-        else:
-            self.assertTrue(
-                False, "failed to warn using a Regex.sub() with asGroupList=True"
-            )
+        with self.assertRaises(SyntaxError):
+            pp.Regex(r"<(.*?)>", asGroupList=True).sub("")
 
     def testPrecededBy(self):
         import pyparsing as pp
@@ -3768,13 +3742,8 @@ class Test2_WithoutPackrat(TestParseResultsAsserts):
             )
             print(result.dump())
 
-        try:
-            result = exp.parseString("{bar}")
-            self.assertTrue(
-                False, "failed to raise exception when required element is missing"
-            )
-        except ParseException as pe:
-            pass
+        with self.assertRaises(ParseException):
+            exp.parseString("{bar}")
 
     def testOptionalEachTest4(self):
         from pyparsing import pyparsing_common, Group
