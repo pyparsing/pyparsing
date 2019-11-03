@@ -2939,32 +2939,24 @@ class Test2_WithoutPackrat(TestParseResultsAsserts):
                 return
 
         class CallableC3:
-            # ~ @classmethod
+            @classmethod
             def __call__(cls, s, l, t):
                 return t
 
-            __call__ = classmethod(__call__)
-
         class CallableC2:
-            # ~ @classmethod
+            @classmethod
             def __call__(cls, l, t):
                 return t
 
-            __call__ = classmethod(__call__)
-
         class CallableC1:
-            # ~ @classmethod
+            @classmethod
             def __call__(cls, t):
                 return t
 
-            __call__ = classmethod(__call__)
-
         class CallableC0:
-            # ~ @classmethod
+            @classmethod
             def __call__(cls):
                 return
-
-            __call__ = classmethod(__call__)
 
         class parseActionHolder:
             @staticmethod
