@@ -6,11 +6,10 @@ from setuptools import setup
 from pyparsing import __version__ as pyparsing_version
 
 # The directory containing this file
-import pathlib
-HERE = pathlib.Path(__file__).parent
+README_name = __file__.replace("setup.py", "README.rst")
 
 # The text of the README file
-with (HERE / "README.rst").open() as README:
+with open(README_name) as README:
     pyparsing_main_doc = README.read()
 
 modules = ["pyparsing",]
