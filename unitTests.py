@@ -3895,8 +3895,8 @@ class CloseMatchTest(ParseTestCase):
 
         for r, exp in zip(results, expected):
             if exp is not None:
-                self.assertEquals(r[1].mismatches, exp,
-                                  "fail CloseMatch between %r and %r" % (searchseq.match_string, r[0]))
+                self.assertEqual(r[1].mismatches, exp,
+                                 "fail CloseMatch between %r and %r" % (searchseq.match_string, r[0]))
             print_(r[0], 'exc: %s' % r[1] if exp is None and isinstance(r[1], Exception)
                                           else ("no match", "match")[r[1].mismatches == exp])
 
@@ -4434,6 +4434,7 @@ class ParseResultsWithNameMatchFirst(ParseTestCase):
                 with self.assertWarns(UserWarning, msg="failed to warn of And within alternation"):
                     expr = (expr_a | expr_b)('rexp')
             else:
+                self.expect_warning = True
                 expr = (expr_a | expr_b)('rexp')
             expr.runTests("""
                 not the bird
@@ -4474,6 +4475,7 @@ class ParseResultsWithNameOr(ParseTestCase):
                 with self.assertWarns(UserWarning, msg="failed to warn of And within alternation"):
                     expr = (expr_a ^ expr_b)('rexp')
             else:
+                self.expect_warning = True
                 expr = (expr_a ^ expr_b)('rexp')
             expr.runTests("""\
                 not the bird
@@ -4695,10 +4697,10 @@ class EnableDebugOnNamedExpressionsTest(ParseTestCase):
             """)
         output = test_stdout.getvalue()
         print_(output)
-        self.assertEquals(output,
-                          expected_debug_output,
-                          "failed to auto-enable debug on named expressions "
-                          "using enable_debug_on_named_expressions")
+        self.assertEqual(output,
+                         expected_debug_output,
+                         "failed to auto-enable debug on named expressions "
+                         "using enable_debug_on_named_expressions")
 
 
 class UndesirableButCommonPracticesTest(ParseTestCase):
