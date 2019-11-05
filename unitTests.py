@@ -85,6 +85,8 @@ BUFFER_OUTPUT = True
 class ParseTestCase(TestCase):
     def __init__(self):
         super(ParseTestCase, self).__init__(methodName='_runTest')
+        self.expect_traceback = False
+        self.expect_warning = False
 
     def _runTest(self):
 
@@ -102,6 +104,12 @@ class ParseTestCase(TestCase):
                 finally:
                     print_("<<<< End of test",str(self))
                     print_()
+
+            output = buffered_stdout.getvalue()
+            if "Traceback" in output and not self.expect_traceback:
+                raise Exception("traceback in stdout")
+            if "Warning" in output and not self.expect_warning:
+                raise Exception("warning in stdout")
 
         except Exception as exc:
             if BUFFER_OUTPUT:
@@ -1247,6 +1255,8 @@ class EllipsisRepetionTest(ParseTestCase):
 
 class CustomQuotesTest(ParseTestCase):
     def runTest(self):
+        self.expect_warning = True
+
         from pyparsing import QuotedString
 
         testString = r"""
@@ -1861,6 +1871,7 @@ class UpcaseDowncaseUnicode(ParseTestCase):
 
 class ParseUsingRegex(ParseTestCase):
     def runTest(self):
+        self.expect_warning = True
 
         import re
 
@@ -1963,6 +1974,7 @@ class RegexAsTypeTest(ParseTestCase):
 
 class RegexSubTest(ParseTestCase):
     def runTest(self):
+        self.expect_warning = True
         import pyparsing as pp
 
         print_("test sub with string")
@@ -3963,6 +3975,8 @@ class LiteralExceptionTest(ParseTestCase):
 
 class ParseActionExceptionTest(ParseTestCase):
     def runTest(self):
+        self.expect_traceback = True
+
         import pyparsing as pp
         import traceback
 
@@ -4614,6 +4628,8 @@ class WarnUngroupedNamedTokensTest(ParseTestCase):
                                                    " ungrouped named expressions"):
                 path = coord[...].setResultsName('path')
 
+        pp.__diag__.warn_ungrouped_named_tokens_in_collection = False
+
 
 class WarnNameSetOnEmptyForwardTest(ParseTestCase):
     """
@@ -4715,6 +4731,7 @@ class UndesirableButCommonPracticesTest(ParseTestCase):
 
 class MiscellaneousParserTests(ParseTestCase):
     def runTest(self):
+        self.expect_warning = True
 
         runtests = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
         if IRON_PYTHON_ENV:
