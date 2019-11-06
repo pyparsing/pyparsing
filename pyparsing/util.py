@@ -3,8 +3,10 @@ import warnings
 import types
 import collections
 
+
 class __config_flags:
     """Internal class for defining compatibility and debugging flags"""
+
     _all_names = []
     _fixed_names = []
     _type_desc = "configuration"
@@ -12,8 +14,14 @@ class __config_flags:
     @classmethod
     def _set(cls, dname, value):
         if dname in cls._fixed_names:
-            warnings.warn("{}.{} {} is {} and cannot be overridden".format(cls.__name__, dname, cls._type_desc,
-                                                                           str(getattr(cls, dname)).upper()))
+            warnings.warn(
+                "{}.{} {} is {} and cannot be overridden".format(
+                    cls.__name__,
+                    dname,
+                    cls._type_desc,
+                    str(getattr(cls, dname)).upper(),
+                )
+            )
             return
         if dname in cls._all_names:
             setattr(cls, dname, value)
@@ -24,7 +32,7 @@ class __config_flags:
     disable = classmethod(lambda cls, name: cls._set(name, False))
 
 
-def col (loc, strg):
+def col(loc, strg):
     """Returns current column within a string, counting newlines as line separators.
    The first column is number 1.
 
@@ -36,7 +44,7 @@ def col (loc, strg):
    location, and line and column positions within the parsed string.
    """
     s = strg
-    return 1 if 0 < loc < len(s) and s[loc-1] == '\n' else loc - s.rfind("\n", 0, loc)
+    return 1 if 0 < loc < len(s) and s[loc - 1] == "\n" else loc - s.rfind("\n", 0, loc)
 
 
 def lineno(loc, strg):
@@ -57,7 +65,7 @@ def line(loc, strg):
        """
     lastCR = strg.rfind("\n", 0, loc)
     nextCR = strg.find("\n", loc)
-    return strg[lastCR + 1:nextCR] if nextCR >= 0 else strg[lastCR + 1:]
+    return strg[lastCR + 1 : nextCR] if nextCR >= 0 else strg[lastCR + 1 :]
 
 
 class _UnboundedCache:
@@ -109,4 +117,3 @@ class _FifoCache:
         self.set = types.MethodType(set, self)
         self.clear = types.MethodType(clear, self)
         self.__len__ = types.MethodType(cache_len, self)
-

@@ -1,9 +1,11 @@
 # exceptions.py
 
-from . util import col, line, lineno
+from .util import col, line, lineno
+
 
 class ParseBaseException(Exception):
     """base exception class for all parsing runtime exceptions"""
+
     # Performance tuning: we construct a *lot* of these, so keep this
     # constructor as small and fast as possible
     def __init__(self, pstr, loc=0, msg=None, elem=None):
@@ -43,15 +45,24 @@ class ParseBaseException(Exception):
     def __str__(self):
         if self.pstr:
             if self.loc >= len(self.pstr):
-                foundstr = ', found end of text'
+                foundstr = ", found end of text"
             else:
-                foundstr = (', found %r' % self.pstr[self.loc:self.loc + 1]).replace(r'\\', '\\')
+                foundstr = (", found %r" % self.pstr[self.loc : self.loc + 1]).replace(
+                    r"\\", "\\"
+                )
         else:
-            foundstr = ''
-        return ("%s%s  (at char %d), (line:%d, col:%d)" %
-                   (self.msg, foundstr, self.loc, self.lineno, self.column))
+            foundstr = ""
+        return "%s%s  (at char %d), (line:%d, col:%d)" % (
+            self.msg,
+            foundstr,
+            self.loc,
+            self.lineno,
+            self.column,
+        )
+
     def __repr__(self):
         return str(self)
+
     def markInputline(self, markerString=">!<"):
         """Extracts the exception line from the input string, and marks
            the location of the exception with a special symbol.
@@ -59,11 +70,14 @@ class ParseBaseException(Exception):
         line_str = self.line
         line_column = self.column - 1
         if markerString:
-            line_str = "".join((line_str[:line_column],
-                                markerString, line_str[line_column:]))
+            line_str = "".join(
+                (line_str[:line_column], markerString, line_str[line_column:])
+            )
         return line_str.strip()
+
     def __dir__(self):
         return "lineno col line".split() + dir(type(self))
+
 
 class ParseException(ParseBaseException):
     """
@@ -113,14 +127,14 @@ class ParseException(ParseBaseException):
         explain() is only supported under Python 3.
         """
         import inspect
-        from . core import ParserElement
+        from .core import ParserElement
 
         if depth is None:
             depth = sys.getrecursionlimit()
         ret = []
         if isinstance(exc, ParseBaseException):
             ret.append(exc.line)
-            ret.append(' ' * (exc.col - 1) + '^')
+            ret.append(" " * (exc.col - 1) + "^")
         ret.append("{}: {}".format(type(exc).__name__, exc))
 
         if depth > 0:
@@ -129,16 +143,20 @@ class ParseException(ParseBaseException):
             for i, ff in enumerate(callers[-depth:]):
                 frm = ff[0]
 
-                f_self = frm.f_locals.get('self', None)
+                f_self = frm.f_locals.get("self", None)
                 if isinstance(f_self, ParserElement):
-                    if frm.f_code.co_name not in ('parseImpl', '_parseNoCache'):
+                    if frm.f_code.co_name not in ("parseImpl", "_parseNoCache"):
                         continue
                     if f_self in seen:
                         continue
                     seen.add(f_self)
 
                     self_type = type(f_self)
-                    ret.append("{}.{} - {}".format(self_type.__module__, self_type.__name__, f_self))
+                    ret.append(
+                        "{}.{} - {}".format(
+                            self_type.__module__, self_type.__name__, f_self
+                        )
+                    )
 
                 elif f_self is not None:
                     self_type = type(f_self)
@@ -146,7 +164,7 @@ class ParseException(ParseBaseException):
 
                 else:
                     code = frm.f_code
-                    if code.co_name in ('wrapper', '<module>'):
+                    if code.co_name in ("wrapper", "<module>"):
                         continue
 
                     ret.append("{}".format(code.co_name))
@@ -155,13 +173,15 @@ class ParseException(ParseBaseException):
                 if not depth:
                     break
 
-        return '\n'.join(ret)
+        return "\n".join(ret)
 
 
 class ParseFatalException(ParseBaseException):
     """user-throwable exception thrown when inconsistent parse content
        is found; stops all parsing immediately"""
+
     pass
+
 
 class ParseSyntaxException(ParseFatalException):
     """just like :class:`ParseFatalException`, but thrown internally
@@ -169,29 +189,31 @@ class ParseSyntaxException(ParseFatalException):
     that parsing is to stop immediately because an unbacktrackable
     syntax error has been found.
     """
+
     pass
 
-#~ class ReparseException(ParseBaseException):
-    #~ """Experimental class - parse actions can raise this exception to cause
-       #~ pyparsing to reparse the input string:
-        #~ - with a modified input string, and/or
-        #~ - with a modified start location
-       #~ Set the values of the ReparseException in the constructor, and raise the
-       #~ exception in a parse action to cause pyparsing to use the new string/location.
-       #~ Setting the values as None causes no change to be made.
-       #~ """
-    #~ def __init_( self, newstring, restartLoc ):
-        #~ self.newParseText = newstring
-        #~ self.reparseLoc = restartLoc
+
+# ~ class ReparseException(ParseBaseException):
+# ~ """Experimental class - parse actions can raise this exception to cause
+# ~ pyparsing to reparse the input string:
+# ~ - with a modified input string, and/or
+# ~ - with a modified start location
+# ~ Set the values of the ReparseException in the constructor, and raise the
+# ~ exception in a parse action to cause pyparsing to use the new string/location.
+# ~ Setting the values as None causes no change to be made.
+# ~ """
+# ~ def __init_( self, newstring, restartLoc ):
+# ~ self.newParseText = newstring
+# ~ self.reparseLoc = restartLoc
+
 
 class RecursiveGrammarException(Exception):
     """exception thrown by :class:`ParserElement.validate` if the
     grammar could be improperly recursive
     """
+
     def __init__(self, parseElementList):
         self.parseElementTrace = parseElementList
 
     def __str__(self):
         return "RecursiveGrammarException: %s" % self.parseElementTrace
-
-

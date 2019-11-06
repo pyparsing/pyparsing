@@ -22,8 +22,7 @@
 # SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #
 
-__doc__ = \
-"""
+__doc__ = """
 pyparsing module - Classes and methods to define and execute parsing grammars
 =============================================================================
 
@@ -98,16 +97,16 @@ __version__ = "3.0.0a1"
 __versionTime__ = "16 Oct 2019 01:49 UTC"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
-from . util import *
-from . exceptions import *
-from . actions import *
-from . core import __diag__, __compat__
-from . results import *
-from . core import *
+from .util import *
+from .exceptions import *
+from .actions import *
+from .core import __diag__, __compat__
+from .results import *
+from .core import *
 
-from . unicode import unicode_set, pyparsing_unicode as unicode
-from . testing import pyparsing_test as testing
-from . common import pyparsing_common as common, _builtin_exprs as common_builtin_exprs
+from .unicode import unicode_set, pyparsing_unicode as unicode
+from .testing import pyparsing_test as testing
+from .common import pyparsing_common as common, _builtin_exprs as common_builtin_exprs
 
 
 # define backward compat synonyms
@@ -118,24 +117,117 @@ pyparsing_test = testing
 core._builtin_exprs += common_builtin_exprs
 
 
-__all__ = ['__version__', '__versionTime__', '__author__', '__compat__', '__diag__',
-           'And', 'CaselessKeyword', 'CaselessLiteral', 'CharsNotIn', 'Combine', 'Dict', 'Each', 'Empty',
-           'FollowedBy', 'Forward', 'GoToColumn', 'Group', 'Keyword', 'LineEnd', 'LineStart', 'Literal',
-           'PrecededBy', 'MatchFirst', 'NoMatch', 'NotAny', 'OneOrMore', 'OnlyOnce', 'Optional', 'Or',
-           'ParseBaseException', 'ParseElementEnhance', 'ParseException', 'ParseExpression', 'ParseFatalException',
-           'ParseResults', 'ParseSyntaxException', 'ParserElement', 'QuotedString', 'RecursiveGrammarException',
-           'Regex', 'SkipTo', 'StringEnd', 'StringStart', 'Suppress', 'Token', 'TokenConverter',
-           'White', 'Word', 'WordEnd', 'WordStart', 'ZeroOrMore', 'Char',
-           'alphanums', 'alphas', 'alphas8bit', 'anyCloseTag', 'anyOpenTag', 'cStyleComment', 'col',
-           'commonHTMLEntity', 'countedArray', 'cppStyleComment', 'dblQuotedString',
-           'dblSlashComment', 'delimitedList', 'dictOf', 'empty', 'hexnums',
-           'htmlComment', 'javaStyleComment', 'line', 'lineEnd', 'lineStart', 'lineno',
-           'makeHTMLTags', 'makeXMLTags', 'matchOnlyAtCol', 'matchPreviousExpr', 'matchPreviousLiteral',
-           'nestedExpr', 'nullDebugAction', 'nums', 'oneOf', 'opAssoc', 'printables',
-           'punc8bit', 'pythonStyleComment', 'quotedString', 'removeQuotes', 'replaceHTMLEntity',
-           'replaceWith', 'restOfLine', 'sglQuotedString', 'srange', 'stringEnd',
-           'stringStart', 'traceParseAction', 'unicodeString', 'withAttribute',
-           'indentedBlock', 'originalTextFor', 'ungroup', 'infixNotation', 'locatedExpr', 'withClass',
-           'CloseMatch', 'tokenMap', 'pyparsing_common', 'pyparsing_unicode', 'unicode_set',
-           'conditionAsParseAction', 'pyparsing_test',
-           ]
+__all__ = [
+    "__version__",
+    "__versionTime__",
+    "__author__",
+    "__compat__",
+    "__diag__",
+    "And",
+    "CaselessKeyword",
+    "CaselessLiteral",
+    "CharsNotIn",
+    "Combine",
+    "Dict",
+    "Each",
+    "Empty",
+    "FollowedBy",
+    "Forward",
+    "GoToColumn",
+    "Group",
+    "Keyword",
+    "LineEnd",
+    "LineStart",
+    "Literal",
+    "PrecededBy",
+    "MatchFirst",
+    "NoMatch",
+    "NotAny",
+    "OneOrMore",
+    "OnlyOnce",
+    "Optional",
+    "Or",
+    "ParseBaseException",
+    "ParseElementEnhance",
+    "ParseException",
+    "ParseExpression",
+    "ParseFatalException",
+    "ParseResults",
+    "ParseSyntaxException",
+    "ParserElement",
+    "QuotedString",
+    "RecursiveGrammarException",
+    "Regex",
+    "SkipTo",
+    "StringEnd",
+    "StringStart",
+    "Suppress",
+    "Token",
+    "TokenConverter",
+    "White",
+    "Word",
+    "WordEnd",
+    "WordStart",
+    "ZeroOrMore",
+    "Char",
+    "alphanums",
+    "alphas",
+    "alphas8bit",
+    "anyCloseTag",
+    "anyOpenTag",
+    "cStyleComment",
+    "col",
+    "commonHTMLEntity",
+    "countedArray",
+    "cppStyleComment",
+    "dblQuotedString",
+    "dblSlashComment",
+    "delimitedList",
+    "dictOf",
+    "empty",
+    "hexnums",
+    "htmlComment",
+    "javaStyleComment",
+    "line",
+    "lineEnd",
+    "lineStart",
+    "lineno",
+    "makeHTMLTags",
+    "makeXMLTags",
+    "matchOnlyAtCol",
+    "matchPreviousExpr",
+    "matchPreviousLiteral",
+    "nestedExpr",
+    "nullDebugAction",
+    "nums",
+    "oneOf",
+    "opAssoc",
+    "printables",
+    "punc8bit",
+    "pythonStyleComment",
+    "quotedString",
+    "removeQuotes",
+    "replaceHTMLEntity",
+    "replaceWith",
+    "restOfLine",
+    "sglQuotedString",
+    "srange",
+    "stringEnd",
+    "stringStart",
+    "traceParseAction",
+    "unicodeString",
+    "withAttribute",
+    "indentedBlock",
+    "originalTextFor",
+    "ungroup",
+    "infixNotation",
+    "locatedExpr",
+    "withClass",
+    "CloseMatch",
+    "tokenMap",
+    "pyparsing_common",
+    "pyparsing_unicode",
+    "unicode_set",
+    "conditionAsParseAction",
+    "pyparsing_test",
+]

@@ -1,5 +1,5 @@
 # common.py
-from . core import *
+from .core import *
 from datetime import datetime
 
 # some other useful expressions - using lower-case class name since we are really using this as a namespace
@@ -164,21 +164,37 @@ class pyparsing_common:
     hex_integer = Word(hexnums).setName("hex integer").setParseAction(tokenMap(int, 16))
     """expression that parses a hexadecimal integer, returns an int"""
 
-    signed_integer = Regex(r'[+-]?\d+').setName("signed integer").setParseAction(convertToInteger)
+    signed_integer = (
+        Regex(r"[+-]?\d+").setName("signed integer").setParseAction(convertToInteger)
+    )
     """expression that parses an integer with optional leading sign, returns an int"""
 
-    fraction = (signed_integer().setParseAction(convertToFloat) + '/' + signed_integer().setParseAction(convertToFloat)).setName("fraction")
+    fraction = (
+        signed_integer().setParseAction(convertToFloat)
+        + "/"
+        + signed_integer().setParseAction(convertToFloat)
+    ).setName("fraction")
     """fractional expression of an integer divided by an integer, returns a float"""
-    fraction.addParseAction(lambda t: t[0]/t[-1])
+    fraction.addParseAction(lambda t: t[0] / t[-1])
 
-    mixed_integer = (fraction | signed_integer + Optional(Optional('-').suppress() + fraction)).setName("fraction or mixed integer-fraction")
+    mixed_integer = (
+        fraction | signed_integer + Optional(Optional("-").suppress() + fraction)
+    ).setName("fraction or mixed integer-fraction")
     """mixed integer of the form 'integer - fraction', with optional leading integer, returns float"""
     mixed_integer.addParseAction(sum)
 
-    real = Regex(r'[+-]?(:?\d+\.\d*|\.\d+)').setName("real number").setParseAction(convertToFloat)
+    real = (
+        Regex(r"[+-]?(:?\d+\.\d*|\.\d+)")
+        .setName("real number")
+        .setParseAction(convertToFloat)
+    )
     """expression that parses a floating point number and returns a float"""
 
-    sci_real = Regex(r'[+-]?(:?\d+(:?[eE][+-]?\d+)|(:?\d+\.\d*|\.\d+)(:?[eE][+-]?\d+)?)').setName("real number with scientific notation").setParseAction(convertToFloat)
+    sci_real = (
+        Regex(r"[+-]?(:?\d+(:?[eE][+-]?\d+)|(:?\d+\.\d*|\.\d+)(:?[eE][+-]?\d+)?)")
+        .setName("real number with scientific notation")
+        .setParseAction(convertToFloat)
+    )
     """expression that parses a floating point number with optional
     scientific notation and returns a float"""
 
@@ -186,27 +202,44 @@ class pyparsing_common:
     number = (sci_real | real | signed_integer).streamline()
     """any numeric expression, returns the corresponding Python type"""
 
-    fnumber = Regex(r'[+-]?\d+\.?\d*([eE][+-]?\d+)?').setName("fnumber").setParseAction(convertToFloat)
+    fnumber = (
+        Regex(r"[+-]?\d+\.?\d*([eE][+-]?\d+)?")
+        .setName("fnumber")
+        .setParseAction(convertToFloat)
+    )
     """any int or real number, returned as float"""
 
-    identifier = Word(alphas + '_', alphanums + '_').setName("identifier")
+    identifier = Word(alphas + "_", alphanums + "_").setName("identifier")
     """typical code identifier (leading alpha or '_', followed by 0 or more alphas, nums, or '_')"""
 
-    ipv4_address = Regex(r'(25[0-5]|2[0-4][0-9]|1?[0-9]{1,2})(\.(25[0-5]|2[0-4][0-9]|1?[0-9]{1,2})){3}').setName("IPv4 address")
+    ipv4_address = Regex(
+        r"(25[0-5]|2[0-4][0-9]|1?[0-9]{1,2})(\.(25[0-5]|2[0-4][0-9]|1?[0-9]{1,2})){3}"
+    ).setName("IPv4 address")
     "IPv4 address (``0.0.0.0 - 255.255.255.255``)"
 
-    _ipv6_part = Regex(r'[0-9a-fA-F]{1,4}').setName("hex_integer")
-    _full_ipv6_address = (_ipv6_part + (':' + _ipv6_part) * 7).setName("full IPv6 address")
-    _short_ipv6_address = (Optional(_ipv6_part + (':' + _ipv6_part) * (0, 6))
-                           + "::"
-                           + Optional(_ipv6_part + (':' + _ipv6_part) * (0, 6))
-                           ).setName("short IPv6 address")
-    _short_ipv6_address.addCondition(lambda t: sum(1 for tt in t if pyparsing_common._ipv6_part.matches(tt)) < 8)
+    _ipv6_part = Regex(r"[0-9a-fA-F]{1,4}").setName("hex_integer")
+    _full_ipv6_address = (_ipv6_part + (":" + _ipv6_part) * 7).setName(
+        "full IPv6 address"
+    )
+    _short_ipv6_address = (
+        Optional(_ipv6_part + (":" + _ipv6_part) * (0, 6))
+        + "::"
+        + Optional(_ipv6_part + (":" + _ipv6_part) * (0, 6))
+    ).setName("short IPv6 address")
+    _short_ipv6_address.addCondition(
+        lambda t: sum(1 for tt in t if pyparsing_common._ipv6_part.matches(tt)) < 8
+    )
     _mixed_ipv6_address = ("::ffff:" + ipv4_address).setName("mixed IPv6 address")
-    ipv6_address = Combine((_full_ipv6_address | _mixed_ipv6_address | _short_ipv6_address).setName("IPv6 address")).setName("IPv6 address")
+    ipv6_address = Combine(
+        (_full_ipv6_address | _mixed_ipv6_address | _short_ipv6_address).setName(
+            "IPv6 address"
+        )
+    ).setName("IPv6 address")
     "IPv6 address (long, short, or mixed form)"
 
-    mac_address = Regex(r'[0-9a-fA-F]{2}([:.-])[0-9a-fA-F]{2}(?:\1[0-9a-fA-F]{2}){4}').setName("MAC address")
+    mac_address = Regex(
+        r"[0-9a-fA-F]{2}([:.-])[0-9a-fA-F]{2}(?:\1[0-9a-fA-F]{2}){4}"
+    ).setName("MAC address")
     "MAC address xx:xx:xx:xx:xx (may also have '-' or '.' delimiters)"
 
     @staticmethod
@@ -227,11 +260,13 @@ class pyparsing_common:
 
             [datetime.date(1999, 12, 31)]
         """
+
         def cvt_fn(s, l, t):
             try:
                 return datetime.strptime(t[0], fmt).date()
             except ValueError as ve:
                 raise ParseException(s, l, str(ve))
+
         return cvt_fn
 
     @staticmethod
@@ -252,23 +287,30 @@ class pyparsing_common:
 
             [datetime.datetime(1999, 12, 31, 23, 59, 59, 999000)]
         """
+
         def cvt_fn(s, l, t):
             try:
                 return datetime.strptime(t[0], fmt)
             except ValueError as ve:
                 raise ParseException(s, l, str(ve))
+
         return cvt_fn
 
-    iso8601_date = Regex(r'(?P<year>\d{4})(?:-(?P<month>\d\d)(?:-(?P<day>\d\d))?)?').setName("ISO8601 date")
+    iso8601_date = Regex(
+        r"(?P<year>\d{4})(?:-(?P<month>\d\d)(?:-(?P<day>\d\d))?)?"
+    ).setName("ISO8601 date")
     "ISO8601 date (``yyyy-mm-dd``)"
 
-    iso8601_datetime = Regex(r'(?P<year>\d{4})-(?P<month>\d\d)-(?P<day>\d\d)[T ](?P<hour>\d\d):(?P<minute>\d\d)(:(?P<second>\d\d(\.\d*)?)?)?(?P<tz>Z|[+-]\d\d:?\d\d)?').setName("ISO8601 datetime")
+    iso8601_datetime = Regex(
+        r"(?P<year>\d{4})-(?P<month>\d\d)-(?P<day>\d\d)[T ](?P<hour>\d\d):(?P<minute>\d\d)(:(?P<second>\d\d(\.\d*)?)?)?(?P<tz>Z|[+-]\d\d:?\d\d)?"
+    ).setName("ISO8601 datetime")
     "ISO8601 datetime (``yyyy-mm-ddThh:mm:ss.s(Z|+-00:00)``) - trailing seconds, milliseconds, and timezone optional; accepts separating ``'T'`` or ``' '``"
 
-    uuid = Regex(r'[0-9a-fA-F]{8}(-[0-9a-fA-F]{4}){3}-[0-9a-fA-F]{12}').setName("UUID")
+    uuid = Regex(r"[0-9a-fA-F]{8}(-[0-9a-fA-F]{4}){3}-[0-9a-fA-F]{12}").setName("UUID")
     "UUID (``xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx``)"
 
     _html_stripper = anyOpenTag.suppress() | anyCloseTag.suppress()
+
     @staticmethod
     def stripHTMLTags(s, l, tokens):
         """Parse action to remove HTML tags from web page HTML source
@@ -287,13 +329,21 @@ class pyparsing_common:
         """
         return pyparsing_common._html_stripper.transformString(tokens[0])
 
-    _commasepitem = Combine(OneOrMore(~Literal(",")
-                                      + ~LineEnd()
-                                      + Word(printables, excludeChars=',')
-                                      + Optional(White(" \t") + ~FollowedBy(LineEnd() | ',')))
-                            ).streamline().setName("commaItem")
-    comma_separated_list = delimitedList(Optional(quotedString.copy() | _commasepitem, default='')
-                                         ).setName("comma separated list")
+    _commasepitem = (
+        Combine(
+            OneOrMore(
+                ~Literal(",")
+                + ~LineEnd()
+                + Word(printables, excludeChars=",")
+                + Optional(White(" \t") + ~FollowedBy(LineEnd() | ","))
+            )
+        )
+        .streamline()
+        .setName("commaItem")
+    )
+    comma_separated_list = delimitedList(
+        Optional(quotedString.copy() | _commasepitem, default="")
+    ).setName("comma separated list")
     """Predefined expression of 1 or more printable words or quoted strin gs, separated by commas."""
 
     upcaseTokens = staticmethod(tokenMap(lambda t: t.upper()))
@@ -302,5 +352,7 @@ class pyparsing_common:
     downcaseTokens = staticmethod(tokenMap(lambda t: t.lower()))
     """Parse action to convert tokens to lower case."""
 
-_builtin_exprs = [v for v in vars(pyparsing_common).values()
-                  if isinstance(v, ParserElement)]
+
+_builtin_exprs = [
+    v for v in vars(pyparsing_common).values() if isinstance(v, ParserElement)
+]

@@ -7,13 +7,17 @@ from weakref import ref as wkref
 
 str_type = (str, bytes)
 
+
 class _ParseResultsWithOffset:
     def __init__(self, p1, p2):
         self.tup = (p1, p2)
+
     def __getitem__(self, i):
         return self.tup[i]
+
     def __repr__(self):
         return repr(self.tup[0])
+
     def setOffset(self, i):
         self.tup = (self.tup[0], i)
 
@@ -61,6 +65,7 @@ class ParseResults:
         - month: 12
         - year: 1999
     """
+
     def __new__(cls, toklist=None, name=None, asList=True, modal=True):
         if isinstance(toklist, ParseResults):
             return toklist
@@ -70,7 +75,9 @@ class ParseResults:
 
     # Performance tuning: we construct a *lot* of these, so keep this
     # constructor as small and fast as possible
-    def __init__(self, toklist=None, name=None, asList=True, modal=True, isinstance=isinstance):
+    def __init__(
+        self, toklist=None, name=None, asList=True, modal=True, isinstance=isinstance
+    ):
         if self.__doinit:
             self.__doinit = False
             self.__name = None
@@ -94,14 +101,21 @@ class ParseResults:
             if isinstance(name, int):
                 name = str(name)
             self.__name = name
-            if not (isinstance(toklist, (type(None), *str_type, list)) and toklist in (None, '', [])):
+            if not (
+                isinstance(toklist, (type(None), *str_type, list))
+                and toklist in (None, "", [])
+            ):
                 if isinstance(toklist, str_type):
                     toklist = [toklist]
                 if asList:
                     if isinstance(toklist, ParseResults):
-                        self[name] = _ParseResultsWithOffset(ParseResults(toklist.__toklist), 0)
+                        self[name] = _ParseResultsWithOffset(
+                            ParseResults(toklist.__toklist), 0
+                        )
                     else:
-                        self[name] = _ParseResultsWithOffset(ParseResults(toklist[0]), 0)
+                        self[name] = _ParseResultsWithOffset(
+                            ParseResults(toklist[0]), 0
+                        )
                     self[name].__name = name
                 else:
                     try:
@@ -126,7 +140,9 @@ class ParseResults:
             self.__toklist[k] = v
             sub = v
         else:
-            self.__tokdict[k] = self.__tokdict.get(k, list()) + [_ParseResultsWithOffset(v, 0)]
+            self.__tokdict[k] = self.__tokdict.get(k, list()) + [
+                _ParseResultsWithOffset(v, 0)
+            ]
             sub = v
         if isinstance(sub, ParseResults):
             sub.__parent = wkref(self)
@@ -148,7 +164,9 @@ class ParseResults:
             for name, occurrences in self.__tokdict.items():
                 for j in removed:
                     for k, (value, position) in enumerate(occurrences):
-                        occurrences[k] = _ParseResultsWithOffset(value, position - (position > j))
+                        occurrences[k] = _ParseResultsWithOffset(
+                            value, position - (position > j)
+                        )
         else:
             del self.__tokdict[i]
 
@@ -159,7 +177,7 @@ class ParseResults:
         return len(self.__toklist)
 
     def __bool__(self):
-        return (not not self.__toklist)
+        return not not self.__toklist
 
     def __iter__(self):
         return iter(self.__toklist)
@@ -221,13 +239,11 @@ class ParseResults:
         if not args:
             args = [-1]
         for k, v in kwargs.items():
-            if k == 'default':
+            if k == "default":
                 args = (args[0], v)
             else:
                 raise TypeError("pop() got an unexpected keyword argument '%s'" % k)
-        if (isinstance(args[0], int)
-                or len(args) == 1
-                or args[0] in self):
+        if isinstance(args[0], int) or len(args) == 1 or args[0] in self:
             index = args[0]
             ret = self[index]
             del self[index]
@@ -278,7 +294,9 @@ class ParseResults:
         # fixup indices in token dictionary
         for name, occurrences in self.__tokdict.items():
             for k, (value, position) in enumerate(occurrences):
-                occurrences[k] = _ParseResultsWithOffset(value, position + (position > index))
+                occurrences[k] = _ParseResultsWithOffset(
+                    value, position + (position > index)
+                )
 
     def append(self, item):
         """
@@ -337,8 +355,11 @@ class ParseResults:
             offset = len(self.__toklist)
             addoffset = lambda a: offset if a < 0 else a + offset
             otheritems = other.__tokdict.items()
-            otherdictitems = [(k, _ParseResultsWithOffset(v[0], addoffset(v[1])))
-                              for k, vlist in otheritems for v in vlist]
+            otherdictitems = [
+                (k, _ParseResultsWithOffset(v[0], addoffset(v[1])))
+                for k, vlist in otheritems
+                for v in vlist
+            ]
             for k, v in otherdictitems:
                 self[k] = v
                 if isinstance(v[0], ParseResults):
@@ -360,9 +381,16 @@ class ParseResults:
         return "(%s, %s)" % (repr(self.__toklist), repr(self.__tokdict))
 
     def __str__(self):
-        return '[' + ', '.join(str(i) if isinstance(i, ParseResults) else repr(i) for i in self.__toklist) + ']'
+        return (
+            "["
+            + ", ".join(
+                str(i) if isinstance(i, ParseResults) else repr(i)
+                for i in self.__toklist
+            )
+            + "]"
+        )
 
-    def _asStringList(self, sep=''):
+    def _asStringList(self, sep=""):
         out = []
         for item in self.__toklist:
             if out and sep:
@@ -388,7 +416,10 @@ class ParseResults:
             result_list = result.asList()
             print(type(result_list), result_list) # -> <class 'list'> ['sldkj', 'lsdkj', 'sldkj']
         """
-        return [res.asList() if isinstance(res, ParseResults) else res for res in self.__toklist]
+        return [
+            res.asList() if isinstance(res, ParseResults) else res
+            for res in self.__toklist
+        ]
 
     def asDict(self):
         """
@@ -410,6 +441,7 @@ class ParseResults:
             print(json.dumps(result)) # -> Exception: TypeError: ... is not JSON serializable
             print(json.dumps(result.asDict())) # -> {"month": "31", "day": "1999", "year": "12"}
         """
+
         def to_item(obj):
             if isinstance(obj, ParseResults):
                 return obj.asDict() if obj.haskeys() else [to_item(v) for v in obj]
@@ -458,17 +490,29 @@ class ParseResults:
             return self.__name
         elif self.__parent:
             par = self.__parent()
+
             def lookup(self, sub):
-                return next((k for k, vlist in par.__tokdict.items() for v, loc in vlist if sub is v), None)
+                return next(
+                    (
+                        k
+                        for k, vlist in par.__tokdict.items()
+                        for v, loc in vlist
+                        if sub is v
+                    ),
+                    None,
+                )
+
             return lookup(self) if par else None
-        elif (len(self) == 1
-              and len(self.__tokdict) == 1
-              and next(iter(self.__tokdict.values()))[0][1] in (0, -1)):
+        elif (
+            len(self) == 1
+            and len(self.__tokdict) == 1
+            and next(iter(self.__tokdict.values()))[0][1] in (0, -1)
+        ):
             return next(iter(self.__tokdict.keys()))
         else:
             return None
 
-    def dump(self, indent='', full=True, include_list=True, _depth=0):
+    def dump(self, indent="", full=True, include_list=True, _depth=0):
         """
         Diagnostic method for listing out the contents of
         a :class:`ParseResults`. Accepts an optional ``indent`` argument so
@@ -490,8 +534,8 @@ class ParseResults:
             - year: 12
         """
         out = []
-        NL = '\n'
-        out.append(indent + str(self.asList()) if include_list else '')
+        NL = "\n"
+        out.append(indent + str(self.asList()) if include_list else "")
 
         if full:
             if self.haskeys():
@@ -499,10 +543,17 @@ class ParseResults:
                 for k, v in items:
                     if out:
                         out.append(NL)
-                    out.append("%s%s- %s: " % (indent, ('  ' * _depth), k))
+                    out.append("%s%s- %s: " % (indent, ("  " * _depth), k))
                     if isinstance(v, ParseResults):
                         if v:
-                            out.append(v.dump(indent=indent, full=full, include_list=include_list, _depth=_depth + 1))
+                            out.append(
+                                v.dump(
+                                    indent=indent,
+                                    full=full,
+                                    include_list=include_list,
+                                    _depth=_depth + 1,
+                                )
+                            )
                         else:
                             out.append(str(v))
                     else:
@@ -511,22 +562,34 @@ class ParseResults:
                 v = self
                 for i, vv in enumerate(v):
                     if isinstance(vv, ParseResults):
-                        out.append("\n%s%s[%d]:\n%s%s%s" % (indent,
-                                                            ('  ' * (_depth)),
-                                                            i,
-                                                            indent,
-                                                            ('  ' * (_depth + 1)),
-                                                            vv.dump(indent=indent,
-                                                                    full=full,
-                                                                    include_list=include_list,
-                                                                    _depth=_depth + 1)))
+                        out.append(
+                            "\n%s%s[%d]:\n%s%s%s"
+                            % (
+                                indent,
+                                ("  " * (_depth)),
+                                i,
+                                indent,
+                                ("  " * (_depth + 1)),
+                                vv.dump(
+                                    indent=indent,
+                                    full=full,
+                                    include_list=include_list,
+                                    _depth=_depth + 1,
+                                ),
+                            )
+                        )
                     else:
-                        out.append("\n%s%s[%d]:\n%s%s%s" % (indent,
-                                                            ('  ' * (_depth)),
-                                                            i,
-                                                            indent,
-                                                            ('  ' * (_depth + 1)),
-                                                            str(vv)))
+                        out.append(
+                            "\n%s%s[%d]:\n%s%s%s"
+                            % (
+                                indent,
+                                ("  " * (_depth)),
+                                i,
+                                indent,
+                                ("  " * (_depth + 1)),
+                                str(vv),
+                            )
+                        )
 
         return "".join(out)
 
@@ -559,11 +622,15 @@ class ParseResults:
 
     # add support for pickle protocol
     def __getstate__(self):
-        return (self.__toklist,
-                (self.__tokdict.copy(),
-                 self.__parent is not None and self.__parent() or None,
-                 self.__accumNames,
-                 self.__name))
+        return (
+            self.__toklist,
+            (
+                self.__tokdict.copy(),
+                self.__parent is not None and self.__parent() or None,
+                self.__accumNames,
+                self.__name,
+            ),
+        )
 
     def __setstate__(self, state):
         self.__toklist = state[0]
@@ -588,6 +655,7 @@ class ParseResults:
         name-value relations as results names. If an optional 'name' argument is
         given, a nested ParseResults will be returned
         """
+
         def is_iterable(obj):
             try:
                 iter(obj)
@@ -606,5 +674,5 @@ class ParseResults:
             ret = cls([ret], name=name)
         return ret
 
-MutableMapping.register(ParseResults)
 
+MutableMapping.register(ParseResults)

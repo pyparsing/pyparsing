@@ -1,15 +1,17 @@
 # actions.py
 
-from . exceptions import ParseException
+from .exceptions import ParseException
 
 
 def matchOnlyAtCol(n):
     """Helper method for defining parse actions that require matching at
     a specific column in the input text.
     """
+
     def verifyCol(strg, locn, toks):
         if col(locn, strg) != n:
             raise ParseException(strg, locn, "matched token not at column %d" % n)
+
     return verifyCol
 
 
@@ -106,17 +108,26 @@ def withAttribute(*args, **attrDict):
     else:
         attrs = attrDict.items()
     attrs = [(k, v) for k, v in attrs]
+
     def pa(s, l, tokens):
         for attrName, attrValue in attrs:
             if attrName not in tokens:
                 raise ParseException(s, l, "no matching attribute " + attrName)
             if attrValue != withAttribute.ANY_VALUE and tokens[attrName] != attrValue:
-                raise ParseException(s, l, "attribute '%s' has value '%s', must be '%s'" %
-                                            (attrName, tokens[attrName], attrValue))
+                raise ParseException(
+                    s,
+                    l,
+                    "attribute '%s' has value '%s', must be '%s'"
+                    % (attrName, tokens[attrName], attrValue),
+                )
+
     return pa
+
+
 withAttribute.ANY_VALUE = object()
 
-def withClass(classname, namespace=''):
+
+def withClass(classname, namespace=""):
     """Simplified version of :class:`withAttribute` when
     matching on a div class - made difficult because ``class`` is
     a reserved word in Python.
@@ -153,4 +164,3 @@ def withClass(classname, namespace=''):
     """
     classattr = "%s:class" % namespace if namespace else "class"
     return withAttribute(**{classattr: classname})
-
