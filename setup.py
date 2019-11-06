@@ -4,6 +4,7 @@
 
 from setuptools import setup
 from pyparsing import __version__ as pyparsing_version
+from io import open
 
 # The directory containing this file
 README_name = __file__.replace("setup.py", "README.rst")
