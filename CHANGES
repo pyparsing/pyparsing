@@ -2,6 +2,14 @@
 Change Log
 ==========
 
+Version 2.4.5 - November, 2019
+------------------------------
+- Fixed encoding when setup.py reads README.rst to include the
+  project long description when uploading to PyPI. A stray
+  unicode space in README.rst prevented the source install on
+  systems whose default encoding is not 'utf-8'.
+
+
 Version 2.4.4 - November, 2019
 --------------------------------
 - Unresolved symbol reference in 2.4.3 release was masked by stdout
