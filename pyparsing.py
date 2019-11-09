@@ -95,8 +95,8 @@ classes inherit from. Use the docstrings for examples of how to:
    namespace class
 """
 
-__version__ = "2.4.4"
-__versionTime__ = "05 Nov 2019 14:15 UTC"
+__version__ = "2.4.5"
+__versionTime__ = "09 Nov 2019 23:03 UTC"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
