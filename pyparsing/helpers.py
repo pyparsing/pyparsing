@@ -902,8 +902,4 @@ pythonStyleComment = Regex(r"#.*").setName("Python style comment")
 
 # build list of built-in expressions, for future reference if a global default value
 # gets updated
-_builtin_exprs = [
-    v
-    for v in vars().values()
-    if isinstance(v, ParserElement)
-]
+_builtin_exprs = [v for v in vars().values() if isinstance(v, ParserElement)]

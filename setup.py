@@ -12,7 +12,7 @@ from io import open
 README_name = __file__.replace("setup.py", "README.rst")
 
 # The text of the README file
-with open(README_name, encoding='utf8') as README:
+with open(README_name, encoding="utf8") as README:
     pyparsing_main_doc = README.read()
 
 modules = [

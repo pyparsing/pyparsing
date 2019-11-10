@@ -1021,7 +1021,9 @@ class ParserElement(object):
             other = self._literalStringClass(other)
         if not isinstance(other, ParserElement):
             warnings.warn(
-                "Cannot combine element of type {} with ParserElement".format(type(other).__name__),
+                "Cannot combine element of type {} with ParserElement".format(
+                    type(other).__name__
+                ),
                 SyntaxWarning,
                 stacklevel=2,
             )
@@ -4694,8 +4696,4 @@ punc8bit = srange(r"[\0xa1-\0xbf\0xd7\0xf7]")
 
 # build list of built-in expressions, for future reference if a global default value
 # gets updated
-_builtin_exprs = [
-    v
-    for v in vars().values()
-    if isinstance(v, ParserElement)
-]
+_builtin_exprs = [v for v in vars().values() if isinstance(v, ParserElement)]

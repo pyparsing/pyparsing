@@ -7,6 +7,7 @@ import itertools
 
 _bslash = chr(92)
 
+
 class __config_flags:
     """Internal class for defining compatibility and debugging flags"""
 

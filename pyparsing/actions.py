@@ -118,7 +118,9 @@ def withAttribute(*args, **attrDict):
                 raise ParseException(
                     s,
                     l,
-                    "attribute {!r} has value {!r}, must be {!r}".format(attrName, tokens[attrName], attrValue),
+                    "attribute {!r} has value {!r}, must be {!r}".format(
+                        attrName, tokens[attrName], attrValue
+                    ),
                 )
 
     return pa
