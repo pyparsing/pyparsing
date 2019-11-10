@@ -97,18 +97,19 @@ __version__ = "3.0.0a1"
 __versionTime__ = "16 Oct 2019 01:49 UTC"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
-from .util import *
-from .exceptions import *
-from .actions import *
-from .core import __diag__, __compat__
-from .results import *
-from .core import *
-from .helpers import *
-from .helpers import _builtin_exprs as helper_builtin_exprs
+from pyparsing.util import *
+from pyparsing.exceptions import *
+from pyparsing.actions import *
+from pyparsing.core import __diag__, __compat__
+from pyparsing.results import *
+from pyparsing.core import *
+from pyparsing.core import _builtin_exprs as core_builtin_exprs
+from pyparsing.helpers import *
+from pyparsing.helpers import _builtin_exprs as helper_builtin_exprs
 
-from .unicode import unicode_set, pyparsing_unicode as unicode
-from .testing import pyparsing_test as testing
-from .common import pyparsing_common as common, _builtin_exprs as common_builtin_exprs
+from pyparsing.unicode import unicode_set, pyparsing_unicode as unicode
+from pyparsing.testing import pyparsing_test as testing
+from pyparsing.common import pyparsing_common as common, _builtin_exprs as common_builtin_exprs
 
 
 # define backward compat synonyms
@@ -116,7 +117,7 @@ pyparsing_unicode = unicode
 pyparsing_common = common
 pyparsing_test = testing
 
-core._builtin_exprs += common_builtin_exprs + helper_builtin_exprs
+core_builtin_exprs += common_builtin_exprs + helper_builtin_exprs
 
 
 __all__ = [

@@ -1,6 +1,6 @@
 # exceptions.py
 
-from .util import col, line, lineno
+from pyparsing.util import col, line, lineno
 
 
 class ParseBaseException(Exception):

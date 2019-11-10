@@ -23,9 +23,9 @@ from .util import (
     _bslash,
     _flatten,
 )
-from .exceptions import *
-from .actions import *
-from .results import ParseResults, _ParseResultsWithOffset
+from pyparsing.exceptions import *
+from pyparsing.actions import *
+from pyparsing.results import ParseResults, _ParseResultsWithOffset
 
 system_version = tuple(sys.version_info)[:3]
 _MAX_INT = sys.maxsize

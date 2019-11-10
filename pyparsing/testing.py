@@ -3,7 +3,7 @@
 from contextlib import contextmanager
 import unittest
 
-from .core import (
+from pyparsing.core import (
     ParserElement,
     ParseException,
     Keyword,

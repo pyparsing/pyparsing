@@ -1,6 +1,6 @@
 # helpers.py
-from .core import *
-from .util import _bslash, _flatten, _escapeRegexRangeChars
+from pyparsing.core import *
+from pyparsing.util import _bslash, _flatten, _escapeRegexRangeChars
 
 
 #

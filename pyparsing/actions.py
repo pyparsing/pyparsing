@@ -1,7 +1,7 @@
 # actions.py
 
-from .exceptions import ParseException
-from .util import col
+from pyparsing.exceptions import ParseException
+from pyparsing.util import col
 
 
 def matchOnlyAtCol(n):
