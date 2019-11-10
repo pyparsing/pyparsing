@@ -9,7 +9,7 @@ except ImportError:
 from pyparsing import __version__ as pyparsing_version, __doc__ as pyparsing_description
 
 modules = [
-    "pyparsing",
+    "pyparsing.pyparsing",
 ]
 
 setup(  # Distribution meta-data
