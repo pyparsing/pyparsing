@@ -80,25 +80,44 @@ expr_term = (
     | Group(identifier("col"))
 )
 
+NOT_NULL = Group(NOT + NULL)
+NOT_BETWEEN = Group(NOT + BETWEEN)
+NOT_IN = Group(NOT + IN)
+NOT_LIKE = Group(NOT + LIKE)
+NOT_MATCH = Group(NOT + MATCH)
+NOT_GLOB = Group(NOT + GLOB)
+NOT_REGEXP = Group(NOT + REGEXP)
+
 UNARY, BINARY, TERNARY = 1, 2, 3
 expr << infixNotation(
     expr_term,
     [
         (oneOf("- + ~") | NOT, UNARY, opAssoc.RIGHT),
-        (ISNULL | NOTNULL | NOT + NULL, UNARY, opAssoc.LEFT),
+        (ISNULL | NOTNULL | NOT_NULL, UNARY, opAssoc.LEFT),
         ("||", BINARY, opAssoc.LEFT),
         (oneOf("* / %"), BINARY, opAssoc.LEFT),
         (oneOf("+ -"), BINARY, opAssoc.LEFT),
         (oneOf("<< >> & |"), BINARY, opAssoc.LEFT),
         (oneOf("< <= > >="), BINARY, opAssoc.LEFT),
         (
-            oneOf("= == != <>") | IS | IN | LIKE | GLOB | MATCH | REGEXP,
+            oneOf("= == != <>")
+            | IS
+            | IN
+            | LIKE
+            | GLOB
+            | MATCH
+            | REGEXP
+            | NOT_IN
+            | NOT_LIKE
+            | NOT_GLOB
+            | NOT_MATCH
+            | NOT_REGEXP,
             BINARY,
             opAssoc.LEFT,
         ),
-        ((BETWEEN, AND), TERNARY, opAssoc.LEFT),
+        ((BETWEEN | NOT_BETWEEN, AND), TERNARY, opAssoc.LEFT),
         (
-            IN + LPAR + Group(select_stmt | delimitedList(expr)) + RPAR,
+            (IN | NOT_IN) + LPAR + Group(select_stmt | delimitedList(expr)) + RPAR,
             UNARY,
             opAssoc.LEFT,
         ),
@@ -208,6 +227,9 @@ if __name__ == "__main__":
         SELECT * FROM abcd WHERE frank = 'is ''scary'''
         SELECT * FROM abcd WHERE "identifier with ""quotes"" and a trailing space " IS NOT FALSE
         SELECT * FROM abcd WHERE blobby == x'C0FFEE'  -- hex
+        SELECT * FROM abcd WHERE ff NOT IN (1,2,4,5)
+        SELECT * FROM abcd WHERE ff not between 3 and 9
+        SELECT * FROM abcd WHERE ff not like 'bob%'
     """
 
     success, _ = select_stmt.runTests(tests)
