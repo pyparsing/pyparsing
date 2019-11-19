@@ -126,6 +126,9 @@ Version 3.0.0a1
   resulting in as much as 50X improvement in performance! Work
   inspired by a question posted by Midnighter on StackOverflow.
 
+- Improvements in select_parser.py, to include new SQL syntax
+  from SQLite. PR submitted by Robert Coup, nice work!
+
 - Fixed bug in PrecededBy which caused infinite recursion, issue #127
   submitted by EdwardJB.
 
@@ -142,6 +145,39 @@ Version 3.0.0a1
 - booleansearchparser.py added to examples directory, PR submitted
   by xecgr. Builds on searchparser.py, adding support for '*'
   wildcards and non-Western alphabets.
+
+
+Version 2.4.5 - November, 2019
+------------------------------
+- NOTE: final release compatible with Python 2.x.
+
+- Fixed issue with reading README.rst as part of setup.py's
+  initialization of the project's long_description, with a
+  non-ASCII space character causing errors when installing from
+  source on platforms where UTF-8 is not the default encoding.
+
+
+Version 2.4.4 - November, 2019
+--------------------------------
+- Unresolved symbol reference in 2.4.3 release was masked by stdout
+  buffering in unit tests, thanks for the prompt heads-up, Ned
+  Batchelder!
+
+
+Version 2.4.3 - November, 2019
+------------------------------
+- Fixed a bug in ParserElement.__eq__ that would for some parsers
+  create a recursion error at parser definition time. Thanks to
+  Michael Clerx for the assist. (Addresses issue #123)
+
+- Fixed bug in indentedBlock where a block that ended at the end
+  of the input string could cause pyparsing to loop forever. Raised
+  as part of discussion on StackOverflow with geckos.
+
+- Backports from pyparsing 3.0.0:
+  . __diag__.enable_all_warnings()
+  . Fixed bug in PrecededBy which caused infinite recursion, issue #127
+  . support for using regex-compiled RE to construct Regex expressions
 
 
 Version 2.4.2 - July, 2019

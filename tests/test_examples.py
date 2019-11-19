@@ -29,3 +29,6 @@ class TestExamples(unittest.TestCase):
 
     def test_eval_arith(self):
         self._run("eval_arith")
+
+    def test_select_parser(self):
+        self._run("select_parser")

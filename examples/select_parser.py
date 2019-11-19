@@ -24,12 +24,10 @@ keywords = {
 }
 vars().update(keywords)
 
-keyword = MatchFirst(keywords.values())
-
-identifier = ~keyword + Word(alphas, alphanums + "_")
+any_keyword = MatchFirst(keywords.values())
 
 quoted_identifier = QuotedString('"', escQuote='""')
-identifier = (~keyword + Word(alphas, alphanums + "_")).setParseAction(
+identifier = (~any_keyword + Word(alphas, alphanums + "_")).setParseAction(
     pyparsing_common.downcaseTokens
 ) | quoted_identifier
 collation_name = identifier.copy()
@@ -188,6 +186,7 @@ select_stmt << (
 )
 
 select_stmt.ignore(comment)
+
 
 if __name__ == "__main__":
     tests = """\
