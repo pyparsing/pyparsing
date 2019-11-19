@@ -6,23 +6,31 @@ try:
     from setuptools import setup
 except ImportError:
     from distutils.core import setup
-from pyparsing import __version__ as pyparsing_version, __doc__ as pyparsing_description
+import io
 
-modules = [
+# The text of the README file
+README_name = __file__.replace("setup.py", "README.rst")
+with io.open(README_name, encoding="utf8") as README:
+    pyparsing_main_doc = README.read()
+
+packages = [
     "pyparsing",
 ]
+
+pyparsing_version = "3.0.0.dev1"
 
 setup(  # Distribution meta-data
     name="pyparsing",
     version=pyparsing_version,
     description="Python parsing module",
-    long_description=pyparsing_description,
+    long_description=pyparsing_main_doc,
+    long_description_content_type="text/x-rst",
     author="Paul McGuire",
     author_email="ptmcg@users.sourceforge.net",
     url="https://github.com/pyparsing/pyparsing/",
     download_url="https://pypi.org/project/pyparsing/",
     license="MIT License",
-    py_modules=modules,
+    packages=packages,
     python_requires=">=3.5",
     classifiers=[
         "Development Status :: 5 - Production/Stable",
