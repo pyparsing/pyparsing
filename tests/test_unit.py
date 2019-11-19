@@ -219,6 +219,77 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             msg="failure in transformString",
         )
 
+    def testTransformStringWithLeadingWhitespace(self):
+        sample = "\n\ncheck"
+        sample = "    check"
+        keywords = pp.oneOf("aaa bbb", asKeyword=True)
+        ident = ~keywords + pp.Word(pp.alphas)
+        ident = pp.Combine(~keywords + pp.Word(pp.alphas))
+        # ident.add_parse_action(lambda t: t[0].upper())
+        ident.add_parse_action(ppc.upcaseTokens)
+        transformed = ident.transformString(sample)
+
+        print(ppt.with_line_numbers(sample))
+        print(ppt.with_line_numbers(transformed))
+        self.assertEqual(sample.replace("check", "CHECK"), transformed)
+
+    def testTransformStringWithLeadingNotAny(self):
+        sample = "print a100"
+        keywords = set("print read".split())
+        ident = pp.Word(pp.alphas, pp.alphanums).add_condition(
+            lambda t: t[0] not in keywords
+        )
+        print(ident.searchString(sample))
+
+    def testTransformStringWithExpectedLeadingWhitespace(self):
+        sample1 = "\n\ncheck aaa"
+        sample2 = "    check aaa"
+        keywords = pp.oneOf("aaa bbb", asKeyword=True)
+        # This construct only works with parse_string, not with scan_string or its siblings
+        # ident = ~keywords + pp.Word(pp.alphas)
+        ident = pp.Word(pp.alphas)
+        ident.add_parse_action(ppc.upcaseTokens)
+
+        for sample in sample1, sample2:
+            transformed = (keywords | ident).transformString(sample)
+            print(ppt.with_line_numbers(sample))
+            print(ppt.with_line_numbers(transformed))
+            self.assertEqual(sample.replace("check", "CHECK"), transformed)
+            print()
+
+    def testTransformStringWithLeadingWhitespaceFromTranslateProject(self):
+        from pyparsing import Keyword, Word, alphas, alphanums, Combine
+
+        block_start = (Keyword("{") | Keyword("BEGIN")).set_name("block_start")
+        block_end = (Keyword("}") | Keyword("END")).set_name("block_end")
+        reserved_words = block_start | block_end
+
+        # this is the first critical part of this test, an And with a leading NotAny
+        # This construct only works with parse_string, not with scan_string or its siblings
+        # name_id = ~reserved_words + Word(alphas, alphanums + "_").set_name("name_id")
+        name_id = Word(alphas, alphanums + "_").set_name("name_id")
+
+        dialog = name_id("block_id") + (Keyword("DIALOGEX") | Keyword("DIALOG"))(
+            "block_type"
+        )
+        string_table = Keyword("STRINGTABLE")("block_type")
+
+        test_string = (
+            """\r\nSTRINGTABLE\r\nBEGIN\r\n// Comment\r\nIDS_1 "Copied"\r\nEND\r\n"""
+        )
+        print("Original:")
+        print(repr(test_string))
+        print("Should match:")
+        # this is the second critical part of this test, an Or or MatchFirst including dialog
+        for parser in (dialog ^ string_table, dialog | string_table):
+            result = (reserved_words | parser).transformString(test_string)
+            print(repr(result))
+            self.assertEqual(
+                test_string,
+                result,
+                "Failed whitespace skipping with NotAny and MatchFirst/Or",
+            )
+
     def testUpdateDefaultWhitespace(self):
         prev_default_whitespace_chars = pp.ParserElement.DEFAULT_WHITE_CHARS
         try:
@@ -3005,10 +3076,7 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             for r in result:
                 print(r)
                 print(r.get("_info_"))
-            self.assertEqual(
-                [0, 15],
-                [r["_info_"][1] for r in result]
-            )
+            self.assertEqual([0, 15], [r["_info_"][1] for r in result])
 
     def testParseResultsFromDict(self):
         """test helper classmethod ParseResults.from_dict()"""
