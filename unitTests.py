@@ -5003,7 +5003,6 @@ if __name__ == '__main__':
     # run specific tests by including them in this list, otherwise
     # all tests will be run
     testclasses = [
-        ChainedTernaryOperator
         ]
 
     if not testclasses:
