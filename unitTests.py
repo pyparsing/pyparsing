@@ -11,7 +11,7 @@ from __future__ import division
 
 from unittest import TestCase, TestSuite, TextTestRunner
 import datetime
-from pyparsing import ParseException
+from pyparsing import ParseException, pyparsing_test as ppt
 import pyparsing as pp
 
 import sys
@@ -82,7 +82,7 @@ class AutoReset(object):
 
 BUFFER_OUTPUT = True
 
-class ParseTestCase(TestCase):
+class ParseTestCase(ppt.TestParseResultsAsserts, TestCase):
     def __init__(self):
         super(ParseTestCase, self).__init__(methodName='_runTest')
         self.expect_traceback = False
@@ -99,7 +99,8 @@ class ParseTestCase(TestCase):
                         sys.stdout = buffered_stdout
                         sys.stderr = buffered_stdout
                     print_(">>>> Starting test",str(self))
-                    self.runTest()
+                    with ppt.reset_pyparsing_context():
+                        self.runTest()
 
                 finally:
                     print_("<<<< End of test",str(self))
@@ -4731,6 +4732,27 @@ class UndesirableButCommonPracticesTest(ParseTestCase):
         """)
 
 
+class ChainedTernaryOperator(ParseTestCase):
+    def runTest(self):
+        import pyparsing as pp
+
+        TERNARY_INFIX = pp.infixNotation(
+            pp.pyparsing_common.integer, [
+                (("?", ":"), 3, pp.opAssoc.LEFT),
+        ])
+        self.assertParseAndCheckList(TERNARY_INFIX,
+                                     "1?1:0?1:0",
+                                     [[1, '?', 1, ':', 0, '?', 1, ':', 0]])
+
+        TERNARY_INFIX = pp.infixNotation(
+            pp.pyparsing_common.integer, [
+                (("?", ":"), 3, pp.opAssoc.RIGHT),
+        ])
+        self.assertParseAndCheckList(TERNARY_INFIX,
+                                     "1?1:0?1:0",
+                                     [[1, '?', 1, ':', [0, '?', 1, ':', 0]]])
+
+
 class MiscellaneousParserTests(ParseTestCase):
     def runTest(self):
         self.expect_warning = True
@@ -4981,6 +5003,7 @@ if __name__ == '__main__':
     # run specific tests by including them in this list, otherwise
     # all tests will be run
     testclasses = [
+        ChainedTernaryOperator
         ]
 
     if not testclasses:
