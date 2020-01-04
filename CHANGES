@@ -147,6 +147,34 @@ Version 3.0.0a1
   wildcards and non-Western alphabets.
 
 
+Version 2.4.6 - December, 2019
+------------------------------
+- Fixed typos in White mapping of whitespace characters, to use
+  correct "\u" prefix instead of "u\".
+
+- Fix bug in left-associative ternary operators defined using
+  infixNotation. First reported on StackOverflow by user Jeronimo.
+
+- Backport of pyparsing_test namespace from 3.0.0, including
+  TestParseResultsAsserts mixin class defining unittest-helper
+  methods:
+  . def assertParseResultsEquals(
+            self, result, expected_list=None, expected_dict=None, msg=None)
+  . def assertParseAndCheckList(
+            self, expr, test_string, expected_list, msg=None, verbose=True)
+  . def assertParseAndCheckDict(
+            self, expr, test_string, expected_dict, msg=None, verbose=True)
+  . def assertRunTestResults(
+            self, run_tests_report, expected_parse_results=None, msg=None)
+  . def assertRaisesParseException(self, exc_type=ParseException, msg=None)
+
+  To use the methods in this mixin class, declare your unittest classes as:
+
+    from pyparsing import pyparsing_test as ppt
+    class MyParserTest(ppt.TestParseResultsAsserts, unittest.TestCase):
+        ...
+
+
 Version 2.4.5 - November, 2019
 ------------------------------
 - NOTE: final release compatible with Python 2.x.

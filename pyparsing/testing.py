@@ -35,7 +35,7 @@ class pyparsing_test:
                 group = Group('(' + term[...] + ')')
 
                 # assert that the '()' characters are not included in the parsed tokens
-                self.assertParseAndCheckLisst(group, "(abc 123 def)", ['abc', '123', 'def'])
+                self.assertParseAndCheckList(group, "(abc 123 def)", ['abc', '123', 'def'])
 
             # after exiting context manager, literals are converted to Literal expressions again
         """
@@ -84,7 +84,11 @@ class pyparsing_test:
         def __exit__(self, *args):
             return self.restore()
 
-    class TestParseResultsAsserts(unittest.TestCase):
+    class TestParseResultsAsserts:
+        """
+        A mixin class to add parse results assertion methods to normal unittest.TestCase classes.
+        """
+
         def assertParseResultsEquals(
             self, result, expected_list=None, expected_dict=None, msg=None
         ):

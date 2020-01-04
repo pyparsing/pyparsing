@@ -23,7 +23,7 @@ PpTestSpec = namedtuple(
 PpTestSpec.__new__.__defaults__ = ("", pp.Empty(), "", "parseString", None, None, None)
 
 
-class PyparsingExpressionTestCase(TestParseResultsAsserts):
+class PyparsingExpressionTestCase(ppt.TestParseResultsAsserts, unittest.TestCase):
     """
     Base pyparsing testing class to parse various pyparsing expressions against
     given text strings. Subclasses must define a class attribute 'tests' which

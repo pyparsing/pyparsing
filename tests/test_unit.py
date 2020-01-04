@@ -19,7 +19,6 @@ from pyparsing import ParserElement
 from tests.json_parser_tests import test1, test2, test3, test4, test5
 
 ppt = pp.pyparsing_test
-TestParseResultsAsserts = ppt.TestParseResultsAsserts
 
 # see which Python implementation we are running
 CPYTHON_ENV = sys.platform == "win32"
@@ -81,7 +80,7 @@ class Test1_PyparsingTestInit(TestCase):
         print("Python version", sys.version)
 
 
-class Test2_WithoutPackrat(TestParseResultsAsserts):
+class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
     suite_context = None
 
     def setUp(self):
@@ -6358,6 +6357,21 @@ class Test2_WithoutPackrat(TestParseResultsAsserts):
                 "Word using escaped range char failed to parse",
             )
             print()
+
+    def testChainedTernaryOperator(self):
+        TERNARY_INFIX = pp.infixNotation(
+            pp.pyparsing_common.integer, [(("?", ":"), 3, pp.opAssoc.LEFT),]
+        )
+        self.assertParseAndCheckList(
+            TERNARY_INFIX, "1?1:0?1:0", [[1, "?", 1, ":", 0, "?", 1, ":", 0]]
+        )
+
+        TERNARY_INFIX = pp.infixNotation(
+            pp.pyparsing_common.integer, [(("?", ":"), 3, pp.opAssoc.RIGHT),]
+        )
+        self.assertParseAndCheckList(
+            TERNARY_INFIX, "1?1:0?1:0", [[1, "?", 1, ":", [0, "?", 1, ":", 0]]]
+        )
 
     def testMiscellaneousParserTests(self):
 

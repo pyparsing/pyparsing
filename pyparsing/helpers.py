@@ -696,7 +696,7 @@ def infixNotation(baseExpr, opList, lpar=Suppress("("), rpar=Suppress(")")):
             elif arity == 3:
                 matchExpr = _FB(
                     lastExpr + opExpr1 + lastExpr + opExpr2 + lastExpr
-                ) + Group(lastExpr + opExpr1 + lastExpr + opExpr2 + lastExpr)
+                ) + Group(lastExpr + OneOrMore(opExpr1 + lastExpr + opExpr2 + lastExpr))
             else:
                 raise ValueError(
                     "operator must be unary (1), binary (2), or ternary (3)"
