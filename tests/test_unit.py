@@ -6373,295 +6373,280 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             TERNARY_INFIX, "1?1:0?1:0", [[1, "?", 1, ":", [0, "?", 1, ":", 0]]]
         )
 
-    def testMiscellaneousParserTests(self):
-
-        runtests = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-        if IRON_PYTHON_ENV:
-            runtests = "ABCDEGHIJKLMNOPQRSTUVWXYZ"
-
+    def testOneOfWithDuplicateSymbols(self):
         # test making oneOf with duplicate symbols
-        if "A" in runtests:
-            print("verify oneOf handles duplicate symbols")
-            try:
-                test1 = pp.oneOf("a b c d a")
-            except RuntimeError:
-                self.assertTrue(
-                    False,
-                    "still have infinite loop in oneOf with duplicate symbols (string input)",
-                )
-
-            print("verify oneOf handles generator input")
-            try:
-                test1 = pp.oneOf(c for c in "a b c d a" if not c.isspace())
-            except RuntimeError:
-                self.assertTrue(
-                    False,
-                    "still have infinite loop in oneOf with duplicate symbols (generator input)",
-                )
-
-            print("verify oneOf handles list input")
-            try:
-                test1 = pp.oneOf("a b c d a".split())
-            except RuntimeError:
-                self.assertTrue(
-                    False,
-                    "still have infinite loop in oneOf with duplicate symbols (list input)",
-                )
-
-            print("verify oneOf handles set input")
-            try:
-                test1 = pp.oneOf(set("a b c d a"))
-            except RuntimeError:
-                self.assertTrue(
-                    False,
-                    "still have infinite loop in oneOf with duplicate symbols (set input)",
-                )
-
-        # test MatchFirst bugfix
-        if "B" in runtests:
-            print("verify MatchFirst iterates properly")
-            results = pp.quotedString.parseString("'this is a single quoted string'")
+        print("verify oneOf handles duplicate symbols")
+        try:
+            test1 = pp.oneOf("a b c d a")
+        except RuntimeError:
             self.assertTrue(
-                len(results) > 0, "MatchFirst error - not iterating over all choices"
+                False,
+                "still have infinite loop in oneOf with duplicate symbols (string input)",
             )
 
+        print("verify oneOf handles generator input")
+        try:
+            test1 = pp.oneOf(c for c in "a b c d a" if not c.isspace())
+        except RuntimeError:
+            self.assertTrue(
+                False,
+                "still have infinite loop in oneOf with duplicate symbols (generator input)",
+            )
+
+        print("verify oneOf handles list input")
+        try:
+            test1 = pp.oneOf("a b c d a".split())
+        except RuntimeError:
+            self.assertTrue(
+                False,
+                "still have infinite loop in oneOf with duplicate symbols (list input)",
+            )
+
+        print("verify oneOf handles set input")
+        try:
+            test1 = pp.oneOf(set("a b c d a"))
+        except RuntimeError:
+            self.assertTrue(
+                False,
+                "still have infinite loop in oneOf with duplicate symbols (set input)",
+            )
+
+    def testMatchFirstIteratesOverAllChoices(self):
+        # test MatchFirst bugfix
+        print("verify MatchFirst iterates properly")
+        results = pp.quotedString.parseString("'this is a single quoted string'")
+        self.assertTrue(
+            len(results) > 0, "MatchFirst error - not iterating over all choices"
+        )
+
+    def testStreamlineOfSubexpressions(self):
         # verify streamline of subexpressions
-        if "C" in runtests:
-            print("verify proper streamline logic")
-            compound = pp.Literal("A") + "B" + "C" + "D"
-            self.assertEqual(len(compound.exprs), 2, "bad test setup")
-            print(compound)
-            compound.streamline()
-            print(compound)
-            self.assertEqual(len(compound.exprs), 4, "streamline not working")
+        print("verify proper streamline logic")
+        compound = pp.Literal("A") + "B" + "C" + "D"
+        self.assertEqual(len(compound.exprs), 2, "bad test setup")
+        print(compound)
+        compound.streamline()
+        print(compound)
+        self.assertEqual(len(compound.exprs), 4, "streamline not working")
 
+    def testOptionalWithResultsNameAndNoMatch(self):
         # test for Optional with results name and no match
-        if "D" in runtests:
-            print("verify Optional's do not cause match failure if have results name")
-            testGrammar = pp.Literal("A") + pp.Optional("B")("gotB") + pp.Literal("C")
-            try:
-                testGrammar.parseString("ABC")
-                testGrammar.parseString("AC")
-            except pp.ParseException as pe:
-                print(pe.pstr, "->", pe)
-                self.assertTrue(
-                    False, "error in Optional matching of string %s" % pe.pstr
-                )
+        print("verify Optional's do not cause match failure if have results name")
+        testGrammar = pp.Literal("A") + pp.Optional("B")("gotB") + pp.Literal("C")
+        try:
+            testGrammar.parseString("ABC")
+            testGrammar.parseString("AC")
+        except pp.ParseException as pe:
+            print(pe.pstr, "->", pe)
+            self.assertTrue(False, "error in Optional matching of string %s" % pe.pstr)
 
+    def testReturnOfFurthestException(self):
         # test return of furthest exception
-        if "E" in runtests:
-            testGrammar = (
-                pp.Literal("A") | (pp.Optional("B") + pp.Literal("C")) | pp.Literal("D")
-            )
-            try:
-                testGrammar.parseString("BC")
-                testGrammar.parseString("BD")
-            except pp.ParseException as pe:
-                print(pe.pstr, "->", pe)
-                self.assertEqual(pe.pstr, "BD", "wrong test string failed to parse")
-                self.assertEqual(
-                    pe.loc, 1, "error in Optional matching, pe.loc=" + str(pe.loc)
-                )
-
-        # test validate
-        if "F" in runtests:
-            print("verify behavior of validate()")
-
-            def testValidation(grmr, gnam, isValid):
-                try:
-                    grmr.streamline()
-                    grmr.validate()
-                    self.assertTrue(
-                        isValid, "validate() accepted invalid grammar " + gnam
-                    )
-                except pp.RecursiveGrammarException as e:
-                    print(grmr)
-                    self.assertFalse(
-                        isValid, "validate() rejected valid grammar " + gnam
-                    )
-
-            fwd = pp.Forward()
-            g1 = pp.OneOrMore((pp.Literal("A") + "B" + "C") | fwd)
-            g2 = ("C" + g1)[...]
-            fwd << pp.Group(g2)
-            testValidation(fwd, "fwd", isValid=True)
-
-            fwd2 = pp.Forward()
-            fwd2 << pp.Group("A" | fwd2)
-            testValidation(fwd2, "fwd2", isValid=False)
-
-            fwd3 = pp.Forward()
-            fwd3 << pp.Optional("A") + fwd3
-            testValidation(fwd3, "fwd3", isValid=False)
-
-        # test getName
-        if "G" in runtests:
-            print("verify behavior of getName()")
-            aaa = pp.Group(pp.Word("a")("A"))
-            bbb = pp.Group(pp.Word("b")("B"))
-            ccc = pp.Group(":" + pp.Word("c")("C"))
-            g1 = "XXX" + (aaa | bbb | ccc)[...]
-            teststring = "XXX b bb a bbb bbbb aa bbbbb :c bbbbbb aaa"
-            names = []
-            print(g1.parseString(teststring).dump())
-            for t in g1.parseString(teststring):
-                print(t, repr(t))
-                try:
-                    names.append(t[0].getName())
-                except Exception:
-                    try:
-                        names.append(t.getName())
-                    except Exception:
-                        names.append(None)
-            print(teststring)
-            print(names)
+        testGrammar = (
+            pp.Literal("A") | (pp.Optional("B") + pp.Literal("C")) | pp.Literal("D")
+        )
+        try:
+            testGrammar.parseString("BC")
+            testGrammar.parseString("BD")
+        except pp.ParseException as pe:
+            print(pe.pstr, "->", pe)
+            self.assertEqual(pe.pstr, "BD", "wrong test string failed to parse")
             self.assertEqual(
-                names,
-                [None, "B", "B", "A", "B", "B", "A", "B", None, "B", "A"],
-                "failure in getting names for tokens",
+                pe.loc, 1, "error in Optional matching, pe.loc=" + str(pe.loc)
             )
 
-            from pyparsing import Keyword, Word, alphas, OneOrMore
+    def testValidateCorrectlyDetectsInvalidLeftRecursion(self):
+        # test validate
+        print("verify behavior of validate()")
+        if IRON_PYTHON_ENV:
+            print("disable this test under IronPython")
+            return
 
-            IF, AND, BUT = map(Keyword, "if and but".split())
-            ident = ~(IF | AND | BUT) + Word(alphas)("non-key")
-            scanner = OneOrMore(IF | AND | BUT | ident)
+        def testValidation(grmr, gnam, isValid):
+            try:
+                grmr.streamline()
+                grmr.validate()
+                self.assertTrue(isValid, "validate() accepted invalid grammar " + gnam)
+            except pp.RecursiveGrammarException as e:
+                print(grmr)
+                self.assertFalse(isValid, "validate() rejected valid grammar " + gnam)
 
-            def getNameTester(s, l, t):
-                print(t, t.getName())
+        fwd = pp.Forward()
+        g1 = pp.OneOrMore((pp.Literal("A") + "B" + "C") | fwd)
+        g2 = ("C" + g1)[...]
+        fwd << pp.Group(g2)
+        testValidation(fwd, "fwd", isValid=True)
 
-            ident.addParseAction(getNameTester)
-            scanner.parseString("lsjd sldkjf IF Saslkj AND lsdjf")
+        fwd2 = pp.Forward()
+        fwd2 << pp.Group("A" | fwd2)
+        testValidation(fwd2, "fwd2", isValid=False)
+
+        fwd3 = pp.Forward()
+        fwd3 << pp.Optional("A") + fwd3
+        testValidation(fwd3, "fwd3", isValid=False)
+
+    def testGetNameBehavior(self):
+        # test getName
+        print("verify behavior of getName()")
+        aaa = pp.Group(pp.Word("a")("A"))
+        bbb = pp.Group(pp.Word("b")("B"))
+        ccc = pp.Group(":" + pp.Word("c")("C"))
+        g1 = "XXX" + (aaa | bbb | ccc)[...]
+        teststring = "XXX b bb a bbb bbbb aa bbbbb :c bbbbbb aaa"
+        names = []
+        print(g1.parseString(teststring).dump())
+        for t in g1.parseString(teststring):
+            print(t, repr(t))
+            try:
+                names.append(t[0].getName())
+            except Exception:
+                try:
+                    names.append(t.getName())
+                except Exception:
+                    names.append(None)
+        print(teststring)
+        print(names)
+        self.assertEqual(
+            names,
+            [None, "B", "B", "A", "B", "B", "A", "B", None, "B", "A"],
+            "failure in getting names for tokens",
+        )
+
+        from pyparsing import Keyword, Word, alphas, OneOrMore
+
+        IF, AND, BUT = map(Keyword, "if and but".split())
+        ident = ~(IF | AND | BUT) + Word(alphas)("non-key")
+        scanner = OneOrMore(IF | AND | BUT | ident)
+
+        def getNameTester(s, l, t):
+            print(t, t.getName())
+
+        ident.addParseAction(getNameTester)
+        scanner.parseString("lsjd sldkjf IF Saslkj AND lsdjf")
 
         # test ParseResults.get() method
-        if "H" in runtests:
-            print("verify behavior of ParseResults.get()")
-            # use sum() to merge separate groups into single ParseResults
-            res = sum(g1.parseString(teststring)[1:])
-            print(res.dump())
-            print(res.get("A", "A not found"))
-            print(res.get("D", "!D"))
-            self.assertEqual(
-                res.get("A", "A not found"), "aaa", "get on existing key failed"
-            )
-            self.assertEqual(res.get("D", "!D"), "!D", "get on missing key failed")
+        print("verify behavior of ParseResults.get()")
+        # use sum() to merge separate groups into single ParseResults
+        res = sum(g1.parseString(teststring)[1:])
+        print(res.dump())
+        print(res.get("A", "A not found"))
+        print(res.get("D", "!D"))
+        self.assertEqual(
+            res.get("A", "A not found"), "aaa", "get on existing key failed"
+        )
+        self.assertEqual(res.get("D", "!D"), "!D", "get on missing key failed")
 
-        if "I" in runtests:
-            print("verify handling of Optional's beyond the end of string")
-            testGrammar = "A" + pp.Optional("B") + pp.Optional("C") + pp.Optional("D")
-            testGrammar.parseString("A")
-            testGrammar.parseString("AB")
+    def testOptionalBeyondEndOfString(self):
+        print("verify handling of Optional's beyond the end of string")
+        testGrammar = "A" + pp.Optional("B") + pp.Optional("C") + pp.Optional("D")
+        testGrammar.parseString("A")
+        testGrammar.parseString("AB")
 
+    def testCreateLiteralWithEmptyString(self):
         # test creating Literal with empty string
-        if "J" in runtests:
-            print('verify non-fatal usage of Literal("")')
-            with self.assertWarns(
-                SyntaxWarning, msg="failed to warn use of empty string for Literal"
-            ):
-                e = pp.Literal("")
-            try:
-                e.parseString("SLJFD")
-            except Exception as e:
-                self.assertTrue(False, "Failed to handle empty Literal")
+        print('verify non-fatal usage of Literal("")')
+        with self.assertWarns(
+            SyntaxWarning, msg="failed to warn use of empty string for Literal"
+        ):
+            e = pp.Literal("")
+        try:
+            e.parseString("SLJFD")
+        except Exception as e:
+            self.assertTrue(False, "Failed to handle empty Literal")
 
+    def testLineMethodSpecialCaseAtStart(self):
         # test line() behavior when starting at 0 and the opening line is an \n
-        if "K" in runtests:
-            print("verify correct line() behavior when first line is empty string")
-            self.assertEqual(
-                pp.line(0, "\nabc\ndef\n"),
-                "",
-                "Error in line() with empty first line in text",
-            )
-            txt = "\nabc\ndef\n"
-            results = [pp.line(i, txt) for i in range(len(txt))]
-            self.assertEqual(
-                results,
-                ["", "abc", "abc", "abc", "abc", "def", "def", "def", "def"],
-                "Error in line() with empty first line in text",
-            )
-            txt = "abc\ndef\n"
-            results = [pp.line(i, txt) for i in range(len(txt))]
-            self.assertEqual(
-                results,
-                ["abc", "abc", "abc", "abc", "def", "def", "def", "def"],
-                "Error in line() with non-empty first line in text",
-            )
+        print("verify correct line() behavior when first line is empty string")
+        self.assertEqual(
+            pp.line(0, "\nabc\ndef\n"),
+            "",
+            "Error in line() with empty first line in text",
+        )
+        txt = "\nabc\ndef\n"
+        results = [pp.line(i, txt) for i in range(len(txt))]
+        self.assertEqual(
+            results,
+            ["", "abc", "abc", "abc", "abc", "def", "def", "def", "def"],
+            "Error in line() with empty first line in text",
+        )
+        txt = "abc\ndef\n"
+        results = [pp.line(i, txt) for i in range(len(txt))]
+        self.assertEqual(
+            results,
+            ["abc", "abc", "abc", "abc", "def", "def", "def", "def"],
+            "Error in line() with non-empty first line in text",
+        )
 
+    def testRepeatedTokensWhenPackratting(self):
         # test bugfix with repeated tokens when packrat parsing enabled
-        if "L" in runtests:
-            print(
-                "verify behavior with repeated tokens when packrat parsing is enabled"
-            )
-            a = pp.Literal("a")
-            b = pp.Literal("b")
-            c = pp.Literal("c")
+        print("verify behavior with repeated tokens when packrat parsing is enabled")
+        a = pp.Literal("a")
+        b = pp.Literal("b")
+        c = pp.Literal("c")
 
-            abb = a + b + b
-            abc = a + b + c
-            aba = a + b + a
-            grammar = abb | abc | aba
+        abb = a + b + b
+        abc = a + b + c
+        aba = a + b + a
+        grammar = abb | abc | aba
 
-            self.assertEqual(
-                "".join(grammar.parseString("aba")), "aba", "Packrat ABA failure!"
-            )
+        self.assertEqual(
+            "".join(grammar.parseString("aba")), "aba", "Packrat ABA failure!"
+        )
 
-        if "M" in runtests:
-            print("verify behavior of setResultsName with OneOrMore and ZeroOrMore")
-
-            stmt = pp.Keyword("test")
-            print(stmt[...]("tests").parseString("test test").tests)
-            print(stmt[1, ...]("tests").parseString("test test").tests)
-            print(pp.Optional(stmt[1, ...]("tests")).parseString("test test").tests)
-            print(pp.Optional(stmt[1, ...])("tests").parseString("test test").tests)
-            print(
+    def testSetResultsNameWithOneOrMoreAndZeroOrMore(self):
+        print("verify behavior of setResultsName with OneOrMore and ZeroOrMore")
+        stmt = pp.Keyword("test")
+        print(stmt[...]("tests").parseString("test test").tests)
+        print(stmt[1, ...]("tests").parseString("test test").tests)
+        print(pp.Optional(stmt[1, ...]("tests")).parseString("test test").tests)
+        print(pp.Optional(stmt[1, ...])("tests").parseString("test test").tests)
+        print(
+            pp.Optional(pp.delimitedList(stmt))("tests").parseString("test,test").tests
+        )
+        self.assertEqual(
+            len(stmt[...]("tests").parseString("test test").tests),
+            2,
+            "ZeroOrMore failure with setResultsName",
+        )
+        self.assertEqual(
+            len(stmt[1, ...]("tests").parseString("test test").tests),
+            2,
+            "OneOrMore failure with setResultsName",
+        )
+        self.assertEqual(
+            len(pp.Optional(stmt[1, ...]("tests")).parseString("test test").tests),
+            2,
+            "OneOrMore failure with setResultsName",
+        )
+        self.assertEqual(
+            len(
                 pp.Optional(pp.delimitedList(stmt))("tests")
                 .parseString("test,test")
                 .tests
-            )
-            self.assertEqual(
-                len(stmt[...]("tests").parseString("test test").tests),
-                2,
-                "ZeroOrMore failure with setResultsName",
-            )
-            self.assertEqual(
-                len(stmt[1, ...]("tests").parseString("test test").tests),
-                2,
-                "OneOrMore failure with setResultsName",
-            )
-            self.assertEqual(
-                len(pp.Optional(stmt[1, ...]("tests")).parseString("test test").tests),
-                2,
-                "OneOrMore failure with setResultsName",
-            )
-            self.assertEqual(
-                len(
-                    pp.Optional(pp.delimitedList(stmt))("tests")
-                    .parseString("test,test")
-                    .tests
-                ),
-                2,
-                "delimitedList failure with setResultsName",
-            )
-            self.assertEqual(
-                len((stmt * 2)("tests").parseString("test test").tests),
-                2,
-                "multiplied(1) failure with setResultsName",
-            )
-            self.assertEqual(
-                len(stmt[..., 2]("tests").parseString("test test").tests),
-                2,
-                "multiplied(2) failure with setResultsName",
-            )
-            self.assertEqual(
-                len(stmt[1, ...]("tests").parseString("test test").tests),
-                2,
-                "multipled(3) failure with setResultsName",
-            )
-            self.assertEqual(
-                len(stmt[2, ...]("tests").parseString("test test").tests),
-                2,
-                "multipled(3) failure with setResultsName",
-            )
+            ),
+            2,
+            "delimitedList failure with setResultsName",
+        )
+        self.assertEqual(
+            len((stmt * 2)("tests").parseString("test test").tests),
+            2,
+            "multiplied(1) failure with setResultsName",
+        )
+        self.assertEqual(
+            len(stmt[..., 2]("tests").parseString("test test").tests),
+            2,
+            "multiplied(2) failure with setResultsName",
+        )
+        self.assertEqual(
+            len(stmt[1, ...]("tests").parseString("test test").tests),
+            2,
+            "multipled(3) failure with setResultsName",
+        )
+        self.assertEqual(
+            len(stmt[2, ...]("tests").parseString("test test").tests),
+            2,
+            "multipled(3) failure with setResultsName",
+        )
 
 
 class PickleTest_Greeting:
