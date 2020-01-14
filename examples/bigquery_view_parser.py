@@ -652,7 +652,7 @@ class BigQueryViewParser:
         # Third, a series of quoted strings, delimited by dots, e.g.:
         #  `project`.`dataset`.`name-with-dashes`
         #
-        # We won't attempt to support combinations, like:
+        # We also support combinations, like:
         #  project.dataset.`name-with-dashes`
         #  `project`.`dataset.name-with-dashes`
 
@@ -662,12 +662,6 @@ class BigQueryViewParser:
             cls._table_identifiers.add(tuple(padded_list))
 
         standard_table_part = ~keyword + Word(alphanums + "_")
-        standard_table_identifier = (
-            Optional(standard_table_part("project") + Suppress("."))
-            + Optional(standard_table_part("dataset") + Suppress("."))
-            + standard_table_part("table")
-        ).setParseAction(lambda t: record_table_identifier(t))
-
         quoted_project_part = (
             Suppress('"') + CharsNotIn('"') + Suppress('"')
             | Suppress("'") + CharsNotIn("'") + Suppress("'")
@@ -679,9 +673,9 @@ class BigQueryViewParser:
             | Suppress("`") + CharsNotIn("`.") + Suppress("`")
         )
         quoted_table_parts_identifier = (
-            Optional(quoted_project_part("project") + Suppress("."))
-            + Optional(quoted_table_part("dataset") + Suppress("."))
-            + quoted_table_part("table")
+            Optional((quoted_project_part("project") | standard_table_part("project")) + Suppress("."))
+            + Optional((quoted_table_part("dataset") | standard_table_part("dataset")) + Suppress("."))
+            + (quoted_table_part("table") | standard_table_part("table"))
         ).setParseAction(lambda t: record_table_identifier(t))
 
         def record_quoted_table_identifier(t):
@@ -700,8 +694,7 @@ class BigQueryViewParser:
         ).setParseAction(lambda t: record_quoted_table_identifier(t))
 
         table_identifier = (
-            standard_table_identifier
-            | quoted_table_parts_identifier
+            quoted_table_parts_identifier
             | quotable_table_parts_identifier
         )
         single_source = (
@@ -1626,6 +1619,24 @@ class BigQueryViewParser:
             [
                 (None, None, 'c'),
                 (None, None, 'f')
+            ]
+        ],
+
+        [
+            """
+            SELECT * FROM a.b.`c`
+            """,
+            [
+                ('a', 'b', 'c')
+            ]
+        ],
+
+        [
+            """
+            SELECT * FROM 'a'.b.`c`
+            """,
+            [
+                ('a', 'b', 'c')
             ]
         ]
     ]
