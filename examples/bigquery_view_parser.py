@@ -11,7 +11,7 @@ from pyparsing import ParserElement, Suppress, Forward, CaselessKeyword
 from pyparsing import MatchFirst, alphas, alphanums, Combine, Word
 from pyparsing import QuotedString, CharsNotIn, Optional, Group, ZeroOrMore
 from pyparsing import oneOf, delimitedList, restOfLine, cStyleComment
-from pyparsing import infixNotation, opAssoc, OneOrMore, Regex, nums
+from pyparsing import infixNotation, opAssoc, Regex, nums
 
 
 class BigQueryViewParser:
@@ -704,26 +704,25 @@ class BigQueryViewParser:
             | quoted_table_parts_identifier
             | quotable_table_parts_identifier
         )
-
         single_source = (
-            table_identifier
-            + Optional(Optional(AS) + table_alias("table_alias*"))
-            + Optional(FOR + SYSTEMTIME + AS + OF + string_literal)
-            + Optional(INDEXED + BY + index_name("name") | NOT + INDEXED)("index")
-            | (
-                LPAR
-                + ungrouped_select_stmt
-                + RPAR
-                + Optional(Optional(AS) + table_alias)
+            (
+                (
+                    table_identifier
+                    + Optional(Optional(AS) + table_alias("table_alias*"))
+                    + Optional(FOR + SYSTEMTIME + AS + OF + string_literal)
+                    + Optional(INDEXED + BY + index_name("name") | NOT + INDEXED ) )("index")
+                | (
+                    LPAR
+                    + ungrouped_select_stmt
+                    + RPAR
+                )
+                | (LPAR + join_source + RPAR)
+                | (UNNEST + LPAR + expr + RPAR)
             )
-            | (LPAR + join_source + RPAR)
-            | (UNNEST + LPAR + expr + RPAR) + Optional(Optional(AS) + column_alias)
+            + Optional(Optional(AS) + table_alias)
         )
 
-        join_source << (
-            Group(single_source + OneOrMore(join_op + single_source + join_constraint))
-            | single_source
-        )
+        join_source << single_source + ZeroOrMore(join_op + single_source + join_constraint)
 
         over_partition = (PARTITION + BY + delimitedList(partition_expression_list))(
             "over_partition"
@@ -767,8 +766,10 @@ class BigQueryViewParser:
             WINDOW + identifier + AS + LPAR + window_specification + RPAR
         )
 
+        with_stmt = Forward().setName("with statement")
         select_core = (
-            SELECT
+            Optional(with_stmt)
+            + SELECT
             + Optional(DISTINCT | ALL)
             + Group(delimitedList(result_column))("columns")
             + Optional(FROM + join_source("from*"))
@@ -805,22 +806,17 @@ class BigQueryViewParser:
             padded_list = [None] * (3 - len(identifier_list)) + identifier_list
             cls._with_aliases.add(tuple(padded_list))
 
-        with_stmt = Forward().setName("with statement")
         with_clause = Group(
             identifier.setParseAction(lambda t: record_with_alias(t))
             + AS
             + LPAR
-            + (select_stmt | with_stmt)
+            + select_stmt
             + RPAR
         )
-        with_core = WITH + delimitedList(with_clause)
-        with_stmt << (with_core + ungrouped_select_stmt)
+        with_stmt << (WITH + delimitedList(with_clause))
         with_stmt.ignore(sql_comment)
 
-        select_or_with = select_stmt | with_stmt
-        select_or_with_parens = LPAR + select_or_with + RPAR
-
-        cls._parser = select_or_with | select_or_with_parens
+        cls._parser = select_stmt
         return cls._parser
 
     TEST_CASES = [
@@ -1586,6 +1582,26 @@ class BigQueryViewParser:
             """,
             [
                 (None, None, 'd')
+            ]
+        ],
+
+        [
+            """
+            WITH a AS (
+                SELECT b FROM c
+                UNION ALL
+                (
+                    WITH d AS (
+                        SELECT e FROM f
+                    )
+                    SELECT g FROM d
+                )
+            )
+            SELECT h FROM a
+            """,
+            [
+                (None, None, 'c'),
+                (None, None, 'f')
             ]
         ]
     ]
