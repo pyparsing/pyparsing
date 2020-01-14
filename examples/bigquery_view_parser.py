@@ -317,7 +317,7 @@ class BigQueryViewParser:
         collation_name = identifier.copy()
         # NOTE: Column names can be keywords.  Doc says they cannot, but in practice it seems to work.
         column_name = identifier_word.copy()
-        qualified_column_name = Combine(column_name + ("." + column_name) * (0, 6))
+        qualified_column_name = Combine(column_name + (ZeroOrMore(" ") + "." + ZeroOrMore(" ") + column_name) * (0, 6))
         # NOTE: As with column names, column aliases can be keywords, e.g. functions like `current_time`.  Other
         # keywords, e.g. `from` make parsing pretty difficult (e.g. "SELECT a from from b" is confusing.)
         column_alias = ~keyword_nonfunctions + column_name.copy()
@@ -1578,6 +1578,16 @@ class BigQueryViewParser:
             """,
             [(None, None, "z")],
         ],
+
+        [
+            """
+            SELECT a . b .   c
+            FROM d
+            """,
+            [
+                (None, None, 'd')
+            ]
+        ]
     ]
 
     def test(self):
