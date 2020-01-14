@@ -767,9 +767,8 @@ class BigQueryViewParser:
         )
 
         with_stmt = Forward().setName("with statement")
-        select_core = (
-            Optional(with_stmt)
-            + SELECT
+        ungrouped_select_no_with = (
+            SELECT
             + Optional(DISTINCT | ALL)
             + Group(delimitedList(result_column))("columns")
             + Optional(FROM + join_source("from*"))
@@ -782,6 +781,11 @@ class BigQueryViewParser:
                 ORDER + BY + Group(delimitedList(ordering_term))("order_by_terms")
             )
             + Optional(delimitedList(window_select_clause))
+        )
+        select_no_with = ungrouped_select_no_with | (LPAR + ungrouped_select_no_with + RPAR)
+        select_core = (
+            Optional(with_stmt)
+            + select_no_with
         )
         grouped_select_core = select_core | (LPAR + select_core + RPAR)
 
@@ -1598,6 +1602,26 @@ class BigQueryViewParser:
                 )
             )
             SELECT h FROM a
+            """,
+            [
+                (None, None, 'c'),
+                (None, None, 'f')
+            ]
+        ],
+
+        [
+            """
+            WITH a AS (
+                SELECT b FROM c
+                UNION ALL
+                (
+                    WITH d AS (
+                        SELECT e FROM f
+                    )
+                    SELECT g FROM d
+                )
+            )
+            (SELECT h FROM a)
             """,
             [
                 (None, None, 'c'),
