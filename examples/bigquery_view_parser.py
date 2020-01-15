@@ -317,7 +317,10 @@ class BigQueryViewParser:
         collation_name = identifier.copy()
         # NOTE: Column names can be keywords.  Doc says they cannot, but in practice it seems to work.
         column_name = identifier_word.copy()
-        qualified_column_name = Combine(column_name + (ZeroOrMore(" ") + "." + ZeroOrMore(" ") + column_name) * (0, 6))
+        qualified_column_name = Combine(
+            column_name
+            + (ZeroOrMore(" ") + "." + ZeroOrMore(" ") + column_name) * (0, 6)
+        )
         # NOTE: As with column names, column aliases can be keywords, e.g. functions like `current_time`.  Other
         # keywords, e.g. `from` make parsing pretty difficult (e.g. "SELECT a from from b" is confusing.)
         column_alias = ~keyword_nonfunctions + column_name.copy()
@@ -673,8 +676,14 @@ class BigQueryViewParser:
             | Suppress("`") + CharsNotIn("`.") + Suppress("`")
         )
         quoted_table_parts_identifier = (
-            Optional((quoted_project_part("project") | standard_table_part("project")) + Suppress("."))
-            + Optional((quoted_table_part("dataset") | standard_table_part("dataset")) + Suppress("."))
+            Optional(
+                (quoted_project_part("project") | standard_table_part("project"))
+                + Suppress(".")
+            )
+            + Optional(
+                (quoted_table_part("dataset") | standard_table_part("dataset"))
+                + Suppress(".")
+            )
             + (quoted_table_part("table") | standard_table_part("table"))
         ).setParseAction(lambda t: record_table_identifier(t))
 
@@ -694,28 +703,23 @@ class BigQueryViewParser:
         ).setParseAction(lambda t: record_quoted_table_identifier(t))
 
         table_identifier = (
-            quoted_table_parts_identifier
-            | quotable_table_parts_identifier
+            quoted_table_parts_identifier | quotable_table_parts_identifier
         )
         single_source = (
             (
-                (
-                    table_identifier
-                    + Optional(Optional(AS) + table_alias("table_alias*"))
-                    + Optional(FOR + SYSTEMTIME + AS + OF + string_literal)
-                    + Optional(INDEXED + BY + index_name("name") | NOT + INDEXED ) )("index")
-                | (
-                    LPAR
-                    + ungrouped_select_stmt
-                    + RPAR
-                )
-                | (LPAR + join_source + RPAR)
-                | (UNNEST + LPAR + expr + RPAR)
-            )
-            + Optional(Optional(AS) + table_alias)
-        )
+                table_identifier
+                + Optional(Optional(AS) + table_alias("table_alias*"))
+                + Optional(FOR + SYSTEMTIME + AS + OF + string_literal)
+                + Optional(INDEXED + BY + index_name("name") | NOT + INDEXED)
+            )("index")
+            | (LPAR + ungrouped_select_stmt + RPAR)
+            | (LPAR + join_source + RPAR)
+            | (UNNEST + LPAR + expr + RPAR)
+        ) + Optional(Optional(AS) + table_alias)
 
-        join_source << single_source + ZeroOrMore(join_op + single_source + join_constraint)
+        join_source << single_source + ZeroOrMore(
+            join_op + single_source + join_constraint
+        )
 
         over_partition = (PARTITION + BY + delimitedList(partition_expression_list))(
             "over_partition"
@@ -775,11 +779,10 @@ class BigQueryViewParser:
             )
             + Optional(delimitedList(window_select_clause))
         )
-        select_no_with = ungrouped_select_no_with | (LPAR + ungrouped_select_no_with + RPAR)
-        select_core = (
-            Optional(with_stmt)
-            + select_no_with
+        select_no_with = ungrouped_select_no_with | (
+            LPAR + ungrouped_select_no_with + RPAR
         )
+        select_core = Optional(with_stmt) + select_no_with
         grouped_select_core = select_core | (LPAR + select_core + RPAR)
 
         ungrouped_select_stmt << (
@@ -1571,17 +1574,13 @@ class BigQueryViewParser:
             """,
             [(None, None, "z")],
         ],
-
         [
             """
             SELECT a . b .   c
             FROM d
             """,
-            [
-                (None, None, 'd')
-            ]
+            [(None, None, "d")],
         ],
-
         [
             """
             WITH a AS (
@@ -1596,12 +1595,8 @@ class BigQueryViewParser:
             )
             SELECT h FROM a
             """,
-            [
-                (None, None, 'c'),
-                (None, None, 'f')
-            ]
+            [(None, None, "c"), (None, None, "f")],
         ],
-
         [
             """
             WITH a AS (
@@ -1616,29 +1611,20 @@ class BigQueryViewParser:
             )
             (SELECT h FROM a)
             """,
-            [
-                (None, None, 'c'),
-                (None, None, 'f')
-            ]
+            [(None, None, "c"), (None, None, "f")],
         ],
-
         [
             """
             SELECT * FROM a.b.`c`
             """,
-            [
-                ('a', 'b', 'c')
-            ]
+            [("a", "b", "c")],
         ],
-
         [
             """
             SELECT * FROM 'a'.b.`c`
             """,
-            [
-                ('a', 'b', 'c')
-            ]
-        ]
+            [("a", "b", "c")],
+        ],
     ]
 
     def test(self):
