@@ -11,7 +11,7 @@ from pyparsing import ParserElement, Suppress, Forward, CaselessKeyword
 from pyparsing import MatchFirst, alphas, alphanums, Combine, Word
 from pyparsing import QuotedString, CharsNotIn, Optional, Group, ZeroOrMore
 from pyparsing import oneOf, delimitedList, restOfLine, cStyleComment
-from pyparsing import infixNotation, opAssoc, OneOrMore, Regex, nums
+from pyparsing import infixNotation, opAssoc, Regex, nums
 
 
 class BigQueryViewParser:
@@ -317,7 +317,10 @@ class BigQueryViewParser:
         collation_name = identifier.copy()
         # NOTE: Column names can be keywords.  Doc says they cannot, but in practice it seems to work.
         column_name = identifier_word.copy()
-        qualified_column_name = Combine(column_name + ("." + column_name) * (0, 6))
+        qualified_column_name = Combine(
+            column_name
+            + (ZeroOrMore(" ") + "." + ZeroOrMore(" ") + column_name) * (0, 6)
+        )
         # NOTE: As with column names, column aliases can be keywords, e.g. functions like `current_time`.  Other
         # keywords, e.g. `from` make parsing pretty difficult (e.g. "SELECT a from from b" is confusing.)
         column_alias = ~keyword_nonfunctions + column_name.copy()
@@ -652,7 +655,7 @@ class BigQueryViewParser:
         # Third, a series of quoted strings, delimited by dots, e.g.:
         #  `project`.`dataset`.`name-with-dashes`
         #
-        # We won't attempt to support combinations, like:
+        # We also support combinations, like:
         #  project.dataset.`name-with-dashes`
         #  `project`.`dataset.name-with-dashes`
 
@@ -662,12 +665,6 @@ class BigQueryViewParser:
             cls._table_identifiers.add(tuple(padded_list))
 
         standard_table_part = ~keyword + Word(alphanums + "_")
-        standard_table_identifier = (
-            Optional(standard_table_part("project") + Suppress("."))
-            + Optional(standard_table_part("dataset") + Suppress("."))
-            + standard_table_part("table")
-        ).setParseAction(lambda t: record_table_identifier(t))
-
         quoted_project_part = (
             Suppress('"') + CharsNotIn('"') + Suppress('"')
             | Suppress("'") + CharsNotIn("'") + Suppress("'")
@@ -679,9 +676,15 @@ class BigQueryViewParser:
             | Suppress("`") + CharsNotIn("`.") + Suppress("`")
         )
         quoted_table_parts_identifier = (
-            Optional(quoted_project_part("project") + Suppress("."))
-            + Optional(quoted_table_part("dataset") + Suppress("."))
-            + quoted_table_part("table")
+            Optional(
+                (quoted_project_part("project") | standard_table_part("project"))
+                + Suppress(".")
+            )
+            + Optional(
+                (quoted_table_part("dataset") | standard_table_part("dataset"))
+                + Suppress(".")
+            )
+            + (quoted_table_part("table") | standard_table_part("table"))
         ).setParseAction(lambda t: record_table_identifier(t))
 
         def record_quoted_table_identifier(t):
@@ -700,29 +703,22 @@ class BigQueryViewParser:
         ).setParseAction(lambda t: record_quoted_table_identifier(t))
 
         table_identifier = (
-            standard_table_identifier
-            | quoted_table_parts_identifier
-            | quotable_table_parts_identifier
+            quoted_table_parts_identifier | quotable_table_parts_identifier
         )
-
         single_source = (
-            table_identifier
-            + Optional(Optional(AS) + table_alias("table_alias*"))
-            + Optional(FOR + SYSTEMTIME + AS + OF + string_literal)
-            + Optional(INDEXED + BY + index_name("name") | NOT + INDEXED)("index")
-            | (
-                LPAR
-                + ungrouped_select_stmt
-                + RPAR
-                + Optional(Optional(AS) + table_alias)
-            )
+            (
+                table_identifier
+                + Optional(Optional(AS) + table_alias("table_alias*"))
+                + Optional(FOR + SYSTEMTIME + AS + OF + string_literal)
+                + Optional(INDEXED + BY + index_name("name") | NOT + INDEXED)
+            )("index")
+            | (LPAR + ungrouped_select_stmt + RPAR)
             | (LPAR + join_source + RPAR)
-            | (UNNEST + LPAR + expr + RPAR) + Optional(Optional(AS) + column_alias)
-        )
+            | (UNNEST + LPAR + expr + RPAR)
+        ) + Optional(Optional(AS) + table_alias)
 
-        join_source << (
-            Group(single_source + OneOrMore(join_op + single_source + join_constraint))
-            | single_source
+        join_source << single_source + ZeroOrMore(
+            join_op + single_source + join_constraint
         )
 
         over_partition = (PARTITION + BY + delimitedList(partition_expression_list))(
@@ -767,7 +763,8 @@ class BigQueryViewParser:
             WINDOW + identifier + AS + LPAR + window_specification + RPAR
         )
 
-        select_core = (
+        with_stmt = Forward().setName("with statement")
+        ungrouped_select_no_with = (
             SELECT
             + Optional(DISTINCT | ALL)
             + Group(delimitedList(result_column))("columns")
@@ -782,6 +779,10 @@ class BigQueryViewParser:
             )
             + Optional(delimitedList(window_select_clause))
         )
+        select_no_with = ungrouped_select_no_with | (
+            LPAR + ungrouped_select_no_with + RPAR
+        )
+        select_core = Optional(with_stmt) + select_no_with
         grouped_select_core = select_core | (LPAR + select_core + RPAR)
 
         ungrouped_select_stmt << (
@@ -805,22 +806,17 @@ class BigQueryViewParser:
             padded_list = [None] * (3 - len(identifier_list)) + identifier_list
             cls._with_aliases.add(tuple(padded_list))
 
-        with_stmt = Forward().setName("with statement")
         with_clause = Group(
             identifier.setParseAction(lambda t: record_with_alias(t))
             + AS
             + LPAR
-            + (select_stmt | with_stmt)
+            + select_stmt
             + RPAR
         )
-        with_core = WITH + delimitedList(with_clause)
-        with_stmt << (with_core + ungrouped_select_stmt)
+        with_stmt << (WITH + delimitedList(with_clause))
         with_stmt.ignore(sql_comment)
 
-        select_or_with = select_stmt | with_stmt
-        select_or_with_parens = LPAR + select_or_with + RPAR
-
-        cls._parser = select_or_with | select_or_with_parens
+        cls._parser = select_stmt
         return cls._parser
 
     TEST_CASES = [
@@ -1577,6 +1573,57 @@ class BigQueryViewParser:
             FROM z
             """,
             [(None, None, "z")],
+        ],
+        [
+            """
+            SELECT a . b .   c
+            FROM d
+            """,
+            [(None, None, "d")],
+        ],
+        [
+            """
+            WITH a AS (
+                SELECT b FROM c
+                UNION ALL
+                (
+                    WITH d AS (
+                        SELECT e FROM f
+                    )
+                    SELECT g FROM d
+                )
+            )
+            SELECT h FROM a
+            """,
+            [(None, None, "c"), (None, None, "f")],
+        ],
+        [
+            """
+            WITH a AS (
+                SELECT b FROM c
+                UNION ALL
+                (
+                    WITH d AS (
+                        SELECT e FROM f
+                    )
+                    SELECT g FROM d
+                )
+            )
+            (SELECT h FROM a)
+            """,
+            [(None, None, "c"), (None, None, "f")],
+        ],
+        [
+            """
+            SELECT * FROM a.b.`c`
+            """,
+            [("a", "b", "c")],
+        ],
+        [
+            """
+            SELECT * FROM 'a'.b.`c`
+            """,
+            [("a", "b", "c")],
         ],
     ]
 
