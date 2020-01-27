@@ -145,7 +145,7 @@ def _collapseAndEscapeRegexRangeChars(s):
     is_consecutive.value = -1
 
     def escape_re_range_char(c):
-        return "\\" + c if c in r"\^-]" else c
+        return "\\" + c if c in r"\^-][" else c
 
     ret = []
     for _, chars in itertools.groupby(sorted(s), key=is_consecutive):

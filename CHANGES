@@ -78,6 +78,26 @@ Version 3.0.0a1
 
         pp.__diag__.enable_all_warnings()
 
+  - added new warning, "warn_on_match_first_with_lshift_operator" to
+    warn when using '<<' with a '|' MatchFirst operator, which will
+    create an unintended expression due to precedence of operations.
+
+    Example: This statement will erroneously define the `fwd` expression
+    as just `expr_a`, even though `expr_a | expr_b` was intended,
+    since '<<' operator has precedence over '|':
+
+        fwd << expr_a | expr_b
+
+    To correct this, use the '<<=' operator (preferred) or parentheses
+    to override operator precedence:
+
+        fwd <<= expr_a | expr_b
+                 or
+        fwd << (expr_a | expr_b)
+
+- Fixed FutureWarnings that sometimes are raised when '[' passed as a
+  character to Word.
+
 - New namespace, assert methods and classes added to support writing
   unit tests.
   - assertParseResultsEquals
@@ -97,20 +117,6 @@ Version 3.0.0a1
 
     # would use regex for this expression
     integer_parser = pp.Regex(regex.compile(r'\d+'))
-
-  You can also replace the use of the re module as it is used internally
-  by pyparsing in a number of classes by overwriting pyparsing's imported
-  re symbol:
-
-    import pyparsing as pp
-    import regex
-    pp.re = regex  # redirects all internal re usage in pyparsing to regex
-
-    # would now use regex instead of re to compile this string
-    integer_parser = pp.Regex(r'\d+')
-
-    # would also now use regex internally instead of re
-    integer_parser = pp.Word(pp.nums)
 
   Inspired by PR submitted by bjrnfrdnnd on GitHub, very nice!
 

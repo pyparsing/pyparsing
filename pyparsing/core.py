@@ -57,7 +57,7 @@ str_type = (str, bytes)
 #
 
 __version__ = "3.0.0a1"
-__versionTime__ = "13 Oct 2019 05:49 UTC"
+__versionTime__ = "27 Jan 2020 00:56 UTC"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 
@@ -106,6 +106,7 @@ class __diag__(__config_flags):
     warn_ungrouped_named_tokens_in_collection = False
     warn_name_set_on_empty_Forward = False
     warn_on_multiple_string_args_to_oneof = False
+    warn_on_match_first_with_lshift_operator = False
     enable_debug_on_named_expressions = False
 
     _all_names = [__ for __ in locals() if not __.startswith("_")]
@@ -142,13 +143,6 @@ def _trim_arity(func, maxargs=2):
     limit = 0
     found_arity = False
 
-    # traceback return data structure changed in Py3.5 - normalize back to plain tuples
-    def extract_stack(limit=0):
-        # special handling for Python 3.5.0 - extra deep call stack by 1
-        offset = -3 if system_version == (3, 5, 0) else -2
-        frame_summary = traceback.extract_stack(limit=-offset + limit - 1)[offset]
-        return [frame_summary[:2]]
-
     def extract_tb(tb, limit=0):
         frames = traceback.extract_tb(tb, limit=limit)
         frame_summary = frames[-1]
@@ -160,7 +154,7 @@ def _trim_arity(func, maxargs=2):
     LINE_DIFF = 7
     # IF ANY CODE CHANGES, EVEN JUST COMMENTS OR BLANK LINES, BETWEEN THE NEXT LINE AND
     # THE CALL TO FUNC INSIDE WRAPPER, LINE_DIFF MUST BE MODIFIED!!!!
-    this_line = extract_stack(limit=2)[-1]
+    this_line = traceback.extract_stack(limit=2)[-1]
     pa_call_line_synth = (this_line[0], this_line[1] + LINE_DIFF)
 
     def wrapper(*args):
@@ -4226,6 +4220,7 @@ class Forward(ParseElementEnhance):
 
     def __init__(self, other=None):
         super().__init__(other, savelist=False)
+        self.lshift_line = None
 
     def __lshift__(self, other):
         if isinstance(other, str_type):
@@ -4240,10 +4235,19 @@ class Forward(ParseElementEnhance):
         self.skipWhitespace = self.expr.skipWhitespace
         self.saveAsList = self.expr.saveAsList
         self.ignoreExprs.extend(self.expr.ignoreExprs)
+        self.lshift_line = traceback.extract_stack(limit=2)[-2]
         return self
 
     def __ilshift__(self, other):
         return self << other
+
+    def __or__(self, other):
+        caller_line = traceback.extract_stack(limit=2)[-2]
+        if (__diag__.warn_on_match_first_with_lshift_operator
+                and caller_line == self.lshift_line):
+            warnings.warn("using '<<' operator with '|' is probably error, use '<<='", SyntaxWarning, stacklevel=3)
+        ret = super().__or__(other)
+        return ret
 
     def leaveWhitespace(self):
         self.skipWhitespace = False

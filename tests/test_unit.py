@@ -2490,7 +2490,7 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
         )
 
         try:
-            # ~ print "lets try an invalid RE"
+            print("lets try an invalid RE")
             invRe = pp.Regex("(\"[^\"]*\")|('[^']*'")
         except Exception as e:
             print("successfully rejected an invalid RE:", end=" ")
@@ -2498,7 +2498,8 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
         else:
             self.assertTrue(False, "failed to reject invalid RE")
 
-        invRe = pp.Regex("")
+        with self.assertWarns(SyntaxWarning, msg="failed to warn empty string passed to Regex"):
+            invRe = pp.Regex("")
 
     def testRegexAsType(self):
         import pyparsing as pp
@@ -6208,8 +6209,8 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             "failed to generate correct internal re",
         )
 
-        esc_chars = r"\^-]"
-        esc_chars2 = r"*+.?["
+        esc_chars = r"\^-]["
+        esc_chars2 = r"*+.?"
         for esc_char in esc_chars + esc_chars2:
             # test escape char as first character in range
             next_char = chr(ord(esc_char) + 1)
@@ -6648,6 +6649,35 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             "multipled(3) failure with setResultsName",
         )
 
+    def testWarnUsingLshiftForward(self):
+        import warnings
+        print("verify that using '<<' operator with a Forward raises a warning if there is a dangling '|' operator")
+
+        fwd = pp.Forward()
+        print('unsafe << and |, but diag not enabled, should not warn')
+        fwd << pp.Word('a') | pp.Word('b')
+
+        pp.__diag__.enable('warn_on_match_first_with_lshift_operator')
+        with self.assertWarns(SyntaxWarning, msg="failed to warn of using << and | operators"):
+            fwd = pp.Forward()
+            print('unsafe << and |, should warn')
+            fwd << pp.Word('a') | pp.Word('b')
+
+        fwd = pp.Forward()
+        print('safe <<= and |, should not warn')
+        fwd <<= pp.Word('a') | pp.Word('b')
+        c = fwd | pp.Word('c')
+
+        print('safe << and (|), should not warn')
+        with warnings.catch_warnings(record=True) as w:
+            warnings.simplefilter("error")
+
+            fwd = pp.Forward()
+            fwd << (pp.Word('a') | pp.Word('b'))
+            try:
+                c = fwd | pp.Word('c')
+            except Exception as e:
+                self.fail("raised warning when it should not have")
 
 class PickleTest_Greeting:
     def __init__(self, toks):
