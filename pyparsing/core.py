@@ -4243,9 +4243,15 @@ class Forward(ParseElementEnhance):
 
     def __or__(self, other):
         caller_line = traceback.extract_stack(limit=2)[-2]
-        if (__diag__.warn_on_match_first_with_lshift_operator
-                and caller_line == self.lshift_line):
-            warnings.warn("using '<<' operator with '|' is probably error, use '<<='", SyntaxWarning, stacklevel=3)
+        if (
+            __diag__.warn_on_match_first_with_lshift_operator
+            and caller_line == self.lshift_line
+        ):
+            warnings.warn(
+                "using '<<' operator with '|' is probably error, use '<<='",
+                SyntaxWarning,
+                stacklevel=3,
+            )
         ret = super().__or__(other)
         return ret
 
