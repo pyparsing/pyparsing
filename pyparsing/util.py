@@ -75,10 +75,11 @@ def line(loc, strg):
 class _UnboundedCache:
     def __init__(self):
         cache = {}
+        cache_get = cache.get
         self.not_in_cache = not_in_cache = object()
 
         def get(self, key):
-            return cache.get(key, not_in_cache)
+            return cache_get(key, not_in_cache)
 
         def set(self, key, value):
             cache[key] = value
@@ -99,15 +100,16 @@ class _FifoCache:
     def __init__(self, size):
         self.not_in_cache = not_in_cache = object()
         cache = collections.OrderedDict()
+        cache_get = cache.get
 
         def get(self, key):
-            return cache.get(key, not_in_cache)
+            return cache_get(key, not_in_cache)
 
         def set(self, key, value):
             cache[key] = value
             try:
                 while len(cache) > size:
-                    cache.popitem(False)
+                    cache.popitem(last=False)
             except KeyError:
                 pass
 

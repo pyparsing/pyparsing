@@ -95,6 +95,11 @@ Version 3.0.0a1
                  or
         fwd << (expr_a | expr_b)
 
+- Cleaned up default tracebacks when getting a ParseException when calling
+  parseString. Exception traces should now stop at the call in parseString,
+  and not include the internal traceback frames. (If the full traceback
+  is desired, then set ParserElement.verbose_traceback to True.)
+
 - Fixed FutureWarnings that sometimes are raised when '[' passed as a
   character to Word.
 

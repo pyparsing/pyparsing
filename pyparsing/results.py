@@ -455,7 +455,7 @@ class ParseResults(object):
         Returns a new copy of a :class:`ParseResults` object.
         """
         ret = ParseResults(self.__toklist)
-        ret.__tokdict = dict(self.__tokdict.items())
+        ret.__tokdict.update(self.__tokdict)
         ret.__parent = self.__parent
         ret.__accumNames.update(self.__accumNames)
         ret.__name = self.__name
