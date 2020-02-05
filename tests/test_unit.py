@@ -6643,11 +6643,44 @@ class Test3_EnablePackratParsing(TestCase):
         ParserElement.enablePackrat()
 
         # SAVE A NEW SUITE CONTEXT
+        Test2_WithoutPackrat.save_suite_context = Test2_WithoutPackrat.suite_context
         Test2_WithoutPackrat.suite_context = ppt.reset_pyparsing_context()
         Test2_WithoutPackrat.suite_context.save()
 
 
 Test4_WithPackrat = type("Test4_WithPackrat", (Test2_WithoutPackrat,), {})
+
+
+class Test5_EnableBoundedPackratParsing(TestCase):
+    def runTest(self):
+        Test2_WithoutPackrat.suite_context = Test2_WithoutPackrat.save_suite_context
+        Test2_WithoutPackrat.suite_context.restore()
+
+        ParserElement.enablePackrat(16)
+
+        # SAVE A NEW SUITE CONTEXT
+        Test2_WithoutPackrat.suite_context = ppt.reset_pyparsing_context()
+        Test2_WithoutPackrat.suite_context.save()
+
+
+Test6_WithBoundedPackrat = type("Test6_WithBoundedPackrat", (Test2_WithoutPackrat,), {})
+
+
+class Test7_EnableUnboundedPackratParsing(TestCase):
+    def runTest(self):
+        Test2_WithoutPackrat.suite_context = Test2_WithoutPackrat.save_suite_context
+        Test2_WithoutPackrat.suite_context.restore()
+
+        ParserElement.enablePackrat(None)
+
+        # SAVE A NEW SUITE CONTEXT
+        Test2_WithoutPackrat.suite_context = ppt.reset_pyparsing_context()
+        Test2_WithoutPackrat.suite_context.save()
+
+
+Test8_WithUnboundedPackrat = type(
+    "Test8_WithUnboundedPackrat", (Test2_WithoutPackrat,), {}
+)
 
 
 Test2_WithoutPackrat.suite_context = ppt.reset_pyparsing_context()
