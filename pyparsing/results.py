@@ -67,7 +67,7 @@ class ParseResults(object):
     """
 
     __slots__ = [
-        "_result__name", "_result__parent", "_result__all_names", "_result__as_list",
+        "_result__name", "_result__parent", "_result__all_names",
         "_result__modal", "_result__list", "_result__dict", "__weakref__"
     ]
 
@@ -78,7 +78,6 @@ class ParseResults(object):
         self._result__name = None
         self._result__parent = None
         self._result__all_names = {}
-        self._result__as_list = asList
         self._result__modal = modal
         if toklist is None:
             toklist = []
@@ -644,7 +643,7 @@ class ParseResults(object):
             self._result__parent = None
 
     def __getnewargs__(self):
-        return self._result__list, self._result__name, self._result__as_list, self._result__modal
+        return self._result__list, self._result__name, self._result__modal
 
     def __dir__(self):
         return dir(type(self)) + list(self.keys())
