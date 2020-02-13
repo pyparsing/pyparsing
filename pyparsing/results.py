@@ -77,7 +77,7 @@ class ParseResults(object):
         self = object.__new__(cls)
         self._result__name = None
         self._result__parent = None
-        self._result__all_names = {}
+        self._result__all_names = set()
         self._result__modal = modal
         if toklist is None:
             toklist = []
@@ -97,7 +97,7 @@ class ParseResults(object):
     ):
         if name is not None and name:
             if not modal:
-                self._result__all_names[name] = 0
+                self._result__all_names = {name}
             if isinstance(name, int):
                 name = str(name)
             self._result__name = name
@@ -366,7 +366,7 @@ class ParseResults(object):
                     v[0]._result__parent = wkref(self)
 
         self._result__list += other._result__list
-        self._result__all_names.update(other._result__all_names)
+        self._result__all_names |= other._result__all_names
         return self
 
     def __radd__(self, other):
@@ -457,7 +457,7 @@ class ParseResults(object):
         ret = ParseResults(self._result__list)
         ret._result__dict = dict(self._result__dict.items())
         ret._result__parent = self._result__parent
-        ret._result__all_names.update(self._result__all_names)
+        ret._result__all_names |= self._result__all_names
         ret._result__name = self._result__name
         return ret
 
@@ -635,8 +635,7 @@ class ParseResults(object):
     def __setstate__(self, state):
         self._result__list = state[0]
         self._result__dict, par, inAccumNames, self._result__name = state[1]
-        self._result__all_names = {}
-        self._result__all_names.update(inAccumNames)
+        self._result__all_names =set(inAccumNames)
         if par is not None:
             self._result__parent = wkref(par)
         else:
