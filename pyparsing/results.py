@@ -66,6 +66,11 @@ class ParseResults(object):
         - year: 1999
     """
 
+    __slots__ = [
+        "_result__doinit", "_result__name", "_result__parent", "_result__all_names", "_result__as_list",
+        "_result__modal", "_result__list", "_result__dict", "__weakref__"
+    ]
+
     def __new__(cls, toklist=None, name=None, asList=True, modal=True):
         if isinstance(toklist, ParseResults):
             return toklist
