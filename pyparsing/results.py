@@ -67,39 +67,35 @@ class ParseResults(object):
     """
 
     __slots__ = [
-        "_result__doinit", "_result__name", "_result__parent", "_result__all_names", "_result__as_list",
+        "_result__name", "_result__parent", "_result__all_names", "_result__as_list",
         "_result__modal", "_result__list", "_result__dict", "__weakref__"
     ]
 
     def __new__(cls, toklist=None, name=None, asList=True, modal=True):
         if isinstance(toklist, ParseResults):
             return toklist
-        retobj = object.__new__(cls)
-        retobj._result__doinit = True
-        return retobj
+        self = object.__new__(cls)
+        self._result__name = None
+        self._result__parent = None
+        self._result__all_names = {}
+        self._result__as_list = asList
+        self._result__modal = modal
+        if toklist is None:
+            toklist = []
+        if isinstance(toklist, list):
+            self._result__list = toklist[:]
+        elif isinstance(toklist, _generator_type):
+            self._result__list = list(toklist)
+        else:
+            self._result__list = [toklist]
+        self._result__dict = dict()
+        return self
 
     # Performance tuning: we construct a *lot* of these, so keep this
     # constructor as small and fast as possible
     def __init__(
         self, toklist=None, name=None, asList=True, modal=True, isinstance=isinstance
     ):
-        if self._result__doinit:
-            self._result__doinit = False
-            self._result__name = None
-            self._result__parent = None
-            self._result__all_names = {}
-            self._result__as_list = asList
-            self._result__modal = modal
-            if toklist is None:
-                toklist = []
-            if isinstance(toklist, list):
-                self._result__list = toklist[:]
-            elif isinstance(toklist, _generator_type):
-                self._result__list = list(toklist)
-            else:
-                self._result__list = [toklist]
-            self._result__dict = dict()
-
         if name is not None and name:
             if not modal:
                 self._result__all_names[name] = 0
