@@ -13,14 +13,12 @@ from collections import namedtuple
 from collections.abc import Iterable
 from functools import wraps
 from operator import itemgetter
-from threading import RLock
 
 from pyparsing.actions import *
+from pyparsing.cache import Cache, UnboundedCache, FifoCache
 from pyparsing.exceptions import *
 from pyparsing.results import ParseResults, _ParseResultsWithOffset
 from .util import (
-    _FifoCache,
-    _UnboundedCache,
     __config_flags,
     _collapseAndEscapeRegexRangeChars,
     _escapeRegexRangeChars,
@@ -569,22 +567,19 @@ class ParserElement(object):
     # ~ @profile
     def _parseNoCache(self, instring, loc, doActions=True, callPreParse=True):
         self.debug and self.debugActions.TRY(instring, loc, self)
+        start = preloc = loc
         try:
             if callPreParse and self.callPreparse:
-                preloc = self.preParse(instring, loc)
-            else:
-                preloc = loc
-            tokensStart = preloc
-            if self.mayIndexError or preloc >= len(instring):
-                try:
-                    loc, tokens = self.parseImpl(instring, preloc, doActions)
-                except IndexError:
-                    raise ParseException(instring, len(instring), self.errmsg, self)
-            else:
+                start = preloc = self.preParse(instring, loc)
+            try:
                 loc, tokens = self.parseImpl(instring, preloc, doActions)
+            except IndexError:
+                if self.mayIndexError or preloc >= len(instring):
+                    raise ParseException(instring, len(instring), self.errmsg, self)
+                raise
         except Exception as err:
-            self.debug and self.debugActions.FAIL(instring, tokensStart, self, err)
-            self.failAction(instring, tokensStart, self, err)
+            self.debug and self.debugActions.FAIL(instring, start, self, err)
+            self.failAction(instring, start, self, err)
             raise
 
         tokens = self.postParse(instring, loc, tokens)
@@ -596,7 +591,7 @@ class ParserElement(object):
             try:
                 for fn in self.parseAction:
                     try:
-                        tokens = fn(instring, tokensStart, retTokens)
+                        tokens = fn(instring, start, retTokens)
                     except IndexError as parse_action_exc:
                         exc = ParseException("exception raised in parse action")
                         exc.__cause__ = parse_action_exc
@@ -611,21 +606,20 @@ class ParserElement(object):
                             modal=self.modalResults,
                         )
             except Exception as err:
-                self.debug and self.debugActions.FAIL(instring, tokensStart, self, err)
+                self.debug and self.debugActions.FAIL(instring, start, self, err)
                 raise
-        self.debug and self.debugActions.MATCH(
-            instring, tokensStart, loc, self, retTokens
-        )
+        self.debug and self.debugActions.MATCH(instring, start, loc, self, retTokens)
 
         return loc, retTokens
 
     def tryParse(self, instring, loc, raise_fatal=False):
-        try:
-            return self._parse(instring, loc, doActions=False)[0]
-        except ParseFatalException:
-            if raise_fatal:
-                raise
-            raise ParseException(instring, loc, self.errmsg, self)
+        with ParserElement.packrat_cache.lock:
+            try:
+                return self._parse(instring, loc, doActions=False)[0]
+            except ParseFatalException:
+                if raise_fatal:
+                    raise
+                raise ParseException(instring, loc, self.errmsg, self)
 
     def canParseNext(self, instring, loc):
         try:
@@ -636,45 +630,34 @@ class ParserElement(object):
             return True
 
     # argument cache for optimizing repeated calls when backtracking through recursive expressions
-    packrat_cache = (
-        {}
-    )  # this is set later by enabledPackrat(); this is here so that resetCache() doesn't fail
-    packrat_cache_lock = RLock()
-    packrat_cache_stats = [0, 0]
+    packrat_cache = Cache()
 
     # this method gets repeatedly called during backtracking with the same arguments -
     # we can cache these arguments and save ourselves the trouble of re-parsing the contained expression
     def _parseCache(self, instring, loc, doActions=True, callPreParse=True):
-        HIT, MISS = 0, 1
         lookup = (self, instring, loc, callPreParse, doActions)
-        with ParserElement.packrat_cache_lock:
-            cache = ParserElement.packrat_cache
-            value = cache.get(lookup)
-            if value is cache.not_in_cache:
-                ParserElement.packrat_cache_stats[MISS] += 1
-                try:
-                    value = self._parseNoCache(instring, loc, doActions, callPreParse)
-                except ParseBaseException as pe:
-                    # cache a copy of the exception, without the traceback
-                    cache.set(lookup, pe.__class__(*pe.args))
-                    raise
-                else:
-                    cache.set(lookup, (value[0], value[1].copy()))
-                    return value
+        cache = ParserElement.packrat_cache
+        value = cache.get(lookup)
+        if value is None:
+            try:
+                value = self._parseNoCache(instring, loc, doActions, callPreParse)
+            except ParseBaseException as pe:
+                # cache a copy of the exception, without the traceback
+                cache.set(lookup, pe.__class__(*pe.args))
+                raise
             else:
-                ParserElement.packrat_cache_stats[HIT] += 1
-                if isinstance(value, Exception):
-                    raise value
-                return value[0], value[1].copy()
+                cache.set(lookup, (value[0], value[1].copy()))
+                return value
+        else:
+            if isinstance(value, Exception):
+                raise value
+            return value[0], value[1].copy()
 
     _parse = _parseNoCache
 
     @staticmethod
     def resetCache():
         ParserElement.packrat_cache.clear()
-        ParserElement.packrat_cache_stats[:] = [0] * len(
-            ParserElement.packrat_cache_stats
-        )
 
     _packratEnabled = False
 
@@ -708,9 +691,9 @@ class ParserElement(object):
         if not ParserElement._packratEnabled:
             ParserElement._packratEnabled = True
             if cache_size_limit is None:
-                ParserElement.packrat_cache = _UnboundedCache()
+                ParserElement.packrat_cache = UnboundedCache()
             else:
-                ParserElement.packrat_cache = _FifoCache(cache_size_limit)
+                ParserElement.packrat_cache = FifoCache(cache_size_limit)
             ParserElement._parse = ParserElement._parseCache
 
     def parseString(self, instring, parseAll=False):
@@ -755,30 +738,30 @@ class ParserElement(object):
         ...
         pyparsing.ParseException: Expected end of text, found 'b'  (at char 5), (line:1, col:6)
         """
-
-        ParserElement.resetCache()
-        if not self.streamlined:
-            self.streamline()
-            # ~ self.saveAsList = True
-        for e in self.ignoreExprs:
-            e.streamline()
-        if not self.keepTabs:
-            instring = instring.expandtabs()
-        try:
-            loc, tokens = self._parse(instring, 0)
-            if parseAll:
-                loc = self.preParse(instring, loc)
-                se = Empty() + StringEnd()
-                se._parse(instring, loc)
-        except ParseBaseException as exc:
-            if ParserElement.verbose_stacktrace:
-                raise
+        with ParserElement.packrat_cache.lock:
+            ParserElement.resetCache()
+            if not self.streamlined:
+                self.streamline()
+                # ~ self.saveAsList = True
+            for e in self.ignoreExprs:
+                e.streamline()
+            if not self.keepTabs:
+                instring = instring.expandtabs()
+            try:
+                loc, tokens = self._parse(instring, 0)
+                if parseAll:
+                    loc = self.preParse(instring, loc)
+                    se = Empty() + StringEnd()
+                    se._parse(instring, loc)
+            except ParseBaseException as exc:
+                if ParserElement.verbose_stacktrace:
+                    raise
+                else:
+                    # catch and re-raise exception from here, clearing out pyparsing internal stack trace
+                    exc.__traceback__ = self._trim_traceback(exc.__traceback__)
+                    raise exc
             else:
-                # catch and re-raise exception from here, clearing out pyparsing internal stack trace
-                exc.__traceback__ = self._trim_traceback(exc.__traceback__)
-                raise exc
-        else:
-            return tokens
+                return tokens
 
     def scanString(self, instring, maxMatches=_MAX_INT, overlap=False):
         """

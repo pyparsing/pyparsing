@@ -3,7 +3,8 @@ import warnings
 import types
 import collections
 import itertools
-
+from dataclasses import dataclass
+from threading import RLock
 
 _bslash = chr(92)
 
@@ -70,59 +71,6 @@ def line(loc, strg):
     lastCR = strg.rfind("\n", 0, loc)
     nextCR = strg.find("\n", loc)
     return strg[lastCR + 1 : nextCR] if nextCR >= 0 else strg[lastCR + 1 :]
-
-
-class _UnboundedCache:
-    def __init__(self):
-        cache = {}
-        cache_get = cache.get
-        self.not_in_cache = not_in_cache = object()
-
-        def get(self, key):
-            return cache_get(key, not_in_cache)
-
-        def set(self, key, value):
-            cache[key] = value
-
-        def clear(self):
-            cache.clear()
-
-        def cache_len(self):
-            return len(cache)
-
-        self.get = types.MethodType(get, self)
-        self.set = types.MethodType(set, self)
-        self.clear = types.MethodType(clear, self)
-        self.__len__ = types.MethodType(cache_len, self)
-
-
-class _FifoCache:
-    def __init__(self, size):
-        self.not_in_cache = not_in_cache = object()
-        cache = collections.OrderedDict()
-        cache_get = cache.get
-
-        def get(self, key):
-            return cache_get(key, not_in_cache)
-
-        def set(self, key, value):
-            cache[key] = value
-            try:
-                while len(cache) > size:
-                    cache.popitem(last=False)
-            except KeyError:
-                pass
-
-        def clear(self):
-            cache.clear()
-
-        def cache_len(self):
-            return len(cache)
-
-        self.get = types.MethodType(get, self)
-        self.set = types.MethodType(set, self)
-        self.clear = types.MethodType(clear, self)
-        self.__len__ = types.MethodType(cache_len, self)
 
 
 def _escapeRegexRangeChars(s):
