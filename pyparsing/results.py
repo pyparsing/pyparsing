@@ -67,8 +67,13 @@ class ParseResults(object):
     """
 
     __slots__ = [
-        "_result__name", "_result__parent", "_result__all_names",
-        "_result__modal", "_result__list", "_result__dict", "__weakref__"
+        "_result__name",
+        "_result__parent",
+        "_result__all_names",
+        "_result__modal",
+        "_result__list",
+        "_result__dict",
+        "__weakref__",
     ]
 
     def __new__(cls, toklist=None, name=None, asList=True, modal=True):
@@ -635,7 +640,7 @@ class ParseResults(object):
     def __setstate__(self, state):
         self._result__list = state[0]
         self._result__dict, par, inAccumNames, self._result__name = state[1]
-        self._result__all_names =set(inAccumNames)
+        self._result__all_names = set(inAccumNames)
         if par is not None:
             self._result__parent = wkref(par)
         else:
