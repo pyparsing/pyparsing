@@ -1,19 +1,23 @@
 #
 # core.py
 #
-import string
 import copy
-import sys
-import warnings
 import re
 import sre_constants
-from collections.abc import Iterable
+import string
+import sys
 import traceback
 import types
-from operator import itemgetter
+import warnings
+from collections import namedtuple
+from collections.abc import Iterable
 from functools import wraps
+from operator import itemgetter
 from threading import RLock
 
+from pyparsing.actions import *
+from pyparsing.exceptions import *
+from pyparsing.results import ParseResults, _ParseResultsWithOffset
 from .util import (
     _FifoCache,
     _UnboundedCache,
@@ -23,9 +27,6 @@ from .util import (
     _bslash,
     _flatten,
 )
-from pyparsing.exceptions import *
-from pyparsing.actions import *
-from pyparsing.results import ParseResults, _ParseResultsWithOffset
 
 system_version = tuple(sys.version_info)[:3]
 _MAX_INT = sys.maxsize
@@ -121,6 +122,8 @@ class __diag__(__config_flags):
 
 # hide abstract class
 del __config_flags
+
+DebugActions = namedtuple("DebugActions", ["TRY", "MATCH", "FAIL"])
 
 # build list of single arg builtins, that can be used as parse actions
 singleArgBuiltins = [sum, len, sorted, reversed, list, tuple, set, any, all, min, max]
@@ -313,10 +316,14 @@ class ParserElement(object):
         self.ignoreExprs = list()
         self.debug = False
         self.streamlined = False
-        self.mayIndexError = True  # used to optimize exception handling for subclasses that don't advance parse index
+        self.mayIndexError = (
+            True
+        )  # used to optimize exception handling for subclasses that don't advance parse index
         self.errmsg = ""
-        self.modalResults = True  # used to mark results names as modal (report only last) or cumulative (list all)
-        self.debugActions = (None, None, None)  # custom debug actions
+        self.modalResults = (
+            True
+        )  # used to mark results names as modal (report only last) or cumulative (list all)
+        self.debugActions = DebugActions(None, None, None)  # custom debug actions
         self.re = None
         self.callPreparse = True  # used to avoid redundant calls to preParse
         self.callDuringTry = False
@@ -459,9 +466,7 @@ class ParserElement(object):
             # note that integer fields are now ints, not strings
             date_str.parseString("1999/12/31")  # -> [1999, '/', 12, '/', 31]
         """
-        if list(fns) == [
-            None,
-        ]:
+        if list(fns) == [None]:
             self.parseAction = []
         else:
             if not all(callable(fn) for fn in fns):
@@ -558,13 +563,12 @@ class ParserElement(object):
 
     # ~ @profile
     def _parseNoCache(self, instring, loc, doActions=True, callPreParse=True):
-        TRY, MATCH, FAIL = 0, 1, 2
         debugging = self.debug  # and doActions)
 
         if debugging or self.failAction:
             # ~ print("Match", self, "at loc", loc, "(%d, %d)" % (lineno(loc, instring), col(loc, instring)))
-            if self.debugActions[TRY]:
-                self.debugActions[TRY](instring, loc, self)
+            if self.debugActions.TRY:
+                self.debugActions.TRY(instring, loc, self)
             try:
                 if callPreParse and self.callPreparse:
                     preloc = self.preParse(instring, loc)
@@ -580,8 +584,8 @@ class ParserElement(object):
                     loc, tokens = self.parseImpl(instring, preloc, doActions)
             except Exception as err:
                 # ~ print("Exception raised:", err)
-                if self.debugActions[FAIL]:
-                    self.debugActions[FAIL](instring, tokensStart, self, err)
+                if self.debugActions.FAIL:
+                    self.debugActions.FAIL(instring, tokensStart, self, err)
                 if self.failAction:
                     self.failAction(instring, tokensStart, self, err)
                 raise
@@ -625,8 +629,8 @@ class ParserElement(object):
                             )
                 except Exception as err:
                     # ~ print "Exception raised in user parse action:", err
-                    if self.debugActions[FAIL]:
-                        self.debugActions[FAIL](instring, tokensStart, self, err)
+                    if self.debugActions.FAIL:
+                        self.debugActions.FAIL(instring, tokensStart, self, err)
                     raise
             else:
                 for fn in self.parseAction:
@@ -647,8 +651,8 @@ class ParserElement(object):
                         )
         if debugging:
             # ~ print("Matched", self, "->", retTokens.asList())
-            if self.debugActions[MATCH]:
-                self.debugActions[MATCH](instring, tokensStart, loc, self, retTokens)
+            if self.debugActions.MATCH:
+                self.debugActions.MATCH(instring, tokensStart, loc, self, retTokens)
 
         return loc, retTokens
 
@@ -1393,7 +1397,7 @@ class ParserElement(object):
         """
         Enable display of debugging messages while doing pattern matching.
         """
-        self.debugActions = (
+        self.debugActions = DebugActions(
             startAction or _defaultStartDebugAction,
             successAction or _defaultSuccessDebugAction,
             exceptionAction or _defaultExceptionDebugAction,
@@ -2574,12 +2578,7 @@ class QuotedString(Token):
             if isinstance(ret, str_type):
                 # replace escaped whitespace
                 if "\\" in ret and self.convertWhitespaceEscapes:
-                    ws_map = {
-                        r"\t": "\t",
-                        r"\n": "\n",
-                        r"\f": "\f",
-                        r"\r": "\r",
-                    }
+                    ws_map = {r"\t": "\t", r"\n": "\n", r"\f": "\f", r"\r": "\r"}
                     for wslit, wschar in ws_map.items():
                         ret = ret.replace(wslit, wschar)
 
