@@ -125,6 +125,11 @@ del __config_flags
 
 DebugActions = namedtuple("DebugActions", ["TRY", "MATCH", "FAIL"])
 
+
+def noop(*args):
+    return
+
+
 # build list of single arg builtins, that can be used as parse actions
 singleArgBuiltins = [sum, len, sorted, reversed, list, tuple, set, any, all, min, max]
 
@@ -303,7 +308,7 @@ class ParserElement(object):
 
     def __init__(self, savelist=False):
         self.parseAction = list()
-        self.failAction = None
+        self.failAction = noop
         # ~ self.name = "<unknown>"  # don't define self.name, let subclasses try/except upcall
         self.strRepr = None
         self.resultsName = None
@@ -323,7 +328,7 @@ class ParserElement(object):
         self.modalResults = (
             True
         )  # used to mark results names as modal (report only last) or cumulative (list all)
-        self.debugActions = DebugActions(None, None, None)  # custom debug actions
+        self.debugActions = DebugActions(noop, noop, noop)  # custom debug actions
         self.re = None
         self.callPreparse = True  # used to avoid redundant calls to preParse
         self.callDuringTry = False
@@ -563,33 +568,8 @@ class ParserElement(object):
 
     # ~ @profile
     def _parseNoCache(self, instring, loc, doActions=True, callPreParse=True):
-        debugging = self.debug  # and doActions)
-
-        if debugging or self.failAction:
-            # ~ print("Match", self, "at loc", loc, "(%d, %d)" % (lineno(loc, instring), col(loc, instring)))
-            if self.debugActions.TRY:
-                self.debugActions.TRY(instring, loc, self)
-            try:
-                if callPreParse and self.callPreparse:
-                    preloc = self.preParse(instring, loc)
-                else:
-                    preloc = loc
-                tokensStart = preloc
-                if self.mayIndexError or preloc >= len(instring):
-                    try:
-                        loc, tokens = self.parseImpl(instring, preloc, doActions)
-                    except IndexError:
-                        raise ParseException(instring, len(instring), self.errmsg, self)
-                else:
-                    loc, tokens = self.parseImpl(instring, preloc, doActions)
-            except Exception as err:
-                # ~ print("Exception raised:", err)
-                if self.debugActions.FAIL:
-                    self.debugActions.FAIL(instring, tokensStart, self, err)
-                if self.failAction:
-                    self.failAction(instring, tokensStart, self, err)
-                raise
-        else:
+        self.debug and self.debugActions.TRY(instring, loc, self)
+        try:
             if callPreParse and self.callPreparse:
                 preloc = self.preParse(instring, loc)
             else:
@@ -602,6 +582,10 @@ class ParserElement(object):
                     raise ParseException(instring, len(instring), self.errmsg, self)
             else:
                 loc, tokens = self.parseImpl(instring, preloc, doActions)
+        except Exception as err:
+            self.debug and self.debugActions.FAIL(instring, tokensStart, self, err)
+            self.failAction(instring, tokensStart, self, err)
+            raise
 
         tokens = self.postParse(instring, loc, tokens)
 
@@ -609,30 +593,7 @@ class ParserElement(object):
             tokens, self.resultsName, asList=self.saveAsList, modal=self.modalResults
         )
         if self.parseAction and (doActions or self.callDuringTry):
-            if debugging:
-                try:
-                    for fn in self.parseAction:
-                        try:
-                            tokens = fn(instring, tokensStart, retTokens)
-                        except IndexError as parse_action_exc:
-                            exc = ParseException("exception raised in parse action")
-                            exc.__cause__ = parse_action_exc
-                            raise exc
-
-                        if tokens is not None and tokens is not retTokens:
-                            retTokens = ParseResults(
-                                tokens,
-                                self.resultsName,
-                                asList=self.saveAsList
-                                and isinstance(tokens, (ParseResults, list)),
-                                modal=self.modalResults,
-                            )
-                except Exception as err:
-                    # ~ print "Exception raised in user parse action:", err
-                    if self.debugActions.FAIL:
-                        self.debugActions.FAIL(instring, tokensStart, self, err)
-                    raise
-            else:
+            try:
                 for fn in self.parseAction:
                     try:
                         tokens = fn(instring, tokensStart, retTokens)
@@ -649,10 +610,12 @@ class ParserElement(object):
                             and isinstance(tokens, (ParseResults, list)),
                             modal=self.modalResults,
                         )
-        if debugging:
-            # ~ print("Matched", self, "->", retTokens.asList())
-            if self.debugActions.MATCH:
-                self.debugActions.MATCH(instring, tokensStart, loc, self, retTokens)
+            except Exception as err:
+                self.debug and self.debugActions.FAIL(instring, tokensStart, self, err)
+                raise
+        self.debug and self.debugActions.MATCH(
+            instring, tokensStart, loc, self, retTokens
+        )
 
         return loc, retTokens
 
