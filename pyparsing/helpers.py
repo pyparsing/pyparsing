@@ -702,7 +702,7 @@ def infixNotation(baseExpr, opList, lpar=Suppress("("), rpar=Suppress(")")):
                     "operator must be unary (1), binary (2), or ternary (3)"
                 )
         elif rightLeftAssoc == opAssoc.RIGHT:
-            if arity == 1:
+            if arity == 1 :
                 # try to avoid LR with this extra test
                 if not isinstance(opExpr, Optional):
                     opExpr = Optional(opExpr)
