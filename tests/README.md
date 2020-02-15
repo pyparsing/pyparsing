@@ -5,6 +5,6 @@ After forking the pyparsing repo, and cloning your fork locally, install the lib
      pip install -r tests/requirements.txt
      pre-commit install
          
-Run the tests to ensure your envirmnet is setup 
+Run the tests to ensure your environment is setup 
      
      python -m unittest discover tests
