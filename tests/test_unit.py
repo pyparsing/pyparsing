@@ -2290,6 +2290,14 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
         res = expr.parseString("A")
         print(res.dump())
 
+    def testMulWithNegativeNumber(self):
+        '''raise a ValueError in __mul__ by multiplying a negative number'''
+        from pyparsing import Literal
+
+        with self.assertRaises(ValueError) as ar:
+            expr = Literal("A")("Achar") * (-1)
+        print(type(ar.exception).__name__, str(ar.exception))
+
     def testUpcaseDowncaseUnicode(self):
 
         import pyparsing as pp
