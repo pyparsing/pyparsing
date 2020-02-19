@@ -2298,6 +2298,15 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             expr = Literal("A")("Achar") * (-1)
         print(type(ar.exception).__name__, str(ar.exception))
 
+    def testMulWithEllipsis(self):
+        '''multiply an expression with Ellipsis as ``expr * ...`` to match ZeroOrMore'''
+        from pyparsing import Literal
+
+        expr = Literal("A")("Achar") * ...
+        res = expr.parseString("A")
+        self.assertEqual(res.asList(), ["A"], "expected expr * ... to match 0 or more")
+        print(res.dump())
+
     def testUpcaseDowncaseUnicode(self):
 
         import pyparsing as pp

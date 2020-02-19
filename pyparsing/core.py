@@ -1085,7 +1085,7 @@ class ParserElement(object):
     def __mul__(self, other):
         """
         Implementation of * operator, allows use of ``expr * 3`` in place of
-        ``expr + expr + expr``.  Expressions may also me multiplied by a 2-integer
+        ``expr + expr + expr``.  Expressions may also be multiplied by a 2-integer
         tuple, similar to ``{min, max}`` multipliers in regular expressions.  Tuples
         may also include ``None`` as in:
          - ``expr*(n, None)`` or ``expr*(n, )`` is equivalent
