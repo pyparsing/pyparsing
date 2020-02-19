@@ -3904,6 +3904,19 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             ),
         )
 
+    def testPopKwargsErr(self):
+        '''raise a TypeError in pop() by adding invalid named args'''
+        from pyparsing import Word, alphas, nums
+
+        source = "AAA 123 456 789 234"
+        patt = Word(alphas)("name") + Word(nums) * (1,)
+        result = patt.parseString(source)
+        print(result.dump())
+
+        with self.assertRaises(TypeError) as ar:
+            result.pop(notDefault="foo")
+        print(type(ar.exception).__name__, str(ar.exception))
+
     def testAddCondition(self):
         from pyparsing import Word, nums, Suppress, ParseFatalException
 
