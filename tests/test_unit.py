@@ -2276,6 +2276,20 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             else:
                 print("BAD!!!")
 
+    def testSetParseActionUncallableErr(self):
+        '''raise a TypeError in setParseAction() by adding uncallable arg'''
+        from pyparsing import Literal
+
+        expr = Literal("A")("Achar")
+        uncallable = 12
+
+        with self.assertRaises(TypeError) as ar:
+            expr.setParseAction(uncallable)
+        print(type(ar.exception).__name__, str(ar.exception))
+
+        res = expr.parseString("A")
+        print(res.dump())
+
     def testUpcaseDowncaseUnicode(self):
 
         import pyparsing as pp
