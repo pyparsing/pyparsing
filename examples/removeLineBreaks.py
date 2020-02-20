@@ -44,17 +44,21 @@ test = """
     the aid of their
     country.
 """
-print(para.transformString(test))
+result = para.transformString(test)
+expected = "\n    Now is the time for all good men to come to \n\n    the aid of their country. \n\n"
+assert result == expected
 
-# process an entire file
-#   Project Gutenberg EBook of Successful Methods of Public Speaking, by Grenville Kleiser
-#   Download from http://www.gutenberg.org/cache/epub/18095/pg18095.txt
-#
-with open("18095-8.txt") as source_file:
-    original = source_file.read()
 
-# use transformString to convert line breaks
-transformed = para.transformString(original)
+if __name__ == "__main__":
+    # process an entire file
+    #   Project Gutenberg EBook of Successful Methods of Public Speaking, by Grenville Kleiser
+    #   Download from http://www.gutenberg.org/cache/epub/18095/pg18095.txt
+    #
+    with open("18095-8.txt") as source_file:
+        original = source_file.read()
 
-with open("18095-8_reformatted.txt", "w") as transformed_file:
-    transformed_file.write(transformed)
+    # use transformString to convert line breaks
+    transformed = para.transformString(original)
+
+    with open("18095-8_reformatted.txt", "w") as transformed_file:
+        transformed_file.write(transformed)

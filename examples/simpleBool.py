@@ -85,30 +85,29 @@ boolExpr = infixNotation(
 )
 
 
-if __name__ == "__main__":
-    p = True
-    q = False
-    r = True
-    tests = [
-        ("p", True),
-        ("q", False),
-        ("p and q", False),
-        ("p and not q", True),
-        ("not not p", True),
-        ("not(p and q)", True),
-        ("q or not p and r", False),
-        ("q or not p or not r", False),
-        ("q or not (p and r)", False),
-        ("p or q or r", True),
-        ("p or q or r and False", True),
-        ("(p or q or r) and False", False),
-    ]
+p = True
+q = False
+r = True
+tests = [
+    ("p", True),
+    ("q", False),
+    ("p and q", False),
+    ("p and not q", True),
+    ("not not p", True),
+    ("not(p and q)", True),
+    ("q or not p and r", False),
+    ("q or not p or not r", False),
+    ("q or not (p and r)", False),
+    ("p or q or r", True),
+    ("p or q or r and False", True),
+    ("(p or q or r) and False", False),
+]
 
-    print("p =", p)
-    print("q =", q)
-    print("r =", r)
-    print()
-    for t, expected in tests:
-        res = boolExpr.parseString(t)[0]
-        success = "PASS" if bool(res) == expected else "FAIL"
-        print(t, "\n", res, "=", bool(res), "\n", success, "\n")
+print("p =", p)
+print("q =", q)
+print("r =", r)
+print()
+for t, expected in tests:
+    res = boolExpr.parseString(t)[0]
+    success = "PASS" if bool(res) == expected else "FAIL"
+    print(t, "\n", res, "=", bool(res), "\n", success, "\n")

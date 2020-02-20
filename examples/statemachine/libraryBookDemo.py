@@ -70,5 +70,4 @@ def run_demo():
     print(restricted_book)
 
 
-if __name__ == "__main__":
-    run_demo()
+run_demo()

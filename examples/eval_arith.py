@@ -159,7 +159,7 @@ arith_expr = infixNotation(
 
 comparisonop = oneOf("< <= > >= != = <> LT GT LE GE EQ NE")
 comp_expr = infixNotation(
-    arith_expr, [(comparisonop, 2, opAssoc.LEFT, EvalComparisonOp),]
+    arith_expr, [(comparisonop, 2, opAssoc.LEFT, EvalComparisonOp)]
 )
 
 
@@ -245,25 +245,12 @@ def main():
 
     # copy vars_ to EvalConstant lookup dict
     EvalConstant.vars_ = vars_
-    failed = 0
     for test, expected in tests:
         ret = comp_expr.parseString(test)[0]
         parsedvalue = ret.eval()
         print(test, expected, parsedvalue)
         if parsedvalue != expected:
-            print("<<< FAIL")
-            failed += 1
-        else:
-            print("")
-
-    print("")
-    if failed:
-        print(failed, "tests FAILED")
-        return 1
-    else:
-        print("all tests PASSED")
-        return 0
+            raise Exception("<<< FAIL")
 
 
-if __name__ == "__main__":
-    exit(main())
+main()

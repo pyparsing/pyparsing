@@ -6,10 +6,10 @@ Created on 4 sept. 2010
 Submitted by Luca DallOlio, September, 2010
 """
 import unittest
-from . import antlr_grammar
+from examples import antlr_grammar
 
 
-class Test(unittest.TestCase):
+class TestAntlrGrammer(unittest.TestCase):
     def testOptionsSpec(self):
         text = """options {
                             language = Python;
@@ -95,8 +95,3 @@ fragment DIGIT    : '0'..'9' ;"""
                 ]
             ],
         )
-
-
-if __name__ == "__main__":
-    # import sys;sys.argv = ['', 'Test.testOptionsSpec']
-    unittest.main()

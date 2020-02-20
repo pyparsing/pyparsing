@@ -231,5 +231,4 @@ def main(testfiles=None, action=printer):
     return retval
 
 
-if __name__ == "__main__":
-    main()
+main()

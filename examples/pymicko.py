@@ -1609,27 +1609,11 @@ class MicroC:
 
     def parse_text(self, text):
         """Parse string (helper function)"""
-        try:
-            return self.rProgram.ignore(cStyleComment).parseString(text, parseAll=True)
-        except SemanticException as err:
-            print(err)
-            exit(3)
-        except ParseException as err:
-            print(err)
-            exit(3)
+        return self.rProgram.ignore(cStyleComment).parseString(text, parseAll=True)
 
     def parse_file(self, filename):
         """Parse file (helper function)"""
-        try:
-            return self.rProgram.ignore(cStyleComment).parseFile(
-                filename, parseAll=True
-            )
-        except SemanticException as err:
-            print(err)
-            exit(3)
-        except ParseException as err:
-            print(err)
-            exit(3)
+        return self.rProgram.ignore(cStyleComment).parseFile(filename, parseAll=True)
 
 
 ##########################################################################################
@@ -1673,44 +1657,42 @@ if 0:
 ##########################################################################################
 ##########################################################################################
 
-if __name__ == "__main__":
+test_program_example = """
+    int a;
+    int b;
+    int c;
+    unsigned d;
 
-    test_program_example = """
-        int a;
-        int b;
-        int c;
-        unsigned d;
+    int fun1(int x, unsigned y) {
+        return 123;
+    }
 
-        int fun1(int x, unsigned y) {
-            return 123;
-        }
+    int fun2(int a) {
+        return 1 + a * fun1(a, 456u);
+    }
 
-        int fun2(int a) {
-            return 1 + a * fun1(a, 456u);
-        }
-
-        int main(int x, int y) {
-            int w;
-            unsigned z;
-            if (9 > 8 && 2 < 3 || 6 != 5 && a <= b && c < x || w >= y) {
-                a = b + 1;
-                if (x == y)
-                    while (d < 4u)
-                        x = x * w;
-                else
-                    while (a + b < c - y && x > 3 || y < 2)
-                        if (z > d)
-                            a = a - 4;
-                        else
-                            b = a * b * c * x / y;
-            }
+    int main(int x, int y) {
+        int w;
+        unsigned z;
+        if (9 > 8 && 2 < 3 || 6 != 5 && a <= b && c < x || w >= y) {
+            a = b + 1;
+            if (x == y)
+                while (d < 4u)
+                    x = x * w;
             else
-                c = 4;
-            a = fun1(x,d) + fun2(fun1(fun2(w + 3 * 2) + 2 * c, 2u));
-            return 2;
+                while (a + b < c - y && x > 3 || y < 2)
+                    if (z > d)
+                        a = a - 4;
+                    else
+                        b = a * b * c * x / y;
         }
-    """
+        else
+            c = 4;
+        a = fun1(x,d) + fun2(fun1(fun2(w + 3 * 2) + 2 * c, 2u));
+        return 2;
+    }
+"""
 
-    mc = MicroC()
-    mc.parse_text(test_program_example)
-    print(mc.codegen.code)
+mc = MicroC()
+mc.parse_text(test_program_example)
+print(mc.codegen.code)

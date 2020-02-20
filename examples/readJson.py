@@ -1899,7 +1899,7 @@ s = """
 "instance":"tbedi", "call_time":"0.10059", "request_date":"2008-03-2412:56:32 UTC", "request_url":"http://cmsdoc.cern.ch/cms/test/aprom/phedex/dev/gowri/datasvc/tbedi/requestDetails?format=json"}}
 """
 
-from jsonParser import jsonObject
+from examples.jsonParser import jsonObject
 
 data = jsonObject.parseString(s)
 

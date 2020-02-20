@@ -84,9 +84,8 @@ def parsePGN(pgn, bnf=pgnGrammar, fn=None):
         print(err)
 
 
-if __name__ == "__main__":
-    # input string
-    pgn = """
+# input string
+pgn = """
 [Event "ICC 5 0 u"]
 [Site "Internet Chess Club"]
 [Date "2004.01.25"]
@@ -107,6 +106,6 @@ Bg4 8. Nbd2 c5 9. h3 Be6 10. O-O-O Nc6 11. g4 Bd6 12. g5 Nd7 13. Rg1 d4 14.
 g6 fxg6 15. Bg5 Rf8 16. a3 Bd5 17. Re1+ Nde5 18. Nxe5 Nxe5 19. Bf4 Rf5 20.
 Bxe5 Rxe5 21. Rg5 Rxe1# {Black wins} 0-1
 """
-    # parse input string
-    tokens = parsePGN(pgn, pgnGrammar)
-    print(tokens.dump())
+# parse input string
+tokens = parsePGN(pgn, pgnGrammar)
+print(tokens.dump())

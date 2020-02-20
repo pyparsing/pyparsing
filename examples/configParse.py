@@ -54,32 +54,3 @@ def inifile_BNF():
         inibnf.ignore(comment)
 
     return inibnf
-
-
-pp = pprint.PrettyPrinter(2)
-
-
-def test(strng):
-    print(strng)
-    try:
-        iniFile = open(strng)
-        iniData = "".join(iniFile.readlines())
-        bnf = inifile_BNF()
-        tokens = bnf.parseString(iniData)
-        pp.pprint(tokens.asList())
-
-    except ParseException as err:
-        print(err.line)
-        print(" " * (err.column - 1) + "^")
-        print(err)
-
-    iniFile.close()
-    print()
-    return tokens
-
-
-if __name__ == "__main__":
-    ini = test("setup.ini")
-    print("ini['Startup']['modemid'] =", ini["Startup"]["modemid"])
-    print("ini.Startup =", ini.Startup)
-    print("ini.Startup.modemid =", ini.Startup.modemid)

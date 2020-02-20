@@ -12,7 +12,9 @@ import pyparsing as pp
 from collections import namedtuple
 from datetime import datetime
 
-ppt = pp.pyparsing_test
+from pyparsing import testing
+
+ppt = testing
 TestParseResultsAsserts = ppt.TestParseResultsAsserts
 
 # Test spec data class for specifying simple pyparsing test cases
@@ -140,7 +142,7 @@ class TestCaselessLiteral(PyparsingExpressionTestCase):
             )[...],
             text="red Green BluE blue GREEN green rEd",
             expected_list=["RED", "GREEN", "BLUE", "BLUE", "GREEN", "GREEN", "RED"],
-        ),
+        )
     ]
 
 
@@ -423,7 +425,7 @@ class TestResultsModifyingParseAction(PyparsingExpressionTestCase):
             text="27 1 14 22 89",
             expected_list=[27, 1, 14, 22, 89],
             expected_dict={"ave": 30.6, "max": 89, "min": 1, "sum": 153},
-        ),
+        )
     ]
 
 
@@ -439,7 +441,7 @@ class TestRegex(PyparsingExpressionTestCase):
                 3.1416,
                 98.6,
             ],  # note, these are now floats, not strs
-        ),
+        )
     ]
 
 
@@ -463,11 +465,7 @@ class TestParseCondition(PyparsingExpressionTestCase):
 
 
 class TestTransformStringUsingParseActions(PyparsingExpressionTestCase):
-    markup_convert_map = {
-        "*": "B",
-        "_": "U",
-        "/": "I",
-    }
+    markup_convert_map = {"*": "B", "_": "U", "/": "I"}
 
     def markup_convert(t):
         htmltag = TestTransformStringUsingParseActions.markup_convert_map[
@@ -489,7 +487,7 @@ class TestTransformStringUsingParseActions(PyparsingExpressionTestCase):
                 "Show in <B>bold</B>, <U>underscore</U>, or <I>italic</I> type"
             ],
             parse_fn="transformString",
-        ),
+        )
     ]
 
 
@@ -588,8 +586,8 @@ suite = unittest.TestSuite(cls() for cls in test_case_classes)
 
 # ============ MAIN ================
 
-if __name__ == "__main__":
 
-    result = unittest.TextTestRunner().run(suite)
+result = unittest.TextTestRunner().run(suite)
 
-    exit(0 if result.wasSuccessful() else 1)
+if not result.wasSuccessful():
+    raise Exception()

@@ -491,7 +491,7 @@ class ParseResults(object):
         elif self.__parent:
             par = self.__parent()
 
-            def lookup(self, sub):
+            def lookup(sub):
                 return next(
                     (
                         k

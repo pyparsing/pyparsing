@@ -824,61 +824,61 @@ class BigQueryViewParser:
             """
             SELECT x FROM y.a, b
             """,
-            [(None, "y", "a"), (None, None, "b",),],
+            [(None, "y", "a"), (None, None, "b")],
         ],
         [
             """
             SELECT x FROM y.a JOIN b
             """,
-            [(None, "y", "a"), (None, None, "b"),],
+            [(None, "y", "a"), (None, None, "b")],
         ],
         [
             """
             select * from xyzzy where z > 100
             """,
-            [(None, None, "xyzzy"),],
+            [(None, None, "xyzzy")],
         ],
         [
             """
             select * from xyzzy where z > 100 order by zz
             """,
-            [(None, None, "xyzzy"),],
+            [(None, None, "xyzzy")],
         ],
         [
             """
             select * from xyzzy
             """,
-            [(None, None, "xyzzy",),],
+            [(None, None, "xyzzy")],
         ],
         [
             """
             select z.* from xyzzy
             """,
-            [(None, None, "xyzzy",),],
+            [(None, None, "xyzzy")],
         ],
         [
             """
             select a, b from test_table where 1=1 and b='yes'
             """,
-            [(None, None, "test_table"),],
+            [(None, None, "test_table")],
         ],
         [
             """
             select a, b from test_table where 1=1 and b in (select bb from foo)
             """,
-            [(None, None, "test_table"), (None, None, "foo"),],
+            [(None, None, "test_table"), (None, None, "foo")],
         ],
         [
             """
             select z.a, b from test_table where 1=1 and b in (select bb from foo)
             """,
-            [(None, None, "test_table"), (None, None, "foo"),],
+            [(None, None, "test_table"), (None, None, "foo")],
         ],
         [
             """
             select z.a, b from test_table where 1=1 and b in (select bb from foo) order by b,c desc,d
             """,
-            [(None, None, "test_table"), (None, None, "foo"),],
+            [(None, None, "test_table"), (None, None, "foo")],
         ],
         [
             """
@@ -894,25 +894,25 @@ class BigQueryViewParser:
             """
             select a, db.table.b as BBB from db.table where 1=1 and BBB='yes'
             """,
-            [(None, "db", "table"),],
+            [(None, "db", "table")],
         ],
         [
             """
             select a, db.table.b as BBB from test_table,db.table where 1=1 and BBB='yes'
             """,
-            [(None, None, "test_table"), (None, "db", "table"),],
+            [(None, None, "test_table"), (None, "db", "table")],
         ],
         [
             """
             select a, db.table.b as BBB from test_table,db.table where 1=1 and BBB='yes' limit 50
             """,
-            [(None, None, "test_table"), (None, "db", "table"),],
+            [(None, None, "test_table"), (None, "db", "table")],
         ],
         [
             """
             select a, b from test_table where (1=1 or 2=3) and b='yes' group by zx having b=2 order by 1
             """,
-            [(None, None, "test_table"),],
+            [(None, None, "test_table")],
         ],
         [
             """
@@ -927,31 +927,31 @@ class BigQueryViewParser:
             #yup, a comment
             group by zx having b=2 order by 1
             """,
-            [(None, None, "test_table"),],
+            [(None, None, "test_table")],
         ],
         [
             """
             SELECT COUNT(DISTINCT foo) FROM bar JOIN baz ON bar.baz_id = baz.id
             """,
-            [(None, None, "bar"), (None, None, "baz"),],
+            [(None, None, "bar"), (None, None, "baz")],
         ],
         [
             """
             SELECT COUNT(DISTINCT foo) FROM bar, baz WHERE bar.baz_id = baz.id
             """,
-            [(None, None, "bar"), (None, None, "baz"),],
+            [(None, None, "bar"), (None, None, "baz")],
         ],
         [
             """
             WITH one AS (SELECT id FROM foo) SELECT one.id
             """,
-            [(None, None, "foo"),],
+            [(None, None, "foo")],
         ],
         [
             """
             WITH one AS (SELECT id FROM foo), two AS (select id FROM bar) SELECT one.id, two.id
             """,
-            [(None, None, "foo"), (None, None, "bar"),],
+            [(None, None, "foo"), (None, None, "bar")],
         ],
         [
             """
@@ -961,7 +961,7 @@ class BigQueryViewParser:
               ROW_NUMBER() OVER (PARTITION BY x ORDER BY y) AS row_num
             FROM a
             """,
-            [(None, None, "a",),],
+            [(None, None, "a")],
         ],
         [
             """
@@ -969,7 +969,7 @@ class BigQueryViewParser:
               RANGE BETWEEN 2 PRECEDING AND 2 FOLLOWING ) AS count_x
             FROM T
             """,
-            [(None, None, "T",),],
+            [(None, None, "T")],
         ],
         [
             """
@@ -977,7 +977,7 @@ class BigQueryViewParser:
               RANK() OVER ( PARTITION BY department ORDER BY startdate ) AS rank
             FROM Employees
             """,
-            [(None, None, "Employees"),],
+            [(None, None, "Employees")],
         ],
         # A fragment from https://cloud.google.com/bigquery/docs/reference/standard-sql/navigation_functions
         [
@@ -1314,7 +1314,7 @@ class BigQueryViewParser:
             FROM
                 bar
             """,
-            [(None, None, "bar"),],
+            [(None, None, "bar")],
         ],
         [
             """
@@ -1367,7 +1367,7 @@ class BigQueryViewParser:
                 case when (a) then b else c end
             FROM d
             """,
-            [(None, None, "d",),],
+            [(None, None, "d")],
         ],
         [
             """
@@ -1376,7 +1376,7 @@ class BigQueryViewParser:
                 case when (f) then g else h end
             FROM i
             """,
-            [(None, None, "i",),],
+            [(None, None, "i")],
         ],
         [
             """
@@ -1384,7 +1384,7 @@ class BigQueryViewParser:
                 case when j then k else l end
             FROM m
             """,
-            [(None, None, "m",),],
+            [(None, None, "m")],
         ],
         [
             """
@@ -1393,7 +1393,7 @@ class BigQueryViewParser:
                 case when o then p else q end
             FROM r
             """,
-            [(None, None, "r",),],
+            [(None, None, "r")],
         ],
         [
             """
@@ -1401,7 +1401,7 @@ class BigQueryViewParser:
                 case s when (t) then u else v end
             FROM w
             """,
-            [(None, None, "w",),],
+            [(None, None, "w")],
         ],
         [
             """
@@ -1410,7 +1410,7 @@ class BigQueryViewParser:
                 case y when (z) then aa else ab end
             FROM ac
             """,
-            [(None, None, "ac",),],
+            [(None, None, "ac")],
         ],
         [
             """
@@ -1418,7 +1418,7 @@ class BigQueryViewParser:
                 case ad when ae then af else ag end
             FROM ah
             """,
-            [(None, None, "ah",),],
+            [(None, None, "ah")],
         ],
         [
             """
@@ -1427,7 +1427,7 @@ class BigQueryViewParser:
                 case aj when ak then al else am end
             FROM an
             """,
-            [(None, None, "an",),],
+            [(None, None, "an")],
         ],
         [
             """
@@ -1436,7 +1436,7 @@ class BigQueryViewParser:
                 TWO AS (select a FROM b)
             SELECT y FROM onE JOIN TWo
             """,
-            [(None, None, "y",), (None, None, "b",),],
+            [(None, None, "y"), (None, None, "b")],
         ],
         [
             """
@@ -1445,67 +1445,67 @@ class BigQueryViewParser:
                 (SELECT b FROM oNE)
             FROM OnE
             """,
-            [(None, None, "oNE",), (None, None, "OnE",),],
+            [(None, None, "oNE"), (None, None, "OnE")],
         ],
         [
             """
             SELECT * FROM `a.b.c`
             """,
-            [("a", "b", "c"),],
+            [("a", "b", "c")],
         ],
         [
             """
             SELECT * FROM `b.c`
             """,
-            [(None, "b", "c"),],
+            [(None, "b", "c")],
         ],
         [
             """
             SELECT * FROM `c`
             """,
-            [(None, None, "c"),],
+            [(None, None, "c")],
         ],
         [
             """
             SELECT * FROM a.b.c
             """,
-            [("a", "b", "c"),],
+            [("a", "b", "c")],
         ],
         [
             """
             SELECT * FROM "a"."b"."c"
             """,
-            [("a", "b", "c"),],
+            [("a", "b", "c")],
         ],
         [
             """
             SELECT * FROM 'a'.'b'.'c'
             """,
-            [("a", "b", "c"),],
+            [("a", "b", "c")],
         ],
         [
             """
             SELECT * FROM `a`.`b`.`c`
             """,
-            [("a", "b", "c"),],
+            [("a", "b", "c")],
         ],
         [
             """
             SELECT * FROM "a.b.c"
             """,
-            [("a", "b", "c"),],
+            [("a", "b", "c")],
         ],
         [
             """
             SELECT * FROM 'a.b.c'
             """,
-            [("a", "b", "c"),],
+            [("a", "b", "c")],
         ],
         [
             """
             SELECT * FROM `a.b.c`
             """,
-            [("a", "b", "c"),],
+            [("a", "b", "c")],
         ],
         [
             """
@@ -1514,14 +1514,14 @@ class BigQueryViewParser:
             WHERE t1.a IN (SELECT t2.a
                            FROM t2 ) FOR SYSTEM_TIME AS OF t1.timestamp_column)
             """,
-            [(None, None, "t1"), (None, None, "t2"),],
+            [(None, None, "t1"), (None, None, "t2")],
         ],
         [
             """
             WITH a AS (SELECT b FROM c)
             SELECT d FROM A JOIN e ON f = g JOIN E ON h = i
             """,
-            [(None, None, "c"), (None, None, "e"), (None, None, "E"),],
+            [(None, None, "c"), (None, None, "e"), (None, None, "E")],
         ],
         [
             """
@@ -1541,7 +1541,7 @@ class BigQueryViewParser:
 
             select g from h
             """,
-            [(None, None, "d"), (None, None, "f"), (None, None, "h"),],
+            [(None, None, "d"), (None, None, "f"), (None, None, "h")],
         ],
         [
             """
@@ -1553,7 +1553,7 @@ class BigQueryViewParser:
                 e AS DATE_ADD
             FROM x
             """,
-            [(None, None, "x"),],
+            [(None, None, "x")],
         ],
         [
             """
@@ -1640,5 +1640,4 @@ class BigQueryViewParser:
                 )
 
 
-if __name__ == "__main__":
-    BigQueryViewParser().test()
+BigQueryViewParser().test()

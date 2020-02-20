@@ -448,7 +448,6 @@ class ParserTest(BooleanSearchParser):
             "안녕하세요, 당신은 어떠세요?": ["10", "12", "25", "35"],
         }
 
-        all_ok = True
         for text, matches in texts_matcheswith.items():
             _matches = []
             for _id, expr in exprs.items():
@@ -457,17 +456,11 @@ class ParserTest(BooleanSearchParser):
 
             test_passed = sorted(matches) == sorted(_matches)
             if not test_passed:
-                print("Failed", repr(text), "expected", matches, "matched", _matches)
+                raise Exception(
+                    " ".join(
+                        ("Failed", repr(text), "expected", matches, "matched", _matches)
+                    )
+                )
 
-            all_ok = all_ok and test_passed
 
-        return all_ok
-
-
-if __name__ == "__main__":
-    if ParserTest().Test():
-        print("All tests OK")
-        exit(0)
-    else:
-        print("One or more tests FAILED")
-        exit(1)
+ParserTest().Test()

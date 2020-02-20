@@ -306,118 +306,117 @@ time_and_day.addParseAction(save_original_string, compute_timestamp, remove_temp
 time_expression = time_and_day
 
 
-if __name__ == "__main__":
-    current_time = datetime.now()
-    # test grammar
-    tests = """\
-        today
-        tomorrow
-        yesterday
-        the day before yesterday
-        the day after tomorrow
-        2 weeks after today
-        in a couple of days
-        a couple of days from now
-        a couple of days from today
-        in a day
-        3 days ago
-        3 days from now
-        a day ago
-        an hour ago
-        in 2 weeks
-        in 3 days at 5pm
-        now
-        10 minutes ago
-        10 minutes from now
-        in 10 minutes
-        in a minute
-        in a couple of minutes
-        20 seconds ago
-        in 30 seconds
-        in an hour
-        in a couple hours
-        in a couple days
-        20 seconds before noon
-        ten seconds before noon tomorrow
-        noon
-        midnight
-        noon tomorrow
-        6am tomorrow
-        0800 yesterday
-        1700 tomorrow
-        12:15 AM today
-        3pm 2 days from today
-        a week from today
-        a week from now
-        three weeks ago
-        noon next Sunday
-        noon Sunday
-        noon last Sunday
-        2pm next Sunday
-        next Sunday at 2pm
-        last Sunday at 2pm
-    """
+current_time = datetime.now()
+# test grammar
+tests = """\
+    today
+    tomorrow
+    yesterday
+    the day before yesterday
+    the day after tomorrow
+    2 weeks after today
+    in a couple of days
+    a couple of days from now
+    a couple of days from today
+    in a day
+    3 days ago
+    3 days from now
+    a day ago
+    an hour ago
+    in 2 weeks
+    in 3 days at 5pm
+    now
+    10 minutes ago
+    10 minutes from now
+    in 10 minutes
+    in a minute
+    in a couple of minutes
+    20 seconds ago
+    in 30 seconds
+    in an hour
+    in a couple hours
+    in a couple days
+    20 seconds before noon
+    ten seconds before noon tomorrow
+    noon
+    midnight
+    noon tomorrow
+    6am tomorrow
+    0800 yesterday
+    1700 tomorrow
+    12:15 AM today
+    3pm 2 days from today
+    a week from today
+    a week from now
+    three weeks ago
+    noon next Sunday
+    noon Sunday
+    noon last Sunday
+    2pm next Sunday
+    next Sunday at 2pm
+    last Sunday at 2pm
+"""
 
-    time_of_day = timedelta(
-        hours=current_time.hour,
-        minutes=current_time.minute,
-        seconds=current_time.second,
-    )
-    expected = {
-        "now": timedelta(0),
-        "10 minutes ago": timedelta(minutes=-10),
-        "10 minutes from now": timedelta(minutes=10),
-        "in 10 minutes": timedelta(minutes=10),
-        "in a minute": timedelta(minutes=1),
-        "in a couple of minutes": timedelta(minutes=2),
-        "20 seconds ago": timedelta(seconds=-20),
-        "in 30 seconds": timedelta(seconds=30),
-        "in an hour": timedelta(hours=1),
-        "in a couple hours": timedelta(hours=2),
-        "a week from now": timedelta(days=7),
-        "3 days from now": timedelta(days=3),
-        "a couple of days from now": timedelta(days=2),
-        "an hour ago": timedelta(hours=-1),
-        "in a couple days": timedelta(days=2) - time_of_day,
-        "a week from today": timedelta(days=7) - time_of_day,
-        "three weeks ago": timedelta(days=-21) - time_of_day,
-        "a day ago": timedelta(days=-1) - time_of_day,
-        "in a couple of days": timedelta(days=2) - time_of_day,
-        "a couple of days from today": timedelta(days=2) - time_of_day,
-        "2 weeks after today": timedelta(days=14) - time_of_day,
-        "in 2 weeks": timedelta(days=14) - time_of_day,
-        "the day after tomorrow": timedelta(days=2) - time_of_day,
-        "tomorrow": timedelta(days=1) - time_of_day,
-        "the day before yesterday": timedelta(days=-2) - time_of_day,
-        "yesterday": timedelta(days=-1) - time_of_day,
-        "today": -time_of_day,
-        "midnight": -time_of_day,
-        "in a day": timedelta(days=1) - time_of_day,
-        "3 days ago": timedelta(days=-3) - time_of_day,
-        "noon tomorrow": timedelta(days=1) - time_of_day + timedelta(hours=12),
-        "6am tomorrow": timedelta(days=1) - time_of_day + timedelta(hours=6),
-        "0800 yesterday": timedelta(days=-1) - time_of_day + timedelta(hours=8),
-        "1700 tomorrow": timedelta(days=1) - time_of_day + timedelta(hours=17),
-        "12:15 AM today": -time_of_day + timedelta(minutes=15),
-        "3pm 2 days from today": timedelta(days=2) - time_of_day + timedelta(hours=15),
-        "ten seconds before noon tomorrow": timedelta(days=1)
-        - time_of_day
-        + timedelta(hours=12)
-        + timedelta(seconds=-10),
-        "20 seconds before noon": -time_of_day
-        + timedelta(hours=12)
-        + timedelta(seconds=-20),
-        "in 3 days at 5pm": timedelta(days=3) - time_of_day + timedelta(hours=17),
-    }
+time_of_day = timedelta(
+    hours=current_time.hour, minutes=current_time.minute, seconds=current_time.second
+)
+expected = {
+    "now": timedelta(0),
+    "10 minutes ago": timedelta(minutes=-10),
+    "10 minutes from now": timedelta(minutes=10),
+    "in 10 minutes": timedelta(minutes=10),
+    "in a minute": timedelta(minutes=1),
+    "in a couple of minutes": timedelta(minutes=2),
+    "20 seconds ago": timedelta(seconds=-20),
+    "in 30 seconds": timedelta(seconds=30),
+    "in an hour": timedelta(hours=1),
+    "in a couple hours": timedelta(hours=2),
+    "a week from now": timedelta(days=7),
+    "3 days from now": timedelta(days=3),
+    "a couple of days from now": timedelta(days=2),
+    "an hour ago": timedelta(hours=-1),
+    "in a couple days": timedelta(days=2) - time_of_day,
+    "a week from today": timedelta(days=7) - time_of_day,
+    "three weeks ago": timedelta(days=-21) - time_of_day,
+    "a day ago": timedelta(days=-1) - time_of_day,
+    "in a couple of days": timedelta(days=2) - time_of_day,
+    "a couple of days from today": timedelta(days=2) - time_of_day,
+    "2 weeks after today": timedelta(days=14) - time_of_day,
+    "in 2 weeks": timedelta(days=14) - time_of_day,
+    "the day after tomorrow": timedelta(days=2) - time_of_day,
+    "tomorrow": timedelta(days=1) - time_of_day,
+    "the day before yesterday": timedelta(days=-2) - time_of_day,
+    "yesterday": timedelta(days=-1) - time_of_day,
+    "today": -time_of_day,
+    "midnight": -time_of_day,
+    "in a day": timedelta(days=1) - time_of_day,
+    "3 days ago": timedelta(days=-3) - time_of_day,
+    "noon tomorrow": timedelta(days=1) - time_of_day + timedelta(hours=12),
+    "6am tomorrow": timedelta(days=1) - time_of_day + timedelta(hours=6),
+    "0800 yesterday": timedelta(days=-1) - time_of_day + timedelta(hours=8),
+    "1700 tomorrow": timedelta(days=1) - time_of_day + timedelta(hours=17),
+    "12:15 AM today": -time_of_day + timedelta(minutes=15),
+    "3pm 2 days from today": timedelta(days=2) - time_of_day + timedelta(hours=15),
+    "ten seconds before noon tomorrow": timedelta(days=1)
+    - time_of_day
+    + timedelta(hours=12)
+    + timedelta(seconds=-10),
+    "20 seconds before noon": -time_of_day
+    + timedelta(hours=12)
+    + timedelta(seconds=-20),
+    "in 3 days at 5pm": timedelta(days=3) - time_of_day + timedelta(hours=17),
+}
 
-    def verify_offset(instring, parsed):
-        time_epsilon = timedelta(seconds=1)
-        if instring in expected:
-            # allow up to a second time discrepancy due to test processing time
-            if (parsed.time_offset - expected[instring]) <= time_epsilon:
-                parsed["verify_offset"] = "PASS"
-            else:
-                parsed["verify_offset"] = "FAIL"
 
-    print("(relative to %s)" % datetime.now())
-    time_expression.runTests(tests, postParse=verify_offset)
+def verify_offset(instring, parsed):
+    time_epsilon = timedelta(seconds=1)
+    if instring in expected:
+        # allow up to a second time discrepancy due to test processing time
+        if (parsed.time_offset - expected[instring]) <= time_epsilon:
+            parsed["verify_offset"] = "PASS"
+        else:
+            parsed["verify_offset"] = "FAIL"
+
+
+print("(relative to %s)" % datetime.now())
+time_expression.runTests(tests, postParse=verify_offset)

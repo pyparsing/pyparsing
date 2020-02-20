@@ -108,7 +108,7 @@ from pyparsing.helpers import *
 from pyparsing.helpers import _builtin_exprs as helper_builtin_exprs
 
 from pyparsing.unicode import unicode_set, pyparsing_unicode as unicode
-from pyparsing.testing import pyparsing_test as testing
+from pyparsing import testing
 from pyparsing.common import (
     pyparsing_common as common,
     _builtin_exprs as common_builtin_exprs,
@@ -234,5 +234,4 @@ __all__ = [
     "pyparsing_unicode",
     "unicode_set",
     "conditionAsParseAction",
-    "pyparsing_test",
 ]

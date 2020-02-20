@@ -97,7 +97,7 @@ enum_def = (
     + RBRACE
 )
 
-c_header = open("snmp_api.h").read()
+c_header = open("examples/snmp_api.h").read()
 
 
 module = "pynetsnmp"

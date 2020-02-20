@@ -2,8 +2,8 @@
 
 import unittest
 from pyparsing import ParseException
-from .btpyparse import Macro
-from . import btpyparse as bp
+from examples.btpyparse import Macro
+from examples import btpyparse as bp
 
 
 class TestBibparse(unittest.TestCase):
@@ -225,7 +225,3 @@ class TestBibparse(unittest.TestCase):
         self.assertEqual(res.asList(), res2.asList())
         res3 = [r.asList()[0] for r, start, end in bp.definitions.scanString(txt)]
         self.assertEqual(res.asList(), res3)
-
-
-if __name__ == "__main__":
-    unittest.main()

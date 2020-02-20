@@ -52,5 +52,4 @@ def run_demo():
     print(doc.state.description)
 
 
-if __name__ == "__main__":
-    run_demo()
+run_demo()

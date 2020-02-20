@@ -90,6 +90,4 @@ event.setParseAction(gotEvent)
 
 # MAIN PROGRAM
 
-if __name__ == "__main__":
-
-    calendars.parseFile("mozilla.ics")
+calendars.parseFile("examples/mozilla.ics")

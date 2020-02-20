@@ -1,4 +1,4 @@
-from searchparser import SearchQueryParser
+from examples.searchparser import SearchQueryParser
 
 products = [
     "grape juice",

@@ -14,11 +14,11 @@ from unittest import TestCase
 
 import pyparsing as pp
 from examples.jsonParser import jsonObject
-from pyparsing import ParseException
+from pyparsing import ParseException, testing
 from pyparsing import ParserElement
 from tests.json_parser_tests import test1, test2, test3, test4, test5
 
-ppt = pp.pyparsing_test
+ppt = testing
 
 # see which Python implementation we are running
 CPYTHON_ENV = sys.platform == "win32"

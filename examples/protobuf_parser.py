@@ -20,7 +20,10 @@ from pyparsing import (
     restOfLine,
     quotedString,
     Dict,
+    Keyword,
 )
+
+keep_import = Keyword
 
 ident = Word(alphas + "_", alphanums + "_").setName("identifier")
 integer = Regex(r"[+-]?\d+")

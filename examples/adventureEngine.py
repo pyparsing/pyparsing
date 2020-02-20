@@ -127,9 +127,7 @@ class OpenableItem(Item):
         self.isOpened = False
         if contents is not None:
             if isinstance(contents, Item):
-                self.contents = [
-                    contents,
-                ]
+                self.contents = [contents]
             else:
                 self.contents = contents
         else:
@@ -182,7 +180,7 @@ class MoveCommand(Command):
 
     def _doCommand(self, player):
         rm = player.room
-        nextRoom = rm.doors[{"N": 0, "S": 1, "E": 2, "W": 3,}[self.direction]]
+        nextRoom = rm.doors[{"N": 0, "S": 1, "E": 2, "W": 3}[self.direction]]
         if nextRoom:
             player.moveTo(nextRoom)
         else:
@@ -689,4 +687,5 @@ plyr = Player("Bob")
 plyr.take(Item.items["sword"])
 
 # start game
-playGame(plyr, frontPorch)
+if __name__ == "__main__":
+    playGame(plyr, frontPorch)

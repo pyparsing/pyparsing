@@ -312,8 +312,7 @@ class ParserTest(SearchQueryParser):
         return all_ok
 
 
-if __name__ == "__main__":
-    if ParserTest().Test():
-        print("All tests OK")
-    else:
-        print("One or more tests FAILED")
+if ParserTest().Test():
+    print("All tests OK")
+else:
+    print("One or more tests FAILED")

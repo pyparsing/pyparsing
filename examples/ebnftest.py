@@ -7,10 +7,9 @@
 #
 print("Importing pyparsing...")
 from pyparsing import *
+from examples import ebnf
 
 print("Constructing EBNF parser with pyparsing...")
-import ebnf
-
 
 grammar = """
 syntax = (syntax_rule), {(syntax_rule)};

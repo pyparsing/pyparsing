@@ -46,53 +46,51 @@ def read_include_contents(s, l, t):
 include_directive.addParseAction(read_include_contents)
 
 
-if __name__ == "__main__":
+# demo
 
-    # demo
+# create test files:
+# - a.txt includes b.txt
+# - b.txt includes c.txt
+# - c.txt includes b.txt (must catch infinite recursion)
+Path("a.txt").write_text(
+    """\
+    /* a.txt */
+    int i;
 
-    # create test files:
-    # - a.txt includes b.txt
-    # - b.txt includes c.txt
-    # - c.txt includes b.txt (must catch infinite recursion)
-    Path("a.txt").write_text(
-        """\
-        /* a.txt */
-        int i;
+    /* sometimes included files aren't in quotes */
+    #include b.txt;
+    """
+)
 
-        /* sometimes included files aren't in quotes */
-        #include b.txt;
-        """
-    )
+Path("b.txt").write_text(
+    """\
+    i = 100;
+    #include 'c.txt';
+    """
+)
 
-    Path("b.txt").write_text(
-        """\
-        i = 100;
-        #include 'c.txt';
-        """
-    )
+Path("c.txt").write_text(
+    """\
+    i += 1;
 
-    Path("c.txt").write_text(
-        """\
-        i += 1;
+    /* watch out! this might be recursive if this file included by b.txt */
+    #include b.txt;
+    """
+)
 
-        /* watch out! this might be recursive if this file included by b.txt */
-        #include b.txt;
-        """
-    )
+# use include_directive.transformString to perform includes
 
-    # use include_directive.transformString to perform includes
+# read contents of original file
+initial_file = Path("a.txt").read_text()
 
-    # read contents of original file
-    initial_file = Path("a.txt").read_text()
+# print original file
+print(initial_file)
+print("-----------------")
 
-    # print original file
-    print(initial_file)
-    print("-----------------")
+# expand includes in source file (and any included files) and print the result
+expanded_source = include_directive.transformString(initial_file)
+print(expanded_source)
 
-    # expand includes in source file (and any included files) and print the result
-    expanded_source = include_directive.transformString(initial_file)
-    print(expanded_source)
-
-    # clean up
-    for fname in "a.txt b.txt c.txt".split():
-        Path(fname).unlink()
+# clean up
+for fname in "a.txt b.txt c.txt".split():
+    Path(fname).unlink()
