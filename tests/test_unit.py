@@ -4445,6 +4445,26 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             expected_accum, accum, "failed to call postParse method during runTests"
         )
 
+    def testConvertToDateErr(self):
+        '''raise a ParseException in convertToDate with incompatible date str'''
+        from pyparsing import pyparsing_common, Word, alphanums
+
+        expr = Word(alphanums + "-")
+        expr.addParseAction(pyparsing_common.convertToDate())
+        with self.assertRaises(ParseException) as ar:
+            expr.parseString("1997-07-error")
+        print(type(ar.exception).__name__, ar.exception)
+
+    def testConvertToDatetimeErr(self):
+        '''raise a ParseException in convertToDatetime with incompatible datetime str'''
+        from pyparsing import pyparsing_common, Word, alphanums
+
+        expr = Word(alphanums + "-")
+        expr.addParseAction(pyparsing_common.convertToDatetime())
+        with self.assertRaises(ParseException) as ar:
+            expr.parseString("1997-07-error")
+        print(type(ar.exception).__name__, ar.exception)
+
     def testCommonExpressions(self):
         from pyparsing import pyparsing_common
         import ast
@@ -4607,6 +4627,7 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             """
             )
         )
+
         self.assertTrue(success, "error in parsing valid iso8601_datetime")
         self.assertEqual(
             datetime.datetime(1997, 7, 16, 19, 20, 30, 450000),
