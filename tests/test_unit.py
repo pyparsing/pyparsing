@@ -2206,7 +2206,7 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             )
 
     def testMatchOnlyAtCol(self):
-        '''successfully use matchOnlyAtCol helper function'''
+        """successfully use matchOnlyAtCol helper function"""
         from pyparsing import nums, ZeroOrMore, Word, matchOnlyAtCol
 
         expr = Word(nums)
@@ -2217,7 +2217,7 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
         print(res.dump())
 
     def testMatchOnlyAtColErr(self):
-        '''raise a ParseException in matchOnlyAtCol with incorrect col'''
+        """raise a ParseException in matchOnlyAtCol with incorrect col"""
         from pyparsing import nums, ZeroOrMore, Word, matchOnlyAtCol
 
         expr = Word(nums)
@@ -2300,7 +2300,7 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
                 print("BAD!!!")
 
     def testSetParseActionUncallableErr(self):
-        '''raise a TypeError in setParseAction() by adding uncallable arg'''
+        """raise a TypeError in setParseAction() by adding uncallable arg"""
         from pyparsing import Literal
 
         expr = Literal("A")("Achar")
@@ -2314,7 +2314,7 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
         print(res.dump())
 
     def testMulWithNegativeNumber(self):
-        '''raise a ValueError in __mul__ by multiplying a negative number'''
+        """raise a ValueError in __mul__ by multiplying a negative number"""
         from pyparsing import Literal
 
         with self.assertRaises(ValueError) as ar:
@@ -2322,7 +2322,7 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
         print(type(ar.exception).__name__, str(ar.exception))
 
     def testMulWithEllipsis(self):
-        '''multiply an expression with Ellipsis as ``expr * ...`` to match ZeroOrMore'''
+        """multiply an expression with Ellipsis as ``expr * ...`` to match ZeroOrMore"""
         from pyparsing import Literal
 
         expr = Literal("A")("Achar") * ...
@@ -3959,7 +3959,7 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
         )
 
     def testPopKwargsErr(self):
-        '''raise a TypeError in pop() by adding invalid named args'''
+        """raise a TypeError in pop() by adding invalid named args"""
         from pyparsing import Word, alphas, nums
 
         source = "AAA 123 456 789 234"
@@ -4446,7 +4446,7 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
         )
 
     def testConvertToDateErr(self):
-        '''raise a ParseException in convertToDate with incompatible date str'''
+        """raise a ParseException in convertToDate with incompatible date str"""
         from pyparsing import pyparsing_common, Word, alphanums
 
         expr = Word(alphanums + "-")
@@ -4456,7 +4456,7 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
         print(type(ar.exception).__name__, ar.exception)
 
     def testConvertToDatetimeErr(self):
-        '''raise a ParseException in convertToDatetime with incompatible datetime str'''
+        """raise a ParseException in convertToDatetime with incompatible datetime str"""
         from pyparsing import pyparsing_common, Word, alphanums
 
         expr = Word(alphanums + "-")
