@@ -2205,6 +2205,29 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
                 ),
             )
 
+    def testMatchOnlyAtCol(self):
+        '''successfully use matchOnlyAtCol helper function'''
+        from pyparsing import nums, ZeroOrMore, Word, matchOnlyAtCol
+
+        expr = Word(nums)
+        expr.setParseAction(matchOnlyAtCol(5))
+        largerExpr = ZeroOrMore(Word("A")) + expr + ZeroOrMore(Word("A"))
+
+        res = largerExpr.parseString("A A 3 A")
+        print(res.dump())
+
+    def testMatchOnlyAtColErr(self):
+        '''raise a ParseException in matchOnlyAtCol with incorrect col'''
+        from pyparsing import nums, ZeroOrMore, Word, matchOnlyAtCol
+
+        expr = Word(nums)
+        expr.setParseAction(matchOnlyAtCol(1))
+        largerExpr = ZeroOrMore(Word("A")) + expr + ZeroOrMore(Word("A"))
+
+        with self.assertRaises(ParseException) as ar:
+            res = largerExpr.parseString("A A 3 A")
+        print(type(ar.exception).__name__, str(ar.exception))
+
     def testParseResultsWithNamedTuple(self):
 
         from pyparsing import Literal, replaceWith
