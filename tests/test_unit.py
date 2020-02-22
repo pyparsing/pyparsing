@@ -6711,6 +6711,20 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             except Exception as e:
                 self.fail("raised warning when it should not have")
 
+    def testAssertParseAndCheckDict(self):
+        import pyparsing as pp
+        from pyparsing import pyparsing_common as ppc
+
+        expr = pp.Word(pp.alphas)("item") + pp.Word(pp.nums)("qty")
+        self.assertParseAndCheckDict(
+            expr, "balloon 25", {"item": "balloon", "qty": "25"}
+        )
+
+        exprWithInt = pp.Word(pp.alphas)("item") + ppc.integer("qty")
+        self.assertParseAndCheckDict(
+            exprWithInt, "rucksack 49", {"item": "rucksack", "qty": 49}
+        )
+
 
 class PickleTest_Greeting:
     def __init__(self, toks):
