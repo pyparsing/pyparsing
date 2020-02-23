@@ -7,6 +7,7 @@
 #
 #
 
+import contextlib
 import datetime
 import sys
 from io import StringIO
@@ -85,6 +86,21 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
 
     def setUp(self):
         self.suite_context.restore()
+
+    @contextlib.contextmanager
+    def assertRaises(self, expected_exception_type, msg=None):
+        """
+        Simple wrapper to print out the exceptions raised after assertRaises
+        """
+        try:
+            with super().assertRaises(expected_exception_type, msg=msg) as ar:
+                yield
+        finally:
+            if getattr(ar, 'exception', None) is not None:
+                print('Raised expected exception: {}: {}'.format(type(ar.exception).__name__,
+                                                                 str(ar.exception)))
+            else:
+                print('Expected {} exception not raised'.format(expected_exception_type.__name__))
 
     def testUpdateDefaultWhitespace(self):
         import pyparsing as pp
@@ -2207,26 +2223,23 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
 
     def testMatchOnlyAtCol(self):
         """successfully use matchOnlyAtCol helper function"""
-        from pyparsing import nums, ZeroOrMore, Word, matchOnlyAtCol
 
-        expr = Word(nums)
-        expr.setParseAction(matchOnlyAtCol(5))
-        largerExpr = ZeroOrMore(Word("A")) + expr + ZeroOrMore(Word("A"))
+        expr = pp.Word(pp.nums)
+        expr.setParseAction(pp.matchOnlyAtCol(5))
+        largerExpr = pp.ZeroOrMore(pp.Word("A")) + expr + pp.ZeroOrMore(pp.Word("A"))
 
         res = largerExpr.parseString("A A 3 A")
         print(res.dump())
 
     def testMatchOnlyAtColErr(self):
         """raise a ParseException in matchOnlyAtCol with incorrect col"""
-        from pyparsing import nums, ZeroOrMore, Word, matchOnlyAtCol
 
-        expr = Word(nums)
-        expr.setParseAction(matchOnlyAtCol(1))
-        largerExpr = ZeroOrMore(Word("A")) + expr + ZeroOrMore(Word("A"))
+        expr = pp.Word(pp.nums)
+        expr.setParseAction(pp.matchOnlyAtCol(1))
+        largerExpr = pp.ZeroOrMore(pp.Word("A")) + expr + pp.ZeroOrMore(pp.Word("A"))
 
-        with self.assertRaises(ParseException) as ar:
-            res = largerExpr.parseString("A A 3 A")
-        print(type(ar.exception).__name__, str(ar.exception))
+        with self.assertRaises(ParseException):
+            largerExpr.parseString("A A 3 A")
 
     def testParseResultsWithNamedTuple(self):
 
@@ -2301,33 +2314,28 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
 
     def testSetParseActionUncallableErr(self):
         """raise a TypeError in setParseAction() by adding uncallable arg"""
-        from pyparsing import Literal
 
-        expr = Literal("A")("Achar")
+        expr = pp.Literal("A")("Achar")
         uncallable = 12
 
-        with self.assertRaises(TypeError) as ar:
+        with self.assertRaises(TypeError):
             expr.setParseAction(uncallable)
-        print(type(ar.exception).__name__, str(ar.exception))
 
         res = expr.parseString("A")
         print(res.dump())
 
     def testMulWithNegativeNumber(self):
         """raise a ValueError in __mul__ by multiplying a negative number"""
-        from pyparsing import Literal
 
-        with self.assertRaises(ValueError) as ar:
-            expr = Literal("A")("Achar") * (-1)
-        print(type(ar.exception).__name__, str(ar.exception))
+        with self.assertRaises(ValueError):
+            pp.Literal("A")("Achar") * (-1)
 
     def testMulWithEllipsis(self):
         """multiply an expression with Ellipsis as ``expr * ...`` to match ZeroOrMore"""
-        from pyparsing import Literal
 
-        expr = Literal("A")("Achar") * ...
+        expr = pp.Literal("A")("Achar") * ...
         res = expr.parseString("A")
-        self.assertEqual(res.asList(), ["A"], "expected expr * ... to match 0 or more")
+        self.assertEqual(res.asList(), ["A"], "expected expr * ... to match ZeroOrMore")
         print(res.dump())
 
     def testUpcaseDowncaseUnicode(self):
@@ -3959,17 +3967,15 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
         )
 
     def testPopKwargsErr(self):
-        """raise a TypeError in pop() by adding invalid named args"""
-        from pyparsing import Word, alphas, nums
+        """raise a TypeError in pop by adding invalid named args"""
 
         source = "AAA 123 456 789 234"
-        patt = Word(alphas)("name") + Word(nums) * (1,)
+        patt = pp.Word(pp.alphas)("name") + pp.Word(pp.nums) * (1,)
         result = patt.parseString(source)
         print(result.dump())
 
-        with self.assertRaises(TypeError) as ar:
+        with self.assertRaises(TypeError):
             result.pop(notDefault="foo")
-        print(type(ar.exception).__name__, str(ar.exception))
 
     def testAddCondition(self):
         from pyparsing import Word, nums, Suppress, ParseFatalException
@@ -4447,23 +4453,21 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
 
     def testConvertToDateErr(self):
         """raise a ParseException in convertToDate with incompatible date str"""
-        from pyparsing import pyparsing_common, Word, alphanums
 
-        expr = Word(alphanums + "-")
-        expr.addParseAction(pyparsing_common.convertToDate())
-        with self.assertRaises(ParseException) as ar:
+        expr = pp.Word(pp.alphanums + "-")
+        expr.addParseAction(pp.pyparsing_common.convertToDate())
+
+        with self.assertRaises(ParseException):
             expr.parseString("1997-07-error")
-        print(type(ar.exception).__name__, ar.exception)
 
     def testConvertToDatetimeErr(self):
         """raise a ParseException in convertToDatetime with incompatible datetime str"""
-        from pyparsing import pyparsing_common, Word, alphanums
 
-        expr = Word(alphanums + "-")
-        expr.addParseAction(pyparsing_common.convertToDatetime())
-        with self.assertRaises(ParseException) as ar:
+        expr = pp.Word(pp.alphanums + "-")
+        expr.addParseAction(pp.pyparsing_common.convertToDatetime())
+
+        with self.assertRaises(ParseException):
             expr.parseString("1997-07-error")
-        print(type(ar.exception).__name__, ar.exception)
 
     def testCommonExpressions(self):
         from pyparsing import pyparsing_common
@@ -6712,15 +6716,14 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
                 self.fail("raised warning when it should not have")
 
     def testAssertParseAndCheckDict(self):
-        import pyparsing as pp
-        from pyparsing import pyparsing_common as ppc
+        """test assertParseAndCheckDict in test framework"""
 
         expr = pp.Word(pp.alphas)("item") + pp.Word(pp.nums)("qty")
         self.assertParseAndCheckDict(
             expr, "balloon 25", {"item": "balloon", "qty": "25"}
         )
 
-        exprWithInt = pp.Word(pp.alphas)("item") + ppc.integer("qty")
+        exprWithInt = pp.Word(pp.alphas)("item") + pp.pyparsing_common.integer("qty")
         self.assertParseAndCheckDict(
             exprWithInt, "rucksack 49", {"item": "rucksack", "qty": 49}
         )
