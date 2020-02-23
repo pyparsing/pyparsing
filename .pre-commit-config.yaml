@@ -1,7 +1,0 @@
-repos:
-  -   repo: https://github.com/python/black
-      rev: stable
-      hooks:
-        - id: black
-          language_version: python3.6
-          line_length: 88
