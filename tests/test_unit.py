@@ -96,11 +96,18 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             with super().assertRaises(expected_exception_type, msg=msg) as ar:
                 yield
         finally:
-            if getattr(ar, 'exception', None) is not None:
-                print('Raised expected exception: {}: {}'.format(type(ar.exception).__name__,
-                                                                 str(ar.exception)))
+            if getattr(ar, "exception", None) is not None:
+                print(
+                    "Raised expected exception: {}: {}".format(
+                        type(ar.exception).__name__, str(ar.exception)
+                    )
+                )
             else:
-                print('Expected {} exception not raised'.format(expected_exception_type.__name__))
+                print(
+                    "Expected {} exception not raised".format(
+                        expected_exception_type.__name__
+                    )
+                )
 
     def testUpdateDefaultWhitespace(self):
         import pyparsing as pp
