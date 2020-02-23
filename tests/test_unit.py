@@ -108,6 +108,7 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
                         expected_exception_type.__name__
                     )
                 )
+        return ar
 
     def testUpdateDefaultWhitespace(self):
         import pyparsing as pp
@@ -2245,7 +2246,7 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
         expr.setParseAction(pp.matchOnlyAtCol(1))
         largerExpr = pp.ZeroOrMore(pp.Word("A")) + expr + pp.ZeroOrMore(pp.Word("A"))
 
-        with self.assertRaises(ParseException):
+        with self.assertRaisesParseException():
             largerExpr.parseString("A A 3 A")
 
     def testParseResultsWithNamedTuple(self):
@@ -3785,7 +3786,7 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
                 verbose=True,
             )
 
-        with self.assertRaises(ParseException):
+        with self.assertRaisesParseException():
             exp.parseString("{bar}")
 
     def testOptionalEachTest4(self):
@@ -4464,7 +4465,7 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
         expr = pp.Word(pp.alphanums + "-")
         expr.addParseAction(pp.pyparsing_common.convertToDate())
 
-        with self.assertRaises(ParseException):
+        with self.assertRaisesParseException():
             expr.parseString("1997-07-error")
 
     def testConvertToDatetimeErr(self):
@@ -4473,7 +4474,7 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
         expr = pp.Word(pp.alphanums + "-")
         expr.addParseAction(pp.pyparsing_common.convertToDatetime())
 
-        with self.assertRaises(ParseException):
+        with self.assertRaisesParseException():
             expr.parseString("1997-07-error")
 
     def testCommonExpressions(self):
