@@ -7,6 +7,7 @@
 #
 #
 
+import contextlib
 import datetime
 import sys
 from io import StringIO
@@ -85,6 +86,29 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
 
     def setUp(self):
         self.suite_context.restore()
+
+    @contextlib.contextmanager
+    def assertRaises(self, expected_exception_type, msg=None):
+        """
+        Simple wrapper to print out the exceptions raised after assertRaises
+        """
+        try:
+            with super().assertRaises(expected_exception_type, msg=msg) as ar:
+                yield
+        finally:
+            if getattr(ar, "exception", None) is not None:
+                print(
+                    "Raised expected exception: {}: {}".format(
+                        type(ar.exception).__name__, str(ar.exception)
+                    )
+                )
+            else:
+                print(
+                    "Expected {} exception not raised".format(
+                        expected_exception_type.__name__
+                    )
+                )
+        return ar
 
     def testUpdateDefaultWhitespace(self):
         import pyparsing as pp
@@ -2205,6 +2229,26 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
                 ),
             )
 
+    def testMatchOnlyAtCol(self):
+        """successfully use matchOnlyAtCol helper function"""
+
+        expr = pp.Word(pp.nums)
+        expr.setParseAction(pp.matchOnlyAtCol(5))
+        largerExpr = pp.ZeroOrMore(pp.Word("A")) + expr + pp.ZeroOrMore(pp.Word("A"))
+
+        res = largerExpr.parseString("A A 3 A")
+        print(res.dump())
+
+    def testMatchOnlyAtColErr(self):
+        """raise a ParseException in matchOnlyAtCol with incorrect col"""
+
+        expr = pp.Word(pp.nums)
+        expr.setParseAction(pp.matchOnlyAtCol(1))
+        largerExpr = pp.ZeroOrMore(pp.Word("A")) + expr + pp.ZeroOrMore(pp.Word("A"))
+
+        with self.assertRaisesParseException():
+            largerExpr.parseString("A A 3 A")
+
     def testParseResultsWithNamedTuple(self):
 
         from pyparsing import Literal, replaceWith
@@ -2275,6 +2319,32 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
                 pass
             else:
                 print("BAD!!!")
+
+    def testSetParseActionUncallableErr(self):
+        """raise a TypeError in setParseAction() by adding uncallable arg"""
+
+        expr = pp.Literal("A")("Achar")
+        uncallable = 12
+
+        with self.assertRaises(TypeError):
+            expr.setParseAction(uncallable)
+
+        res = expr.parseString("A")
+        print(res.dump())
+
+    def testMulWithNegativeNumber(self):
+        """raise a ValueError in __mul__ by multiplying a negative number"""
+
+        with self.assertRaises(ValueError):
+            pp.Literal("A")("Achar") * (-1)
+
+    def testMulWithEllipsis(self):
+        """multiply an expression with Ellipsis as ``expr * ...`` to match ZeroOrMore"""
+
+        expr = pp.Literal("A")("Achar") * ...
+        res = expr.parseString("A")
+        self.assertEqual(res.asList(), ["A"], "expected expr * ... to match ZeroOrMore")
+        print(res.dump())
 
     def testUpcaseDowncaseUnicode(self):
 
@@ -3716,7 +3786,7 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
                 verbose=True,
             )
 
-        with self.assertRaises(ParseException):
+        with self.assertRaisesParseException():
             exp.parseString("{bar}")
 
     def testOptionalEachTest4(self):
@@ -3903,6 +3973,17 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
                 result.asList(), remaining
             ),
         )
+
+    def testPopKwargsErr(self):
+        """raise a TypeError in pop by adding invalid named args"""
+
+        source = "AAA 123 456 789 234"
+        patt = pp.Word(pp.alphas)("name") + pp.Word(pp.nums) * (1,)
+        result = patt.parseString(source)
+        print(result.dump())
+
+        with self.assertRaises(TypeError):
+            result.pop(notDefault="foo")
 
     def testAddCondition(self):
         from pyparsing import Word, nums, Suppress, ParseFatalException
@@ -4378,6 +4459,24 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             expected_accum, accum, "failed to call postParse method during runTests"
         )
 
+    def testConvertToDateErr(self):
+        """raise a ParseException in convertToDate with incompatible date str"""
+
+        expr = pp.Word(pp.alphanums + "-")
+        expr.addParseAction(pp.pyparsing_common.convertToDate())
+
+        with self.assertRaisesParseException():
+            expr.parseString("1997-07-error")
+
+    def testConvertToDatetimeErr(self):
+        """raise a ParseException in convertToDatetime with incompatible datetime str"""
+
+        expr = pp.Word(pp.alphanums + "-")
+        expr.addParseAction(pp.pyparsing_common.convertToDatetime())
+
+        with self.assertRaisesParseException():
+            expr.parseString("1997-07-error")
+
     def testCommonExpressions(self):
         from pyparsing import pyparsing_common
         import ast
@@ -4540,6 +4639,7 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             """
             )
         )
+
         self.assertTrue(success, "error in parsing valid iso8601_datetime")
         self.assertEqual(
             datetime.datetime(1997, 7, 16, 19, 20, 30, 450000),
@@ -6622,6 +6722,19 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
                 c = fwd | pp.Word("c")
             except Exception as e:
                 self.fail("raised warning when it should not have")
+
+    def testAssertParseAndCheckDict(self):
+        """test assertParseAndCheckDict in test framework"""
+
+        expr = pp.Word(pp.alphas)("item") + pp.Word(pp.nums)("qty")
+        self.assertParseAndCheckDict(
+            expr, "balloon 25", {"item": "balloon", "qty": "25"}
+        )
+
+        exprWithInt = pp.Word(pp.alphas)("item") + pp.pyparsing_common.integer("qty")
+        self.assertParseAndCheckDict(
+            exprWithInt, "rucksack 49", {"item": "rucksack", "qty": 49}
+        )
 
 
 class PickleTest_Greeting:
