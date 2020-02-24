@@ -3746,19 +3746,28 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
     def testOptionalEachTest1(self):
         from pyparsing import Optional, Keyword
 
-        the_input = "Major Tal Weiss"
-        parser1 = (Optional("Tal") + Optional("Weiss")) & Keyword("Major")
-        parser2 = Optional(Optional("Tal") + Optional("Weiss")) & Keyword("Major")
-        p1res = parser1.parseString(the_input)
-        p2res = parser2.parseString(the_input)
-        self.assertEqual(
-            p1res.asList(),
-            p2res.asList(),
-            "Each failed to match with nested Optionals, "
-            + str(p1res.asList())
-            + " should match "
-            + str(p2res.asList()),
-        )
+        for the_input in [
+            "Tal Weiss Major",
+            "Tal Major",
+            "Weiss Major",
+            "Major",
+            "Major Tal",
+            "Major Weiss",
+            "Major Tal Weiss",
+        ]:
+            print(the_input)
+            parser1 = (Optional("Tal") + Optional("Weiss")) & Keyword("Major")
+            parser2 = Optional(Optional("Tal") + Optional("Weiss")) & Keyword("Major")
+            p1res = parser1.parseString(the_input)
+            p2res = parser2.parseString(the_input)
+            self.assertEqual(
+                p1res.asList(),
+                p2res.asList(),
+                "Each failed to match with nested Optionals, "
+                + str(p1res.asList())
+                + " should match "
+                + str(p2res.asList()),
+            )
 
     def testOptionalEachTest2(self):
         from pyparsing import Word, alphanums, OneOrMore, Group, Regex, Optional
@@ -6740,6 +6749,28 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
                 c = fwd | pp.Word("c")
             except Exception as e:
                 self.fail("raised warning when it should not have")
+
+    def testParseExpressionsWithRegex(self):
+        from itertools import product
+        match_empty_regex = pp.Regex(r"[a-z]*")
+        match_nonempty_regex = pp.Regex(r"[a-z]+")
+
+        parser_classes = pp.ParseExpression.__subclasses__()
+        test_string = "abc def"
+        expected = ["abc"]
+        for expr, cls in product((match_nonempty_regex, match_empty_regex), parser_classes):
+            print(expr, cls)
+            parser = cls([expr])
+            parsed_result = parser.parseString(test_string)
+            print(parsed_result.dump())
+            self.assertParseResultsEquals(parsed_result, expected)
+
+        for expr, cls in product((match_nonempty_regex, match_empty_regex), (pp.MatchFirst, pp.Or)):
+            parser = cls([expr, expr])
+            print(parser)
+            parsed_result = parser.parseString(test_string)
+            print(parsed_result.dump())
+            self.assertParseResultsEquals(parsed_result, expected)
 
     def testAssertParseAndCheckDict(self):
         """test assertParseAndCheckDict in test framework"""

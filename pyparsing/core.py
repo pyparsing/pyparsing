@@ -2327,7 +2327,7 @@ class Regex(Token):
         self.name = str(self)
         self.errmsg = "Expected " + self.name
         self.mayIndexError = False
-        self.mayReturnEmpty = True
+        self.mayReturnEmpty = self.re_match("") is not None
         self.asGroupList = asGroupList
         self.asMatch = asMatch
         if self.asGroupList:
@@ -3530,7 +3530,7 @@ class Each(ParseExpression):
             opt2 = [
                 e
                 for e in self.exprs
-                if e.mayReturnEmpty and not isinstance(e, Optional)
+                if e.mayReturnEmpty and not isinstance(e, (Optional, Regex))
             ]
             self.optionals = opt1 + opt2
             self.multioptionals = [
