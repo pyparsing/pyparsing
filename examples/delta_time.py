@@ -145,9 +145,9 @@ time_units = hour | minute | second
 relative_time_reference = (
     qty("qty") + time_units("units") + ago("dir")
     | qty("qty")
-      + time_units("units")
-      + (from_ | before | after)("dir")
-      + pp.Group(absolute_time_of_day)("ref_time")
+    + time_units("units")
+    + (from_ | before | after)("dir")
+    + pp.Group(absolute_time_of_day)("ref_time")
     | in_("dir") + qty("qty") + time_units("units")
 )
 

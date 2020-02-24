@@ -6752,20 +6752,25 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
 
     def testParseExpressionsWithRegex(self):
         from itertools import product
+
         match_empty_regex = pp.Regex(r"[a-z]*")
         match_nonempty_regex = pp.Regex(r"[a-z]+")
 
         parser_classes = pp.ParseExpression.__subclasses__()
         test_string = "abc def"
         expected = ["abc"]
-        for expr, cls in product((match_nonempty_regex, match_empty_regex), parser_classes):
+        for expr, cls in product(
+            (match_nonempty_regex, match_empty_regex), parser_classes
+        ):
             print(expr, cls)
             parser = cls([expr])
             parsed_result = parser.parseString(test_string)
             print(parsed_result.dump())
             self.assertParseResultsEquals(parsed_result, expected)
 
-        for expr, cls in product((match_nonempty_regex, match_empty_regex), (pp.MatchFirst, pp.Or)):
+        for expr, cls in product(
+            (match_nonempty_regex, match_empty_regex), (pp.MatchFirst, pp.Or)
+        ):
             parser = cls([expr, expr])
             print(parser)
             parsed_result = parser.parseString(test_string)
