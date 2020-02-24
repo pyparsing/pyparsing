@@ -150,6 +150,9 @@ Version 3.0.0a1
   types of nested indented blocks with different indent values,
   but sharing the same indent stack, submitted by renzbagaporo.
 
+- Fixed bug in Each when using Regex, when Regex expression would
+  get parsed twice; issue #183 submitted by scauligi, thanks!
+
 - BigQueryViewParser.py added to examples directory, PR submitted
   by Michael Smedberg, nice work!
 
@@ -157,6 +160,8 @@ Version 3.0.0a1
   by xecgr. Builds on searchparser.py, adding support for '*'
   wildcards and non-Western alphabets.
 
+- Fixed bug in delta_time.py example, when using a quantity
+  of seconds/minutes/hours/days > 999.
 
 Version 2.4.6 - December, 2019
 ------------------------------
