@@ -64,6 +64,9 @@ def plural(s):
 
 
 week, day, hour, minute, second = map(plural, "week day hour minute second".split())
+time_units = hour | minute | second
+any_time_units = week | day | time_units
+
 am = CL("am")
 pm = CL("pm")
 COLON = pp.Suppress(":")
@@ -83,7 +86,7 @@ couple = (pp.Optional(CK("a")) + CK("couple") + pp.Optional(CK("of"))).setParseA
 )
 a_qty = (CK("a") | CK("an")).setParseAction(pp.replaceWith(1))
 the_qty = CK("the").setParseAction(pp.replaceWith(1))
-qty = pp.ungroup(integer | couple | a_qty | the_qty)
+qty = pp.ungroup(integer | couple | a_qty | the_qty).setName("qty")
 time_ref_present = pp.Empty().addParseAction(pp.replaceWith(True))("time_ref_present")
 
 
@@ -103,7 +106,7 @@ def fill_default_time_fields(t):
 weekday_name_list = list(calendar.day_name)
 weekday_name = pp.oneOf(weekday_name_list)
 
-_24hour_time = pp.Word(pp.nums, exact=4).addParseAction(
+_24hour_time = ~(integer + any_time_units) + pp.Word(pp.nums, exact=4).addParseAction(
     lambda t: [int(t[0][:2]), int(t[0][2:])], fill_24hr_time_fields
 )
 _24hour_time.setName("0000 time")
@@ -142,9 +145,9 @@ time_units = hour | minute | second
 relative_time_reference = (
     qty("qty") + time_units("units") + ago("dir")
     | qty("qty")
-    + time_units("units")
-    + (from_ | before | after)("dir")
-    + pp.Group(absolute_time_of_day)("ref_time")
+      + time_units("units")
+      + (from_ | before | after)("dir")
+      + pp.Group(absolute_time_of_day)("ref_time")
     | in_("dir") + qty("qty") + time_units("units")
 )
 
@@ -356,6 +359,10 @@ if __name__ == "__main__":
         2pm next Sunday
         next Sunday at 2pm
         last Sunday at 2pm
+        10 seconds ago
+        100 seconds ago
+        1000 seconds ago
+        10000 seconds ago
     """
 
     time_of_day = timedelta(
@@ -365,6 +372,10 @@ if __name__ == "__main__":
     )
     expected = {
         "now": timedelta(0),
+        "10 seconds ago": timedelta(seconds=-10),
+        "100 seconds ago": timedelta(seconds=-100),
+        "1000 seconds ago": timedelta(seconds=-1000),
+        "10000 seconds ago": timedelta(seconds=-10000),
         "10 minutes ago": timedelta(minutes=-10),
         "10 minutes from now": timedelta(minutes=10),
         "in 10 minutes": timedelta(minutes=10),
