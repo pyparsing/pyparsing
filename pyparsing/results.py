@@ -8,7 +8,9 @@ str_type = (str, bytes)
 _generator_type = type((x for x in ()))
 
 
-class _ParseResultsWithOffset(object):
+class _ParseResultsWithOffset:
+    __slots__ = ["tup"]
+
     def __init__(self, p1, p2):
         self.tup = (p1, p2)
 
@@ -21,8 +23,14 @@ class _ParseResultsWithOffset(object):
     def setOffset(self, i):
         self.tup = (self.tup[0], i)
 
+    def __getstate__(self):
+        return self.tup
 
-class ParseResults(object):
+    def __setstate__(self, *args):
+        self.tup = args[0]
+
+
+class ParseResults:
     """Structured parse results, to provide multiple means of access to
     the parsed data:
 
@@ -76,14 +84,13 @@ class ParseResults(object):
         "__weakref__",
     ]
 
-    def __new__(cls, toklist=None, name=None, asList=True, modal=True):
+    def __new__(cls, toklist=None, name=None, **kwargs):
         if isinstance(toklist, ParseResults):
             return toklist
         self = object.__new__(cls)
         self._name = None
         self._parent = None
         self._all_names = set()
-        self._modal = modal
         if toklist is None:
             toklist = []
         if isinstance(toklist, list):
@@ -100,6 +107,7 @@ class ParseResults(object):
     def __init__(
         self, toklist=None, name=None, asList=True, modal=True, isinstance=isinstance
     ):
+        self._modal = modal
         if name is not None and name:
             if not modal:
                 self._all_names = {name}
@@ -646,7 +654,7 @@ class ParseResults(object):
             self._parent = None
 
     def __getnewargs__(self):
-        return self._toklist, self._name, self._modal
+        return self._toklist, self._name
 
     def __dir__(self):
         return dir(type(self)) + list(self.keys())
