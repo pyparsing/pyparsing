@@ -401,6 +401,12 @@ class TestParseAction(PyparsingExpressionTestCase):
             text="0A4B7321FE76",
             expected_list=["0A", "21", "4B", "73", "76", "FE"],
         ),
+        PpTestSpec(
+            desc="Using / as addParseAction",
+            expr=pp.Word("0123456789") / (lambda t: int(t[0])),
+            text="12345",
+            expected_list=[12345],
+        ),
     ]
 
 

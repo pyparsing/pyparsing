@@ -1166,6 +1166,18 @@ class ParserElement:
     def __rmul__(self, other):
         return self.__mul__(other)
 
+    def __truediv__(self, other):
+        """
+        Implementation of / operator - applies parse action to a copy.
+        """
+        return self.copy().addParseAction(other)
+
+    def __itruediv__(self, other):
+        """
+        Implementation of /= operator - applies parse action to self.
+        """
+        return self.addParseAction(other)
+
     def __or__(self, other):
         """
         Implementation of | operator - returns :class:`MatchFirst`
