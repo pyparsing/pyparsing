@@ -1818,6 +1818,67 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
                 "Failed repeater for test: {}, matching {}".format(tst, str(seq)),
             )
 
+    def testRepeater2(self):
+        """test matchPreviousLiteral with empty repeater"""
+
+        if ParserElement._packratEnabled:
+            print("skipping this test, not compatible with packratting")
+            return
+
+        first = pp.Optional(pp.Word("abcdef").setName("words1"))
+        bridge = pp.Word(pp.nums).setName("number")
+        second = pp.matchPreviousLiteral(first).setName("repeat(word1Literal)")
+
+        seq = first + bridge + second
+
+        expected = True
+        found = False
+        tst = "12"
+        for tokens, start, end in seq.scanString(tst):
+            print(tokens)
+            found = True
+        if not found:
+            print("No literal match in", tst)
+        self.assertEqual(
+            expected,
+            found,
+            "Failed repeater for test: {}, matching {}".format(tst, str(seq)),
+        )
+
+    def testRepeater3(self):
+        """test matchPreviousLiteral with multiple repeater tokens"""
+
+        if ParserElement._packratEnabled:
+            print("skipping this test, not compatible with packratting")
+            return
+
+        first = pp.Word("a").setName("words1") + pp.Word("d").setName("words2")
+        bridge = pp.Word(pp.nums).setName("number")
+        second = pp.matchPreviousLiteral(first).setName("repeat(word1Literal)")
+
+        seq = first + bridge + second
+
+        # This test is testing matchPreviousLiteral with multiple repeater tokens.
+        # I would expect this case to return True like the cases above, which test 0 and 1 token.
+        #
+        # This case travels the flatten else in matchPreviousLiteral that was previously not covered by tests.
+        # I would expect the flattened tokens to enter the for loop and set found = True but they don't.
+        #
+        # With the way the code and docstring are written for matchPreviousLiteral, this behavior surprised me.
+        expected = False
+        found = False
+        tst = "aaaddd12aaaddd"
+        for tokens, start, end in seq.scanString(tst):
+            print(tokens)
+            found = True
+        if not found:
+            print("No literal match in", tst)
+        self.assertEqual(
+            expected,
+            found,
+            "Failed repeater for test: {}, matching {}".format(tst, str(seq)),
+        )
+
     def testRecursiveCombine(self):
         from pyparsing import Forward, Word, alphas, nums, Optional, Combine
 
