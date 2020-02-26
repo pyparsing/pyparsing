@@ -1865,7 +1865,9 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
         # I would expect the flattened tokens to enter the for loop and set found = True but they don't.
         #
         # With the way the code and docstring are written for matchPreviousLiteral, this behavior surprised me.
-        expected = False
+        # SOLUTION: one line change to And.__init__ changes this to the expected behavior
+        # TODO: refactor this test
+        expected = True
         found = False
         tst = "aaaddd12aaaddd"
         for tokens, start, end in seq.scanString(tst):

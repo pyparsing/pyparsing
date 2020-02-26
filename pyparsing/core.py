@@ -3100,6 +3100,7 @@ class And(ParseExpression):
             self.leaveWhitespace()
 
     def __init__(self, exprs, savelist=True):
+        exprs = list(exprs)
         if exprs and Ellipsis in exprs:
             tmp = []
             for i, expr in enumerate(exprs):
