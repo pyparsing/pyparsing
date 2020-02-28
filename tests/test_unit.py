@@ -1852,26 +1852,19 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             print("skipping this test, not compatible with packratting")
             return
 
-        first = pp.Word("a").setName("words1") + pp.Word("d").setName("words2")
+        first = pp.Word("a") + pp.Word("d")
         bridge = pp.Word(pp.nums).setName("number")
-        second = pp.matchPreviousLiteral(first).setName("repeat(word1Literal)")
+        second = pp.matchPreviousLiteral(first).setResultsName("second")
 
         seq = first + bridge + second
 
-        # This test is testing matchPreviousLiteral with multiple repeater tokens.
-        # I would expect this case to return True like the cases above, which test 0 and 1 token.
-        #
-        # This case travels the flatten else in matchPreviousLiteral that was previously not covered by tests.
-        # I would expect the flattened tokens to enter the for loop and set found = True but they don't.
-        #
-        # With the way the code and docstring are written for matchPreviousLiteral, this behavior surprised me.
-        # SOLUTION: one line change to And.__init__ changes this to the expected behavior
-        # TODO: refactor this test
         expected = True
         found = False
         tst = "aaaddd12aaaddd"
-        for tokens, start, end in seq.scanString(tst):
-            print(tokens)
+
+        result = seq.parseString(tst)
+        print(result.dump())
+        if result[0] == result[3] and result[1] == result[4]:
             found = True
         if not found:
             print("No literal match in", tst)
@@ -1882,7 +1875,7 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
         )
 
     def testRepeater4(self):
-        """use parseString to test matchPreviousLiteral with multiple repeater tokens"""
+        """test matchPreviousExpr with multiple repeater tokens"""
 
         if ParserElement._packratEnabled:
             print("skipping this test, not compatible with packratting")
@@ -1893,20 +1886,11 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
 
         # no matching is used - this is just here for a sanity check
         #second = pp.Group(pp.Word(pp.alphas) + pp.Word(pp.alphas))("second")
-        #second = pp.Group(pp.Word(pp.alphas) + pp.Word(pp.alphas)).setName("second")
+        #second = pp.Group(pp.Word(pp.alphas) + pp.Word(pp.alphas)).setResultsName("second")
 
-        # ISSUE 3: None of these parse successfully
-        second = pp.matchPreviousLiteral(first).setName("second")
-        #second = pp.matchPreviousLiteral(first)("second")
-        #second = pp.matchPreviousLiteral(first)
-
-        # ISSUE 2: applying a name to matchPreviousExpr that returns multiple tokens
-        # a. the name "second" is applied but nests an extra level deep
-        #second = pp.matchPreviousExpr(first)("second")
-        # b. the name "second" isn't applied
-        #second = pp.matchPreviousExpr(first).setName("second")
-        # c. I didn't try to apply a name and so it's unnamed, but source code suggested it might have one
-        #second = pp.matchPreviousExpr(first)
+        # ISSUE: when matchPreviousExpr returns multiple tokens the matching tokens are nested an extra level deep.
+        #           This behavior is not seen with a single return token (see testRepeater5 directly below.)
+        second = pp.matchPreviousExpr(first)("second")
 
         expr = first + bridge + second
 
@@ -1918,7 +1902,7 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
         res = expr.parseString(tst)
         print(res.dump())
 
-        # quick ugly hack - to be improved
+        # TODO: improve this hacky condition
         if res["first"][0] == res["second"][0] and res["first"][1] == res["second"][1]:
             found = True
         if not found:
@@ -1930,36 +1914,25 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
         )
 
     def testRepeater5(self):
-        """a simplified testRepeater4 to examine matchPreviousLiteral with a single repeater token"""
+        """a simplified testRepeater4 to examine matchPreviousExpr with a single repeater token"""
 
         if ParserElement._packratEnabled:
             print("skipping this test, not compatible with packratting")
             return
 
-        # matchPreviousLiteral().setName() syntax does not assign name while matchPreviousLiteral()("name") does
-        # This is a simplified case with a single repeater token to verify that it isn't specific to multiple tokens
         first = pp.Word(pp.alphas)("first")
         bridge = pp.Word(pp.nums)
-
-        # ISSUE 1: two naming syntaxes aren't behaving the same
-        # this syntax applies the name "second"
-        second = pp.matchPreviousLiteral(first)("second")
-        # I expect this to set the name as well, but it does not
-        #second = pp.matchPreviousLiteral(first).setName("second")
-        # If I don't try to apply a name it is unnamed, though the function source suggests maybe it should have one
-        #second = pp.matchPreviousLiteral(first)
+        second = pp.matchPreviousExpr(first)("second")
 
         expr = first + bridge + second
 
-        tst = "aaa 12 aaa"
-
         expected = True
         found = False
-
+        tst = "aaa 12 aaa"
+        
         res = expr.parseString(tst)
         print(res.dump())
 
-        # Simplified single token case
         if res["first"] == res["second"]:
             found = True
         if not found:
