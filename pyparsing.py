@@ -95,8 +95,8 @@ classes inherit from. Use the docstrings for examples of how to:
    namespace class
 """
 
-__version__ = "2.4.6"
-__versionTime__ = "24 Dec 2019 04:27 UTC"
+__version__ = "2.4.7"
+__versionTime__ = "04 Mar 2020 02:48 UTC"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -1391,6 +1391,12 @@ class ParserElement(object):
         """
         ParserElement._literalStringClass = cls
 
+    @classmethod
+    def _trim_traceback(cls, tb):
+        while tb.tb_next:
+            tb = tb.tb_next
+        return tb
+
     def __init__(self, savelist=False):
         self.parseAction = list()
         self.failAction = None
@@ -1943,7 +1949,8 @@ class ParserElement(object):
             if ParserElement.verbose_stacktrace:
                 raise
             else:
-                # catch and re-raise exception from here, clears out pyparsing internal stack trace
+                # catch and re-raise exception from here, clearing out pyparsing internal stack trace
+                exc.__traceback__ = self._trim_traceback(exc.__traceback__)
                 raise exc
         else:
             return tokens
@@ -2017,7 +2024,8 @@ class ParserElement(object):
             if ParserElement.verbose_stacktrace:
                 raise
             else:
-                # catch and re-raise exception from here, clears out pyparsing internal stack trace
+                # catch and re-raise exception from here, clearing out pyparsing internal stack trace
+                exc.__traceback__ = self._trim_traceback(exc.__traceback__)
                 raise exc
 
     def transformString(self, instring):
@@ -2063,7 +2071,8 @@ class ParserElement(object):
             if ParserElement.verbose_stacktrace:
                 raise
             else:
-                # catch and re-raise exception from here, clears out pyparsing internal stack trace
+                # catch and re-raise exception from here, clearing out pyparsing internal stack trace
+                exc.__traceback__ = self._trim_traceback(exc.__traceback__)
                 raise exc
 
     def searchString(self, instring, maxMatches=_MAX_INT):
@@ -2093,7 +2102,8 @@ class ParserElement(object):
             if ParserElement.verbose_stacktrace:
                 raise
             else:
-                # catch and re-raise exception from here, clears out pyparsing internal stack trace
+                # catch and re-raise exception from here, clearing out pyparsing internal stack trace
+                exc.__traceback__ = self._trim_traceback(exc.__traceback__)
                 raise exc
 
     def split(self, instring, maxsplit=_MAX_INT, includeSeparators=False):
@@ -2565,7 +2575,8 @@ class ParserElement(object):
             if ParserElement.verbose_stacktrace:
                 raise
             else:
-                # catch and re-raise exception from here, clears out pyparsing internal stack trace
+                # catch and re-raise exception from here, clearing out pyparsing internal stack trace
+                exc.__traceback__ = self._trim_traceback(exc.__traceback__)
                 raise exc
 
     def __eq__(self, other):
@@ -3312,7 +3323,7 @@ class Regex(Token):
         self.name = _ustr(self)
         self.errmsg = "Expected " + self.name
         self.mayIndexError = False
-        self.mayReturnEmpty = True
+        self.mayReturnEmpty = self.re_match("") is not None
         self.asGroupList = asGroupList
         self.asMatch = asMatch
         if self.asGroupList:
@@ -3993,6 +4004,7 @@ class And(ParseExpression):
             self.leaveWhitespace()
 
     def __init__(self, exprs, savelist=True):
+        exprs = list(exprs)
         if exprs and Ellipsis in exprs:
             tmp = []
             for i, expr in enumerate(exprs):
@@ -4358,7 +4370,7 @@ class Each(ParseExpression):
         if self.initExprGroups:
             self.opt1map = dict((id(e.expr), e) for e in self.exprs if isinstance(e, Optional))
             opt1 = [e.expr for e in self.exprs if isinstance(e, Optional)]
-            opt2 = [e for e in self.exprs if e.mayReturnEmpty and not isinstance(e, Optional)]
+            opt2 = [e for e in self.exprs if e.mayReturnEmpty and not isinstance(e, (Optional, Regex))]
             self.optionals = opt1 + opt2
             self.multioptionals = [e.expr for e in self.exprs if isinstance(e, ZeroOrMore)]
             self.multirequired = [e.expr for e in self.exprs if isinstance(e, OneOrMore)]
