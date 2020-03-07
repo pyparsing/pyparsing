@@ -1950,7 +1950,8 @@ class ParserElement(object):
                 raise
             else:
                 # catch and re-raise exception from here, clearing out pyparsing internal stack trace
-                exc.__traceback__ = self._trim_traceback(exc.__traceback__)
+                if getattr(exc, '__traceback__', None) is not None:
+                    exc.__traceback__ = self._trim_traceback(exc.__traceback__)
                 raise exc
         else:
             return tokens
@@ -2025,7 +2026,8 @@ class ParserElement(object):
                 raise
             else:
                 # catch and re-raise exception from here, clearing out pyparsing internal stack trace
-                exc.__traceback__ = self._trim_traceback(exc.__traceback__)
+                if getattr(exc, '__traceback__', None) is not None:
+                    exc.__traceback__ = self._trim_traceback(exc.__traceback__)
                 raise exc
 
     def transformString(self, instring):
@@ -2072,7 +2074,8 @@ class ParserElement(object):
                 raise
             else:
                 # catch and re-raise exception from here, clearing out pyparsing internal stack trace
-                exc.__traceback__ = self._trim_traceback(exc.__traceback__)
+                if getattr(exc, '__traceback__', None) is not None:
+                    exc.__traceback__ = self._trim_traceback(exc.__traceback__)
                 raise exc
 
     def searchString(self, instring, maxMatches=_MAX_INT):
@@ -2103,7 +2106,8 @@ class ParserElement(object):
                 raise
             else:
                 # catch and re-raise exception from here, clearing out pyparsing internal stack trace
-                exc.__traceback__ = self._trim_traceback(exc.__traceback__)
+                if getattr(exc, '__traceback__', None) is not None:
+                    exc.__traceback__ = self._trim_traceback(exc.__traceback__)
                 raise exc
 
     def split(self, instring, maxsplit=_MAX_INT, includeSeparators=False):
@@ -2576,7 +2580,8 @@ class ParserElement(object):
                 raise
             else:
                 # catch and re-raise exception from here, clearing out pyparsing internal stack trace
-                exc.__traceback__ = self._trim_traceback(exc.__traceback__)
+                if getattr(exc, '__traceback__', None) is not None:
+                    exc.__traceback__ = self._trim_traceback(exc.__traceback__)
                 raise exc
 
     def __eq__(self, other):
