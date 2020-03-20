@@ -5536,6 +5536,16 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             },
         )
 
+    def testMakeXMLTags(self):
+        """test helper function makeXMLTags in simple use case"""
+
+        body, bodyEnd = pp.makeXMLTags("body")
+        tst = "<body>Hello</body>"
+        expr = body + pp.Word(pp.alphas)("contents") + bodyEnd
+        result = expr.parseString(tst)
+        print(result.dump())
+        self.assertParseResultsEquals(result, ['body', False, 'Hello', '</body>'], msg="issue using makeXMLTags")
+
     def testFollowedBy(self):
         import pyparsing as pp
         from pyparsing import pyparsing_common as ppc
