@@ -6658,6 +6658,22 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
                 "still have infinite loop in oneOf with duplicate symbols (set input)"
             )
 
+    def testOneOfWithEmptyList(self):
+        """test oneOf helper function with an empty list as input"""
+
+        tst = []
+        result = pp.oneOf(tst)
+
+        expected = True
+        found = isinstance(result, pp.NoMatch)
+        self.assertEqual(expected, found)
+
+    def testOneOfWithUnexpectedInput(self):
+        """test oneOf with an input that isn't a string or iterable"""
+
+        with self.assertWarns(SyntaxWarning, msg="failed to warn use of integer for oneOf"):
+            expr = pp.oneOf(6)
+
     def testMatchFirstIteratesOverAllChoices(self):
         # test MatchFirst bugfix
         print("verify MatchFirst iterates properly")
