@@ -3635,6 +3635,51 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             verbose=True,
         )
 
+    def testNestedExpressions2(self):
+        """test nestedExpr with conditions that explore other paths
+
+        identical opener and closer
+        opener and/or closer of type other than string or iterable
+        multi-character opener and/or closer
+        single character opener and closer with ignoreExpr=None
+        multi-character opener and/or closer with ignoreExpr=None
+        """
+
+        name = pp.Word(pp.alphanums + "_")
+
+        # identical opener and closer
+        with self.assertRaises(ValueError, msg="matching opener and closer should raise error"):
+            expr = name + pp.nestedExpr(opener="{", closer="{")
+
+        # opener and/or closer of type other than string or iterable
+        with self.assertRaises(ValueError, msg="opener and closer as ints should raise error"):
+            expr = name + pp.nestedExpr(opener=12, closer=18)
+
+        # multi-character opener and/or closer
+        tstMulti = "aName {{ outer {{ 'inner with opener {{ and closer }} in quoted string' }} }}"
+        expr = name + pp.nestedExpr(opener="{{", closer="}}")
+        result = expr.parseString(tstMulti)
+        expected = ['aName', ['outer', ["'inner with opener {{ and closer }} in quoted string'"]]]
+        print(result.dump())
+        self.assertParseResultsEquals(result, expected, msg="issue with multi-character opener and closer")
+
+        # single character opener and closer with ignoreExpr=None
+        tst = "aName { outer { 'inner with opener { and closer } in quoted string' }} }}"
+        expr = name + pp.nestedExpr(opener="{", closer="}", ignoreExpr=None)
+        singleCharResult = expr.parseString(tst)
+        print(singleCharResult.dump())
+
+        # multi-character opener and/or closer with ignoreExpr=None
+        expr = name + pp.nestedExpr(opener="{{", closer="}}", ignoreExpr=None)
+        multiCharResult = expr.parseString(tstMulti)
+        print(multiCharResult.dump())
+
+        self.assertParseResultsEquals(
+            singleCharResult,
+            multiCharResult.asList(),
+            msg="using different openers and closers shouldn't affect resulting ParseResults",
+        )
+
     def testWordExclude(self):
         from pyparsing import Word, printables
 
