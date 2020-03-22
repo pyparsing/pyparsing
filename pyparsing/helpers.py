@@ -150,7 +150,7 @@ def oneOf(strs, caseless=False, useRegex=True, asKeyword=False):
        generate a Regex object; otherwise, will generate
        a :class:`MatchFirst` object (if ``caseless=True`` or ``asKeyword=True``, or if
        creating a :class:`Regex` raises an exception)
-     - asKeyword - (default=``False``) - enforce Keyword-style matching on the
+     - asKeyword - (default= ``False``) - enforce Keyword-style matching on the
        generated expressions
 
     Example::

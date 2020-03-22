@@ -437,8 +437,8 @@ class ParserElement:
         - callDuringTry = (default= ``False``) indicate if parse action should be run during lookaheads and alternate testing
 
         Note: the default parsing behavior is to expand tabs in the input string
-        before starting the parsing process.  See :class:`parseString for more
-        information on parsing strings containing ``<TAB>`` s, and suggested
+        before starting the parsing process.  See :class:`parseString` for more
+        information on parsing strings containing ``<TAB>``\ s, and suggested
         methods to maintain a consistent view of the parsed string, the parse
         location, and line and column positions within the parsed string.
 
@@ -1355,7 +1355,7 @@ class ParserElement:
 
     def parseWithTabs(self):
         """
-        Overrides default behavior to expand ``<TAB>``s to spaces before parsing the input string.
+        Overrides default behavior to expand ``<TAB>``\ s to spaces before parsing the input string.
         Must be called before ``parseString`` when the input grammar contains elements that
         match ``<TAB>`` characters.
         """
@@ -1551,7 +1551,7 @@ class ParserElement:
          - failureTests - (default= ``False``) indicates if these tests are expected to fail parsing
          - postParse - (default= ``None``) optional callback for successful parse results; called as
               `fn(test_string, parse_results)` and returns a string to be added to the test output
-         - file - (default=``None``) optional file-like object to which test output will be written;
+         - file - (default= ``None``) optional file-like object to which test output will be written;
               if None, will default to ``sys.stdout``
 
         Returns: a (success, results) tuple, where success indicates that all tests succeeded
