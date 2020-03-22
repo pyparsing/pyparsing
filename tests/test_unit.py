@@ -6790,6 +6790,37 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             exprWithInt, "rucksack 49", {"item": "rucksack", "qty": 49}
         )
 
+    def testOnlyOnce(self):
+        """test class OnlyOnce and its reset method"""
+
+        # use a parse action to compute the sum of the parsed integers,
+        # and add it to the end
+        def append_sum(tokens):
+            tokens.append(sum(map(int, tokens)))
+
+        pa = pp.OnlyOnce(append_sum)
+        expr = pp.OneOrMore(pp.Word(pp.nums)).addParseAction(pa)
+
+        result = expr.parseString("0 123 321")
+        print(result.dump())
+        expected = ["0", "123", "321", 444]
+        self.assertParseResultsEquals(
+            result, expected, msg="issue with OnlyOnce first call"
+        )
+
+        with self.assertRaisesParseException(
+            msg="failed to raise exception calling OnlyOnce more than once"
+        ):
+            result2 = expr.parseString("1 2 3 4 5")
+
+        pa.reset()
+        result = expr.parseString("100 200 300")
+        print(result.dump())
+        expected = ["100", "200", "300", 600]
+        self.assertParseResultsEquals(
+            result, expected, msg="issue with OnlyOnce after reset"
+        )
+
 
 class Test3_EnablePackratParsing(TestCase):
     def runTest(self):

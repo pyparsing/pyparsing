@@ -4523,9 +4523,12 @@ class OnlyOnce:
             results = self.callable(s, l, t)
             self.called = True
             return results
-        raise ParseException(s, l, "")
+        raise ParseException(s, l, "OnlyOnce obj called multiple times w/out reset")
 
     def reset(self):
+        """Allow the associated parse action to be called once more.
+        """
+
         self.called = False
 
 
