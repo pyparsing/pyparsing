@@ -1841,12 +1841,12 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
 
         first = pp.Word("a") + pp.Word("d")
         bridge = pp.Word(pp.nums).setName("number")
-        second = pp.matchPreviousLiteral(first) #("second")
+        second = pp.matchPreviousLiteral(first)  # ("second")
 
         seq = first + bridge + second
 
         tst = "aaaddd12aaaddd"
-        expected = ['aaa', 'ddd', '12', 'aaa', 'ddd']
+        expected = ["aaa", "ddd", "12", "aaa", "ddd"]
         result = seq.parseString(tst)
         print(result.dump())
 
@@ -1863,8 +1863,8 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
         bridge = pp.Word(pp.nums)
 
         # no matching is used - this is just here for a sanity check
-        #second = pp.Group(pp.Word(pp.alphas) + pp.Word(pp.alphas))("second")
-        #second = pp.Group(pp.Word(pp.alphas) + pp.Word(pp.alphas)).setResultsName("second")
+        # second = pp.Group(pp.Word(pp.alphas) + pp.Word(pp.alphas))("second")
+        # second = pp.Group(pp.Word(pp.alphas) + pp.Word(pp.alphas)).setResultsName("second")
 
         # ISSUE: when matchPreviousExpr returns multiple tokens the matching tokens are nested an extra level deep.
         #           This behavior is not seen with a single return token (see testRepeater5 directly below.)
@@ -1878,7 +1878,6 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
         print(result.dump())
 
         self.assertParseResultsEquals(result, expected_list=expected)
-
 
     def testRepeater5(self):
         """a simplified testRepeater4 to examine matchPreviousExpr with a single repeater token"""
@@ -1899,7 +1898,6 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
         print(result.dump())
 
         self.assertParseResultsEquals(result, expected_list=expected)
-
 
     def testRecursiveCombine(self):
         from pyparsing import Forward, Word, alphas, nums, Optional, Combine
@@ -3599,23 +3597,34 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
         name = pp.Word(pp.alphanums + "_")
 
         # identical opener and closer
-        with self.assertRaises(ValueError, msg="matching opener and closer should raise error"):
+        with self.assertRaises(
+            ValueError, msg="matching opener and closer should raise error"
+        ):
             expr = name + pp.nestedExpr(opener="{", closer="{")
 
         # opener and/or closer of type other than string or iterable
-        with self.assertRaises(ValueError, msg="opener and closer as ints should raise error"):
+        with self.assertRaises(
+            ValueError, msg="opener and closer as ints should raise error"
+        ):
             expr = name + pp.nestedExpr(opener=12, closer=18)
 
         # multi-character opener and/or closer
         tstMulti = "aName {{ outer {{ 'inner with opener {{ and closer }} in quoted string' }} }}"
         expr = name + pp.nestedExpr(opener="{{", closer="}}")
         result = expr.parseString(tstMulti)
-        expected = ['aName', ['outer', ["'inner with opener {{ and closer }} in quoted string'"]]]
+        expected = [
+            "aName",
+            ["outer", ["'inner with opener {{ and closer }} in quoted string'"]],
+        ]
         print(result.dump())
-        self.assertParseResultsEquals(result, expected, msg="issue with multi-character opener and closer")
+        self.assertParseResultsEquals(
+            result, expected, msg="issue with multi-character opener and closer"
+        )
 
         # single character opener and closer with ignoreExpr=None
-        tst = "aName { outer { 'inner with opener { and closer } in quoted string' }} }}"
+        tst = (
+            "aName { outer { 'inner with opener { and closer } in quoted string' }} }}"
+        )
         expr = name + pp.nestedExpr(opener="{", closer="}", ignoreExpr=None)
         singleCharResult = expr.parseString(tst)
         print(singleCharResult.dump())
@@ -5474,7 +5483,9 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
         expr = body + pp.Word(pp.alphas)("contents") + bodyEnd
         result = expr.parseString(tst)
         print(result.dump())
-        self.assertParseResultsEquals(result, ['body', False, 'Hello', '</body>'], msg="issue using makeXMLTags")
+        self.assertParseResultsEquals(
+            result, ["body", False, "Hello", "</body>"], msg="issue using makeXMLTags"
+        )
 
     def testFollowedBy(self):
 
@@ -6577,7 +6588,9 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
     def testOneOfWithUnexpectedInput(self):
         """test oneOf with an input that isn't a string or iterable"""
 
-        with self.assertWarns(SyntaxWarning, msg="failed to warn use of integer for oneOf"):
+        with self.assertWarns(
+            SyntaxWarning, msg="failed to warn use of integer for oneOf"
+        ):
             expr = pp.oneOf(6)
 
     def testMatchFirstIteratesOverAllChoices(self):
