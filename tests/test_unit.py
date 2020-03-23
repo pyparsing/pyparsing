@@ -1825,19 +1825,12 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
 
         seq = first + bridge + second
 
-        expected = True
-        found = False
         tst = "12"
-        for tokens, start, end in seq.scanString(tst):
-            print(tokens)
-            found = True
-        if not found:
-            print("No literal match in", tst)
-        self.assertEqual(
-            expected,
-            found,
-            "Failed repeater for test: {}, matching {}".format(tst, str(seq)),
-        )
+        expected = ["12"]
+        result = seq.parseString(tst)
+        print(result.dump())
+
+        self.assertParseResultsEquals(result, expected_list=expected)
 
     def testRepeater3(self):
         """test matchPreviousLiteral with multiple repeater tokens"""
@@ -1848,25 +1841,16 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
 
         first = pp.Word("a") + pp.Word("d")
         bridge = pp.Word(pp.nums).setName("number")
-        second = pp.matchPreviousLiteral(first).setResultsName("second")
+        second = pp.matchPreviousLiteral(first) #("second")
 
         seq = first + bridge + second
 
-        expected = True
-        found = False
         tst = "aaaddd12aaaddd"
-
+        expected = ['aaa', 'ddd', '12', 'aaa', 'ddd']
         result = seq.parseString(tst)
         print(result.dump())
-        if result[0] == result[3] and result[1] == result[4]:
-            found = True
-        if not found:
-            print("No literal match in", tst)
-        self.assertEqual(
-            expected,
-            found,
-            "Failed repeater for test: {}, matching {}".format(tst, str(seq)),
-        )
+
+        self.assertParseResultsEquals(result, expected_list=expected)
 
     def testRepeater4(self):
         """test matchPreviousExpr with multiple repeater tokens"""
@@ -1875,7 +1859,7 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             print("skipping this test, not compatible with packratting")
             return
 
-        first = pp.Group(pp.Word(pp.alphas) + pp.Word(pp.alphas))("first")
+        first = pp.Group(pp.Word(pp.alphas) + pp.Word(pp.alphas))
         bridge = pp.Word(pp.nums)
 
         # no matching is used - this is just here for a sanity check
@@ -1884,28 +1868,17 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
 
         # ISSUE: when matchPreviousExpr returns multiple tokens the matching tokens are nested an extra level deep.
         #           This behavior is not seen with a single return token (see testRepeater5 directly below.)
-        second = pp.matchPreviousExpr(first)("second")
+        second = pp.matchPreviousExpr(first)
 
-        expr = first + bridge + second
+        expr = first + bridge.suppress() + second
 
         tst = "aaa ddd 12 aaa ddd"
+        expected = [["aaa", "ddd"], ["aaa", "ddd"]]
+        result = expr.parseString(tst)
+        print(result.dump())
 
-        expected = True
-        found = False
+        self.assertParseResultsEquals(result, expected_list=expected)
 
-        res = expr.parseString(tst)
-        print(res.dump())
-
-        # TODO: improve this hacky condition
-        if res["first"][0] == res["second"][0] and res["first"][1] == res["second"][1]:
-            found = True
-        if not found:
-            print("No literal match in", tst)
-        self.assertEqual(
-            expected,
-            found,
-            "Failed repeater for test: {}, matching {}".format(tst, str(expr)),
-        )
 
     def testRepeater5(self):
         """a simplified testRepeater4 to examine matchPreviousExpr with a single repeater token"""
@@ -1914,43 +1887,34 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             print("skipping this test, not compatible with packratting")
             return
 
-        first = pp.Word(pp.alphas)("first")
+        first = pp.Word(pp.alphas)
         bridge = pp.Word(pp.nums)
-        second = pp.matchPreviousExpr(first)("second")
+        second = pp.matchPreviousExpr(first)
 
-        expr = first + bridge + second
+        expr = first + bridge.suppress() + second
 
-        expected = True
-        found = False
         tst = "aaa 12 aaa"
-        
-        res = expr.parseString(tst)
-        print(res.dump())
+        expected = tst.replace("12", "").split()
+        result = expr.parseString(tst)
+        print(result.dump())
 
-        if res["first"] == res["second"]:
-            found = True
-        if not found:
-            print("No literal match in", tst)
-        self.assertEqual(
-            expected,
-            found,
-            "Failed repeater for test: {}, matching {}".format(tst, str(expr)),
-        )
+        self.assertParseResultsEquals(result, expected_list=expected)
+
 
     def testRecursiveCombine(self):
         from pyparsing import Forward, Word, alphas, nums, Optional, Combine
 
         testInput = "myc(114)r(11)dd"
-        Stream = Forward()
-        Stream << Optional(Word(alphas)) + Optional("(" + Word(nums) + ")" + Stream)
-        expected = ["".join(Stream.parseString(testInput))]
+        stream = Forward()
+        stream << Optional(Word(alphas)) + Optional("(" + Word(nums) + ")" + stream)
+        expected = ["".join(stream.parseString(testInput))]
         print(expected)
 
-        Stream = Forward()
-        Stream << Combine(
-            Optional(Word(alphas)) + Optional("(" + Word(nums) + ")" + Stream)
+        stream = Forward()
+        stream << Combine(
+            Optional(Word(alphas)) + Optional("(" + Word(nums) + ")" + stream)
         )
-        testVal = Stream.parseString(testInput)
+        testVal = stream.parseString(testInput)
         print(testVal)
 
         self.assertParseResultsEquals(testVal, expected_list=expected)
