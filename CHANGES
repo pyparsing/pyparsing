@@ -9,6 +9,7 @@ Version 2.4.7 - March, 2020
   . And expressions not properly constructing with generator
   . Traceback abbreviation
   . Bug in delta_time example
+  . Fix regexen in pyparsing_common.real and .sci_real
 
 
 Version 2.4.6 - December, 2019

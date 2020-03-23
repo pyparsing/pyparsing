@@ -6567,10 +6567,10 @@ class pyparsing_common:
     """mixed integer of the form 'integer - fraction', with optional leading integer, returns float"""
     mixed_integer.addParseAction(sum)
 
-    real = Regex(r'[+-]?(:?\d+\.\d*|\.\d+)').setName("real number").setParseAction(convertToFloat)
+    real = Regex(r'[+-]?(?:\d+\.\d*|\.\d+)').setName("real number").setParseAction(convertToFloat)
     """expression that parses a floating point number and returns a float"""
 
-    sci_real = Regex(r'[+-]?(:?\d+(:?[eE][+-]?\d+)|(:?\d+\.\d*|\.\d+)(:?[eE][+-]?\d+)?)').setName("real number with scientific notation").setParseAction(convertToFloat)
+    sci_real = Regex(r'[+-]?(?:\d+(?:[eE][+-]?\d+)|(?:\d+\.\d*|\.\d+)(?:[eE][+-]?\d+)?)').setName("real number with scientific notation").setParseAction(convertToFloat)
     """expression that parses a floating point number with optional
     scientific notation and returns a float"""
 
