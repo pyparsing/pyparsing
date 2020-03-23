@@ -163,6 +163,10 @@ Version 3.0.0a1
 - Fixed bug in delta_time.py example, when using a quantity
   of seconds/minutes/hours/days > 999.
 
+- Fixed bug in regex definitions for real and sci_real expressions in
+  pyparsing_common. Issue #194, reported by Michael Wayne Goodman, thanks!
+
+
 Version 2.4.6 - December, 2019
 ------------------------------
 - Fixed typos in White mapping of whitespace characters, to use

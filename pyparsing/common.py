@@ -185,14 +185,14 @@ class pyparsing_common:
     mixed_integer.addParseAction(sum)
 
     real = (
-        Regex(r"[+-]?(:?\d+\.\d*|\.\d+)")
+        Regex(r"[+-]?(?:\d+\.\d*|\.\d+)")
         .setName("real number")
         .setParseAction(convertToFloat)
     )
     """expression that parses a floating point number and returns a float"""
 
     sci_real = (
-        Regex(r"[+-]?(:?\d+(:?[eE][+-]?\d+)|(:?\d+\.\d*|\.\d+)(:?[eE][+-]?\d+)?)")
+        Regex(r"[+-]?(?:\d+(?:[eE][+-]?\d+)|(?:\d+\.\d*|\.\d+)(?:[eE][+-]?\d+)?)")
         .setName("real number with scientific notation")
         .setParseAction(convertToFloat)
     )
