@@ -1,7 +1,6 @@
 # testing.py
 
 from contextlib import contextmanager
-import unittest
 
 from pyparsing.core import (
     ParserElement,
