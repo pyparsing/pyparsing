@@ -52,7 +52,8 @@ The program outputs the following::
     Hello, World! -> ['Hello', ',', 'World', '!']
 
 The Python representation of the grammar is quite readable, owing to the
-self-explanatory class names, and the use of '+', '|' and '^' operators.
+self-explanatory class names, and the use of :class:`'+'<And>`,
+:class:`'|'<MatchFirst>`, :class:`'^'<Or>` and :class:`'&'<Each>` operators.
 
 The :class:`ParseResults` object returned from
 :class:`ParserElement.parseString` can be

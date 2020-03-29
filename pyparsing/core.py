@@ -760,7 +760,7 @@ class ParserElement:
         :returns: the parsed data as a :class:`ParseResults` object, which may be accessed as a `list`, a `dict`, or
           an object with attributes if the given parser includes results names.
 
-        If the input string is required to match the entire grammar, ``parseAll`` flag must be set to True. This
+        If the input string is required to match the entire grammar, ``parseAll`` flag must be set to ``True``. This
         is also equivalent to ending the grammar with ``StringEnd()``.
 
         To report proper column numbers, ``parseString`` operates on a copy of the input string where all tabs are
@@ -1632,7 +1632,7 @@ class ParserElement:
 
             expr.runTest(r"this is a test\\n of strings that spans \\n 3 lines")
 
-        (Note that this is a raw string literal, you must include the leading 'r'.)
+        (Note that this is a raw string literal, you must include the leading ``'r'``.)
         """
         if isinstance(tests, str_type):
             tests = list(map(type(tests).strip, tests.rstrip().splitlines()))
@@ -2054,7 +2054,7 @@ class Word(Token):
     two characters, for instance.
 
     :class:`srange` is useful for defining custom character set strings
-    for defining ``Word`` expressions, using range notation from
+    for defining :class:`Word` expressions, using range notation from
     regular expression character sets.
 
     A common mistake is to use :class:`Word` to match a specific literal
@@ -2259,7 +2259,7 @@ class Regex(Token):
     expression. Defined with string specifying the regular expression in
     a form recognized by the stdlib Python  `re module <https://docs.python.org/3/library/re.html>`_.
     If the given regex contains named groups (defined using ``(?P<name>...)``),
-    these will be preserved as named parse results.
+    these will be preserved as named :class:`ParseResults`.
 
     If instead of the Python stdlib re module you wish to use a different RE module
     (such as the `regex` module), you can replace it by either building your
@@ -2385,7 +2385,7 @@ class Regex(Token):
 
     def sub(self, repl):
         r"""
-        Return Regex with an attached parse action to transform the parsed
+        Return :class:`Regex` with an attached parse action to transform the parsed
         result as if called using `re.sub(expr, repl, string) <https://docs.python.org/3/library/re.html#re.sub>`_.
 
         Example::
@@ -2898,9 +2898,9 @@ class StringEnd(_PositionToken):
 
 
 class WordStart(_PositionToken):
-    """Matches if the current position is at the beginning of a Word,
-    and is not preceded by any character in a given set of
-    ``wordChars`` (default= ``printables``). To emulate the
+    """Matches if the current position is at the beginning of a
+    :class:`Word`, and is not preceded by any character in a given
+    set of ``wordChars`` (default= ``printables``). To emulate the
     ``\b`` behavior of regular expressions, use
     ``WordStart(alphanums)``. ``WordStart`` will also match at
     the beginning of the string being parsed, or at the beginning of
@@ -2923,8 +2923,8 @@ class WordStart(_PositionToken):
 
 
 class WordEnd(_PositionToken):
-    """Matches if the current position is at the end of a Word, and is
-    not followed by any character in a given set of ``wordChars``
+    """Matches if the current position is at the end of a :class:`Word`,
+    and is not followed by any character in a given set of ``wordChars``
     (default= ``printables``). To emulate the ``\b`` behavior of
     regular expressions, use ``WordEnd(alphanums)``. ``WordEnd``
     will also match at the end of the string being parsed, or at the end
@@ -3083,7 +3083,7 @@ class ParseExpression(ParserElement):
 
 class And(ParseExpression):
     """
-    Requires all given :class:`ParseExpression` s to be found in the given order.
+    Requires all given :class:`ParseExpression`\ s to be found in the given order.
     Expressions may be separated by whitespace.
     May be constructed using the ``'+'`` operator.
     May also be constructed using the ``'-'`` operator, which will
@@ -3459,7 +3459,7 @@ class MatchFirst(ParseExpression):
 
 
 class Each(ParseExpression):
-    """Requires all given :class:`ParseExpression` s to be found, but in
+    """Requires all given :class:`ParseExpression`\ s to be found, but in
     any order. Expressions may be separated by whitespace.
 
     May be constructed using the ``'&'`` operator.
@@ -3762,10 +3762,11 @@ class PrecededBy(ParseElementEnhance):
      - retreat - (default= ``None``) - (int) maximum number of characters
        to lookbehind prior to the current parse location
 
-    If the lookbehind expression is a string, Literal, Keyword, or
-    a Word or CharsNotIn with a specified exact or maximum length, then
-    the retreat parameter is not required. Otherwise, retreat must be
-    specified to give a maximum number of characters to look back from
+    If the lookbehind expression is a string, :class:`Literal`,
+    :class:`Keyword`, or a :class:`Word` or :class:`CharsNotIn`
+    with a specified exact or maximum length, then the retreat
+    parameter is not required. Otherwise, retreat must be specified to
+    give a maximum number of characters to look back from
     the current parse position for a lookbehind match.
 
     Example::
@@ -3831,7 +3832,7 @@ class NotAny(ParseElementEnhance):
     input string, it only verifies that the specified parse expression
     does *not* match at the current position.  Also, ``NotAny`` does
     *not* skip over leading whitespace. ``NotAny`` always returns
-    a null token list.  May be constructed using the '~' operator.
+    a null token list.  May be constructed using the ``'~'`` operator.
 
     Example::
 
@@ -4209,12 +4210,12 @@ class Forward(ParseElementEnhance):
     """Forward declaration of an expression to be defined later -
     used for recursive grammars, such as algebraic infix notation.
     When the expression is known, it is assigned to the ``Forward``
-    variable using the '<<' operator.
+    variable using the ``'<<'`` operator.
 
     Note: take care when assigning to ``Forward`` not to overlook
     precedence of operators.
 
-    Specifically, '|' has a lower precedence than '<<', so that::
+    Specifically, ``'|'`` has a lower precedence than ``'<<'``, so that::
 
         fwdExpr << a | b | c
 
@@ -4227,7 +4228,7 @@ class Forward(ParseElementEnhance):
 
         fwdExpr << (a | b | c)
 
-    Converting to use the '<<=' operator instead will avoid this problem.
+    Converting to use the ``'<<='`` operator instead will avoid this problem.
 
     See :class:`ParseResults.pprint` for an example of a recursive
     parser created using ``Forward``.
@@ -4615,7 +4616,7 @@ _reBracketExpr = (
 
 
 def srange(s):
-    r"""Helper to easily define string ranges for use in Word
+    r"""Helper to easily define string ranges for use in :class:`Word`
     construction. Borrows syntax from regexp '[]' string range
     definitions::
 
