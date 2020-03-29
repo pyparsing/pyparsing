@@ -36,7 +36,7 @@ grammar directly in Python.
 Here is a program to parse "Hello, World!" (or any greeting of the form
 ``"<salutation>, <addressee>!"``), built up using :class:`Word`,
 :class:`Literal`, and :class:`And` elements
-(the :class:`'+'<ParserElement.__add__>` operators create :class:`And` expressions,
+(the :meth:`'+'<ParserElement.__add__>` operators create :class:`And` expressions,
 and the strings are auto-converted to :class:`Literal` expressions)::
 
     from pyparsing import Word, alphas

@@ -1377,10 +1377,12 @@ class ParserElement:
         Example::
 
             patt = OneOrMore(Word(alphas))
-            patt.parseString('ablaj /* comment */ lskjd') # -> ['ablaj']
+            patt.parseString('ablaj /* comment */ lskjd')
+            # -> ['ablaj']
 
             patt.ignore(cStyleComment)
-            patt.parseString('ablaj /* comment */ lskjd') # -> ['ablaj', 'lskjd']
+            patt.parseString('ablaj /* comment */ lskjd')
+            # -> ['ablaj', 'lskjd']
         """
         if isinstance(other, str_type):
             other = Suppress(other)
@@ -1932,7 +1934,8 @@ class CaselessLiteral(Literal):
 
     Example::
 
-        OneOrMore(CaselessLiteral("CMD")).parseString("cmd CMD Cmd10") # -> ['CMD', 'CMD', 'CMD']
+        OneOrMore(CaselessLiteral("CMD")).parseString("cmd CMD Cmd10")
+        # -> ['CMD', 'CMD', 'CMD']
 
     (Contrast with example for :class:`CaselessKeyword`.)
     """
@@ -1956,7 +1959,8 @@ class CaselessKeyword(Keyword):
 
     Example::
 
-        OneOrMore(CaselessKeyword("CMD")).parseString("cmd CMD Cmd10") # -> ['CMD', 'CMD']
+        OneOrMore(CaselessKeyword("CMD")).parseString("cmd CMD Cmd10")
+        # -> ['CMD', 'CMD']
 
     (Contrast with example for :class:`CaselessLiteral`.)
     """
@@ -4403,10 +4407,12 @@ class Group(TokenConverter):
         num = Word(nums)
         term = ident | num
         func = ident + Optional(delimitedList(term))
-        print(func.parseString("fn a, b, 100"))  # -> ['fn', 'a', 'b', '100']
+        print(func.parseString("fn a, b, 100"))
+        # -> ['fn', 'a', 'b', '100']
 
         func = ident + Group(Optional(delimitedList(term)))
-        print(func.parseString("fn a, b, 100"))  # -> ['fn', ['a', 'b', '100']]
+        print(func.parseString("fn a, b, 100"))
+        # -> ['fn', ['a', 'b', '100']]
     """
 
     def __init__(self, expr):
