@@ -200,8 +200,10 @@ def conditionAsParseAction(fn, message=None, fatal=False):
     to an operator level in infixNotation).
 
     Optional keyword arguments:
+
     - message = define a custom message to be used in the raised exception
     - fatal = if True, will raise ParseFatalException to stop parsing immediately; otherwise will raise ParseException
+
     """
     msg = message if message is not None else "failed user-defined condition"
     exc_type = ParseFatalException if fatal else ParseException
@@ -434,6 +436,7 @@ class ParserElement:
         expression are cleared.
 
         Optional keyword arguments:
+
         - callDuringTry = (default= ``False``) indicate if parse action should be run during lookaheads and alternate testing
 
         Note: the default parsing behavior is to expand tabs in the input string
@@ -483,6 +486,7 @@ class ParserElement:
         functions passed to ``addCondition`` need to return boolean success/fail of the condition.
 
         Optional keyword arguments:
+
         - message = define a custom message to be used in the raised exception
         - fatal = if True, will raise ParseFatalException to stop parsing immediately; otherwise will raise
           ParseException
@@ -513,10 +517,12 @@ class ParserElement:
         """Define action to perform if parsing fails at this expression.
            Fail acton fn is a callable function that takes the arguments
            ``fn(s, loc, expr, err)`` where:
+
            - s = string being parsed
            - loc = location where expression match was attempted and failed
            - expr = the parse expression that failed
            - err = the exception thrown
+
            The function returns no value.  It may throw :class:`ParseFatalException`
            if it is desired to stop parsing immediately."""
         self.failAction = fn
@@ -1544,15 +1550,15 @@ class ParserElement:
          - tests - a list of separate test strings, or a multiline string of test strings
          - parseAll - (default= ``True``) - flag to pass to :class:`parseString` when running tests
          - comment - (default= ``'#'``) - expression for indicating embedded comments in the test
-              string; pass None to disable comment filtering
+           string; pass None to disable comment filtering
          - fullDump - (default= ``True``) - dump results as list followed by results names in nested outline;
-              if False, only dump nested list
+           if False, only dump nested list
          - printResults - (default= ``True``) prints test output to stdout
          - failureTests - (default= ``False``) indicates if these tests are expected to fail parsing
          - postParse - (default= ``None``) optional callback for successful parse results; called as
-              `fn(test_string, parse_results)` and returns a string to be added to the test output
+           `fn(test_string, parse_results)` and returns a string to be added to the test output
          - file - (default= ``None``) optional file-like object to which test output will be written;
-              if None, will default to ``sys.stdout``
+           if None, will default to ``sys.stdout``
 
         Returns: a (success, results) tuple, where success indicates that all tests succeeded
         (or failed if ``failureTests`` is True), and the results contain a list of lines of each
@@ -3971,8 +3977,8 @@ class ZeroOrMore(_MultipleMatch):
     Parameters:
      - expr - expression that must match zero or more times
      - stopOn - (default= ``None``) - expression for a terminating sentinel
-          (only required if the sentinel would ordinarily match the repetition
-          expression)
+       (only required if the sentinel would ordinarily match the repetition
+       expression)
 
     Example: similar to :class:`OneOrMore`
     """
@@ -4082,12 +4088,12 @@ class SkipTo(ParseElementEnhance):
     Parameters:
      - expr - target expression marking the end of the data to be skipped
      - include - (default= ``False``) if True, the target expression is also parsed
-          (the skipped text and target expression are returned as a 2-element list).
+       (the skipped text and target expression are returned as a 2-element list).
      - ignore - (default= ``None``) used to define grammars (typically quoted strings and
-          comments) that might contain false matches to the target expression
+       comments) that might contain false matches to the target expression
      - failOn - (default= ``None``) define expressions that are not allowed to be
-          included in the skipped test; if found before the target expression is found,
-          the SkipTo is not a match
+       included in the skipped test; if found before the target expression is found,
+       the SkipTo is not a match
 
     Example::
 

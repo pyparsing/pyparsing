@@ -25,7 +25,8 @@ class pyparsing_test:
          - literal string auto-conversion class
          - __diag__ settings
 
-        Example:
+        Example::
+
             with reset_pyparsing_context():
                 # test that literals used to construct a grammar are automatically suppressed
                 ParserElement.inlineLiteralsUsing(Suppress)
