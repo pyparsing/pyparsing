@@ -135,8 +135,8 @@ def matchPreviousExpr(expr):
 
 
 def oneOf(strs, caseless=False, useRegex=True, asKeyword=False):
-    """Helper to quickly define a set of alternative Literals, and makes
-    sure to do longest-first testing when there is a conflict,
+    """Helper to quickly define a set of alternative :class:`Literal`\ s,
+    and makes sure to do longest-first testing when there is a conflict,
     regardless of the input order, but returns
     a :class:`MatchFirst` for best performance.
 
@@ -147,10 +147,10 @@ def oneOf(strs, caseless=False, useRegex=True, asKeyword=False):
      - caseless - (default= ``False``) - treat all literals as
        caseless
      - useRegex - (default= ``True``) - as an optimization, will
-       generate a Regex object; otherwise, will generate
+       generate a :class:`Regex` object; otherwise, will generate
        a :class:`MatchFirst` object (if ``caseless=True`` or ``asKeyword=True``, or if
        creating a :class:`Regex` raises an exception)
-     - asKeyword - (default= ``False``) - enforce Keyword-style matching on the
+     - asKeyword - (default= ``False``) - enforce :class:`Keyword`-style matching on the
        generated expressions
 
     Example::

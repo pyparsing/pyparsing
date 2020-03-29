@@ -25,7 +25,8 @@ class pyparsing_test:
          - literal string auto-conversion class
          - __diag__ settings
 
-        Example:
+        Example::
+
             with reset_pyparsing_context():
                 # test that literals used to construct a grammar are automatically suppressed
                 ParserElement.inlineLiteralsUsing(Suppress)
@@ -92,8 +93,8 @@ class pyparsing_test:
             self, result, expected_list=None, expected_dict=None, msg=None
         ):
             """
-            Unit test assertion to compare a ParseResults object with an optional expected_list,
-            and compare any defined results names with an optional expected_dict.
+            Unit test assertion to compare a :class:`ParseResults` object with an optional ``expected_list``,
+            and compare any defined results names with an optional ``expected_dict``.
             """
             if expected_list is not None:
                 self.assertEqual(expected_list, result.asList(), msg=msg)
@@ -105,7 +106,7 @@ class pyparsing_test:
         ):
             """
             Convenience wrapper assert to test a parser element and input string, and assert that
-            the resulting ParseResults.asList() is equal to the expected_list.
+            the resulting ``ParseResults.asList()`` is equal to the ``expected_list``.
             """
             result = expr.parseString(test_string, parseAll=True)
             if verbose:
@@ -117,7 +118,7 @@ class pyparsing_test:
         ):
             """
             Convenience wrapper assert to test a parser element and input string, and assert that
-            the resulting ParseResults.asDict() is equal to the expected_dict.
+            the resulting ``ParseResults.asDict()`` is equal to the ``expected_dict``.
             """
             result = expr.parseString(test_string, parseAll=True)
             if verbose:
@@ -128,10 +129,10 @@ class pyparsing_test:
             self, run_tests_report, expected_parse_results=None, msg=None
         ):
             """
-            Unit test assertion to evaluate output of ParserElement.runTests(). If a list of
-            list-dict tuples is given as the expected_parse_results argument, then these are zipped
-            with the report tuples returned by runTests and evaluated using assertParseResultsEquals.
-            Finally, asserts that the overall runTests() success value is True.
+            Unit test assertion to evaluate output of ``ParserElement.runTests()``. If a list of
+            list-dict tuples is given as the ``expected_parse_results`` argument, then these are zipped
+            with the report tuples returned by ``runTests`` and evaluated using ``assertParseResultsEquals``.
+            Finally, asserts that the overall ``runTests()`` success value is ``True``.
 
             :param run_tests_report: tuple(bool, [tuple(str, ParseResults or Exception)]) returned from runTests
             :param expected_parse_results (optional): [tuple(str, list, dict, Exception)]
