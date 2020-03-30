@@ -2437,6 +2437,27 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             result, expected, msg="issue with ParseResults.append()"
         )
 
+    def testParseResultsClear(self):
+        """test simple case of ParseResults.clear()"""
+
+        tst = "spam eggs"
+        expr = pp.Word("amps") + pp.Word("egs")
+        result = expr.parseString(tst)
+
+        print(result.dump())
+        self.assertParseResultsEquals(
+            result, ["spam", "eggs"], msg="issue with ParseResults before clear()"
+        )
+
+        result.clear()
+        print(result.dump())
+        self.assertParseResultsEquals(
+            result, expected_list=[], msg="issue with ParseResults.clear() as list"
+        )
+        self.assertParseResultsEquals(
+            result, expected_dict={}, msg="issue with ParseResults.clear() as dict"
+        )
+
     def testParseHTMLTags(self):
         test = """
             <BODY>
