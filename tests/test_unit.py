@@ -2366,6 +2366,34 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             "got {!r}".format(res.Achar),
         )
 
+    def testParseResultsNewEdgeCases(self):
+        """test less common paths of ParseResults.__new__()"""
+
+        # create new ParseResults w/ None
+        result1 = pp.ParseResults(None)
+        print(result1.dump())
+        self.assertParseResultsEquals(
+            result1, [], msg="ParseResults(None) should return empty ParseResults"
+        )
+
+        # create new ParseResults w/ integer name
+        result2 = pp.ParseResults(name=12)
+        print(result2.dump())
+        self.assertEqual(
+            "12",
+            result2.getName(),
+            "ParseResults int name should be accepted and converted to str",
+        )
+
+        # create new ParseResults w/ generator type
+        gen = (a for a in range(1, 6))
+        result3 = pp.ParseResults(gen)
+        print(result3.dump())
+        expected3 = [1, 2, 3, 4, 5]
+        self.assertParseResultsEquals(
+            result3, expected3, msg="issue initializing ParseResults w/ gen type"
+        )
+
     def testParseHTMLTags(self):
         test = """
             <BODY>
