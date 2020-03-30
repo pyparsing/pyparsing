@@ -2525,6 +2525,23 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             "asList", dir_result, msg="asList was not returned by dir(ParseResults)"
         )
 
+    def testParseResultsInsert(self):
+        """test ParseResults.insert() with named tokens"""
+
+        # use a parse action to insert the parse location in the front of the parsed results
+        def insert_locn(locn, tokens):
+            tokens.insert(0, locn)
+
+        tst = "0 123 321"
+        expr = pp.OneOrMore(pp.Word(pp.nums))("numbers").addParseAction(insert_locn)
+        result = expr.parseString(tst)
+
+        print(result.dump())
+        expected = [0, "0", "123", "321"]
+        self.assertParseResultsEquals(
+            result, expected, msg="issue with ParseResults.insert()"
+        )
+
     def testParseHTMLTags(self):
         test = """
             <BODY>
