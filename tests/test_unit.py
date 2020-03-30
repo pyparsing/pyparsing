@@ -2394,6 +2394,20 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             result3, expected3, msg="issue initializing ParseResults w/ gen type"
         )
 
+    def testParseResultsReversed(self):
+        """test simple case of reversed(ParseResults)"""
+
+        tst = "1 2 3 4 5"
+        expr = pp.OneOrMore(pp.Word(pp.nums))
+        result = expr.parseString(tst)
+
+        reversed_list = [ii for ii in reversed(result)]
+        print(reversed_list)
+        expected = ["5", "4", "3", "2", "1"]
+        self.assertEqual(
+            reversed_list, expected, msg="issue calling reversed(ParseResults)"
+        )
+
     def testParseHTMLTags(self):
         test = """
             <BODY>
