@@ -10,6 +10,8 @@ Version 2.4.7 - March, 2020
   . Traceback abbreviation
   . Bug in delta_time example
   . Fix regexen in pyparsing_common.real and .sci_real
+  . Avoid FutureWarning on Python 3.7 or later
+  . Cleanup output in runTests if comments are embedded in test string
 
 
 Version 2.4.6 - December, 2019

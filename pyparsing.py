@@ -96,7 +96,7 @@ classes inherit from. Use the docstrings for examples of how to:
 """
 
 __version__ = "2.4.7"
-__versionTime__ = "04 Mar 2020 02:48 UTC"
+__versionTime__ = "30 Mar 2020 00:43 UTC"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -2740,7 +2740,7 @@ class ParserElement(object):
                 continue
             if not t:
                 continue
-            out = ['\n'.join(comments), t]
+            out = ['\n' + '\n'.join(comments) if comments else '', t]
             comments = []
             try:
                 # convert newline marks to actual newlines, and strip leading BOM if present
@@ -5452,8 +5452,8 @@ def matchPreviousExpr(expr):
     return rep
 
 def _escapeRegexRangeChars(s):
-    # ~  escape these chars: ^-]
-    for c in r"\^-]":
+    # ~  escape these chars: ^-[]
+    for c in r"\^-[]":
         s = s.replace(c, _bslash + c)
     s = s.replace("\n", r"\n")
     s = s.replace("\t", r"\t")
