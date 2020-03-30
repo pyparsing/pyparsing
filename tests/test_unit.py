@@ -2414,12 +2414,11 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
         expr = pp.Word(pp.alphas)("first") + pp.Word(pp.alphas)("second")
         result = expr.parseString("spam eggs")
 
-        value_output_list = [ii for ii in result.values()]
-        print(value_output_list)
-        expected = ["spam", "eggs"]
-        self.assertEqual(
-            value_output_list, expected, msg="issue calling ParseResults.values()"
-        )
+        values_list = [ii for ii in result.values()]
+        print(values_list)
+        msg = "issue calling ParseResults.values()"
+        self.assertIn("spam", values_list, msg=msg)
+        self.assertIn("eggs", values_list, msg=msg)
 
     def testParseResultsAppend(self):
         """test simple case of ParseResults.append()"""
