@@ -2408,6 +2408,19 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             reversed_list, expected, msg="issue calling reversed(ParseResults)"
         )
 
+    def testParseResultsValues(self):
+        """test simple case of ParseResults.values()"""
+
+        expr = pp.Word(pp.alphas)("first") + pp.Word(pp.alphas)("second")
+        result = expr.parseString("spam eggs")
+
+        value_output_list = [ii for ii in result.values()]
+        print(value_output_list)
+        expected = ["spam", "eggs"]
+        self.assertEqual(
+            value_output_list, expected, msg="issue calling ParseResults.values()"
+        )
+
     def testParseHTMLTags(self):
         test = """
             <BODY>
