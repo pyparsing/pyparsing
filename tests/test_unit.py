@@ -2509,6 +2509,22 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             msg="issue creating ParseResults.from _dict()",
         )
 
+    def testParseResultsDir(self):
+        """test dir(ParseResults)"""
+
+        dict = {"first": "123", "second": "456", "third": "789"}
+        name = "trios"
+        result = pp.ParseResults.from_dict(dict, name=name)
+        dir_result = dir(result)
+
+        print(dir_result)
+        self.assertIn(
+            name, dir_result, msg="name value wasn't returned by dir(ParseResults)"
+        )
+        self.assertIn(
+            "asList", dir_result, msg="asList was not returned by dir(ParseResults)"
+        )
+
     def testParseHTMLTags(self):
         test = """
             <BODY>
