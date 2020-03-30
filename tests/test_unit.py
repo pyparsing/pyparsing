@@ -2421,6 +2421,22 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             value_output_list, expected, msg="issue calling ParseResults.values()"
         )
 
+    def testParseResultsAppend(self):
+        """test simple case of ParseResults.append()"""
+
+        # use a parse action to compute the sum of the parsed integers, and add it to the end
+        def append_sum(tokens):
+            tokens.append(sum(map(int, tokens)))
+
+        expr = pp.OneOrMore(pp.Word(pp.nums)).addParseAction(append_sum)
+        result = expr.parseString("0 123 321")
+
+        expected = ["0", "123", "321", 444]
+        print(result.dump())
+        self.assertParseResultsEquals(
+            result, expected, msg="issue with ParseResults.append()"
+        )
+
     def testParseHTMLTags(self):
         test = """
             <BODY>
