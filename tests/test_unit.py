@@ -2490,6 +2490,25 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             result1, expected, msg="issue with ParseResults.extend(ParseResults)"
         )
 
+    def testParseResultsFromDict(self):
+        """test helper classmethod ParseResults.from_dict()"""
+
+        dict = {
+            "first": "123",
+            "second": 456,
+            "third": {"threeStr": "789", "threeInt": 789},
+        }
+        name = "trios"
+        result = pp.ParseResults.from_dict(dict, name=name)
+
+        print(result.dump())
+        expected = {name: dict}
+        self.assertParseResultsEquals(
+            result,
+            expected_dict=expected,
+            msg="issue creating ParseResults.from _dict()",
+        )
+
     def testParseHTMLTags(self):
         test = """
             <BODY>
