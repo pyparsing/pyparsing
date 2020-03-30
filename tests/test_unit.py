@@ -2441,7 +2441,7 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
         """test simple case of ParseResults.clear()"""
 
         tst = "spam eggs"
-        expr = pp.Word("amps") + pp.Word("egs")
+        expr = pp.OneOrMore(pp.Word(pp.alphas))
         result = expr.parseString(tst)
 
         print(result.dump())
@@ -2450,6 +2450,7 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
         )
 
         result.clear()
+
         print(result.dump())
         self.assertParseResultsEquals(
             result, expected_list=[], msg="issue with ParseResults.clear() as list"
