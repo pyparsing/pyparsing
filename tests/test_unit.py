@@ -2458,6 +2458,38 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             result, expected_dict={}, msg="issue with ParseResults.clear() as dict"
         )
 
+    def testParseResultsExtendWithString(self):
+        """test ParseResults.extend() with input of type str"""
+
+        # use a parse action to append the reverse of the matched strings to make a palindrome
+        def make_palindrome(tokens):
+            tokens.extend(reversed([t[::-1] for t in tokens]))
+            return "".join(tokens)
+
+        tst = "abc def ghi"
+        expr = pp.OneOrMore(pp.Word(pp.alphas))
+        result = expr.addParseAction(make_palindrome).parseString(tst)
+        print(result.dump())
+
+        expected = ["abcdefghiihgfedcba"]
+        self.assertParseResultsEquals(
+            result, expected, msg="issue with ParseResults.extend(str)"
+        )
+
+    def testParseResultsExtendWithParseResults(self):
+        """test ParseResults.extend() with input of type ParseResults"""
+
+        expr = pp.OneOrMore(pp.Word(pp.alphas))
+        result1 = expr.parseString("spam eggs")
+        result2 = expr.parseString("foo bar")
+
+        result1.extend(result2)
+        print(result1.dump())
+        expected = ["spam", "eggs", "foo", "bar"]
+        self.assertParseResultsEquals(
+            result1, expected, msg="issue with ParseResults.extend(ParseResults)"
+        )
+
     def testParseHTMLTags(self):
         test = """
             <BODY>
