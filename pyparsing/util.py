@@ -43,7 +43,7 @@ def col(loc, strg):
    Note: the default parsing behavior is to expand tabs in the input string
    before starting the parsing process.  See
    :class:`ParserElement.parseString` for more
-   information on parsing strings containing ``<TAB>``\ s, and suggested
+   information on parsing strings containing ``<TAB>`` s, and suggested
    methods to maintain a consistent view of the parsed string, the parse
    location, and line and column positions within the parsed string.
    """
@@ -57,7 +57,7 @@ def lineno(loc, strg):
 
     Note - the default parsing behavior is to expand tabs in the input string
     before starting the parsing process.  See :class:`ParserElement.parseString`
-    for more information on parsing strings containing ``<TAB>``\ s, and
+    for more information on parsing strings containing ``<TAB>`` s, and
     suggested methods to maintain a consistent view of the parsed string, the
     parse location, and line and column positions within the parsed string.
     """
@@ -126,8 +126,8 @@ class _FifoCache:
 
 
 def _escapeRegexRangeChars(s):
-    # ~  escape these chars: ^-]
-    for c in r"\^-]":
+    # escape these chars: ^-[]
+    for c in r"\^-[]":
         s = s.replace(c, _bslash + c)
     s = s.replace("\n", r"\n")
     s = s.replace("\t", r"\t")

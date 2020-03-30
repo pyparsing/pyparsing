@@ -166,6 +166,12 @@ Version 3.0.0a1
 - Fixed bug in regex definitions for real and sci_real expressions in
   pyparsing_common. Issue #194, reported by Michael Wayne Goodman, thanks!
 
+- Fixed FutureWarning raised beginning in Python 3.7 for Regex expressions
+  containing '[' within a regex set.
+
+- Minor reformatting of output from runTests to make embedded
+  comments more visible.
+
 
 Version 2.4.6 - December, 2019
 ------------------------------

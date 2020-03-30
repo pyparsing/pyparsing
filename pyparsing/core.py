@@ -54,7 +54,7 @@ str_type = (str, bytes)
 #
 
 __version__ = "3.0.0a1"
-__versionTime__ = "24 Feb 2020 02:17 UTC"
+__versionTime__ = "30 Mar 2020 00:24 UTC"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 
@@ -130,9 +130,12 @@ hexnums = nums + "ABCDEFabcdef"
 alphanums = alphas + nums
 printables = "".join(c for c in string.printable if c not in string.whitespace)
 
+_trim_arity_call_line = None
+
 
 def _trim_arity(func, maxargs=2):
     "decorator to trim function calls to match the arity of the target"
+    global _trim_arity_call_line
 
     if func in singleArgBuiltins:
         return lambda s, l, t: func(t)
@@ -148,11 +151,16 @@ def _trim_arity(func, maxargs=2):
     # synthesize what would be returned by traceback.extract_stack at the call to
     # user's parse action 'func', so that we don't incur call penalty at parse time
 
-    LINE_DIFF = 7
+    LINE_DIFF = 11
     # IF ANY CODE CHANGES, EVEN JUST COMMENTS OR BLANK LINES, BETWEEN THE NEXT LINE AND
     # THE CALL TO FUNC INSIDE WRAPPER, LINE_DIFF MUST BE MODIFIED!!!!
-    this_line = traceback.extract_stack(limit=2)[-1]
-    pa_call_line_synth = (this_line[0], this_line[1] + LINE_DIFF)
+    _trim_arity_call_line = (
+        _trim_arity_call_line or traceback.extract_stack(limit=2)[-1]
+    )
+    pa_call_line_synth = (
+        _trim_arity_call_line[0],
+        _trim_arity_call_line[1] + LINE_DIFF,
+    )
 
     def wrapper(*args):
         nonlocal found_arity, limit
@@ -161,25 +169,23 @@ def _trim_arity(func, maxargs=2):
                 ret = func(*args[limit:])
                 found_arity = True
                 return ret
-            except TypeError:
+            except TypeError as te:
                 # re-raise TypeErrors if they did not come from our arity testing
                 if found_arity:
                     raise
                 else:
-                    try:
-                        tb = sys.exc_info()[-1]
-                        if not extract_tb(tb, limit=2)[-1][:2] == pa_call_line_synth:
-                            raise
-                    finally:
-                        try:
-                            del tb
-                        except NameError:
-                            pass
+                    tb = te.__traceback__
+                    trim_arity_type_error = (
+                        extract_tb(tb, limit=2)[-1][:2] == pa_call_line_synth
+                    )
+                    del tb
 
-                if limit <= maxargs:
-                    limit += 1
-                    continue
-                raise
+                    if trim_arity_type_error:
+                        if limit <= maxargs:
+                            limit += 1
+                            continue
+
+                    raise
 
     # copy func name to wrapper for sensible debug output
     func_name = "<parse action>"
@@ -1655,7 +1661,7 @@ class ParserElement:
                 continue
             if not t:
                 continue
-            out = ["\n".join(comments), t]
+            out = ["\n" + "\n".join(comments) if comments else "", t]
             comments = []
             try:
                 # convert newline marks to actual newlines, and strip leading BOM if present
