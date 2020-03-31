@@ -2366,6 +2366,188 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             "got {!r}".format(res.Achar),
         )
 
+    def testParseResultsNewEdgeCases(self):
+        """test less common paths of ParseResults.__new__()"""
+
+        # create new ParseResults w/ None
+        result1 = pp.ParseResults(None)
+        print(result1.dump())
+        self.assertParseResultsEquals(
+            result1, [], msg="ParseResults(None) should return empty ParseResults"
+        )
+
+        # create new ParseResults w/ integer name
+        result2 = pp.ParseResults(name=12)
+        print(result2.dump())
+        self.assertEqual(
+            "12",
+            result2.getName(),
+            "ParseResults int name should be accepted and converted to str",
+        )
+
+        # create new ParseResults w/ generator type
+        gen = (a for a in range(1, 6))
+        result3 = pp.ParseResults(gen)
+        print(result3.dump())
+        expected3 = [1, 2, 3, 4, 5]
+        self.assertParseResultsEquals(
+            result3, expected3, msg="issue initializing ParseResults w/ gen type"
+        )
+
+    def testParseResultsReversed(self):
+        """test simple case of reversed(ParseResults)"""
+
+        tst = "1 2 3 4 5"
+        expr = pp.OneOrMore(pp.Word(pp.nums))
+        result = expr.parseString(tst)
+
+        reversed_list = [ii for ii in reversed(result)]
+        print(reversed_list)
+        expected = ["5", "4", "3", "2", "1"]
+        self.assertEqual(
+            reversed_list, expected, msg="issue calling reversed(ParseResults)"
+        )
+
+    def testParseResultsValues(self):
+        """test simple case of ParseResults.values()"""
+
+        expr = pp.Word(pp.alphas)("first") + pp.Word(pp.alphas)("second")
+        result = expr.parseString("spam eggs")
+
+        values_set = set(result.values())
+        print(values_set)
+        expected = {"spam", "eggs"}
+        self.assertEquals(
+            values_set, expected, msg="issue calling ParseResults.values()"
+        )
+
+    def testParseResultsAppend(self):
+        """test simple case of ParseResults.append()"""
+
+        # use a parse action to compute the sum of the parsed integers, and add it to the end
+        def append_sum(tokens):
+            tokens.append(sum(map(int, tokens)))
+
+        expr = pp.OneOrMore(pp.Word(pp.nums)).addParseAction(append_sum)
+        result = expr.parseString("0 123 321")
+
+        expected = ["0", "123", "321", 444]
+        print(result.dump())
+        self.assertParseResultsEquals(
+            result, expected, msg="issue with ParseResults.append()"
+        )
+
+    def testParseResultsClear(self):
+        """test simple case of ParseResults.clear()"""
+
+        tst = "spam eggs"
+        expr = pp.Word(pp.alphas)("first") + pp.Word(pp.alphas)("second")
+        result = expr.parseString(tst)
+
+        print(result.dump())
+        self.assertParseResultsEquals(
+            result, ["spam", "eggs"], msg="issue with ParseResults before clear()"
+        )
+
+        result.clear()
+
+        print(result.dump())
+        self.assertParseResultsEquals(
+            result,
+            expected_list=[],
+            expected_dict={},
+            msg="issue with ParseResults.clear()",
+        )
+
+    def testParseResultsExtendWithString(self):
+        """test ParseResults.extend() with input of type str"""
+
+        # use a parse action to append the reverse of the matched strings to make a palindrome
+        def make_palindrome(tokens):
+            tokens.extend(reversed([t[::-1] for t in tokens]))
+
+        tst = "abc def ghi"
+        expr = pp.OneOrMore(pp.Word(pp.alphas))
+        result = expr.addParseAction(make_palindrome).parseString(tst)
+        print(result.dump())
+
+        expected = ["abc", "def", "ghi", "ihg", "fed", "cba"]
+        self.assertParseResultsEquals(
+            result, expected, msg="issue with ParseResults.extend(str)"
+        )
+
+    def testParseResultsExtendWithParseResults(self):
+        """test ParseResults.extend() with input of type ParseResults"""
+
+        expr = pp.OneOrMore(pp.Word(pp.alphas))
+        result1 = expr.parseString("spam eggs")
+        result2 = expr.parseString("foo bar")
+
+        result1.extend(result2)
+        print(result1.dump())
+        expected = ["spam", "eggs", "foo", "bar"]
+        self.assertParseResultsEquals(
+            result1, expected, msg="issue with ParseResults.extend(ParseResults)"
+        )
+
+    def testParseResultsFromDict(self):
+        """test helper classmethod ParseResults.from_dict()"""
+
+        dict = {
+            "first": "123",
+            "second": 456,
+            "third": {"threeStr": "789", "threeInt": 789},
+        }
+        name = "trios"
+        result = pp.ParseResults.from_dict(dict, name=name)
+
+        print(result.dump())
+        expected = {name: dict}
+        self.assertParseResultsEquals(
+            result,
+            expected_dict=expected,
+            msg="issue creating ParseResults.from _dict()",
+        )
+
+    def testParseResultsDir(self):
+        """test dir(ParseResults)"""
+
+        dict = {"first": "123", "second": "456", "third": "789"}
+        name = "trios"
+        result = pp.ParseResults.from_dict(dict, name=name)
+        dir_result = dir(result)
+
+        print(dir_result)
+        self.assertIn(
+            name, dir_result, msg="name value wasn't returned by dir(ParseResults)"
+        )
+        self.assertIn(
+            "asList", dir_result, msg="asList was not returned by dir(ParseResults)"
+        )
+
+    def testParseResultsInsert(self):
+        """test ParseResults.insert() with named tokens"""
+
+        from random import randint
+
+        result = pp.Word(pp.alphas)[...].parseString("A B C D E F G H I J")
+        compare_list = result.asList()
+
+        print(result)
+        print(compare_list)
+
+        for s in "abcdefghij":
+            index = randint(-5, 5)
+            result.insert(index, s)
+            compare_list.insert(index, s)
+
+        print(result)
+        print(compare_list)
+
+        self.assertParseResultsEquals(
+            result, compare_list, msg="issue with ParseResults.insert()"
+        )
+
     def testParseHTMLTags(self):
         test = """
             <BODY>
