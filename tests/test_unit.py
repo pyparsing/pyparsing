@@ -2414,11 +2414,12 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
         expr = pp.Word(pp.alphas)("first") + pp.Word(pp.alphas)("second")
         result = expr.parseString("spam eggs")
 
-        values_list = [ii for ii in result.values()]
-        print(values_list)
-        msg = "issue calling ParseResults.values()"
-        self.assertIn("spam", values_list, msg=msg)
-        self.assertIn("eggs", values_list, msg=msg)
+        values_set = set(result.values())
+        print(values_set)
+        expected = {"spam", "eggs"}
+        self.assertEquals(
+            values_set, expected, msg="issue calling ParseResults.values()"
+        )
 
     def testParseResultsAppend(self):
         """test simple case of ParseResults.append()"""
@@ -2440,7 +2441,7 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
         """test simple case of ParseResults.clear()"""
 
         tst = "spam eggs"
-        expr = pp.OneOrMore(pp.Word(pp.alphas))
+        expr = pp.Word(pp.alphas)("first") + pp.Word(pp.alphas)("second")
         result = expr.parseString(tst)
 
         print(result.dump())
@@ -2452,10 +2453,10 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
 
         print(result.dump())
         self.assertParseResultsEquals(
-            result, expected_list=[], msg="issue with ParseResults.clear() as list"
-        )
-        self.assertParseResultsEquals(
-            result, expected_dict={}, msg="issue with ParseResults.clear() as dict"
+            result,
+            expected_list=[],
+            expected_dict={},
+            msg="issue with ParseResults.clear()",
         )
 
     def testParseResultsExtendWithString(self):
@@ -2464,14 +2465,13 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
         # use a parse action to append the reverse of the matched strings to make a palindrome
         def make_palindrome(tokens):
             tokens.extend(reversed([t[::-1] for t in tokens]))
-            return "".join(tokens)
 
         tst = "abc def ghi"
         expr = pp.OneOrMore(pp.Word(pp.alphas))
         result = expr.addParseAction(make_palindrome).parseString(tst)
         print(result.dump())
 
-        expected = ["abcdefghiihgfedcba"]
+        expected = ["abc", "def", "ghi", "ihg", "fed", "cba"]
         self.assertParseResultsEquals(
             result, expected, msg="issue with ParseResults.extend(str)"
         )
@@ -2528,18 +2528,24 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
     def testParseResultsInsert(self):
         """test ParseResults.insert() with named tokens"""
 
-        # use a parse action to insert the parse location in the front of the parsed results
-        def insert_locn(locn, tokens):
-            tokens.insert(0, locn)
+        from random import randint
 
-        tst = "0 123 321"
-        expr = pp.OneOrMore(pp.Word(pp.nums))("numbers").addParseAction(insert_locn)
-        result = expr.parseString(tst)
+        result = pp.Word(pp.alphas)[...].parseString("A B C D E F G H I J")
+        compare_list = result.asList()
 
-        print(result.dump())
-        expected = [0, "0", "123", "321"]
+        print(result)
+        print(compare_list)
+
+        for s in "abcdefghij":
+            index = randint(-5, 5)
+            result.insert(index, s)
+            compare_list.insert(index, s)
+
+        print(result)
+        print(compare_list)
+
         self.assertParseResultsEquals(
-            result, expected, msg="issue with ParseResults.insert()"
+            result, compare_list, msg="issue with ParseResults.insert()"
         )
 
     def testParseHTMLTags(self):
