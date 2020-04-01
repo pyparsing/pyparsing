@@ -2557,6 +2557,25 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             results, expected, msg="issue with ParserElement optional matches"
         )
 
+    def testParserElementMatchFirstOperatorWithOtherTypes(self):
+        """test the overridden "|" operator with other data types"""
+
+        # ParserElement | int
+        with self.assertWarns(SyntaxWarning, msg="failed to warn ParserElement | int"):
+            expr = pp.Word(pp.alphas)("first") + (pp.Word(pp.alphas)("second") | 12)
+        with self.assertRaises(
+            AttributeError, msg="parsing None type should raise error"
+        ):
+            result = expr.parseString("spam eggs")
+
+        # int | ParserElement
+        with self.assertWarns(SyntaxWarning, msg="failed to warn ParserElement | int"):
+            expr = pp.Word(pp.alphas)("first") + (12 | pp.Word(pp.alphas)("second"))
+        with self.assertRaises(
+            AttributeError, msg="parsing None type should raise error"
+        ):
+            result = expr.parseString("spam eggs")
+
     def testParseResultsNewEdgeCases(self):
         """test less common paths of ParseResults.__new__()"""
 
