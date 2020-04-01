@@ -2617,6 +2617,44 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
         ):
             result = expr.parseString("spam eggs")
 
+    def testParserElementEachOperatorWithOtherTypes(self):
+        """test the overridden "&" operator with other data types"""
+
+        # ParserElement & str
+        expr = pp.Word(pp.alphas)("first") + (pp.Word(pp.alphas)("second") & "and")
+        with self.assertRaisesParseException():
+            result = expr.parseString("spam and eggs")
+
+        # str & ParserElement
+        expr = pp.Word(pp.alphas)("first") + ("and" & pp.Word(pp.alphas)("second"))
+        result = expr.parseString("spam and eggs")
+
+        print(result.dump())
+        expected_l = ["spam", "and", "eggs"]
+        expected_d = {"first": "spam", "second": "eggs"}
+        self.assertParseResultsEquals(
+            result,
+            expected_list=expected_l,
+            expected_dict=expected_d,
+            msg="issue with str & ParserElement",
+        )
+
+        # ParserElement & int
+        with self.assertWarns(SyntaxWarning, msg="failed to warn ParserElement & int"):
+            expr = pp.Word(pp.alphas)("first") + (pp.Word(pp.alphas) & 78)
+        with self.assertRaises(
+            AttributeError, msg="parsing None type should raise error"
+        ):
+            result = expr.parseString("spam eggs")
+
+        # int & ParserElement
+        with self.assertWarns(SyntaxWarning, msg="failed to warn ParserElement & int"):
+            expr = pp.Word(pp.alphas)("first") + (89 & pp.Word(pp.alphas))
+        with self.assertRaises(
+            AttributeError, msg="parsing None type should raise error"
+        ):
+            result = expr.parseString("spam eggs")
+
     def testParseResultsNewEdgeCases(self):
         """test less common paths of ParseResults.__new__()"""
 
