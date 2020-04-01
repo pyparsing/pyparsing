@@ -1247,10 +1247,9 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             )
 
     def testParseKeyword(self):
-        from pyparsing import Literal, Keyword
 
-        kw = Keyword("if")
-        lit = Literal("if")
+        kw = pp.Keyword("if")
+        lit = pp.Literal("if")
 
         def test(s, litShouldPass, kwShouldPass):
             print("Test", s)
@@ -1280,11 +1279,16 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
         test("if(OnlyIfOnly)", True, True)
         test("if (OnlyIf Only)", True, True)
 
-        kw = Keyword("if", caseless=True)
+        kw = pp.Keyword("if", caseless=True)
 
         test("IFOnlyIfOnly", False, False)
         test("If(OnlyIfOnly)", False, True)
         test("iF (OnlyIf Only)", False, True)
+
+        with self.assertWarns(
+            SyntaxWarning, msg="failed to warn empty string passed to Keyword"
+        ):
+            kw = pp.Keyword("")
 
     def testParseExpressionResultsAccumulate(self):
         from pyparsing import Word, delimitedList, Combine, alphas, nums
