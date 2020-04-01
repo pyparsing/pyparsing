@@ -2444,6 +2444,119 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
         ):
             result = expr.parseString("spam eggs")
 
+    def testParserElementMulOperatorWithTuples(self):
+        """test ParserElement "*" with various tuples"""
+
+        # ParserElement * (0, 0)
+        with self.assertRaises(
+            ValueError, msg="ParserElement * (0,0) should raise error"
+        ):
+            expr = pp.Word(pp.alphas)("first") + pp.Word(pp.nums)("second*") * (0, 0)
+
+        # ParserElement * (None, n)
+        expr = pp.Word(pp.alphas)("first") + pp.Word(pp.nums)("second*") * (None, 3)
+
+        results1 = expr.parseString("spam")
+        print(results1.dump())
+        expected = ["spam"]
+        self.assertParseResultsEquals(
+            results1, expected, msg="issue with ParserElement optional matches"
+        )
+
+        results2 = expr.parseString("spam 12 23 34")
+        print(results2.dump())
+        expected = ["spam", "12", "23", "34"]
+        self.assertParseResultsEquals(
+            results2, expected, msg="issue with ParserElement optional matches"
+        )
+
+        # ParserElement * (1, 1)
+        expr = pp.Word(pp.alphas)("first") + pp.Word(pp.nums)("second*") * (1, 1)
+
+        results1 = expr.parseString("spam 45")
+        print(results1.dump())
+        expected = ["spam", "45"]
+        self.assertParseResultsEquals(
+            results1, expected, msg="issue with ParserElement optional matches"
+        )
+
+        # ParserElement * (1, greater)
+        expr = pp.Word(pp.alphas)("first") + pp.Word(pp.nums)("second*") * (1, 3)
+
+        results1 = expr.parseString("spam 100")
+        print(results1.dump())
+        expected = ["spam", "100"]
+        self.assertParseResultsEquals(
+            results1, expected, msg="issue with ParserElement optional matches"
+        )
+
+        results2 = expr.parseString("spam 100 200 300")
+        print(results2.dump())
+        expected = ["spam", "100", "200", "300"]
+        self.assertParseResultsEquals(
+            results2, expected, msg="issue with ParserElement optional matches"
+        )
+
+        # ParserElement * (lesser, greater)
+        expr = pp.Word(pp.alphas)("first") + pp.Word(pp.nums)("second*") * (2, 3)
+
+        results1 = expr.parseString("spam 1 2")
+        print(results1.dump())
+        expected = ["spam", "1", "2"]
+        self.assertParseResultsEquals(
+            results1, expected, msg="issue with ParserElement optional matches"
+        )
+
+        results2 = expr.parseString("spam 1 2 3")
+        print(results2.dump())
+        expected = ["spam", "1", "2", "3"]
+        self.assertParseResultsEquals(
+            results2, expected, msg="issue with ParserElement optional matches"
+        )
+
+        # ParserElement * (greater, lesser)
+        with self.assertRaises(
+            ValueError, msg="ParserElement * (0,0) should raise error"
+        ):
+            expr = pp.Word(pp.alphas)("first") + pp.Word(pp.nums)("second") * (3, 2)
+
+        # ParserElement * (str, str)
+        with self.assertRaises(
+            TypeError, msg="ParserElement * (0,0) should raise error"
+        ):
+            expr = pp.Word(pp.alphas)("first") + pp.Word(pp.nums)("second") * ("2", "3")
+
+    def testParserElementMulOperatorWithOtherTypes(self):
+        """test the overridden "*" operator with other data types"""
+
+        # ParserElement * str
+        with self.assertRaises(TypeError, msg="ParserElement * str should raise error"):
+            expr = pp.Word(pp.alphas)("first") + pp.Word(pp.nums)("second") * "3"
+
+        # str * ParserElement
+        with self.assertRaises(TypeError, msg="str * ParserElement should raise error"):
+            expr = pp.Word(pp.alphas)("first") + "3" * pp.Word(pp.nums)("second")
+
+        # ParserElement * int
+        expr = pp.Word(pp.alphas)("first") + pp.Word(pp.nums)("second*") * 2
+
+        results = expr.parseString("spam 11 22")
+        print(results.dump())
+        expected = ["spam", "11", "22"]
+        self.assertParseResultsEquals(
+            results, expected, msg="issue with ParserElement optional matches"
+        )
+
+        # int * ParserElement
+        expr = pp.Word(pp.alphas)("first") + 2 * pp.Word(pp.nums)("second*")
+
+        results = expr.parseString("spam 111 222")
+        print(results.dump())
+        expected = ["spam", "111", "222"]
+        self.assertParseResultsEquals(
+            results, expected, msg="issue with ParserElement optional matches"
+        )
+
     def testParseResultsNewEdgeCases(self):
         """test less common paths of ParseResults.__new__()"""
 
