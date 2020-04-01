@@ -38,6 +38,17 @@ Version 3.0.0a1
   <https://github.com/pypa/setuptools/issues/1684>). To run the Pyparsing test,
   use the command `tox`.
 
+- API CHANGE:
+  The staticmethod `ParseException.explain` has been moved to
+  `ParseBaseException.explain_exception`, and a new `explain` instance
+  method added to ParseBaseException. This will make calls to `explain`
+  much more natural:
+
+      try:
+          expr.parseString("...")
+      except ParseException as pe:
+          print(pe.explain())
+
 - POTENTIAL API CHANGE:
   ZeroOrMore expressions that have results names will now
   include empty lists for their name if no matches are found.

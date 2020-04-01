@@ -3859,7 +3859,7 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
                     shouldSucceed, "successfully parsed when should have failed"
                 )
             except ParseException as pe:
-                print(pe.explain(pe))
+                print(pe.explain())
                 self.assertFalse(
                     shouldSucceed, "failed to parse when should have succeeded"
                 )
@@ -3885,7 +3885,7 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
                     shouldSucceed, "successfully parsed when should have failed"
                 )
             except ParseException as pe:
-                print(pe.explain(pe))
+                print(pe.explain())
                 self.assertFalse(
                     shouldSucceed, "failed to parse when should have succeeded"
                 )
@@ -3915,7 +3915,7 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
                     shouldSucceed, "successfully parsed when should have failed"
                 )
             except ParseException as pe:
-                print(pe.explain(pe))
+                print(pe.explain())
                 self.assertFalse(
                     shouldSucceed, "failed to parse when should have succeeded"
                 )
@@ -6289,13 +6289,13 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
         try:
             expr.parseString("123 355")
         except pp.ParseException as pe:
-            print(pp.ParseException.explain(pe, depth=0))
+            print(pe.explain(depth=0))
 
         expr = pp.Word(pp.nums).setName("int") - pp.Word(pp.alphas).setName("word")
         try:
             expr.parseString("123 355 (test using ErrorStop)")
         except pp.ParseSyntaxException as pe:
-            print(pp.ParseException.explain(pe))
+            print(pe.explain())
 
         integer = pp.Word(pp.nums).setName("int").addParseAction(lambda t: int(t[0]))
         expr = integer + integer
@@ -6311,9 +6311,9 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
         try:
             expr.parseString("123 0")
         except pp.ParseException as pe:
-            print(pp.ParseException.explain(pe))
+            print(pe.explain())
         except Exception as exc:
-            print(pp.ParseException.explain(exc))
+            print(pp.ParseBaseException.explain_exception(exc))
             raise
 
     def testCaselessKeywordVsKeywordCaseless(self):
