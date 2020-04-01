@@ -2576,6 +2576,47 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
         ):
             result = expr.parseString("spam eggs")
 
+    def testParserElementMatchLongestWithOtherTypes(self):
+        """test the overridden "^" operator with other data types"""
+
+        # ParserElement ^ str
+        expr = pp.Word(pp.alphas)("first") + (pp.Word(pp.alphas)("second") ^ "suf")
+        result = expr.parseString("spam eggs")
+        print(result)
+        expected = {"first": "spam", "second": "eggs"}
+        self.assertParseResultsEquals(
+            result, expected_dict=expected, msg="issue with ParserElement ^ str"
+        )
+
+        # str ^ ParserElement
+        expr = ("pre" ^ pp.Word("pr")("first")) + pp.Word(pp.alphas)("second")
+        result = expr.parseString("pre eggs")
+        print(result)
+        expected_l = ["pre", "eggs"]
+        expected_d = {"second": "eggs"}
+        self.assertParseResultsEquals(
+            result,
+            expected_list=expected_l,
+            expected_dict=expected_d,
+            msg="issue with str ^ ParserElement",
+        )
+
+        # ParserElement ^ int
+        with self.assertWarns(SyntaxWarning, msg="failed to warn ParserElement ^ int"):
+            expr = pp.Word(pp.alphas)("first") + (pp.Word(pp.alphas)("second") ^ 54)
+        with self.assertRaises(
+            AttributeError, msg="parsing None type should raise error"
+        ):
+            result = expr.parseString("spam eggs")
+
+        # int ^ ParserElement
+        with self.assertWarns(SyntaxWarning, msg="failed to warn ParserElement ^ int"):
+            expr = pp.Word(pp.alphas)("first") + (65 ^ pp.Word(pp.alphas)("second"))
+        with self.assertRaises(
+            AttributeError, msg="parsing None type should raise error"
+        ):
+            result = expr.parseString("spam eggs")
+
     def testParseResultsNewEdgeCases(self):
         """test less common paths of ParseResults.__new__()"""
 
