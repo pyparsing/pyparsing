@@ -135,7 +135,7 @@ def matchPreviousExpr(expr):
 
 
 def oneOf(strs, caseless=False, useRegex=True, asKeyword=False):
-    """Helper to quickly define a set of alternative :class:`Literal`\ s,
+    """Helper to quickly define a set of alternative :class:`Literal` s,
     and makes sure to do longest-first testing when there is a conflict,
     regardless of the input order, but returns
     a :class:`MatchFirst` for best performance.

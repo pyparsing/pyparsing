@@ -447,7 +447,7 @@ class ParserElement:
 
         Note: the default parsing behavior is to expand tabs in the input string
         before starting the parsing process.  See :class:`parseString` for more
-        information on parsing strings containing ``<TAB>``\ s, and suggested
+        information on parsing strings containing ``<TAB>`` s, and suggested
         methods to maintain a consistent view of the parsed string, the parse
         location, and line and column positions within the parsed string.
 
@@ -1367,7 +1367,7 @@ class ParserElement:
 
     def parseWithTabs(self):
         """
-        Overrides default behavior to expand ``<TAB>``\ s to spaces before parsing the input string.
+        Overrides default behavior to expand ``<TAB>`` s to spaces before parsing the input string.
         Must be called before ``parseString`` when the input grammar contains elements that
         match ``<TAB>`` characters.
         """
@@ -3093,7 +3093,7 @@ class ParseExpression(ParserElement):
 
 class And(ParseExpression):
     """
-    Requires all given :class:`ParseExpression`\ s to be found in the given order.
+    Requires all given :class:`ParseExpression` s to be found in the given order.
     Expressions may be separated by whitespace.
     May be constructed using the ``'+'`` operator.
     May also be constructed using the ``'-'`` operator, which will
@@ -3469,7 +3469,7 @@ class MatchFirst(ParseExpression):
 
 
 class Each(ParseExpression):
-    """Requires all given :class:`ParseExpression`\ s to be found, but in
+    """Requires all given :class:`ParseExpression` s to be found, but in
     any order. Expressions may be separated by whitespace.
 
     May be constructed using the ``'&'`` operator.
