@@ -124,6 +124,11 @@ Version 3.0.0a1
   - reset_pyparsing_context context manager, to restore pyparsing
     config settings
 
+- Enhanced error messages and error locations when parsing fails on
+  the Keyword or CaselessKeyword classes due to the presence of a
+  preceding or trailing keyword character. Surfaced while
+  working with metaperl on issue #201.
+
 - Enhanced the Regex class to be compatible with re's compiled with the
   re-equivalent regex module. Individual expressions can be built with
   regex compiled expressions using:

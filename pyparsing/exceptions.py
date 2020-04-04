@@ -1,5 +1,6 @@
 # exceptions.py
 
+import sys
 from pyparsing.util import col, line, lineno
 
 

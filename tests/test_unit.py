@@ -2417,7 +2417,7 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
         values_set = set(result.values())
         print(values_set)
         expected = {"spam", "eggs"}
-        self.assertEquals(
+        self.assertEqual(
             values_set, expected, msg="issue calling ParseResults.values()"
         )
 
@@ -5496,6 +5496,67 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
                 self.assertTrue(
                     False, "failed to match keyword using updated keyword chars"
                 )
+
+    def testLiteralVsKeyword(self):
+
+        integer = ppc.integer
+        literal_expr = integer + pp.Literal("start") + integer
+        keyword_expr = integer + pp.Keyword("start") + integer
+        caseless_keyword_expr = integer + pp.CaselessKeyword("START") + integer
+        word_keyword_expr = (
+            integer + pp.Word(pp.alphas, asKeyword=True).setName("word") + integer
+        )
+
+        print()
+        test_string = "1 start 2"
+        print(test_string)
+        print(literal_expr, literal_expr.parseString(test_string, parseAll=True))
+        print(keyword_expr, keyword_expr.parseString(test_string, parseAll=True))
+        print(
+            caseless_keyword_expr,
+            caseless_keyword_expr.parseString(test_string, parseAll=True),
+        )
+        print(
+            word_keyword_expr, word_keyword_expr.parseString(test_string, parseAll=True)
+        )
+        print()
+
+        test_string = "3 start4"
+        print(test_string)
+        print(literal_expr, literal_expr.parseString(test_string, parseAll=True))
+        with self.assertRaisesParseException(
+            msg="failed to fail matching keyword using updated keyword chars"
+        ):
+            print(keyword_expr.parseString(test_string, parseAll=True))
+
+        with self.assertRaisesParseException(
+            msg="failed to fail matching keyword using updated keyword chars"
+        ):
+            print(caseless_keyword_expr.parseString(test_string, parseAll=True))
+
+        with self.assertRaisesParseException(
+            msg="failed to fail matching keyword using updated keyword chars"
+        ):
+            print(word_keyword_expr.parseString(test_string, parseAll=True))
+        print()
+
+        test_string = "5start 6"
+        print(test_string)
+        print(literal_expr.parseString(test_string, parseAll=True))
+        with self.assertRaisesParseException(
+            msg="failed to fail matching keyword using updated keyword chars"
+        ):
+            print(keyword_expr.parseString(test_string, parseAll=True))
+
+        with self.assertRaisesParseException(
+            msg="failed to fail matching keyword using updated keyword chars"
+        ):
+            print(caseless_keyword_expr.parseString(test_string, parseAll=True))
+
+        with self.assertRaisesParseException(
+            msg="failed to fail matching keyword using updated keyword chars"
+        ):
+            print(word_keyword_expr.parseString(test_string, parseAll=True))
 
     def testCol(self):
 

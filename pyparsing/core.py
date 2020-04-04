@@ -54,7 +54,7 @@ str_type = (str, bytes)
 #
 
 __version__ = "3.0.0a1"
-__versionTime__ = "30 Mar 2020 00:24 UTC"
+__versionTime__ = "3 Apr 2020 22:54 UTC"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 
@@ -1886,7 +1886,7 @@ class Keyword(Token):
                 stacklevel=2,
             )
         self.name = '"%s"' % self.match
-        self.errmsg = "Expected " + self.name
+        self.errmsg = "Expected {} {}".format(type(self).__name__, self.name)
         self.mayReturnEmpty = False
         self.mayIndexError = False
         self.caseless = caseless
@@ -1896,30 +1896,51 @@ class Keyword(Token):
         self.identChars = set(identChars)
 
     def parseImpl(self, instring, loc, doActions=True):
+        errmsg = self.errmsg
+        errloc = loc
         if self.caseless:
-            if (
-                (instring[loc : loc + self.matchLen].upper() == self.caselessmatch)
-                and (
-                    loc >= len(instring) - self.matchLen
-                    or instring[loc + self.matchLen].upper() not in self.identChars
-                )
-                and (loc == 0 or instring[loc - 1].upper() not in self.identChars)
-            ):
-                return loc + self.matchLen, self.match
+            if instring[loc : loc + self.matchLen].upper() == self.caselessmatch:
+                if loc == 0 or instring[loc - 1].upper() not in self.identChars:
+                    if (
+                        loc >= len(instring) - self.matchLen
+                        or instring[loc + self.matchLen].upper() not in self.identChars
+                    ):
+                        return loc + self.matchLen, self.match
+                    else:
+                        # followed by keyword char
+                        errmsg += ", was immediately followed by keyword character"
+                        errloc = loc + self.matchLen
+                else:
+                    # preceded by keyword char
+                    errmsg += ", keyword was immediately preceded by keyword character"
+                    errloc = loc - 1
+            # else no match just raise plain exception
 
         else:
-            if instring[loc] == self.firstMatchChar:
-                if (
-                    (self.matchLen == 1 or instring.startswith(self.match, loc))
-                    and (
+            if (
+                instring[loc] == self.firstMatchChar
+                and self.matchLen == 1
+                or instring.startswith(self.match, loc)
+            ):
+                if loc == 0 or instring[loc - 1] not in self.identChars:
+                    if (
                         loc >= len(instring) - self.matchLen
                         or instring[loc + self.matchLen] not in self.identChars
-                    )
-                    and (loc == 0 or instring[loc - 1] not in self.identChars)
-                ):
-                    return loc + self.matchLen, self.match
+                    ):
+                        return loc + self.matchLen, self.match
+                    else:
+                        # followed by keyword char
+                        errmsg += (
+                            ", keyword was immediately followed by keyword character"
+                        )
+                        errloc = loc + self.matchLen
+                else:
+                    # preceded by keyword char
+                    errmsg += ", keyword was immediately preceded by keyword character"
+                    errloc = loc - 1
+            # else no match just raise plain exception
 
-        raise ParseException(instring, loc, self.errmsg, self)
+        raise ParseException(instring, errloc, errmsg, self)
 
     def copy(self):
         c = super().copy()
