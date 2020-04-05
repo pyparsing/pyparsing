@@ -2,8 +2,8 @@
 Change Log
 ==========
 
-Version 3.0.0a1
----------------
+Version 3.0.0a1 - April, 2020
+-----------------------------
 - Removed Py2.x support and other deprecated features. Pyparsing
   now requires Python 3.5 or later. If you are using an earlier
   version of Python, you must use a Pyparsing 2.4.x version

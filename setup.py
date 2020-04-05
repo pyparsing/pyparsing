@@ -7,6 +7,7 @@ try:
 except ImportError:
     from distutils.core import setup
 import io
+from pyparsing import __version__ as pyparsing_version
 
 # The text of the README file
 README_name = __file__.replace("setup.py", "README.rst")
@@ -16,8 +17,6 @@ with io.open(README_name, encoding="utf8") as README:
 packages = [
     "pyparsing",
 ]
-
-pyparsing_version = "3.0.0.dev1"
 
 setup(  # Distribution meta-data
     name="pyparsing",

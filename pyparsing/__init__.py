@@ -95,7 +95,7 @@ classes inherit from. Use the docstrings for examples of how to:
 """
 
 __version__ = "3.0.0a1"
-__versionTime__ = "05 Jan 2020 02:35 UTC"
+__versionTime__ = "04 Apr 2020 01:25 UTC"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 from pyparsing.util import *
