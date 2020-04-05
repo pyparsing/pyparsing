@@ -196,6 +196,18 @@ Version 3.0.0a1 - April, 2020
   a few.
 
 
+Version 2.4.7 - March, 2020 (April, actually)
+---------------------------------------------
+- Backport of selected fixes from 3.0.0 work:
+  . Each bug with Regex expressions
+  . And expressions not properly constructing with generator
+  . Traceback abbreviation
+  . Bug in delta_time example
+  . Fix regexen in pyparsing_common.real and .sci_real
+  . Avoid FutureWarning on Python 3.7 or later
+  . Cleanup output in runTests if comments are embedded in test string
+
+
 Version 2.4.6 - December, 2019
 ------------------------------
 - Fixed typos in White mapping of whitespace characters, to use
