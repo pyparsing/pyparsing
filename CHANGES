@@ -188,6 +188,13 @@ Version 3.0.0a1 - April, 2020
 - Minor reformatting of output from runTests to make embedded
   comments more visible.
 
+- And finally, many thanks to those who helped in the restructuring
+  of the pyparsing code base as part of this release. Pyparsing now
+  has more standard package structure, more standard unit tests,
+  and more standard code formatting (using black). Special thanks
+  to jdufresne, klahnakoski, mattcarmody, and ckeygusuz, to name just
+  a few.
+
 
 Version 2.4.6 - December, 2019
 ------------------------------
