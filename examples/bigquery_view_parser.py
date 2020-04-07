@@ -13,6 +13,8 @@ from pyparsing import QuotedString, CharsNotIn, Optional, Group, ZeroOrMore
 from pyparsing import oneOf, delimitedList, restOfLine, cStyleComment
 from pyparsing import infixNotation, opAssoc, Regex, nums
 
+ParserElement.enablePackrat()
+
 
 class BigQueryViewParser:
     """Parser to extract table info from BigQuery view definitions"""

@@ -17,7 +17,10 @@ from pyparsing import (
     opAssoc,
     infixNotation,
     Literal,
+    ParserElement,
 )
+
+ParserElement.enablePackrat()
 
 
 class EvalConstant:

@@ -6,8 +6,11 @@
 #
 # Copyright 2006, by Paul McGuire
 #
-
+import sys
 from pyparsing import *
+
+ParserElement.enablePackrat()
+sys.setrecursionlimit(3000)
 
 integer = Word(nums).setParseAction(lambda t: int(t[0]))
 variable = Word(alphas, exact=1)
@@ -64,6 +67,11 @@ test = [
     "M*X + B",
     "M*(X + B)",
     "1+2*-3^4*5+-+-6",
+    "(a + b)",
+    "((a + b))",
+    "(((a + b)))",
+    "((((a + b))))",
+    "((((((((((((((a + b))))))))))))))",
 ]
 for t in test:
     print(t)

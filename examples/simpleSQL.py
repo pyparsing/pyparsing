@@ -19,8 +19,11 @@ from pyparsing import (
     opAssoc,
     restOfLine,
     CaselessKeyword,
+    ParserElement,
     pyparsing_common as ppc,
 )
+
+ParserElement.enablePackrat()
 
 # define SQL tokens
 selectStmt = Forward()
