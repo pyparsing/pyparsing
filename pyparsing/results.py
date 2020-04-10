@@ -391,7 +391,7 @@ class ParseResults:
             return other + self
 
     def __repr__(self):
-        return "(%s, %s)" % (repr(self._toklist), repr(self._tokdict))
+        return "(%s, %s)" % (repr(self._toklist), self.asDict())
 
     def __str__(self):
         return (

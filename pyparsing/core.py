@@ -53,10 +53,6 @@ str_type = (str, bytes)
 # SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #
 
-__version__ = "3.0.0a1"
-__versionTime__ = "3 Apr 2020 22:54 UTC"
-__author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
-
 
 class __compat__(__config_flags):
     """

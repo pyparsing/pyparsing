@@ -7073,6 +7073,33 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             "multiplied(3) failure with setResultsName",
         )
 
+    def testParseResultsReprWithResultsNames(self):
+        word = pp.Word(pp.printables)("word")
+        res = word[...].parseString("test blub")
+
+        print(repr(res))
+        print(res["word"])
+        print(res.asDict())
+
+        self.assertEqual(
+            "(['test', 'blub'], {'word': 'blub'})",
+            repr(res),
+            "incorrect repr for ParseResults with listAllMatches=False",
+        )
+
+        word = pp.Word(pp.printables)("word*")
+        res = word[...].parseString("test blub")
+
+        print(repr(res))
+        print(res["word"])
+        print(res.asDict())
+
+        self.assertEqual(
+            "(['test', 'blub'], {'word': ['test', 'blub']})",
+            repr(res),
+            "incorrect repr for ParseResults with listAllMatches=True",
+        )
+
     def testWarnUsingLshiftForward(self):
         import warnings
 
