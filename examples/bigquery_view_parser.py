@@ -687,7 +687,7 @@ class BigQueryViewParser:
                 + Suppress(".")
             )
             + (quoted_table_part("table") | standard_table_part("table"))
-        ).setParseAction(lambda t: record_table_identifier(t))
+        ).setParseAction(record_table_identifier)
 
         def record_quoted_table_identifier(t):
             identifier_list = t.asList()[0].split(".")
@@ -702,7 +702,7 @@ class BigQueryViewParser:
             Suppress('"') + CharsNotIn('"') + Suppress('"')
             | Suppress("'") + CharsNotIn("'") + Suppress("'")
             | Suppress("`") + CharsNotIn("`") + Suppress("`")
-        ).setParseAction(lambda t: record_quoted_table_identifier(t))
+        ).setParseAction(record_quoted_table_identifier)
 
         table_identifier = (
             quoted_table_parts_identifier | quotable_table_parts_identifier
@@ -809,7 +809,7 @@ class BigQueryViewParser:
             cls._with_aliases.add(tuple(padded_list))
 
         with_clause = Group(
-            identifier.setParseAction(lambda t: record_with_alias(t))
+            identifier.setParseAction(record_with_alias)
             + AS
             + LPAR
             + select_stmt
@@ -821,6 +821,24 @@ class BigQueryViewParser:
         cls._parser = select_stmt
         return cls._parser
 
+    def test(self, sql_stmt, expected_tables, verbose=False):
+        def print_(*args):
+            if verbose:
+                print(*args)
+
+        print_(sql_stmt.strip())
+        found_tables = self.get_table_names(sql_stmt)
+        print_(found_tables)
+        expected_tables_set = set(expected_tables)
+
+        if expected_tables_set != found_tables:
+            raise Exception(
+                f"Test {test_index} failed- expected {expected_tables_set} but got {found_tables}"
+            )
+        print_()
+
+
+if __name__ == "__main__":
     TEST_CASES = [
         [
             """
@@ -1629,18 +1647,7 @@ class BigQueryViewParser:
         ],
     ]
 
-    def test(self):
-        for test_index, test_case in enumerate(BigQueryViewParser.TEST_CASES):
-            sql_stmt, expected_tables = test_case
-
-            found_tables = self.get_table_names(sql_stmt)
-            expected_tables_set = set(expected_tables)
-
-            if expected_tables_set != found_tables:
-                raise Exception(
-                    f"Test {test_index} failed- expected {expected_tables_set} but got {found_tables}"
-                )
-
-
-if __name__ == "__main__":
-    BigQueryViewParser().test()
+    parser = BigQueryViewParser()
+    for test_index, test_case in enumerate(TEST_CASES):
+        sql, expected = test_case
+        parser.test(sql_stmt=sql, expected_tables=expected, verbose=True)
