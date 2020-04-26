@@ -23,16 +23,16 @@ tupleStr = pp.Forward()
 listStr = pp.Forward()
 dictStr = pp.Forward()
 
-pp.unicodeString.setParseAction(lambda t: t[0][2:-1])
-pp.quotedString.setParseAction(lambda t: t[0][1:-1])
-boolLiteral = pp.oneOf("True False").setParseAction(cvtBool)
-noneLiteral = pp.Literal("None").setParseAction(pp.replaceWith(None))
+unistr = pp.unicodeString().setParseAction(lambda t: t[0][2:-1])
+quoted_str = pp.quotedString().setParseAction(lambda t: t[0][1:-1])
+boolLiteral = pp.oneOf("True False", asKeyword=True).setParseAction(cvtBool)
+noneLiteral = pp.Keyword("None").setParseAction(pp.replaceWith(None))
 
 listItem = (
     real
     | integer
-    | pp.quotedString
-    | pp.unicodeString
+    | quoted_str
+    | unistr
     | boolLiteral
     | noneLiteral
     | pp.Group(listStr)
@@ -40,18 +40,18 @@ listItem = (
     | dictStr
 )
 
-tupleStr << (
+tupleStr <<= (
     lparen + pp.Optional(pp.delimitedList(listItem)) + pp.Optional(comma) + rparen
 )
 tupleStr.setParseAction(cvtTuple)
 
-listStr << (
+listStr <<= (
     lbrack + pp.Optional(pp.delimitedList(listItem) + pp.Optional(comma)) + rbrack
 )
 listStr.setParseAction(cvtList, lambda t: t[0])
 
 dictEntry = pp.Group(listItem + colon + listItem)
-dictStr << (
+dictStr <<= (
     lbrace + pp.Optional(pp.delimitedList(dictEntry) + pp.Optional(comma)) + rbrace
 )
 dictStr.setParseAction(cvtDict)

@@ -26,7 +26,11 @@ element = pp.Word(pp.alphas.upper(), pp.alphas.lower(), max=2)
 elementRef = pp.Group(element + pp.Optional(pp.Word(digits), default="1"))
 formula = elementRef[...]
 
-fn = lambda elemList: sum(atomicWeight[elem] * int(qty) for elem, qty in elemList)
+
+def sum_atomic_weights(element_list):
+    return sum(atomicWeight[elem] * int(qty) for elem, qty in element_list)
+
+
 formula.runTests(
     """\
     H2O
@@ -34,7 +38,9 @@ formula.runTests(
     NaCl
     """,
     fullDump=False,
-    postParse=lambda _, tokens: "Molecular weight: {}".format(fn(tokens)),
+    postParse=lambda _, tokens: "Molecular weight: {}".format(
+        sum_atomic_weights(tokens)
+    ),
 )
 print()
 
@@ -44,9 +50,11 @@ elementRef = pp.Group(
 )
 formula = elementRef[...]
 
-fn = lambda elemList: sum(
-    atomicWeight[elem.symbol] * int(elem.qty) for elem in elemList
-)
+
+def sum_atomic_weights_by_results_name(element_list):
+    return sum(atomicWeight[elem.symbol] * int(elem.qty) for elem in element_list)
+
+
 formula.runTests(
     """\
     H2O
@@ -54,7 +62,9 @@ formula.runTests(
     NaCl
     """,
     fullDump=False,
-    postParse=lambda _, tokens: "Molecular weight: {}".format(fn(tokens)),
+    postParse=lambda _, tokens: "Molecular weight: {}".format(
+        sum_atomic_weights_by_results_name(tokens)
+    ),
 )
 print()
 
@@ -63,7 +73,11 @@ integer = pp.Word(digits).setParseAction(lambda t: int(t[0]))
 elementRef = pp.Group(element("symbol") + pp.Optional(integer, default=1)("qty"))
 formula = elementRef[...]
 
-fn = lambda elemList: sum(atomicWeight[elem.symbol] * elem.qty for elem in elemList)
+
+def sum_atomic_weights_by_results_name_with_converted_ints(element_list):
+    return sum(atomicWeight[elem.symbol] * int(elem.qty) for elem in element_list)
+
+
 formula.runTests(
     """\
     H2O
@@ -71,7 +85,9 @@ formula.runTests(
     NaCl
     """,
     fullDump=False,
-    postParse=lambda _, tokens: "Molecular weight: {}".format(fn(tokens)),
+    postParse=lambda _, tokens: "Molecular weight: {}".format(
+        sum_atomic_weights_by_results_name_with_converted_ints(tokens)
+    ),
 )
 print()
 
@@ -98,6 +114,8 @@ formula.runTests(
     NaCl
     """,
     fullDump=False,
-    postParse=lambda _, tokens: "Molecular weight: {}".format(fn(tokens)),
+    postParse=lambda _, tokens: "Molecular weight: {}".format(
+        sum_atomic_weights_by_results_name_with_converted_ints(tokens)
+    ),
 )
 print()

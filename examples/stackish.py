@@ -42,15 +42,14 @@ from pyparsing import (
     Group,
     ZeroOrMore,
     srange,
+    pyparsing_common as ppc,
 )
 
 MARK, UNMARK, AT, COLON, QUOTE = map(Suppress, "[]@:'")
 
-NUMBER = Word(nums)
-NUMBER.setParseAction(lambda t: int(t[0]))
-FLOAT = Combine(oneOf("+ -") + Word(nums) + "." + Optional(Word(nums)))
-FLOAT.setParseAction(lambda t: float(t[0]))
-STRING = QuotedString('"', multiline=True)
+NUMBER = ppc.integer()
+FLOAT = ppc.real()
+STRING = QuotedString('"', multiline=True) | QuotedString("'", multiline=True)
 WORD = Word(alphas, alphanums + "_:")
 ATTRIBUTE = Combine(AT + WORD)
 
@@ -87,18 +86,14 @@ GROUP = (
     )
     + (WORD("name") | UNMARK)
 ).setParseAction(assignUsing("name"))
-item << (NUMBER | FLOAT | STRING | BLOB | GROUP)
+item <<= FLOAT | NUMBER | STRING | BLOB | GROUP
 
-tests = """\
-[ '10:1234567890' @name 25 @age +0.45 @percentage person:zed
-[ [ "hello" 1 child root
-[ "child" [ 200 '4:like' "I" "hello" things root
-[ [ "data" [ 2 1 ] @numbers child root
-[ [ 1 2 3 ] @test 4 5 6 root
-""".splitlines()
-
-for test in tests:
-    if test:
-        print(test)
-        print(item.parseString(test).dump())
-        print()
+item.runTests(
+    """\
+    [ '10:1234567890' @name 25 @age +0.45 @percentage person:zed
+    [ [ "hello" 1 child root
+    [ "child" [ 200 '4:like' "I" "hello" things root
+    [ [ "data" [ 2 1 ] @numbers child root
+    [ [ 1 2 3 ] @test 4 5 6 root
+    """
+)

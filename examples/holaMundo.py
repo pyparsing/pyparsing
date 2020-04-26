@@ -55,8 +55,13 @@ numreal = Word(nums)
 numcomplex = numreal + "+" + numimag
 print(numcomplex.parseString("3+5i"))
 
-# Cambiar a complejo numero durante parsear:
-numcomplex.setParseAction(lambda t: complex("".join(t).replace("i", "j")))
+# Funcion para cambiar a complejo numero durante parsear:
+def hace_python_complejo(t):
+    valid_python = "".join(t).replace("i", "j")
+    return complex(valid_python)
+
+
+numcomplex.setParseAction(hace_python_complejo)
 print(numcomplex.parseString("3+5i"))
 
 # Excelente!!, bueno, los dejo, me voy a seguir tirando código...

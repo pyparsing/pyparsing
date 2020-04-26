@@ -35,7 +35,11 @@ class Circle(Shape):
 
 import pyparsing as pp
 
-number = pp.Regex(r"-?\d+(\.\d*)?").setParseAction(lambda t: float(t[0]))
+ppc = pp.pyparsing_common
+
+# use pyparsing-defined numeric expression that converts all parsed
+# numeric values as floats
+number = ppc.fnumber()
 
 # Shape expressions:
 #   square : S <centerx> <centery> <side>

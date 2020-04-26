@@ -9,10 +9,12 @@
 import sys
 from pyparsing import *
 
+ppc = pyparsing_common
+
 ParserElement.enablePackrat()
 sys.setrecursionlimit(3000)
 
-integer = Word(nums).setParseAction(lambda t: int(t[0]))
+integer = ppc.integer
 variable = Word(alphas, exact=1)
 operand = integer | variable
 
