@@ -81,7 +81,7 @@ arithExpr = infixNotation(
 textOperand = dblQuotedString | cellRef
 textExpr = infixNotation(textOperand, [("&", 2, opAssoc.LEFT),])
 
-expr <<= (arithExpr | textExpr)
+expr <<= arithExpr | textExpr
 
 
 (EQ + expr).runTests(
