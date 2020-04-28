@@ -45,7 +45,7 @@ def run_demo():
     print(book)
     try:
         book.checkout()
-    except Exception as e:  # statemachine.InvalidTransitionException:
+    except librarybookstate.BookState.InvalidTransitionException as e:
         print(e)
         print("..cannot check out reserved book")
     book.release()

@@ -8,6 +8,7 @@ import sys
 import os
 import types
 import importlib
+import importlib.machinery
 from urllib.parse import urlparse
 
 
