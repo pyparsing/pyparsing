@@ -2963,14 +2963,14 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             print("got maximum excursion limit exception")
 
     def testCountedArray(self):
-        from pyparsing import Word, nums, OneOrMore, countedArray
+        from pyparsing import Word, nums, OneOrMore, Group, countedArray
 
         testString = "2 5 7 6 0 1 2 3 4 5 0 3 5 4 3"
 
         integer = Word(nums).setParseAction(lambda t: int(t[0]))
         countedField = countedArray(integer)
 
-        r = OneOrMore(countedField).parseString(testString)
+        r = OneOrMore(Group(countedField)).parseString(testString)
         print(testString)
         print(r)
 
@@ -2980,7 +2980,7 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
 
     # addresses bug raised by Ralf Vosseler
     def testCountedArrayTest2(self):
-        from pyparsing import Word, nums, OneOrMore, countedArray
+        from pyparsing import Word, nums, OneOrMore, Group, countedArray
 
         testString = "2 5 7 6 0 1 2 3 4 5 0 3 5 4 3"
 
@@ -2988,7 +2988,7 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
         countedField = countedArray(integer)
 
         dummy = Word("A")
-        r = OneOrMore(dummy ^ countedField).parseString(testString)
+        r = OneOrMore(Group(dummy ^ countedField)).parseString(testString)
         print(testString)
         print(r)
 
@@ -2997,7 +2997,7 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
         )
 
     def testCountedArrayTest3(self):
-        from pyparsing import Word, nums, OneOrMore, countedArray, alphas
+        from pyparsing import Word, nums, OneOrMore, Group, countedArray, alphas
 
         int_chars = "_" + alphas
         array_counter = Word(int_chars).setParseAction(lambda t: int_chars.index(t[0]))
@@ -3008,7 +3008,7 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
         integer = Word(nums).setParseAction(lambda t: int(t[0]))
         countedField = countedArray(integer, intExpr=array_counter)
 
-        r = OneOrMore(countedField).parseString(testString)
+        r = OneOrMore(Group(countedField)).parseString(testString)
         print(testString)
         print(r)
 
