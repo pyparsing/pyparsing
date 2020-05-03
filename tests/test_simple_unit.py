@@ -503,7 +503,7 @@ class TestCommonHelperExpressions(PyparsingExpressionTestCase):
         ),
         PpTestSpec(
             desc="A counted array of words",
-            expr=pp.countedArray(pp.Word("ab"))[...],
+            expr=pp.Group(pp.countedArray(pp.Word("ab")))[...],
             text="2 aaa bbb 0 3 abab bbaa abbab",
             expected_list=[["aaa", "bbb"], [], ["abab", "bbaa", "abbab"]],
         ),

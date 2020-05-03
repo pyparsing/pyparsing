@@ -55,8 +55,9 @@ def countedArray(expr, intExpr=None):
 
     def countFieldParseAction(s, l, t):
         n = t[0]
-        arrayExpr << (n and Group(And([expr] * n)) or Group(empty))
-        return []
+        arrayExpr << (And([expr] * n) if n else empty)
+        # clear list contents, but keep any named results
+        del t[:]
 
     if intExpr is None:
         intExpr = Word(nums).setParseAction(lambda t: int(t[0]))
