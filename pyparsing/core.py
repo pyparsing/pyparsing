@@ -23,9 +23,9 @@ from .util import (
     _bslash,
     _flatten,
 )
-from pyparsing.exceptions import *
-from pyparsing.actions import *
-from pyparsing.results import ParseResults, _ParseResultsWithOffset
+from .exceptions import *
+from .actions import *
+from .results import ParseResults, _ParseResultsWithOffset
 
 _MAX_INT = sys.maxsize
 str_type = (str, bytes)

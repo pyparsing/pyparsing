@@ -1,6 +1,6 @@
 # helpers.py
-from pyparsing.core import *
-from pyparsing.util import _bslash, _flatten, _escapeRegexRangeChars
+from .core import *
+from .util import _bslash, _flatten, _escapeRegexRangeChars
 
 
 #
@@ -50,6 +50,19 @@ def countedArray(expr, intExpr=None):
         # '10' indicating that 2 values are in the array
         binaryConstant = Word('01').setParseAction(lambda t: int(t[0], 2))
         countedArray(Word(alphas), intExpr=binaryConstant).parseString('10 ab cd ef')  # -> ['ab', 'cd']
+
+        # if other fields must be parsed after the count but before the
+        # list items, give the fields results names and they will
+        # be preserved in the returned ParseResults:
+        count_with_metadata = integer + Word(alphas)("type")
+        typed_array = countedArray(Word(alphanums), intExpr=count_with_metadata)("items")
+        result = typed_array.parseString("3 bool True True False")
+        print(result.dump())
+
+        # prints
+        # ['True', 'True', 'False']
+        # - items: ['True', 'True', 'False']
+        # - type: 'bool'
     """
     arrayExpr = Forward()
 

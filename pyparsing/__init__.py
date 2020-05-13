@@ -95,22 +95,22 @@ classes inherit from. Use the docstrings for examples of how to:
 """
 
 __version__ = "3.0.0a2"
-__versionTime__ = "10 Apr 2020 21:46 UTC"
+__versionTime__ = "13 May 2020 19:13 UTC"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
-from pyparsing.util import *
-from pyparsing.exceptions import *
-from pyparsing.actions import *
-from pyparsing.core import __diag__, __compat__
-from pyparsing.results import *
-from pyparsing.core import *
-from pyparsing.core import _builtin_exprs as core_builtin_exprs
-from pyparsing.helpers import *
-from pyparsing.helpers import _builtin_exprs as helper_builtin_exprs
+from .util import *
+from .exceptions import *
+from .actions import *
+from .core import __diag__, __compat__
+from .results import *
+from .core import *
+from .core import _builtin_exprs as core_builtin_exprs
+from .helpers import *
+from .helpers import _builtin_exprs as helper_builtin_exprs
 
-from pyparsing.unicode import unicode_set, pyparsing_unicode as unicode
-from pyparsing.testing import pyparsing_test as testing
-from pyparsing.common import (
+from .unicode import unicode_set, pyparsing_unicode as unicode
+from .testing import pyparsing_test as testing
+from .common import (
     pyparsing_common as common,
     _builtin_exprs as common_builtin_exprs,
 )

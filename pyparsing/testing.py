@@ -2,7 +2,7 @@
 
 from contextlib import contextmanager
 
-from pyparsing.core import (
+from .core import (
     ParserElement,
     ParseException,
     Keyword,
