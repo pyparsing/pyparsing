@@ -3275,6 +3275,67 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             r, expected_list=[[5, 7], [0, 1, 2, 3, 4, 5], [], [5, 4, 3]]
         )
 
+    def testCountedArrayTest4(self):
+        import pyparsing as pp
+
+        ppc = pp.pyparsing_common
+
+        # array counter contains several fields - first field *must* be the number of
+        # items in the array
+        # - number of elements
+        # - type of elements
+        # - source of elements
+        counter_with_metadata = (
+            ppc.integer("count") + ppc.identifier("type") + ppc.identifier("source")
+        )
+
+        countedField = pp.countedArray(
+            pp.Word(pp.alphanums), intExpr=counter_with_metadata
+        )
+
+        testString = (
+            "5 string input item1 item2 item3 item4 item5 0 int user 2 int file 3 8"
+        )
+        r = pp.Group(countedField("items"))[...].parseString(testString, parseAll=True)
+
+        print(testString)
+        print(r.dump())
+        print("type = {!r}".format(r.type))
+        print("source = {!r}".format(r.source))
+
+        self.assertParseResultsEquals(
+            r,
+            expected_list=[
+                ["item1", "item2", "item3", "item4", "item5"],
+                [],
+                ["3", "8"],
+            ],
+        )
+
+        self.assertParseResultsEquals(
+            r[0],
+            expected_dict={
+                "count": 5,
+                "source": "input",
+                "type": "string",
+                "items": ["item1", "item2", "item3", "item4", "item5"],
+            },
+        )
+
+        # parse with additional fields between the count and the actual list items
+        count_with_metadata = ppc.integer + pp.Word(pp.alphas)("type")
+        typed_array = pp.countedArray(
+            pp.Word(pp.alphanums), intExpr=count_with_metadata
+        )("items")
+        result = typed_array.parseString("3 bool True True False")
+        print(result.dump())
+
+        self.assertParseResultsEquals(
+            result,
+            expected_list=["True", "True", "False"],
+            expected_dict={"type": "bool", "items": ["True", "True", "False"]},
+        )
+
     def testLineStart(self):
 
         pass_tests = [
