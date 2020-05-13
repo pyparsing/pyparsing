@@ -1247,10 +1247,9 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             )
 
     def testParseKeyword(self):
-        from pyparsing import Literal, Keyword
 
-        kw = Keyword("if")
-        lit = Literal("if")
+        kw = pp.Keyword("if")
+        lit = pp.Literal("if")
 
         def test(s, litShouldPass, kwShouldPass):
             print("Test", s)
@@ -1280,11 +1279,16 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
         test("if(OnlyIfOnly)", True, True)
         test("if (OnlyIf Only)", True, True)
 
-        kw = Keyword("if", caseless=True)
+        kw = pp.Keyword("if", caseless=True)
 
         test("IFOnlyIfOnly", False, False)
         test("If(OnlyIfOnly)", False, True)
         test("iF (OnlyIf Only)", False, True)
+
+        with self.assertWarns(
+            SyntaxWarning, msg="failed to warn empty string passed to Keyword"
+        ):
+            kw = pp.Keyword("")
 
     def testParseExpressionResultsAccumulate(self):
         from pyparsing import Word, delimitedList, Combine, alphas, nums
@@ -2365,6 +2369,261 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             msg="Failed accessing named results containing a tuple, "
             "got {!r}".format(res.Achar),
         )
+
+    def testParserElementAddOperatorWithOtherTypes(self):
+        """test the overridden "+" operator with other data types"""
+
+        # ParserElement + str
+        expr = pp.Word(pp.alphas)("first") + pp.Word(pp.alphas)("second") + "suf"
+        result = expr.parseString("spam eggs suf")
+        print(result)
+
+        expected_l = ["spam", "eggs", "suf"]
+        self.assertParseResultsEquals(
+            result, expected_l, msg="issue with ParserElement + str",
+        )
+
+        # str + ParserElement
+        expr = "pre" + pp.Word(pp.alphas)("first") + pp.Word(pp.alphas)("second")
+        result = expr.parseString("pre spam eggs")
+        print(result)
+
+        expected_l = ["pre", "spam", "eggs"]
+        self.assertParseResultsEquals(
+            result, expected_l, msg="issue with str + ParserElement",
+        )
+
+        # ParserElement + int
+        with self.assertWarns(SyntaxWarning, msg="failed to warn ParserElement + int"):
+            expr = pp.Word(pp.alphas)("first") + pp.Word(pp.alphas)("second") + 12
+        self.assertEqual(expr, None)
+
+        # int + ParserElement
+        with self.assertWarns(SyntaxWarning, msg="failed to warn int + ParserElement"):
+            expr = 12 + pp.Word(pp.alphas)("first") + pp.Word(pp.alphas)("second")
+        self.assertEqual(expr, None)
+
+    def testParserElementSubOperatorWithOtherTypes(self):
+        """test the overridden "-" operator with other data types"""
+
+        # ParserElement - str
+        expr = pp.Word(pp.alphas)("first") + pp.Word(pp.alphas)("second") - "suf"
+        result = expr.parseString("spam eggs suf")
+        print(result)
+        expected = ["spam", "eggs", "suf"]
+        self.assertParseResultsEquals(
+            result, expected, msg="issue with ParserElement - str"
+        )
+
+        # str - ParserElement
+        expr = "pre" - pp.Word(pp.alphas)("first") + pp.Word(pp.alphas)("second")
+        result = expr.parseString("pre spam eggs")
+        print(result)
+        expected = ["pre", "spam", "eggs"]
+        self.assertParseResultsEquals(
+            result, expected, msg="issue with str - ParserElement"
+        )
+
+        # ParserElement - int
+        with self.assertWarns(SyntaxWarning, msg="failed to warn ParserElement - int"):
+            expr = pp.Word(pp.alphas)("first") + pp.Word(pp.alphas)("second") - 12
+        self.assertEqual(expr, None)
+
+        # int - ParserElement
+        with self.assertWarns(SyntaxWarning, msg="failed to warn int - ParserElement"):
+            expr = 12 - pp.Word(pp.alphas)("first") + pp.Word(pp.alphas)("second")
+        self.assertEqual(expr, None)
+
+    def testParserElementMulOperatorWithTuples(self):
+        """test ParserElement "*" with various tuples"""
+
+        # ParserElement * (0, 0)
+        with self.assertRaises(
+            ValueError, msg="ParserElement * (0,0) should raise error"
+        ):
+            expr = pp.Word(pp.alphas)("first") + pp.Word(pp.nums)("second*") * (0, 0)
+
+        # ParserElement * (None, n)
+        expr = pp.Word(pp.alphas)("first") + pp.Word(pp.nums)("second*") * (None, 3)
+
+        results1 = expr.parseString("spam")
+        print(results1.dump())
+        expected = ["spam"]
+        self.assertParseResultsEquals(
+            results1, expected, msg="issue with ParserElement * w/ optional matches"
+        )
+
+        results2 = expr.parseString("spam 12 23 34")
+        print(results2.dump())
+        expected = ["spam", "12", "23", "34"]
+        self.assertParseResultsEquals(
+            results2, expected, msg="issue with ParserElement * w/ optional matches"
+        )
+
+        # ParserElement * (1, 1)
+        expr = pp.Word(pp.alphas)("first") + pp.Word(pp.nums)("second*") * (1, 1)
+        results = expr.parseString("spam 45")
+        print(results.dump())
+
+        expected = ["spam", "45"]
+        self.assertParseResultsEquals(
+            results, expected, msg="issue with ParserElement * (1, 1)"
+        )
+
+        # ParserElement * (1, 1+n)
+        expr = pp.Word(pp.alphas)("first") + pp.Word(pp.nums)("second*") * (1, 3)
+
+        results1 = expr.parseString("spam 100")
+        print(results1.dump())
+        expected = ["spam", "100"]
+        self.assertParseResultsEquals(
+            results1, expected, msg="issue with ParserElement * (1, 1+n)"
+        )
+
+        results2 = expr.parseString("spam 100 200 300")
+        print(results2.dump())
+        expected = ["spam", "100", "200", "300"]
+        self.assertParseResultsEquals(
+            results2, expected, msg="issue with ParserElement * (1, 1+n)"
+        )
+
+        # ParserElement * (lesser, greater)
+        expr = pp.Word(pp.alphas)("first") + pp.Word(pp.nums)("second*") * (2, 3)
+
+        results1 = expr.parseString("spam 1 2")
+        print(results1.dump())
+        expected = ["spam", "1", "2"]
+        self.assertParseResultsEquals(
+            results1, expected, msg="issue with ParserElement * (lesser, greater)"
+        )
+
+        results2 = expr.parseString("spam 1 2 3")
+        print(results2.dump())
+        expected = ["spam", "1", "2", "3"]
+        self.assertParseResultsEquals(
+            results2, expected, msg="issue with ParserElement * (lesser, greater)"
+        )
+
+        # ParserElement * (greater, lesser)
+        with self.assertRaises(
+            ValueError, msg="ParserElement * (greater, lesser) should raise error"
+        ):
+            expr = pp.Word(pp.alphas)("first") + pp.Word(pp.nums)("second") * (3, 2)
+
+        # ParserElement * (str, str)
+        with self.assertRaises(
+            TypeError, msg="ParserElement * (str, str) should raise error"
+        ):
+            expr = pp.Word(pp.alphas)("first") + pp.Word(pp.nums)("second") * ("2", "3")
+
+    def testParserElementMulOperatorWithOtherTypes(self):
+        """test the overridden "*" operator with other data types"""
+
+        # ParserElement * str
+        with self.assertRaises(TypeError, msg="ParserElement * str should raise error"):
+            expr = pp.Word(pp.alphas)("first") + pp.Word(pp.nums)("second") * "3"
+
+        # str * ParserElement
+        with self.assertRaises(TypeError, msg="str * ParserElement should raise error"):
+            expr = pp.Word(pp.alphas)("first") + "3" * pp.Word(pp.nums)("second")
+
+        # ParserElement * int
+        expr = pp.Word(pp.alphas)("first") + pp.Word(pp.nums)("second*") * 2
+        results = expr.parseString("spam 11 22")
+
+        print(results.dump())
+        expected = ["spam", "11", "22"]
+        self.assertParseResultsEquals(
+            results, expected, msg="issue with ParserElement * int"
+        )
+
+        # int * ParserElement
+        expr = pp.Word(pp.alphas)("first") + 2 * pp.Word(pp.nums)("second*")
+        results = expr.parseString("spam 111 222")
+
+        print(results.dump())
+        expected = ["spam", "111", "222"]
+        self.assertParseResultsEquals(
+            results, expected, msg="issue with int * ParserElement"
+        )
+
+    def testParserElementMatchFirstOperatorWithOtherTypes(self):
+        """test the overridden "|" operator with other data types"""
+
+        # ParserElement | int
+        with self.assertWarns(SyntaxWarning, msg="failed to warn ParserElement | int"):
+            expr = pp.Word(pp.alphas)("first") + (pp.Word(pp.alphas)("second") | 12)
+        self.assertEqual(expr, None)
+
+        # int | ParserElement
+        with self.assertWarns(SyntaxWarning, msg="failed to warn int | ParserElement"):
+            expr = pp.Word(pp.alphas)("first") + (12 | pp.Word(pp.alphas)("second"))
+        self.assertEqual(expr, None)
+
+    def testParserElementMatchLongestWithOtherTypes(self):
+        """test the overridden "^" operator with other data types"""
+
+        # ParserElement ^ str
+        expr = pp.Word(pp.alphas)("first") + (pp.Word(pp.nums)("second") ^ "eggs")
+        result = expr.parseString("spam eggs")
+        print(result)
+
+        expected = ["spam", "eggs"]
+        self.assertParseResultsEquals(
+            result, expected, msg="issue with ParserElement ^ str"
+        )
+
+        # str ^ ParserElement
+        expr = ("pre" ^ pp.Word("pr")("first")) + pp.Word(pp.alphas)("second")
+        result = expr.parseString("pre eggs")
+        print(result)
+
+        expected = ["pre", "eggs"]
+        self.assertParseResultsEquals(
+            result, expected, msg="issue with str ^ ParserElement",
+        )
+
+        # ParserElement ^ int
+        with self.assertWarns(SyntaxWarning, msg="failed to warn ParserElement ^ int"):
+            expr = pp.Word(pp.alphas)("first") + (pp.Word(pp.alphas)("second") ^ 54)
+        self.assertEqual(expr, None)
+
+        # int ^ ParserElement
+        with self.assertWarns(SyntaxWarning, msg="failed to warn int ^ ParserElement"):
+            expr = pp.Word(pp.alphas)("first") + (65 ^ pp.Word(pp.alphas)("second"))
+        self.assertEqual(expr, None)
+
+    def testParserElementEachOperatorWithOtherTypes(self):
+        """test the overridden "&" operator with other data types"""
+
+        # ParserElement & str
+        expr = pp.Word(pp.alphas)("first") + (pp.Word(pp.alphas)("second") & "and")
+        with self.assertRaisesParseException(msg="issue with ParserElement & str"):
+            result = expr.parseString("spam and eggs")
+
+        # str & ParserElement
+        expr = pp.Word(pp.alphas)("first") + ("and" & pp.Word(pp.alphas)("second"))
+        result = expr.parseString("spam and eggs")
+
+        print(result.dump())
+        expected_l = ["spam", "and", "eggs"]
+        expected_d = {"first": "spam", "second": "eggs"}
+        self.assertParseResultsEquals(
+            result,
+            expected_list=expected_l,
+            expected_dict=expected_d,
+            msg="issue with str & ParserElement",
+        )
+
+        # ParserElement & int
+        with self.assertWarns(SyntaxWarning, msg="failed to warn ParserElement & int"):
+            expr = pp.Word(pp.alphas)("first") + (pp.Word(pp.alphas) & 78)
+        self.assertEqual(expr, None)
+
+        # int & ParserElement
+        with self.assertWarns(SyntaxWarning, msg="failed to warn int & ParserElement"):
+            expr = pp.Word(pp.alphas)("first") + (89 & pp.Word(pp.alphas))
+        self.assertEqual(expr, None)
 
     def testParseResultsNewEdgeCases(self):
         """test less common paths of ParseResults.__new__()"""
