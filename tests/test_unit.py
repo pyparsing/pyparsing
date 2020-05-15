@@ -1408,7 +1408,7 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
 
     def testSkipToParserTests(self):
 
-        from pyparsing import Literal, SkipTo, cStyleComment, ParseBaseException
+        from pyparsing import Literal, SkipTo, cStyleComment
 
         thingToFind = Literal("working")
         testExpr = (
@@ -3738,8 +3738,6 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
     def testSingleArgException(self):
         from pyparsing import ParseBaseException, ParseFatalException
 
-        msg = ""
-        raisedMsg = ""
         testMessage = "just one arg"
         try:
             raise ParseFatalException(testMessage)
