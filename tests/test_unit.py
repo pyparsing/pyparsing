@@ -4208,6 +4208,12 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             "failed WordExcludeTest",
         )
 
+    def testWordMinOfZero(self):
+        """test a Word with min=0"""
+
+        with self.assertRaises(ValueError, msg="expected min 0 to error"):
+            expr = pp.Word(pp.nums, min=0, max=10)
+
     def testParseAll(self):
         from pyparsing import Word, cppStyleComment
 
