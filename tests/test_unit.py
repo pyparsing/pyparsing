@@ -4238,6 +4238,45 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             result2, expected2, msg="issue with Char asKeyword=True parsing 2 chars"
         )
 
+    def testCharsNotIn(self):
+        """test CharsNotIn initialized with various arguments"""
+
+        vowels = "AEIOU"
+        tst = "bcdfghjklmnpqrstvwxyz"
+
+        # default args
+        consonants = pp.CharsNotIn(vowels)
+        result = consonants.parseString(tst)
+        print(result)
+        self.assertParseResultsEquals(
+            result, [tst], msg="issue with CharsNotIn w/ default args"
+        )
+
+        # min = 0
+        with self.assertRaises(ValueError, msg="issue with CharsNotIn w/ min=0"):
+            consonants = pp.CharsNotIn(vowels, min=0)
+
+        # max > 0
+        consonants = pp.CharsNotIn(vowels, max=5)
+        result = consonants.parseString(tst)
+        print(result)
+        self.assertParseResultsEquals(
+            result, [tst[:5]], msg="issue with CharsNotIn w max > 0"
+        )
+
+        # exact > 0
+        consonants = pp.CharsNotIn(vowels, exact=10)
+        result = consonants.parseString(tst[:10])
+        print(result)
+        self.assertParseResultsEquals(
+            result, [tst[:10]], msg="issue with CharsNotIn w/ exact > 0"
+        )
+
+        # min > length
+        consonants = pp.CharsNotIn(vowels, min=25)
+        with self.assertRaisesParseException(msg="issue with CharsNotIn min > tokens"):
+            result = consonants.parseString(tst)
+
     def testParseAll(self):
         from pyparsing import Word, cppStyleComment
 
