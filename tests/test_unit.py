@@ -4214,6 +4214,30 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
         with self.assertRaises(ValueError, msg="expected min 0 to error"):
             expr = pp.Word(pp.nums, min=0, max=10)
 
+    def testCharAsKeyword(self):
+        """test a Char with asKeyword=True"""
+
+        grade = pp.OneOrMore(pp.Char("ABCDF", asKeyword=True))
+
+        # all single char words
+        result = grade.parseString("B B C A D")
+
+        print(result)
+        expected = ["B", "B", "C", "A", "D"]
+        self.assertParseResultsEquals(
+            result, expected, msg="issue with Char asKeyword=True"
+        )
+
+        # NOT all single char words
+        test2 = "B BB C A D"
+        result2 = grade.parseString(test2)
+
+        print(result2)
+        expected2 = ["B"]
+        self.assertParseResultsEquals(
+            result2, expected2, msg="issue with Char asKeyword=True parsing 2 chars"
+        )
+
     def testParseAll(self):
         from pyparsing import Word, cppStyleComment
 
