@@ -1128,6 +1128,12 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             except Exception:
                 continue
 
+        # test invalid endQuoteChar
+        with self.assertRaises(
+            SyntaxError, msg="issue raising error for invalid endQuoteChar"
+        ):
+            expr = pp.QuotedString('"', endQuoteChar=" ")
+
     def testCaselessOneOf(self):
         from pyparsing import oneOf
 
