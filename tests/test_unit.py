@@ -2840,6 +2840,17 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             result, compare_list, msg="issue with ParseResults.insert()"
         )
 
+    def testIgnoreString(self):
+        """test ParserElement.ignore() passed a string arg"""
+
+        tst = "I like totally like love pickles"
+        expr = pp.Word(pp.alphas)[...].ignore("like")
+        result = expr.parseString(tst)
+
+        print(result)
+        expected = ["I", "totally", "love", "pickles"]
+        self.assertParseResultsEquals(result, expected, msg="issue with ignore(string)")
+
     def testParseHTMLTags(self):
         test = """
             <BODY>
