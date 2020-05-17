@@ -3225,6 +3225,14 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
         with self.assertRaises(SyntaxError):
             pp.Regex(r"<(.*?)>", asGroupList=True).sub("")
 
+    def testRegexInvalidType(self):
+        """test Regex of an invalid type"""
+
+        with self.assertRaisesParseException(
+            TypeError, msg="issue with Regex of type int"
+        ):
+            expr = pp.Regex(12)
+
     def testPrecededBy(self):
 
         num = pp.Word(pp.nums).setParseAction(lambda t: int(t[0]))
