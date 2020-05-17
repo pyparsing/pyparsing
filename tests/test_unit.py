@@ -2631,6 +2631,33 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             expr = pp.Word(pp.alphas)("first") + (89 & pp.Word(pp.alphas))
         self.assertEqual(expr, None)
 
+    def testParserElementPassedThreeArgsToMultiplierShorthand(self):
+        """test the ParserElement form expr[m,n,o]"""
+
+        with self.assertWarns(
+            UserWarning, msg="failed to warn three index arguments to expr[m, n, o]"
+        ):
+            expr = pp.Word(pp.alphas)[2, 3, 4]
+        result = expr.parseString("spam eggs grail")
+
+        print(result)
+        expected = ["spam", "eggs", "grail"]
+        self.assertParseResultsEquals(result, expected)
+
+        result2 = expr.parseString("spam eggs holy grail")
+
+        print(result2)
+        expected2 = ["spam", "eggs", "holy"]
+        self.assertParseResultsEquals(result2, expected2)
+
+    def testParserElementPassedStrToMultiplierShorthand(self):
+        """test the ParserElement form expr[str]"""
+
+        with self.assertRaises(
+            TypeError, msg="failed to raise expected error using string multiplier"
+        ):
+            expr2 = pp.Word(pp.alphas)["2"]
+
     def testParseResultsNewEdgeCases(self):
         """test less common paths of ParseResults.__new__()"""
 
