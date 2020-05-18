@@ -1127,6 +1127,12 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             except Exception:
                 continue
 
+        # test invalid endQuoteChar
+        with self.assertRaises(
+            SyntaxError, msg="issue raising error for invalid endQuoteChar"
+        ):
+            expr = pp.QuotedString('"', endQuoteChar=" ")
+
     def testCaselessOneOf(self):
 
         caseless1 = pp.oneOf("d a b c aA B A C", caseless=True)
@@ -2617,6 +2623,33 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             expr = pp.Word(pp.alphas)("first") + (89 & pp.Word(pp.alphas))
         self.assertEqual(expr, None)
 
+    def testParserElementPassedThreeArgsToMultiplierShorthand(self):
+        """test the ParserElement form expr[m,n,o]"""
+
+        with self.assertWarns(
+            UserWarning, msg="failed to warn three index arguments to expr[m, n, o]"
+        ):
+            expr = pp.Word(pp.alphas)[2, 3, 4]
+        result = expr.parseString("spam eggs grail")
+
+        print(result)
+        expected = ["spam", "eggs", "grail"]
+        self.assertParseResultsEquals(result, expected)
+
+        result2 = expr.parseString("spam eggs holy grail")
+
+        print(result2)
+        expected2 = ["spam", "eggs", "holy"]
+        self.assertParseResultsEquals(result2, expected2)
+
+    def testParserElementPassedStrToMultiplierShorthand(self):
+        """test the ParserElement form expr[str]"""
+
+        with self.assertRaises(
+            TypeError, msg="failed to raise expected error using string multiplier"
+        ):
+            expr2 = pp.Word(pp.alphas)["2"]
+
     def testParseResultsNewEdgeCases(self):
         """test less common paths of ParseResults.__new__()"""
 
@@ -2798,6 +2831,17 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
         self.assertParseResultsEquals(
             result, compare_list, msg="issue with ParseResults.insert()"
         )
+
+    def testIgnoreString(self):
+        """test ParserElement.ignore() passed a string arg"""
+
+        tst = "I like totally like love pickles"
+        expr = pp.Word(pp.alphas)[...].ignore("like")
+        result = expr.parseString(tst)
+
+        print(result)
+        expected = ["I", "totally", "love", "pickles"]
+        self.assertParseResultsEquals(result, expected, msg="issue with ignore(string)")
 
     def testParseHTMLTags(self):
         test = """
@@ -3172,6 +3216,14 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
 
         with self.assertRaises(SyntaxError):
             pp.Regex(r"<(.*?)>", asGroupList=True).sub("")
+
+    def testRegexInvalidType(self):
+        """test Regex of an invalid type"""
+
+        with self.assertRaisesParseException(
+            TypeError, msg="issue with Regex of type int"
+        ):
+            expr = pp.Regex(12)
 
     def testPrecededBy(self):
 
@@ -4113,6 +4165,75 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             result,
             "failed WordExcludeTest",
         )
+
+    def testWordMinOfZero(self):
+        """test a Word with min=0"""
+
+        with self.assertRaises(ValueError, msg="expected min 0 to error"):
+            expr = pp.Word(pp.nums, min=0, max=10)
+
+    def testCharAsKeyword(self):
+        """test a Char with asKeyword=True"""
+
+        grade = pp.OneOrMore(pp.Char("ABCDF", asKeyword=True))
+
+        # all single char words
+        result = grade.parseString("B B C A D")
+
+        print(result)
+        expected = ["B", "B", "C", "A", "D"]
+        self.assertParseResultsEquals(
+            result, expected, msg="issue with Char asKeyword=True"
+        )
+
+        # NOT all single char words
+        test2 = "B BB C A D"
+        result2 = grade.parseString(test2)
+
+        print(result2)
+        expected2 = ["B"]
+        self.assertParseResultsEquals(
+            result2, expected2, msg="issue with Char asKeyword=True parsing 2 chars"
+        )
+
+    def testCharsNotIn(self):
+        """test CharsNotIn initialized with various arguments"""
+
+        vowels = "AEIOU"
+        tst = "bcdfghjklmnpqrstvwxyz"
+
+        # default args
+        consonants = pp.CharsNotIn(vowels)
+        result = consonants.parseString(tst)
+        print(result)
+        self.assertParseResultsEquals(
+            result, [tst], msg="issue with CharsNotIn w/ default args"
+        )
+
+        # min = 0
+        with self.assertRaises(ValueError, msg="issue with CharsNotIn w/ min=0"):
+            consonants = pp.CharsNotIn(vowels, min=0)
+
+        # max > 0
+        consonants = pp.CharsNotIn(vowels, max=5)
+        result = consonants.parseString(tst)
+        print(result)
+        self.assertParseResultsEquals(
+            result, [tst[:5]], msg="issue with CharsNotIn w max > 0"
+        )
+
+        # exact > 0
+        consonants = pp.CharsNotIn(vowels, exact=10)
+        result = consonants.parseString(tst[:10])
+        print(result)
+        self.assertParseResultsEquals(
+            result, [tst[:10]], msg="issue with CharsNotIn w/ exact > 0"
+        )
+
+        # min > length
+        consonants = pp.CharsNotIn(vowels, min=25)
+        with self.assertRaisesParseException(msg="issue with CharsNotIn min > tokens"):
+            result = consonants.parseString(tst)
 
     def testParseAll(self):
         from pyparsing import Word, cppStyleComment
