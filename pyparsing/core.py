@@ -1508,12 +1508,6 @@ class ParserElement:
     def __hash__(self):
         return id(self)
 
-    def __req__(self, other):
-        return self == other
-
-    def __rne__(self, other):
-        return not (self == other)
-
     def matches(self, testString, parseAll=True):
         """
         Method for quick testing of a parser against a test string. Good for simple
