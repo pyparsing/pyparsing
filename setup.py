@@ -31,6 +31,9 @@ setup(  # Distribution meta-data
     license="MIT License",
     packages=packages,
     python_requires=">=3.5",
+    extras_require={
+        "diagrams":  ["railroad-diagrams"],
+    },
     classifiers=[
         "Development Status :: 5 - Production/Stable",
         "Intended Audience :: Developers",
