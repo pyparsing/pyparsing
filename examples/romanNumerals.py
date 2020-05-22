@@ -45,7 +45,7 @@ romanNumeral = numeral[1, ...].setParseAction(sum)
 # unit tests
 def makeRomanNumeral(n):
     def addDigits(n, limit, c, s):
-        while n > limit:
+        while n >= limit:
             n -= limit
             s += c
         return n, s
@@ -95,6 +95,7 @@ romanNumeral.runTests(
     XIX
     MCMLXXX
     MMVI
+    MMMMM
     """,
     fullDump=False,
     postParse=verify_value,
