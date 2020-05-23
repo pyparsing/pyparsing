@@ -72,6 +72,10 @@ Version 3.0.0a2
 - Modified refactored modules to use relative imports, as
   pointed out by setuptools project member jaraco, thank you!
 
+- Off-by-one bug found in the roman_numerals.py example, a bug
+  that has been there for about 14 years! PR submitted by
+  Jay Pedersen, nice catch!
+
 
 Version 3.0.0a1 - April, 2020
 -----------------------------
