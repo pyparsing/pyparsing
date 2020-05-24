@@ -7542,6 +7542,47 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             result, expected, msg="issue with OnlyOnce after reset"
         )
 
+    def testGoToColumn(self):
+        """tests for GoToColumn class"""
+
+        dateExpr = pp.Word(pp.nums + ".")("date")
+        realNum = pp.Word(pp.nums + ".")("real")
+        intNum = pp.Word(pp.nums + ".")("integer")
+        valueExpr = realNum | intNum
+        extraExpr = pp.OneOrMore(pp.Word(pp.alphanums))
+
+        sample = """\
+            date                Not Important                         value    NotImportant2
+            11.11.13            useless . useless,21 useless 2        14.21    asmdakldm
+            21.12.12            fmpaosmfpoamsp 4                      41       ajfa9si90""".splitlines()
+
+        # Column number finds match
+        patt = dateExpr("date") + pp.GoToColumn(71) + valueExpr("value") + extraExpr
+
+        infile = iter(sample)
+        next(infile)
+
+        expecteds = [["11.11.13", "14.21"], ["21.12.12", "41"]]
+        for line, expected in zip(infile, expecteds):
+            result = patt.parseString(line)
+            print(result)
+
+            self.assertEqual(
+                [result.date, result.value], expected, msg="issue with GoToColumn"
+            )
+
+        # Column number does NOT match
+        patt = dateExpr("date") + pp.GoToColumn(30) + valueExpr("value") + extraExpr
+
+        infile = iter(sample)
+        next(infile)
+
+        for line in infile:
+            with self.assertRaisesParseException(
+                msg="issue with GoToColumn not finding match"
+            ):
+                result = patt.parseString(line)
+
 
 class Test3_EnablePackratParsing(TestCase):
     def runTest(self):
