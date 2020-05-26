@@ -1,0 +1,10 @@
+<!DOCTYPE html>
+<html>
+<body>
+{% for diagram in diagrams %}
+    <h1>{{ diagram.title }}</h1>
+    <div>{{ diagram.text }}</div>
+    {{ diagram.svg }}
+{% endfor %}
+</body>
+</html>
