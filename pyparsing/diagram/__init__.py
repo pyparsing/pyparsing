@@ -8,15 +8,13 @@ from io import StringIO
 with open(resource_filename(__name__, "template.jinja2"), encoding="utf-8") as fp:
     template = Template(fp.read())
 
-
-class NamedDiagram(typing.NamedTuple):
-    """
-    A simple structure for associating a name with a railroad diagram
-    """
-
-    # Note: ideally this would be a dataclass, but we're supporting Python 3.5+ so we can't do this yet
-    name: str
-    diagram: typing.Optional[railroad.DiagramItem]
+# Note: ideally this would be a dataclass, but we're supporting Python 3.5+ so we can't do this yet
+NamedDiagram = typing.NamedTuple(
+    "NamedDiagram", [("name", str), ("diagram", typing.Optional[railroad.DiagramItem])]
+)
+"""
+A simple structure for associating a name with a railroad diagram
+"""
 
 
 def get_name(element: pyparsing.ParserElement, default: str = None) -> str:
