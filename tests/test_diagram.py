@@ -11,13 +11,15 @@ class TestRailroadDiagrams(unittest.TestCase):
         """
         Returns True if we're in debug mode
         """
-        return os.environ.get('RAILROAD_DEBUG', False)
+        return os.environ.get("RAILROAD_DEBUG", False)
 
     def get_temp(self):
         """
         Returns an appropriate temporary file for writing a railroad diagram
         """
-        return tempfile.NamedTemporaryFile(delete=not self.railroad_debug(), mode='w', encoding='utf-8', suffix='.html')
+        return tempfile.NamedTemporaryFile(
+            delete=not self.railroad_debug(), mode="w", encoding="utf-8", suffix=".html"
+        )
 
     def test_bool_expr(self):
         with self.get_temp() as temp:

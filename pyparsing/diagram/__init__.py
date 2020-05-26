@@ -5,7 +5,7 @@ import typing
 from jinja2 import Template
 from io import StringIO
 
-with open(resource_filename(__name__, 'template.jinja2'), encoding='utf-8') as fp:
+with open(resource_filename(__name__, "template.jinja2"), encoding="utf-8") as fp:
     template = Template(fp.read())
 
 
@@ -13,6 +13,7 @@ class NamedDiagram(typing.NamedTuple):
     """
     A simple structure for associating a name with a railroad diagram
     """
+
     # Note: ideally this would be a dataclass, but we're supporting Python 3.5+ so we can't do this yet
     name: str
     diagram: typing.Optional[railroad.DiagramItem]
@@ -28,7 +29,7 @@ def get_name(element: pyparsing.ParserElement, default: str = None) -> str:
     if default is None:
         default = element.__class__.__name__
 
-    return getattr(element, 'name', default)
+    return getattr(element, "name", default)
 
 
 def railroad_to_html(diagrams: typing.List[NamedDiagram]) -> str:
@@ -39,11 +40,7 @@ def railroad_to_html(diagrams: typing.List[NamedDiagram]) -> str:
     for diagram in diagrams:
         io = StringIO()
         diagram.diagram.writeSvg(io.write)
-        data.append({
-            'title': diagram.name,
-            'text': '',
-            'svg': io.getvalue()
-        })
+        data.append({"title": diagram.name, "text": "", "svg": io.getvalue()})
 
     return template.render(diagrams=data)
 
@@ -54,7 +51,9 @@ def to_railroad(element: pyparsing.ParserElement) -> typing.List[NamedDiagram]:
     creation if you want to access the Railroad tree before it is converted to HTML
     """
     diagram_element, subdiagrams = _to_diagram_element(element)
-    diagram = NamedDiagram(get_name(element, "Grammar"), railroad.Diagram(diagram_element))
+    diagram = NamedDiagram(
+        get_name(element, "Grammar"), railroad.Diagram(diagram_element)
+    )
     return [diagram, *subdiagrams.values()]
 
 
@@ -70,8 +69,11 @@ def _should_vertical(specification: typing.Tuple[int, bool], count: int) -> bool
         raise Exception()
 
 
-def _to_diagram_element(element: pyparsing.ParserElement, diagrams=None, vertical: typing.Union[int, bool] = 5) -> \
-        typing.Tuple[railroad.DiagramItem, typing.Dict[int, NamedDiagram]]:
+def _to_diagram_element(
+    element: pyparsing.ParserElement,
+    diagrams=None,
+    vertical: typing.Union[int, bool] = 5,
+) -> typing.Tuple[railroad.DiagramItem, typing.Dict[int, NamedDiagram]]:
     """
     Recursively converts a PyParsing Element to a railroad Element
     :param vertical: Controls at what point we make a list of elements vertical. If this is an integer (the default),
@@ -87,9 +89,9 @@ def _to_diagram_element(element: pyparsing.ParserElement, diagrams=None, vertica
         diagrams = diagrams.copy()
 
     # Convert the nebulous list of child elements into a single list objects for easy use
-    if hasattr(element, 'exprs'):
+    if hasattr(element, "exprs"):
         exprs = element.exprs
-    elif hasattr(element, 'expr'):
+    elif hasattr(element, "expr"):
         exprs = [element.expr]
     else:
         exprs = []
@@ -107,7 +109,7 @@ def _to_diagram_element(element: pyparsing.ParserElement, diagrams=None, vertica
         else:
             # If the Forward has no real name, we name it Group N to at least make it unique
             count = len(diagrams) + 1
-            name = get_name(element, 'Group {}'.format(count))
+            name = get_name(element, "Group {}".format(count))
             # We have to first put in a placeholder so that, if we encounter this element deeper down in the tree,
             # we won't have an infinite loop
             diagrams[el_id] = NamedDiagram(name=name, diagram=None)
@@ -150,7 +152,7 @@ def _to_diagram_element(element: pyparsing.ParserElement, diagrams=None, vertica
             ret = railroad.ZeroOrMore(children[0])
         elif isinstance(element, pyparsing.Group):
             # Generally there isn't any merit in labelling a group as a group if it doesn't have a custom name
-            ret = railroad.Group(children[0], label=get_name(element, ''))
+            ret = railroad.Group(children[0], label=get_name(element, ""))
         elif len(exprs) > 1:
             ret = railroad.Sequence(children[0])
         elif len(exprs) > 0:
