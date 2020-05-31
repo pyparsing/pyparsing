@@ -14,8 +14,15 @@ API change summary:
     if given results names.
 
   . ParseException.explain is now an instance method of
-    ParseException. To run explain against other exceptions,
-    use ParseException.explain_exception.
+    ParseException.
+
+      try:
+          expr.parseString("...")
+      except ParseException as pe:
+          print(pe.explain())
+
+    To run explain against other exceptions, use
+    ParseException.explain_exception.
 
   . ZeroOrMore expressions that have results names will now
     include empty lists for their name if no matches are found.
