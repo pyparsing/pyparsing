@@ -232,10 +232,13 @@ stat <<= pp.Group(
     | for_seq_stat
     | func_call_stat
     | if_stat
+    | function_def
 )
 
+lua_script = stat[...]
+
 # ignore comments
-function_def.ignore(lua_comment)
+lua_script.ignore(lua_comment)
 
 if __name__ == "__main__":
 
@@ -250,7 +253,7 @@ if __name__ == "__main__":
     """
 
     try:
-        result = function_def.parseString(sample)
+        result = lua_script.parseString(sample)
         result.pprint()
     except pp.ParseException as pe:
         print(pe.explain())
