@@ -568,6 +568,35 @@ class TestCommonHelperExpressions(PyparsingExpressionTestCase):
     ]
 
 
+class TestWhitespaceMethods(PyparsingExpressionTestCase):
+    tests = [
+        PpTestSpec(
+            desc="The word foo",
+            expr=pp.Literal("foo").ignoreWhitespace(),
+            text="      foo        ",
+            expected_list=["foo"],
+        ),
+        PpTestSpec(
+            desc="The word foo",
+            expr=pp.Literal("foo").leaveWhitespace(),
+            text="      foo        ",
+            expected_fail_locn=0,
+        ),
+        PpTestSpec(
+            desc="The word foo",
+            expr=pp.Literal("foo").ignoreWhitespace(),
+            text="foo",
+            expected_list=["foo"],
+        ),
+        PpTestSpec(
+            desc="The word foo",
+            expr=pp.Literal("foo").leaveWhitespace(),
+            text="foo",
+            expected_list=["foo"],
+        ),
+    ]
+
+
 def _get_decl_line_no(cls):
     import inspect
 

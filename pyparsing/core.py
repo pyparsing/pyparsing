@@ -1343,6 +1343,14 @@ class ParserElement:
         """
         return Suppress(self)
 
+    def ignoreWhitespace(self):
+        """
+        Enables the skipping of whitespace before matching the characters in the
+        :class:`ParserElement`'s defined pattern.
+        """
+        self.skipWhitespace = True
+        return self
+
     def leaveWhitespace(self):
         """
         Disables the skipping of whitespace before matching the characters in the
