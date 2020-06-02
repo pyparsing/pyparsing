@@ -3013,9 +3013,11 @@ class ParseExpression(ParserElement):
            all contained expressions.
         """
         super().leaveWhitespace(recursive)
-        self.exprs = [e.copy() for e in self.exprs]
-        for e in self.exprs:
-            e.leaveWhitespace(recursive)
+
+        if recursive:
+            self.exprs = [e.copy() for e in self.exprs]
+            for e in self.exprs:
+                e.leaveWhitespace(recursive)
         return self
 
     def ignoreWhitespace(self, recursive=True):
@@ -3024,9 +3026,10 @@ class ParseExpression(ParserElement):
            all contained expressions.
         """
         super().ignoreWhitespace(recursive)
-        self.exprs = [e.copy() for e in self.exprs]
-        for e in self.exprs:
-            e.ignoreWhitespace(recursive)
+        if recursive:
+            self.exprs = [e.copy() for e in self.exprs]
+            for e in self.exprs:
+                e.ignoreWhitespace(recursive)
         return self
 
     def ignore(self, other):
@@ -3700,17 +3703,19 @@ class ParseElementEnhance(ParserElement):
     def leaveWhitespace(self, recursive=True):
         super().leaveWhitespace(recursive)
 
-        self.expr = self.expr.copy()
-        if self.expr is not None:
-            self.expr.leaveWhitespace(recursive)
+        if recursive:
+            self.expr = self.expr.copy()
+            if self.expr is not None:
+                self.expr.leaveWhitespace(recursive)
         return self
 
     def ignoreWhitespace(self, recursive=True):
         super().ignoreWhitespace(recursive)
 
-        self.expr = self.expr.copy()
-        if self.expr is not None:
-            self.expr.ignoreWhitespace(recursive)
+        if recursive:
+            self.expr = self.expr.copy()
+            if self.expr is not None:
+                self.expr.ignoreWhitespace(recursive)
         return self
 
     def ignore(self, other):
