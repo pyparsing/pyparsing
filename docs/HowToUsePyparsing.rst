@@ -80,7 +80,7 @@ Usage notes
   ``^``, and ``~`` to combine expressions.  You can also combine
   string literals with ParseExpressions - they will be
   automatically converted to Literal objects.  For example::
-
+https://github.com/tabatkins/railroad-diagrams/blob/gh-pages/README-py.md
     integer  = Word(nums)            # simple unsigned integer
     variable = Char(alphas)          # single letter variable, such as x, z, m, etc.
     arithOp  = oneOf("+ - * /")      # arithmetic operators
@@ -1043,3 +1043,61 @@ Common string and token constants
 
 - ``restOfLine`` - all remaining printable characters up to but not including the next
   newline
+
+Generating Railroad Diagrams
+============================
+Grammars are conventionally represented in what are called "railroad diagrams", which allow you to visually follow
+the sequence of tokens in a grammar along lines which are a bit like train tracks. You might want to generate a
+railroad diagram for your grammar in order to better understand it yourself, or maybe to communicate it to others.
+
+Usage
+-----
+To generate a railroad diagram in pyparsing, you first have to install pyparsing with the ``diagrams`` extra.
+To do this, just run ``pip install pyparsing[diagrams]``, and make sure you add ``pyparsing[diagrams]`` to any
+``setup.py`` or ``requirements.txt`` that specifies pyparsing as a dependency.
+
+Next, run :py:func:`pyparsing.diagrams.to_railroad` to convert your grammar into a form understood by the
+`railroad-diagrams <https://github.com/tabatkins/railroad-diagrams/blob/gh-pages/README-py.md>`_ module, and then :py:func:`pyparsing.diagrams.railroad_to_html` to convert that into an HTML document. For example::
+
+    from pyparsing.diagram import to_railroad, railroad_to_html
+
+    with open('output.html', 'w') as fp:
+        railroad = to_railroad(my_grammar)
+        fp.write(railroad_to_html(railroad))
+
+This will result in the railroad diagram being written to ``output.html``
+
+Example
+-------
+You can view an example railroad diagram generated from a pyparsing grammar `here <_static/json.html>`_.
+
+Customization
+-------------
+You can customize the resulting diagram in a few ways.
+
+Firstly, you can pass in additional keyword arguments to :py:func:`pyparsing.diagrams.to_railroad`, which will be passed
+into the ``Diagram()`` constructor of the underlying library, as explained `here <https://github.com/tabatkins/railroad-diagrams/blob/gh-pages/README-py.md#diagrams>`_.
+
+Secondly, you can edit global options in the underlying library, by editing constants::
+
+    from pyparsing.diagram import to_railroad, railroad_to_html
+    import railroad
+
+    railroad.DIAGRAM_CLASS = "my-custom-class"
+    my_railroad = to_railroad(my_grammar)
+
+These options are documented `here <https://github.com/tabatkins/railroad-diagrams/blob/gh-pages/README-py.md#options>`_.
+
+Finally, you can edit the HTML produced by :py:func:`pyparsing.diagrams.railroad_to_html` by passing in certain keyword
+arguments that will be used in the HTML template. Currently, these are:
+
+- ``head``: A string containing HTML to use in the ``<head>`` tag. This might be a stylesheet or other metadata
+- ``body``: A string containing HTML to use in the ``<body>`` tag, above the actual diagram. This might consist of a
+  heading, description, or JavaScript.
+
+If you want to provide a custom stylesheet using the ``head`` keyword, you can make use of the following CSS classes:
+
+- ``railroad-group``: A group containing everything relating to a given element group (ie something with a heading)
+- ``railroad-heading``: The title for each group
+- ``railroad-svg``: A div containing only the diagram SVG for each group
+- ``railroad-description``: A div containing the group description (unused)

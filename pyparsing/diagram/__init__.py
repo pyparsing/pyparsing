@@ -30,9 +30,10 @@ def get_name(element: pyparsing.ParserElement, default: str = None) -> str:
     return getattr(element, "name", default)
 
 
-def railroad_to_html(diagrams: typing.List[NamedDiagram]) -> str:
+def railroad_to_html(diagrams: typing.List[NamedDiagram], **kwargs) -> str:
     """
     Given a list of NamedDiagram, produce a single HTML string that visualises those diagrams
+    :params kwargs: kwargs to be passed in to the template
     """
     data = []
     for diagram in diagrams:
@@ -40,17 +41,21 @@ def railroad_to_html(diagrams: typing.List[NamedDiagram]) -> str:
         diagram.diagram.writeSvg(io.write)
         data.append({"title": diagram.name, "text": "", "svg": io.getvalue()})
 
-    return template.render(diagrams=data)
+    return template.render(diagrams=data, **kwargs)
 
 
-def to_railroad(element: pyparsing.ParserElement) -> typing.List[NamedDiagram]:
+def to_railroad(
+    element: pyparsing.ParserElement, diagram_kwargs: dict = {}
+) -> typing.List[NamedDiagram]:
     """
     Convert a pyparsing element tree into a list of diagrams. This is the recommended entrypoint to diagram
     creation if you want to access the Railroad tree before it is converted to HTML
+    :param diagram_kwargs: kwargs to pass to the Diagram() constructor
     """
     diagram_element, subdiagrams = _to_diagram_element(element)
     diagram = NamedDiagram(
-        get_name(element, "Grammar"), railroad.Diagram(diagram_element)
+        get_name(element, "Grammar"),
+        railroad.Diagram(diagram_element, **diagram_kwargs),
     )
     return [diagram, *subdiagrams.values()]
 
@@ -71,6 +76,7 @@ def _to_diagram_element(
     element: pyparsing.ParserElement,
     diagrams=None,
     vertical: typing.Union[int, bool] = 5,
+    diagram_kwargs: dict = {},
 ) -> typing.Tuple[railroad.DiagramItem, typing.Dict[int, NamedDiagram]]:
     """
     Recursively converts a PyParsing Element to a railroad Element
@@ -114,7 +120,7 @@ def _to_diagram_element(
 
             # At this point we create a new subdiagram, and add it to the dictionary of diagrams
             forward_element, forward_diagrams = _to_diagram_element(exprs[0], diagrams)
-            diagram = railroad.Diagram(forward_element)
+            diagram = railroad.Diagram(forward_element, **diagram_kwargs)
             diagrams.update(forward_diagrams)
             diagrams[el_id] = diagrams[el_id]._replace(diagram=diagram)
             diagram.format(20)
