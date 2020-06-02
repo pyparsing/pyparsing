@@ -570,6 +570,7 @@ class TestCommonHelperExpressions(PyparsingExpressionTestCase):
 
 class TestWhitespaceMethods(PyparsingExpressionTestCase):
     tests = [
+        # These test the single-element versions
         PpTestSpec(
             desc="The word foo",
             expr=pp.Literal("foo").ignoreWhitespace(),
@@ -593,6 +594,48 @@ class TestWhitespaceMethods(PyparsingExpressionTestCase):
             expr=pp.Literal("foo").leaveWhitespace(),
             text="foo",
             expected_list=["foo"],
+        ),
+        # These test the composite elements
+        PpTestSpec(
+            desc="If we leave whitespace on the parent, this whitespace-dependent grammar will succeed, even if the children themselves skip whitespace",
+            expr=pp.And(
+                [
+                    pp.Literal(" foo").ignoreWhitespace(),
+                    pp.Literal(" bar").ignoreWhitespace(),
+                ]
+            ).leaveWhitespace(recursive=True),
+            text=" foo bar",
+            expected_list=[" foo", " bar"],
+        ),
+        #
+        PpTestSpec(
+            desc="If we ignore whitespace in our parsing, this whitespace-dependent grammar will fail, even if the children themselves keep whitespace",
+            expr=pp.And(
+                [
+                    pp.Literal(" foo").leaveWhitespace(),
+                    pp.Literal(" bar").leaveWhitespace(),
+                ]
+            ).ignoreWhitespace(recursive=True),
+            text=" foo bar",
+            expected_fail_locn=1,
+        ),
+        # These test the Enhance classes
+        PpTestSpec(
+            desc="If we leave whitespace on the parent, this whitespace-dependent grammar will succeed, even if the children themselves skip whitespace",
+            expr=pp.Optional(pp.Literal(" foo").ignoreWhitespace()).leaveWhitespace(
+                recursive=True
+            ),
+            text=" foo",
+            expected_list=[" foo"],
+        ),
+        #
+        PpTestSpec(
+            desc="If we ignore whitespace in our parsing, this whitespace-dependent grammar will fail, even if the children themselves keep whitespace",
+            expr=pp.Optional(pp.Literal(" foo").leaveWhitespace()).ignoreWhitespace(
+                recursive=True
+            ),
+            text=" foo",
+            expected_list=[],
         ),
     ]
 
