@@ -80,7 +80,7 @@ Usage notes
   ``^``, and ``~`` to combine expressions.  You can also combine
   string literals with ParseExpressions - they will be
   automatically converted to Literal objects.  For example::
-https://github.com/tabatkins/railroad-diagrams/blob/gh-pages/README-py.md
+
     integer  = Word(nums)            # simple unsigned integer
     variable = Char(alphas)          # single letter variable, such as x, z, m, etc.
     arithOp  = oneOf("+ - * /")      # arithmetic operators
