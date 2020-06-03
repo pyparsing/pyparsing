@@ -1,6 +1,8 @@
 import unittest
 from examples.jsonParser import jsonObject
 from examples.simpleBool import boolExpr
+from examples.simpleSQL import simpleSQL
+from examples.mozillaCalendarParser import calendars
 from pyparsing.diagram import to_railroad, railroad_to_html
 import tempfile
 import os
@@ -32,6 +34,22 @@ class TestRailroadDiagrams(unittest.TestCase):
     def test_json(self):
         with self.get_temp() as temp:
             railroad = to_railroad(jsonObject)
+            temp.write(railroad_to_html(railroad))
+
+            if self.railroad_debug():
+                print(temp.name)
+
+    def test_sql(self):
+        with self.get_temp() as temp:
+            railroad = to_railroad(simpleSQL)
+            temp.write(railroad_to_html(railroad))
+
+            if self.railroad_debug():
+                print(temp.name)
+
+    def test_calendars(self):
+        with self.get_temp() as temp:
+            railroad = to_railroad(calendars)
             temp.write(railroad_to_html(railroad))
 
             if self.railroad_debug():
