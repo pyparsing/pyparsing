@@ -71,6 +71,29 @@ Version 3.0.0a2
   the array items are no long returned in a doubly-nested
   list.
 
+- An excellent new enhancement is the new railroad diagram
+  generator for documenting pyparsing parsers:
+
+        import pyparsing as pp
+        from pyparsing.diagram import to_railroad, railroad_to_html
+        from pathlib import Path
+
+        # define a simple grammar for parsing street addresses such
+        # as "123 Main Street"
+        #     number word...
+        number = pp.Word(pp.nums).setName("number")
+        name = pp.Word(pp.alphas).setName("word")[1, ...]
+
+        parser = number("house_number") + name("street")
+        parser.setName("street address")
+
+        # construct railroad track diagram for this parser and
+        # save as HTML
+        rr = to_railroad(parser)
+        Path('parser_rr_diag.html').write_text(railroad_to_html(rr))
+
+  Very nice work provided by Michael Milton, thanks a ton!
+
 - Fixed bug in ParseResults repr() which showed all matching
   entries for a results name, even if listAllMatches was set
   to False when creating the ParseResults originally. Reported
