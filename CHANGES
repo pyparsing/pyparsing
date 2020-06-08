@@ -94,6 +94,10 @@ Version 3.0.0a2
 
   Very nice work provided by Michael Milton, thanks a ton!
 
+- Enhanced ParseResults dump() to show both results names and list
+  subitems. Fixes bug where adding a results name would hide
+  lower-level structures in the ParseResults.
+
 - Fixed bug in ParseResults repr() which showed all matching
   entries for a results name, even if listAllMatches was set
   to False when creating the ParseResults originally. Reported

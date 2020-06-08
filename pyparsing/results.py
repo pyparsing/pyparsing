@@ -571,7 +571,7 @@ class ParseResults:
                             out.append(str(v))
                     else:
                         out.append(repr(v))
-            elif any(isinstance(vv, ParseResults) for vv in self):
+            if any(isinstance(vv, ParseResults) for vv in self):
                 v = self
                 for i, vv in enumerate(v):
                     if isinstance(vv, ParseResults):
