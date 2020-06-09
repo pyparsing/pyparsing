@@ -1343,11 +1343,23 @@ class ParserElement:
         """
         return Suppress(self)
 
-    def leaveWhitespace(self):
+    def ignoreWhitespace(self, recursive=True):
+        """
+        Enables the skipping of whitespace before matching the characters in the
+        :class:`ParserElement`'s defined pattern.
+
+        :param recursive: If true (the default), also enable whitespace skipping in child elements (if any)
+        """
+        self.skipWhitespace = True
+        return self
+
+    def leaveWhitespace(self, recursive=True):
         """
         Disables the skipping of whitespace before matching the characters in the
         :class:`ParserElement`'s defined pattern.  This is normally only used internally by
         the pyparsing module, but may be needed in some whitespace-sensitive grammars.
+
+        :param recursive: If true (the default), also disable whitespace skipping in child elements (if any)
         """
         self.skipWhitespace = False
         return self
@@ -2995,13 +3007,29 @@ class ParseExpression(ParserElement):
         self.strRepr = None
         return self
 
-    def leaveWhitespace(self):
-        """Extends ``leaveWhitespace`` defined in base class, and also invokes ``leaveWhitespace`` on
-           all contained expressions."""
-        self.skipWhitespace = False
-        self.exprs = [e.copy() for e in self.exprs]
-        for e in self.exprs:
-            e.leaveWhitespace()
+    def leaveWhitespace(self, recursive=True):
+        """
+        Extends ``leaveWhitespace`` defined in base class, and also invokes ``leaveWhitespace`` on
+           all contained expressions.
+        """
+        super().leaveWhitespace(recursive)
+
+        if recursive:
+            self.exprs = [e.copy() for e in self.exprs]
+            for e in self.exprs:
+                e.leaveWhitespace(recursive)
+        return self
+
+    def ignoreWhitespace(self, recursive=True):
+        """
+        Extends ``ignoreWhitespace`` defined in base class, and also invokes ``leaveWhitespace`` on
+           all contained expressions.
+        """
+        super().ignoreWhitespace(recursive)
+        if recursive:
+            self.exprs = [e.copy() for e in self.exprs]
+            for e in self.exprs:
+                e.ignoreWhitespace(recursive)
         return self
 
     def ignore(self, other):
@@ -3672,11 +3700,22 @@ class ParseElementEnhance(ParserElement):
         else:
             raise ParseException("", loc, self.errmsg, self)
 
-    def leaveWhitespace(self):
-        self.skipWhitespace = False
-        self.expr = self.expr.copy()
-        if self.expr is not None:
-            self.expr.leaveWhitespace()
+    def leaveWhitespace(self, recursive=True):
+        super().leaveWhitespace(recursive)
+
+        if recursive:
+            self.expr = self.expr.copy()
+            if self.expr is not None:
+                self.expr.leaveWhitespace(recursive)
+        return self
+
+    def ignoreWhitespace(self, recursive=True):
+        super().ignoreWhitespace(recursive)
+
+        if recursive:
+            self.expr = self.expr.copy()
+            if self.expr is not None:
+                self.expr.ignoreWhitespace(recursive)
         return self
 
     def ignore(self, other):
@@ -4283,8 +4322,12 @@ class Forward(ParseElementEnhance):
         ret = super().__or__(other)
         return ret
 
-    def leaveWhitespace(self):
+    def leaveWhitespace(self, recursive=True):
         self.skipWhitespace = False
+        return self
+
+    def ignoreWhitespace(self, recursive=True):
+        self.skipWhitespace = True
         return self
 
     def streamline(self):

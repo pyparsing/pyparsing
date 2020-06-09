@@ -568,6 +568,97 @@ class TestCommonHelperExpressions(PyparsingExpressionTestCase):
     ]
 
 
+class TestWhitespaceMethods(PyparsingExpressionTestCase):
+    tests = [
+        # These test the single-element versions
+        PpTestSpec(
+            desc="The word foo",
+            expr=pp.Literal("foo").ignoreWhitespace(),
+            text="      foo        ",
+            expected_list=["foo"],
+        ),
+        PpTestSpec(
+            desc="The word foo",
+            expr=pp.Literal("foo").leaveWhitespace(),
+            text="      foo        ",
+            expected_fail_locn=0,
+        ),
+        PpTestSpec(
+            desc="The word foo",
+            expr=pp.Literal("foo").ignoreWhitespace(),
+            text="foo",
+            expected_list=["foo"],
+        ),
+        PpTestSpec(
+            desc="The word foo",
+            expr=pp.Literal("foo").leaveWhitespace(),
+            text="foo",
+            expected_list=["foo"],
+        ),
+        # These test the composite elements
+        PpTestSpec(
+            desc="If we recursively leave whitespace on the parent, this whitespace-dependent grammar will succeed, even if the children themselves skip whitespace",
+            expr=pp.And(
+                [
+                    pp.Literal(" foo").ignoreWhitespace(),
+                    pp.Literal(" bar").ignoreWhitespace(),
+                ]
+            ).leaveWhitespace(recursive=True),
+            text=" foo bar",
+            expected_list=[" foo", " bar"],
+        ),
+        #
+        PpTestSpec(
+            desc="If we recursively ignore whitespace in our parsing, this whitespace-dependent grammar will fail, even if the children themselves keep whitespace",
+            expr=pp.And(
+                [
+                    pp.Literal(" foo").leaveWhitespace(),
+                    pp.Literal(" bar").leaveWhitespace(),
+                ]
+            ).ignoreWhitespace(recursive=True),
+            text=" foo bar",
+            expected_fail_locn=1,
+        ),
+        PpTestSpec(
+            desc="If we leave whitespace on the parent, but it isn't recursive, this whitespace-dependent grammar will fail",
+            expr=pp.And(
+                [
+                    pp.Literal(" foo").ignoreWhitespace(),
+                    pp.Literal(" bar").ignoreWhitespace(),
+                ]
+            ).leaveWhitespace(recursive=False),
+            text=" foo bar",
+            expected_fail_locn=5,
+        ),
+        # These test the Enhance classes
+        PpTestSpec(
+            desc="If we recursively leave whitespace on the parent, this whitespace-dependent grammar will succeed, even if the children themselves skip whitespace",
+            expr=pp.Optional(pp.Literal(" foo").ignoreWhitespace()).leaveWhitespace(
+                recursive=True
+            ),
+            text=" foo",
+            expected_list=[" foo"],
+        ),
+        #
+        PpTestSpec(
+            desc="If we ignore whitespace on the parent, but it isn't recursive, parsing will fail because we skip to the first character 'f' before the internal expr can see it",
+            expr=pp.Optional(pp.Literal(" foo").leaveWhitespace()).ignoreWhitespace(
+                recursive=True
+            ),
+            text=" foo",
+            expected_list=[],
+        ),
+        # PpTestSpec(
+        #     desc="If we leave whitespace on the parent, this whitespace-dependent grammar will succeed, even if the children themselves skip whitespace",
+        #     expr=pp.Optional(pp.Literal(" foo").ignoreWhitespace()).leaveWhitespace(
+        #         recursive=False
+        #     ),
+        #     text=" foo",
+        #     expected_list=[]
+        # ),
+    ]
+
+
 def _get_decl_line_no(cls):
     import inspect
 
