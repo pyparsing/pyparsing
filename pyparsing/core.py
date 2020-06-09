@@ -763,7 +763,7 @@ class ParserElement:
           an object with attributes if the given parser includes results names.
 
         If the input string is required to match the entire grammar, ``parseAll`` flag must be set to ``True``. This
-        is also equivalent to ending the grammar with ``StringEnd()``.
+        is also equivalent to ending the grammar with ``StringEnd()``, whose default behaviour ignores whitespaces.
 
         To report proper column numbers, ``parseString`` operates on a copy of the input string where all tabs are
         converted to spaces (8 spaces per tab, as per the default in ``string.expandtabs``). If the input string
@@ -2904,8 +2904,14 @@ class StringStart(_PositionToken):
 
 class StringEnd(_PositionToken):
     """Matches if current position is at the end of the parse string
-    """
+    By default, whitespaces are skipped before matching the expression.
 
+    Example::
+
+        StringEnd().parseString(' ') # -> []
+        StringEnd().leaveWhitespace().parseString(' ') 
+        # -> Exception: Expected end of text, found ' '        
+    """
     def __init__(self):
         super().__init__()
         self.errmsg = "Expected end of text"
