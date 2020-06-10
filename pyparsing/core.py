@@ -85,9 +85,13 @@ class __diag__(__config_flags):
      - warn_ungrouped_named_tokens_in_collection - flag to enable warnings when a results
        name is defined on a containing expression with ungrouped subexpressions that also
        have results names
-     - warn_name_set_on_empty_Forward - flag to enable warnings whan a Forward is defined
+     - warn_name_set_on_empty_Forward - flag to enable warnings when a Forward is defined
        with a results name, but has no contents defined
-     - warn_on_multiple_string_args_to_oneof - flag to enable warnings whan oneOf is
+     - warn_on_parse_using_empty_Forward - flag to enable warnings when a Forward is
+       defined in a grammar but has never had an expression attached to it
+     - warn_on_assignment_to_Forward - flag to enable warnings when a Forward is defined
+       but is overwritten by assigning using '=' instead of '<<=' or '<<'
+     - warn_on_multiple_string_args_to_oneof - flag to enable warnings when oneOf is
        incorrectly called with multiple str arguments
      - enable_debug_on_named_expressions - flag to auto-enable debug on all subsequent
        calls to ParserElement.setName()
@@ -98,6 +102,8 @@ class __diag__(__config_flags):
     warn_multiple_tokens_in_named_alternation = False
     warn_ungrouped_named_tokens_in_collection = False
     warn_name_set_on_empty_Forward = False
+    warn_on_parse_using_empty_Forward = False
+    warn_on_assignment_to_Forward = False
     warn_on_multiple_string_args_to_oneof = False
     warn_on_match_first_with_lshift_operator = False
     enable_debug_on_named_expressions = False
@@ -4286,10 +4292,13 @@ class Forward(ParseElementEnhance):
     """
 
     def __init__(self, other=None):
+        self.caller_frame = traceback.extract_stack(limit=2)[0]
         super().__init__(other, savelist=False)
         self.lshift_line = None
 
     def __lshift__(self, other):
+        if hasattr(self, "caller_frame"):
+            del self.caller_frame
         if isinstance(other, str_type):
             other = self._literalStringClass(other)
         self.expr = other
@@ -4315,12 +4324,31 @@ class Forward(ParseElementEnhance):
             and caller_line == self.lshift_line
         ):
             warnings.warn(
-                "using '<<' operator with '|' is probably error, use '<<='",
+                "using '<<' operator with '|' is probably an error, use '<<='",
                 SyntaxWarning,
                 stacklevel=3,
             )
         ret = super().__or__(other)
         return ret
+
+    def __del__(self):
+        # see if we are getting dropped because of '=' reassignment of var instead of '<<=' or '<<'
+        if self.expr is None and __diag__.warn_on_assignment_to_Forward:
+            warnings.warn_explicit(
+                "Forward defined here but no expression attached later using '<<=' or '<<'",
+                SyntaxWarning,
+                filename=self.caller_frame.filename,
+                lineno=self.caller_frame.lineno,
+            )
+
+    def parseImpl(self, instring, loc, doActions=True):
+        if self.expr is None and __diag__.warn_on_parse_using_empty_Forward:
+            warnings.warn(
+                "Forward expression was never assigned a value, will not parse any input",
+                UserWarning,
+                stacklevel=3,
+            )
+        return super().parseImpl(instring, loc, doActions)
 
     def leaveWhitespace(self, recursive=True):
         self.skipWhitespace = False

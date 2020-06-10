@@ -1912,7 +1912,7 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
 
         testInput = "myc(114)r(11)dd"
         stream = Forward()
-        stream << Optional(Word(alphas)) + Optional("(" + Word(nums) + ")" + stream)
+        stream <<= Optional(Word(alphas)) + Optional("(" + Word(nums) + ")" + stream)
         expected = ["".join(stream.parseString(testInput))]
         print(expected)
 
@@ -3855,12 +3855,11 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
         function_name = identifier.copy()
         # ~ function_name = ~AA + Word("Z")  #identifier.copy()
         expr = pp.Forward().setName("expr")
-        expr << (
-            pp.Group(
-                function_name + LPAR + pp.Optional(pp.delimitedList(expr)) + RPAR
-            ).setName("functionCall")
-            | identifier.setName("ident")  # .setDebug()#.setBreak()
-        )
+        expr <<= pp.Group(
+            function_name + LPAR + pp.Optional(pp.delimitedList(expr)) + RPAR
+        ).setName("functionCall") | identifier.setName(
+            "ident"
+        )  # .setDebug()#.setBreak()
 
         stmt = DO + pp.Group(pp.delimitedList(identifier + ".*" | expr))
         result = stmt.parseString("DO Z")
@@ -5053,13 +5052,13 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
         values = pp.Group(pp.delimitedList(value, ","))
         # ~ values              = delimitedList(value, ",").setParseAction(lambda toks: [toks.asList()])
 
-        value_list << lbracket + values + rbracket
+        value_list <<= lbracket + values + rbracket
 
         identifier = pp.Word(pp.alphanums + "_.")
 
         assignment = pp.Group(identifier + equals + pp.Optional(value))
         assignments = pp.Dict(pp.delimitedList(assignment, ";"))
-        value_dict << lbrace + assignments + rbrace
+        value_dict <<= lbrace + assignments + rbrace
 
         response = assignments
 
@@ -6254,7 +6253,7 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
         )
         rvalue << (funcCall | identifier | pp.Word(pp.nums))
         assignment = pp.Group(identifier + "=" + rvalue)
-        stmt << (funcDef | assignment | identifier)
+        stmt <<= funcDef | assignment | identifier
 
         module_body = pp.OneOrMore(stmt)
 
@@ -6352,7 +6351,7 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             + pp.Word(pp.alphas)
             + pp.Suppress(")")
         )
-        stmt << pattern
+        stmt <<= pattern
 
         def key_parse_action(toks):
             print("Parsing '%s'..." % toks[0])
@@ -6365,7 +6364,7 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
         suites = pp.indentedBlock(content, indent_stack)
 
         extra = pp.Literal("extra") + pp.Suppress(":") - suites
-        contents << (content | extra)
+        contents <<= content | extra
 
         parser = pp.OneOrMore(contents)
 
@@ -6797,6 +6796,45 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
                 msg="failed to warn when naming an empty Forward expression",
             ):
                 base("x")
+
+    def testWarnParsingEmptyForward(self):
+        """
+         - warn_on_parse_using_empty_Forward - flag to enable warnings whan a Forward
+           has no contents defined (default=False)
+        """
+
+        with ppt.reset_pyparsing_context():
+            pp.__diag__.enable("warn_on_parse_using_empty_Forward")
+
+            base = pp.Forward()
+
+            with self.assertWarns(
+                UserWarning,
+                msg="failed to warn when naming an empty Forward expression",
+            ):
+                try:
+                    print(base.parseString("x"))
+                except ParseException as pe:
+                    pass
+
+    def testWarnIncorrectAssignmentToForward(self):
+        """
+         - warn_on_parse_using_empty_Forward - flag to enable warnings whan a Forward
+           has no contents defined (default=False)
+        """
+
+        with ppt.reset_pyparsing_context():
+            pp.__diag__.enable("warn_on_assignment_to_Forward")
+
+            def a_method():
+                base = pp.Forward()
+                base = pp.Word(pp.alphas)[...] | "(" + base + ")"
+
+            with self.assertWarns(
+                SyntaxWarning,
+                msg="failed to warn when using '=' to assign expression to a Forward",
+            ):
+                a_method()
 
     def testWarnOnMultipleStringArgsToOneOf(self):
         """
@@ -7235,15 +7273,15 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
         fwd = pp.Forward()
         g1 = pp.OneOrMore((pp.Literal("A") + "B" + "C") | fwd)
         g2 = ("C" + g1)[...]
-        fwd << pp.Group(g2)
+        fwd <<= pp.Group(g2)
         testValidation(fwd, "fwd", isValid=True)
 
         fwd2 = pp.Forward()
-        fwd2 << pp.Group("A" | fwd2)
+        fwd2 <<= pp.Group("A" | fwd2)
         testValidation(fwd2, "fwd2", isValid=False)
 
         fwd3 = pp.Forward()
-        fwd3 << pp.Optional("A") + fwd3
+        fwd3 <<= pp.Optional("A") + fwd3
         testValidation(fwd3, "fwd3", isValid=False)
 
     def testGetNameBehavior(self):
@@ -7454,6 +7492,15 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             fwd = pp.Forward()
             print("unsafe << and |, should warn")
             fwd << pp.Word("a") | pp.Word("b")
+
+        with self.assertWarns(
+            SyntaxWarning,
+            msg="failed to warn of using << and | operators (within lambda)",
+        ):
+            fwd = pp.Forward()
+            print("unsafe << and |, should warn")
+            fwd_fn = lambda expr1, expr2: fwd << expr1 | expr2
+            fwd_fn(pp.Word("a"), pp.Word("b"))
 
         fwd = pp.Forward()
         print("safe <<= and |, should not warn")

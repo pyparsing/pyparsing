@@ -103,6 +103,17 @@ Version 3.0.0a2 - June, 2020
   subitems. Fixes bug where adding a results name would hide
   lower-level structures in the ParseResults.
 
+- Added new __diag__ warnings:
+
+    "warn_on_parse_using_empty_Forward" - warns that a Forward
+    has been included in a grammar, but no expression was
+    attached to it using '<<=' or '<<'
+
+    "warn_on_assignment_to_Forward" - warns that a Forward has
+    been created, but was probably later overwritten by
+    erroneously using '=' instead of '<<=' (this is a common
+    mistake when using Forwards)
+
 - Fixed bug in ParseResults repr() which showed all matching
   entries for a results name, even if listAllMatches was set
   to False when creating the ParseResults originally. Reported
