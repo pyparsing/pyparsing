@@ -18,14 +18,16 @@ from examples.jsonParser import jsonObject
 from pyparsing import ParseException
 from pyparsing import ParserElement
 from tests.json_parser_tests import test1, test2, test3, test4, test5
+import platform
 
 ppc = pp.pyparsing_common
 ppt = pp.pyparsing_test
 
 # see which Python implementation we are running
-CPYTHON_ENV = sys.platform == "win32"
+CPYTHON_ENV = platform.python_implementation() == "CPython"
 IRON_PYTHON_ENV = sys.platform == "cli"
 JYTHON_ENV = sys.platform.startswith("java")
+PYPY_ENV = platform.python_implementation() == "PyPy"
 
 
 # simple utility for flattening nested lists
@@ -6822,6 +6824,9 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
          - warn_on_parse_using_empty_Forward - flag to enable warnings whan a Forward
            has no contents defined (default=False)
         """
+        if PYPY_ENV:
+            print("warn_on_assignment_to_Forward not supported on PyPy")
+            return
 
         with ppt.reset_pyparsing_context():
             pp.__diag__.enable("warn_on_assignment_to_Forward")

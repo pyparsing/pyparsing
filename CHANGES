@@ -113,6 +113,7 @@ Version 3.0.0a2 - June, 2020
     been created, but was probably later overwritten by
     erroneously using '=' instead of '<<=' (this is a common
     mistake when using Forwards)
+    (**currently not working on PyPy**)
 
 - Fixed bug in ParseResults repr() which showed all matching
   entries for a results name, even if listAllMatches was set
