@@ -24,10 +24,11 @@ ppc = pp.pyparsing_common
 ppt = pp.pyparsing_test
 
 # see which Python implementation we are running
-CPYTHON_ENV = platform.python_implementation() == "CPython"
-IRON_PYTHON_ENV = sys.platform == "cli"
-JYTHON_ENV = sys.platform.startswith("java")
-PYPY_ENV = platform.python_implementation() == "PyPy"
+python_impl = platform.python_implementation()
+CPYTHON_ENV = python_impl == "CPython"
+IRON_PYTHON_ENV = python_impl == "IronPython"
+JYTHON_ENV = python_impl == "Jython"
+PYPY_ENV = python_impl == "PyPy"
 
 
 # simple utility for flattening nested lists
