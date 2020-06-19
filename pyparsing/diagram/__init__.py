@@ -58,9 +58,10 @@ def to_railroad(
         railroad.Diagram(diagram_element, **diagram_kwargs),
     )
     return [diagram, *subdiagrams.values()]
+    # TODO: convert all the partials into actual elements here, recursively
 
 
-def _should_vertical(specification: typing.Tuple[int, bool], count: int) -> bool:
+def _should_vertical(specification: typing.Union[int, bool], count: int) -> bool:
     """
     Returns true if we should return a vertical list of elements
     """
@@ -72,44 +73,63 @@ def _should_vertical(specification: typing.Tuple[int, bool], count: int) -> bool
         raise Exception()
 
 
-def _extract_into_diagram(el: pyparsing.Token) -> NamedDiagram:
-    """
-    Used when we encounter the same token twice in the same tree. When this happens, we replace all instances of that
-    token with a terminal, and create a new subdiagram for the token
-    """
-    # If the Forward has no real name, we name it Group N to at least make it unique
-    count = len(diagrams) + 1
-    name = get_name(element, "Group {}".format(count))
-    # We have to first put in a placeholder so that, if we encounter this element deeper down in the tree,
-    # we won't have an infinite loop
-    diagrams[el_id] = NamedDiagram(name=name, diagram=None)
 
-    # At this point we create a new subdiagram, and add it to the dictionary of diagrams
-    forward_element, forward_diagrams = _to_diagram_element(exprs[0], diagrams)
-    diagram = railroad.Diagram(forward_element, **diagram_kwargs)
-    diagrams.update(forward_diagrams)
-    diagrams[el_id] = diagrams[el_id]._replace(diagram=diagram)
-    diagram.format(20)
+class EditablePartial(typing.NamedTuple("EditablePartial", [
+    ('func', typing.Callable),
+    ('args', typing.Iterable),
+    ('kwargs', typing.Dict)
+])):
+    """
+    Acts like a functools.partial, but can be edited
+    """
+    @classmethod
+    def from_call(cls, func, *args, **kwargs) -> 'EditablePartial':
+        return EditablePartial(func=func, args=args, kwargs=kwargs)
 
-    # Here we just use the element's name as a placeholder for the recursive grammar which is defined separately
-    ret = railroad.NonTerminal(text=name)
+    def __call__(self):
+        return self.func(*self.args, **self.kwargs)
 
 
 FirstInstance = typing.NamedTuple(
     "FirstInstance",
-    [("parent", railroad.DiagramItem), ("element", railroad.DiagramItem)],
+    [("parent", typing.Optional[EditablePartial]), ("element", EditablePartial),
+     ('index', typing.Optional[int])],
 )
-lookup_result = typing.Union[NamedDiagram, FirstInstance]
+Lookup = typing.Dict[int, typing.Union[NamedDiagram, FirstInstance]]
 
+def _extract_into_diagram(el: pyparsing.Token, position: FirstInstance, lookup:Lookup, diagram_kwargs: dict) -> NamedDiagram:
+    """
+    Used when we encounter the same token twice in the same tree. When this happens, we replace all instances of that
+    token with a terminal, and create a new subdiagram for the token
+    """
+    lookup = lookup.copy()
+    el_id = id(el)
+
+    # If the element has no real name, we name it Group N to at least make it unique
+    count = len(lookup) + 1
+    name = get_name(el, "Group {}".format(count))
+
+    # We have to first put in a placeholder so that, if we encounter this element deeper down in the tree,
+    # we won't have an infinite loop
+    diagram = railroad.Diagram(position.element(), **diagram_kwargs)
+    diagram.format(20)
+
+    # Replace the original definition of this element with a regular block
+    ret = railroad.NonTerminal(text=name)
+    if 'item' in position.parent.kwargs:
+        position.parent.kwargs['item'] = ret
+    else:
+        position.parent.kwargs['items'][position.index] = ret
+
+    return NamedDiagram(name=name, diagram=diagram)
 
 def _to_diagram_element(
     element: pyparsing.ParserElement,
-    parent: railroad.DiagramItem,
     lookup=None,
     vertical: typing.Union[int, bool] = 5,
     diagram_kwargs: dict = {},
 ) -> typing.Tuple[
-    typing.Optional[railroad.DiagramItem], typing.Dict[int, NamedDiagram]
+    typing.Optional[EditablePartial], typing.Dict[int, NamedDiagram]
 ]:
     """
     Recursively converts a PyParsing Element to a railroad Element
@@ -141,16 +161,16 @@ def _to_diagram_element(
         if isinstance(diagrams[el_id], FirstInstance):
             # If we've seen this element exactly once before, we are only just now finding out that it's a duplicate,
             # so we have to extract it into a new diagram
-            lookup[el_id] = _extract_into_diagram(diagrams[el_id])
+            lookup[el_id] = _extract_into_diagram(element, position=diagrams[el_id], diagram_kwargs=diagram_kwargs, lookup=lookup)
 
         # Now we are guaranteed to have a sub-diagram for this element, so just return a node referencing it
-        return railroad.NonTerminal(text=diagrams[el_id].name), lookup
+        return EditablePartial.from_call(railroad.NonTerminal, text=diagrams[el_id].name), lookup
 
     else:
         # Recursively convert child elements
         children = []
         for expr in exprs:
-            item, subdiagrams = _to_diagram_element(expr, diagrams)
+            item, subdiagrams = _to_diagram_element(expr)
             # Some elements don't need to be shown in the diagram
             if item is not None:
                 children.append(item)
@@ -160,36 +180,44 @@ def _to_diagram_element(
         # Here we find the most relevant Railroad element for matching pyparsing Element
         elif isinstance(element, pyparsing.And):
             if _should_vertical(vertical, len(children)):
-                ret = railroad.Stack(*children)
+                ret = EditablePartial.from_call(railroad.Stack, items=children)
             else:
-                ret = railroad.Sequence(*children)
+                ret = EditablePartial.from_call(railroad.Sequence, items=children)
         elif isinstance(element, (pyparsing.Or, pyparsing.MatchFirst)):
             if _should_vertical(vertical, len(children)):
-                ret = railroad.HorizontalChoice(*children)
+                ret = EditablePartial.from_call(railroad.HorizontalChoice, items=children)
             else:
-                ret = railroad.Choice(0, *children)
+                ret = EditablePartial.from_call(railroad.Choice, 0, items=children)
         elif isinstance(element, pyparsing.Optional):
-            ret = railroad.Optional(children[0])
+            ret = EditablePartial.from_call(railroad.Optional, item=children[0])
         elif isinstance(element, pyparsing.OneOrMore):
-            ret = railroad.OneOrMore(children[0])
+            ret = EditablePartial.from_call(railroad.OneOrMore, item=children[0])
         elif isinstance(element, pyparsing.ZeroOrMore):
-            ret = railroad.ZeroOrMore(children[0])
+            ret = EditablePartial.from_call(railroad.ZeroOrMore, item=children[0])
         elif isinstance(element, pyparsing.Group):
             # Generally there isn't any merit in labelling a group as a group if it doesn't have a custom name
             if name != "Group":
-                ret = railroad.Group(children[0], label=name)
+                ret = EditablePartial.from_call(railroad.Group, children[0], label=name)
             else:
                 ret = children[0]
         elif isinstance(element, pyparsing.Empty) and name == "Empty":
             # Skip unnamed "Empty" elements
             ret = None
         elif len(exprs) > 1:
-            ret = railroad.Sequence(children[0])
+            ret = EditablePartial.from_call(railroad.Sequence, items=children)
         elif len(exprs) > 0:
-            ret = railroad.Group(children[0], label=name)
+            ret = EditablePartial.from_call(railroad.Group, item=children[0], label=name)
         else:
-            ret = railroad.Terminal(name)
+            ret = EditablePartial.from_call(railroad.Terminal, name)
 
-        lookup[el_id] = FirstInstance(parent=parent, element=ret)
+        # Indicate this element's position in the tree so we can extract it if necessary
+        lookup[el_id] = FirstInstance(parent=None, element=ret, index=None)
+
+        # Set all the children's parent to this
+        for i, child in enumerate(children):
+            child_id = id(child)
+            if child_id in lookup and isinstance(lookup[child_id], FirstInstance):
+                lookup[child_id].parent = ret
+                lookup[child_id].index = i
 
         return ret, diagrams
