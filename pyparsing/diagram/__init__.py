@@ -104,6 +104,7 @@ lookup_result = typing.Union[NamedDiagram, FirstInstance]
 
 def _to_diagram_element(
     element: pyparsing.ParserElement,
+    parent: railroad.DiagramItem,
     lookup=None,
     vertical: typing.Union[int, bool] = 5,
     diagram_kwargs: dict = {},
@@ -146,9 +147,6 @@ def _to_diagram_element(
         return railroad.NonTerminal(text=diagrams[el_id].name), lookup
 
     else:
-        # If we haven't seen this element before, we can continue to recurse into the tree
-        lookup[el_id] = FirstInstance(self.p)
-
         # Recursively convert child elements
         children = []
         for expr in exprs:
@@ -192,4 +190,6 @@ def _to_diagram_element(
         else:
             ret = railroad.Terminal(name)
 
-    return ret, diagrams
+        lookup[el_id] = FirstInstance(parent=parent, element=ret)
+
+        return ret, diagrams
