@@ -72,9 +72,39 @@ def _should_vertical(specification: typing.Tuple[int, bool], count: int) -> bool
         raise Exception()
 
 
+def _extract_into_diagram(el: pyparsing.Token) -> NamedDiagram:
+    """
+    Used when we encounter the same token twice in the same tree. When this happens, we replace all instances of that
+    token with a terminal, and create a new subdiagram for the token
+    """
+    # If the Forward has no real name, we name it Group N to at least make it unique
+    count = len(diagrams) + 1
+    name = get_name(element, "Group {}".format(count))
+    # We have to first put in a placeholder so that, if we encounter this element deeper down in the tree,
+    # we won't have an infinite loop
+    diagrams[el_id] = NamedDiagram(name=name, diagram=None)
+
+    # At this point we create a new subdiagram, and add it to the dictionary of diagrams
+    forward_element, forward_diagrams = _to_diagram_element(exprs[0], diagrams)
+    diagram = railroad.Diagram(forward_element, **diagram_kwargs)
+    diagrams.update(forward_diagrams)
+    diagrams[el_id] = diagrams[el_id]._replace(diagram=diagram)
+    diagram.format(20)
+
+    # Here we just use the element's name as a placeholder for the recursive grammar which is defined separately
+    ret = railroad.NonTerminal(text=name)
+
+
+FirstInstance = typing.NamedTuple(
+    "FirstInstance",
+    [("parent", railroad.DiagramItem), ("element", railroad.DiagramItem)],
+)
+lookup_result = typing.Union[NamedDiagram, FirstInstance]
+
+
 def _to_diagram_element(
     element: pyparsing.ParserElement,
-    diagrams=None,
+    lookup=None,
     vertical: typing.Union[int, bool] = 5,
     diagram_kwargs: dict = {},
 ) -> typing.Tuple[
@@ -88,11 +118,11 @@ def _to_diagram_element(
     :returns: A tuple, where the first item is the converted version of the input element, and the second item is a
     list of extra diagrams that also need to be displayed in order to represent recursive grammars
     """
-    if diagrams is None:
+    if lookup is None:
         diagrams = {}
     else:
         # We don't want to be modifying the parent's version of the dict, although we do use it as a foundation
-        diagrams = diagrams.copy()
+        diagrams = lookup.copy()
 
     # Convert the nebulous list of child elements into a single list objects for easy use
     if hasattr(element, "exprs"):
@@ -103,34 +133,21 @@ def _to_diagram_element(
         exprs = []
 
     name = get_name(element)
+    # Python's id() is used to provide a unique identifier for elements
+    el_id = id(element)
 
-    if isinstance(element, pyparsing.Forward):
-        # If we encounter a forward reference, we have to split the diagram in two and return a new diagram which
-        # represents the forward reference on its own
+    if el_id in diagrams:
+        if isinstance(diagrams[el_id], FirstInstance):
+            # If we've seen this element exactly once before, we are only just now finding out that it's a duplicate,
+            # so we have to extract it into a new diagram
+            lookup[el_id] = _extract_into_diagram(diagrams[el_id])
 
-        # Python's id() is used to provide a unique identifier for elements
-        el_id = id(element)
-        if el_id in diagrams:
-            name = diagrams[el_id].name
-        else:
-            # If the Forward has no real name, we name it Group N to at least make it unique
-            count = len(diagrams) + 1
-            name = get_name(element, "Group {}".format(count))
-            # We have to first put in a placeholder so that, if we encounter this element deeper down in the tree,
-            # we won't have an infinite loop
-            diagrams[el_id] = NamedDiagram(name=name, diagram=None)
+        # Now we are guaranteed to have a sub-diagram for this element, so just return a node referencing it
+        return railroad.NonTerminal(text=diagrams[el_id].name), lookup
 
-            # At this point we create a new subdiagram, and add it to the dictionary of diagrams
-            forward_element, forward_diagrams = _to_diagram_element(exprs[0], diagrams)
-            diagram = railroad.Diagram(forward_element, **diagram_kwargs)
-            diagrams.update(forward_diagrams)
-            diagrams[el_id] = diagrams[el_id]._replace(diagram=diagram)
-            diagram.format(20)
-
-        # Here we just use the element's name as a placeholder for the recursive grammar which is defined separately
-        ret = railroad.NonTerminal(text=name)
     else:
-        # If we don't encounter a Forward, we can continue to recurse into the tree
+        # If we haven't seen this element before, we can continue to recurse into the tree
+        lookup[el_id] = FirstInstance(self.p)
 
         # Recursively convert child elements
         children = []
