@@ -77,7 +77,9 @@ def _to_diagram_element(
     diagrams=None,
     vertical: typing.Union[int, bool] = 5,
     diagram_kwargs: dict = {},
-) -> typing.Tuple[railroad.DiagramItem, typing.Dict[int, NamedDiagram]]:
+) -> typing.Tuple[
+    typing.Optional[railroad.DiagramItem], typing.Dict[int, NamedDiagram]
+]:
     """
     Recursively converts a PyParsing Element to a railroad Element
     :param vertical: Controls at what point we make a list of elements vertical. If this is an integer (the default),
@@ -134,11 +136,14 @@ def _to_diagram_element(
         children = []
         for expr in exprs:
             item, subdiagrams = _to_diagram_element(expr, diagrams)
-            children.append(item)
+            # Some elements don't need to be shown in the diagram
+            if item is not None:
+                children.append(item)
             diagrams.update(subdiagrams)
-
+        if len(exprs) > 0 and len(children) == 0:
+            ret = None
         # Here we find the most relevant Railroad element for matching pyparsing Element
-        if isinstance(element, pyparsing.And):
+        elif isinstance(element, pyparsing.And):
             if _should_vertical(vertical, len(children)):
                 ret = railroad.Stack(*children)
             else:
@@ -156,7 +161,13 @@ def _to_diagram_element(
             ret = railroad.ZeroOrMore(children[0])
         elif isinstance(element, pyparsing.Group):
             # Generally there isn't any merit in labelling a group as a group if it doesn't have a custom name
-            ret = railroad.Group(children[0], label=get_name(element, ""))
+            if name != "Group":
+                ret = railroad.Group(children[0], label=name)
+            else:
+                ret = children[0]
+        elif isinstance(element, pyparsing.Empty) and name == "Empty":
+            # Skip unnamed "Empty" elements
+            ret = None
         elif len(exprs) > 1:
             ret = railroad.Sequence(children[0])
         elif len(exprs) > 0:
