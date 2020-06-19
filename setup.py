@@ -14,9 +14,7 @@ README_name = __file__.replace("setup.py", "README.rst")
 with io.open(README_name, encoding="utf8") as README:
     pyparsing_main_doc = README.read()
 
-packages = [
-    "pyparsing",
-]
+packages = ["pyparsing", "pyparsing.diagram"]
 
 setup(  # Distribution meta-data
     name="pyparsing",
