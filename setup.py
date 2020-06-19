@@ -30,6 +30,7 @@ setup(  # Distribution meta-data
     packages=packages,
     python_requires=">=3.5",
     extras_require={"diagrams": ["railroad-diagrams", "jinja2"],},
+    package_data={"pyparsing.diagram": ["*.jinja2"]},
     classifiers=[
         "Development Status :: 5 - Production/Stable",
         "Intended Audience :: Developers",
