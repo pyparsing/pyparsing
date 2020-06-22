@@ -167,22 +167,22 @@ class ElementState:
         index: Optional[int] = None,
     ):
         #: The pyparsing element that this represents
-        self.element: pyparsing.ParserElement = element
+        self.element = element  # type: pyparsing.ParserElement
         #: The name of the element
-        self.name = name
+        self.name = name  # type: str
         #: The output Railroad element in an unconverted state
-        self.converted: EditablePartial = converted
+        self.converted = converted  # type: EditablePartial
         #: The parent Railroad element, which we store so that we can extract this if it's duplicated
-        self.parent: EditablePartial = parent
+        self.parent = parent  # type: EditablePartial
         #: The diagram number of this, when it gets turned into a diagram. This is only set when we know it's going to
         # be extracted into a new diagram
-        self.number: int = number
+        self.number = number  # type: int
         #: The index of this inside its parent
-        self.parent_index: Optional[int] = index
+        self.parent_index = index  # type: Optional[int]
         #: If true, we should extract this out into a subdiagram
-        self.extract: bool = False
+        self.extract = False  # type: bool
         #: If true, all of this element's chilren have been filled out
-        self.complete: bool = False
+        self.complete = False  # type: bool
 
     def mark_for_extraction(self, el_id: int, state: "ConverterState"):
         """
@@ -217,15 +217,15 @@ class ConverterState:
 
     def __init__(self, diagram_kwargs: dict = {}):
         #: A dictionary mapping ParserElement IDs to state relating to them
-        self.first: Dict[int, ElementState] = {}
+        self.first = {}  # type:  Dict[int, ElementState]
         #: A dictionary mapping ParserElement IDs to subdiagrams generated from them
-        self.diagrams: Dict[int, EditablePartial[NamedDiagram]] = {}
+        self.diagrams = {}  # type: Dict[int, EditablePartial[NamedDiagram]]
         #: The index of the next unnamed element
-        self.unnamed_index: int = 1
+        self.unnamed_index = 1  # type:  int
         #: The index of the next element. This is used for sorting
-        self.index: int = 0
+        self.index = 0  # type:  int
         #: Shared kwargs that are used to customize the construction of diagrams
-        self.diagram_kwargs: dict = diagram_kwargs
+        self.diagram_kwargs = diagram_kwargs  # type:  dict
 
     def generate_unnamed(self) -> int:
         """
@@ -254,8 +254,7 @@ class ConverterState:
             if "item" in position.parent.kwargs:
                 position.parent.kwargs["item"] = ret
             else:
-                if position.parent_index < len(position.parent.kwargs["items"]):
-                    position.parent.kwargs["items"][position.parent_index] = ret
+                position.parent.kwargs["items"][position.parent_index] = ret
 
         self.diagrams[el_id] = EditablePartial.from_call(
             NamedDiagram,
@@ -373,6 +372,10 @@ def _to_diagram_element(
 
         i = 0
         for expr in exprs:
+            # Add a placeholder index in case we have to extract the child before we even add it to the parent
+            if "items" in ret.kwargs:
+                ret.kwargs["items"].insert(i, None)
+
             item = _to_diagram_element(
                 expr, parent=ret, lookup=lookup, vertical=vertical, index=i
             )
@@ -382,7 +385,9 @@ def _to_diagram_element(
                 if "item" in ret.kwargs:
                     ret.kwargs["item"] = item
                 elif "items" in ret.kwargs:
-                    ret.kwargs["items"].append(item)
+                    # If we've already extracted the child, don't touch this index, since it's occupied by a nonterminal
+                    if ret.kwargs["items"][i] is None:
+                        ret.kwargs["items"][i] = item
                     i += 1
 
         # Mark this element as "complete", ie it has all of its children
