@@ -101,7 +101,7 @@ def railroad_to_html(diagrams: List[NamedDiagram], **kwargs) -> str:
 
 def resolve_partial(partial: "EditablePartial[T]") -> T:
     """
-    Recursively resolves a collection of Partials into whatever type they
+    Recursively resolves a collection of Partials into whatever type they are
     """
     if isinstance(partial, EditablePartial):
         partial.args = resolve_partial(partial.args)
@@ -201,7 +201,8 @@ class ElementState:
             if hasattr(self.element, "name") and self.element.name:
                 self.name = self.element.name
             else:
-                self.name = "Unnamed {}".format(state.generate_unnamed())
+                unnamed_number = 1 if self.parent is None else state.generate_unnamed()
+                self.name = "Unnamed {}".format(unnamed_number)
 
         # Just because this is marked for extraction doesn't mean we can do it yet. We may have to wait for children
         # to be added
@@ -220,7 +221,7 @@ class ConverterState:
         #: A dictionary mapping ParserElement IDs to subdiagrams generated from them
         self.diagrams: Dict[int, EditablePartial[NamedDiagram]] = {}
         #: The index of the next unnamed element
-        self.unnamed_index: int = 0
+        self.unnamed_index: int = 1
         #: The index of the next element. This is used for sorting
         self.index: int = 0
         #: Shared kwargs that are used to customize the construction of diagrams
