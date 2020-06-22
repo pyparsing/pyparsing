@@ -95,7 +95,7 @@ classes inherit from. Use the docstrings for examples of how to:
 """
 
 __version__ = "3.0.0a2"
-__versionTime__ = "10 June 2020 04:26 UTC"
+__versionTime__ = "20 June 2020 13:38 UTC"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 from .util import *

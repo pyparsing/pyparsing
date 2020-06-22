@@ -7,9 +7,16 @@ try:
 except ImportError:
     from distutils.core import setup
 import io
+import sys
 from pyparsing import __version__ as pyparsing_version
 
-# The text of the README file
+# guard against manual invocation of setup.py (when using pip, we shouldn't even get this far)
+if sys.version_info[:2] < (3, 5):
+    sys.exit(
+        "Python < 3.5 is not supported in this version of pyparsing; use latest pyparsing 2.4.x release"
+    )
+
+# get the text of the README file
 README_name = __file__.replace("setup.py", "README.rst")
 with io.open(README_name, encoding="utf8") as README:
     pyparsing_main_doc = README.read()

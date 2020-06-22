@@ -134,7 +134,7 @@ def _escapeRegexRangeChars(s):
     return str(s)
 
 
-def _collapseAndEscapeRegexRangeChars(s):
+def _collapseStringToRanges(s, re_escape=True):
     def is_consecutive(c):
         c_int = ord(c)
         is_consecutive.prev, prev = c_int, is_consecutive.prev
@@ -148,6 +148,9 @@ def _collapseAndEscapeRegexRangeChars(s):
 
     def escape_re_range_char(c):
         return "\\" + c if c in r"\^-][" else c
+
+    if not re_escape:
+        escape_re_range_char = lambda c: c
 
     ret = []
     for _, chars in itertools.groupby(sorted(s), key=is_consecutive):

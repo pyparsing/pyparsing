@@ -94,6 +94,10 @@ Version 3.0.0a2 - June, 2020
 
   Very nice work provided by Michael Milton, thanks a ton!
 
+- Enhanced default strings created for Word expressions, now showing
+  string ranges if possible. `Word(alphas)` would formerly
+  print as `W:(ABCD...)`, now prints as `W:(A-Za-z)`.
+
 - Added ignoreWhitespace(recurse:bool = True) and added a
   recurse argument to leaveWhitespace, both added to provide finer
   control over pyparsing's whitespace skipping. Also contributed
