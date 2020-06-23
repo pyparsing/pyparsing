@@ -1477,7 +1477,7 @@ class ParserElement:
         return self
 
     def _make_str_repr(self):
-        raise NotImplemented
+        raise NotImplementedError
 
     def __str__(self):
         if self.name is not None:
