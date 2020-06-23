@@ -119,6 +119,10 @@ Version 3.0.0a2 - June, 2020
     mistake when using Forwards)
     (**currently not working on PyPy**)
 
+- Added ParserElement.recurse() method to make it simpler for
+  grammar utilities to navigate through the tree of expressions in
+  a pyparsing grammar.
+
 - Fixed bug in ParseResults repr() which showed all matching
   entries for a results name, even if listAllMatches was set
   to False when creating the ParseResults originally. Reported

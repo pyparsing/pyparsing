@@ -328,6 +328,9 @@ class ParserElement:
         self.callPreparse = True  # used to avoid redundant calls to preParse
         self.callDuringTry = False
 
+    def recurse(self):
+        return []
+
     def copy(self):
         """
         Make a copy of this :class:`ParserElement`.  Useful for defining
@@ -2988,6 +2991,9 @@ class ParseExpression(ParserElement):
                 self.exprs = [exprs]
         self.callPreparse = False
 
+    def recurse(self):
+        return self.exprs[:]
+
     def append(self, other):
         self.exprs.append(other)
         self.strRepr = None
@@ -3649,6 +3655,9 @@ class ParseElementEnhance(ParserElement):
             self.callPreparse = expr.callPreparse
             self.ignoreExprs.extend(expr.ignoreExprs)
 
+    def recurse(self):
+        return [self.expr] if self.expr is not None else []
+
     def parseImpl(self, instring, loc, doActions=True):
         if self.expr is not None:
             return self.expr._parse(instring, loc, doActions, callPreParse=False)
@@ -3913,7 +3922,7 @@ class _MultipleMatch(ParseElementEnhance):
 
     def _setResultsName(self, name, listAllMatches=False):
         if __diag__.warn_ungrouped_named_tokens_in_collection:
-            for e in [self.expr] + getattr(self.expr, "exprs", []):
+            for e in [self.expr] + self.expr.recurse():
                 if isinstance(e, ParserElement) and e.resultsName:
                     warnings.warn(
                         "{}: setting results name {!r} on {} expression "
