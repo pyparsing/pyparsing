@@ -1069,7 +1069,7 @@ This will result in the railroad diagram being written to ``output.html``
 
 Example
 -------
-You can view an example railroad diagram generated from a pyparsing grammar `here <_static/json.html>`_.
+You can view an example railroad diagram generated from a pyparsing grammar for SQL ``SELECT`` statements `here <_static/sql_railroad.html>`_.
 
 Customization
 -------------

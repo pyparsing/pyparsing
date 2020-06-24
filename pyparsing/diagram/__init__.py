@@ -8,7 +8,6 @@ from typing import (
     NamedTuple,
     Generic,
     TypeVar,
-    Any,
     Dict,
     Callable,
 )
@@ -67,21 +66,6 @@ class EditablePartial(Generic[T]):
             args += kwargs.pop(arg_spec.varargs)
 
         return self.func(*args, **kwargs)
-
-
-def get_name(element: pyparsing.ParserElement, default: str = None) -> str:
-    """
-    Returns a human readable string for a parser element. By default it will first check the element's `name` attribute
-    for a user-defined string, and will fall back to the element type name if this doesn't exist. However, the fallback
-    value can be customized
-    """
-    if default is None:
-        default = element.__class__.__name__
-
-    if hasattr(element, "name") and element.name:
-        return element.name
-    else:
-        return default
 
 
 def railroad_to_html(diagrams: List[NamedDiagram], **kwargs) -> str:
@@ -200,8 +184,8 @@ class ElementState:
             if name:
                 # Allow forcing a custom name
                 self.name = name
-            elif hasattr(self.element, "name") and self.element.name:
-                self.name = self.element.name
+            elif self.element.customName:
+                self.name = self.element.customName
             else:
                 unnamed_number = 1 if self.parent is None else state.generate_unnamed()
                 self.name = "Unnamed {}".format(unnamed_number)
@@ -259,11 +243,17 @@ class ConverterState:
             else:
                 position.parent.kwargs["items"][position.parent_index] = ret
 
+        # If the element we're extracting is a group, skip to its content but keep the title
+        if position.converted.func == railroad.Group:
+            content = position.converted.kwargs["item"]
+        else:
+            content = position.converted
+
         self.diagrams[el_id] = EditablePartial.from_call(
             NamedDiagram,
             name=position.name,
             diagram=EditablePartial.from_call(
-                railroad.Diagram, position.converted, **self.diagram_kwargs
+                railroad.Diagram, content, **self.diagram_kwargs
             ),
             index=position.number,
         )
@@ -301,10 +291,29 @@ def _to_diagram_element(
     :returns: The converted version of the input element, but as a Partial that hasn't yet been constructed
     """
     exprs = element.recurse()
+    name = name_hint or element.customName or element.__class__.__name__
 
-    name = name_hint or get_name(element)
     # Python's id() is used to provide a unique identifier for elements
     el_id = id(element)
+
+    # Here we basically bypass processing certain wrapper elements if they contribute nothing to the diagram
+    if isinstance(element, (pyparsing.Group, pyparsing.Forward)) and (
+        not element.customName or not exprs[0].customName
+    ):
+        # However, if this element has a useful custom name, we can pass it on to the child
+        if not exprs[0].customName:
+            propagated_name = name
+        else:
+            propagated_name = None
+
+        return _to_diagram_element(
+            element.expr,
+            parent=parent,
+            lookup=lookup,
+            vertical=vertical,
+            index=index,
+            name_hint=propagated_name,
+        )
 
     # If the element isn't worth extracting, we always treat it as the first time we say it
     if _worth_extracting(element):
@@ -324,7 +333,7 @@ def _to_diagram_element(
 
     # Recursively convert child elements
     # Here we find the most relevant Railroad element for matching pyparsing Element
-    # We use ``items=None`` here to hold the place for where the child elements will go once created
+    # We use ``items=[]`` here to hold the place for where the child elements will go once created
     if isinstance(element, pyparsing.And):
         if _should_vertical(vertical, len(exprs)):
             ret = EditablePartial.from_call(railroad.Stack, items=[])
@@ -342,30 +351,7 @@ def _to_diagram_element(
     elif isinstance(element, pyparsing.ZeroOrMore):
         ret = EditablePartial.from_call(railroad.ZeroOrMore, item="")
     elif isinstance(element, pyparsing.Group):
-        if name != "Group":
-            if element.expr.name is None:
-                # If this group has a helpful name, but its child doesn't, we can just rename the child to this name
-                # to simplify the diagram
-                return _to_diagram_element(
-                    element.expr,
-                    parent=parent,
-                    lookup=lookup,
-                    vertical=vertical,
-                    index=index,
-                    name_hint=name,
-                )
-            else:
-                # If this group has a helpful name, but its child also does, this name becomes a group label
-                ret = EditablePartial.from_call(railroad.Group, item=None, label=name)
-        else:
-            # If this Group element doesn't have a custom name, don't include this in the diagram whatsoever
-            return _to_diagram_element(
-                element.expr,
-                parent=parent,
-                lookup=lookup,
-                vertical=vertical,
-                index=index,
-            )
+        ret = EditablePartial.from_call(railroad.Group, item=None, label=name)
     elif isinstance(element, pyparsing.Empty) and name == "Empty":
         # Skip unnamed "Empty" elements
         ret = None
@@ -374,18 +360,15 @@ def _to_diagram_element(
     elif len(exprs) > 0:
         ret = EditablePartial.from_call(railroad.Group, item="", label=name)
     else:
-        # if element.name is not None:
-        #     try:
-        #         element._make_str_repr()
-        #     except NotImplementedError:
-        #         pass
-        #     if element.strRepr is not None and element.strRepr != element.name:
-        #         ret = EditablePartial.from_call(railroad.Group, item=EditablePartial.from_call(railroad.Terminal, element.strRepr), label=name)
-        #     else:
-        #         ret = EditablePartial.from_call(railroad.Terminal, name)
-        # else:
-        #     ret = EditablePartial.from_call(railroad.Terminal, name)
-        ret = EditablePartial.from_call(railroad.Terminal, name)
+        # If the terminal has a custom name, we annotate the terminal with it, but still show the defaultName, because
+        # it describes the pattern that it matches, which is useful to have present in the diagram
+        terminal = EditablePartial.from_call(railroad.Terminal, element.defaultName)
+        if element.customName is not None:
+            ret = EditablePartial.from_call(
+                railroad.Group, item=terminal, label=element.customName
+            )
+        else:
+            ret = terminal
 
     # Indicate this element's position in the tree so we can extract it if necessary
     lookup.first[el_id] = ElementState(
