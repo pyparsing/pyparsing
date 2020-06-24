@@ -328,16 +328,16 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
                 len(flatten(iniData.asList())),
                 "file %s not parsed correctly" % fnam,
             )
-            for chk in resCheckList:
+            for chkkey, chkexpect in resCheckList:
                 var = iniData
-                for attr in chk[0].split("."):
+                for attr in chkkey.split("."):
                     var = getattr(var, attr)
-                print(chk[0], var, chk[1])
+                print(chkkey, var, chkexpect)
                 self.assertEqual(
-                    chk[1],
+                    chkexpect,
                     var,
-                    "ParseConfigFileTest: failed to parse ini {!r} as expected {}, found {}".format(
-                        chk[0], chk[1], var
+                    "ParseConfigFileTest: failed to parse ini {!r} as expected {!r}, found {}".format(
+                        chkkey, chkexpect, var
                     ),
                 )
             print("OK")
@@ -788,7 +788,7 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
     def testParseIDL(self):
         from examples import idlParse
 
-        def test(strng, numToks, errloc=0):
+        def test(strng, numToks, expectedErrloc=0):
             print(strng)
             try:
                 bnf = idlParse.CORBA_IDL_BNF()
@@ -814,10 +814,10 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
                     ),
                 )
                 self.assertEqual(
-                    errloc,
+                    expectedErrloc,
                     err.loc,
                     "expected ParseException at %d, found exception at %d"
-                    % (errloc, err.loc),
+                    % (expectedErrloc, err.loc),
                 )
 
         test(
@@ -2692,7 +2692,7 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
         print(reversed_list)
         expected = ["5", "4", "3", "2", "1"]
         self.assertEqual(
-            reversed_list, expected, msg="issue calling reversed(ParseResults)"
+            expected, reversed_list, msg="issue calling reversed(ParseResults)"
         )
 
     def testParseResultsValues(self):
@@ -2705,7 +2705,7 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
         print(values_set)
         expected = {"spam", "eggs"}
         self.assertEqual(
-            values_set, expected, msg="issue calling ParseResults.values()"
+            expected, values_set, msg="issue calling ParseResults.values()"
         )
 
     def testParseResultsAppend(self):
@@ -2923,7 +2923,7 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
 
         expr = pp.Literal("A")("Achar") * ...
         res = expr.parseString("A")
-        self.assertEqual(res.asList(), ["A"], "expected expr * ... to match ZeroOrMore")
+        self.assertEqual(["A"], res.asList(), "expected expr * ... to match ZeroOrMore")
         print(res.dump())
 
     def testUpcaseDowncaseUnicode(self):
@@ -3767,8 +3767,8 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
         res = gg.parseString(testString)
         print(list(map(str, res)))
         self.assertEqual(
-            list(map(str, res)),
             list(testString),
+            list(map(str, res)),
             "Failed to parse using variable length parse actions "
             "using class constructors as parse actions",
         )
@@ -4562,11 +4562,11 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             ),
             (
                 "options(100) step(100A)",
-                """Expected "Z", found 'A'  (at char 21), (line:1, col:22)""",
+                """Expected 'Z', found 'A'  (at char 21), (line:1, col:22)""",
             ),
             (
                 "options(100) step(22) step(100ZA)",
-                """Expected ")", found 'A'  (at char 31), (line:1, col:32)""",
+                """Expected ')', found 'A'  (at char 31), (line:1, col:32)""",
             ),
         ]
         test_lookup = dict(tests)
@@ -4574,8 +4574,8 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
         success, output = parser.runTests((t[0] for t in tests), failureTests=True)
         for test_str, result in output:
             self.assertEqual(
-                str(result),
                 test_lookup[test_str],
+                str(result),
                 "incorrect exception raised for test string {!r}".format(test_str),
             )
 
@@ -4837,7 +4837,7 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             z.parseString("b")
         except ParseException as pe:
             self.assertEqual(
-                r"""Expected {"a" | "ᄑ"}""",
+                r"""Expected {'a' | 'ᄑ'}""",
                 pe.msg,
                 "Invalid error message raised, got %r" % pe.msg,
             )
@@ -7618,7 +7618,7 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             print(result)
 
             self.assertEqual(
-                [result.date, result.num], expected, msg="issue with GoToColumn"
+                expected, [result.date, result.num], msg="issue with GoToColumn"
             )
 
         # Column number does NOT match
