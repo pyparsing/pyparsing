@@ -352,7 +352,7 @@ def _to_diagram_element(
         ret = EditablePartial.from_call(railroad.ZeroOrMore, item="")
     elif isinstance(element, pyparsing.Group):
         ret = EditablePartial.from_call(railroad.Group, item=None, label=name)
-    elif isinstance(element, pyparsing.Empty) and name == "Empty":
+    elif isinstance(element, pyparsing.Empty) and not element.customName:
         # Skip unnamed "Empty" elements
         ret = None
     elif len(exprs) > 1:
