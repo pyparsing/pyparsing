@@ -163,6 +163,21 @@ class ParseBaseException(Exception):
 
         Returns a multi-line string listing the ParserElements and/or function names in the
         exception's stack trace.
+
+        Example::
+
+            expr = pp.Word(pp.nums) * 3
+            try:
+                expr.parseString("123 456 A789")
+            except pp.ParseException as pe:
+                print(pe.explain(depth=0))
+
+        prints::
+
+            123 456 A789
+                    ^
+            ParseException: Expected W:(0-9), found 'A'  (at char 8), (line:1, col:9)
+
         """
         return self.explain_exception(self, depth)
 

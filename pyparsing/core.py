@@ -328,9 +328,6 @@ class ParserElement(ABC):
         self.callPreparse = True  # used to avoid redundant calls to preParse
         self.callDuringTry = False
 
-    def recurse(self):
-        return []
-
     def copy(self):
         """
         Make a copy of this :class:`ParserElement`.  Useful for defining
@@ -1449,7 +1446,7 @@ class ParserElement(ABC):
         is shown. Then if the parse succeeds, a ``"Matched"`` message is shown, or an ``"Exception raised"``
         message is shown. Also note the use of :class:`setName` to assign a human-readable name to the expression,
         which makes debugging and exception messages easier to understand - for instance, the default
-        name created for the :class:`Word` expression without calling ``setName`` is ``"W:(ABCD...)"``.
+        name created for the :class:`Word` expression without calling ``setName`` is ``"W:(A-Za-z)"``.
         """
         if flag:
             self.setDebugActions(
@@ -1475,6 +1472,12 @@ class ParserElement(ABC):
         pass
 
     def setName(self, name):
+        """
+        Define name for this expression, makes debugging and exception messages clearer.
+        Example::
+            Word(nums).parseString("ABC")  # -> Exception: Expected W:(0-9) (at char 0), (line:1, col:1)
+            Word(nums).setName("integer").parseString("ABC")  # -> Exception: Expected integer (at char 0), (line:1, col:1)
+        """
         self.customName = name
         self.errmsg = "Expected " + self.name
         if __diag__.enable_debug_on_named_expressions:
@@ -1497,8 +1500,13 @@ class ParserElement(ABC):
         self._defaultName = None
         return self
 
+    def recurse(self):
+        return []
+
     def _checkRecursion(self, parseElementList):
-        pass
+        subRecCheckList = parseElementList[:] + [self]
+        for e in self.recurse():
+            e._checkRecursion(subRecCheckList)
 
     def validate(self, validateTrace=None):
         """
@@ -3351,11 +3359,6 @@ class Or(ParseExpression):
     def _generateDefaultName(self):
         return "{" + " ^ ".join(str(e) for e in self.exprs) + "}"
 
-    def _checkRecursion(self, parseElementList):
-        subRecCheckList = parseElementList[:] + [self]
-        for e in self.exprs:
-            e._checkRecursion(subRecCheckList)
-
     def _setResultsName(self, name, listAllMatches=False):
         if __diag__.warn_multiple_tokens_in_named_alternation:
             if any(isinstance(e, And) for e in self.exprs):
@@ -3451,11 +3454,6 @@ class MatchFirst(ParseExpression):
 
     def _generateDefaultName(self):
         return "{" + " | ".join(str(e) for e in self.exprs) + "}"
-
-    def _checkRecursion(self, parseElementList):
-        subRecCheckList = parseElementList[:] + [self]
-        for e in self.exprs:
-            e._checkRecursion(subRecCheckList)
 
     def _setResultsName(self, name, listAllMatches=False):
         if __diag__.warn_multiple_tokens_in_named_alternation:
@@ -3630,11 +3628,6 @@ class Each(ParseExpression):
 
     def _generateDefaultName(self):
         return "{" + " & ".join(str(e) for e in self.exprs) + "}"
-
-    def _checkRecursion(self, parseElementList):
-        subRecCheckList = parseElementList[:] + [self]
-        for e in self.exprs:
-            e._checkRecursion(subRecCheckList)
 
 
 class ParseElementEnhance(ParserElement):

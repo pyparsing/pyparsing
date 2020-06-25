@@ -2,70 +2,11 @@
 Change Log
 ==========
 
-Version 3.0.0 (projected)
--------------------------
-API change summary:
-  . countedArray formerly returned its list of items nested
-    within another list, so that accessing the items required
-    indexing the 0'th element to get the actual list. This
-    extra nesting has been removed. In addition, if there are
-    other metadata fields parsed between the count and the
-    list items, they can be preserved in the resulting list
-    if given results names.
-
-  . ParseException.explain is now an instance method of
-    ParseException.
-
-      try:
-          expr.parseString("...")
-      except ParseException as pe:
-          print(pe.explain())
-
-    To run explain against other exceptions, use
-    ParseException.explain_exception.
-
-  . ZeroOrMore expressions that have results names will now
-    include empty lists for their name if no matches are found.
-    Previously, no named result would be present.
-
-  . ParserElement.setDefaultWhitespaceChars will now update
-    whitespace characters on all built-in expressions defined
-    in the pyparsing module.
-
-  . __diag__ now uses enable() and disable() method to
-    enable specific diagnostic values (instead of setting them
-    to True or False). __diag__.enable_all_warnings() has
-    also been added.
-
-Deprecated features removed:
-
-  . ParseResults.asXML() - if used for debugging, switch
-    to using ParseResults.dump(); if used for data transfer,
-    use ParseResults.asDict() to convert to a nested Python
-    dict, which can then be converted to XML or JSON or
-    other transfer format
-
-  . operatorPrecedence synonym for infixNotation -
-    convert to calling infixNotation
-
-  . commaSeparatedList - convert to using
-    pyparsing_common.comma_separated_list
-
-  . upcaseTokens and downcaseTokens - convert to using
-    pyparsing_common.upcaseTokens and downcaseTokens
-
-  . __compat__.collect_all_And_tokens will not be settable to
-    False to revert to pre-2.3.1 results name behavior -
-    review use of names for MatchFirst and Or expressions
-    containing And expressions, as they will return the
-    complete list of parsed tokens, not just the first one.
-    Use `__diag__.warn_multiple_tokens_in_named_alternation`
-    to help identify those expressions in your parsers that
-    will have changed as a result.
-
-
 Version 3.0.0a2 - June, 2020
 ----------------------------
+- Summary of changes for 3.0.0 can be found in "What's New in Pyparsing 3.0.0"
+  documentation.
+
 - API CHANGE
   Changed result returned when parsing using countedArray,
   the array items are no long returned in a doubly-nested
