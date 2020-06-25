@@ -7633,6 +7633,54 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             ):
                 result = patt.parseString(line)
 
+    def testMiscellaneousExceptionBits(self):
+        try:
+            pp.Word(pp.nums).parseString("ABC")
+        except pp.ParseException as pe:
+            with self.assertRaises(AttributeError):
+                print(pe.nonexistent_attribute)
+
+            expected_str = "Expected W:(0-9), found 'A'  (at char 0), (line:1, col:1)"
+            print(pe)
+            self.assertEqual(expected_str, str(pe), "invalid ParseException str")
+            print(repr(pe))
+            self.assertEqual(expected_str, repr(pe), "invalid ParseException repr")
+            print(dir(pe))
+            expected_dir = [
+                "args",
+                "col",
+                "explain",
+                "explain_exception",
+                "line",
+                "lineno",
+                "markInputline",
+                "with_traceback",
+            ]
+            observed_dir = [attr for attr in dir(pe) if not attr.startswith("_")]
+            self.assertEqual(expected_dir, observed_dir, "invalid dir(ParseException)")
+
+            # test explain using depth=None
+            explain_str = pe.explain(depth=None)
+            print(explain_str)
+            zero_depth_explain_str = pe.explain(depth=0)
+            self_testcase_name = type(self).__name__
+            for expected_function in [
+                "tests.test_unit." + self_testcase_name,
+                "pyparsing.core._WordRegex - W:(0-9)",
+            ]:
+                self.assertTrue(
+                    expected_function in explain_str,
+                    "{!r} not found in ParseException.explain()".format(
+                        expected_function
+                    ),
+                )
+                self.assertFalse(
+                    expected_function in zero_depth_explain_str,
+                    "{!r} found in ParseException.explain(depth=0)".format(
+                        expected_function
+                    ),
+                )
+
 
 class Test3_EnablePackratParsing(TestCase):
     def runTest(self):
