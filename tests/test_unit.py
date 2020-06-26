@@ -7644,13 +7644,20 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
         grammar = ppc.integer().addParseAction(modder.modify_upper)
 
         self_testcase_name = "tests.test_unit." + type(self).__name__
+
+        # get Python version-specific TypeError str
+        try:
+            str.upper(1000)
+        except TypeError as te:
+            type_error_str = str(te)
+
         try:
             grammar.parseString("1000")
         except Exception as e:
             explain_str = ParseException.explain_exception(e)
             print(explain_str)
             expected = [
-                "TypeError: descriptor 'upper' for 'str' objects doesn't apply to a 'int' object",
+                "TypeError: " + type_error_str,
                 self_testcase_name,
                 "pyparsing.core._WordRegex - integer",
                 "tests.test_unit.Modifier",
