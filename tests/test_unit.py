@@ -7766,10 +7766,14 @@ class Test4_WithPackrat(Test2_WithoutPackrat):
     """
     rerun Test2 tests, now that packrat is enabled
     """
+
     def test000_assert_packrat_status(self):
         self.assertTrue(ParserElement._packratEnabled, "packrat not enabled")
-        self.assertEqual("_FifoCache", type(ParserElement.packrat_cache).__name__,
-                         msg="incorrect cache type")
+        self.assertEqual(
+            "_FifoCache",
+            type(ParserElement.packrat_cache).__name__,
+            msg="incorrect cache type",
+        )
 
 
 class Test5_EnableBoundedPackratParsing(TestCase):
@@ -7787,10 +7791,14 @@ class Test6_WithBoundedPackrat(Test2_WithoutPackrat):
     """
     rerun Test2 tests, now with bounded packrat cache
     """
+
     def test000_assert_packrat_status(self):
         self.assertTrue(ParserElement._packratEnabled, "packrat not enabled")
-        self.assertEqual("_FifoCache", type(ParserElement.packrat_cache).__name__,
-                         msg="incorrect cache type")
+        self.assertEqual(
+            "_FifoCache",
+            type(ParserElement.packrat_cache).__name__,
+            msg="incorrect cache type",
+        )
 
 
 class Test7_EnableUnboundedPackratParsing(TestCase):
@@ -7808,10 +7816,14 @@ class Test8_WithUnboundedPackrat(Test2_WithoutPackrat):
     """
     rerun Test2 tests, now with unbounded packrat cache
     """
+
     def test000_assert_packrat_status(self):
         self.assertTrue(ParserElement._packratEnabled, "packrat not enabled")
-        self.assertEqual("_UnboundedCache", type(ParserElement.packrat_cache).__name__,
-                         msg="incorrect cache type")
+        self.assertEqual(
+            "_UnboundedCache",
+            type(ParserElement.packrat_cache).__name__,
+            msg="incorrect cache type",
+        )
 
 
 # force clear of packrat parsing flags before saving contexts

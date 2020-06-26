@@ -53,7 +53,9 @@ class pyparsing_test:
 
             self._save_context["packrat_enabled"] = ParserElement._packratEnabled
             if ParserElement._packratEnabled:
-                self._save_context["packrat_cache_size"] = ParserElement.packrat_cache.size
+                self._save_context[
+                    "packrat_cache_size"
+                ] = ParserElement.packrat_cache.size
             else:
                 self._save_context["packrat_cache_size"] = None
             self._save_context["packrat_parse"] = ParserElement._parse
