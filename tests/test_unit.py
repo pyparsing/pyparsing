@@ -7272,8 +7272,9 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
                 grmr.streamline()
                 grmr.validate()
                 self.assertTrue(isValid, "validate() accepted invalid grammar " + gnam)
-            except pp.RecursiveGrammarException as e:
+            except pp.RecursiveGrammarException as rge:
                 print(grmr)
+                print(rge)
                 self.assertFalse(isValid, "validate() rejected valid grammar " + gnam)
 
         fwd = pp.Forward()
@@ -7633,7 +7634,38 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             ):
                 result = patt.parseString(line)
 
+    def testExceptionExplainVariations(self):
+        class Modifier:
+            def modify_upper(self, tokens):
+                tokens[:] = map(str.upper, tokens)
+
+        modder = Modifier()
+
+        grammar = ppc.integer().addParseAction(modder.modify_upper)
+
+        self_testcase_name = "tests.test_unit." + type(self).__name__
+        try:
+            grammar.parseString("1000")
+        except Exception as e:
+            explain_str = ParseException.explain_exception(e)
+            print(explain_str)
+            expected = [
+                "TypeError: descriptor 'upper' for 'str' objects doesn't apply to a 'int' object",
+                self_testcase_name,
+                "pyparsing.core._WordRegex - integer",
+                "tests.test_unit.Modifier",
+                "pyparsing.results.ParseResults",
+            ]
+            self.assertEqual(
+                expected,
+                explain_str.splitlines()[-len(expected) :],
+                "invalid explain str",
+            )
+
     def testMiscellaneousExceptionBits(self):
+
+        self_testcase_name = "tests.test_unit." + type(self).__name__
+
         try:
             pp.Word(pp.nums).parseString("ABC")
         except pp.ParseException as pe:
@@ -7641,11 +7673,9 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
                 print(pe.nonexistent_attribute)
 
             expected_str = "Expected W:(0-9), found 'A'  (at char 0), (line:1, col:1)"
-            print(pe)
             self.assertEqual(expected_str, str(pe), "invalid ParseException str")
-            print(repr(pe))
             self.assertEqual(expected_str, repr(pe), "invalid ParseException repr")
-            print(dir(pe))
+
             expected_dir = [
                 "args",
                 "col",
@@ -7657,29 +7687,48 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
                 "with_traceback",
             ]
             observed_dir = [attr for attr in dir(pe) if not attr.startswith("_")]
+            print(observed_dir)
             self.assertEqual(expected_dir, observed_dir, "invalid dir(ParseException)")
 
-            # test explain using depth=None
-            explain_str = pe.explain(depth=None)
-            print(explain_str)
-            zero_depth_explain_str = pe.explain(depth=0)
-            self_testcase_name = type(self).__name__
+            self.assertEqual(
+                ">!<ABC", pe.markInputline(), "invalid default mark input line"
+            )
+            self.assertEqual(
+                "ABC", pe.markInputline(""), "invalid mark input line with '' marker"
+            )
+
+            # test explain using depth=None, 0, 1
+            depth_none_explain_str = pe.explain(depth=None)
+            depth_0_explain_str = pe.explain(depth=0)
+            depth_1_explain_str = pe.explain(depth=1)
+            print(depth_none_explain_str)
+
+            expr_name = "pyparsing.core._WordRegex - W:(0-9)"
             for expected_function in [
-                "tests.test_unit." + self_testcase_name,
-                "pyparsing.core._WordRegex - W:(0-9)",
+                self_testcase_name,
+                expr_name,
             ]:
                 self.assertTrue(
-                    expected_function in explain_str,
+                    expected_function in depth_none_explain_str,
                     "{!r} not found in ParseException.explain()".format(
                         expected_function
                     ),
                 )
                 self.assertFalse(
-                    expected_function in zero_depth_explain_str,
+                    expected_function in depth_0_explain_str,
                     "{!r} found in ParseException.explain(depth=0)".format(
                         expected_function
                     ),
                 )
+
+            self.assertTrue(
+                expr_name in depth_1_explain_str,
+                "{!r} not found in ParseException.explain()".format(expected_function),
+            )
+            self.assertFalse(
+                self_testcase_name in depth_1_explain_str,
+                "{!r} not found in ParseException.explain()".format(expected_function),
+            )
 
 
 class Test3_EnablePackratParsing(TestCase):

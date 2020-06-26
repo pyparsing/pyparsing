@@ -63,9 +63,9 @@ class ParseBaseException(Exception):
                 if isinstance(f_self, ParserElement):
                     if frm.f_code.co_name not in ("parseImpl", "_parseNoCache"):
                         continue
-                    if f_self in seen:
+                    if id(f_self) in seen:
                         continue
-                    seen.add(f_self)
+                    seen.add(id(f_self))
 
                     self_type = type(f_self)
                     ret.append(
