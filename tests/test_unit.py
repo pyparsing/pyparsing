@@ -73,6 +73,7 @@ class Test1_PyparsingTestInit(TestCase):
 
 class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
     suite_context = None
+    save_suite_context = None
 
     def setUp(self):
         self.suite_context.restore()
@@ -7753,18 +7754,22 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
 
 class Test3_EnablePackratParsing(TestCase):
     def runTest(self):
+        Test2_WithoutPackrat.suite_context.restore()
+
         ParserElement.enablePackrat()
 
         # SAVE A NEW SUITE CONTEXT
-        Test2_WithoutPackrat.save_suite_context = Test2_WithoutPackrat.suite_context
-        Test2_WithoutPackrat.suite_context = ppt.reset_pyparsing_context()
-        Test2_WithoutPackrat.suite_context.save()
+        Test2_WithoutPackrat.suite_context = ppt.reset_pyparsing_context().save()
 
 
 class Test4_WithPackrat(Test2_WithoutPackrat):
     """
     rerun Test2 tests, now that packrat is enabled
     """
+    def test000_assert_packrat_status(self):
+        self.assertTrue(ParserElement._packratEnabled, "packrat not enabled")
+        self.assertEqual("_FifoCache", type(ParserElement.packrat_cache).__name__,
+                         msg="incorrect cache type")
 
 
 class Test5_EnableBoundedPackratParsing(TestCase):
@@ -7772,17 +7777,20 @@ class Test5_EnableBoundedPackratParsing(TestCase):
         Test2_WithoutPackrat.suite_context = Test2_WithoutPackrat.save_suite_context
         Test2_WithoutPackrat.suite_context.restore()
 
-        ParserElement.enablePackrat(16)
+        ParserElement.enablePackrat(cache_size_limit=16)
 
         # SAVE A NEW SUITE CONTEXT
-        Test2_WithoutPackrat.suite_context = ppt.reset_pyparsing_context()
-        Test2_WithoutPackrat.suite_context.save()
+        Test2_WithoutPackrat.suite_context = ppt.reset_pyparsing_context().save()
 
 
 class Test6_WithBoundedPackrat(Test2_WithoutPackrat):
     """
     rerun Test2 tests, now with bounded packrat cache
     """
+    def test000_assert_packrat_status(self):
+        self.assertTrue(ParserElement._packratEnabled, "packrat not enabled")
+        self.assertEqual("_FifoCache", type(ParserElement.packrat_cache).__name__,
+                         msg="incorrect cache type")
 
 
 class Test7_EnableUnboundedPackratParsing(TestCase):
@@ -7790,18 +7798,25 @@ class Test7_EnableUnboundedPackratParsing(TestCase):
         Test2_WithoutPackrat.suite_context = Test2_WithoutPackrat.save_suite_context
         Test2_WithoutPackrat.suite_context.restore()
 
-        ParserElement.enablePackrat(None)
+        ParserElement.enablePackrat(cache_size_limit=None)
 
         # SAVE A NEW SUITE CONTEXT
-        Test2_WithoutPackrat.suite_context = ppt.reset_pyparsing_context()
-        Test2_WithoutPackrat.suite_context.save()
+        Test2_WithoutPackrat.suite_context = ppt.reset_pyparsing_context().save()
 
 
 class Test8_WithUnboundedPackrat(Test2_WithoutPackrat):
     """
     rerun Test2 tests, now with unbounded packrat cache
     """
+    def test000_assert_packrat_status(self):
+        self.assertTrue(ParserElement._packratEnabled, "packrat not enabled")
+        self.assertEqual("_UnboundedCache", type(ParserElement.packrat_cache).__name__,
+                         msg="incorrect cache type")
 
 
-Test2_WithoutPackrat.suite_context = ppt.reset_pyparsing_context()
-Test2_WithoutPackrat.suite_context.save()
+# force clear of packrat parsing flags before saving contexts
+pp.ParserElement._packratEnabled = False
+pp.ParserElement._parse = pp.ParserElement._parseNoCache
+
+Test2_WithoutPackrat.suite_context = ppt.reset_pyparsing_context().save()
+Test2_WithoutPackrat.save_suite_context = ppt.reset_pyparsing_context().save()

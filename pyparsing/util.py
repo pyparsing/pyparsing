@@ -90,6 +90,7 @@ class _UnboundedCache:
         def cache_len(self):
             return len(cache)
 
+        self.size = None
         self.get = types.MethodType(get, self)
         self.set = types.MethodType(set, self)
         self.clear = types.MethodType(clear, self)
@@ -119,6 +120,7 @@ class _FifoCache:
         def cache_len(self):
             return len(cache)
 
+        self.size = size
         self.get = types.MethodType(get, self)
         self.set = types.MethodType(set, self)
         self.clear = types.MethodType(clear, self)
