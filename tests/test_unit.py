@@ -7641,38 +7641,51 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
 
         modder = Modifier()
 
+        # force an exception in the attached parse action
+        # integer has a parse action to convert to an int;
+        # this parse action should fail with a TypeError, since
+        # str.upper expects a str argument, not an int
         grammar = ppc.integer().addParseAction(modder.modify_upper)
 
         self_testcase_name = "tests.test_unit." + type(self).__name__
 
-        # get Python version-specific TypeError str
-        try:
-            str.upper(1000)
-        except TypeError as te:
-            type_error_str = str(te)
-
         try:
             grammar.parseString("1000")
         except Exception as e:
+            # extract the exception explanation
             explain_str = ParseException.explain_exception(e)
             print(explain_str)
+            explain_str_lines = explain_str.splitlines()
+
             expected = [
-                "TypeError: " + type_error_str,
                 self_testcase_name,
                 "pyparsing.core._WordRegex - integer",
                 "tests.test_unit.Modifier",
                 "pyparsing.results.ParseResults",
             ]
+
+            # verify the list of names shown in the explain "stack"
             self.assertEqual(
                 expected,
-                explain_str.splitlines()[-len(expected) :],
-                "invalid explain str",
+                explain_str_lines[-len(expected) :],
+                msg="invalid explain str",
+            )
+
+            # check type of raised exception matches explain output
+            # (actual exception text varies by Python version, and even
+            # by how the exception is raised, so we can only check the
+            # type name)
+            exception_line = explain_str_lines[-(len(expected) + 1)]
+            self.assertTrue(
+                exception_line.startswith("TypeError:"),
+                msg="unexpected exception line ({!r})".format(exception_line),
             )
 
     def testMiscellaneousExceptionBits(self):
 
         self_testcase_name = "tests.test_unit." + type(self).__name__
 
+        # force a parsing exception - match an integer against "ABC"
         try:
             pp.Word(pp.nums).parseString("ABC")
         except pp.ParseException as pe:
