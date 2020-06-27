@@ -44,6 +44,14 @@ Version 3.0.0a2 - June, 2020
   control over pyparsing's whitespace skipping. Also contributed
   by Michael Milton.
 
+- The unicode range definitions for the various languages were
+  recalculated by interrogating the unicodedata module by character
+  name, selecting characters that contained that language in their
+  Unicode name. (Issue #227)
+
+  Also, pyparsing_unicode.Korean was renamed to Hangul (Korean
+  is also defined as a synonym for compatibility).
+
 - Enhanced ParseResults dump() to show both results names and list
   subitems. Fixes bug where adding a results name would hide
   lower-level structures in the ParseResults.
