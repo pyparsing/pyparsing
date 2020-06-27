@@ -107,7 +107,7 @@ class pyparsing_test:
             return self.save()
 
         def __exit__(self, *args):
-            return self.restore()
+            self.restore()
 
     class TestParseResultsAsserts:
         """
