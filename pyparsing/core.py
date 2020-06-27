@@ -136,7 +136,7 @@ _trim_arity_call_line = None
 
 
 def _trim_arity(func, maxargs=2):
-    "decorator to trim function calls to match the arity of the target"
+    """decorator to trim function calls to match the arity of the target"""
     global _trim_arity_call_line
 
     if func in singleArgBuiltins:
@@ -190,11 +190,8 @@ def _trim_arity(func, maxargs=2):
                     raise
 
     # copy func name to wrapper for sensible debug output
-    func_name = "<parse action>"
-    try:
-        func_name = getattr(func, "__name__", getattr(func, "__class__").__name__)
-    except Exception:
-        func_name = str(func)
+    # (can't use functools.wraps, since that messes with function signature)
+    func_name = getattr(func, "__name__", getattr(func, "__class__").__name__)
     wrapper.__name__ = func_name
 
     return wrapper
@@ -247,7 +244,6 @@ def _defaultExceptionDebugAction(instring, loc, expr, exc):
 
 def nullDebugAction(*args):
     """'Do-nothing' debug action, to suppress debugging output during parsing."""
-    pass
 
 
 class ParserElement(ABC):
@@ -913,8 +909,8 @@ class ParserElement(ABC):
                 if t:
                     if isinstance(t, ParseResults):
                         out += t.asList()
-                    elif isinstance(t, list):
-                        out += t
+                    elif isinstance(t, Iterable) and not isinstance(t, str_type):
+                        out += list(t)
                     else:
                         out.append(t)
                 lastE = e
@@ -1469,7 +1465,6 @@ class ParserElement(ABC):
         """
         Child classes must define this method, which defines how the `defaultName` is set.
         """
-        pass
 
     def setName(self, name):
         """
