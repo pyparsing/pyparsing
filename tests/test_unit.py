@@ -101,6 +101,10 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
                 )
         return ar
 
+    def test000_assert_packrat_status(self):
+        print("Packrat enabled:", ParserElement._packratEnabled)
+        self.assertFalse(ParserElement._packratEnabled, "packrat enabled")
+
     def testUpdateDefaultWhitespace(self):
 
         prev_default_whitespace_chars = pp.ParserElement.DEFAULT_WHITE_CHARS
@@ -7768,6 +7772,12 @@ class Test4_WithPackrat(Test2_WithoutPackrat):
     """
 
     def test000_assert_packrat_status(self):
+        print("Packrat enabled:", ParserElement._packratEnabled)
+        print(
+            "Packrat cache:",
+            type(ParserElement.packrat_cache).__name__,
+            getattr(ParserElement.packrat_cache, "size", "- no size attribute -"),
+        )
         self.assertTrue(ParserElement._packratEnabled, "packrat not enabled")
         self.assertEqual(
             "_FifoCache",
@@ -7793,6 +7803,12 @@ class Test6_WithBoundedPackrat(Test2_WithoutPackrat):
     """
 
     def test000_assert_packrat_status(self):
+        print("Packrat enabled:", ParserElement._packratEnabled)
+        print(
+            "Packrat cache:",
+            type(ParserElement.packrat_cache).__name__,
+            getattr(ParserElement.packrat_cache, "size", "- no size attribute -"),
+        )
         self.assertTrue(ParserElement._packratEnabled, "packrat not enabled")
         self.assertEqual(
             "_FifoCache",
@@ -7818,6 +7834,12 @@ class Test8_WithUnboundedPackrat(Test2_WithoutPackrat):
     """
 
     def test000_assert_packrat_status(self):
+        print("Packrat enabled:", ParserElement._packratEnabled)
+        print(
+            "Packrat cache:",
+            type(ParserElement.packrat_cache).__name__,
+            getattr(ParserElement.packrat_cache, "size", "- no size attribute -"),
+        )
         self.assertTrue(ParserElement._packratEnabled, "packrat not enabled")
         self.assertEqual(
             "_UnboundedCache",
