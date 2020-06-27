@@ -105,6 +105,45 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
         print("Packrat enabled:", ParserElement._packratEnabled)
         self.assertFalse(ParserElement._packratEnabled, "packrat enabled")
 
+    def testScanStringWithOverlap(self):
+        parser = pp.Word(pp.alphas, exact=3)
+        without_overlaps = sum(t for t, s, e in parser.scanString("ABCDEFGHI")).asList()
+        self.assertEqual(
+            ["ABC", "DEF", "GHI"],
+            without_overlaps,
+            msg="scanString without overlaps failed",
+        )
+        with_overlaps = sum(
+            t for t, s, e in parser.scanString("ABCDEFGHI", overlap=True)
+        ).asList()
+        self.assertEqual(
+            ["ABC", "BCD", "CDE", "DEF", "EFG", "FGH", "GHI"],
+            with_overlaps,
+            msg="scanString with overlaps failed",
+        )
+
+    def testTransformString(self):
+        make_int_with_commas = ppc.integer().addParseAction(
+            lambda t: "{:,}".format(t[0])
+        )
+        lower_case_words = pp.Word(pp.alphas.lower(), asKeyword=True) + pp.Optional(
+            pp.White()
+        )
+        nested_list = pp.nestedExpr().addParseAction(pp.ParseResults.asList)
+        transformer = make_int_with_commas | nested_list | lower_case_words.suppress()
+
+        in_string = (
+            "I wish to buy 12345 shares of Acme Industries (as a gift to my (ex)wife)"
+        )
+        print(in_string)
+        out_string = transformer.transformString(in_string)
+        print(out_string)
+        self.assertEqual(
+            "I 12,345 Acme Industries asagifttomyexwife",
+            out_string,
+            msg="failure in transformString",
+        )
+
     def testUpdateDefaultWhitespace(self):
 
         prev_default_whitespace_chars = pp.ParserElement.DEFAULT_WHITE_CHARS
@@ -2988,11 +3027,6 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
                 + pp.SkipTo(td_end)("cells*")
                 + td_end.suppress()
             )
-
-            # ~ manuf_body.setDebug()
-
-            # ~ for tokens in manuf_body.scanString(html):
-            # ~ print(tokens)
 
     def testParseUsingRegex(self):
 
@@ -6901,6 +6935,58 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
                 "failed to auto-enable debug on named expressions "
                 "using enable_debug_on_named_expressions",
             )
+
+    def testEnableDebugOnExpressionWithParseAction(self):
+        import textwrap
+
+        test_stdout = StringIO()
+        with resetting(sys, "stdout", "stderr"):
+            sys.stdout = test_stdout
+            sys.stderr = test_stdout
+
+            parser = (ppc.integer().setDebug() | pp.Word(pp.alphanums).setDebug())[...]
+            parser.setDebug()
+            parser.parseString("123 A100")
+
+            # now turn off debug - should only get output for components, not overall parser
+            print()
+            parser.setDebug(False)
+            parser.parseString("123 A100")
+
+        expected_debug_output = textwrap.dedent(
+            """\
+            Match [{integer | W:(0-9A-Za-z)}]... at loc 0(1,1)
+            Match integer at loc 0(1,1)
+            Matched integer -> [123]
+            Match integer at loc 3(1,4)
+            Exception raised:Expected integer, found 'A'  (at char 4), (line:1, col:5)
+            Match W:(0-9A-Za-z) at loc 3(1,4)
+            Matched W:(0-9A-Za-z) -> ['A100']
+            Match integer at loc 8(1,9)
+            Exception raised:Expected integer, found end of text  (at char 8), (line:1, col:9)
+            Match W:(0-9A-Za-z) at loc 8(1,9)
+            Exception raised:Expected W:(0-9A-Za-z), found end of text  (at char 8), (line:1, col:9)
+            Matched [{integer | W:(0-9A-Za-z)}]... -> [123, 'A100']
+            
+            Match integer at loc 0(1,1)
+            Matched integer -> [123]
+            Match integer at loc 3(1,4)
+            Exception raised:Expected integer, found 'A'  (at char 4), (line:1, col:5)
+            Match W:(0-9A-Za-z) at loc 3(1,4)
+            Matched W:(0-9A-Za-z) -> ['A100']
+            Match integer at loc 8(1,9)
+            Exception raised:Expected integer, found end of text  (at char 8), (line:1, col:9)
+            Match W:(0-9A-Za-z) at loc 8(1,9)
+            Exception raised:Expected W:(0-9A-Za-z), found end of text  (at char 8), (line:1, col:9)
+            """
+        )
+        output = test_stdout.getvalue()
+        print(output)
+        self.assertEqual(
+            expected_debug_output,
+            output,
+            "invalid debug output when using parse action",
+        )
 
     def testUndesirableButCommonPractices(self):
 
