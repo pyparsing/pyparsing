@@ -87,6 +87,11 @@ Version 3.0.0a2 - June, 2020
 - A simplified Lua parser has been added to the examples
   (lua_parser.py).
 
+- Added make_diagram.py to the examples directory to demonstrate
+  creation of railroad diagrams for selected pyparsing examples.
+  Also restructured some examples to make their parsers importable
+  without running their embedded tests.
+
 
 Version 3.0.0a1 - April, 2020
 -----------------------------

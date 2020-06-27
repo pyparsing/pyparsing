@@ -169,7 +169,7 @@ class TAPSummary:
 tapOutputParser.setParseAction(TAPSummary)
 
 
-if __name__ == "__main__":
+def main():
     test1 = """\
         1..4
         ok 1 - Input file opened
@@ -241,3 +241,7 @@ if __name__ == "__main__":
         tapResult = tapOutputParser.parseString(test)[0]
         print(tapResult.summary(showAll=True))
         print()
+
+
+if __name__ == "__main__":
+    main()

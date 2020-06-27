@@ -129,7 +129,7 @@ def CORBA_IDL_BNF():
         typeDef = sequenceDef | (typeName + Optional(lbrack + integer + rbrack))
         typedefDef = Group(typedef_ + typeDef + identifier + semi).setName("typedef")
 
-        moduleDef = Forward()
+        moduleDef = Forward().setName("moduleDef")
         constDef = Group(
             const_
             + typeDef
@@ -137,11 +137,13 @@ def CORBA_IDL_BNF():
             + equals
             + (real | integer | quotedString)
             + semi
+        ).setName(
+            "constDef"
         )  # | quotedString )
         exceptionItem = Group(typeDef + identifier + semi)
         exceptionDef = (
             exception_ + identifier + lbrace + ZeroOrMore(exceptionItem) + rbrace + semi
-        )
+        ).setName("exceptionDef")
         attributeDef = Optional(readonly_) + attribute_ + typeDef + identifier + semi
         paramlist = delimitedList(
             Group((inout_ | in_ | out_) + typeName + identifier)
@@ -154,7 +156,7 @@ def CORBA_IDL_BNF():
             + rparen
             + Optional(raises_ + lparen + Group(delimitedList(typeName)) + rparen)
             + semi
-        )
+        ).setName("operationDef")
         interfaceItem = constDef | exceptionDef | attributeDef | operationDef
         interfaceDef = Group(
             interface_
@@ -164,8 +166,10 @@ def CORBA_IDL_BNF():
             + ZeroOrMore(interfaceItem)
             + rbrace
             + semi
-        ).setName("opnDef")
-        moduleItem = interfaceDef | exceptionDef | constDef | typedefDef | moduleDef
+        ).setName("interfaceDef")
+        moduleItem = (
+            interfaceDef | exceptionDef | constDef | typedefDef | moduleDef
+        ).setName("moduleItem")
         moduleDef << module_ + identifier + lbrace + ZeroOrMore(
             moduleItem
         ) + rbrace + semi
@@ -179,28 +183,27 @@ def CORBA_IDL_BNF():
     return bnf
 
 
-testnum = 1
-
-
-def test(strng):
-    global testnum
-    print(strng)
-    try:
-        bnf = CORBA_IDL_BNF()
-        tokens = bnf.parseString(strng)
-        print("tokens = ")
-        pprint.pprint(tokens.asList())
-        imgname = "idlParse%02d.bmp" % testnum
-        testnum += 1
-        # ~ tree2image.str2image( str(tokens.asList()), imgname )
-    except ParseException as err:
-        print(err.line)
-        print(" " * (err.column - 1) + "^")
-        print(err)
-    print()
-
-
 if __name__ == "__main__":
+
+    testnum = 1
+
+    def test(strng):
+        global testnum
+        print(strng)
+        try:
+            bnf = CORBA_IDL_BNF()
+            tokens = bnf.parseString(strng)
+            print("tokens = ")
+            pprint.pprint(tokens.asList())
+            imgname = "idlParse%02d.bmp" % testnum
+            testnum += 1
+            # ~ tree2image.str2image( str(tokens.asList()), imgname )
+        except ParseException as err:
+            print(err.line)
+            print(" " * (err.column - 1) + "^")
+            print(err)
+        print()
+
     test(
         """
         /*

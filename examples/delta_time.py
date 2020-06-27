@@ -309,7 +309,7 @@ time_and_day.addParseAction(save_original_string, compute_timestamp, remove_temp
 time_expression = time_and_day
 
 
-if __name__ == "__main__":
+def main():
     current_time = datetime.now()
     # test grammar
     tests = """\
@@ -432,3 +432,7 @@ if __name__ == "__main__":
 
     print("(relative to %s)" % datetime.now())
     time_expression.runTests(tests, postParse=verify_offset)
+
+
+if __name__ == "__main__":
+    main()
