@@ -51,6 +51,7 @@ integer_word = pp.MatchFirst(
     )
 )
 integer = pp.pyparsing_common.integer | integer_word
+integer.setName("numeric")
 
 CK = pp.CaselessKeyword
 CL = pp.CaselessLiteral
@@ -81,12 +82,17 @@ last_ = CK("last").setParseAction(pp.replaceWith(-1))
 at_ = CK("at")
 on_ = CK("on")
 
-couple = (pp.Optional(CK("a")) + CK("couple") + pp.Optional(CK("of"))).setParseAction(
-    pp.replaceWith(2)
+couple = (
+    (pp.Optional(CK("a")) + CK("couple") + pp.Optional(CK("of")))
+    .setParseAction(pp.replaceWith(2))
+    .setName("couple")
 )
+
 a_qty = (CK("a") | CK("an")).setParseAction(pp.replaceWith(1))
 the_qty = CK("the").setParseAction(pp.replaceWith(1))
-qty = pp.ungroup(integer | couple | a_qty | the_qty).setName("qty")
+qty = pp.ungroup(
+    (integer | couple | a_qty | the_qty).setName("qty_expression")
+).setName("qty")
 time_ref_present = pp.Empty().addParseAction(pp.replaceWith(True))("time_ref_present")
 
 
@@ -119,8 +125,10 @@ timespec = (
     + (am | pm)("ampm")
 ).addParseAction(fill_default_time_fields)
 absolute_time = _24hour_time | timespec
+absolute_time.setName("absolute time")
 
 absolute_time_of_day = noon | midnight | now | absolute_time
+absolute_time_of_day.setName("time of day")
 
 
 def add_computed_time(t):
@@ -138,18 +146,21 @@ def add_computed_time(t):
 absolute_time_of_day.addParseAction(add_computed_time)
 
 
-#     relative_time_reference ::= qty time_units ('from' | 'before' | 'after') absolute_time_of_day
-#                                 | qty time_units 'ago'
+#     relative_time_reference ::= qty time_units ('ago' | ('from' | 'before' | 'after') absolute_time_of_day)
 #                                 | 'in' qty time_units
-time_units = hour | minute | second
+time_units = (hour | minute | second).setName("time unit")
 relative_time_reference = (
-    qty("qty") + time_units("units") + ago("dir")
-    | qty("qty")
-    + time_units("units")
-    + (from_ | before | after)("dir")
-    + pp.Group(absolute_time_of_day)("ref_time")
+    (
+        qty("qty")
+        + time_units("units")
+        + (
+            ago("dir")
+            | (from_ | before | after)("dir")
+            + pp.Group(absolute_time_of_day)("ref_time")
+        )
+    )
     | in_("dir") + qty("qty") + time_units("units")
-)
+).setName("relative time")
 
 
 def compute_relative_time(t):
@@ -164,6 +175,7 @@ def compute_relative_time(t):
 relative_time_reference.addParseAction(compute_relative_time)
 
 time_reference = absolute_time_of_day | relative_time_reference
+time_reference.setName("time reference")
 
 
 def add_default_time_ref_fields(t):
@@ -209,19 +221,18 @@ absolute_day_reference = (
     today | tomorrow | yesterday | now + time_ref_present | weekday_reference
 )
 absolute_day_reference.addParseAction(convert_abs_day_reference_to_date)
-
+absolute_day_reference.setName("absolute day")
 
 #     relative_day_reference ::=  'in' qty day_units
-#                                   | qty day_units 'ago'
-#                                   | 'qty day_units ('from' | 'before' | 'after') absolute_day_reference
-relative_day_reference = (
-    in_("dir") + qty("qty") + day_units("units")
-    | qty("qty") + day_units("units") + ago("dir")
-    | qty("qty")
-    + day_units("units")
-    + (from_ | before | after)("dir")
-    + absolute_day_reference("ref_day")
+#                                   | qty day_units
+#                                     ('ago'
+#                                      | ('from' | 'before' | 'after') absolute_day_reference)
+relative_day_reference = in_("dir") + qty("qty") + day_units("units") | qty(
+    "qty"
+) + day_units("units") + (
+    ago("dir") | ((from_ | before | after)("dir") + absolute_day_reference("ref_day"))
 )
+relative_day_reference.setName("relative day")
 
 
 def compute_relative_date(t):
@@ -238,6 +249,7 @@ relative_day_reference.addParseAction(compute_relative_date)
 
 # combine expressions for absolute and relative day references
 day_reference = relative_day_reference | absolute_day_reference
+day_reference.setName("day reference")
 
 
 def add_default_date_fields(t):
@@ -251,6 +263,7 @@ day_reference.addParseAction(add_default_date_fields)
 time_and_day = time_reference + time_ref_present + pp.Optional(
     pp.Optional(on_) + day_reference
 ) | day_reference + pp.Optional(at_ + absolute_time_of_day + time_ref_present)
+time_and_day.setName("time and day")
 
 # parse actions for total time_and_day expression
 def save_original_string(s, l, t):
@@ -400,6 +413,9 @@ def main():
         "the day after tomorrow": timedelta(days=2) - time_of_day,
         "tomorrow": timedelta(days=1) - time_of_day,
         "the day before yesterday": timedelta(days=-2) - time_of_day,
+        "8am the day after tomorrow": timedelta(days=+2)
+        - time_of_day
+        + timedelta(hours=8),
         "yesterday": timedelta(days=-1) - time_of_day,
         "today": -time_of_day,
         "midnight": -time_of_day,
