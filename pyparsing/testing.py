@@ -51,6 +51,8 @@ class pyparsing_test:
                 "literal_string_class"
             ] = ParserElement._literalStringClass
 
+            self._save_context["verbose_stacktrace"] = ParserElement.verbose_stacktrace
+
             self._save_context["packrat_enabled"] = ParserElement._packratEnabled
             if ParserElement._packratEnabled:
                 self._save_context[
@@ -79,6 +81,8 @@ class pyparsing_test:
                 ParserElement.setDefaultWhitespaceChars(
                     self._save_context["default_whitespace"]
                 )
+
+            ParserElement.verbose_stacktrace = self._save_context["verbose_stacktrace"]
 
             Keyword.DEFAULT_KEYWORD_CHARS = self._save_context["default_keyword_chars"]
             ParserElement.inlineLiteralsUsing(

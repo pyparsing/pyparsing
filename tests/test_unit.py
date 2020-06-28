@@ -7774,6 +7774,8 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
 
     def testMiscellaneousExceptionBits(self):
 
+        pp.ParserElement.verbose_stacktrace = True
+
         self_testcase_name = "tests.test_unit." + type(self).__name__
 
         # force a parsing exception - match an integer against "ABC"

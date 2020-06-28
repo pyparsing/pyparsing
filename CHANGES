@@ -2,6 +2,12 @@
 Change Log
 ==========
 
+Version 3.0.0b1
+---------------
+- Fixed traceback trimming, and added ParserElement.verbose_traceback
+  save/restore to reset_pyparsing_context().
+
+
 Version 3.0.0a2 - June, 2020
 ----------------------------
 - Summary of changes for 3.0.0 can be found in "What's New in Pyparsing 3.0.0"
