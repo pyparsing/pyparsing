@@ -9,7 +9,7 @@ Version 3.0.0a2 - June, 2020
 
 - API CHANGE
   Changed result returned when parsing using countedArray,
-  the array items are no long returned in a doubly-nested
+  the array items are no longer returned in a doubly-nested
   list.
 
 - An excellent new enhancement is the new railroad diagram
