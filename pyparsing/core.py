@@ -4255,7 +4255,7 @@ class Forward(ParseElementEnhance):
     def parseImpl(self, instring, loc, doActions=True):
         if self.expr is None and __diag__.warn_on_parse_using_empty_Forward:
             # walk stack until parseString, scanString, searchString, or transformString is found
-            parse_fns = ['parseString', 'scanString', 'searchString', 'transformString']
+            parse_fns = ["parseString", "scanString", "searchString", "transformString"]
             tb = traceback.extract_stack(limit=200)
             for i, frm in enumerate(reversed(tb), start=1):
                 if frm.name in parse_fns:
