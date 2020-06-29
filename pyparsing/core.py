@@ -4237,7 +4237,7 @@ class Forward(ParseElementEnhance):
             warnings.warn(
                 "using '<<' operator with '|' is probably an error, use '<<='",
                 SyntaxWarning,
-                stacklevel=3,
+                stacklevel=2,
             )
         ret = super().__or__(other)
         return ret
@@ -4254,10 +4254,19 @@ class Forward(ParseElementEnhance):
 
     def parseImpl(self, instring, loc, doActions=True):
         if self.expr is None and __diag__.warn_on_parse_using_empty_Forward:
+            # walk stack until parseString, scanString, searchString, or transformString is found
+            parse_fns = ['parseString', 'scanString', 'searchString', 'transformString']
+            tb = traceback.extract_stack(limit=200)
+            for i, frm in enumerate(reversed(tb), start=1):
+                if frm.name in parse_fns:
+                    stacklevel = i + 1
+                    break
+            else:
+                stacklevel = 2
             warnings.warn(
                 "Forward expression was never assigned a value, will not parse any input",
                 UserWarning,
-                stacklevel=3,
+                stacklevel=stacklevel,
             )
         return super().parseImpl(instring, loc, doActions)
 
