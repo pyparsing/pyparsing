@@ -42,10 +42,12 @@ class ParseResults:
 
         integer = Word(nums)
         date_str = (integer.setResultsName("year") + '/'
-                        + integer.setResultsName("month") + '/'
-                        + integer.setResultsName("day"))
+                    + integer.setResultsName("month") + '/'
+                    + integer.setResultsName("day"))
         # equivalent form:
-        # date_str = integer("year") + '/' + integer("month") + '/' + integer("day")
+        # date_str = (integer("year") + '/'
+        #             + integer("month") + '/'
+        #             + integer("day"))
 
         # parseString returns a ParseResults object
         result = date_str.parseString("1999/12/31")
@@ -225,10 +227,13 @@ class ParseResults:
 
         Example::
 
+            numlist = Word(nums)[...]
+            print(numlist.parseString("0 123 321")) # -> ['0', '123', '321']
+
             def remove_first(tokens):
                 tokens.pop(0)
-            print(OneOrMore(Word(nums)).parseString("0 123 321")) # -> ['0', '123', '321']
-            print(OneOrMore(Word(nums)).addParseAction(remove_first).parseString("0 123 321")) # -> ['123', '321']
+            numlist.addParseAction(remove_first)
+            print(numlist.parseString("0 123 321")) # -> ['123', '321']
 
             label = Word(alphas)
             patt = label("LABEL") + OneOrMore(Word(nums))
@@ -296,12 +301,14 @@ class ParseResults:
 
         Example::
 
-            print(OneOrMore(Word(nums)).parseString("0 123 321")) # -> ['0', '123', '321']
+            numlist = Word(nums)[...]
+            print(numlist.parseString("0 123 321")) # -> ['0', '123', '321']
 
             # use a parse action to insert the parse location in the front of the parsed results
             def insert_locn(locn, tokens):
                 tokens.insert(0, locn)
-            print(OneOrMore(Word(nums)).addParseAction(insert_locn).parseString("0 123 321")) # -> [0, '0', '123', '321']
+            numlist.addParseAction(insert_locn)
+            print(numlist.parseString("0 123 321")) # -> [0, '0', '123', '321']
         """
         self._toklist.insert(index, insStr)
         # fixup indices in token dictionary
@@ -317,12 +324,14 @@ class ParseResults:
 
         Example::
 
-            print(OneOrMore(Word(nums)).parseString("0 123 321")) # -> ['0', '123', '321']
+            numlist = Word(nums)[...]
+            print(numlist.parseString("0 123 321")) # -> ['0', '123', '321']
 
             # use a parse action to compute the sum of the parsed integers, and add it to the end
             def append_sum(tokens):
                 tokens.append(sum(map(int, tokens)))
-            print(OneOrMore(Word(nums)).addParseAction(append_sum).parseString("0 123 321")) # -> ['0', '123', '321', 444]
+            numlist.addParseAction(append_sum)
+            print(numlist.parseString("0 123 321")) # -> ['0', '123', '321', 444]
         """
         self._toklist.append(item)
 
@@ -338,7 +347,8 @@ class ParseResults:
             def make_palindrome(tokens):
                 tokens.extend(reversed([t[::-1] for t in tokens]))
                 return ''.join(tokens)
-            print(patt.addParseAction(make_palindrome).parseString("lskdj sdlkjf lksd")) # -> 'lskdjsdlkjflksddsklfjkldsjdksl'
+            patt.addParseAction(make_palindrome)
+            print(patt.parseString("lskdj sdlkjf lksd")) # -> 'lskdjsdlkjflksddsklfjkldsjdksl'
         """
         if isinstance(itemseq, ParseResults):
             self.__iadd__(itemseq)

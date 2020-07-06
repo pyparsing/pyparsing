@@ -36,11 +36,6 @@ class ParseBaseException(Exception):
 
         Returns a multi-line string listing the ParserElements and/or function names in the
         exception's stack trace.
-
-        Note: the diagnostic output will include string representations of the expressions
-        that failed to parse. These representations will be more helpful if you use `setName` to
-        give identifiable names to your expressions. Otherwise they will use the default string
-        forms, which may be cryptic to read.
         """
         import inspect
         from .core import ParserElement
@@ -101,9 +96,9 @@ class ParseBaseException(Exception):
 
     def __getattr__(self, aname):
         """supported attributes by name are:
-           - lineno - returns the line number of the exception text
-           - col - returns the column number of the exception text
-           - line - returns the line containing the exception text
+            - lineno - returns the line number of the exception text
+            - col - returns the column number of the exception text
+            - line - returns the line containing the exception text
         """
         if aname == "lineno":
             return lineno(self.loc, self.pstr)
@@ -178,6 +173,14 @@ class ParseBaseException(Exception):
                     ^
             ParseException: Expected W:(0-9), found 'A'  (at char 8), (line:1, col:9)
 
+        Note: the diagnostic output will include string representations of the expressions
+        that failed to parse. These representations will be more helpful if you use `setName` to
+        give identifiable names to your expressions. Otherwise they will use the default string
+        forms, which may be cryptic to read.
+
+        Note: pyparsing's default truncation of exception tracebacks may also truncate the
+        stack of expressions that are displayed in the ``explain`` output. To get the full listing
+        of parser expressions, you may have to set ``ParserElement.verbose_stacktrace = True``
         """
         return self.explain_exception(self, depth)
 
@@ -186,9 +189,9 @@ class ParseException(ParseBaseException):
     """
     Exception thrown when parse expressions don't match class;
     supported attributes by name are:
-    - lineno - returns the line number of the exception text
-    - col - returns the column number of the exception text
-    - line - returns the line containing the exception text
+     - lineno - returns the line number of the exception text
+     - col - returns the column number of the exception text
+     - line - returns the line containing the exception text
 
     Example::
 
@@ -210,8 +213,6 @@ class ParseFatalException(ParseBaseException):
     """user-throwable exception thrown when inconsistent parse content
        is found; stops all parsing immediately"""
 
-    pass
-
 
 class ParseSyntaxException(ParseFatalException):
     """just like :class:`ParseFatalException`, but thrown internally
@@ -219,8 +220,6 @@ class ParseSyntaxException(ParseFatalException):
     that parsing is to stop immediately because an unbacktrackable
     syntax error has been found.
     """
-
-    pass
 
 
 # ~ class ReparseException(ParseBaseException):
