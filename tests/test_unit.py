@@ -1972,7 +1972,7 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
 
         self.assertParseResultsEquals(testVal, expected_list=expected)
 
-    def testInfixNotationGrammarTest1(self):
+    def testInfixNotationBasicArithEval(self):
         from pyparsing import Word, nums, alphas, Literal, oneOf, infixNotation, opAssoc
         import ast
 
@@ -2027,7 +2027,7 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
         for test_str, exp_list in zip(test, expected):
             self.assertParseAndCheckList(expr, test_str, exp_list, verbose=True)
 
-    def testInfixNotationGrammarTest2(self):
+    def testInfixNotationEvalBoolExprUsingAstClasses(self):
 
         from pyparsing import infixNotation, Word, alphas, oneOf, opAssoc
 
@@ -2119,7 +2119,7 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
                 expected, bool(res[0]), "failed boolean eval test {}".format(t)
             )
 
-    def testInfixNotationGrammarTest3(self):
+    def testInfixNotationMinimalParseActionCalls(self):
 
         from pyparsing import infixNotation, Word, alphas, oneOf, opAssoc, nums, Literal
 
@@ -2160,7 +2160,7 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             print("%r => %s (count=%d)" % (t, expr.parseString(t), count))
             self.assertEqual(1, count, "count evaluated too many times!")
 
-    def testInfixNotationGrammarTest4(self):
+    def testInfixNotationWithParseActions(self):
 
         word = pp.Word(pp.alphas)
 
@@ -2268,6 +2268,52 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
                 "Error evaluating {!r}, expected {!r}, got {!r}".format(
                     t, eval(t), eval_value
                 ),
+            )
+
+    def testInfixNotationExceptions(self):
+        num = pp.Word(pp.nums)
+
+        # arity 3 with None opExpr - should raise ValueError
+        with self.assertRaises(ValueError):
+            expr = pp.infixNotation(num, [(None, 3, pp.opAssoc.LEFT),])
+
+        # arity 3 with invalid tuple - should raise ValueError
+        with self.assertRaises(ValueError):
+            expr = pp.infixNotation(num, [(("+", "-", "*"), 3, pp.opAssoc.LEFT)])
+
+        # left arity > 3 - should raise ValueError
+        with self.assertRaises(ValueError):
+            expr = pp.infixNotation(num, [("*", 4, pp.opAssoc.LEFT)])
+
+        # right arity > 3 - should raise ValueError
+        with self.assertRaises(ValueError):
+            expr = pp.infixNotation(num, [("*", 4, pp.opAssoc.RIGHT)])
+
+        # assoc not from opAssoc - should raise ValueError
+        with self.assertRaises(ValueError):
+            expr = pp.infixNotation(num, [("*", 2, "LEFT")])
+
+    def testInfixNotationWithNonOperators(self):
+        # left arity 2 with None expr
+        # right arity 2 with None expr
+        num = pp.Word(pp.nums).addParseAction(pp.tokenMap(int))
+        ident = ppc.identifier()
+        for assoc in (pp.opAssoc.LEFT, pp.opAssoc.RIGHT):
+            expr = pp.infixNotation(
+                num | ident, [(None, 2, assoc), ("+", 2, pp.opAssoc.LEFT)]
+            )
+            self.assertParseAndCheckList(expr, "3x+2", [[[3, "x"], "+", 2]])
+
+    def testInfixNotationTernaryOperator(self):
+        # left arity 3
+        # right arity 3
+        num = pp.Word(pp.nums).addParseAction(pp.tokenMap(int))
+        for assoc in (pp.opAssoc.LEFT, pp.opAssoc.RIGHT):
+            expr = pp.infixNotation(
+                num, [("+", 2, pp.opAssoc.LEFT), (("?", ":"), 3, assoc),]
+            )
+            self.assertParseAndCheckList(
+                expr, "3 + 2? 12: 13", [[[3, "+", 2], "?", 12, ":", 13]]
             )
 
     def testParseResultsPickle(self):
