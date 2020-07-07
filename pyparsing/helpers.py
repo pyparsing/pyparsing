@@ -687,15 +687,22 @@ def infixNotation(baseExpr, opList, lpar=Suppress("("), rpar=Suppress(")")):
     lastExpr = baseExpr | (lpar + ret + rpar)
     for i, operDef in enumerate(opList):
         opExpr, arity, rightLeftAssoc, pa = (operDef + (None,))[:4]
-        termName = "%s term" % opExpr if arity < 3 else "%s%s term" % opExpr
         if arity == 3:
-            if opExpr is None or len(opExpr) != 2:
+            if not isinstance(opExpr, (tuple, list)) or len(opExpr) != 2:
                 raise ValueError(
                     "if numterms=3, opExpr must be a tuple or list of two expressions"
                 )
             opExpr1, opExpr2 = opExpr
+
+        if not 1 <= arity <= 3:
+            raise ValueError("operator must be unary (1), binary (2), or ternary (3)")
+
+        if rightLeftAssoc not in (opAssoc.LEFT, opAssoc.RIGHT):
+            raise ValueError("operator must indicate right or left associativity")
+
+        termName = "%s term" % opExpr if arity < 3 else "%s%s term" % opExpr
         thisExpr = Forward().setName(termName)
-        if rightLeftAssoc == opAssoc.LEFT:
+        if rightLeftAssoc is opAssoc.LEFT:
             if arity == 1:
                 matchExpr = _FB(lastExpr + opExpr) + Group(lastExpr + OneOrMore(opExpr))
             elif arity == 2:
@@ -711,11 +718,7 @@ def infixNotation(baseExpr, opList, lpar=Suppress("("), rpar=Suppress(")")):
                 matchExpr = _FB(
                     lastExpr + opExpr1 + lastExpr + opExpr2 + lastExpr
                 ) + Group(lastExpr + OneOrMore(opExpr1 + lastExpr + opExpr2 + lastExpr))
-            else:
-                raise ValueError(
-                    "operator must be unary (1), binary (2), or ternary (3)"
-                )
-        elif rightLeftAssoc == opAssoc.RIGHT:
+        elif rightLeftAssoc is opAssoc.RIGHT:
             if arity == 1:
                 # try to avoid LR with this extra test
                 if not isinstance(opExpr, Optional):
@@ -734,12 +737,6 @@ def infixNotation(baseExpr, opList, lpar=Suppress("("), rpar=Suppress(")")):
                 matchExpr = _FB(
                     lastExpr + opExpr1 + thisExpr + opExpr2 + thisExpr
                 ) + Group(lastExpr + opExpr1 + thisExpr + opExpr2 + thisExpr)
-            else:
-                raise ValueError(
-                    "operator must be unary (1), binary (2), or ternary (3)"
-                )
-        else:
-            raise ValueError("operator must indicate right or left associativity")
         if pa:
             if isinstance(pa, (tuple, list)):
                 matchExpr.setParseAction(*pa)
