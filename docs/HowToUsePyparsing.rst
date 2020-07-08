@@ -955,9 +955,6 @@ Helper methods
   so on (note that rangeSpec does not include support for generic regular
   expressions, just string range specs)
 
-- ``getTokensEndLoc()`` - function to call from within a parse action to get
-  the ending location for the matched tokens
-
 - ``traceParseAction(fn)`` - decorator function to debug parse actions. Lists
   each call, called arguments, and return value or exception
 
