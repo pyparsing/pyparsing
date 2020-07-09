@@ -156,16 +156,15 @@ def oneOf(strs, caseless=False, useRegex=True, asKeyword=False):
 
     Parameters:
 
-     - strs - a string of space-delimited literals, or a collection of
+     - ``strs`` - a string of space-delimited literals, or a collection of
        string literals
-     - caseless - (default= ``False``) - treat all literals as
-       caseless
-     - useRegex - (default= ``True``) - as an optimization, will
+     - ``caseless`` - treat all literals as caseless - (default= ``False``)
+     - ``useRegex`` - as an optimization, will
        generate a :class:`Regex` object; otherwise, will generate
        a :class:`MatchFirst` object (if ``caseless=True`` or ``asKeyword=True``, or if
-       creating a :class:`Regex` raises an exception)
-     - asKeyword - (default= ``False``) - enforce :class:`Keyword`-style matching on the
-       generated expressions
+       creating a :class:`Regex` raises an exception) - (default= ``True``)
+     - ``asKeyword`` - enforce :class:`Keyword`-style matching on the
+       generated expressions - (default= ``False``)
 
     Example::
 
@@ -349,9 +348,9 @@ def locatedExpr(expr):
 
     This helper adds the following results names:
 
-     - locn_start = location where matched expression begins
-     - locn_end = location where matched expression ends
-     - value = the actual parsed results
+     - ``locn_start`` - location where matched expression begins
+     - ``locn_end`` - location where matched expression ends
+     - ``value`` - the actual parsed results
 
     Be careful if the input text contains ``<TAB>`` characters, you
     may want to call :class:`ParserElement.parseWithTabs`
@@ -378,16 +377,16 @@ def locatedExpr(expr):
 
 def nestedExpr(opener="(", closer=")", content=None, ignoreExpr=quotedString.copy()):
     """Helper method for defining nested lists enclosed in opening and
-    closing delimiters ("(" and ")" are the default).
+    closing delimiters (``"("`` and ``")"`` are the default).
 
     Parameters:
-     - opener - opening character for a nested list
+     - ``opener`` - opening character for a nested list
        (default= ``"("``); can also be a pyparsing expression
-     - closer - closing character for a nested list
+     - ``closer`` - closing character for a nested list
        (default= ``")"``); can also be a pyparsing expression
-     - content - expression for items within the nested lists
+     - ``content`` - expression for items within the nested lists
        (default= ``None``)
-     - ignoreExpr - expression for ignoring opening and closing
+     - ``ignoreExpr`` - expression for ignoring opening and closing
        delimiters (default= :class:`quotedString`)
 
     If an expression is not provided for the content argument, the
@@ -620,30 +619,30 @@ def infixNotation(baseExpr, opList, lpar=Suppress("("), rpar=Suppress(")")):
     improve your parser performance.
 
     Parameters:
-     - baseExpr - expression representing the most basic element for the
+     - ``baseExpr`` - expression representing the most basic element for the
        nested
-     - opList - list of tuples, one for each operator precedence level
+     - ``opList`` - list of tuples, one for each operator precedence level
        in the expression grammar; each tuple is of the form ``(opExpr,
        numTerms, rightLeftAssoc, parseAction)``, where:
 
-       - opExpr is the pyparsing expression for the operator; may also
-         be a string, which will be converted to a Literal; if numTerms
-         is 3, opExpr is a tuple of two expressions, for the two
+       - ``opExpr`` is the pyparsing expression for the operator; may also
+         be a string, which will be converted to a Literal; if ``numTerms``
+         is 3, ``opExpr`` is a tuple of two expressions, for the two
          operators separating the 3 terms
-       - numTerms is the number of terms for this operator (must be 1,
+       - ``numTerms`` is the number of terms for this operator (must be 1,
          2, or 3)
-       - rightLeftAssoc is the indicator whether the operator is right
+       - ``rightLeftAssoc`` is the indicator whether the operator is right
          or left associative, using the pyparsing-defined constants
          ``opAssoc.RIGHT`` and ``opAssoc.LEFT``.
-       - parseAction is the parse action to be associated with
+       - ``parseAction`` is the parse action to be associated with
          expressions matching this operator expression (the parse action
          tuple member may be omitted); if the parse action is passed
          a tuple or list of functions, this is equivalent to calling
          ``setParseAction(*fn)``
          (:class:`ParserElement.setParseAction`)
-     - lpar - expression for matching left-parentheses
+     - ``lpar`` - expression for matching left-parentheses
        (default= ``Suppress('(')``)
-     - rpar - expression for matching right-parentheses
+     - ``rpar`` - expression for matching right-parentheses
        (default= ``Suppress(')')``)
 
     Example::
@@ -754,13 +753,13 @@ def indentedBlock(blockStatementExpr, indentStack, indent=True, backup_stacks=[]
 
     Parameters:
 
-     - blockStatementExpr - expression defining syntax of statement that
+     - ``blockStatementExpr`` - expression defining syntax of statement that
        is repeated within the indented block
-     - indentStack - list created by caller to manage indentation stack
-       (multiple statementWithIndentedBlock expressions within a single
-       grammar should share a common indentStack)
-     - indent - boolean indicating whether block must be indented beyond
-       the current level; set to False for block of left-most
+     - ``indentStack`` - list created by caller to manage indentation stack
+       (multiple ``statementWithIndentedBlock`` expressions within a single
+       grammar should share a common ``indentStack``)
+     - ``indent`` - boolean indicating whether block must be indented beyond
+       the current level; set to ``False`` for block of left-most
        statements (default= ``True``)
 
     A valid block must contain at least one ``blockStatement``.

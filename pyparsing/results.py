@@ -17,12 +17,6 @@ class _ParseResultsWithOffset:
     def __getitem__(self, i):
         return self.tup[i]
 
-    def __repr__(self):
-        return repr(self.tup[0])
-
-    def setOffset(self, i):
-        self.tup = (self.tup[0], i)
-
     def __getstate__(self):
         return self.tup
 
@@ -210,7 +204,7 @@ class ParseResults:
         return ((k, self[k]) for k in self.keys())
 
     def haskeys(self):
-        """Since keys() returns an iterator, this method is helpful in bypassing
+        """Since `keys()` returns an iterator, this method is helpful in bypassing
            code that looks for the existence of any defined results names."""
         return bool(self._tokdict)
 
@@ -320,7 +314,7 @@ class ParseResults:
 
     def append(self, item):
         """
-        Add single element to end of ParseResults list of elements.
+        Add single element to end of ``ParseResults`` list of elements.
 
         Example::
 
@@ -337,7 +331,7 @@ class ParseResults:
 
     def extend(self, itemseq):
         """
-        Add sequence of elements to end of ParseResults list of elements.
+        Add sequence of elements to end of ``ParseResults`` list of elements.
 
         Example::
 
@@ -672,9 +666,9 @@ class ParseResults:
     @classmethod
     def from_dict(cls, other, name=None):
         """
-        Helper classmethod to construct a ParseResults from a dict, preserving the
-        name-value relations as results names. If an optional 'name' argument is
-        given, a nested ParseResults will be returned
+        Helper classmethod to construct a ``ParseResults`` from a ``dict``, preserving the
+        name-value relations as results names. If an optional ``name`` argument is
+        given, a nested ``ParseResults`` will be returned.
         """
 
         def is_iterable(obj):

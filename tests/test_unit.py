@@ -2424,6 +2424,54 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
                     ),
                 )
 
+    def testParseResultsInsertWithResultsNames(self):
+
+        test_string = "1 2 3 dice rolled first try"
+
+        wd = pp.Word(pp.alphas)
+        num = ppc.number
+
+        expr = (
+            pp.Group(num[1, ...])("nums")
+            + wd("label")
+            + pp.Group(wd[...])("additional")
+        )
+
+        result = expr.parseString(test_string)
+        print("Pre-insert")
+        print(result.dump())
+
+        result.insert(1, sum(result.nums))
+
+        print("\nPost-insert")
+        print(result.dump())
+
+        self.assertParseResultsEquals(
+            result,
+            expected_list=[[1, 2, 3], 6, "dice", ["rolled", "first", "try"]],
+            expected_dict={
+                "additional": ["rolled", "first", "try"],
+                "label": "dice",
+                "nums": [1, 2, 3],
+            },
+        )
+
+    def testParseResultsStringListUsingCombine(self):
+
+        test_string = "1 2 3 dice rolled first try"
+
+        wd = pp.Word(pp.alphas)
+        num = ppc.number
+
+        expr = pp.Combine(
+            pp.Group(num[1, ...])("nums")
+            + wd("label")
+            + pp.Group(wd[...])("additional"),
+            joinString="/",
+            adjacent=False,
+        )
+        self.assertEqual("123/dice/rolledfirsttry", expr.parseString(test_string)[0])
+
     def testMatchOnlyAtCol(self):
         """successfully use matchOnlyAtCol helper function"""
 
