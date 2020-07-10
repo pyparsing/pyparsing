@@ -2244,7 +2244,7 @@ class Word(Token):
     def _generateDefaultName(self):
         def charsAsStr(s):
             max_repr_len = 16
-            s = _collapseStringToRanges(s)
+            s = _collapseStringToRanges(s, re_escape=False)
             if len(s) > max_repr_len:
                 return s[: max_repr_len - 3] + "..."
             else:
@@ -2431,7 +2431,7 @@ class Regex(Token):
     def sub(self, repl):
         r"""
         Return :class:`Regex` with an attached parse action to transform the parsed
-        result as if called using ``re.sub(expr, repl, string)`` `<https://docs.python.org/3/library/re.html#re.sub>`_.
+        result as if called using `re.sub(expr, repl, string) <https://docs.python.org/3/library/re.html#re.sub>`_.
 
         Example::
 

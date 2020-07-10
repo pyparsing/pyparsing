@@ -204,7 +204,7 @@ class ParseResults:
         return ((k, self[k]) for k in self.keys())
 
     def haskeys(self):
-        """Since `keys()` returns an iterator, this method is helpful in bypassing
+        """Since ``keys()`` returns an iterator, this method is helpful in bypassing
            code that looks for the existence of any defined results names."""
         return bool(self._tokdict)
 
