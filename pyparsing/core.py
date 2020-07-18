@@ -2602,7 +2602,7 @@ class QuotedString(Token):
         self.mayReturnEmpty = True
 
     def _generateDefaultName(self):
-        return "quoted string, starting with %s ending with {}".format(
+        return "quoted string, starting with {} ending with {}".format(
             self.quoteChar, self.endQuoteChar,
         )
 
