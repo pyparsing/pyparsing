@@ -119,12 +119,8 @@ class ParseBaseException(Exception):
                 )
         else:
             foundstr = ""
-        return "%s%s  (at char %d), (line:%d, col:%d)" % (
-            self.msg,
-            foundstr,
-            self.loc,
-            self.lineno,
-            self.column,
+        return "{}{}  (at char {}), (line:{}, col:{})".format(
+            self.msg, foundstr, self.loc, self.lineno, self.column
         )
 
     def __repr__(self):
@@ -245,4 +241,4 @@ class RecursiveGrammarException(Exception):
         self.parseElementTrace = parseElementList
 
     def __str__(self):
-        return "RecursiveGrammarException: %s" % self.parseElementTrace
+        return "RecursiveGrammarException: {}".format(self.parseElementTrace)

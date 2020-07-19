@@ -47,7 +47,7 @@ class ParseResults:
         result = date_str.parseString("1999/12/31")
 
         def test(s, fn=repr):
-            print("%s -> %s" % (s, fn(eval(s))))
+            print("{} -> {}".format(s, fn(eval(s))))
         test("list(result)")
         test("result[0]")
         test("result['month']")
@@ -254,7 +254,9 @@ class ParseResults:
             if k == "default":
                 args = (args[0], v)
             else:
-                raise TypeError("pop() got an unexpected keyword argument '%s'" % k)
+                raise TypeError(
+                    "pop() got an unexpected keyword argument {!r}".format(k)
+                )
         if isinstance(args[0], int) or len(args) == 1 or args[0] in self:
             index = args[0]
             ret = self[index]
@@ -395,7 +397,7 @@ class ParseResults:
             return other + self
 
     def __repr__(self):
-        return "(%s, %s)" % (repr(self._toklist), self.asDict())
+        return "({!r}, {})".format(self._toklist, self.asDict())
 
     def __str__(self):
         return (
@@ -560,7 +562,7 @@ class ParseResults:
                 for k, v in items:
                     if out:
                         out.append(NL)
-                    out.append("%s%s- %s: " % (indent, ("  " * _depth), k))
+                    out.append("{}{}- {}: ".format(indent, ("  " * _depth), k))
                     if isinstance(v, ParseResults):
                         if v:
                             out.append(
@@ -580,8 +582,7 @@ class ParseResults:
                 for i, vv in enumerate(v):
                     if isinstance(vv, ParseResults):
                         out.append(
-                            "\n%s%s[%d]:\n%s%s%s"
-                            % (
+                            "\n{}{}[{}]:\n{}{}{}".format(
                                 indent,
                                 ("  " * (_depth)),
                                 i,

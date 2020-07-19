@@ -11,7 +11,7 @@ def matchOnlyAtCol(n):
 
     def verifyCol(strg, locn, toks):
         if col(locn, strg) != n:
-            raise ParseException(strg, locn, "matched token not at column %d" % n)
+            raise ParseException(strg, locn, "matched token not at column {}".format(n))
 
     return verifyCol
 

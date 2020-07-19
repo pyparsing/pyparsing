@@ -226,11 +226,9 @@ def conditionAsParseAction(fn, message=None, fatal=False):
 def _defaultStartDebugAction(instring, loc, expr):
     print(
         (
-            "Match "
-            + str(expr)
-            + " at loc "
-            + str(loc)
-            + "(%d,%d)" % (lineno(loc, instring), col(loc, instring))
+            "Match {} at loc {}({},{})".format(
+                expr, loc, lineno(loc, instring), col(loc, instring)
+            )
         )
     )
 
@@ -306,17 +304,22 @@ class ParserElement(ABC):
         self.skipWhitespace = True
         self.whiteChars = set(ParserElement.DEFAULT_WHITE_CHARS)
         self.copyDefaultWhiteChars = True
-        self.mayReturnEmpty = False  # used when checking for left-recursion
+        # used when checking for left-recursion
+        self.mayReturnEmpty = False
         self.keepTabs = False
         self.ignoreExprs = list()
         self.debug = False
         self.streamlined = False
-        self.mayIndexError = True  # used to optimize exception handling for subclasses that don't advance parse index
+        # optimize exception handling for subclasses that don't advance parse index
+        self.mayIndexError = True
         self.errmsg = ""
-        self.modalResults = True  # used to mark results names as modal (report only last) or cumulative (list all)
-        self.debugActions = (None, None, None)  # custom debug actions
+        # mark results names as modal (report only last) or cumulative (list all)
+        self.modalResults = True
+        # custom debug actions
+        self.debugActions = (None, None, None)
         self.re = None
-        self.callPreparse = True  # used to avoid redundant calls to preParse
+        # avoid redundant calls to preParse
+        self.callPreparse = True
         self.callDuringTry = False
 
     def copy(self):
@@ -443,9 +446,7 @@ class ParserElement(ABC):
             # note that integer fields are now ints, not strings
             date_str.parseString("1999/12/31")  # -> [1999, '/', 12, '/', 31]
         """
-        if list(fns) == [
-            None,
-        ]:
+        if list(fns) == [None]:
             self.parseAction = []
         else:
             if not all(callable(fn) for fn in fns):
@@ -549,7 +550,7 @@ class ParserElement(ABC):
         debugging = self.debug  # and doActions)
 
         if debugging or self.failAction:
-            # print("Match", self, "at loc", loc, "(%d, %d)" % (lineno(loc, instring), col(loc, instring)))
+            # print("Match {} at loc {}({}, {})".format(self, loc, lineno(loc, instring), col(loc, instring)))
             if self.debugActions[TRY]:
                 self.debugActions[TRY](instring, loc, self)
             try:
@@ -1028,7 +1029,9 @@ class ParserElement(ABC):
             other = self._literalStringClass(other)
         if not isinstance(other, ParserElement):
             warnings.warn(
-                "Cannot combine element of type %s with ParserElement" % type(other),
+                "Cannot combine element of type {} with ParserElement".format(
+                    type(other).__name__
+                ),
                 SyntaxWarning,
                 stacklevel=2,
             )
@@ -1043,7 +1046,9 @@ class ParserElement(ABC):
             other = self._literalStringClass(other)
         if not isinstance(other, ParserElement):
             warnings.warn(
-                "Cannot combine element of type %s with ParserElement" % type(other),
+                "Cannot combine element of type {} with ParserElement".format(
+                    type(other).__name__
+                ),
                 SyntaxWarning,
                 stacklevel=2,
             )
@@ -1058,7 +1063,9 @@ class ParserElement(ABC):
             other = self._literalStringClass(other)
         if not isinstance(other, ParserElement):
             warnings.warn(
-                "Cannot combine element of type %s with ParserElement" % type(other),
+                "Cannot combine element of type {} with ParserElement".format(
+                    type(other).__name__
+                ),
                 SyntaxWarning,
                 stacklevel=2,
             )
@@ -1109,13 +1116,15 @@ class ParserElement(ABC):
                 optElements -= minElements
             else:
                 raise TypeError(
-                    "cannot multiply 'ParserElement' and ('%s', '%s') objects",
-                    type(other[0]),
-                    type(other[1]),
+                    "cannot multiply ParserElement and ({}) objects".format(
+                        ",".join(type(item).__name__ for item in other)
+                    )
                 )
         else:
             raise TypeError(
-                "cannot multiply 'ParserElement' and '%s' objects", type(other)
+                "cannot multiply ParserElement and {} objects".format(
+                    type(other).__name__
+                )
             )
 
         if minElements < 0:
@@ -1163,7 +1172,9 @@ class ParserElement(ABC):
             other = self._literalStringClass(other)
         if not isinstance(other, ParserElement):
             warnings.warn(
-                "Cannot combine element of type %s with ParserElement" % type(other),
+                "Cannot combine element of type {} with ParserElement".format(
+                    type(other).__name__
+                ),
                 SyntaxWarning,
                 stacklevel=2,
             )
@@ -1178,7 +1189,9 @@ class ParserElement(ABC):
             other = self._literalStringClass(other)
         if not isinstance(other, ParserElement):
             warnings.warn(
-                "Cannot combine element of type %s with ParserElement" % type(other),
+                "Cannot combine element of type {} with ParserElement".format(
+                    type(other).__name__
+                ),
                 SyntaxWarning,
                 stacklevel=2,
             )
@@ -1193,7 +1206,9 @@ class ParserElement(ABC):
             other = self._literalStringClass(other)
         if not isinstance(other, ParserElement):
             warnings.warn(
-                "Cannot combine element of type %s with ParserElement" % type(other),
+                "Cannot combine element of type {} with ParserElement".format(
+                    type(other).__name__
+                ),
                 SyntaxWarning,
                 stacklevel=2,
             )
@@ -1208,7 +1223,9 @@ class ParserElement(ABC):
             other = self._literalStringClass(other)
         if not isinstance(other, ParserElement):
             warnings.warn(
-                "Cannot combine element of type %s with ParserElement" % type(other),
+                "Cannot combine element of type {} with ParserElement".format(
+                    type(other).__name__
+                ),
                 SyntaxWarning,
                 stacklevel=2,
             )
@@ -1223,7 +1240,9 @@ class ParserElement(ABC):
             other = self._literalStringClass(other)
         if not isinstance(other, ParserElement):
             warnings.warn(
-                "Cannot combine element of type %s with ParserElement" % type(other),
+                "Cannot combine element of type {} with ParserElement".format(
+                    type(other).__name__
+                ),
                 SyntaxWarning,
                 stacklevel=2,
             )
@@ -1238,7 +1257,9 @@ class ParserElement(ABC):
             other = self._literalStringClass(other)
         if not isinstance(other, ParserElement):
             warnings.warn(
-                "Cannot combine element of type %s with ParserElement" % type(other),
+                "Cannot combine element of type {} with ParserElement".format(
+                    type(other).__name__
+                ),
                 SyntaxWarning,
                 stacklevel=2,
             )
@@ -1254,7 +1275,7 @@ class ParserElement(ABC):
     def __iter__(self):
         # must implement __iter__ to override legacy use of sequential access to __getitem__ to
         # iterate over a sequence
-        raise TypeError("%r object is not iterable" % self.__class__.__name__)
+        raise TypeError("{} object is not iterable".format(self.__class__.__name__))
 
     def __getitem__(self, key):
         """
@@ -2060,9 +2081,8 @@ class CloseMatch(Token):
         super().__init__()
         self.match_string = match_string
         self.maxMismatches = maxMismatches
-        self.errmsg = "Expected %r (with up to %d mismatches)" % (
-            self.match_string,
-            self.maxMismatches,
+        self.errmsg = "Expected {!r} (with up to {} mismatches)".format(
+            self.match_string, self.maxMismatches
         )
         self.mayIndexError = False
         self.mayReturnEmpty = False
@@ -2219,14 +2239,16 @@ class Word(Token):
             min == 1 and max == 0 and exact == 0
         ):
             if self.bodyCharsOrig == self.initCharsOrig:
-                self.reString = "[%s]+" % _collapseStringToRanges(self.initCharsOrig)
+                self.reString = "[{}]+".format(
+                    _collapseStringToRanges(self.initCharsOrig)
+                )
             elif len(self.initCharsOrig) == 1:
-                self.reString = "%s[%s]*" % (
+                self.reString = "{}[{}]*".format(
                     re.escape(self.initCharsOrig),
                     _collapseStringToRanges(self.bodyCharsOrig),
                 )
             else:
-                self.reString = "[%s][%s]*" % (
+                self.reString = "[{}][{}]*".format(
                     _collapseStringToRanges(self.initCharsOrig),
                     _collapseStringToRanges(self.bodyCharsOrig),
                 )
@@ -2252,7 +2274,7 @@ class Word(Token):
 
         if self.initCharsOrig != self.bodyCharsOrig:
             return "W:({}, {})".format(
-                charsAsStr(self.initCharsOrig), charsAsStr(self.bodyCharsOrig),
+                charsAsStr(self.initCharsOrig), charsAsStr(self.bodyCharsOrig)
             )
         else:
             return "W:({})".format(charsAsStr(self.initCharsOrig))
@@ -2366,7 +2388,7 @@ class Regex(Token):
                 self.reString = self.pattern
             except sre_constants.error:
                 warnings.warn(
-                    "invalid pattern (%s) passed to Regex" % pattern,
+                    "invalid pattern ({!r}) passed to Regex".format(pattern),
                     SyntaxWarning,
                     stacklevel=2,
                 )
@@ -2552,14 +2574,14 @@ class QuotedString(Token):
 
         if multiline:
             self.flags = re.MULTILINE | re.DOTALL
-            self.pattern = r"%s(?:[^%s%s]" % (
+            self.pattern = r"{}(?:[^{}{}]".format(
                 re.escape(self.quoteChar),
                 _escapeRegexRangeChars(self.endQuoteChar[0]),
                 (escChar is not None and _escapeRegexRangeChars(escChar) or ""),
             )
         else:
             self.flags = 0
-            self.pattern = r"%s(?:[^%s\n\r%s]" % (
+            self.pattern = r"{}(?:[^{}\n\r{}]".format(
                 re.escape(self.quoteChar),
                 _escapeRegexRangeChars(self.endQuoteChar[0]),
                 (escChar is not None and _escapeRegexRangeChars(escChar) or ""),
@@ -2568,8 +2590,7 @@ class QuotedString(Token):
             self.pattern += (
                 "|(?:"
                 + ")|(?:".join(
-                    "%s[^%s]"
-                    % (
+                    "{}[^{}]".format(
                         re.escape(self.endQuoteChar[:i]),
                         _escapeRegexRangeChars(self.endQuoteChar[i]),
                     )
@@ -2579,11 +2600,11 @@ class QuotedString(Token):
             )
 
         if escQuote:
-            self.pattern += r"|(?:%s)" % re.escape(escQuote)
+            self.pattern += r"|(?:{})".format(re.escape(escQuote))
         if escChar:
-            self.pattern += r"|(?:%s.)" % re.escape(escChar)
+            self.pattern += r"|(?:{}.)".format(re.escape(escChar))
             self.escCharReplacePattern = re.escape(self.escChar) + "(.)"
-        self.pattern += r")*%s" % re.escape(self.endQuoteChar)
+        self.pattern += r")*{}".format(re.escape(self.endQuoteChar))
 
         try:
             self.re = re.compile(self.pattern, self.flags)
@@ -2591,7 +2612,7 @@ class QuotedString(Token):
             self.re_match = self.re.match
         except sre_constants.error:
             warnings.warn(
-                "invalid pattern (%s) passed to Regex" % self.pattern,
+                "invalid pattern {!r} passed to Regex".format(self.pattern),
                 SyntaxWarning,
                 stacklevel=2,
             )
@@ -2603,7 +2624,7 @@ class QuotedString(Token):
 
     def _generateDefaultName(self):
         return "quoted string, starting with {} ending with {}".format(
-            self.quoteChar, self.endQuoteChar,
+            self.quoteChar, self.endQuoteChar
         )
 
     def parseImpl(self, instring, loc, doActions=True):
@@ -2626,12 +2647,7 @@ class QuotedString(Token):
             if isinstance(ret, str_type):
                 # replace escaped whitespace
                 if "\\" in ret and self.convertWhitespaceEscapes:
-                    ws_map = {
-                        r"\t": "\t",
-                        r"\n": "\n",
-                        r"\f": "\f",
-                        r"\r": "\r",
-                    }
+                    ws_map = {r"\t": "\t", r"\n": "\n", r"\f": "\f", r"\r": "\r"}
                     for wslit, wschar in ws_map.items():
                         ret = ret.replace(wslit, wschar)
 
@@ -3610,7 +3626,9 @@ class Each(ParseExpression):
         if tmpReqd:
             missing = ", ".join(str(e) for e in tmpReqd)
             raise ParseException(
-                instring, loc, "Missing one or more required elements (%s)" % missing
+                instring,
+                loc,
+                "Missing one or more required elements ({})".format(missing),
             )
 
         # add any unmatched Optionals, in case they have default values defined
@@ -3717,7 +3735,7 @@ class ParseElementEnhance(ParserElement):
         self._checkRecursion([])
 
     def _generateDefaultName(self):
-        return "%s:(%s)" % (self.__class__.__name__, str(self.expr))
+        return "{}:({})".format(self.__class__.__name__, str(self.expr))
 
 
 class FollowedBy(ParseElementEnhance):
@@ -4589,14 +4607,14 @@ def traceParseAction(f):
         if len(paArgs) > 3:
             thisFunc = paArgs[0].__class__.__name__ + "." + thisFunc
         sys.stderr.write(
-            ">>entering %s(line: '%s', %d, %r)\n" % (thisFunc, line(l, s), l, t)
+            ">>entering {}(line: {!r}, {}, {!r})\n".format(thisFunc, line(l, s), l, t)
         )
         try:
             ret = f(*paArgs)
         except Exception as exc:
-            sys.stderr.write("<<leaving %s (exception: %s)\n" % (thisFunc, exc))
+            sys.stderr.write("<<leaving {} (exception: {})\n".format(thisFunc, exc))
             raise
-        sys.stderr.write("<<leaving %s (ret: %r)\n" % (thisFunc, ret))
+        sys.stderr.write("<<leaving {} (ret: {!r})\n".format(thisFunc, ret))
         return ret
 
     try:
