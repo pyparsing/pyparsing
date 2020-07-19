@@ -2623,6 +2623,9 @@ class QuotedString(Token):
         self.mayReturnEmpty = True
 
     def _generateDefaultName(self):
+        if self.quoteChar == self.endQuoteChar and isinstance(self.quoteChar, str_type):
+            return "string enclosed in {!r}".format(self.quoteChar)
+
         return "quoted string, starting with {} ending with {}".format(
             self.quoteChar, self.endQuoteChar
         )
@@ -4617,10 +4620,7 @@ def traceParseAction(f):
         sys.stderr.write("<<leaving {} (ret: {!r})\n".format(thisFunc, ret))
         return ret
 
-    try:
-        z.__name__ = f.__name__
-    except AttributeError:
-        pass
+    z.__name__ = f.__name__
     return z
 
 
@@ -4729,10 +4729,7 @@ def tokenMap(func, *args):
     def pa(s, l, t):
         return [func(tokn, *args) for tokn in t]
 
-    try:
-        func_name = getattr(func, "__name__", getattr(func, "__class__").__name__)
-    except Exception:
-        func_name = str(func)
+    func_name = getattr(func, "__name__", getattr(func, "__class__").__name__)
     pa.__name__ = func_name
 
     return pa
