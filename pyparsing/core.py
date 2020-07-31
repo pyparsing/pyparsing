@@ -2273,11 +2273,21 @@ class Word(Token):
                 return s
 
         if self.initCharsOrig != self.bodyCharsOrig:
-            return "W:({}, {})".format(
+            base = "W:({}, {})".format(
                 charsAsStr(self.initCharsOrig), charsAsStr(self.bodyCharsOrig)
             )
         else:
-            return "W:({})".format(charsAsStr(self.initCharsOrig))
+            base = "W:({})".format(charsAsStr(self.initCharsOrig))
+
+        # add length specification
+        if self.minLen > 1 or self.maxLen != _MAX_INT:
+            if self.minLen == self.maxLen:
+                return base + "{{{}}}".format(self.minLen)
+            elif self.maxLen == _MAX_INT:
+                return base + "{{{},...}}".format(self.minLen)
+            else:
+                return base + "{{{},{}}}".format(self.minLen, self.maxLen)
+        return base
 
     def parseImpl(self, instring, loc, doActions=True):
         if instring[loc] not in self.initChars:

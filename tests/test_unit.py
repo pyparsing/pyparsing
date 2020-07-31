@@ -2275,7 +2275,7 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
 
         # arity 3 with None opExpr - should raise ValueError
         with self.assertRaises(ValueError):
-            expr = pp.infixNotation(num, [(None, 3, pp.opAssoc.LEFT),])
+            expr = pp.infixNotation(num, [(None, 3, pp.opAssoc.LEFT)])
 
         # arity 3 with invalid tuple - should raise ValueError
         with self.assertRaises(ValueError):
@@ -2310,7 +2310,7 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
         num = pp.Word(pp.nums).addParseAction(pp.tokenMap(int))
         for assoc in (pp.opAssoc.LEFT, pp.opAssoc.RIGHT):
             expr = pp.infixNotation(
-                num, [("+", 2, pp.opAssoc.LEFT), (("?", ":"), 3, assoc),]
+                num, [("+", 2, pp.opAssoc.LEFT), (("?", ":"), 3, assoc)]
             )
             self.assertParseAndCheckList(
                 expr, "3 + 2? 12: 13", [[[3, "+", 2], "?", 12, ":", 13]]
@@ -2519,7 +2519,7 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
 
         expected_l = ["spam", "eggs", "suf"]
         self.assertParseResultsEquals(
-            result, expected_l, msg="issue with ParserElement + str",
+            result, expected_l, msg="issue with ParserElement + str"
         )
 
         # str + ParserElement
@@ -2529,7 +2529,7 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
 
         expected_l = ["pre", "spam", "eggs"]
         self.assertParseResultsEquals(
-            result, expected_l, msg="issue with str + ParserElement",
+            result, expected_l, msg="issue with str + ParserElement"
         )
 
         # ParserElement + int
@@ -2719,7 +2719,7 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
 
         expected = ["pre", "eggs"]
         self.assertParseResultsEquals(
-            result, expected, msg="issue with str ^ ParserElement",
+            result, expected, msg="issue with str ^ ParserElement"
         )
 
         # ParserElement ^ int
@@ -7851,9 +7851,7 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
 
             # verify the list of names shown in the explain "stack"
             self.assertEqual(
-                expected,
-                explain_str_lines[-len(expected) :],
-                msg="invalid explain str",
+                expected, explain_str_lines[-len(expected) :], msg="invalid explain str"
             )
 
             # check type of raised exception matches explain output
@@ -7911,10 +7909,7 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             print(depth_none_explain_str)
 
             expr_name = "pyparsing.core._WordRegex - W:(0-9)"
-            for expected_function in [
-                self_testcase_name,
-                expr_name,
-            ]:
+            for expected_function in [self_testcase_name, expr_name]:
                 self.assertTrue(
                     expected_function in depth_none_explain_str,
                     "{!r} not found in ParseException.explain()".format(
@@ -7936,6 +7931,27 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
                 self_testcase_name in depth_1_explain_str,
                 "{!r} not found in ParseException.explain()".format(expected_function),
             )
+
+    def testExpressionDefaultStrings(self):
+        expr = pp.Word(pp.nums)
+        print(expr)
+        self.assertEqual("W:(0-9)", repr(expr))
+
+        expr = pp.Word(pp.nums, exact=3)
+        print(expr)
+        self.assertEqual("W:(0-9){3}", repr(expr))
+
+        expr = pp.Word(pp.nums, min=2)
+        print(expr)
+        self.assertEqual("W:(0-9){2,...}", repr(expr))
+
+        expr = pp.Word(pp.nums, max=3)
+        print(expr)
+        self.assertEqual("W:(0-9){1,3}", repr(expr))
+
+        expr = pp.Word(pp.nums, min=2, max=3)
+        print(expr)
+        self.assertEqual("W:(0-9){2,3}", repr(expr))
 
 
 class Test3_EnablePackratParsing(TestCase):
