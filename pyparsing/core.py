@@ -2282,7 +2282,10 @@ class Word(Token):
         # add length specification
         if self.minLen > 1 or self.maxLen != _MAX_INT:
             if self.minLen == self.maxLen:
-                return base + "{{{}}}".format(self.minLen)
+                if self.minLen == 1:
+                    return base[2:]
+                else:
+                    return base + "{{{}}}".format(self.minLen)
             elif self.maxLen == _MAX_INT:
                 return base + "{{{},...}}".format(self.minLen)
             else:

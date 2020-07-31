@@ -7953,6 +7953,10 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
         print(expr)
         self.assertEqual("W:(0-9){2,3}", repr(expr))
 
+        expr = pp.Char(pp.nums)
+        print(expr)
+        self.assertEqual("(0-9)", repr(expr))
+
 
 class Test3_EnablePackratParsing(TestCase):
     def runTest(self):
