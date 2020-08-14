@@ -1992,7 +1992,6 @@ class Keyword(Token):
 
     def copy(self):
         c = super().copy()
-        c.identChars = Keyword.DEFAULT_KEYWORD_CHARS
         return c
 
     @staticmethod

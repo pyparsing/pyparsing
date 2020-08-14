@@ -5983,6 +5983,11 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
                     False, "failed to match keyword using updated keyword chars"
                 )
 
+    def testKeywordCopyIdentChars(self):
+        a_keyword = pp.Keyword("start", identChars="_")
+        b_keyword = a_keyword.copy()
+        self.assertEqual(a_keyword.identChars, b_keyword.identChars)
+
     def testLiteralVsKeyword(self):
 
         integer = ppc.integer
