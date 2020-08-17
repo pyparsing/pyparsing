@@ -1990,10 +1990,6 @@ class Keyword(Token):
 
         raise ParseException(instring, errloc, errmsg, self)
 
-    def copy(self):
-        c = super().copy()
-        return c
-
     @staticmethod
     def setDefaultKeywordChars(chars):
         """Overrides the default characters used by :class:`Keyword` expressions.
