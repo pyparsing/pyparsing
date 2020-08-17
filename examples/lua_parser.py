@@ -99,13 +99,16 @@ keywords = {
     """.split()
 }
 vars().update(keywords)
+any_keyword = pp.MatchFirst(keywords.values()).setName("<keyword>")
 
 comment_intro = pp.Literal("--")
 short_comment = comment_intro + pp.restOfLine
 long_comment = comment_intro + LBRACK + ... + RBRACK
 lua_comment = long_comment | short_comment
 
-ident = ppc.identifier
+# must use negative lookahead to ensure we don't parse a keyword as an identifier
+ident = ~any_keyword + ppc.identifier
+
 name = pp.delimitedList(ident, delim=".", combine=True)
 
 namelist = pp.delimitedList(name)
@@ -273,6 +276,12 @@ if __name__ == "__main__":
         n = 0
         if t['foo'] then
             n = n + 1
+        end
+        if 10 > 8 then
+            n = n + 2
+        end
+        if (10 > 8) then
+            n = n + 2
         end
     end
     """
