@@ -451,4 +451,14 @@ def main():
 
 
 if __name__ == "__main__":
+    try:
+        import pyparsing.diagram
+    except ImportError:
+        diagram_supported = False
+    else:
+        diagram_supported = True
+
     main()
+
+    if diagram_supported:
+        time_expression.create_diagram("delta_time_diagram.html")

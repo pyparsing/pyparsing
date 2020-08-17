@@ -10,6 +10,7 @@ from typing import (
     TypeVar,
     Dict,
     Callable,
+    TextIO,
 )
 from jinja2 import Template
 from io import StringIO
@@ -104,7 +105,7 @@ def resolve_partial(partial: "EditablePartial[T]") -> T:
 def to_railroad(
     element: pyparsing.ParserElement,
     diagram_kwargs: dict = {},
-    vertical: Union[int, bool] = 5,
+    vertical: Union[int, bool] = 4,
 ) -> List[NamedDiagram]:
     """
     Convert a pyparsing element tree into a list of diagrams. This is the recommended entrypoint to diagram
@@ -230,8 +231,8 @@ class ConverterState:
 
     def extract_into_diagram(self, el_id: int):
         """
-        Used when we encounter the same token twice in the same tree. When this happens, we replace all instances of that
-        token with a terminal, and create a new subdiagram for the token
+        Used when we encounter the same token twice in the same tree. When this happens, we replace all instances
+        of that token with a terminal, and create a new subdiagram for the token
         """
         position = self.first[el_id]
 
@@ -244,7 +245,7 @@ class ConverterState:
                 position.parent.kwargs["items"][position.parent_index] = ret
 
         # If the element we're extracting is a group, skip to its content but keep the title
-        if position.converted.func == railroad.Group:
+        if position.converted.func is railroad.Group:
             content = position.converted.kwargs["item"]
         else:
             content = position.converted
@@ -260,6 +261,12 @@ class ConverterState:
         del self.first[el_id]
 
 
+def _is_named_terminal(element: pyparsing.ParserElement) -> bool:
+    return element.customName is not None and isinstance(
+        element, (pyparsing.Word, pyparsing.Regex)
+    )
+
+
 def _worth_extracting(element: pyparsing.ParserElement) -> bool:
     """
     Returns true if this element is worth having its own sub-diagram. Simply, if any of its children
@@ -269,6 +276,12 @@ def _worth_extracting(element: pyparsing.ParserElement) -> bool:
     return any(
         [hasattr(child, "expr") or hasattr(child, "exprs") for child in children]
     )
+
+
+def _already_extracted(
+    element: pyparsing.ParserElement, lookup: ConverterState
+) -> bool:
+    return any(element.name == diag.kwargs["name"] for diag in lookup.diagrams.values())
 
 
 def _to_diagram_element(
@@ -341,9 +354,9 @@ def _to_diagram_element(
             ret = EditablePartial.from_call(railroad.Sequence, items=[])
     elif isinstance(element, (pyparsing.Or, pyparsing.MatchFirst)):
         if _should_vertical(vertical, len(exprs)):
-            ret = EditablePartial.from_call(railroad.HorizontalChoice, items=[])
-        else:
             ret = EditablePartial.from_call(railroad.Choice, 0, items=[])
+        else:
+            ret = EditablePartial.from_call(railroad.HorizontalChoice, items=[])
     elif isinstance(element, pyparsing.Optional):
         ret = EditablePartial.from_call(railroad.Optional, item="")
     elif isinstance(element, pyparsing.OneOrMore):
@@ -355,6 +368,15 @@ def _to_diagram_element(
     elif isinstance(element, pyparsing.Empty) and not element.customName:
         # Skip unnamed "Empty" elements
         ret = None
+    elif _is_named_terminal(element):
+        if not _already_extracted(element, lookup):
+            ret = EditablePartial.from_call(
+                railroad.Terminal, title=element.name, text=element.defaultName
+            )
+        else:
+            ret = EditablePartial.from_call(
+                railroad.NonTerminal, title=element.name, text=element.name
+            )
     elif len(exprs) > 1:
         ret = EditablePartial.from_call(railroad.Sequence, items=[])
     elif len(exprs) > 0:
@@ -378,6 +400,12 @@ def _to_diagram_element(
         index=index,
         number=lookup.generate_index(),
     )
+
+    if _is_named_terminal(element):
+        looked_up = lookup.first[el_id]
+        looked_up.complete = True
+        if not _already_extracted(element, lookup):
+            looked_up.mark_for_extraction(el_id, lookup)
 
     i = 0
     for expr in exprs:
@@ -424,3 +452,27 @@ def _to_diagram_element(
         )
     else:
         return ret
+
+
+# monkeypatch .create_diagram method onto ParserElement
+def _create_diagram(expr: pyparsing.ParserElement, output_html: Union[str, TextIO]):
+    """
+    Method to create a railroad diagram for the given parser element.
+
+    :param output_html: string containing the filename to be created containing
+                        the HTML rendering the railroad diagram for the given
+                        ParserElement; may also be passed as a text file-like object
+    """
+    railroad = to_railroad(expr)
+
+    if isinstance(output_html, (str, bytes)):
+        from pathlib import Path
+
+        write_diagram = lambda s: Path(output_html).write_text(s, encoding="utf-8")
+    else:
+        write_diagram = output_html.write
+
+    write_diagram(railroad_to_html(railroad))
+
+
+pyparsing.ParserElement.create_diagram = _create_diagram
