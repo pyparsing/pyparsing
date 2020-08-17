@@ -20,6 +20,7 @@ from pyparsing import (
     restOfLine,
     quotedString,
     Dict,
+    Keyword,
 )
 
 ident = Word(alphas + "_", alphanums + "_").setName("identifier")
@@ -123,47 +124,48 @@ parser = Optional(packageDirective) + ZeroOrMore(topLevelStatement)
 
 parser.ignore(comment)
 
+if __name__ == "__main__":
 
-test1 = """message Person {
-  required int32 id = 1;
-  required string name = 2;
-  optional string email = 3;
-}"""
+    test1 = """message Person {
+      required int32 id = 1;
+      required string name = 2;
+      optional string email = 3;
+    }"""
 
-test2 = """package tutorial;
+    test2 = """package tutorial;
+    
+    message Person {
+      required string name = 1;
+      required int32 id = 2;
+      optional string email = 3;
+    
+      enum PhoneType {
+        MOBILE = 0;
+        HOME = 1;
+        WORK = 2;
+      }
+    
+      message PhoneNumber {
+        required string number = 1;
+        optional PhoneType type = 2 [default = HOME];
+      }
+    
+      repeated PhoneNumber phone = 4;
+    }
+    
+    message AddressBook {
+      repeated Person person = 1;
+    }"""
 
-message Person {
-  required string name = 1;
-  required int32 id = 2;
-  optional string email = 3;
+    test3 = """syntax = "proto3";
+    
+    import "test.proto";
+    
+    message SearchRequest {
+      string query = 1;
+      int32 page_number = 2;
+      int32 result_per_page = 3;
+    }
+    """
 
-  enum PhoneType {
-    MOBILE = 0;
-    HOME = 1;
-    WORK = 2;
-  }
-
-  message PhoneNumber {
-    required string number = 1;
-    optional PhoneType type = 2 [default = HOME];
-  }
-
-  repeated PhoneNumber phone = 4;
-}
-
-message AddressBook {
-  repeated Person person = 1;
-}"""
-
-test3 = """syntax = "proto3";
-
-import "test.proto";
-
-message SearchRequest {
-  string query = 1;
-  int32 page_number = 2;
-  int32 result_per_page = 3;
-}
-"""
-
-parser.runTests([test1, test2, test3])
+    parser.runTests([test1, test2, test3])

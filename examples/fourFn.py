@@ -79,8 +79,13 @@ def BNF():
         expr = Forward()
         expr_list = delimitedList(Group(expr))
         # add parse action that replaces the function identifier with a (name, number of args) tuple
+        def insert_fn_argcount_tuple(t):
+            fn = t.pop(0)
+            num_args = len(t[0])
+            t.insert(0, (fn, num_args))
+
         fn_call = (ident + lpar - Group(expr_list) + rpar).setParseAction(
-            lambda t: t.insert(0, (t.pop(0), len(t[0])))
+            insert_fn_argcount_tuple
         )
         atom = (
             addop[...]
@@ -116,9 +121,14 @@ fn = {
     "tan": math.tan,
     "exp": math.exp,
     "abs": abs,
-    "trunc": lambda a: int(a),
+    "trunc": int,
     "round": round,
     "sgn": lambda a: -1 if a < -epsilon else 1 if a > epsilon else 0,
+    # functionsl with multiple arguments
+    "multiply": lambda a, b: a * b,
+    "hypot": math.hypot,
+    # functions with a variable number of arguments
+    "all": lambda *a: all(a),
 }
 
 
@@ -211,6 +221,10 @@ if __name__ == "__main__":
     test("sgn(cos(PI*3/4))", -1)
     test("+(sgn(cos(PI/4)))", 1)
     test("-(sgn(cos(PI/4)))", -1)
+    test("hypot(3, 4)", 5)
+    test("multiply(3, 7)", 21)
+    test("all(1,1,1)", True)
+    test("all(1,1,1,1,1,0)", False)
 
 
 """

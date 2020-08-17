@@ -30,6 +30,8 @@ from pyparsing import (
     srange,
 )
 
+ParserElement.enablePackrat()
+
 
 class CharacterRangeEmitter:
     def __init__(self, chars):
@@ -279,9 +281,7 @@ def main():
     [ABCDEFG](?:#|##|b|bb)?(?:maj|min|m|sus|aug|dim)?[0-9]?(?:/[ABCDEFG](?:#|##|b|bb)?)?
     (Fri|Mon|S(atur|un)|T(hur|ue)s|Wednes)day
     A(pril|ugust)|((Dec|Nov|Sept)em|Octo)ber|(Febr|Jan)uary|Ju(ly|ne)|Ma(rch|y)
-    """.split(
-        "\n"
-    )
+    """.splitlines()
 
     for t in tests:
         t = t.strip()

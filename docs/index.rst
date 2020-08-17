@@ -11,6 +11,7 @@ Release v\ |version|
    :maxdepth: 2
    :caption: Contents:
 
+   whats_new_in_3_0_0
    HowToUsePyparsing
    modules
    CODE_OF_CONDUCT

@@ -3,5 +3,5 @@ pyparsing module
 
 .. automodule:: pyparsing
     :members:
-    :undoc-members:
+    :special-members:
     :show-inheritance:

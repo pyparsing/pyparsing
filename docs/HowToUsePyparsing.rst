@@ -5,10 +5,10 @@ Using the pyparsing module
 :author: Paul McGuire
 :address: ptmcg@users.sourceforge.net
 
-:revision: 2.0.1a
-:date: July, 2013 (minor update August, 2018)
+:revision: 2.4.7
+:date: June, 2020
 
-:copyright: Copyright |copy| 2003-2013 Paul McGuire.
+:copyright: Copyright |copy| 2003-2020 Paul McGuire.
 
 .. |copy| unicode:: 0xA9
 
@@ -25,7 +25,7 @@ Using the pyparsing module
 
 Note: While this content is still valid, there are more detailed
 descriptions and examples at the online doc server at
-https://pythonhosted.org/pyparsing/pyparsing-module.html
+https://pyparsing-docs.readthedocs.io/en/latest/pyparsing.html
 
 Steps to follow
 ===============
@@ -82,8 +82,8 @@ Usage notes
   automatically converted to Literal objects.  For example::
 
     integer  = Word(nums)            # simple unsigned integer
-    variable = Word(alphas, max=1)   # single letter variable, such as x, z, m, etc.
-    arithOp  = Word("+-*/", max=1)   # arithmetic operators
+    variable = Char(alphas)          # single letter variable, such as x, z, m, etc.
+    arithOp  = oneOf("+ - * /")      # arithmetic operators
     equation = variable + "=" + integer + arithOp + integer    # will match "x=2+2", etc.
 
   In the definition of ``equation``, the string ``"="`` will get added as
@@ -214,7 +214,7 @@ Usage notes
              + "MIN:" + realNum.setResultsName("min")
              + "MAX:" + realNum.setResultsName("max"))
 
-  can now be written as this::
+  can more simply and cleanly be written as this::
 
     stats = ("AVE:" + realNum("average")
              + "MIN:" + realNum("min")
@@ -272,14 +272,59 @@ methods for code to use are:
 - ``setName(name)`` - associate a short descriptive name for this
   element, useful in displaying exceptions and trace information
 
+- ``runTests(testsString)`` - useful development and testing method on
+  expressions, to pass a multiline string of sample strings to test against
+  the expression. Comment lines (beginning with ``#``) can be inserted
+  and they will be included in the test output:
+
+    digits = Word(nums).setName("numeric digits")
+    real_num = Combine(digits + '.' + digits)
+    real_num.runTests("""\
+        # valid number
+        3.14159
+
+        # no integer part
+        .00001
+
+        # no decimal
+        101
+
+        # no decimal value
+        101.
+        """)
+
+  will print:
+
+    # valid number
+    3.14159
+    ['3.14159']
+
+    # no integer part
+    .00001
+    ^
+    FAIL: Expected numeric digits, found '.'  (at char 0), (line:1, col:1)
+
+    # no decimal
+    101
+       ^
+    FAIL: Expected ".", found end of text  (at char 3), (line:1, col:4)
+
+    # no decimal value
+    101.
+        ^
+    FAIL: Expected numeric digits, found end of text  (at char 4), (line:1, col:5)
+
 - ``setResultsName(string, listAllMatches=False)`` - name to be given
   to tokens matching
   the element; if multiple tokens within
   a repetition group (such as ``ZeroOrMore`` or ``delimitedList``) the
   default is to return only the last matching token - if listAllMatches
   is set to True, then a list of all the matching tokens is returned.
-  (New in 1.5.6 - a results name with a trailing '*' character will be
-  interpreted as setting listAllMatches to True.)
+
+  ``expr.setResultsName("key")` can also be written ``expr("key")``
+  (a results name with a trailing '*' character will be
+  interpreted as setting listAllMatches to True).
+
   Note:
   ``setResultsName`` returns a *copy* of the element so that a single
   basic element can be referenced multiple times and given
@@ -296,8 +341,17 @@ methods for code to use are:
 
   - ``toks`` is the list of the matched tokens, packaged as a ParseResults_ object
 
-  Multiple functions can be attached to a ParserElement by specifying multiple
-  arguments to setParseAction, or by calling setParseAction multiple times.
+  Parse actions can have any of the following signatures:
+
+    fn(s, loc, tokens)
+    fn(loc, tokens)
+    fn(tokens)
+    fn()
+
+  Multiple functions can be attached to a ``ParserElement`` by specifying multiple
+  arguments to ``setParseAction``, or by calling ``addParseAction``. Calls to ``setParseAction``
+  will replace any previously defined parse actions. ``setParseAction(None)`` will clear
+  any previously defined parse action.
 
   Each parse action function can return a modified ``toks`` list, to perform conversion, or
   string modifications.  For brevity, ``fn`` may also be a
@@ -306,8 +360,12 @@ methods for code to use are:
 
     intNumber = Word(nums).setParseAction(lambda s,l,t: [int(t[0])])
 
-  If ``fn`` does not modify the ``toks`` list, it does not need to return
-  anything at all.
+  If ``fn`` modifies the ``toks`` list in-place, it does not need to return
+  and pyparsing will use the modified ``toks`` list.
+
+- ``addParseAction`` - similar to ``setParseAction``, but instead of replacing any
+  previously defined parse actions, will append the given action or actions to the
+  existing defined parse actions.
 
 - ``setBreak(breakFlag=True)`` - if breakFlag is True, calls pdb.set_break()
   as this expression is about to be parsed
@@ -412,12 +470,17 @@ Basic ParserElement subclasses
 
   If ``exact`` is specified, it will override any values for ``min`` or ``max``.
 
-  New in 1.5.6 - Sometimes you want to define a word using all
+  Sometimes you want to define a word using all
   characters in a range except for one or two of them; you can do this
   with the new ``excludeChars`` argument. This is helpful if you want to define
   a word with all printables except for a single delimiter character, such
   as '.'. Previously, you would have to create a custom string to pass to Word.
   With this change, you can just create ``Word(printables, excludeChars='.')``.
+
+- Char - a convenience form of ``Word`` that will match just a single character from
+  a string of matching characters
+
+      single_digit = Char(nums)
 
 - ``CharsNotIn`` - similar to Word_, but matches characters not
   in the given constructor string (accepts only one string for both
@@ -459,6 +522,13 @@ Basic ParserElement subclasses
 
   - ``failOn`` - if a literal string or expression is given for this argument, it defines an expression that
     should cause the ``SkipTo`` expression to fail, and not skip over that expression
+
+  ``SkipTo`` can also be written using ``...``:
+
+    LBRACE, RBRACE = map(Literal, "{}")
+    brace_expr = LBRACE + SkipTo(RBRACE) + RBRACE
+    # can also be written as
+    brace_expr = LBRACE + ... + RBRACE
 
 .. _White:
 
@@ -525,10 +595,11 @@ Expression subclasses
   parse element is not found in the input string; parse action will only
   be called if a match is found, or if a default is specified
 
-- ``ZeroOrMore`` - similar to Optional, but can be repeated
+- ``ZeroOrMore`` - similar to Optional, but can be repeated; ``ZeroOrMore(expr)``
+  can also be written as ``expr[...]``.
 
 - ``OneOrMore`` - similar to ZeroOrMore, but at least one match must
-  be present
+  be present; ``OneOrMore(expr)`` can also be written as ``expr[1, ...]``.
 
 - ``FollowedBy`` - a lookahead expression, requires matching of the given
   expressions, but does not advance the parsing position within the input string
@@ -566,8 +637,8 @@ Expression operators
 - ``==`` - matching expression to string; returns True if the string matches the given expression
 
 - ``<<=`` - inserts the expression following the operator as the body of the
-  Forward expression before the operator
-
+  Forward expression before the operator (``<<`` can also be used, but ``<<=`` is preferred
+  to avoid operator precedence misinterpretation of the pyparsing expression)
 
 
 Positional subclasses
@@ -633,7 +704,8 @@ Other classes
 
     - total list of elements can be found using len()
 
-    - individual elements can be found using [0], [1], [-1], etc.
+    - individual elements can be found using [0], [1], [-1], etc.,
+      or retrieved using slices
 
     - elements can be deleted using ``del``
 
@@ -754,14 +826,14 @@ Helper methods
   are returned as keyed tokens in the returned ParseResults.  ``makeHTMLTags`` is less
   restrictive than ``makeXMLTags``, especially with respect to case sensitivity.
 
-- ``infixNotation(baseOperand, operatorList)`` - (formerly named ``operatorPrecedence``)
+- ``infixNotation(baseOperand, operatorList)`` -
   convenience function to define a grammar for parsing infix notation
   expressions with a hierarchical precedence of operators. To use the ``infixNotation``
   helper:
 
   1.  Define the base "atom" operand term of the grammar.
       For this simple grammar, the smallest operand is either
-      and integer or a variable.  This will be the first argument
+      an integer or a variable.  This will be the first argument
       to the ``infixNotation`` method.
 
   2.  Define a list of tuples for each level of operator
@@ -883,9 +955,6 @@ Helper methods
   so on (note that rangeSpec does not include support for generic regular
   expressions, just string range specs)
 
-- ``getTokensEndLoc()`` - function to call from within a parse action to get
-  the ending location for the matched tokens
-
 - ``traceParseAction(fn)`` - decorator function to debug parse actions. Lists
   each call, called arguments, and return value or exception
 
@@ -971,3 +1040,61 @@ Common string and token constants
 
 - ``restOfLine`` - all remaining printable characters up to but not including the next
   newline
+
+Generating Railroad Diagrams
+============================
+Grammars are conventionally represented in what are called "railroad diagrams", which allow you to visually follow
+the sequence of tokens in a grammar along lines which are a bit like train tracks. You might want to generate a
+railroad diagram for your grammar in order to better understand it yourself, or maybe to communicate it to others.
+
+Usage
+-----
+To generate a railroad diagram in pyparsing, you first have to install pyparsing with the ``diagrams`` extra.
+To do this, just run ``pip install pyparsing[diagrams]``, and make sure you add ``pyparsing[diagrams]`` to any
+``setup.py`` or ``requirements.txt`` that specifies pyparsing as a dependency.
+
+Next, run :py:func:`pyparsing.diagrams.to_railroad` to convert your grammar into a form understood by the
+`railroad-diagrams <https://github.com/tabatkins/railroad-diagrams/blob/gh-pages/README-py.md>`_ module, and then :py:func:`pyparsing.diagrams.railroad_to_html` to convert that into an HTML document. For example::
+
+    from pyparsing.diagram import to_railroad, railroad_to_html
+
+    with open('output.html', 'w') as fp:
+        railroad = to_railroad(my_grammar)
+        fp.write(railroad_to_html(railroad))
+
+This will result in the railroad diagram being written to ``output.html``
+
+Example
+-------
+You can view an example railroad diagram generated from a pyparsing grammar for SQL ``SELECT`` statements `here <_static/sql_railroad.html>`_.
+
+Customization
+-------------
+You can customize the resulting diagram in a few ways.
+
+Firstly, you can pass in additional keyword arguments to :py:func:`pyparsing.diagrams.to_railroad`, which will be passed
+into the ``Diagram()`` constructor of the underlying library, as explained `here <https://github.com/tabatkins/railroad-diagrams/blob/gh-pages/README-py.md#diagrams>`_.
+
+Secondly, you can edit global options in the underlying library, by editing constants::
+
+    from pyparsing.diagram import to_railroad, railroad_to_html
+    import railroad
+
+    railroad.DIAGRAM_CLASS = "my-custom-class"
+    my_railroad = to_railroad(my_grammar)
+
+These options are documented `here <https://github.com/tabatkins/railroad-diagrams/blob/gh-pages/README-py.md#options>`_.
+
+Finally, you can edit the HTML produced by :py:func:`pyparsing.diagrams.railroad_to_html` by passing in certain keyword
+arguments that will be used in the HTML template. Currently, these are:
+
+- ``head``: A string containing HTML to use in the ``<head>`` tag. This might be a stylesheet or other metadata
+- ``body``: A string containing HTML to use in the ``<body>`` tag, above the actual diagram. This might consist of a
+  heading, description, or JavaScript.
+
+If you want to provide a custom stylesheet using the ``head`` keyword, you can make use of the following CSS classes:
+
+- ``railroad-group``: A group containing everything relating to a given element group (ie something with a heading)
+- ``railroad-heading``: The title for each group
+- ``railroad-svg``: A div containing only the diagram SVG for each group
+- ``railroad-description``: A div containing the group description (unused)

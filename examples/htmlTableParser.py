@@ -24,7 +24,13 @@ strip_html = (pp.anyOpenTag | pp.anyCloseTag).suppress().transformString
 
 # expression for parsing <a href="url">text</a> links, returning a (text, url) tuple
 link = pp.Group(a + a.tag_body("text") + a_end.suppress())
-link.addParseAction(lambda t: (t[0].text, t[0].href))
+
+
+def extract_text_and_url(t):
+    return (t[0].text, t[0].href)
+
+
+link.addParseAction(extract_text_and_url)
 
 # method to create table rows of header and data tags
 def table_row(start_tag, end_tag):

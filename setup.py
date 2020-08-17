@@ -6,24 +6,38 @@ try:
     from setuptools import setup
 except ImportError:
     from distutils.core import setup
-from pyparsing import __version__ as pyparsing_version, __doc__ as pyparsing_description
+import io
+import sys
+from pyparsing import __version__ as pyparsing_version
 
-modules = [
-    "pyparsing",
-]
+# guard against manual invocation of setup.py (when using pip, we shouldn't even get this far)
+if sys.version_info[:2] < (3, 5):
+    sys.exit(
+        "Python < 3.5 is not supported in this version of pyparsing; use latest pyparsing 2.4.x release"
+    )
+
+# get the text of the README file
+README_name = __file__.replace("setup.py", "README.rst")
+with io.open(README_name, encoding="utf8") as README:
+    pyparsing_main_doc = README.read()
+
+packages = ["pyparsing", "pyparsing.diagram"]
 
 setup(  # Distribution meta-data
     name="pyparsing",
     version=pyparsing_version,
     description="Python parsing module",
-    long_description=pyparsing_description,
+    long_description=pyparsing_main_doc,
+    long_description_content_type="text/x-rst",
     author="Paul McGuire",
     author_email="ptmcg@users.sourceforge.net",
     url="https://github.com/pyparsing/pyparsing/",
     download_url="https://pypi.org/project/pyparsing/",
     license="MIT License",
-    py_modules=modules,
+    packages=packages,
     python_requires=">=3.5",
+    extras_require={"diagrams": ["railroad-diagrams", "jinja2"],},
+    package_data={"pyparsing.diagram": ["*.jinja2"]},
     classifiers=[
         "Development Status :: 5 - Production/Stable",
         "Intended Audience :: Developers",

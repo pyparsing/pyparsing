@@ -12,7 +12,9 @@
 # Copyright 2006, by Paul McGuire
 # Updated 2013-Sep-14 - improved Python 2/3 cross-compatibility
 #
-from pyparsing import infixNotation, opAssoc, Keyword, Word, alphas
+from pyparsing import infixNotation, opAssoc, Keyword, Word, alphas, ParserElement
+
+ParserElement.enablePackrat()
 
 # define classes to be built at parse time, as each matching
 # expression type is parsed

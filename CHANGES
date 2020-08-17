@@ -2,8 +2,119 @@
 Change Log
 ==========
 
-Version 3.0.0a1
+Version 3.0.0b1
 ---------------
+- Fixed traceback trimming, and added ParserElement.verbose_traceback
+  save/restore to reset_pyparsing_context().
+
+- Default string for Word expressions now also include indications of
+  min and max length specification, if applicable, similar to regex length
+  specifications:
+
+        Word(nums)               -> "W:(0-9)"
+        Word(nums, exact=3)      -> "W:(0-9){3}"
+        Word(nums, min=2)        -> "W:(0-9){2,...}"
+        Word(nums, max=3)        -> "W:(0-9){1,3}"
+        Word(nums, min=2, max=3) -> "W:(0-9){2,3}"
+
+- Removed copy() override in Keyword class which did not preserve definition
+  of ident chars from the original expression. PR #233 submitted by jgrey4296,
+  thanks!
+
+
+Version 3.0.0a2 - June, 2020
+----------------------------
+- Summary of changes for 3.0.0 can be found in "What's New in Pyparsing 3.0.0"
+  documentation.
+
+- API CHANGE
+  Changed result returned when parsing using countedArray,
+  the array items are no longer returned in a doubly-nested
+  list.
+
+- An excellent new enhancement is the new railroad diagram
+  generator for documenting pyparsing parsers:
+
+        import pyparsing as pp
+        from pyparsing.diagram import to_railroad, railroad_to_html
+        from pathlib import Path
+
+        # define a simple grammar for parsing street addresses such
+        # as "123 Main Street"
+        #     number word...
+        number = pp.Word(pp.nums).setName("number")
+        name = pp.Word(pp.alphas).setName("word")[1, ...]
+
+        parser = number("house_number") + name("street")
+        parser.setName("street address")
+
+        # construct railroad track diagram for this parser and
+        # save as HTML
+        rr = to_railroad(parser)
+        Path('parser_rr_diag.html').write_text(railroad_to_html(rr))
+
+  Very nice work provided by Michael Milton, thanks a ton!
+
+- Enhanced default strings created for Word expressions, now showing
+  string ranges if possible. `Word(alphas)` would formerly
+  print as `W:(ABCD...)`, now prints as `W:(A-Za-z)`.
+
+- Added ignoreWhitespace(recurse:bool = True) and added a
+  recurse argument to leaveWhitespace, both added to provide finer
+  control over pyparsing's whitespace skipping. Also contributed
+  by Michael Milton.
+
+- The unicode range definitions for the various languages were
+  recalculated by interrogating the unicodedata module by character
+  name, selecting characters that contained that language in their
+  Unicode name. (Issue #227)
+
+  Also, pyparsing_unicode.Korean was renamed to Hangul (Korean
+  is also defined as a synonym for compatibility).
+
+- Enhanced ParseResults dump() to show both results names and list
+  subitems. Fixes bug where adding a results name would hide
+  lower-level structures in the ParseResults.
+
+- Added new __diag__ warnings:
+
+    "warn_on_parse_using_empty_Forward" - warns that a Forward
+    has been included in a grammar, but no expression was
+    attached to it using '<<=' or '<<'
+
+    "warn_on_assignment_to_Forward" - warns that a Forward has
+    been created, but was probably later overwritten by
+    erroneously using '=' instead of '<<=' (this is a common
+    mistake when using Forwards)
+    (**currently not working on PyPy**)
+
+- Added ParserElement.recurse() method to make it simpler for
+  grammar utilities to navigate through the tree of expressions in
+  a pyparsing grammar.
+
+- Fixed bug in ParseResults repr() which showed all matching
+  entries for a results name, even if listAllMatches was set
+  to False when creating the ParseResults originally. Reported
+  by Nicholas42 on GitHub, good catch! (Issue #205)
+
+- Modified refactored modules to use relative imports, as
+  pointed out by setuptools project member jaraco, thank you!
+
+- Off-by-one bug found in the roman_numerals.py example, a bug
+  that has been there for about 14 years! PR submitted by
+  Jay Pedersen, nice catch!
+
+- A simplified Lua parser has been added to the examples
+  (lua_parser.py).
+
+- Added make_diagram.py to the examples directory to demonstrate
+  creation of railroad diagrams for selected pyparsing examples.
+  Also restructured some examples to make their parsers importable
+  without running their embedded tests.
+
+
+Version 3.0.0a1 - April, 2020
+-----------------------------
 - Removed Py2.x support and other deprecated features. Pyparsing
   now requires Python 3.5 or later. If you are using an earlier
   version of Python, you must use a Pyparsing 2.4.x version
@@ -37,6 +148,17 @@ Version 3.0.0a1
   maintainers consider the test command deprecated (see
   <https://github.com/pypa/setuptools/issues/1684>). To run the Pyparsing test,
   use the command `tox`.
+
+- API CHANGE:
+  The staticmethod `ParseException.explain` has been moved to
+  `ParseBaseException.explain_exception`, and a new `explain` instance
+  method added to ParseBaseException. This will make calls to `explain`
+  much more natural:
+
+      try:
+          expr.parseString("...")
+      except ParseException as pe:
+          print(pe.explain())
 
 - POTENTIAL API CHANGE:
   ZeroOrMore expressions that have results names will now
@@ -78,6 +200,31 @@ Version 3.0.0a1
 
         pp.__diag__.enable_all_warnings()
 
+  - added new warning, "warn_on_match_first_with_lshift_operator" to
+    warn when using '<<' with a '|' MatchFirst operator, which will
+    create an unintended expression due to precedence of operations.
+
+    Example: This statement will erroneously define the `fwd` expression
+    as just `expr_a`, even though `expr_a | expr_b` was intended,
+    since '<<' operator has precedence over '|':
+
+        fwd << expr_a | expr_b
+
+    To correct this, use the '<<=' operator (preferred) or parentheses
+    to override operator precedence:
+
+        fwd <<= expr_a | expr_b
+                 or
+        fwd << (expr_a | expr_b)
+
+- Cleaned up default tracebacks when getting a ParseException when calling
+  parseString. Exception traces should now stop at the call in parseString,
+  and not include the internal traceback frames. (If the full traceback
+  is desired, then set ParserElement.verbose_traceback to True.)
+
+- Fixed FutureWarnings that sometimes are raised when '[' passed as a
+  character to Word.
+
 - New namespace, assert methods and classes added to support writing
   unit tests.
   - assertParseResultsEquals
@@ -88,6 +235,11 @@ Version 3.0.0a1
   - reset_pyparsing_context context manager, to restore pyparsing
     config settings
 
+- Enhanced error messages and error locations when parsing fails on
+  the Keyword or CaselessKeyword classes due to the presence of a
+  preceding or trailing keyword character. Surfaced while
+  working with metaperl on issue #201.
+
 - Enhanced the Regex class to be compatible with re's compiled with the
   re-equivalent regex module. Individual expressions can be built with
   regex compiled expressions using:
@@ -97,20 +249,6 @@ Version 3.0.0a1
 
     # would use regex for this expression
     integer_parser = pp.Regex(regex.compile(r'\d+'))
-
-  You can also replace the use of the re module as it is used internally
-  by pyparsing in a number of classes by overwriting pyparsing's imported
-  re symbol:
-
-    import pyparsing as pp
-    import regex
-    pp.re = regex  # redirects all internal re usage in pyparsing to regex
-
-    # would now use regex instead of re to compile this string
-    integer_parser = pp.Regex(r'\d+')
-
-    # would also now use regex internally instead of re
-    integer_parser = pp.Word(pp.nums)
 
   Inspired by PR submitted by bjrnfrdnnd on GitHub, very nice!
 
@@ -126,6 +264,9 @@ Version 3.0.0a1
   resulting in as much as 50X improvement in performance! Work
   inspired by a question posted by Midnighter on StackOverflow.
 
+- Improvements in select_parser.py, to include new SQL syntax
+  from SQLite. PR submitted by Robert Coup, nice work!
+
 - Fixed bug in PrecededBy which caused infinite recursion, issue #127
   submitted by EdwardJB.
 
@@ -136,12 +277,107 @@ Version 3.0.0a1
   types of nested indented blocks with different indent values,
   but sharing the same indent stack, submitted by renzbagaporo.
 
+- Fixed bug in Each when using Regex, when Regex expression would
+  get parsed twice; issue #183 submitted by scauligi, thanks!
+
 - BigQueryViewParser.py added to examples directory, PR submitted
   by Michael Smedberg, nice work!
 
 - booleansearchparser.py added to examples directory, PR submitted
   by xecgr. Builds on searchparser.py, adding support for '*'
   wildcards and non-Western alphabets.
+
+- Fixed bug in delta_time.py example, when using a quantity
+  of seconds/minutes/hours/days > 999.
+
+- Fixed bug in regex definitions for real and sci_real expressions in
+  pyparsing_common. Issue #194, reported by Michael Wayne Goodman, thanks!
+
+- Fixed FutureWarning raised beginning in Python 3.7 for Regex expressions
+  containing '[' within a regex set.
+
+- Minor reformatting of output from runTests to make embedded
+  comments more visible.
+
+- And finally, many thanks to those who helped in the restructuring
+  of the pyparsing code base as part of this release. Pyparsing now
+  has more standard package structure, more standard unit tests,
+  and more standard code formatting (using black). Special thanks
+  to jdufresne, klahnakoski, mattcarmody, and ckeygusuz, to name just
+  a few.
+
+
+Version 2.4.7 - March, 2020 (April, actually)
+---------------------------------------------
+- Backport of selected fixes from 3.0.0 work:
+  . Each bug with Regex expressions
+  . And expressions not properly constructing with generator
+  . Traceback abbreviation
+  . Bug in delta_time example
+  . Fix regexen in pyparsing_common.real and .sci_real
+  . Avoid FutureWarning on Python 3.7 or later
+  . Cleanup output in runTests if comments are embedded in test string
+
+
+Version 2.4.6 - December, 2019
+------------------------------
+- Fixed typos in White mapping of whitespace characters, to use
+  correct "\u" prefix instead of "u\".
+
+- Fix bug in left-associative ternary operators defined using
+  infixNotation. First reported on StackOverflow by user Jeronimo.
+
+- Backport of pyparsing_test namespace from 3.0.0, including
+  TestParseResultsAsserts mixin class defining unittest-helper
+  methods:
+  . def assertParseResultsEquals(
+            self, result, expected_list=None, expected_dict=None, msg=None)
+  . def assertParseAndCheckList(
+            self, expr, test_string, expected_list, msg=None, verbose=True)
+  . def assertParseAndCheckDict(
+            self, expr, test_string, expected_dict, msg=None, verbose=True)
+  . def assertRunTestResults(
+            self, run_tests_report, expected_parse_results=None, msg=None)
+  . def assertRaisesParseException(self, exc_type=ParseException, msg=None)
+
+  To use the methods in this mixin class, declare your unittest classes as:
+
+    from pyparsing import pyparsing_test as ppt
+    class MyParserTest(ppt.TestParseResultsAsserts, unittest.TestCase):
+        ...
+
+
+Version 2.4.5 - November, 2019
+------------------------------
+- NOTE: final release compatible with Python 2.x.
+
+- Fixed issue with reading README.rst as part of setup.py's
+  initialization of the project's long_description, with a
+  non-ASCII space character causing errors when installing from
+  source on platforms where UTF-8 is not the default encoding.
+
+
+Version 2.4.4 - November, 2019
+--------------------------------
+- Unresolved symbol reference in 2.4.3 release was masked by stdout
+  buffering in unit tests, thanks for the prompt heads-up, Ned
+  Batchelder!
+
+
+Version 2.4.3 - November, 2019
+------------------------------
+- Fixed a bug in ParserElement.__eq__ that would for some parsers
+  create a recursion error at parser definition time. Thanks to
+  Michael Clerx for the assist. (Addresses issue #123)
+
+- Fixed bug in indentedBlock where a block that ended at the end
+  of the input string could cause pyparsing to loop forever. Raised
+  as part of discussion on StackOverflow with geckos.
+
+- Backports from pyparsing 3.0.0:
+  . __diag__.enable_all_warnings()
+  . Fixed bug in PrecededBy which caused infinite recursion, issue #127
+  . support for using regex-compiled RE to construct Regex expressions
 
 
 Version 2.4.2 - July, 2019

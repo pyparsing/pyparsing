@@ -59,13 +59,15 @@ ifFunc = (
     + RPAR
 )
 
-statFunc = lambda name: Group(
-    CaselessKeyword(name) + Group(LPAR + delimitedList(expr) + RPAR)
-)
-sumFunc = statFunc("sum")
-minFunc = statFunc("min")
-maxFunc = statFunc("max")
-aveFunc = statFunc("ave")
+
+def stat_function(name):
+    return Group(CaselessKeyword(name) + Group(LPAR + delimitedList(expr) + RPAR))
+
+
+sumFunc = stat_function("sum")
+minFunc = stat_function("min")
+maxFunc = stat_function("max")
+aveFunc = stat_function("ave")
 funcCall = ifFunc | sumFunc | minFunc | maxFunc | aveFunc
 
 multOp = oneOf("* /")
@@ -79,14 +81,14 @@ arithExpr = infixNotation(
 textOperand = dblQuotedString | cellRef
 textExpr = infixNotation(textOperand, [("&", 2, opAssoc.LEFT),])
 
-expr << (arithExpr | textExpr)
+expr <<= arithExpr | textExpr
 
 
 (EQ + expr).runTests(
     """\
     =3*A7+5
     =3*Sheet1!$A$7+5
-    =3*'Sheet 1'!$A$7+5"
+    =3*'Sheet 1'!$A$7+5
     =3*'O''Reilly''s sheet'!$A$7+5
     =if(Sum(A1:A25)>42,Min(B1:B25),if(Sum(C1:C25)>3.14, (Min(C1:C25)+3)*18,Max(B1:B25)))
     =sum(a1:a25,10,min(b1,c2,d3))

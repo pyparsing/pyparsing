@@ -35,7 +35,7 @@ proximity_modifier = pp.Group(TILDE + integer("proximity"))
 number = ppc.fnumber()
 fuzzy_modifier = TILDE + pp.Optional(number, default=0.5)("fuzzy")
 
-term = pp.Forward()
+term = pp.Forward().setName("field")
 field_name = valid_word().setName("fieldname")
 incl_range_search = pp.Group(LBRACK - term("lower") + to_ + term("upper") + RBRACK)
 excl_range_search = pp.Group(LBRACE - term("lower") + to_ + term("upper") + RBRACE)
@@ -57,7 +57,11 @@ expression << pp.infixNotation(
         (required_modifier | prohibit_modifier, 1, pp.opAssoc.RIGHT),
         ((not_ | "!").setParseAction(lambda: "NOT"), 1, pp.opAssoc.RIGHT),
         ((and_ | "&&").setParseAction(lambda: "AND"), 2, pp.opAssoc.LEFT),
-        (pp.Optional(or_ | "||").setParseAction(lambda: "OR"), 2, pp.opAssoc.LEFT),
+        (
+            pp.Optional(or_ | "||").setName("or").setParseAction(lambda: "OR"),
+            2,
+            pp.opAssoc.LEFT,
+        ),
     ],
 )
 

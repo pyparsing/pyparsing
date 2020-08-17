@@ -4,6 +4,7 @@
 # a simple SELECT statement parser, taken from SQLite's SELECT statement
 # definition at https://www.sqlite.org/lang_select.html
 #
+import sys
 from pyparsing import *
 
 ParserElement.enablePackrat()
@@ -13,132 +14,22 @@ DOT, STAR = map(Literal, ".*")
 select_stmt = Forward().setName("select statement")
 
 # keywords
-(
-    UNION,
-    ALL,
-    AND,
-    INTERSECT,
-    EXCEPT,
-    COLLATE,
-    ASC,
-    DESC,
-    ON,
-    USING,
-    NATURAL,
-    INNER,
-    CROSS,
-    LEFT,
-    OUTER,
-    JOIN,
-    AS,
-    INDEXED,
-    NOT,
-    SELECT,
-    DISTINCT,
-    FROM,
-    WHERE,
-    GROUP,
-    BY,
-    HAVING,
-    ORDER,
-    BY,
-    LIMIT,
-    OFFSET,
-    OR,
-) = map(
-    CaselessKeyword,
-    """UNION, ALL, AND, INTERSECT,
- EXCEPT, COLLATE, ASC, DESC, ON, USING, NATURAL, INNER, CROSS, LEFT, OUTER, JOIN, AS, INDEXED, NOT, SELECT,
- DISTINCT, FROM, WHERE, GROUP, BY, HAVING, ORDER, BY, LIMIT, OFFSET, OR""".replace(
-        ",", ""
-    ).split(),
-)
-(
-    CAST,
-    ISNULL,
-    NOTNULL,
-    NULL,
-    IS,
-    BETWEEN,
-    ELSE,
-    END,
-    CASE,
-    WHEN,
-    THEN,
-    EXISTS,
-    IN,
-    LIKE,
-    GLOB,
-    REGEXP,
-    MATCH,
-    ESCAPE,
-    CURRENT_TIME,
-    CURRENT_DATE,
-    CURRENT_TIMESTAMP,
-) = map(
-    CaselessKeyword,
-    """CAST, ISNULL, NOTNULL, NULL, IS, BETWEEN, ELSE, END, CASE, WHEN, THEN, EXISTS, IN, LIKE, GLOB,
- REGEXP, MATCH, ESCAPE, CURRENT_TIME, CURRENT_DATE, CURRENT_TIMESTAMP""".replace(
-        ",", ""
-    ).split(),
-)
-keyword = MatchFirst(
-    (
-        UNION,
-        ALL,
-        INTERSECT,
-        EXCEPT,
-        COLLATE,
-        ASC,
-        DESC,
-        ON,
-        USING,
-        NATURAL,
-        INNER,
-        CROSS,
-        LEFT,
-        OUTER,
-        JOIN,
-        AS,
-        INDEXED,
-        NOT,
-        SELECT,
-        DISTINCT,
-        FROM,
-        WHERE,
-        GROUP,
-        BY,
-        HAVING,
-        ORDER,
-        BY,
-        LIMIT,
-        OFFSET,
-        CAST,
-        ISNULL,
-        NOTNULL,
-        NULL,
-        IS,
-        BETWEEN,
-        ELSE,
-        END,
-        CASE,
-        WHEN,
-        THEN,
-        EXISTS,
-        COLLATE,
-        IN,
-        LIKE,
-        GLOB,
-        REGEXP,
-        MATCH,
-        ESCAPE,
-        CURRENT_TIME,
-        CURRENT_DATE,
-        CURRENT_TIMESTAMP,
-    )
-)
+keywords = {
+    k: CaselessKeyword(k)
+    for k in """\
+    UNION ALL AND INTERSECT EXCEPT COLLATE ASC DESC ON USING NATURAL INNER CROSS LEFT OUTER JOIN AS INDEXED NOT
+    SELECT DISTINCT FROM WHERE GROUP BY HAVING ORDER LIMIT OFFSET OR CAST ISNULL NOTNULL NULL IS BETWEEN ELSE END
+    CASE WHEN THEN EXISTS IN LIKE GLOB REGEXP MATCH ESCAPE CURRENT_TIME CURRENT_DATE CURRENT_TIMESTAMP TRUE FALSE
+    """.split()
+}
+vars().update(keywords)
 
-identifier = ~keyword + Word(alphas, alphanums + "_")
+any_keyword = MatchFirst(keywords.values())
+
+quoted_identifier = QuotedString('"', escQuote='""')
+identifier = (~any_keyword + Word(alphas, alphanums + "_")).setParseAction(
+    pyparsing_common.downcaseTokens
+) | quoted_identifier
 collation_name = identifier.copy()
 column_name = identifier.copy()
 column_alias = identifier.copy()
@@ -149,17 +40,20 @@ function_name = identifier.copy()
 parameter_name = identifier.copy()
 database_name = identifier.copy()
 
+comment = "--" + restOfLine
+
 # expression
 expr = Forward().setName("expression")
 
-integer = Regex(r"[+-]?\d+")
-numeric_literal = Regex(r"\d+(\.\d*)?([eE][+-]?\d+)?")
-string_literal = QuotedString("'")
+numeric_literal = pyparsing_common.number
+string_literal = QuotedString("'", escQuote="''")
 blob_literal = Regex(r"[xX]'[0-9A-Fa-f]+'")
 literal_value = (
     numeric_literal
     | string_literal
     | blob_literal
+    | TRUE
+    | FALSE
     | NULL
     | CURRENT_TIME
     | CURRENT_DATE
@@ -184,25 +78,44 @@ expr_term = (
     | Group(identifier("col"))
 )
 
+NOT_NULL = Group(NOT + NULL)
+NOT_BETWEEN = Group(NOT + BETWEEN)
+NOT_IN = Group(NOT + IN)
+NOT_LIKE = Group(NOT + LIKE)
+NOT_MATCH = Group(NOT + MATCH)
+NOT_GLOB = Group(NOT + GLOB)
+NOT_REGEXP = Group(NOT + REGEXP)
+
 UNARY, BINARY, TERNARY = 1, 2, 3
 expr << infixNotation(
     expr_term,
     [
         (oneOf("- + ~") | NOT, UNARY, opAssoc.RIGHT),
-        (ISNULL | NOTNULL | NOT + NULL, UNARY, opAssoc.LEFT),
+        (ISNULL | NOTNULL | NOT_NULL, UNARY, opAssoc.LEFT),
         ("||", BINARY, opAssoc.LEFT),
         (oneOf("* / %"), BINARY, opAssoc.LEFT),
         (oneOf("+ -"), BINARY, opAssoc.LEFT),
         (oneOf("<< >> & |"), BINARY, opAssoc.LEFT),
         (oneOf("< <= > >="), BINARY, opAssoc.LEFT),
         (
-            oneOf("= == != <>") | IS | IN | LIKE | GLOB | MATCH | REGEXP,
+            oneOf("= == != <>")
+            | IS
+            | IN
+            | LIKE
+            | GLOB
+            | MATCH
+            | REGEXP
+            | NOT_IN
+            | NOT_LIKE
+            | NOT_GLOB
+            | NOT_MATCH
+            | NOT_REGEXP,
             BINARY,
             opAssoc.LEFT,
         ),
-        ((BETWEEN, AND), TERNARY, opAssoc.LEFT),
+        ((BETWEEN | NOT_BETWEEN, AND), TERNARY, opAssoc.LEFT),
         (
-            IN + LPAR + Group(select_stmt | delimitedList(expr)) + RPAR,
+            (IN | NOT_IN) + LPAR + Group(select_stmt | delimitedList(expr)) + RPAR,
             UNARY,
             opAssoc.LEFT,
         ),
@@ -272,24 +185,56 @@ select_stmt << (
     )
 )
 
-tests = """\
-    select * from xyzzy where z > 100
-    select * from xyzzy where z > 100 order by zz
-    select * from xyzzy
-    select z.* from xyzzy
-    select a, b from test_table where 1=1 and b='yes'
-    select a, b from test_table where 1=1 and b in (select bb from foo)
-    select z.a, b from test_table where 1=1 and b in (select bb from foo)
-    select z.a, b from test_table where 1=1 and b in (select bb from foo) order by b,c desc,d
-    select z.a, b from test_table left join test2_table where 1=1 and b in (select bb from foo)
-    select a, db.table.b as BBB from db.table where 1=1 and BBB='yes'
-    select a, db.table.b as BBB from test_table,db.table where 1=1 and BBB='yes'
-    select a, db.table.b as BBB from test_table,db.table where 1=1 and BBB='yes' limit 50
-    select a, b from test_table where (1=1 or 2=3) and b='yes' group by zx having b=2 order by 1
-    SELECT emp.ename as e FROM scott.employee as emp
-    SELECT ename as e, fname as f FROM scott.employee as emp
-    SELECT emp.eid, fname,lname FROM scott.employee as emp
-    SELECT ename, lname, emp.eid FROM scott.employee as emp
-    select emp.salary * (1.0 + emp.bonus) as salary_plus_bonus from scott.employee as emp
-"""
-select_stmt.runTests(tests)
+select_stmt.ignore(comment)
+
+
+def main():
+    tests = """\
+        select * from xyzzy where z > 100
+        select * from xyzzy where z > 100 order by zz
+        select * from xyzzy
+        select z.* from xyzzy
+        select a, b from test_table where 1=1 and b='yes'
+        select a, b from test_table where 1=1 and b in (select bb from foo)
+        select z.a, b from test_table where 1=1 and b in (select bb from foo)
+        select z.a, b from test_table where 1=1 and b in (select bb from foo) order by b,c desc,d
+        select z.a, b from test_table left join test2_table where 1=1 and b in (select bb from foo)
+        select a, db.table.b as BBB from db.table where 1=1 and BBB='yes'
+        select a, db.table.b as BBB from test_table,db.table where 1=1 and BBB='yes'
+        select a, db.table.b as BBB from test_table,db.table where 1=1 and BBB='yes' limit 50
+        select a, b from test_table where (1=1 or 2=3) and b='yes' group by zx having b=2 order by 1
+        SELECT emp.ename as e FROM scott.employee as emp
+        SELECT ename as e, fname as f FROM scott.employee as emp
+        SELECT emp.eid, fname,lname FROM scott.employee as emp
+        SELECT ename, lname, emp.eid FROM scott.employee as emp
+        select emp.salary * (1.0 + emp.bonus) as salary_plus_bonus from scott.employee as emp
+        SELECT * FROM abcd WHERE (ST_Overlaps("GEOM", 'POINT(0 0)'))
+        SELECT * FROM abcd WHERE CAST(foo AS REAL) > -999.123
+        SELECT * FROM abcd WHERE bar BETWEEN +180 AND +10E9
+        SELECT * FROM abcd WHERE CAST(foo AS REAL) < (4 + -9.876E-4)
+        SELECT SomeFunc(99)
+        SELECT * FROM abcd WHERE ST_X(ST_Centroid(geom)) BETWEEN (-180*2) AND (180*2)
+        SELECT * FROM abcd WHERE a
+        SELECT * FROM abcd WHERE snowy_things REGEXP '[⛄️☃️☃🎿🏂🌨❄️⛷🏔🗻❄︎❆❅]'
+        SELECT * FROM abcd WHERE a."b" IN 4
+        SELECT * FROM abcd WHERE a."b" In ('4')
+        SELECT * FROM "a".b AS "E" WHERE "E"."C" >= CURRENT_Time
+        SELECT * FROM abcd WHERE "dave" != "Dave" -- names & things ☃️
+        SELECT * FROM a WHERE a.dave is not null
+        SELECT * FROM abcd WHERE pete == FALSE or peter is true
+        SELECT * FROM abcd WHERE a >= 10 * (2 + 3)
+        SELECT * FROM abcd WHERE frank = 'is ''scary'''
+        SELECT * FROM abcd WHERE "identifier with ""quotes"" and a trailing space " IS NOT FALSE
+        SELECT * FROM abcd WHERE blobby == x'C0FFEE'  -- hex
+        SELECT * FROM abcd WHERE ff NOT IN (1,2,4,5)
+        SELECT * FROM abcd WHERE ff not between 3 and 9
+        SELECT * FROM abcd WHERE ff not like 'bob%'
+    """
+
+    success, _ = select_stmt.runTests(tests)
+    print("\n{}".format("OK" if success else "FAIL"))
+    return 0 if success else 1
+
+
+if __name__ == "__main__":
+    main()

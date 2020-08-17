@@ -21,7 +21,7 @@ from pyparsing import __version__ as pyparsing_version
 # -- Project information -----------------------------------------------------
 
 project = "PyParsing"
-copyright = "2018, Paul T. McGuire"
+copyright = "2018-2020, Paul T. McGuire"
 author = "Paul T. McGuire"
 
 # The short X.Y version
@@ -156,7 +156,7 @@ texinfo_documents = [
         "PyParsing Documentation",
         author,
         "PyParsing",
-        "One line description of project.",
+        "Python PEG parsing library.",
         "Miscellaneous",
     ),
 ]

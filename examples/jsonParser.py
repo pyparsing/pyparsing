@@ -50,14 +50,14 @@ LBRACK, RBRACK, LBRACE, RBRACE, COLON = map(pp.Suppress, "[]{}:")
 jsonString = pp.dblQuotedString().setParseAction(pp.removeQuotes)
 jsonNumber = ppc.number()
 
-jsonObject = pp.Forward()
-jsonValue = pp.Forward()
+jsonObject = pp.Forward().setName("jsonObject")
+jsonValue = pp.Forward().setName("jsonValue")
 jsonElements = pp.delimitedList(jsonValue)
 jsonArray = pp.Group(LBRACK + pp.Optional(jsonElements, []) + RBRACK)
 jsonValue << (
     jsonString | jsonNumber | pp.Group(jsonObject) | jsonArray | TRUE | FALSE | NULL
 )
-memberDef = pp.Group(jsonString + COLON + jsonValue)
+memberDef = pp.Group(jsonString + COLON + jsonValue).setName("jsonMember")
 jsonMembers = pp.delimitedList(memberDef)
 jsonObject << pp.Dict(LBRACE + pp.Optional(jsonMembers) + RBRACE)
 

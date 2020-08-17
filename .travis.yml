@@ -1,5 +1,7 @@
 language: python
 
+dist: xenial
+
 matrix:
   include:
     - python: 3.8
