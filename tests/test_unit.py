@@ -7023,7 +7023,7 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
                 Match integer at loc 3(1,4)
                 Matched integer -> ['3']
                 Match integer at loc 5(1,6)
-                Exception raised:Expected integer, found end of text  (at char 5), (line:1, col:6)
+                ParseException raised: Expected integer, found end of text  (at char 5), (line:1, col:6)
                 """
             )
             output = test_stdout.getvalue()
@@ -7058,25 +7058,25 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             Match integer at loc 0(1,1)
             Matched integer -> [123]
             Match integer at loc 3(1,4)
-            Exception raised:Expected integer, found 'A'  (at char 4), (line:1, col:5)
+            ParseException raised: Expected integer, found 'A'  (at char 4), (line:1, col:5)
             Match W:(0-9A-Za-z) at loc 3(1,4)
             Matched W:(0-9A-Za-z) -> ['A100']
             Match integer at loc 8(1,9)
-            Exception raised:Expected integer, found end of text  (at char 8), (line:1, col:9)
+            ParseException raised: Expected integer, found end of text  (at char 8), (line:1, col:9)
             Match W:(0-9A-Za-z) at loc 8(1,9)
-            Exception raised:Expected W:(0-9A-Za-z), found end of text  (at char 8), (line:1, col:9)
+            ParseException raised: Expected W:(0-9A-Za-z), found end of text  (at char 8), (line:1, col:9)
             Matched [{integer | W:(0-9A-Za-z)}]... -> [123, 'A100']
             
             Match integer at loc 0(1,1)
             Matched integer -> [123]
             Match integer at loc 3(1,4)
-            Exception raised:Expected integer, found 'A'  (at char 4), (line:1, col:5)
+            ParseException raised: Expected integer, found 'A'  (at char 4), (line:1, col:5)
             Match W:(0-9A-Za-z) at loc 3(1,4)
             Matched W:(0-9A-Za-z) -> ['A100']
             Match integer at loc 8(1,9)
-            Exception raised:Expected integer, found end of text  (at char 8), (line:1, col:9)
+            ParseException raised: Expected integer, found end of text  (at char 8), (line:1, col:9)
             Match W:(0-9A-Za-z) at loc 8(1,9)
-            Exception raised:Expected W:(0-9A-Za-z), found end of text  (at char 8), (line:1, col:9)
+            ParseException raised: Expected W:(0-9A-Za-z), found end of text  (at char 8), (line:1, col:9)
             """
         )
         output = test_stdout.getvalue()
@@ -7085,6 +7085,79 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             expected_debug_output,
             output,
             "invalid debug output when using parse action",
+        )
+
+    def testEnableDebugWithCachedExpressionsMarkedWithAsterisk(self):
+        import textwrap
+
+        test_stdout = StringIO()
+        with resetting(sys, "stdout", "stderr"):
+            sys.stdout = test_stdout
+            sys.stderr = test_stdout
+
+            a = pp.Literal("a").setName("A").setDebug()
+            b = pp.Literal("b").setName("B").setDebug()
+            z = pp.Literal("z").setName("Z").setDebug()
+            leading_a = a + pp.FollowedBy(z | a | b)
+            leading_a.setName("leading_a").setDebug()
+
+            grammar = (z | leading_a | b)[...] + "a"
+            grammar.parseString("aba")
+
+        expected_debug_output = textwrap.dedent(
+            """\
+            Match Z at loc 0(1,1)
+            ParseException raised: Expected Z, found 'a'  (at char 0), (line:1, col:1)
+            Match leading_a at loc 0(1,1)
+            Match A at loc 0(1,1)
+            Matched A -> ['a']
+            Match Z at loc 1(1,2)
+            ParseException raised: Expected Z, found 'b'  (at char 1), (line:1, col:2)
+            Match A at loc 1(1,2)
+            ParseException raised: Expected A, found 'b'  (at char 1), (line:1, col:2)
+            Match B at loc 1(1,2)
+            Matched B -> ['b']
+            Matched leading_a -> ['a']
+            *Match Z at loc 1(1,2)
+            *ParseException raised: Expected Z, found 'b'  (at char 1), (line:1, col:2)
+            Match leading_a at loc 1(1,2)
+            Match A at loc 1(1,2)
+            ParseException raised: Expected A, found 'b'  (at char 1), (line:1, col:2)
+            ParseException raised: Expected A, found 'b'  (at char 1), (line:1, col:2)
+            *Match B at loc 1(1,2)
+            *Matched B -> ['b']
+            Match Z at loc 2(1,3)
+            ParseException raised: Expected Z, found 'a'  (at char 2), (line:1, col:3)
+            Match leading_a at loc 2(1,3)
+            Match A at loc 2(1,3)
+            Matched A -> ['a']
+            Match Z at loc 3(1,4)
+            ParseException raised: Expected Z, found end of text  (at char 3), (line:1, col:4)
+            Match A at loc 3(1,4)
+            ParseException raised: Expected A, found end of text  (at char 3), (line:1, col:4)
+            Match B at loc 3(1,4)
+            ParseException raised: Expected B, found end of text  (at char 3), (line:1, col:4)
+            ParseException raised: Expected {Z | A | B}, found end of text  (at char 3), (line:1, col:4)
+            Match B at loc 2(1,3)
+            ParseException raised: Expected B, found 'a'  (at char 2), (line:1, col:3)
+            """
+        )
+        if pp.ParserElement._packratEnabled:
+            packrat_status = "enabled"
+        else:
+            # remove '*' cache markers from expected output
+            expected_debug_output = expected_debug_output.replace("*", "")
+            packrat_status = "disabled"
+
+        output = test_stdout.getvalue()
+        print(output)
+        self.assertEqual(
+            expected_debug_output,
+            output,
+            (
+                "invalid debug output showing cached results marked with '*',"
+                " and packrat parsing {}".format(packrat_status)
+            ),
         )
 
     def testUndesirableButCommonPractices(self):

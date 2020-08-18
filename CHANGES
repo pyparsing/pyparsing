@@ -4,6 +4,24 @@ Change Log
 
 Version 3.0.0b1
 ---------------
+- When using setDebug with packrat parsing enabled, packrat cache hits will
+  now be included in the output, shown with a leading '*'. (Previously, cache
+  hits and responses were not included in debug output.) For those using custom
+  debug actions, see the following bullet regarding an optional API change
+  for those methods.
+
+- API CHANGE
+  Added `cache_hit` keyword argument to debug actions. Previously, if packrat
+  parsing was enabled, the debug methods were not called in the event of cache
+  hits. Now these methods will be called, with an added argument
+  `cache_hit=True`.
+
+  If you are using packrat parsing and enable debug on expressions using a
+  custom debug method, you can add the `cache_hit=False` keyword argument,
+  and your method will be called on packrat cache hits. If you choose not
+  to add this keyword argument, the debug methods will fail silently,
+  behaving as they did previously.
+
 - Fixed traceback trimming, and added ParserElement.verbose_traceback
   save/restore to reset_pyparsing_context().
 

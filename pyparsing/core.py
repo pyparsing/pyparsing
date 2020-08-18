@@ -223,22 +223,25 @@ def conditionAsParseAction(fn, message=None, fatal=False):
     return pa
 
 
-def _defaultStartDebugAction(instring, loc, expr):
+def _defaultStartDebugAction(instring, loc, expr, cache_hit=False):
+    cache_hit_str = "*" if cache_hit else ""
     print(
         (
-            "Match {} at loc {}({},{})".format(
-                expr, loc, lineno(loc, instring), col(loc, instring)
+            "{}Match {} at loc {}({},{})".format(
+                cache_hit_str, expr, loc, lineno(loc, instring), col(loc, instring)
             )
         )
     )
 
 
-def _defaultSuccessDebugAction(instring, startloc, endloc, expr, toks):
-    print("Matched " + str(expr) + " -> " + str(toks.asList()))
+def _defaultSuccessDebugAction(instring, startloc, endloc, expr, toks, cache_hit=False):
+    cache_hit_str = "*" if cache_hit else ""
+    print("{}Matched {} -> {}".format(cache_hit_str, expr, toks.asList()))
 
 
-def _defaultExceptionDebugAction(instring, loc, expr, exc):
-    print("Exception raised:" + str(exc))
+def _defaultExceptionDebugAction(instring, loc, expr, exc, cache_hit=False):
+    cache_hit_str = "*" if cache_hit else ""
+    print("{}{} raised: {}".format(cache_hit_str, type(exc).__name__, exc))
 
 
 def nullDebugAction(*args):
@@ -667,6 +670,7 @@ class ParserElement(ABC):
     # we can cache these arguments and save ourselves the trouble of re-parsing the contained expression
     def _parseCache(self, instring, loc, doActions=True, callPreParse=True):
         HIT, MISS = 0, 1
+        TRY, MATCH, FAIL = 0, 1, 2
         lookup = (self, instring, loc, callPreParse, doActions)
         with ParserElement.packrat_cache_lock:
             cache = ParserElement.packrat_cache
@@ -680,13 +684,35 @@ class ParserElement(ABC):
                     cache.set(lookup, pe.__class__(*pe.args))
                     raise
                 else:
-                    cache.set(lookup, (value[0], value[1].copy()))
+                    cache.set(lookup, (value[0], value[1].copy(), loc))
                     return value
             else:
                 ParserElement.packrat_cache_stats[HIT] += 1
+                if self.debug and self.debugActions[TRY]:
+                    try:
+                        self.debugActions[TRY](instring, loc, self, cache_hit=True)
+                    except TypeError:
+                        pass
                 if isinstance(value, Exception):
+                    if self.debug and self.debugActions[FAIL]:
+                        try:
+                            self.debugActions[FAIL](
+                                instring, loc, self, value, cache_hit=True
+                            )
+                        except TypeError:
+                            pass
                     raise value
-                return value[0], value[1].copy()
+
+                loc_, result, endloc = value[0], value[1].copy(), value[2]
+                if self.debug and self.debugActions[MATCH]:
+                    try:
+                        self.debugActions[MATCH](
+                            instring, loc_, endloc, self, result, cache_hit=True
+                        )
+                    except TypeError:
+                        pass
+
+                return loc_, result
 
     _parse = _parseNoCache
 
