@@ -337,9 +337,9 @@ methods for code to use are:
   default is to return only the last matching token - if listAllMatches
   is set to True, then a list of all the matching tokens is returned.
 
-  ``expr.setResultsName("key")` can also be written ``expr("key")``
+  ``expr.setResultsName("key")`` can also be written ``expr("key")``
   (a results name with a trailing '*' character will be
-  interpreted as setting listAllMatches to True).
+  interpreted as setting ``listAllMatches`` to True).
 
   Note:
   ``setResultsName`` returns a *copy* of the element so that a single
@@ -357,7 +357,7 @@ methods for code to use are:
 
   - ``toks`` is the list of the matched tokens, packaged as a ParseResults_ object
 
-  Parse actions can have any of the following signatures:
+  Parse actions can have any of the following signatures::
 
     fn(s, loc, tokens)
     fn(loc, tokens)
@@ -501,8 +501,8 @@ Basic ParserElement subclasses
   as '.'. Previously, you would have to create a custom string to pass to Word.
   With this change, you can just create ``Word(printables, excludeChars='.')``.
 
-- Char - a convenience form of ``Word`` that will match just a single character from
-  a string of matching characters
+- ``Char`` - a convenience form of ``Word`` that will match just a single character from
+  a string of matching characters::
 
       single_digit = Char(nums)
 
@@ -547,7 +547,7 @@ Basic ParserElement subclasses
   - ``failOn`` - if a literal string or expression is given for this argument, it defines an expression that
     should cause the ``SkipTo`` expression to fail, and not skip over that expression
 
-  ``SkipTo`` can also be written using ``...``:
+  ``SkipTo`` can also be written using ``...``::
 
     LBRACE, RBRACE = map(Literal, "{}")
     brace_expr = LBRACE + SkipTo(RBRACE) + RBRACE
