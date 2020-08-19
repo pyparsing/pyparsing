@@ -5,8 +5,8 @@ Using the pyparsing module
 :author: Paul McGuire
 :address: ptmcg@users.sourceforge.net
 
-:revision: 2.4.7
-:date: June, 2020
+:revision: 3.0.0
+:date: August, 2020
 
 :copyright: Copyright |copy| 2003-2020 Paul McGuire.
 
@@ -24,8 +24,12 @@ Using the pyparsing module
 .. contents::   :depth: 4
 
 Note: While this content is still valid, there are more detailed
-descriptions and examples at the online doc server at
-https://pyparsing-docs.readthedocs.io/en/latest/pyparsing.html
+descriptions and extensive examples at the `online doc server
+<https://pyparsing-docs.readthedocs.io/en/latest/pyparsing.html>`_, and
+in the online help for the various pyparsing classes and methods (viewable
+using the Python interpreter's built-in ``help()`` function). You will also
+find many example scripts in the `examples <https://github.com/pyparsing/pyparsing/tree/master/examples>`_
+directory of the pyparsing GitHub repo.
 
 Steps to follow
 ===============
@@ -33,7 +37,7 @@ Steps to follow
 To parse an incoming data string, the client code must follow these steps:
 
 1. First define the tokens and patterns to be matched, and assign
-   this to a program variable.  Optional results names or parsing
+   this to a program variable.  Optional results names or parse
    actions can also be defined at this time.
 
 2. Call ``parseString()`` or ``scanString()`` on this variable, passing in
@@ -43,8 +47,9 @@ To parse an incoming data string, the client code must follow these steps:
    When token matches occur, any defined parse action methods are
    called.
 
-3. Process the parsed results, returned as a list of strings.
-   Matching results may also be accessed as named attributes of
+3. Process the parsed results, returned as a ParseResults object.
+   The ParseResults object can be accessed as if it were a list of
+   strings. Matching results may also be accessed as named attributes of
    the returned results, if names are defined in the definition of
    the token pattern, using ``setResultsName()``.
 
@@ -55,15 +60,24 @@ Hello, World!
 The following complete Python program will parse the greeting "Hello, World!",
 or any other greeting of the form "<salutation>, <addressee>!"::
 
-    from pyparsing import Word, alphas
+    import pyparsing as pp
 
-    greet = Word(alphas) + "," + Word(alphas) + "!"
-    greeting = greet.parseString("Hello, World!")
-    print(greeting)
+    greet = pp.Word(pp.alphas) + "," + pp.Word(pp.alphas) + "!"
+    for greeting_str in [
+                "Hello, World!",
+                "Bonjour, Monde!",
+                "Hola, Mundo!",
+                "Hallo, Welt!",
+            ]:
+        greeting = greet.parseString(greeting_str)
+        print(greeting)
 
 The parsed tokens are returned in the following form::
 
     ['Hello', ',', 'World', '!']
+    ['Bonjour', ',', 'Monde', '!']
+    ['Hola', ',', 'Mundo', '!']
+    ['Gutentag', ',', 'Welt', '!']
 
 
 Usage notes
@@ -102,7 +116,9 @@ Usage notes
 
   Of course, it is quite simple to extend this example to support more elaborate expressions, with
   nesting with parentheses, floating point numbers, scientific notation, and named constants
-  (such as ``e`` or ``pi``).  See ``fourFn.py``, included in the examples directory.
+  (such as ``e`` or ``pi``).  See `fourFn.py <https://github.com/pyparsing/pyparsing/blob/master/examples/fourFn.py>`_,
+  and `simpleArith.py <https://github.com/pyparsing/pyparsing/blob/master/examples/simpleArith.py>`_
+  included in the examples directory.
 
 - To modify pyparsing's default whitespace skipping, you can use one or
   more of the following methods:
@@ -221,7 +237,7 @@ Usage notes
              + "MAX:" + realNum("max"))
 
 - Be careful when defining parse actions that modify global variables or
-  data structures (as in ``fourFn.py``), especially for low level tokens
+  data structures (as in fourFn.py_), especially for low level tokens
   or expressions that may occur within an ``And`` expression; an early element
   of an ``And`` may match, but the overall expression may fail.
 
@@ -275,7 +291,7 @@ methods for code to use are:
 - ``runTests(testsString)`` - useful development and testing method on
   expressions, to pass a multiline string of sample strings to test against
   the expression. Comment lines (beginning with ``#``) can be inserted
-  and they will be included in the test output:
+  and they will be included in the test output::
 
     digits = Word(nums).setName("numeric digits")
     real_num = Combine(digits + '.' + digits)
@@ -293,7 +309,7 @@ methods for code to use are:
         101.
         """)
 
-  will print:
+  will print::
 
     # valid number
     3.14159
@@ -358,7 +374,7 @@ methods for code to use are:
   lambda - here is an example of using a parse action to convert matched
   integer tokens from strings to integers::
 
-    intNumber = Word(nums).setParseAction(lambda s,l,t: [int(t[0])])
+    intNumber = Word(nums).setParseAction(lambda s, l, t: [int(t[0])])
 
   If ``fn`` modifies the ``toks`` list in-place, it does not need to return
   and pyparsing will use the modified ``toks`` list.
@@ -367,12 +383,18 @@ methods for code to use are:
   previously defined parse actions, will append the given action or actions to the
   existing defined parse actions.
 
-- ``setBreak(breakFlag=True)`` - if breakFlag is True, calls pdb.set_break()
+- ``addCondition`` - a simplified form of ``addParseAction`` if the purpose
+  of the parse action is to simply do some validation, and raise an exception
+  if the validation fails. Takes a method that takes the same arguments,
+  but simply returns ``True`` or ``False``. If ``False`` is returned, an exception will be
+  raised.
+
+- ``setBreak(breakFlag=True)`` - if ``breakFlag`` is ``True``, calls ``pdb.set_break()``
   as this expression is about to be parsed
 
 - ``copy()`` - returns a copy of a ParserElement; can be used to use the same
   parse expression in different places in a grammar, with different parse actions
-  attached to each
+  attached to each; a short-form ``expr()`` is equivalent to ``expr.copy()``
 
 - ``leaveWhitespace()`` - change default behavior of skipping
   whitespace before starting matching (mostly used internally to the
@@ -389,7 +411,7 @@ methods for code to use are:
   omit newline from the list of ignorable whitespace)
 
 - ``suppress()`` - convenience function to suppress the output of the
-  given element, instead of wrapping it with a Suppress object.
+  given element, instead of wrapping it with a ``Suppress`` object.
 
 - ``ignore(expr)`` - function to specify parse expression to be
   ignored while matching defined patterns; can be called
@@ -412,8 +434,8 @@ methods for code to use are:
   performance enhancement, known as "packrat parsing".  packrat parsing is
   disabled by default, since it may conflict with some user programs that use
   parse actions.  To activate the packrat feature, your
-  program must call the class method ParserElement.enablePackrat(). For best
-  results, call enablePackrat() immediately after importing pyparsing.
+  program must call the class method ``ParserElement.enablePackrat()``. For best
+  results, call ``enablePackrat()`` immediately after importing pyparsing.
 
 
 Basic ParserElement subclasses
@@ -445,19 +467,21 @@ Basic ParserElement subclasses
   ``plan9FromOuterSpace``
   are all valid identifiers; ``9b7z``, ``$a``, ``.section``, and ``0debug``
   are not.  To
-  define an identifier using a Word, use either of the following::
+  define an identifier using a Word, use either of the following:
 
-  - Word(alphas+"_", alphanums+"_")
-  - Word(srange("[a-zA-Z_]"), srange("[a-zA-Z0-9_]"))
+  - ``Word(alphas+"_", alphanums+"_")``
+
+  - ``Word(srange("[a-zA-Z_]"), srange("[a-zA-Z0-9_]"))``
 
   If only one
   string given, it specifies that the same character set defined
   for the initial character is used for the word body; for instance, to
   define an identifier that can only be composed of capital letters and
-  underscores, use::
+  underscores, use:
 
-  - Word("ABCDEFGHIJKLMNOPQRSTUVWXYZ_")
-  - Word(srange("[A-Z_]"))
+  - ``Word("ABCDEFGHIJKLMNOPQRSTUVWXYZ_")``
+
+  - ``Word(srange("[A-Z_]"))``
 
   A Word may
   also be constructed with any of the following optional parameters:
@@ -614,25 +638,23 @@ Expression subclasses
 Expression operators
 --------------------
 
-- ``~`` - creates NotAny using the expression after the operator
+- ``~`` - creates ``NotAny`` using the expression after the operator
 
-- ``+`` - creates And using the expressions before and after the operator
+- ``+`` - creates ``And`` using the expressions before and after the operator
 
-- ``|`` - creates MatchFirst (first left-to-right match) using the expressions before and after the operator
+- ``|`` - creates ``MatchFirst`` (first left-to-right match) using the expressions before and after the operator
 
-- ``^`` - creates Or (longest match) using the expressions before and after the operator
+- ``^`` - creates ``Or`` (longest match) using the expressions before and after the operator
 
-- ``&`` - creates Each using the expressions before and after the operator
+- ``&`` - creates ``Each`` using the expressions before and after the operator
 
-- ``*`` - creates And by multiplying the expression by the integer operand; if
-  expression is multiplied by a 2-tuple, creates an And of (min,max)
+- ``*`` - creates ``And`` by multiplying the expression by the integer operand; if
+  expression is multiplied by a 2-tuple, creates an ``And`` of (min,max)
   expressions (similar to "{min,max}" form in regular expressions); if
   min is None, intepret as (0,max); if max is None, interpret as
-  expr*min + ZeroOrMore(expr)
+  ``expr*min + ZeroOrMore(expr)``
 
 - ``-`` - like ``+`` but with no backup and retry of alternatives
-
-- ``*`` - repetition of expression
 
 - ``==`` - matching expression to string; returns True if the string matches the given expression
 
@@ -688,8 +710,8 @@ Special subclasses
 
 - ``Forward`` - placeholder token used to define recursive token
   patterns; when defining the actual expression later in the
-  program, insert it into the ``Forward`` object using the ``<<``
-  operator (see ``fourFn.py`` for an example).
+  program, insert it into the ``Forward`` object using the ``<<=``
+  operator (see fourFn.py_ for an example).
 
 
 Other classes
@@ -783,9 +805,34 @@ Exception classes and Troubleshooting
   syntax error is found, based on the use of the '-' operator when defining
   a sequence of expressions in an ``And`` expression.
 
-You can also get some insights into the parsing logic using diagnostic parse actions,
-and setDebug(), or test the matching of expression fragments by testing them using
-scanString().
+- You can also get some insights into the parsing logic using diagnostic parse actions,
+  and ``setDebug()``, or test the matching of expression fragments by testing them using
+  ``searchString()`` or ``scanString()``.
+
+- Diagnostics can be enabled using ``pyparsing.enable_diagnostic`` and passing
+  one of the following enum values defined in ``pyparsing.Diagnostics``
+
+  - ``warn_multiple_tokens_in_named_alternation`` - flag to enable warnings when a results
+    name is defined on a ``MatchFirst`` or ``Or`` expression with one or more ``And`` subexpressions
+
+  - ``warn_ungrouped_named_tokens_in_collection`` - flag to enable warnings when a results
+    name is defined on a containing expression with ungrouped subexpressions that also
+    have results names
+
+  - ``warn_name_set_on_empty_Forward`` - flag to enable warnings when a ``Forward`` is defined
+    with a results name, but has no contents defined
+
+  - ``warn_on_parse_using_empty_Forward`` - flag to enable warnings when a ``Forward`` is
+    defined in a grammar but has never had an expression attached to it
+
+  - ``warn_on_assignment_to_Forward`` - flag to enable warnings when a ``Forward`` is defined
+    but is overwritten by assigning using ``'='`` instead of ``'<<='`` or ``'<<'``
+
+  - ``warn_on_multiple_string_args_to_oneof`` - flag to enable warnings when ``oneOf`` is
+    incorrectly called with multiple str arguments
+
+  - ``enable_debug_on_named_expressions`` - flag to auto-enable debug on all subsequent
+    calls to ``ParserElement.setName``
 
 
 Miscellaneous attributes and methods
@@ -1053,8 +1100,9 @@ To generate a railroad diagram in pyparsing, you first have to install pyparsing
 To do this, just run ``pip install pyparsing[diagrams]``, and make sure you add ``pyparsing[diagrams]`` to any
 ``setup.py`` or ``requirements.txt`` that specifies pyparsing as a dependency.
 
-Next, run :py:func:`pyparsing.diagrams.to_railroad` to convert your grammar into a form understood by the
-`railroad-diagrams <https://github.com/tabatkins/railroad-diagrams/blob/gh-pages/README-py.md>`_ module, and then :py:func:`pyparsing.diagrams.railroad_to_html` to convert that into an HTML document. For example::
+Next, run ``pyparsing.diagrams.to_railroad`` to convert your grammar into a form understood by the
+`railroad-diagrams <https://github.com/tabatkins/railroad-diagrams/blob/gh-pages/README-py.md>`_ module, and
+then ``pyparsing.diagrams.railroad_to_html`` to convert that into an HTML document. For example::
 
     from pyparsing.diagram import to_railroad, railroad_to_html
 
@@ -1066,14 +1114,16 @@ This will result in the railroad diagram being written to ``output.html``
 
 Example
 -------
-You can view an example railroad diagram generated from a pyparsing grammar for SQL ``SELECT`` statements `here <_static/sql_railroad.html>`_.
+You can view an example railroad diagram generated from `a pyparsing grammar for
+SQL SELECT statements <_static/sql_railroad.html>`_.
 
 Customization
 -------------
 You can customize the resulting diagram in a few ways.
 
-Firstly, you can pass in additional keyword arguments to :py:func:`pyparsing.diagrams.to_railroad`, which will be passed
-into the ``Diagram()`` constructor of the underlying library, as explained `here <https://github.com/tabatkins/railroad-diagrams/blob/gh-pages/README-py.md#diagrams>`_.
+Firstly, you can pass in additional keyword arguments to ``pyparsing.diagrams.to_railroad``, which will be passed
+into the ``Diagram()`` constructor of the underlying library,
+`as explained here <https://github.com/tabatkins/railroad-diagrams/blob/gh-pages/README-py.md#diagrams>`_.
 
 Secondly, you can edit global options in the underlying library, by editing constants::
 
@@ -1083,18 +1133,22 @@ Secondly, you can edit global options in the underlying library, by editing cons
     railroad.DIAGRAM_CLASS = "my-custom-class"
     my_railroad = to_railroad(my_grammar)
 
-These options are documented `here <https://github.com/tabatkins/railroad-diagrams/blob/gh-pages/README-py.md#options>`_.
+These options `are documented here <https://github.com/tabatkins/railroad-diagrams/blob/gh-pages/README-py.md#options>`_.
 
-Finally, you can edit the HTML produced by :py:func:`pyparsing.diagrams.railroad_to_html` by passing in certain keyword
+Finally, you can edit the HTML produced by ``pyparsing.diagrams.railroad_to_html`` by passing in certain keyword
 arguments that will be used in the HTML template. Currently, these are:
 
 - ``head``: A string containing HTML to use in the ``<head>`` tag. This might be a stylesheet or other metadata
+
 - ``body``: A string containing HTML to use in the ``<body>`` tag, above the actual diagram. This might consist of a
   heading, description, or JavaScript.
 
 If you want to provide a custom stylesheet using the ``head`` keyword, you can make use of the following CSS classes:
 
 - ``railroad-group``: A group containing everything relating to a given element group (ie something with a heading)
+
 - ``railroad-heading``: The title for each group
+
 - ``railroad-svg``: A div containing only the diagram SVG for each group
+
 - ``railroad-description``: A div containing the group description (unused)
