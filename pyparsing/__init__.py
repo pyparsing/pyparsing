@@ -93,9 +93,17 @@ classes inherit from. Use the docstrings for examples of how to:
  - find more useful common expressions in the :class:`pyparsing_common`
    namespace class
 """
+from collections import namedtuple
 
-__version__ = "3.0.0b1"
-__versionTime__ = "19 July 2020 22:54 UTC"
+version_info = namedtuple("version_info", "major minor micro releaseLevel serial")
+__version_info__ = version_info(3, 0, 0, "beta", 1)
+__version__ = (
+    "{}.{}.{}".format(*__version_info__[:3])
+    + ("{}{}".format(__version_info__.releaseLevel[0], __version_info__.serial), "")[
+        __version_info__.releaseLevel == "final"
+    ]
+)
+__versionTime__ = "19 August 2020 19:09 UTC"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 from .util import *
