@@ -2,6 +2,7 @@
 # core.py
 #
 from abc import ABC, abstractmethod
+from enum import Enum, auto
 import string
 import copy
 import warnings
@@ -78,25 +79,6 @@ class __compat__(__config_flags):
 
 
 class __diag__(__config_flags):
-    """
-    Diagnostic configuration (all default to ``False``)
-     - ``warn_multiple_tokens_in_named_alternation`` - flag to enable warnings when a results
-       name is defined on a :class:`MatchFirst` or :class:`Or` expression with one or more :class:`And` subexpressions
-     - ``warn_ungrouped_named_tokens_in_collection`` - flag to enable warnings when a results
-       name is defined on a containing expression with ungrouped subexpressions that also
-       have results names
-     - ``warn_name_set_on_empty_Forward`` - flag to enable warnings when a :class:`Forward` is defined
-       with a results name, but has no contents defined
-     - ``warn_on_parse_using_empty_Forward`` - flag to enable warnings when a :class:`Forward` is
-       defined in a grammar but has never had an expression attached to it
-     - ``warn_on_assignment_to_Forward`` - flag to enable warnings when a :class:`Forward` is defined
-       but is overwritten by assigning using ``'='`` instead of ``'<<='`` or ``'<<'``
-     - ``warn_on_multiple_string_args_to_oneof`` - flag to enable warnings when :class:`oneOf` is
-       incorrectly called with multiple str arguments
-     - ``enable_debug_on_named_expressions`` - flag to auto-enable debug on all subsequent
-       calls to :class:`ParserElement.setName`
-    """
-
     _type_desc = "diagnostic"
 
     warn_multiple_tokens_in_named_alternation = False
@@ -116,6 +98,60 @@ class __diag__(__config_flags):
     def enable_all_warnings(cls):
         for name in cls._warning_names:
             cls.enable(name)
+
+
+class Diagnostics(Enum):
+    """
+    Diagnostic configuration (all default to disabled)
+     - ``warn_multiple_tokens_in_named_alternation`` - flag to enable warnings when a results
+       name is defined on a :class:`MatchFirst` or :class:`Or` expression with one or more :class:`And` subexpressions
+     - ``warn_ungrouped_named_tokens_in_collection`` - flag to enable warnings when a results
+       name is defined on a containing expression with ungrouped subexpressions that also
+       have results names
+     - ``warn_name_set_on_empty_Forward`` - flag to enable warnings when a :class:`Forward` is defined
+       with a results name, but has no contents defined
+     - ``warn_on_parse_using_empty_Forward`` - flag to enable warnings when a :class:`Forward` is
+       defined in a grammar but has never had an expression attached to it
+     - ``warn_on_assignment_to_Forward`` - flag to enable warnings when a :class:`Forward` is defined
+       but is overwritten by assigning using ``'='`` instead of ``'<<='`` or ``'<<'``
+     - ``warn_on_multiple_string_args_to_oneof`` - flag to enable warnings when :class:`oneOf` is
+       incorrectly called with multiple str arguments
+     - ``enable_debug_on_named_expressions`` - flag to auto-enable debug on all subsequent
+       calls to :class:`ParserElement.setName`
+
+    Diagnostics are enabled/disabled by calling :class:`enable_diag` and :class:`disable_diag`.
+    All warnings can be enabled by calling :class:`enable_all_warnings`.
+    """
+
+    warn_multiple_tokens_in_named_alternation = auto()
+    warn_ungrouped_named_tokens_in_collection = auto()
+    warn_name_set_on_empty_Forward = auto()
+    warn_on_parse_using_empty_Forward = auto()
+    warn_on_assignment_to_Forward = auto()
+    warn_on_multiple_string_args_to_oneof = auto()
+    warn_on_match_first_with_lshift_operator = auto()
+    enable_debug_on_named_expressions = auto()
+
+
+def enable_diag(diag_enum):
+    """
+    Enable a global pyparsing diagnostic flag (see :class:`Diagnostics`).
+    """
+    __diag__.enable(diag_enum.name)
+
+
+def disable_diag(diag_enum):
+    """
+    Disable a global pyparsing diagnostic flag (see :class:`Diagnostics`).
+    """
+    __diag__.disable(diag_enum.name)
+
+
+def enable_all_warnings():
+    """
+    Enable all global pyparsing diagnostic warnings (see :class:`Diagnostics`).
+    """
+    __diag__.enable_all_warnings()
 
 
 # hide abstract class
@@ -1034,14 +1070,11 @@ class ParserElement(ABC):
         if isinstance(other, str_type):
             other = self._literalStringClass(other)
         if not isinstance(other, ParserElement):
-            warnings.warn(
+            raise TypeError(
                 "Cannot combine element of type {} with ParserElement".format(
                     type(other).__name__
-                ),
-                SyntaxWarning,
-                stacklevel=2,
+                )
             )
-            return None
         return And([self, other])
 
     def __radd__(self, other):
@@ -1054,14 +1087,11 @@ class ParserElement(ABC):
         if isinstance(other, str_type):
             other = self._literalStringClass(other)
         if not isinstance(other, ParserElement):
-            warnings.warn(
+            raise TypeError(
                 "Cannot combine element of type {} with ParserElement".format(
                     type(other).__name__
-                ),
-                SyntaxWarning,
-                stacklevel=2,
+                )
             )
-            return None
         return other + self
 
     def __sub__(self, other):
@@ -1071,14 +1101,11 @@ class ParserElement(ABC):
         if isinstance(other, str_type):
             other = self._literalStringClass(other)
         if not isinstance(other, ParserElement):
-            warnings.warn(
+            raise TypeError(
                 "Cannot combine element of type {} with ParserElement".format(
                     type(other).__name__
-                ),
-                SyntaxWarning,
-                stacklevel=2,
+                )
             )
-            return None
         return self + And._ErrorStop() + other
 
     def __rsub__(self, other):
@@ -1088,14 +1115,11 @@ class ParserElement(ABC):
         if isinstance(other, str_type):
             other = self._literalStringClass(other)
         if not isinstance(other, ParserElement):
-            warnings.warn(
+            raise TypeError(
                 "Cannot combine element of type {} with ParserElement".format(
                     type(other).__name__
-                ),
-                SyntaxWarning,
-                stacklevel=2,
+                )
             )
-            return None
         return other - self
 
     def __mul__(self, other):
@@ -1197,14 +1221,11 @@ class ParserElement(ABC):
         if isinstance(other, str_type):
             other = self._literalStringClass(other)
         if not isinstance(other, ParserElement):
-            warnings.warn(
+            raise TypeError(
                 "Cannot combine element of type {} with ParserElement".format(
                     type(other).__name__
-                ),
-                SyntaxWarning,
-                stacklevel=2,
+                )
             )
-            return None
         return MatchFirst([self, other])
 
     def __ror__(self, other):
@@ -1214,14 +1235,11 @@ class ParserElement(ABC):
         if isinstance(other, str_type):
             other = self._literalStringClass(other)
         if not isinstance(other, ParserElement):
-            warnings.warn(
+            raise TypeError(
                 "Cannot combine element of type {} with ParserElement".format(
                     type(other).__name__
-                ),
-                SyntaxWarning,
-                stacklevel=2,
+                )
             )
-            return None
         return other | self
 
     def __xor__(self, other):
@@ -1231,14 +1249,11 @@ class ParserElement(ABC):
         if isinstance(other, str_type):
             other = self._literalStringClass(other)
         if not isinstance(other, ParserElement):
-            warnings.warn(
+            raise TypeError(
                 "Cannot combine element of type {} with ParserElement".format(
                     type(other).__name__
-                ),
-                SyntaxWarning,
-                stacklevel=2,
+                )
             )
-            return None
         return Or([self, other])
 
     def __rxor__(self, other):
@@ -1248,14 +1263,11 @@ class ParserElement(ABC):
         if isinstance(other, str_type):
             other = self._literalStringClass(other)
         if not isinstance(other, ParserElement):
-            warnings.warn(
+            raise TypeError(
                 "Cannot combine element of type {} with ParserElement".format(
                     type(other).__name__
-                ),
-                SyntaxWarning,
-                stacklevel=2,
+                )
             )
-            return None
         return other ^ self
 
     def __and__(self, other):
@@ -1265,14 +1277,11 @@ class ParserElement(ABC):
         if isinstance(other, str_type):
             other = self._literalStringClass(other)
         if not isinstance(other, ParserElement):
-            warnings.warn(
+            raise TypeError(
                 "Cannot combine element of type {} with ParserElement".format(
                     type(other).__name__
-                ),
-                SyntaxWarning,
-                stacklevel=2,
+                )
             )
-            return None
         return Each([self, other])
 
     def __rand__(self, other):
@@ -1282,14 +1291,11 @@ class ParserElement(ABC):
         if isinstance(other, str_type):
             other = self._literalStringClass(other)
         if not isinstance(other, ParserElement):
-            warnings.warn(
+            raise TypeError(
                 "Cannot combine element of type {} with ParserElement".format(
                     type(other).__name__
-                ),
-                SyntaxWarning,
-                stacklevel=2,
+                )
             )
-            return None
         return other & self
 
     def __invert__(self):
@@ -1331,7 +1337,7 @@ class ParserElement(ABC):
             key = (key, key)
 
         if len(key) > 2:
-            warnings.warn(
+            raise TypeError(
                 "only 1 or 2 index arguments supported ({}{})".format(
                     key[:5], "... [{}]".format(len(key)) if len(key) > 5 else ""
                 )
@@ -1879,12 +1885,7 @@ class Literal(Token):
         try:
             self.firstMatchChar = matchString[0]
         except IndexError:
-            warnings.warn(
-                "null string passed to Literal; use Empty() instead",
-                SyntaxWarning,
-                stacklevel=2,
-            )
-            self.__class__ = Empty
+            raise ValueError("null string passed to Literal; use Empty() instead")
         self.errmsg = "Expected " + self.name
         self.mayReturnEmpty = False
         self.mayIndexError = False
@@ -1952,11 +1953,7 @@ class Keyword(Token):
         try:
             self.firstMatchChar = matchString[0]
         except IndexError:
-            warnings.warn(
-                "null string passed to Keyword; use Empty() instead",
-                SyntaxWarning,
-                stacklevel=2,
-            )
+            raise ValueError("null string passed to Keyword; use Empty() instead")
         self.errmsg = "Expected {} {}".format(type(self).__name__, self.name)
         self.mayReturnEmpty = False
         self.mayIndexError = False
@@ -2408,11 +2405,7 @@ class Regex(Token):
 
         if isinstance(pattern, str_type):
             if not pattern:
-                warnings.warn(
-                    "null string passed to Regex; use Empty() instead",
-                    SyntaxWarning,
-                    stacklevel=2,
-                )
+                raise ValueError("null string passed to Regex; use Empty() instead")
 
             self.pattern = pattern
             self.flags = flags
@@ -2421,12 +2414,9 @@ class Regex(Token):
                 self.re = re.compile(self.pattern, self.flags)
                 self.reString = self.pattern
             except sre_constants.error:
-                warnings.warn(
-                    "invalid pattern ({!r}) passed to Regex".format(pattern),
-                    SyntaxWarning,
-                    stacklevel=2,
+                raise ValueError(
+                    "invalid pattern ({!r}) passed to Regex".format(pattern)
                 )
-                raise
 
         elif hasattr(pattern, "pattern") and hasattr(pattern, "match"):
             self.re = pattern
@@ -2496,20 +2486,10 @@ class Regex(Token):
             # prints "<h1>main title</h1>"
         """
         if self.asGroupList:
-            warnings.warn(
-                "cannot use sub() with Regex(asGroupList=True)",
-                SyntaxWarning,
-                stacklevel=2,
-            )
-            raise SyntaxError()
+            raise TypeError("cannot use sub() with Regex(asGroupList=True)")
 
         if self.asMatch and callable(repl):
-            warnings.warn(
-                "cannot use sub() with a callable with Regex(asMatch=True)",
-                SyntaxWarning,
-                stacklevel=2,
-            )
-            raise SyntaxError()
+            raise TypeError("cannot use sub() with a callable with Regex(asMatch=True)")
 
         if self.asMatch:
 
@@ -2579,22 +2559,14 @@ class QuotedString(Token):
         # remove white space from quote chars - wont work anyway
         quoteChar = quoteChar.strip()
         if not quoteChar:
-            warnings.warn(
-                "quoteChar cannot be the empty string", SyntaxWarning, stacklevel=2
-            )
-            raise SyntaxError()
+            raise ValueError("quoteChar cannot be the empty string")
 
         if endQuoteChar is None:
             endQuoteChar = quoteChar
         else:
             endQuoteChar = endQuoteChar.strip()
             if not endQuoteChar:
-                warnings.warn(
-                    "endQuoteChar cannot be the empty string",
-                    SyntaxWarning,
-                    stacklevel=2,
-                )
-                raise SyntaxError()
+                raise ValueError("endQuoteChar cannot be the empty string")
 
         self.quoteChar = quoteChar
         self.quoteCharLen = len(quoteChar)
@@ -2645,12 +2617,9 @@ class QuotedString(Token):
             self.reString = self.pattern
             self.re_match = self.re.match
         except sre_constants.error:
-            warnings.warn(
-                "invalid pattern {!r} passed to Regex".format(self.pattern),
-                SyntaxWarning,
-                stacklevel=2,
+            raise ValueError(
+                "invalid pattern {!r} passed to Regex".format(self.pattern)
             )
-            raise
 
         self.errmsg = "Expected " + self.name
         self.mayIndexError = False
@@ -4308,7 +4277,6 @@ class Forward(ParseElementEnhance):
         ):
             warnings.warn(
                 "using '<<' operator with '|' is probably an error, use '<<='",
-                SyntaxWarning,
                 stacklevel=2,
             )
         ret = super().__or__(other)
@@ -4319,7 +4287,7 @@ class Forward(ParseElementEnhance):
         if self.expr is None and __diag__.warn_on_assignment_to_Forward:
             warnings.warn_explicit(
                 "Forward defined here but no expression attached later using '<<=' or '<<'",
-                SyntaxWarning,
+                UserWarning,
                 filename=self.caller_frame.filename,
                 lineno=self.caller_frame.lineno,
             )
@@ -4337,7 +4305,6 @@ class Forward(ParseElementEnhance):
                 stacklevel = 2
             warnings.warn(
                 "Forward expression was never assigned a value, will not parse any input",
-                UserWarning,
                 stacklevel=stacklevel,
             )
         return super().parseImpl(instring, loc, doActions)

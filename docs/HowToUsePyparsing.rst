@@ -77,7 +77,7 @@ The parsed tokens are returned in the following form::
     ['Hello', ',', 'World', '!']
     ['Bonjour', ',', 'Monde', '!']
     ['Hola', ',', 'Mundo', '!']
-    ['Gutentag', ',', 'Welt', '!']
+    ['Hallo', ',', 'Welt', '!']
 
 
 Usage notes
@@ -809,7 +809,7 @@ Exception classes and Troubleshooting
   and ``setDebug()``, or test the matching of expression fragments by testing them using
   ``searchString()`` or ``scanString()``.
 
-- Diagnostics can be enabled using ``pyparsing.enable_diagnostic`` and passing
+- Diagnostics can be enabled using ``pyparsing.enable_diag`` and passing
   one of the following enum values defined in ``pyparsing.Diagnostics``
 
   - ``warn_multiple_tokens_in_named_alternation`` - flag to enable warnings when a results
@@ -833,6 +833,17 @@ Exception classes and Troubleshooting
 
   - ``enable_debug_on_named_expressions`` - flag to auto-enable debug on all subsequent
     calls to ``ParserElement.setName``
+
+  All warnings can be enabled by calling ``pyparsing.enable_all_warnings()``.
+  Sample::
+
+    import pyparsing as pp
+    pp.enable_all_warnings()
+
+    fwd = pp.Forward().setResultsName("recursive_expr")
+
+    >>> UserWarning: warn_name_set_on_empty_Forward: setting results name 'recursive_expr'
+                     on Forward expression that has no contained expression
 
 
 Miscellaneous attributes and methods

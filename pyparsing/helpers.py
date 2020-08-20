@@ -181,8 +181,8 @@ def oneOf(strs, caseless=False, useRegex=True, asKeyword=False):
     """
     if isinstance(caseless, str_type):
         warnings.warn(
-            "More than one string argument passed to oneOf, pass "
-            "choices as a list or space-delimited string",
+            "More than one string argument passed to oneOf, pass"
+            " choices as a list or space-delimited string",
             stacklevel=2,
         )
 
@@ -201,11 +201,7 @@ def oneOf(strs, caseless=False, useRegex=True, asKeyword=False):
     elif isinstance(strs, Iterable):
         symbols = list(strs)
     else:
-        warnings.warn(
-            "Invalid argument to oneOf, expected string or iterable",
-            SyntaxWarning,
-            stacklevel=2,
-        )
+        raise TypeError("Invalid argument to oneOf, expected string or iterable")
     if not symbols:
         return NoMatch()
 
@@ -239,9 +235,7 @@ def oneOf(strs, caseless=False, useRegex=True, asKeyword=False):
                 )
         except sre_constants.error:
             warnings.warn(
-                "Exception creating Regex for oneOf, building MatchFirst",
-                SyntaxWarning,
-                stacklevel=2,
+                "Exception creating Regex for oneOf, building MatchFirst", stacklevel=2
             )
 
     # last resort, just use MatchFirst
@@ -600,9 +594,9 @@ def replaceHTMLEntity(t):
     return _htmlEntityMap.get(t.entity)
 
 
-opAssoc = types.SimpleNamespace()
-opAssoc.LEFT = object()
-opAssoc.RIGHT = object()
+class opAssoc(Enum):
+    LEFT = auto()
+    RIGHT = auto()
 
 
 def infixNotation(baseExpr, opList, lpar=Suppress("("), rpar=Suppress(")")):

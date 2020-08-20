@@ -4,11 +4,18 @@ Change Log
 
 Version 3.0.0b1
 ---------------
-- When using setDebug with packrat parsing enabled, packrat cache hits will
-  now be included in the output, shown with a leading '*'. (Previously, cache
-  hits and responses were not included in debug output.) For those using custom
-  debug actions, see the following bullet regarding an optional API change
-  for those methods.
+- API CHANGE
+  Diagnostic flags have been moved to an enum, pyparsing.Diagnostics, and
+  they are enabled through module-level methods:
+  - enable_diag()
+  - disable_diag()
+  - enable_all_warnings()
+
+- API CHANGE
+  Most previous SyntaxWarnings that were warned when using pyparsing
+  classes incorrectly have been converted to TypeError and ValueError exceptions,
+  consistent with Python calling conventions. All warnings warned by diagnostic
+  flags have been converted from SyntaxWarnings to UserWarnings.
 
 - API CHANGE
   Added `cache_hit` keyword argument to debug actions. Previously, if packrat
@@ -21,6 +28,12 @@ Version 3.0.0b1
   and your method will be called on packrat cache hits. If you choose not
   to add this keyword argument, the debug methods will fail silently,
   behaving as they did previously.
+
+- When using setDebug with packrat parsing enabled, packrat cache hits will
+  now be included in the output, shown with a leading '*'. (Previously, cache
+  hits and responses were not included in debug output.) For those using custom
+  debug actions, see the following bullet regarding an optional API change
+  for those methods.
 
 - Fixed traceback trimming, and added ParserElement.verbose_traceback
   save/restore to reset_pyparsing_context().
@@ -47,7 +60,7 @@ Version 3.0.0b1
   thanks!
 
 - In addition to pyparsing.__version__, there is now also a pyparsing.__version_info__,
-  following the same structure and names as in sys.version_info.
+  following the same structure and field names as in sys.version_info.
 
 
 Version 3.0.0a2 - June, 2020
