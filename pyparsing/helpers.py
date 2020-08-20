@@ -595,8 +595,8 @@ def replaceHTMLEntity(t):
 
 
 class opAssoc(Enum):
-    LEFT = auto()
-    RIGHT = auto()
+    LEFT = 1
+    RIGHT = 2
 
 
 def infixNotation(baseExpr, opList, lpar=Suppress("("), rpar=Suppress(")")):

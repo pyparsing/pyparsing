@@ -2,7 +2,7 @@
 # core.py
 #
 from abc import ABC, abstractmethod
-from enum import Enum, auto
+from enum import Enum
 import string
 import copy
 import warnings
@@ -123,14 +123,14 @@ class Diagnostics(Enum):
     All warnings can be enabled by calling :class:`enable_all_warnings`.
     """
 
-    warn_multiple_tokens_in_named_alternation = auto()
-    warn_ungrouped_named_tokens_in_collection = auto()
-    warn_name_set_on_empty_Forward = auto()
-    warn_on_parse_using_empty_Forward = auto()
-    warn_on_assignment_to_Forward = auto()
-    warn_on_multiple_string_args_to_oneof = auto()
-    warn_on_match_first_with_lshift_operator = auto()
-    enable_debug_on_named_expressions = auto()
+    warn_multiple_tokens_in_named_alternation = 0
+    warn_ungrouped_named_tokens_in_collection = 1
+    warn_name_set_on_empty_Forward = 2
+    warn_on_parse_using_empty_Forward = 3
+    warn_on_assignment_to_Forward = 4
+    warn_on_multiple_string_args_to_oneof = 5
+    warn_on_match_first_with_lshift_operator = 6
+    enable_debug_on_named_expressions = 7
 
 
 def enable_diag(diag_enum):
