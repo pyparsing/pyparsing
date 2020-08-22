@@ -124,7 +124,7 @@ Usage notes
   more of the following methods:
 
   - use the static method ``ParserElement.setDefaultWhitespaceChars``
-    to override the normal set of whitespace chars (' \t\n').  For instance
+    to override the normal set of whitespace chars (``' \t\n'``).  For instance
     when defining a grammar in which newlines are significant, you should
     call ``ParserElement.setDefaultWhitespaceChars(' \t')`` to remove
     newline from the set of skippable whitespace characters.  Calling
@@ -513,9 +513,9 @@ Basic ParserElement subclasses
 
 - ``Regex`` - a powerful construct, that accepts a regular expression
   to be matched at the current parse position; accepts an optional
-  ``flags`` parameter, corresponding to the flags parameter in the re.compile
+  ``flags`` parameter, corresponding to the flags parameter in the ``re.compile``
   method; if the expression includes named sub-fields, they will be
-  represented in the returned ParseResults_
+  represented in the returned ParseResults_.
 
 - ``QuotedString`` - supports the definition of custom quoted string
   formats, in addition to pyparsing's built-in ``dblQuotedString`` and

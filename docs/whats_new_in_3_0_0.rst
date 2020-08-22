@@ -4,7 +4,7 @@ What's New in Pyparsing 3.0.0
 
 :author: Paul McGuire
 
-:date: June, 2020
+:date: August, 2020
 
 :abstract: This document summarizes the changes made
     in the 3.0.0 release of pyparsing.
@@ -42,19 +42,12 @@ generator for documenting pyparsing parsers::
 
 (Contributed by Michael Milton)
 
-Shortened tracebacks
---------------------
-Cleaned up default tracebacks when getting a ``ParseException`` when calling
-``parseString``. Exception traces should now stop at the call in ``parseString``,
-and not include the internal traceback frames. (If the full traceback
-is desired, then set ``ParserElement.verbose_traceback`` to ``True``.)
-
 Refactored/added diagnostic flags
 ---------------------------------
 Expanded ``__diag__`` and ``__compat__`` to actual classes instead of
 just namespaces, to add some helpful behavior:
 
-- ``enable()`` and ``disable()`` methods to give extra
+- ``pyparsing.enable_diag()`` and ``pyparsing.disable_diag()`` methods to give extra
   help when setting or clearing flags (detects invalid
   flag names, detects when trying to set a ``__compat__`` flag
   that is no longer settable). Use these methods now to
@@ -62,14 +55,14 @@ just namespaces, to add some helpful behavior:
   ``False``::
 
         import pyparsing as pp
-        pp.__diag__.enable("warn_multiple_tokens_in_named_alternation")
+        pp.enable_diag(pp.Diagnostics.warn_multiple_tokens_in_named_alternation)
 
-- ``__diag__.enable_all_warnings()`` is another helper that sets
+- ``pyparsing.enable_all_warnings()`` is another helper that sets
   all "warn*" diagnostics to ``True``::
 
-        pp.__diag__.enable_all_warnings()
+        pp.enable_all_warnings()
 
-- added new warning, ``"warn_on_match_first_with_lshift_operator"`` to
+- added new warning, ``warn_on_match_first_with_lshift_operator`` to
   warn when using ``'<<'`` with a ``'|'`` ``MatchFirst`` operator,
   which will
   create an unintended expression due to precedence of operations.
@@ -89,15 +82,22 @@ just namespaces, to add some helpful behavior:
 
         fwd << (expr_a | expr_b)
 
-- ``"warn_on_parse_using_empty_Forward"`` - warns that a ``Forward``
+- ``warn_on_parse_using_empty_Forward`` - warns that a ``Forward``
   has been included in a grammar, but no expression was
   attached to it using ``'<<='`` or ``'<<'``
 
-- ``"warn_on_assignment_to_Forward"`` - warns that a ``Forward`` has
+- ``warn_on_assignment_to_Forward`` - warns that a ``Forward`` has
   been created, but was probably later overwritten by
   erroneously using ``'='`` instead of ``'<<='`` (this is a common
   mistake when using Forwards)
   (**currently not working on PyPy**)
+
+Shortened tracebacks
+--------------------
+Cleaned up default tracebacks when getting a ``ParseException`` when calling
+``parseString``. Exception traces should now stop at the call in ``parseString``,
+and not include the internal pyparsing traceback frames. (If the full traceback
+is desired, then set ``ParserElement.verbose_traceback`` to ``True``.)
 
 New / improved examples
 -----------------------
@@ -120,7 +120,6 @@ New / improved examples
 
 - Fixed bug in ``delta_time.py`` example, when using a quantity
   of seconds/minutes/hours/days > 999.
-
 
 Other new features
 ------------------
@@ -178,6 +177,11 @@ Other new features
 API Changes
 ===========
 
+- ``enable_diag()`` and ``disable_diag()`` methods to
+  enable specific diagnostic values (instead of setting them
+  to ``True`` or ``False``). ``enable_all_warnings()`` has
+  also been added.
+
 - ``countedArray`` formerly returned its list of items nested
   within another list, so that accessing the items required
   indexing the 0'th element to get the actual list. This
@@ -218,18 +222,12 @@ API Changes
   whitespace characters on all built-in expressions defined
   in the pyparsing module.
 
-- ``__diag__`` now uses ``enable()`` and ``disable()`` methods to
-  enable specific diagnostic values (instead of setting them
-  to ``True`` or ``False``). ``__diag__.enable_all_warnings()`` has
-  also been added.
-
 
 Discontinued Features
 =====================
 
 Python 2.x no longer supported
 ------------------------------
-
 Removed Py2.x support and other deprecated features. Pyparsing
 now requires Python 3.5 or later. If you are using an earlier
 version of Python, you must use a Pyparsing 2.4.x version.
@@ -256,7 +254,7 @@ Other discontinued features
   review use of names for ``MatchFirst`` and Or expressions
   containing ``And`` expressions, as they will return the
   complete list of parsed tokens, not just the first one.
-  Use ``__diag__.warn_multiple_tokens_in_named_alternation``
+  Use ``pyparsing.enable_diag(pyparsing.Diagnostics.warn_multiple_tokens_in_named_alternation)``
   to help identify those expressions in your parsers that
   will have changed as a result.
 
@@ -298,5 +296,4 @@ of the pyparsing code base as part of this release. Pyparsing now
 has more standard package structure, more standard unit tests,
 and more standard code formatting (using black). Special thanks
 to jdufresne, klahnakoski, mattcarmody, and ckeygusuz,
-tmiguelt, and toonarmycaptain to name just
-a few.
+tmiguelt, and toonarmycaptain to name just a few.
