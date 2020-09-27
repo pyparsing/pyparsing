@@ -119,7 +119,7 @@ class ParseBaseException(Exception):
                 )
         else:
             foundstr = ""
-        return "{}{}  (at char {}), (line:{}, col:{})".format(
+        return "{}{} (at char {}), (line:{}, col:{})".format(
             self.msg, foundstr, self.loc, self.lineno, self.column
         )
 
