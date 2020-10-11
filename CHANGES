@@ -35,6 +35,12 @@ Version 3.0.0b1
   debug actions, see the following bullet regarding an optional API change
   for those methods.
 
+- Fixed bugs in Each when passed OneOrMore or ZeroOrMore expressions:
+  . first expression match could be enclosed in an extra nesting level
+  . out-of-order expressions now handled correctly if mixed with required
+    expressions
+  . results names are maintained correctly for these expressions
+
 - Fixed traceback trimming, and added ParserElement.verbose_traceback
   save/restore to reset_pyparsing_context().
 

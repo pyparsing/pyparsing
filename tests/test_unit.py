@@ -4636,6 +4636,41 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
                 "incorrect exception raised for test string {!r}".format(test_str),
             )
 
+    def testEachWithMultipleMatch(self):
+        size = "size" + pp.oneOf("S M L XL")
+        color = pp.Group(
+            "color" + pp.oneOf("red orange yellow green blue purple white black brown")
+        )
+        size.setName("size_spec")
+        color.setName("color_spec")
+
+        spec0 = size("size") & color[...]("colors")
+        spec1 = size("size") & color[1, ...]("colors")
+
+        for spec in (spec0, spec1):
+            for test, expected_dict in [
+                (
+                    "size M color red color yellow",
+                    {
+                        "colors": [["color", "red"], ["color", "yellow"]],
+                        "size": ["size", "M"],
+                    },
+                ),
+                (
+                    "color green size M color red color yellow",
+                    {
+                        "colors": [
+                            ["color", "green"],
+                            ["color", "red"],
+                            ["color", "yellow"],
+                        ],
+                        "size": ["size", "M"],
+                    },
+                ),
+            ]:
+                result = spec.parseString(test, parseAll=True)
+                self.assertParseResultsEquals(result, expected_dict=expected_dict)
+
     def testSumParseResults(self):
 
         samplestr1 = "garbage;DOB 10-10-2010;more garbage\nID PARI12345678;more garbage"

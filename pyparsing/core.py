@@ -414,6 +414,8 @@ class ParserElement(ABC):
         return self._setResultsName(name, listAllMatches)
 
     def _setResultsName(self, name, listAllMatches=False):
+        if name is None:
+            return self
         newself = self.copy()
         if name.endswith("*"):
             name = name[:-1]
@@ -3573,14 +3575,18 @@ class Each(ParseExpression):
             opt2 = [
                 e
                 for e in self.exprs
-                if e.mayReturnEmpty and not isinstance(e, (Optional, Regex))
+                if e.mayReturnEmpty and not isinstance(e, (Optional, Regex, ZeroOrMore))
             ]
             self.optionals = opt1 + opt2
             self.multioptionals = [
-                e.expr for e in self.exprs if isinstance(e, ZeroOrMore)
+                e.expr.setResultsName(e.resultsName, listAllMatches=True)
+                for e in self.exprs
+                if isinstance(e, _MultipleMatch)
             ]
             self.multirequired = [
-                e.expr for e in self.exprs if isinstance(e, OneOrMore)
+                e.expr.setResultsName(e.resultsName, listAllMatches=True)
+                for e in self.exprs
+                if isinstance(e, OneOrMore)
             ]
             self.required = [
                 e
@@ -3589,16 +3595,18 @@ class Each(ParseExpression):
             ]
             self.required += self.multirequired
             self.initExprGroups = False
+
         tmpLoc = loc
         tmpReqd = self.required[:]
         tmpOpt = self.optionals[:]
+        multis = self.multioptionals[:]
         matchOrder = []
 
         keepMatching = True
         failed = []
         fatals = []
         while keepMatching:
-            tmpExprs = tmpReqd + tmpOpt + self.multioptionals + self.multirequired
+            tmpExprs = tmpReqd + tmpOpt + multis
             failed.clear()
             fatals.clear()
             for e in tmpExprs:
@@ -3642,13 +3650,12 @@ class Each(ParseExpression):
             e for e in self.exprs if isinstance(e, Optional) and e.expr in tmpOpt
         ]
 
-        resultlist = []
+        total_results = ParseResults([])
         for e in matchOrder:
             loc, results = e._parse(instring, loc, doActions)
-            resultlist.append(results)
+            total_results += results
 
-        finalResults = sum(resultlist, ParseResults([]))
-        return loc, finalResults
+        return loc, total_results
 
     def _generateDefaultName(self):
         return "{" + " & ".join(str(e) for e in self.exprs) + "}"
