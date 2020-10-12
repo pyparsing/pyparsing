@@ -263,8 +263,14 @@ def _defaultStartDebugAction(instring, loc, expr, cache_hit=False):
     cache_hit_str = "*" if cache_hit else ""
     print(
         (
-            "{}Match {} at loc {}({},{})".format(
-                cache_hit_str, expr, loc, lineno(loc, instring), col(loc, instring)
+            "{}Match {} at loc {}({},{})\n  {}\n  {}^".format(
+                cache_hit_str,
+                expr,
+                loc,
+                lineno(loc, instring),
+                col(loc, instring),
+                line(loc, instring),
+                " " * (col(loc, instring) - 1),
             )
         )
     )
@@ -592,14 +598,14 @@ class ParserElement(ABC):
 
         if debugging or self.failAction:
             # print("Match {} at loc {}({}, {})".format(self, loc, lineno(loc, instring), col(loc, instring)))
-            if self.debugActions[TRY]:
-                self.debugActions[TRY](instring, loc, self)
             try:
                 if callPreParse and self.callPreparse:
                     preloc = self.preParse(instring, loc)
                 else:
                     preloc = loc
                 tokensStart = preloc
+                if self.debugActions[TRY]:
+                    self.debugActions[TRY](instring, tokensStart, self)
                 if self.mayIndexError or preloc >= len(instring):
                     try:
                         loc, tokens = self.parseImpl(instring, preloc, doActions)
@@ -3300,6 +3306,8 @@ class Or(ParseExpression):
         maxException = None
         matches = []
         fatals = []
+        if all(e.callPreparse for e in self.exprs):
+            loc = self.preParse(instring, loc)
         for e in self.exprs:
             try:
                 loc2 = e.tryParse(instring, loc, raise_fatal=True)
@@ -3422,21 +3430,30 @@ class MatchFirst(ParseExpression):
         super().__init__(exprs, savelist)
         if self.exprs:
             self.mayReturnEmpty = any(e.mayReturnEmpty for e in self.exprs)
+            self.callPreparse = all(e.callPreparse for e in self.exprs)
         else:
             self.mayReturnEmpty = True
 
     def streamline(self):
         super().streamline()
         self.saveAsList = any(e.saveAsList for e in self.exprs)
+        if self.exprs:
+            self.mayReturnEmpty = any(e.mayReturnEmpty for e in self.exprs)
+            self.callPreparse = all(e.callPreparse for e in self.exprs)
+        else:
+            self.mayReturnEmpty = True
         return self
 
     def parseImpl(self, instring, loc, doActions=True):
         maxExcLoc = -1
         maxException = None
         fatals = []
+
         for e in self.exprs:
             try:
-                ret = e._parse(instring, loc, doActions)
+                ret = e._parse(
+                    instring, loc, doActions, callPreParse=not self.callPreparse
+                )
                 return ret
             except ParseFatalException as pfe:
                 pfe.__traceback__ = None
@@ -3934,7 +3951,7 @@ class _MultipleMatch(ParseElementEnhance):
         # if so, fail)
         if check_ender:
             try_not_ender(instring, loc)
-        loc, tokens = self_expr_parse(instring, loc, doActions, callPreParse=False)
+        loc, tokens = self_expr_parse(instring, loc, doActions)
         try:
             hasIgnoreExprs = not not self.ignoreExprs
             while 1:

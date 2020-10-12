@@ -3,7 +3,7 @@ import warnings
 import types
 import collections
 import itertools
-
+from functools import lru_cache
 
 _bslash = chr(92)
 
@@ -36,6 +36,7 @@ class __config_flags:
     disable = classmethod(lambda cls, name: cls._set(name, False))
 
 
+@lru_cache(maxsize=128)
 def col(loc, strg):
     """Returns current column within a string, counting newlines as line separators.
    The first column is number 1.
@@ -51,6 +52,7 @@ def col(loc, strg):
     return 1 if 0 < loc < len(s) and s[loc - 1] == "\n" else loc - s.rfind("\n", 0, loc)
 
 
+@lru_cache(maxsize=128)
 def lineno(loc, strg):
     """Returns current line number within a string, counting newlines as line separators.
     The first line is number 1.
@@ -64,6 +66,7 @@ def lineno(loc, strg):
     return strg.count("\n", 0, loc) + 1
 
 
+@lru_cache(maxsize=128)
 def line(loc, strg):
     """Returns the line of text containing loc within a string, counting newlines as line separators.
        """
