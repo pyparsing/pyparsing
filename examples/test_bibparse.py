@@ -66,7 +66,7 @@ class TestBibparse(unittest.TestCase):
             )
         for obj in (bp.quoted_string, bp.string, bp.field_value):
             self.assertEqual([], obj.parseString('""').asList())
-            self.assertEqual( "a string", obj.parseString('"a string"')[0])
+            self.assertEqual("a string", obj.parseString('"a string"')[0])
             self.assertEqual(
                 ["a ", ["nested"], "string"],
                 obj.parseString('"a {nested} string"').asList(),
