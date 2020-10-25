@@ -103,7 +103,7 @@ __version__ = (
         __version_info__.releaseLevel == "final"
     ]
 )
-__versionTime__ = "19 August 2020 19:09 UTC"
+__versionTime__ = "25 October 2020 05:09 UTC"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 from .util import *
