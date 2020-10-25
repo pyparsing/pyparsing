@@ -69,6 +69,7 @@ class ParseResults:
         - month: 12
         - year: 1999
     """
+    null_values = (None, b"", "", [], ())
 
     __slots__ = [
         "_name",
@@ -141,10 +142,8 @@ class ParseResults:
 
         if toklist is None:
             toklist = []
-        if isinstance(toklist, ParseResults.List):
-            self._toklist = [toklist[:]]
-        elif isinstance(toklist, (list, _generator_type)):
-            self._toklist = list(toklist)
+        if isinstance(toklist, (list, _generator_type)):
+            self._toklist = [toklist[:]] if isinstance(toklist, ParseResults.List) else list(toklist)
         else:
             self._toklist = [toklist]
         self._tokdict = dict()
@@ -156,16 +155,13 @@ class ParseResults:
         self, toklist=None, name=None, asList=True, modal=True, isinstance=isinstance
     ):
         self._modal = modal
-        if name is not None and name:
-            if not modal:
-                self._all_names = {name}
+        if name not in (None, ""):
             if isinstance(name, int):
                 name = str(name)
+            if not modal:
+                self._all_names = {name}
             self._name = name
-            if not (
-                isinstance(toklist, (type(None), *str_type, list))
-                and toklist in (None, "", [])
-            ):
+            if toklist not in self.null_values:
                 if isinstance(toklist, str_type):
                     toklist = [toklist]
                 if asList:
@@ -238,7 +234,7 @@ class ParseResults:
         return len(self._toklist)
 
     def __bool__(self):
-        return not not self._toklist
+        return not not self._toklist or not not self._tokdict
 
     def __iter__(self):
         return iter(self._toklist)
@@ -526,7 +522,7 @@ class ParseResults:
         Returns a new copy of a :class:`ParseResults` object.
         """
         ret = ParseResults(self._toklist)
-        ret._tokdict = dict(self._tokdict.items())
+        ret._tokdict = dict(**self._tokdict)
         ret._parent = self._parent
         ret._all_names |= self._all_names
         ret._name = self._name

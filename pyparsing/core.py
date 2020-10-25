@@ -2459,9 +2459,8 @@ class Regex(Token):
         loc = result.end()
         ret = ParseResults(result.group())
         d = result.groupdict()
-        if d:
-            for k, v in d.items():
-                ret[k] = v
+        for k, v in d.items():
+            ret[k] = v
         return loc, ret
 
     def parseImplAsGroupList(self, instring, loc, doActions=True):
@@ -2551,6 +2550,7 @@ class QuotedString(Token):
         [['This is the "quote"']]
         [['This is the quote with "embedded" quotes']]
     """
+    ws_map = ((r"\t", "\t"), (r"\n", "\n"), (r"\f", "\f"), (r"\r", "\r"))
 
     def __init__(
         self,
@@ -2661,8 +2661,7 @@ class QuotedString(Token):
             if isinstance(ret, str_type):
                 # replace escaped whitespace
                 if "\\" in ret and self.convertWhitespaceEscapes:
-                    ws_map = {r"\t": "\t", r"\n": "\n", r"\f": "\f", r"\r": "\r"}
-                    for wslit, wschar in ws_map.items():
+                    for wslit, wschar in self.ws_map:
                         ret = ret.replace(wslit, wschar)
 
                 # replace escaped characters
@@ -3962,7 +3961,7 @@ class _MultipleMatch(ParseElementEnhance):
                 else:
                     preloc = loc
                 loc, tmptokens = self_expr_parse(instring, preloc, doActions)
-                if tmptokens or tmptokens.haskeys():
+                if tmptokens:
                     tokens += tmptokens
         except (ParseException, IndexError):
             pass
