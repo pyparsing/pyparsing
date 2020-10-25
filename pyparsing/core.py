@@ -4457,6 +4457,9 @@ class Group(TokenConverter):
     """Converter to return the matched tokens as a list - useful for
     returning tokens of :class:`ZeroOrMore` and :class:`OneOrMore` expressions.
 
+    The optional ``aslist`` argument when set to True will return the
+    parsed tokens as a Python list instead of a pyparsing ParseResults.
+
     Example::
 
         ident = Word(alphas)
@@ -4471,12 +4474,20 @@ class Group(TokenConverter):
         # -> ['fn', ['a', 'b', '100']]
     """
 
-    def __init__(self, expr):
+    def __init__(self, expr, aslist=False):
         super().__init__(expr)
         self.saveAsList = True
+        self._asPythonList = aslist
 
     def postParse(self, instring, loc, tokenlist):
-        return [tokenlist]
+        if self._asPythonList:
+            return ParseResults.List(
+                tokenlist.asList()
+                if isinstance(tokenlist, ParseResults)
+                else list(tokenlist)
+            )
+        else:
+            return [tokenlist]
 
 
 class Dict(TokenConverter):
@@ -4484,6 +4495,9 @@ class Dict(TokenConverter):
     as a dictionary. Each element can also be referenced using the first
     token in the expression as its key. Useful for tabular report
     scraping when the first column can be used as a item key.
+
+    The optional ``asdict`` argument when set to True will return the
+    parsed tokens as a Python dict instead of a pyparsing ParseResults.
 
     Example::
 
@@ -4519,9 +4533,10 @@ class Dict(TokenConverter):
     See more examples at :class:`ParseResults` of accessing fields by results name.
     """
 
-    def __init__(self, expr):
+    def __init__(self, expr, asdict=False):
         super().__init__(expr)
         self.saveAsList = True
+        self._asPythonDict = asdict
 
     def postParse(self, instring, loc, tokenlist):
         for i, tok in enumerate(tokenlist):
@@ -4544,10 +4559,7 @@ class Dict(TokenConverter):
                 else:
                     tokenlist[ikey] = _ParseResultsWithOffset(dictvalue[0], i)
 
-        if self.resultsName:
-            return [tokenlist]
-        else:
-            return tokenlist
+        return tokenlist if not self._asPythonDict else tokenlist.asDict()
 
 
 class Suppress(TokenConverter):

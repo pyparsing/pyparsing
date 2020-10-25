@@ -41,6 +41,9 @@ def make_keyword(kwd_str, kwd_value):
     return pp.Keyword(kwd_str).setParseAction(pp.replaceWith(kwd_value))
 
 
+# set to False to return ParseResults
+RETURN_PYTHON_COLLECTIONS = True
+
 TRUE = make_keyword("true", True)
 FALSE = make_keyword("false", False)
 NULL = make_keyword("null", None)
@@ -52,14 +55,29 @@ jsonNumber = ppc.number()
 
 jsonObject = pp.Forward().setName("jsonObject")
 jsonValue = pp.Forward().setName("jsonValue")
+
 jsonElements = pp.delimitedList(jsonValue)
-jsonArray = pp.Group(LBRACK + pp.Optional(jsonElements, []) + RBRACK)
-jsonValue << (
-    jsonString | jsonNumber | pp.Group(jsonObject) | jsonArray | TRUE | FALSE | NULL
+# jsonArray = pp.Group(LBRACK + pp.Optional(jsonElements, []) + RBRACK)
+# jsonValue << (
+#     jsonString | jsonNumber | pp.Group(jsonObject) | jsonArray | TRUE | FALSE | NULL
+# )
+# memberDef = pp.Group(jsonString + COLON + jsonValue).setName("jsonMember")
+
+jsonArray = pp.Group(
+    LBRACK + pp.Optional(jsonElements) + RBRACK, aslist=RETURN_PYTHON_COLLECTIONS
 )
-memberDef = pp.Group(jsonString + COLON + jsonValue).setName("jsonMember")
+
+jsonValue << (jsonString | jsonNumber | jsonObject | jsonArray | TRUE | FALSE | NULL)
+
+memberDef = pp.Group(
+    jsonString + COLON + jsonValue, aslist=RETURN_PYTHON_COLLECTIONS
+).setName("jsonMember")
+
 jsonMembers = pp.delimitedList(memberDef)
-jsonObject << pp.Dict(LBRACE + pp.Optional(jsonMembers) + RBRACE)
+# jsonObject << pp.Dict(LBRACE + pp.Optional(jsonMembers) + RBRACE)
+jsonObject << pp.Dict(
+    LBRACE + pp.Optional(jsonMembers) + RBRACE, asdict=RETURN_PYTHON_COLLECTIONS
+)
 
 jsonComment = pp.cppStyleComment
 jsonObject.ignore(jsonComment)
@@ -72,7 +90,7 @@ if __name__ == "__main__":
             "title": "example glossary",
             "GlossDiv": {
                 "title": "S",
-                "GlossList":
+                "GlossList": [
                     {
                     "ID": "SGML",
                     "SortAs": "SGML",
@@ -91,22 +109,42 @@ if __name__ == "__main__":
                     "EmptyDict" : {},
                     "EmptyList" : []
                     }
+                ]
             }
         }
     }
     """
 
     results = jsonObject.parseString(testdata)
+
     results.pprint()
+    if RETURN_PYTHON_COLLECTIONS:
+        from pprint import pprint
+
+        pprint(results)
+    else:
+        results.pprint()
     print()
 
     def testPrint(x):
         print(type(x), repr(x))
 
-    print(list(results.glossary.GlossDiv.GlossList.keys()))
-    testPrint(results.glossary.title)
-    testPrint(results.glossary.GlossDiv.GlossList.ID)
-    testPrint(results.glossary.GlossDiv.GlossList.FalseValue)
-    testPrint(results.glossary.GlossDiv.GlossList.Acronym)
-    testPrint(results.glossary.GlossDiv.GlossList.EvenPrimesGreaterThan2)
-    testPrint(results.glossary.GlossDiv.GlossList.PrimesLessThan10)
+    if RETURN_PYTHON_COLLECTIONS:
+        results = results[0]
+        print(list(results["glossary"]["GlossDiv"]["GlossList"][0].keys()))
+        testPrint(results["glossary"]["title"])
+        testPrint(results["glossary"]["GlossDiv"]["GlossList"][0]["ID"])
+        testPrint(results["glossary"]["GlossDiv"]["GlossList"][0]["FalseValue"])
+        testPrint(results["glossary"]["GlossDiv"]["GlossList"][0]["Acronym"])
+        testPrint(
+            results["glossary"]["GlossDiv"]["GlossList"][0]["EvenPrimesGreaterThan2"]
+        )
+        testPrint(results["glossary"]["GlossDiv"]["GlossList"][0]["PrimesLessThan10"])
+    else:
+        print(list(results.glossary.GlossDiv.GlossList.keys()))
+        testPrint(results.glossary.title)
+        testPrint(results.glossary.GlossDiv.GlossList.ID)
+        testPrint(results.glossary.GlossDiv.GlossList.FalseValue)
+        testPrint(results.glossary.GlossDiv.GlossList.Acronym)
+        testPrint(results.glossary.GlossDiv.GlossList.EvenPrimesGreaterThan2)
+        testPrint(results.glossary.GlossDiv.GlossList.PrimesLessThan10)

@@ -17,6 +17,30 @@ Version 3.0.0b1
   consistent with Python calling conventions. All warnings warned by diagnostic
   flags have been converted from `SyntaxWarnings` to `UserWarnings`.
 
+- To support parsers that are intended to generate native Python collection
+  types such as lists and dicts, the `Group` and `Dict` classes now accept an
+  additional boolean keyword argument `aslist` and `asdict` respectively. See
+  the `jsonParser.py` example in the `pyparsing/examples` source directory for
+  how to return types as `ParseResults` and as Python collection types, and the
+  distinctions in working with the different types.
+
+  In addition parse actions that must return a value of list type (which would
+  normally be converted internally to a ParseResults) can override this default
+  behavior by returning their list wrapped in the new `ParseResults.List` class:
+
+      # this parse action tries to return a list, but pyparsing
+      # will convert to a ParseResults
+      def return_as_list_but_still_get_parse_results(tokens):
+          return tokens.asList()
+
+      # this parse action returns the tokens as a list, and pyparsing will
+      # maintain its list type in the final parsing results
+      def return_as_list(tokens):
+          return ParseResults.List(tokens.asList())
+
+  This is the mechanism used internally by the `Group` class when defined
+  using `aslist=True`.
+
 - API CHANGE
   Added `cache_hit` keyword argument to debug actions. Previously, if packrat
   parsing was enabled, the debug methods were not called in the event of cache
@@ -47,6 +71,17 @@ Version 3.0.0b1
   The current debug location will also be indicated after whitespace
   has been skipped (was previously inconsistent, reported in Issue #244,
   by Frank Goyens, thanks!).
+
+- Modified the repr() output for `ParseResults` to include the class
+  name as part of the output. This is to clarify for new pyparsing users
+  who misread the repr output as a tuple of a list and a dict. pyparsing
+  results will now read like:
+
+      ParseResults(['abc', 'def'], {'qty': 100}]
+
+  instead of just:
+
+      (['abc', 'def'], {'qty': 100}]
 
 - Fixed bugs in Each when passed OneOrMore or ZeroOrMore expressions:
   . first expression match could be enclosed in an extra nesting level
