@@ -143,14 +143,16 @@ def _collapseStringToRanges(s, re_escape=True):
     def escape_re_range_char(c):
         return "\\" + c if c in r"\^-][" else c
 
+    def no_escape_re_range_char(c):
+        return c
+
     if not re_escape:
-        escape_re_range_char = lambda c: c
+        escape_re_range_char = no_escape_re_range_char
 
     ret = []
     for _, chars in itertools.groupby(sorted(s), key=is_consecutive):
         first = last = next(chars)
-        for c in chars:
-            last = c
+        last = collections.deque(itertools.chain(iter([last]), chars), maxlen=1).pop()
         if first == last:
             ret.append(escape_re_range_char(first))
         else:

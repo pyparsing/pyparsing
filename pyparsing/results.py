@@ -141,8 +141,8 @@ class ParseResults:
         self._all_names = set()
 
         if toklist is None:
-            toklist = []
-        if isinstance(toklist, (list, _generator_type)):
+            self._toklist = []
+        elif isinstance(toklist, (list, _generator_type)):
             self._toklist = [toklist[:]] if isinstance(toklist, ParseResults.List) else list(toklist)
         else:
             self._toklist = [toklist]

@@ -680,6 +680,8 @@ def infixNotation(baseExpr, opList, lpar=Suppress("("), rpar=Suppress(")")):
     lastExpr = baseExpr | (lpar + ret + rpar)
     for i, operDef in enumerate(opList):
         opExpr, arity, rightLeftAssoc, pa = (operDef + (None,))[:4]
+        if isinstance(opExpr, str_type):
+            opExpr = ParserElement._literalStringClass(opExpr)
         if arity == 3:
             if not isinstance(opExpr, (tuple, list)) or len(opExpr) != 2:
                 raise ValueError(
@@ -697,15 +699,15 @@ def infixNotation(baseExpr, opList, lpar=Suppress("("), rpar=Suppress(")")):
         thisExpr = Forward().setName(termName)
         if rightLeftAssoc is opAssoc.LEFT:
             if arity == 1:
-                matchExpr = _FB(lastExpr + opExpr) + Group(lastExpr + OneOrMore(opExpr))
+                matchExpr = _FB(lastExpr + opExpr) + Group(lastExpr + opExpr + opExpr[...])
             elif arity == 2:
                 if opExpr is not None:
                     matchExpr = _FB(lastExpr + opExpr + lastExpr) + Group(
-                        lastExpr + OneOrMore(opExpr + lastExpr)
+                        lastExpr + opExpr + lastExpr + (opExpr + lastExpr)[...]
                     )
                 else:
                     matchExpr = _FB(lastExpr + lastExpr) + Group(
-                        lastExpr + OneOrMore(lastExpr)
+                        lastExpr + lastExpr + lastExpr[...]
                     )
             elif arity == 3:
                 matchExpr = _FB(
@@ -720,11 +722,11 @@ def infixNotation(baseExpr, opList, lpar=Suppress("("), rpar=Suppress(")")):
             elif arity == 2:
                 if opExpr is not None:
                     matchExpr = _FB(lastExpr + opExpr + thisExpr) + Group(
-                        lastExpr + OneOrMore(opExpr + thisExpr)
+                        lastExpr + opExpr + thisExpr + (opExpr + thisExpr)[...]
                     )
                 else:
                     matchExpr = _FB(lastExpr + thisExpr) + Group(
-                        lastExpr + OneOrMore(thisExpr)
+                        lastExpr + thisExpr + thisExpr[...]
                     )
             elif arity == 3:
                 matchExpr = _FB(
