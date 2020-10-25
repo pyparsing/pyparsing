@@ -275,7 +275,7 @@ def _to_diagram_element(
     element: pyparsing.ParserElement,
     parent: Optional[EditablePartial],
     lookup: ConverterState = None,
-    vertical: Union[int, bool] = 5,
+    vertical: Union[int, bool] = 3,
     index: int = 0,
     name_hint: str = None,
 ) -> Optional[EditablePartial]:
@@ -341,9 +341,9 @@ def _to_diagram_element(
             ret = EditablePartial.from_call(railroad.Sequence, items=[])
     elif isinstance(element, (pyparsing.Or, pyparsing.MatchFirst)):
         if _should_vertical(vertical, len(exprs)):
-            ret = EditablePartial.from_call(railroad.HorizontalChoice, items=[])
-        else:
             ret = EditablePartial.from_call(railroad.Choice, 0, items=[])
+        else:
+            ret = EditablePartial.from_call(railroad.HorizontalChoice, items=[])
     elif isinstance(element, pyparsing.Optional):
         ret = EditablePartial.from_call(railroad.Optional, item="")
     elif isinstance(element, pyparsing.OneOrMore):
@@ -424,3 +424,16 @@ def _to_diagram_element(
         )
     else:
         return ret
+
+# monkeypatch .create_diagram method onto ParserElement
+def _create_diagram(expr: pyparsing.ParserElement, output_html):
+    railroad = to_railroad(expr)
+    if isinstance(output_html, str):
+        with open(output_html, "w", encoding="utf-8") as diag_file:
+            diag_file.write(railroad_to_html(railroad))
+    else:
+        # we were passed a file-like object, just write to it
+        output_html.write(railroad_to_html(railroad))
+
+
+pyparsing.ParserElement.create_diagram = _create_diagram
