@@ -2,7 +2,6 @@ import railroad
 import pyparsing
 from pkg_resources import resource_filename
 from typing import (
-    Union,
     List,
     Optional,
     NamedTuple,
@@ -104,12 +103,13 @@ def resolve_partial(partial: "EditablePartial[T]") -> T:
 def to_railroad(
     element: pyparsing.ParserElement,
     diagram_kwargs: dict = {},
-    vertical: Union[int, bool] = 5,
+    vertical: int = None,
 ) -> List[NamedDiagram]:
     """
     Convert a pyparsing element tree into a list of diagrams. This is the recommended entrypoint to diagram
     creation if you want to access the Railroad tree before it is converted to HTML
     :param diagram_kwargs: kwargs to pass to the Diagram() constructor
+    :param vertical: (optional)
     """
     # Convert the whole tree underneath the root
     lookup = ConverterState(diagram_kwargs=diagram_kwargs)
@@ -125,16 +125,14 @@ def to_railroad(
     return sorted(resolved, key=lambda diag: diag.index)
 
 
-def _should_vertical(specification: Union[int, bool], count: int) -> bool:
+def _should_vertical(specification: int, count: int) -> bool:
     """
     Returns true if we should return a vertical list of elements
     """
-    if isinstance(specification, bool):
-        return specification
-    elif isinstance(specification, int):
-        return count >= specification
+    if specification is None:
+        return False
     else:
-        raise Exception()
+        return count >= specification
 
 
 class ElementState:
@@ -275,7 +273,7 @@ def _to_diagram_element(
     element: pyparsing.ParserElement,
     parent: Optional[EditablePartial],
     lookup: ConverterState = None,
-    vertical: Union[int, bool] = 3,
+    vertical: int = None,
     index: int = 0,
     name_hint: str = None,
 ) -> Optional[EditablePartial]:
@@ -424,16 +422,3 @@ def _to_diagram_element(
         )
     else:
         return ret
-
-# monkeypatch .create_diagram method onto ParserElement
-def _create_diagram(expr: pyparsing.ParserElement, output_html):
-    railroad = to_railroad(expr)
-    if isinstance(output_html, str):
-        with open(output_html, "w", encoding="utf-8") as diag_file:
-            diag_file.write(railroad_to_html(railroad))
-    else:
-        # we were passed a file-like object, just write to it
-        output_html.write(railroad_to_html(railroad))
-
-
-pyparsing.ParserElement.create_diagram = _create_diagram

@@ -11,6 +11,7 @@ import contextlib
 import datetime
 import sys
 from io import StringIO
+from textwrap import dedent
 from unittest import TestCase
 
 import pyparsing as pp
@@ -3401,8 +3402,6 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
 
         """
 
-        from textwrap import dedent
-
         test = dedent(test)
         print(test)
 
@@ -6148,7 +6147,6 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
 
     # Make sure example in indentedBlock docstring actually works!
     def testIndentedBlockExample(self):
-        from textwrap import dedent
 
         data = dedent(
             """
@@ -6242,7 +6240,6 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
 
     def testIndentedBlock(self):
         # parse pseudo-yaml indented text
-        import textwrap
 
         EQ = pp.Suppress("=")
         stack = [1]
@@ -6263,7 +6260,7 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
                 c3 = 'A horse, a horse, my kingdom for a horse'
             d = 505
         """
-        text = textwrap.dedent(text)
+        text = dedent(text)
         print(text)
 
         result = parser.parseString(text)
@@ -6274,7 +6271,6 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
 
     # exercise indentedBlock with example posted in issue #87
     def testIndentedBlockTest2(self):
-        from textwrap import dedent
 
         indent_stack = [1]
 
@@ -6378,8 +6374,6 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             block <<= pp.Literal("block:") + body
             return block
 
-        from textwrap import dedent
-
         # This input string is a perfect match for the parser, so a single match is found
         p1 = get_parser()
         r1 = list(
@@ -6475,6 +6469,65 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             )
         )
         self.assertEqual(1, len(r6))
+
+    def testIndentedBlockClass(self):
+        data = """\
+
+            A
+                100
+                101
+
+                102
+            B
+                200
+                201
+
+            C
+                300
+
+        """
+
+        integer = ppc.integer
+        group = pp.Group(pp.Char(pp.alphas) + pp.Group(pp.IndentedBlock(integer)))
+
+        group[...].parseString(data).pprint()
+
+        self.assertParseAndCheckList(
+            group[...], data, [["A", [100, 101, 102]], ["B", [200, 201]], ["C", [300]]]
+        )
+
+    def testIndentedBlockClassWithRecursion(self):
+        data = """\
+
+            A
+                100
+                101
+
+                102
+            B
+                b
+                    200
+                    201
+
+            C
+                300
+
+        """
+
+        integer = ppc.integer
+        group = pp.Forward()
+        group <<= pp.Group(
+            pp.Char(pp.alphas) + pp.Group(pp.IndentedBlock(integer | group))
+        )
+
+        print("using searchString")
+        print(sum(group.searchString(data)).dump())
+
+        self.assertParseAndCheckList(
+            group[...],
+            data,
+            [["A", [100, 101, 102]], ["B", [["b", [200, 201]]]], ["C", [300]]],
+        )
 
     def testInvalidDiagSetting(self):
         with self.assertRaises(
@@ -6791,8 +6844,6 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
          - enable_debug_on_named_expressions - flag to auto-enable debug on all subsequent
            calls to ParserElement.setName() (default=False)
         """
-        import textwrap
-
         with ppt.reset_pyparsing_context():
             test_stdout = StringIO()
 
@@ -6805,7 +6856,7 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
 
                 integer[...].parseString("1 2 3")
 
-            expected_debug_output = textwrap.dedent(
+            expected_debug_output = dedent(
                 """\
                 Match integer at loc 0(1,1)
                   1 2 3
@@ -6835,7 +6886,6 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             )
 
     def testEnableDebugOnExpressionWithParseAction(self):
-        import textwrap
 
         test_stdout = StringIO()
         with resetting(sys, "stdout", "stderr"):
@@ -6851,7 +6901,7 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             parser.setDebug(False)
             parser.parseString("123 A100")
 
-        expected_debug_output = textwrap.dedent(
+        expected_debug_output = dedent(
             """\
             Match [{integer | W:(0-9A-Za-z)}]... at loc 0(1,1)
               123 A100
@@ -6909,7 +6959,6 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
         )
 
     def testEnableDebugWithCachedExpressionsMarkedWithAsterisk(self):
-        import textwrap
 
         test_stdout = StringIO()
         with resetting(sys, "stdout", "stderr"):
@@ -6925,7 +6974,7 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             grammar = (z | leading_a | b)[...] + "a"
             grammar.parseString("aba")
 
-        expected_debug_output = textwrap.dedent(
+        expected_debug_output = dedent(
             """\
             Match Z at loc 0(1,1)
               aba

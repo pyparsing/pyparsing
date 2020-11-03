@@ -29,13 +29,18 @@ import pyparsing as pp
 from operator import mul
 import pyparsing.diagram
 
+
 def define_numeric_word(s, value):
     return pp.CaselessKeyword(s).addParseAction(lambda: value)
+
 
 def define_numeric_word_range(s, vals):
     if isinstance(s, str):
         s = s.split()
-    return pp.MatchFirst(define_numeric_word(nm, nm_value) for nm, nm_value in zip(s, vals))
+    return pp.MatchFirst(
+        define_numeric_word(nm, nm_value) for nm, nm_value in zip(s, vals)
+    )
+
 
 opt_dash = pp.Optional(pp.Suppress("-")).setName("optional '-'")
 opt_and = pp.Optional((pp.CaselessKeyword("and") | "-").suppress()).setName("optional 'and'")
@@ -54,23 +59,24 @@ thousands = one_to_999 + define_numeric_word("thousand", 1000)
 hundreds.setName("100s")
 thousands.setName("1000s")
 
+
 def multiply(t):
     return mul(*t)
+
 hundreds.addParseAction(multiply)
 thousands.addParseAction(multiply)
 
-numeric_expression = (pp.Optional(thousands + opt_and)
-                      + pp.Optional(hundreds + opt_and)
-                      + one_to_99
-                      | pp.Optional(thousands + opt_and)
-                      + hundreds
-                      | thousands
-                      ).setName("numeric_words")
+numeric_expression = (
+    pp.Optional(thousands + opt_and) + pp.Optional(hundreds + opt_and) + one_to_99
+    | pp.Optional(thousands + opt_and) + hundreds
+    | thousands
+).setName("numeric_words")
 numeric_expression.addParseAction(sum)
 
 
-if __name__ == '__main__':
-    numeric_expression.runTests("""
+if __name__ == "__main__":
+    numeric_expression.runTests(
+        """
         one
         seven
         twelve
@@ -83,7 +89,8 @@ if __name__ == '__main__':
         nine hundred thousand nine hundred and ninety nine
         nine hundred and ninety nine thousand nine hundred and ninety nine
         nineteen hundred thousand nineteen hundred and ninety nine
-        """)
+        """
+    )
 
     # create railroad diagram
-    numeric_expression.create_diagram("numeric_words_diagram.html")
+    numeric_expression.create_diagram("numeric_words_diagram.html", vertical=5)

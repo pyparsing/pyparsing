@@ -4,7 +4,7 @@ What's New in Pyparsing 3.0.0
 
 :author: Paul McGuire
 
-:date: August, 2020
+:date: November, 2020
 
 :abstract: This document summarizes the changes made
     in the 3.0.0 release of pyparsing.
@@ -23,8 +23,6 @@ An excellent new enhancement is the new railroad diagram
 generator for documenting pyparsing parsers::
 
     import pyparsing as pp
-    from pyparsing.diagram import to_railroad, railroad_to_html
-    from pathlib import Path
 
     # define a simple grammar for parsing street addresses such
     # as "123 Main Street"
@@ -37,8 +35,7 @@ generator for documenting pyparsing parsers::
 
     # construct railroad track diagram for this parser and
     # save as HTML
-    rr = to_railroad(parser)
-    Path('parser_rr_diag.html').write_text(railroad_to_html(rr))
+    parser.create_diagram('parser_rr_diag.html')
 
 (Contributed by Michael Milton)
 
@@ -92,6 +89,38 @@ just namespaces, to add some helpful behavior:
   mistake when using Forwards)
   (**currently not working on PyPy**)
 
+New IndentedBlock class to replace indentedBlock helper method
+--------------------------------------------------------------
+The new ``IndentedBlock`` class will replace the current ``indentedBlock`` method
+for defining indented blocks of text, similar to Python source code. Using
+``IndentedBlock``, the expression instance itself keeps track of the indent stack,
+so a separate external ``indentStack`` variable is no longer required.
+
+Here is a simple example of an expression containing an alphabetic key, followed
+by an indented list of integers::
+
+    integer = pp.Word(pp.nums)
+    group = pp.Group(pp.Char(pp.alphas) + pp.Group(pp.IndentedBlock(integer)))
+
+parses::
+
+    A
+        100
+        101
+    B
+        200
+        201
+
+as::
+
+    [['A', [100, 101]], ['B', [200, 201]]]
+
+``IndentedBlock`` may also be used to define a recursive indented block (containing nested
+indented blocks).
+
+The existing ``indentedBlock`` is retained for backward-compatibility, but will be
+deprecated in a future release.
+
 Shortened tracebacks
 --------------------
 Cleaned up default tracebacks when getting a ``ParseException`` when calling
@@ -99,8 +128,23 @@ Cleaned up default tracebacks when getting a ``ParseException`` when calling
 and not include the internal pyparsing traceback frames. (If the full traceback
 is desired, then set ``ParserElement.verbose_traceback`` to ``True``.)
 
+Improved debug logging
+----------------------
+Debug logging has been improved by:
+
+- Including try/match/fail logging when getting results from the
+  packrat cache (previously cache hits did not show debug logging).
+  Values returned from the packrat cache are marked with an '*'.
+
+- Improved fail logging, showing the failed text line and marker where
+  the failure occurred.
+
 New / improved examples
 -----------------------
+- ``number_words.py`` includes a parser/evaluator to parse "forty-two"
+  and return 42. Also includes example code to generate a railroad
+  diagram for this parser.
+
 - ``BigQueryViewParser.py`` added to examples directory, submitted
   by Michael Smedberg.
 
@@ -135,6 +179,14 @@ Other new features
 - Added ``ParserElement.recurse()`` method to make it simpler for
   grammar utilities to navigate through the tree of expressions in
   a pyparsing grammar.
+
+- The ``repr()`` string for ``ParseResults`` is now of the form::
+
+    ParseResults([tokens], {named_results})
+
+  The previous form omitted the leading ``ParseResults`` class name,
+  and was easily misinterpreted as a ``tuple`` containing a ``list`` and
+  a ``dict``.
 
 - Minor reformatting of output from ``runTests`` to make embedded
   comments more visible.
@@ -208,6 +260,12 @@ API Changes
   To run explain against other exceptions, use
   ``ParseException.explain_exception()``.
 
+- Debug actions now take an added keyword argument ``cache_hit``.
+  Now that debug actions are called for expressions matched in the
+  packrat parsing cache, debug actions are now called with this extra
+  flag, set to True. For custom debug actions, it is necessary to add
+  support for this new argument.
+
 - ``ZeroOrMore`` expressions that have results names will now
   include empty lists for their name if no matches are found.
   Previously, no named result would be present. Code that tested
@@ -260,7 +318,7 @@ Other discontinued features
 
 - Removed support for running ``python setup.py test``. The setuptools
   maintainers consider the ``test`` command deprecated (see
-  <https://github.com/pypa/setuptools/issues/1684>). To run the Pyparsing test,
+  <https://github.com/pypa/setuptools/issues/1684>). To run the Pyparsing tests,
   use the command ``tox``.
 
 
@@ -285,8 +343,10 @@ Fixed Bugs
 - Fixed bug in ``Each`` when using ``Regex``, when ``Regex`` expression would
   get parsed twice.
 
-- Fixed ``FutureWarning`` that sometimes are raised when ``'['`` passed as a
+- Fixed ``FutureWarning`` that sometimes is raised when ``'['`` passed as a
   character to ``Word``.
+
+- Fixed debug logging to show failure location after whitespace skipping.
 
 
 Acknowledgments

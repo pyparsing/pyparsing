@@ -10,6 +10,7 @@
 
 from pyparsing import *
 
+
 data = """\
 def A(z):
   A1
@@ -32,9 +33,8 @@ def spam(x,y):
 """
 
 
-indentStack = [1]
 stmt = Forward()
-suite = indentedBlock(stmt, indentStack)
+suite = IndentedBlock(stmt)
 
 identifier = Word(alphas, alphanums)
 funcDecl = (

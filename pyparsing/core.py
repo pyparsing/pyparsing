@@ -1793,6 +1793,26 @@ class ParserElement(ABC):
 
         return success, allResults
 
+    def create_diagram(expr: "ParserElement", output_html, vertical=3, **kwargs):
+        """
+
+        """
+
+        try:
+            from .diagram import to_railroad, railroad_to_html
+        except ImportError as ie:
+            raise Exception(
+                "must install 'railroad' to generate parser railroad diagrams"
+            ) from ie
+
+        railroad = to_railroad(expr, vertical=vertical, diagram_kwargs=kwargs)
+        if isinstance(output_html, str):
+            with open(output_html, "w", encoding="utf-8") as diag_file:
+                diag_file.write(railroad_to_html(railroad))
+        else:
+            # we were passed a file-like object, just write to it
+            output_html.write(railroad_to_html(railroad))
+
 
 class _PendingSkip(ParserElement):
     # internal placeholder class to hold a place were '...' is added to a parser element,
@@ -3233,7 +3253,8 @@ class And(ParseExpression):
         )
         errorStop = False
         for e in self.exprs[1:]:
-            if isinstance(e, And._ErrorStop):
+            # if isinstance(e, And._ErrorStop):
+            if type(e) is And._ErrorStop:
                 errorStop = True
                 continue
             if errorStop:
@@ -4541,16 +4562,30 @@ class Dict(TokenConverter):
         for i, tok in enumerate(tokenlist):
             if len(tok) == 0:
                 continue
+
             ikey = tok[0]
             if isinstance(ikey, int):
-                ikey = str(tok[0]).strip()
+                ikey = str(ikey).strip()
+
             if len(tok) == 1:
                 tokenlist[ikey] = _ParseResultsWithOffset("", i)
+
             elif len(tok) == 2 and not isinstance(tok[1], ParseResults):
                 tokenlist[ikey] = _ParseResultsWithOffset(tok[1], i)
+
             else:
-                dictvalue = tok.copy()  # ParseResults(i)
+                try:
+                    dictvalue = tok.copy()  # ParseResults(i)
+                except Exception:
+                    exc = TypeError(
+                        "could not extract dict values from parsed results"
+                        " - Dict expression must contain Grouped expressions"
+                    )
+                    exc.__cause__ = None
+                    raise exc
+
                 del dictvalue[0]
+
                 if len(dictvalue) != 1 or (
                     isinstance(dictvalue, ParseResults) and dictvalue.haskeys()
                 ):

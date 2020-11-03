@@ -699,7 +699,9 @@ def infixNotation(baseExpr, opList, lpar=Suppress("("), rpar=Suppress(")")):
         thisExpr = Forward().setName(termName)
         if rightLeftAssoc is opAssoc.LEFT:
             if arity == 1:
-                matchExpr = _FB(lastExpr + opExpr) + Group(lastExpr + opExpr + opExpr[...])
+                matchExpr = _FB(lastExpr + opExpr) + Group(
+                    lastExpr + opExpr + opExpr[...]
+                )
             elif arity == 2:
                 if opExpr is not None:
                     matchExpr = _FB(lastExpr + opExpr + lastExpr) + Group(
@@ -759,6 +761,9 @@ def indentedBlock(blockStatementExpr, indentStack, indent=True, backup_stacks=[]
        statements (default= ``True``)
 
     A valid block must contain at least one ``blockStatement``.
+
+    (Note that indentedBlock uses internal parse actions which make it
+    incompatible with packrat parsing.)
 
     Example::
 
@@ -879,6 +884,36 @@ def indentedBlock(blockStatementExpr, indentStack, indent=True, backup_stacks=[]
     smExpr.setFailAction(lambda a, b, c, d: reset_stack())
     blockStatementExpr.ignore(_bslash + LineEnd())
     return smExpr.setName("indented block")
+
+
+class IndentedBlock(ParseElementEnhance):
+    """
+    Expression to match one or more expressions at a given indentation level.
+    Useful for parsing text where structure is implied by indentation (like Python source code).
+    """
+
+    def __init__(self, expr, recursive=True):
+        super().__init__(expr, savelist=True)
+        self._recursive = recursive
+
+    def parseImpl(self, instring, loc, doActions=True):
+        # see if self.expr matches at the current location - if not it will raise an exception
+        # and no further work is necessary
+        self.expr.parseImpl(instring, loc, doActions)
+
+        indent_col = col(loc, instring)
+        peer_parse_action = matchOnlyAtCol(indent_col)
+        peer_expr = FollowedBy(self.expr).addParseAction(peer_parse_action)
+        inner_expr = Empty() + peer_expr.suppress() + self.expr
+
+        if self._recursive:
+            indent_parse_action = conditionAsParseAction(
+                lambda s, l, t, relative_to_col=indent_col: col(l, s) > relative_to_col
+            )
+            indent_expr = FollowedBy(self.expr).addParseAction(indent_parse_action)
+            inner_expr += Optional(indent_expr + self)
+
+        return OneOrMore(inner_expr).parseImpl(instring, loc, doActions)
 
 
 # it's easy to get these comment structures wrong - they're very common, so may as well make them available

@@ -41,6 +41,11 @@ Version 3.0.0b1
   This is the mechanism used internally by the `Group` class when defined
   using `aslist=True`.
 
+- A new `IndentedBlock` class is introduced, to eventually replace the
+  current `indentedBlock` helper method. The interface is largely the same,
+  however, the new class manages its own internal indentation stack, so
+  it is no longer necessary to maintain an external `indentStack` variable.
+
 - API CHANGE
   Added `cache_hit` keyword argument to debug actions. Previously, if packrat
   parsing was enabled, the debug methods were not called in the event of cache
