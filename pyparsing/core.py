@@ -4626,28 +4626,6 @@ class Suppress(TokenConverter):
         return self
 
 
-class OnlyOnce:
-    """Wrapper for parse actions, to ensure they are only called once.
-    """
-
-    def __init__(self, methodCall):
-        self.callable = _trim_arity(methodCall)
-        self.called = False
-
-    def __call__(self, s, l, t):
-        if not self.called:
-            results = self.callable(s, l, t)
-            self.called = True
-            return results
-        raise ParseException(s, l, "OnlyOnce obj called multiple times w/out reset")
-
-    def reset(self):
-        """Allow the associated parse action to be called once more.
-        """
-
-        self.called = False
-
-
 def traceParseAction(f):
     """Decorator for debugging parse actions.
 

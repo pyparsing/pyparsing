@@ -4,6 +4,29 @@ from .exceptions import ParseException
 from .util import col
 
 
+class OnlyOnce:
+    """Wrapper for parse actions, to ensure they are only called once.
+    """
+
+    def __init__(self, methodCall):
+        from .core import _trim_arity
+        self.callable = _trim_arity(methodCall)
+        self.called = False
+
+    def __call__(self, s, l, t):
+        if not self.called:
+            results = self.callable(s, l, t)
+            self.called = True
+            return results
+        raise ParseException(s, l, "OnlyOnce obj called multiple times w/out reset")
+
+    def reset(self):
+        """Allow the associated parse action to be called once more.
+        """
+
+        self.called = False
+
+
 def matchOnlyAtCol(n):
     """Helper method for defining parse actions that require matching at
     a specific column in the input text.
