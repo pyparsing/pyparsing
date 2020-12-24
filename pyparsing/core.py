@@ -3903,6 +3903,45 @@ class PrecededBy(ParseElementEnhance):
         return loc, ret
 
 
+class Located(ParseElementEnhance):
+    """
+    Decorates a returned token with its starting and ending
+    locations in the input string.
+
+    This helper adds the following results names:
+
+     - ``locn_start`` - location where matched expression begins
+     - ``locn_end`` - location where matched expression ends
+     - ``value`` - the actual parsed results
+
+    Be careful if the input text contains ``<TAB>`` characters, you
+    may want to call :class:`ParserElement.parseWithTabs`
+
+    Example::
+
+        wd = Word(alphas)
+        for match in Located(wd).searchString("ljsdf123lksdjjf123lkkjj1222"):
+            print(match)
+
+    prints::
+
+        [0, ['ljsdf'], 5]
+        [8, ['lksdjjf'], 15]
+        [18, ['lkkjj'], 23]
+
+    """
+    def parseImpl(self, instring, loc, doActions=True):
+        start = loc
+        loc, tokens = self.expr._parse(
+            instring, start, doActions, callPreParse=False
+        )
+        ret_tokens = ParseResults([start, tokens, loc])
+        ret_tokens['locn_start'] = start
+        ret_tokens['value'] = tokens
+        ret_tokens['locn_end'] = loc
+        return loc, ret_tokens
+
+
 class NotAny(ParseElementEnhance):
     """Lookahead to disallow matching with the given parse expression.
     ``NotAny`` does *not* advance the parsing position within the

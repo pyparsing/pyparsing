@@ -4,7 +4,7 @@ What's New in Pyparsing 3.0.0
 
 :author: Paul McGuire
 
-:date: November, 2020
+:date: December, 2020
 
 :abstract: This document summarizes the changes made
     in the 3.0.0 release of pyparsing.
@@ -88,6 +88,44 @@ just namespaces, to add some helpful behavior:
   erroneously using ``'='`` instead of ``'<<='`` (this is a common
   mistake when using Forwards)
   (**currently not working on PyPy**)
+
+New Located class to replace locatedExpr helper method
+------------------------------------------------------
+The new ``Located`` class will replace the current ``locatedExpr`` method for
+marking parsed results with the start and end locations of the parsed data in
+the input string.  ``locatedExpr`` had several bugs, and returned its results
+in a hard-to-use format (location data and results names were mixed in with
+the located expression's parsed results, and wrapped in an unnecessary extra
+nesting level).
+
+For this code::
+
+        wd = Word(alphas)
+        for match in locatedExpr(wd).searchString("ljsdf123lksdjjf123lkkjj1222"):
+            print(match)
+
+the docs for ``locaatedExpr`` show this output::
+
+        [[0, 'ljsdf', 5]]
+        [[8, 'lksdjjf', 15]]
+        [[18, 'lkkjj', 23]]
+
+The parsed values and the start and end locations are merged into a single
+nested ParseResults (and any results names inthe parsed values are also
+merged in with the start and end location names).
+
+Using ``Located``, the output is::
+
+        [0, ['ljsdf'], 5]
+        [8, ['lksdjjf'], 15]
+        [18, ['lkkjj'], 23]
+
+With ``Located``, the parsed expression values and results names are kept
+separate in the second parsed value, and there is no extra grouping level
+on the whole result.
+
+The existing ``locatedExpr`` is retained for backward-compatibility, but will be
+deprecated in a future release.
 
 New IndentedBlock class to replace indentedBlock helper method
 --------------------------------------------------------------

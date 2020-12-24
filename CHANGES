@@ -2,6 +2,17 @@
 Change Log
 ==========
 
+Version 3.0.0b2
+---------------
+- API CHANGE
+  `locatedExpr` is being replaced by the class `Located`. `Located` has the same
+  constructor interface as `locatedExpr`, but fixes bugs in the returned
+  `ParseResults` when the searched expression contains multiple tokens, or
+  has internal results names.
+
+  `locatedExpr` is deprecated, and will be removed in a future release.
+
+
 Version 3.0.0b1
 ---------------
 - API CHANGE

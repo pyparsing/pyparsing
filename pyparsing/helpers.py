@@ -337,7 +337,9 @@ def ungroup(expr):
 
 
 def locatedExpr(expr):
-    """Helper to decorate a returned token with its starting and ending
+    """
+    (DEPRECATED - future code should use the Located class)
+    Helper to decorate a returned token with its starting and ending
     locations in the input string.
 
     This helper adds the following results names:

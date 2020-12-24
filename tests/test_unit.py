@@ -9,6 +9,7 @@
 
 import contextlib
 import datetime
+import re
 import sys
 from io import StringIO
 from textwrap import dedent
@@ -54,6 +55,21 @@ class resetting:
     def __exit__(self, *args):
         for attr, value in zip(self.save_attrs, self.save_values):
             setattr(self.ob, attr, value)
+
+
+def find_all_re_matches(patt, s):
+    ret = []
+    start = 0
+    if isinstance(patt, str):
+        patt = re.compile(patt)
+    while True:
+        found = patt.search(s, pos=start)
+        if found:
+            ret.append(found)
+            start = found.end()
+        else:
+            break
+    return ret
 
 
 class Test1_PyparsingTestInit(TestCase):
@@ -1438,8 +1454,7 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             {"_skipped": ["red ", "456 "]},
         )
 
-    def testEllipsisRepetion(self):
-        import re
+    def testEllipsisRepetition(self):
 
         word = pp.Word(pp.alphas).setName("word")
         num = pp.Word(pp.nums).setName("num")
@@ -2938,7 +2953,6 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             )
 
     def testParseUsingRegex(self):
-        import re
 
         signedInt = pp.Regex(r"[-+][0-9]+")
         unsignedInt = pp.Regex(r"[0-9]+")
@@ -3470,8 +3484,6 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
                 + str(res3.asList()),
             )
             print()
-
-        import re
 
         k = pp.Regex(r"a+", flags=re.S + re.M)
         k = k.parseWithTabs()
@@ -4606,6 +4618,38 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             samplestr1[res.locn_start : res.locn_end],
             "incorrect location calculation",
         )
+
+    def testLocatedExprUsingLocated(self):
+        #             012345678901234567890123456789012345678901234567890
+        samplestr1 = "DOB 10-10-2010;more garbage;ID PARI12345678  ;more garbage"
+
+        id_ref = pp.Located("ID" + pp.Word(pp.alphanums, exact=12)("id"))
+
+        res = id_ref.searchString(samplestr1)[0]
+        print(res.dump())
+        self.assertEqual(
+            "ID PARI12345678",
+            samplestr1[res.locn_start:res.locn_end],
+            "incorrect location calculation",
+        )
+        self.assertParseResultsEquals(res,
+                                      [28, ['ID', 'PARI12345678'], 43],
+                                      {'locn_end': 43,
+                                       'locn_start': 28,
+                                       'value': {'id': 'PARI12345678'}}
+        )
+
+        wd = pp.Word(pp.alphas)
+        test_string = "ljsdf123lksdjjf123lkkjj1222"
+        pp_matches = pp.Located(wd).searchString(test_string)
+        re_matches = find_all_re_matches("[a-z]+", test_string)
+        for pp_match, re_match in zip(pp_matches, re_matches):
+            self.assertParseResultsEquals(pp_match, [re_match.start(),
+                                                     [re_match.group(0)],
+                                                     re_match.end()])
+            print(pp_match)
+            print(re_match)
+            print(pp_match.value)
 
     def testPop(self):
         source = "AAA 123 456 789 234"
@@ -7142,7 +7186,6 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
 
     def testWordInternalReRanges(self):
         import random
-        import re
 
         self.assertEqual(
             "[!-~]+",
