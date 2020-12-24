@@ -69,7 +69,7 @@ class ParseResults:
         - month: 12
         - year: 1999
     """
-    null_values = (None, b"", "", [], ())
+    _null_values = (None, b"", "", [], ())
 
     __slots__ = [
         "_name",
@@ -161,7 +161,7 @@ class ParseResults:
             if not modal:
                 self._all_names = {name}
             self._name = name
-            if toklist not in self.null_values:
+            if toklist not in self._null_values:
                 if isinstance(toklist, str_type):
                     toklist = [toklist]
                 if asList:
