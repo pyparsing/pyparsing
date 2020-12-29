@@ -1,6 +1,6 @@
 # module pyparsing.py
 #
-# Copyright (c) 2003-2019  Paul T. McGuire
+# Copyright (c) 2003-2020  Paul T. McGuire
 #
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
@@ -154,6 +154,7 @@ __all__ = [
     "LineEnd",
     "LineStart",
     "Literal",
+    "Located",
     "PrecededBy",
     "MatchFirst",
     "NoMatch",
