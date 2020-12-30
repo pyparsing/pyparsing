@@ -1,9 +1,8 @@
-include pyparsing.py
 include pyparsing/diagram/*.jinja2
-include HowToUsePyparsing.rst pyparsingClassDiagram.*
-include README.md CODE_OF_CONDUCT.rst CHANGES LICENSE CONTRIBUTING.md modules.rst
+include README.rst CODE_OF_CONDUCT.rst CHANGES LICENSE CONTRIBUTING.md
 include examples/*.py examples/Setup.ini examples/*.dfm examples/*.ics examples/*.html examples/*.h examples/*.g examples/statemachine/*
 recursive-include docs *
 prune docs/_build/*
 recursive-include tests *
+prune tests/__pycache__
 include setup.py tox.ini
