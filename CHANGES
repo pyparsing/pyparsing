@@ -2,8 +2,8 @@
 Change Log
 ==========
 
-Version 3.0.0b2
----------------
+Version 3.0.0b2 - December, 2020
+--------------------------------
 - API CHANGE
   `locatedExpr` is being replaced by the class `Located`. `Located` has the same
   constructor interface as `locatedExpr`, but fixes bugs in the returned
@@ -13,8 +13,8 @@ Version 3.0.0b2
   `locatedExpr` is deprecated, and will be removed in a future release.
 
 
-Version 3.0.0b1
----------------
+Version 3.0.0b1 - November, 2020
+--------------------------------
 - API CHANGE
   Diagnostic flags have been moved to an enum, `pyparsing.Diagnostics`, and
   they are enabled through module-level methods:
