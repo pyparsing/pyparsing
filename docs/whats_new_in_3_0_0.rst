@@ -20,7 +20,8 @@ New Features
 Railroad diagramming
 --------------------
 An excellent new enhancement is the new railroad diagram
-generator for documenting pyparsing parsers::
+generator for documenting pyparsing parsers. You need to install
+`Railroad-Diagram Generator package` https://pypi.org/project/railroad-diagrams/ to test this example::
 
     import pyparsing as pp
 
