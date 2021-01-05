@@ -1,5 +1,7 @@
 language: python
-
+arch:
+  - amd64
+  - ppc64le
 dist: xenial
 
 matrix:
@@ -16,6 +18,14 @@ matrix:
       env: TOXENV=py39
     - python: pypy3
       env: TOXENV=pypy3
+      
+     # Disable version pypy3
+jobs:
+  exclude:
+
+   - arch: ppc64le
+     python: pypy3
+
   fast_finish: true
 
 install:
