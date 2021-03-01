@@ -14,8 +14,9 @@ Python code.
 
 *[Since first writing this description of pyparsing in late 2003, this
 technique for developing parsers has become more widespread, under the
-name Parsing Expression Grammars - PEGs. See more information on PEGs at*
-https://en.wikipedia.org/wiki/Parsing_expression_grammar *.]*
+name Parsing Expression Grammars - PEGs. See more information on PEGs*
+`here <https://en.wikipedia.org/wiki/Parsing_expression_grammar>`__
+*.]*
 
 Here is a program to parse ``"Hello, World!"`` (or any greeting of the form
 ``"salutation, addressee!"``):
@@ -53,22 +54,20 @@ Documentation
 =============
 
 There are many examples in the online docstrings of the classes
-and methods in pyparsing. You can find them compiled into online docs
-at https://pyparsing-docs.readthedocs.io/en/latest/. Additional
+and methods in pyparsing. You can find them compiled into `online docs <https://pyparsing-docs.readthedocs.io/en/latest/>`__. Additional
 documentation resources and project info are listed in the online
-GitHub wiki, at https://github.com/pyparsing/pyparsing/wiki. An
-entire directory of examples is at
-https://github.com/pyparsing/pyparsing/tree/master/examples.
+`GitHub wiki <https://github.com/pyparsing/pyparsing/wiki>`__. An
+entire directory of examples can be found `here <https://github.com/pyparsing/pyparsing/tree/master/examples>`__.
 
 License
 =======
 
-MIT License. See header of pyparsing.py
+MIT License. See header of the `pyparsing.py <https://github.com/pyparsing/pyparsing/blob/master/pyparsing/__init__.py#L1-L23>`__ file.
 
 History
 =======
 
-See CHANGES file.
+See `CHANGES <https://github.com/pyparsing/pyparsing/blob/master/CHANGES>`__ file.
 
 .. |Build Status| image:: https://travis-ci.org/pyparsing/pyparsing.svg?branch=master
    :target: https://travis-ci.org/pyparsing/pyparsing
