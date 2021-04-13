@@ -2,10 +2,7 @@
 
 """Setup script for the pyparsing module distribution."""
 
-try:
-    from setuptools import setup
-except ImportError:
-    from distutils.core import setup
+from setuptools import setup
 import io
 import sys
 from pyparsing import __version__ as pyparsing_version
