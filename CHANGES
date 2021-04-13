@@ -2,6 +2,14 @@
 Change Log
 ==========
 
+Version 2.4.8 - in development
+------------------------------
+- Dropped support for Python 2.6.
+- Backport of selected fixes from 3.0.0 work:
+  . setup.py decoupled from setuptools
+
+
+
 Version 2.4.7 - March, 2020
 ---------------------------
 - Backport of selected fixes from 3.0.0 work:

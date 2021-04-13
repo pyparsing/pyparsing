@@ -2,7 +2,10 @@
 
 """Setup script for the pyparsing module distribution."""
 
-from setuptools import setup
+try:
+    from setuptools import setup
+except ImportError:
+    from distutils.core import setup
 from pyparsing import __version__ as pyparsing_version
 from io import open
 
@@ -36,7 +39,6 @@ setup(# Distribution meta-data
         'Operating System :: OS Independent',
         'Programming Language :: Python',
         'Programming Language :: Python :: 2',
-        'Programming Language :: Python :: 2.6',
         'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.3',
@@ -45,5 +47,6 @@ setup(# Distribution meta-data
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: 3.8',
+        'Programming Language :: Python :: 3.9',
         ]
     )
