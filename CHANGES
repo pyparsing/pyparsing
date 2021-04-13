@@ -5,8 +5,11 @@ Change Log
 Version 3.0.0c1 - April, 2021
 -----------------------------
 - Removed internal comparison of results values against b"", which
-  raised a BytesWarning when run with `python -bb`. Fixes issue reported
+  raised a BytesWarning when run with `python -bb`. Fixes issue #271 reported
   by Florian Bruhin, thank you!
+
+- Fixed STUDENTS table in sql2dot.py example, fixes issue #261 reported by
+  legrandlegrand - much better.
 
 
 Version 3.0.0b2 - December, 2020
