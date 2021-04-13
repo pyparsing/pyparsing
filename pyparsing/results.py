@@ -69,7 +69,7 @@ class ParseResults:
         - month: 12
         - year: 1999
     """
-    _null_values = (None, b"", "", [], ())
+    _null_values = (None, "", [], ())
 
     __slots__ = [
         "_name",
