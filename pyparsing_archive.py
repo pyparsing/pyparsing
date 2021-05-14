@@ -179,9 +179,9 @@ class __diag__(__config_flags):
      - warn_ungrouped_named_tokens_in_collection - flag to enable warnings when a results
        name is defined on a containing expression with ungrouped subexpressions that also
        have results names
-     - warn_name_set_on_empty_Forward - flag to enable warnings whan a Forward is defined
+     - warn_name_set_on_empty_Forward - flag to enable warnings when a Forward is defined
        with a results name, but has no contents defined
-     - warn_on_multiple_string_args_to_oneof - flag to enable warnings whan oneOf is
+     - warn_on_multiple_string_args_to_oneof - flag to enable warnings when oneOf is
        incorrectly called with multiple str arguments
      - enable_debug_on_named_expressions - flag to auto-enable debug on all subsequent
        calls to ParserElement.setName()

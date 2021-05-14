@@ -49,7 +49,7 @@ DEBUG = 0
 # %14 is the stack frame pointer (x86's ebp) and %15 is the stack pointer (x86's esp). All data-handling instructions can be
 # unsigned (suffix U), or signed (suffix S). These are ADD, SUB, MUL and DIV. These are three-address instructions,
 # the first two operands are input, the third one is output. Whether these operands are registers, memory or constant
-# is not relevant, all combinations are possible (except that output cannot be a constant). Constants are writen with a $ prefix (10-base only).
+# is not relevant, all combinations are possible (except that output cannot be a constant). Constants are written with a $ prefix (10-base only).
 # Conditional jumps are handled by JXXY instructions, where XX is LT, GT, LE, GE, EQ, NE (less than, greater than, less than or equal, etc.)
 # and Y is U or S (unsigned or signed, except for JEQ i JNE). Unconditional jump is JMP. The move instruction is MOV.
 # Function handling is done using CALL, RET, PUSH and POP (C style function calls). Static data is defined using the WORD directive
@@ -264,7 +264,7 @@ class ExceptionSharedData:
         self.text = ""
 
     def setpos(self, location, text):
-        """Helper function for setting curently parsed text and position"""
+        """Helper function for setting currently parsed text and position"""
         self.location = location
         self.text = text
 
@@ -364,7 +364,7 @@ class SymbolTable:
 
     def error(self, text=""):
         """Symbol table error exception. It should happen only if index is out of range while accessing symbol table.
-           This exeption is not handled by the compiler, so as to allow traceback printing
+           This exception is not handled by the compiler, so as to allow traceback printing
         """
         if text == "":
             raise Exception("Symbol table index out of range")
@@ -440,7 +440,7 @@ class SymbolTable:
         return self.table_len - 1
 
     def clear_symbols(self, index):
-        """Clears all symbols begining with the index to the end of table"""
+        """Clears all symbols beginning with the index to the end of table"""
         try:
             del self.table[index:]
         except Exception:
@@ -453,10 +453,10 @@ class SymbolTable:
         skind=list(SharedData.KINDS.keys()),
         stype=list(SharedData.TYPES.keys()),
     ):
-        """Searches for symbol, from the end to the begining.
+        """Searches for symbol, from the end to the beginning.
            Returns symbol index or None
            sname - symbol name
-           skind - symbol kind (one kind, list of kinds, or None) deafult: any kind
+           skind - symbol kind (one kind, list of kinds, or None) default: any kind
            stype - symbol type (or None) default: any type
         """
         skind = skind if isinstance(skind, list) else [skind]
@@ -471,7 +471,7 @@ class SymbolTable:
 
     def insert_id(self, sname, skind, skinds, stype):
         """Inserts a new identifier at the end of the symbol table, if possible.
-           Returns symbol index, or raises an exception if the symbol alredy exists
+           Returns symbol index, or raises an exception if the symbol already exists
            sname   - symbol name
            skind   - symbol kind
            skinds  - symbol kinds to check for
@@ -681,7 +681,7 @@ class CodeGenerator:
 
     def error(self, text):
         """Compiler error exception. It should happen only if something is wrong with compiler.
-           This exeption is not handled by the compiler, so as to allow traceback printing
+           This exception is not handled by the compiler, so as to allow traceback printing
         """
         raise Exception("Compiler error: %s" % text)
 
@@ -1132,7 +1132,7 @@ class MicroC:
         self.function_arguments = []
         # stack for arguments of the nested function calls
         self.function_arguments_stack = []
-        # number of arguments for the curent function call
+        # number of arguments for the current function call
         self.function_arguments_number = -1
         # stack for the number of arguments for the nested function calls
         self.function_arguments_number_stack = []

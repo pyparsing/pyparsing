@@ -651,7 +651,7 @@ Expression operators
 - ``*`` - creates ``And`` by multiplying the expression by the integer operand; if
   expression is multiplied by a 2-tuple, creates an ``And`` of (min,max)
   expressions (similar to "{min,max}" form in regular expressions); if
-  min is None, intepret as (0,max); if max is None, interpret as
+  min is None, interpret as (0,max); if max is None, interpret as
   ``expr*min + ZeroOrMore(expr)``
 
 - ``-`` - like ``+`` but with no backup and retry of alternatives
@@ -895,7 +895,7 @@ Helper methods
       to the ``infixNotation`` method.
 
   2.  Define a list of tuples for each level of operator
-      precendence.  Each tuple is of the form
+      precedence.  Each tuple is of the form
       ``(opExpr, numTerms, rightLeftAssoc, parseAction)``, where:
 
       - ``opExpr`` - the pyparsing expression for the operator;

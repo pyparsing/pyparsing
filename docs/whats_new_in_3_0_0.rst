@@ -112,7 +112,7 @@ the docs for ``locaatedExpr`` show this output::
         [[18, 'lkkjj', 23]]
 
 The parsed values and the start and end locations are merged into a single
-nested ParseResults (and any results names inthe parsed values are also
+nested ParseResults (and any results names in the parsed values are also
 merged in with the start and end location names).
 
 Using ``Located``, the output is::

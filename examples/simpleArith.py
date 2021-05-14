@@ -30,7 +30,7 @@ factop = Literal("!")
 #       and integer or a variable.  This will be the first argument
 #       to the infixNotation method.
 #   2.  Define a list of tuples for each level of operator
-#       precendence.  Each tuple is of the form
+#       precedence.  Each tuple is of the form
 #       (opExpr, numTerms, rightLeftAssoc, parseAction), where
 #       - opExpr is the pyparsing expression for the operator;
 #          may also be a string, which will be converted to a Literal

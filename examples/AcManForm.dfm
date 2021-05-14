@@ -511,7 +511,7 @@ object Form1: TForm1
     object SearchFindFirst1: TSearchFindFirst
       Category = 'Search'
       Caption = 'F&ind First'
-      Hint = 'Find First|Finds the first occurance of specified text'
+      Hint = 'Find First|Finds the first occurrence of specified text'
     end
     object CustomizeActionBars1: TCustomizeActionBars
       Category = 'Tools'

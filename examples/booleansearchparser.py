@@ -11,7 +11,7 @@ It handles:
 * parentheses;
 * quoted strings;
 * wildcards at the end of a search term (help*);
-* wildcards at the begining of a search term (*lp);
+* wildcards at the beginning of a search term (*lp);
 * non-western languages
 
 Requirements:
@@ -22,7 +22,7 @@ SAMPLE USAGE:
 from booleansearchparser import BooleanSearchParser
 from __future__ import print_function
 bsp = BooleanSearchParser()
-text = u"wildcards at the begining of a search term "
+text = u"wildcards at the beginning of a search term "
 exprs= [
     u"*cards and term", #True
     u"wild* and term",  #True
@@ -139,7 +139,7 @@ class BooleanSearchParser:
 
         Grammar:
         - a query consists of alphanumeric words, with an optional '*'
-          wildcard at the end or the begining of a word
+          wildcard at the end or the beginning of a word
         - a sequence of words between quotes is a literal string
         - words can be used together by using operators ('and' or 'or')
         - words with operators can be grouped with parenthesis
@@ -151,7 +151,7 @@ class BooleanSearchParser:
 
         alphabet = alphanums
 
-        # suport for non-western alphabets
+        # support for non-western alphabets
         for r in alphabet_ranges:
             alphabet += "".join(chr(c) for c in range(*r) if not chr(c).isspace())
 
@@ -315,7 +315,7 @@ class BooleanSearchParser:
 
 class ParserTest(BooleanSearchParser):
     """Tests the parser with some search queries
-    tests containts a dictionary with tests and expected results.
+    tests contains a dictionary with tests and expected results.
     """
 
     def Test(self):

@@ -458,7 +458,7 @@ int snmp_close_sessions (void);
  * of outstanding requests on this session, then send the pdu.
  * Returns the request id of the generated packet if applicable, otherwise 1.
  * On any error, 0 is returned.
- * The pdu is freed by snmp_send() unless a failure occured.
+ * The pdu is freed by snmp_send() unless a failure occurred.
  */
 int snmp_send (struct snmp_session *, struct snmp_pdu *);
 
@@ -476,7 +476,7 @@ int snmp_send (struct snmp_session *, struct snmp_pdu *);
  * then send the pdu.
  * Returns the request id of the generated packet if applicable, otherwise 1.
  * On any error, 0 is returned.
- * The pdu is freed by snmp_send() unless a failure occured.
+ * The pdu is freed by snmp_send() unless a failure occurred.
  */
 int snmp_async_send (struct snmp_session *, struct snmp_pdu *,
                          snmp_callback, void *);
@@ -646,7 +646,7 @@ struct snmp_session *snmp_open_ex (struct snmp_session *,
   int (*fcheck) (u_char *, size_t)
 );
 
-/* provided for backwards compatability.  Don't use these functions.
+/* provided for backwards compatibility.  Don't use these functions.
    See snmp_debug.h and snmp_debug.c instead.
 */
 #if HAVE_STDARG_H
