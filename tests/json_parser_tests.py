@@ -103,7 +103,7 @@ test4 = """
         /*
             New! useJSP switches on JSP template processing.
             jspListTemplate and jspFileTemplate are the names
-            of the default templates to look for when aquiring JSP
+            of the default templates to look for when acquiring JSP
             templates.  Cofax currently in production at KR has useJSP
             set to false, since our sites currently use WYSIWYG
             templating exclusively.

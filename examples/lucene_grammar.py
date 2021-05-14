@@ -3,7 +3,7 @@
 #
 # Copyright 2011, Paul McGuire
 #
-# implementation of Lucene grammar, as decribed
+# implementation of Lucene grammar, as described
 # at http://svn.apache.org/viewvc/lucene/dev/trunk/lucene/docs/queryparsersyntax.html
 #
 

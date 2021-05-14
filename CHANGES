@@ -566,7 +566,7 @@ the upcoming 2.4.2:
 
 - API change adding support for `expr[...]` - the original
   code in 2.4.1 incorrectly implemented this as OneOrMore.
-  Code using this feature under this relase should explicitly
+  Code using this feature under this release should explicitly
   use `expr[0, ...]` for ZeroOrMore and `expr[1, ...]` for
   OneOrMore. In 2.4.2 you will be able to write `expr[...]`
   equivalent to `ZeroOrMore(expr)`.
@@ -712,9 +712,9 @@ Version 2.4.1 - July, 2019
      - warn_ungrouped_named_tokens_in_collection - flag to enable warnings when a results
        name is defined on a containing expression with ungrouped subexpressions that also
        have results names (default=True)
-     - warn_name_set_on_empty_Forward - flag to enable warnings whan a Forward is defined
+     - warn_name_set_on_empty_Forward - flag to enable warnings when a Forward is defined
        with a results name, but has no contents defined (default=False)
-     - warn_on_multiple_string_args_to_oneof - flag to enable warnings whan oneOf is
+     - warn_on_multiple_string_args_to_oneof - flag to enable warnings when oneOf is
        incorrectly called with multiple str arguments (default=True)
      - enable_debug_on_named_expressions - flag to auto-enable debug on all subsequent
        calls to ParserElement.setName() (default=False)
@@ -1402,7 +1402,7 @@ Version 2.1.6 - August, 2016
   repr form provides important information when debugging parse actions.
 
 
-Verison 2.1.5 - June, 2016
+Version 2.1.5 - June, 2016
 ------------------------------
 - Added ParserElement.split() generator method, similar to re.split().
   Includes optional arguments maxsplit (to limit the number of splits),
@@ -1725,7 +1725,7 @@ Version 2.0.2 - April, 2014
 - Added "pprint()" method to ParseResults, to simplify troubleshooting
   and prettified output. Now instead of importing the pprint module
   and then writing "pprint.pprint(result)", you can just write
-  "result.pprint()".  This method also accepts addtional positional and
+  "result.pprint()".  This method also accepts additional positional and
   keyword arguments (such as indent, width, etc.), which get passed
   through directly to the pprint method
   (see https://docs.python.org/2/library/pprint.html#pprint.pprint).
@@ -1857,7 +1857,7 @@ Version 1.5.7 - November, 2012
 
 - Fixed bug in srange when using '\x###' hex character codes.
 
-- Addeed optional 'intExpr' argument to countedArray, so that you
+- Added optional 'intExpr' argument to countedArray, so that you
   can define your own expression that will evaluate to an integer,
   to be used as the count for the following elements. Allows you
   to define a countedArray with the count given in hex, for example,
@@ -2532,7 +2532,7 @@ Version 1.4.6 - April, 2007
   programs, at some cost to performance (3-5%). Suggested by bca48150 on
   the pyparsing wiki, thanks!
 
-- Enhanced the documentation describing the vagaries and idiosyncracies
+- Enhanced the documentation describing the vagaries and idiosyncrasies
   of parsing strings with embedded tabs, and the impact on:
   . parse actions
   . scanString

@@ -6811,7 +6811,7 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
 
     def testWarnNameSetOnEmptyForward(self):
         """
-         - warn_name_set_on_empty_Forward - flag to enable warnings whan a Forward is defined
+         - warn_name_set_on_empty_Forward - flag to enable warnings when a Forward is defined
            with a results name, but has no contents defined (default=False)
         """
 
@@ -6828,7 +6828,7 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
 
     def testWarnParsingEmptyForward(self):
         """
-         - warn_on_parse_using_empty_Forward - flag to enable warnings whan a Forward
+         - warn_on_parse_using_empty_Forward - flag to enable warnings when a Forward
            has no contents defined (default=False)
         """
 
@@ -6848,7 +6848,7 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
 
     def testWarnIncorrectAssignmentToForward(self):
         """
-         - warn_on_parse_using_empty_Forward - flag to enable warnings whan a Forward
+         - warn_on_parse_using_empty_Forward - flag to enable warnings when a Forward
            has no contents defined (default=False)
         """
         if PYPY_ENV:
@@ -6870,7 +6870,7 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
 
     def testWarnOnMultipleStringArgsToOneOf(self):
         """
-         - warn_on_multiple_string_args_to_oneof - flag to enable warnings whan oneOf is
+         - warn_on_multiple_string_args_to_oneof - flag to enable warnings when oneOf is
            incorrectly called with multiple str arguments (default=True)
         """
 

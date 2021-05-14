@@ -164,7 +164,7 @@ class ElementState:
         self.parent_index = index  # type: Optional[int]
         #: If true, we should extract this out into a subdiagram
         self.extract = False  # type: bool
-        #: If true, all of this element's chilren have been filled out
+        #: If true, all of this element's children have been filled out
         self.complete = False  # type: bool
 
     def mark_for_extraction(
