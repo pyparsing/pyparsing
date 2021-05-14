@@ -36,7 +36,8 @@ The Python representation of the grammar is quite readable, owing to the
 self-explanatory class names, and the use of '+', '|' and '^' operator
 definitions.
 
-The parsed results returned from ``parseString()`` can be accessed as a
+The parsed results returned from ``parseString()`` is a collection of type
+``ParseResults``, which can be accessed as a
 nested list, a dictionary, or an object with named attributes.
 
 The pyparsing module handles some of the problems that are typically
