@@ -56,6 +56,9 @@ Version 3.0.0c1 -
 - Fixed bug in QuotedString class when the escaped quote string is not a
   repeated character. (Issue #263)
 
+- Added a caseless parameter to the `CloseMatch` class to allow for casing to be ignored when checking for close matches
+
+
 
 Version 3.0.0b3 - August, 2021
 ------------------------------
