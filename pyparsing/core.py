@@ -703,6 +703,10 @@ class ParserElement(ABC):
         else:
             return True
 
+    # cache for left-recursion in Forward references
+    recursion_lock = RLock()
+    recursion_memos = {}  # type: dict[int, dict[Forward, tuple[int, ParseResults | Exception]]]
+
     # argument cache for optimizing repeated calls when backtracking through recursive expressions
     packrat_cache = (
         {}
@@ -766,6 +770,7 @@ class ParserElement(ABC):
         ParserElement.packrat_cache_stats[:] = [0] * len(
             ParserElement.packrat_cache_stats
         )
+        ParserElement.recursion_memos.clear()
 
     _packratEnabled = False
 
@@ -4390,14 +4395,12 @@ class Forward(ParseElementEnhance):
                 "Forward expression was never assigned a value, will not parse any input",
                 stacklevel=stacklevel,
             )
+        # return super().parseImpl(instring, loc, doActions)
         return self.parse_recursive(instring, loc, doActions)
 
-    recursion_lock = RLock()
-    recursion_memos = {}  # type: dict[int, dict[Forward, tuple[int, ParseResults | Exception]]]
-
     def parse_recursive(self, instring, loc, doActions=True):
-        with Forward.recursion_lock:
-            memo = Forward.recursion_memos.setdefault(loc, {})
+        with ParserElement.recursion_lock:
+            memo = ParserElement.recursion_memos.setdefault(loc, {})
             # there are two cases for the current `self` clause in the memo:
             # - The clause is *not* in the memo:
             #   This is the start of a possibly recursive parse. We repeatedly try
