@@ -4390,7 +4390,57 @@ class Forward(ParseElementEnhance):
                 "Forward expression was never assigned a value, will not parse any input",
                 stacklevel=stacklevel,
             )
-        return super().parseImpl(instring, loc, doActions)
+        return self.parse_recursive(instring, loc, doActions)
+
+    recursion_lock = RLock()
+    recursion_memos = {}  # type: dict[int, dict[Forward, tuple[int, ParseResults | Exception]]]
+
+    def parse_recursive(self, instring, loc, doActions=True):
+        with Forward.recursion_lock:
+            memo = Forward.recursion_memos.setdefault(loc, {})
+            # there are two cases for the current `self` clause in the memo:
+            # - The clause is *not* in the memo:
+            #   This is the start of a possibly recursive parse. We repeatedly try
+            #   to parse ourselves, each time with the last successful result.
+            # - The clause is *stored* in the memo:
+            #   This is an attempt to parse with a concrete, previous result.
+            #   We just repeat the memoized result.
+            try:
+                # we are parsing with an intermediate result – use it as-is
+                prev_loc, prev_result = memo[self]
+                if isinstance(prev_result, Exception):
+                    raise prev_result
+                return prev_loc, prev_result
+            except KeyError:
+                # we are searching for the best result – keep on improving
+                prev_loc, prev_result = memo[self] = loc, ParseException(
+                    instring, loc, "Forward recursion without base case", self
+                )
+                while True:
+                    print('match', self, loc, prev_loc, prev_result)
+                    # Note:
+                    # Medeiros et al. settles on the *previous* result when there is
+                    # no improvement. Since we can have viable zero-length content
+                    # (due to parse actions) we use the *newest* result if possible.
+                    try:
+                        new_loc, new_result = super().parseImpl(instring, loc, doActions)
+                    except ParseException:
+                        # we failed before getting any match – do not hide the error
+                        if isinstance(prev_result, Exception):
+                            raise
+                        new_loc, new_result = prev_loc, prev_result
+                    # the match did not get better: we are done
+                    if new_loc == prev_loc:
+                        if isinstance(prev_result, Exception):
+                            raise prev_result
+                        return new_loc, new_result
+                    elif new_loc < prev_loc:
+                        return prev_loc, prev_result
+                    # the match did get better: see if we can improve further
+                    else:
+                        prev_loc, prev_result = memo[self] = new_loc, new_result
+
+
 
     def leaveWhitespace(self, recursive=True):
         self.skipWhitespace = False
