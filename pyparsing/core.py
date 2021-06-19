@@ -4417,7 +4417,6 @@ class Forward(ParseElementEnhance):
                     instring, loc, "Forward recursion without base case", self
                 )
                 while True:
-                    print('match', self, loc, prev_loc, prev_result)
                     # Note:
                     # Medeiros et al. settles on the *previous* result when there is
                     # no improvement. Since we can have viable zero-length content
