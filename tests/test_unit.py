@@ -8123,6 +8123,52 @@ class TestLR1_Recursion(ppt.TestParseResultsAsserts, TestCase):
         self.assertEqual(expr.parseString("1-2+3")[0], 2)
         self.assertEqual(expr.parseString("1-2-3")[0], -4)
 
+    def test_math(self):
+        """precedence climbing parser for math"""
+        # named references
+        expr = pp.Forward("expr")
+        add_sub = pp.Forward("add_sub")
+        mul_div = pp.Forward("mul_div")
+        power = pp.Forward("power")
+        terminal = pp.Forward("terminal")
+        # concrete rules
+        number = pp.Word(pp.nums).setParseAction(lambda t: int(t[0]))
+        signed = ('+' - expr) | ('-' - expr).setParseAction(lambda t: -t[1])
+        group = pp.Suppress('(') - expr - pp.Suppress(')')
+        add_sub <<= (
+            (add_sub + '+' - mul_div).setParseAction(lambda t: t[0] + t[2])
+            | (add_sub + '-' - mul_div).setParseAction(lambda t: t[0] - t[2])
+            | mul_div
+        )
+        mul_div <<= (
+            (mul_div + '*' - power).setParseAction(lambda t: t[0] * t[2])
+            | (mul_div + '/' - power).setParseAction(lambda t: t[0] / t[2])
+            | power
+        )
+        power <<= (
+            (terminal + '^' - power).setParseAction(lambda t: t[0] ** t[2])
+            | terminal
+        )
+        terminal <<= number | signed | group
+        expr <<= add_sub
+        # simple add_sub expressions
+        self.assertEqual(expr.parseString("1+2")[0], 3)
+        self.assertEqual(expr.parseString("1+2+3")[0], 6)
+        self.assertEqual(expr.parseString("1+2-3")[0], 0)
+        self.assertEqual(expr.parseString("1-2+3")[0], 2)
+        self.assertEqual(expr.parseString("1-2-3")[0], -4)
+        # precedence overwriting via parentheses
+        self.assertEqual(expr.parseString("1+(2+3)")[0], 6)
+        self.assertEqual(expr.parseString("1+(2-3)")[0], 0)
+        self.assertEqual(expr.parseString("1-(2+3)")[0], -4)
+        self.assertEqual(expr.parseString("1-(2-3)")[0], 2)
+        # complicated math expressions – same as Python expressions
+        self.assertEqual(expr.parseString("1----3")[0], 1----3)
+        self.assertEqual(expr.parseString("1+2*3")[0], 1+2*3)
+        self.assertEqual(expr.parseString("1*2+3")[0], 1*2+3)
+        self.assertEqual(expr.parseString("1*2^3")[0], 1*2^3)
+        self.assertEqual(expr.parseString("4^3^2^1")[0], 4**3**2**1)
+
 
 # force clear of packrat parsing flags before saving contexts
 pp.ParserElement._packratEnabled = False
