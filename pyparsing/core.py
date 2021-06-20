@@ -4425,10 +4425,6 @@ class Forward(ParseElementEnhance):
             )
         if not ParserElement._bounded_recursion_enabled:
             return super().parseImpl(instring, loc, doActions)
-        else:
-            return self.parse_recursive(instring, loc, doActions)
-
-    def parse_recursive(self, instring, loc, doActions=True):
         with ParserElement.recursion_lock:
             memo = ParserElement.recursion_memos.setdefault(loc, {})
             # there are two cases for the current `self` clause in the memo:
