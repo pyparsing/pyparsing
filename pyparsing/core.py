@@ -4425,6 +4425,20 @@ class Forward(ParseElementEnhance):
             )
         if not ParserElement._bounded_recursion_enabled:
             return super().parseImpl(instring, loc, doActions)
+        # ## Bounded Recursion algorithm ##
+        # Recursion only needs to be processed at ``Forward`` elements, since they are
+        # the only ones that can actually refer to themselves. The general idea is
+        # to handle recursion stepwise: We start at no recursion, then recurse once,
+        # recurse twice, ..., until more recursion offers no benefit (we hit the bound).
+        #
+        # The "trick" here is that each ``Forward`` gets evaluated in two contexts
+        # - to *match* a specific recursion level, and
+        # - to *search* the bounded recursion level
+        # and the two run concurrently. The *search* must *match* each recursion level
+        # to find the best possible match. This is handled by a memo table, which
+        # provides the previous match to the next level match attempt.
+        #
+        # see also "Left Recursion in Parsing Expression Grammars", Medeiros et al.
         with ParserElement.recursion_lock:
             memo = ParserElement.recursion_memos.setdefault(loc, {})
             # there are two cases for the current `self` clause in the memo:
