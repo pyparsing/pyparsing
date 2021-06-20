@@ -8178,10 +8178,10 @@ class TestLR1_Recursion(ppt.TestParseResultsAsserts, TestCase):
     def test_non_peg(self):
         """Recursion works for non-PEG operators"""
         expr = pp.Forward('expr')
-        expr <<= expr + "a" ^ expr + "ab" ^ expr + "abc"
+        expr <<= expr + "a" ^ expr + "ab" ^ expr + "abc" ^ "."
         self.assertParseResultsEquals(
-            expr.parseString("abcabaabc"),
-            expected_list=["abc", "ab", "a", "abc"]
+            expr.parseString(".abcabaabc"),
+            expected_list=[".", "abc", "ab", "a", "abc"]
         )
 
 
