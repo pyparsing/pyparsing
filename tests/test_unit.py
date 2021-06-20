@@ -8077,8 +8077,11 @@ class TestLR1_Recursion(ppt.TestParseResultsAsserts, TestCase):
     def setUp(self):
         recursion_suite_context.restore()
 
+    def tearDown(self):
+        default_suite_context.restore()
+
     def test_binary_recursive(self):
-        """Parsing single left-recursive binary operator"""
+        """parsing of single left-recursive binary operator"""
         expr = pp.Forward("expr")
         num = pp.Word(pp.nums)
         expr <<= expr + '+' - num | num
@@ -8090,6 +8093,35 @@ class TestLR1_Recursion(ppt.TestParseResultsAsserts, TestCase):
             expr.parseString("1+2+3+4"),
             expected_list=['1', '+', '2', '+', '3', '+', '4']
         )
+
+    def test_binary_associative(self):
+        """associative is preserved for single left-recursive binary operator"""
+        expr = pp.Forward("expr")
+        num = pp.Word(pp.nums)
+        expr <<= pp.Group(expr) + '+' - num | num
+        self.assertParseResultsEquals(
+            expr.parseString("1+2"),
+            expected_list=[['1'], '+', '2'],
+        )
+        self.assertParseResultsEquals(
+            expr.parseString("1+2+3+4"),
+            expected_list=[[[['1'], '+', '2'], '+', '3'], '+', '4'],
+        )
+
+    def test_add_sub(self):
+        """indirectly left-recursive/associative add/sub calculator"""
+        expr = pp.Forward("expr")
+        num = pp.Word(pp.nums).setParseAction(lambda t: int(t[0]))
+        expr <<= (
+            (expr + '+' - num).setParseAction(lambda t: t[0] + t[2])
+            | (expr + '-' - num).setParseAction(lambda t: t[0] - t[2])
+            | num
+        )
+        self.assertEqual(expr.parseString("1+2")[0], 3)
+        self.assertEqual(expr.parseString("1+2+3")[0], 6)
+        self.assertEqual(expr.parseString("1+2-3")[0], 0)
+        self.assertEqual(expr.parseString("1-2+3")[0], 2)
+        self.assertEqual(expr.parseString("1-2-3")[0], -4)
 
 
 # force clear of packrat parsing flags before saving contexts
