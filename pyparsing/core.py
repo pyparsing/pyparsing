@@ -4443,7 +4443,7 @@ class Forward(ParseElementEnhance):
                 prev_loc, prev_result = memo[self]
                 if isinstance(prev_result, Exception):
                     raise prev_result
-                return prev_loc, prev_result
+                return prev_loc, prev_result.copy()
             except KeyError:
                 # we are searching for the best result – keep on improving
                 prev_loc, prev_result = memo[self] = loc, ParseException(
