@@ -779,7 +779,9 @@ class ParserElement(ABC):
     def enable_bounded_recursion():
         """
         Enables "bounded recursion" parsing, which allows for both direct and indirect
-        left-recursion.
+        left-recursion. During parsing, left-recursive :class:`Forward` elements are
+        repeatedly matched with a fixed recursion depth that is gradually increased
+        until finding the longest match.
 
         Example::
 
@@ -792,9 +794,13 @@ class ParserElement(ABC):
 
             print(E.parseString("1+2+3"))
 
+        Searching the ideal recursion depth requires matching elements at least one
+        additional time. In addition, recusion search naturally memoizes matches and
+        may thus skip evaluation during backtracking. This may break existing programs
+        with parse actions which rely on side-effects.
 
-        Bounded Recursion parsing works similar but not identical to Packrat parsing,
-        thus the two cannot be used together.
+        Bounded Recursion parsing works similar but not identical to Packrat parsing.
+        Thus the two cannot be used together.
         """
         if ParserElement._packratEnabled:
             raise RuntimeError("Packrat and Bounded Recursion are not compatible")
