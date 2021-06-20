@@ -8166,7 +8166,7 @@ class TestLR1_Recursion(ppt.TestParseResultsAsserts, TestCase):
         self.assertEqual(expr.parseString("1----3")[0], 1----3)
         self.assertEqual(expr.parseString("1+2*3")[0], 1+2*3)
         self.assertEqual(expr.parseString("1*2+3")[0], 1*2+3)
-        self.assertEqual(expr.parseString("1*2^3")[0], 1*2^3)
+        self.assertEqual(expr.parseString("1*2^3")[0], 1*2**3)
         self.assertEqual(expr.parseString("4^3^2^1")[0], 4**3**2**1)
 
 
