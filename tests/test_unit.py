@@ -8169,6 +8169,21 @@ class TestLR1_Recursion(ppt.TestParseResultsAsserts, TestCase):
         self.assertEqual(expr.parseString("1*2^3")[0], 1*2**3)
         self.assertEqual(expr.parseString("4^3^2^1")[0], 4**3**2**1)
 
+    def test_terminate_empty(self):
+        """Recursion with ``Empty`` terminates"""
+        empty = pp.Forward('e')
+        empty <<= empty + pp.Empty() | pp.Empty()
+        self.assertParseResultsEquals(empty.parseString(""), expected_list=[])
+
+    def test_non_peg(self):
+        """Recursion works for non-PEG operators"""
+        expr = pp.Forward('expr')
+        expr <<= expr + "a" ^ e + "ab" ^ e + "abc"
+        self.assertParseResultsEquals(
+            e.parseString("abcabaabc"),
+            expected_list=["abc", "ab", "a", "abc"]
+        )
+
 
 # force clear of packrat parsing flags before saving contexts
 pp.ParserElement._packratEnabled = False
