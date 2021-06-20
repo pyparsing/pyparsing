@@ -827,6 +827,8 @@ class ParserElement(ABC):
                import pyparsing
                pyparsing.ParserElement.enablePackrat()
         """
+        if ParserElement._bounded_recursion_enabled:
+            raise RuntimeError("Packrat and Bounded Recursion are not compatible")
         if not ParserElement._packratEnabled:
             ParserElement._packratEnabled = True
             if cache_size_limit is None:
