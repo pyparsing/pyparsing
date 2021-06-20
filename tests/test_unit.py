@@ -8067,9 +8067,39 @@ class Test8_WithUnboundedPackrat(Test2_WithoutPackrat):
         )
 
 
+class TestLR1_Recursion(ppt.TestParseResultsAsserts, TestCase):
+    """
+    Tests for recursive parsing
+    """
+    suite_context = None
+    save_suite_context = None
+
+    def setUp(self):
+        recursion_suite_context.restore()
+
+    def test_binary_recursive(self):
+        """Parsing single left-recursive binary operator"""
+        expr = pp.Forward("expr")
+        num = pp.Word(pp.nums)
+        expr <<= expr + '+' - num | num
+        self.assertParseResultsEquals(
+            expr.parseString("1+2"),
+            expected_list=['1', '+', '2']
+        )
+        self.assertParseResultsEquals(
+            expr.parseString("1+2+3+4"),
+            expected_list=['1', '+', '2', '+', '3', '+', '4']
+        )
+
+
 # force clear of packrat parsing flags before saving contexts
 pp.ParserElement._packratEnabled = False
 pp.ParserElement._parse = pp.ParserElement._parseNoCache
 
 Test2_WithoutPackrat.suite_context = ppt.reset_pyparsing_context().save()
 Test2_WithoutPackrat.save_suite_context = ppt.reset_pyparsing_context().save()
+
+default_suite_context = ppt.reset_pyparsing_context().save()
+pp.ParserElement.enable_bounded_recursion()
+recursion_suite_context = ppt.reset_pyparsing_context().save()
+default_suite_context.restore()
