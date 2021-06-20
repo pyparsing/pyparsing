@@ -773,6 +773,32 @@ class ParserElement(ABC):
         ParserElement.recursion_memos.clear()
 
     _packratEnabled = False
+    _bounded_recursion_enabled = False
+
+    @staticmethod
+    def enable_bounded_recursion():
+        """
+        Enables "bounded recursion" parsing, which allows for both direct and indirect
+        left-recursion.
+
+        Example::
+
+            import pyparsing as pp
+            pp.ParserElement.enable_bounded_recursion()
+
+            E = pp.Forward("E")
+            num = pp.Word(pp.nums)
+            E <<= E + '+' - num | num
+
+            print(E.parseString("1+2+3"))
+
+
+        Bounded Recursion parsing works similar but not identical to Packrat parsing,
+        thus the two cannot be used together.
+        """
+        if ParserElement._packratEnabled:
+            raise RuntimeError("Packrat and Bounded Recursion are not compatible")
+        ParserElement._bounded_recursion_enabled = True
 
     @staticmethod
     def enablePackrat(cache_size_limit=128):
@@ -4395,8 +4421,10 @@ class Forward(ParseElementEnhance):
                 "Forward expression was never assigned a value, will not parse any input",
                 stacklevel=stacklevel,
             )
-        # return super().parseImpl(instring, loc, doActions)
-        return self.parse_recursive(instring, loc, doActions)
+        if not ParserElement._bounded_recursion_enabled:
+            return super().parseImpl(instring, loc, doActions)
+        else:
+            return self.parse_recursive(instring, loc, doActions)
 
     def parse_recursive(self, instring, loc, doActions=True):
         with ParserElement.recursion_lock:
