@@ -4463,8 +4463,6 @@ class Forward(ParseElementEnhance):
                         new_loc, new_result = prev_loc, prev_result
                     # the match did not get better: we are done
                     if new_loc == prev_loc:
-                        if isinstance(prev_result, Exception):
-                            raise prev_result
                         return new_loc, new_result
                     elif new_loc < prev_loc:
                         return prev_loc, prev_result
