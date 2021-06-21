@@ -8220,6 +8220,6 @@ Test2_WithoutPackrat.suite_context = ppt.reset_pyparsing_context().save()
 Test2_WithoutPackrat.save_suite_context = ppt.reset_pyparsing_context().save()
 
 default_suite_context = ppt.reset_pyparsing_context().save()
-pp.ParserElement.enable_bounded_recursion()
+pp.ParserElement.enable_left_recursion()
 recursion_suite_context = ppt.reset_pyparsing_context().save()
 default_suite_context.restore()

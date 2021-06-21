@@ -773,10 +773,10 @@ class ParserElement(ABC):
         ParserElement.recursion_memos.clear()
 
     _packratEnabled = False
-    _bounded_recursion_enabled = False
+    _left_recursion_enabled = False
 
     @staticmethod
-    def enable_bounded_recursion():
+    def enable_left_recursion():
         """
         Enables "bounded recursion" parsing, which allows for both direct and indirect
         left-recursion. During parsing, left-recursive :class:`Forward` elements are
@@ -786,7 +786,7 @@ class ParserElement(ABC):
         Example::
 
             import pyparsing as pp
-            pp.ParserElement.enable_bounded_recursion()
+            pp.ParserElement.enable_left_recursion()
 
             E = pp.Forward("E")
             num = pp.Word(pp.nums)
@@ -804,7 +804,7 @@ class ParserElement(ABC):
         """
         if ParserElement._packratEnabled:
             raise RuntimeError("Packrat and Bounded Recursion are not compatible")
-        ParserElement._bounded_recursion_enabled = True
+        ParserElement._left_recursion_enabled = True
 
     @staticmethod
     def enablePackrat(cache_size_limit=128):
@@ -833,7 +833,7 @@ class ParserElement(ABC):
                import pyparsing
                pyparsing.ParserElement.enablePackrat()
         """
-        if ParserElement._bounded_recursion_enabled:
+        if ParserElement._left_recursion_enabled:
             raise RuntimeError("Packrat and Bounded Recursion are not compatible")
         if not ParserElement._packratEnabled:
             ParserElement._packratEnabled = True
@@ -4429,7 +4429,7 @@ class Forward(ParseElementEnhance):
                 "Forward expression was never assigned a value, will not parse any input",
                 stacklevel=stacklevel,
             )
-        if not ParserElement._bounded_recursion_enabled:
+        if not ParserElement._left_recursion_enabled:
             return super().parseImpl(instring, loc, doActions)
         # ## Bounded Recursion algorithm ##
         # Recursion only needs to be processed at ``Forward`` elements, since they are

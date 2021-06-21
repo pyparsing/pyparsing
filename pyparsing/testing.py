@@ -62,7 +62,7 @@ class pyparsing_test:
             else:
                 self._save_context["packrat_cache_size"] = None
             self._save_context["packrat_parse"] = ParserElement._parse
-            self._save_context["recursion_enabled"] = ParserElement._bounded_recursion_enabled
+            self._save_context["recursion_enabled"] = ParserElement._left_recursion_enabled
 
             self._save_context["__diag__"] = {
                 name: getattr(__diag__, name) for name in __diag__._all_names
@@ -99,7 +99,7 @@ class pyparsing_test:
                 ParserElement.enablePackrat(self._save_context["packrat_cache_size"])
             else:
                 ParserElement._parse = self._save_context["packrat_parse"]
-            ParserElement._bounded_recursion_enabled = self._save_context["recursion_enabled"]
+            ParserElement._left_recursion_enabled = self._save_context["recursion_enabled"]
 
             __compat__.collect_all_And_tokens = self._save_context["__compat__"]
 
