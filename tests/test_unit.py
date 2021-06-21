@@ -8080,6 +8080,33 @@ class TestLR1_Recursion(ppt.TestParseResultsAsserts, TestCase):
     def tearDown(self):
         default_suite_context.restore()
 
+    def test_repeat_as_recurse(self):
+        """repetition rules formulated with recursion"""
+        one_or_more = pp.Forward("one_or_more")
+        one_or_more <<= one_or_more + "a" | "a"
+        self.assertParseResultsEquals(
+            one_or_more.parseString("a"),
+            expected_list=["a"],
+        )
+        self.assertParseResultsEquals(
+            one_or_more.parseString("aaa aa"),
+            expected_list=["a", "a", "a", "a", "a"],
+        )
+        delimited_list = pp.Forward("delimited_list")
+        delimited_list <<= delimited_list + pp.Suppress(',') + "b" | "b"
+        self.assertParseResultsEquals(
+            delimited_list.parseString("b"),
+            expected_list=["b"],
+        )
+        self.assertParseResultsEquals(
+            delimited_list.parseString("b,b"),
+            expected_list=["b", "b"],
+        )
+        self.assertParseResultsEquals(
+            delimited_list.parseString("b,b , b, b,b"),
+            expected_list=["b", "b", "b", "b", "b"],
+        )
+
     def test_binary_recursive(self):
         """parsing of single left-recursive binary operator"""
         expr = pp.Forward("expr")
