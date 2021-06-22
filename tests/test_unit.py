@@ -1609,7 +1609,7 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             pp.QuotedString("", "\\")
 
     def testRepeater(self):
-        if ParserElement._packratEnabled:
+        if ParserElement._packratEnabled or ParserElement._left_recursion_enabled:
             print("skipping this test, not compatible with packratting")
             return
 
@@ -1715,7 +1715,7 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
     def testRepeater2(self):
         """test matchPreviousLiteral with empty repeater"""
 
-        if ParserElement._packratEnabled:
+        if ParserElement._packratEnabled or ParserElement._left_recursion_enabled:
             print("skipping this test, not compatible with packratting")
             return
 
@@ -1735,7 +1735,7 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
     def testRepeater3(self):
         """test matchPreviousLiteral with multiple repeater tokens"""
 
-        if ParserElement._packratEnabled:
+        if ParserElement._packratEnabled or ParserElement._left_recursion_enabled:
             print("skipping this test, not compatible with packratting")
             return
 
@@ -1755,7 +1755,7 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
     def testRepeater4(self):
         """test matchPreviousExpr with multiple repeater tokens"""
 
-        if ParserElement._packratEnabled:
+        if ParserElement._packratEnabled or ParserElement._left_recursion_enabled:
             print("skipping this test, not compatible with packratting")
             return
 
@@ -1782,7 +1782,7 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
     def testRepeater5(self):
         """a simplified testRepeater4 to examine matchPreviousExpr with a single repeater token"""
 
-        if ParserElement._packratEnabled:
+        if ParserElement._packratEnabled or ParserElement._left_recursion_enabled:
             print("skipping this test, not compatible with packratting")
             return
 
@@ -6712,6 +6712,8 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             self.fail("failed to raise exception when matching empty string")
 
     def testExplainException(self):
+        if ParserElement._left_recursion_enabled:
+            return
         expr = pp.Word(pp.nums).setName("int") + pp.Word(pp.alphas).setName("word")
         try:
             expr.parseString("123 355")
@@ -8074,12 +8076,8 @@ class Test9_WithLeftRecursionParsing(Test2_WithoutPackrat):
 
     def setUp(self):
         recursion_suite_context.restore()
-        # TODO: This is a workaround to skip tests not compatible with memoization.
-        #       Should do so explicitly instead of re-using the Packrat flag.
-        ParserElement._packratEnabled = True
 
     def tearDown(self):
-        ParserElement._packratEnabled = False
         default_suite_context.restore()
 
     def test000_assert_packrat_status(self):
