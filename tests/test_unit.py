@@ -8067,6 +8067,26 @@ class Test8_WithUnboundedPackrat(Test2_WithoutPackrat):
         )
 
 
+class Test9_WithLeftRecursionParsing(Test2_WithoutPackrat):
+    """
+    rerun Test2 tests, now with unbounded packrat cache
+    """
+
+    def setUp(self):
+        recursion_suite_context.restore()
+        # TODO: This is a workaround to skip tests not compatible with memoization.
+        #       Should do so explicitly instead of re-using the Packrat flag.
+        ParserElement._packratEnabled = True
+
+    def tearDown(self):
+        ParserElement._packratEnabled = False
+        default_suite_context.restore()
+
+    def test000_assert_packrat_status(self):
+        print("Left-Recursion enabled:", ParserElement._left_recursion_enabled)
+        self.assertTrue(ParserElement._left_recursion_enabled, "left recursion not enabled")
+
+
 class TestLR1_Recursion(ppt.TestParseResultsAsserts, TestCase):
     """
     Tests for recursive parsing
