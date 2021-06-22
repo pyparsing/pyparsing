@@ -705,7 +705,7 @@ class ParserElement(ABC):
 
     # cache for left-recursion in Forward references
     recursion_lock = RLock()
-    recursion_memos = {}  # type: dict[int, dict[Forward, tuple[int, ParseResults | Exception]]]
+    recursion_memos = {}  # type: dict[int, dict[tuple[Forward, bool], tuple[int, ParseResults | Exception]]]
 
     # argument cache for optimizing repeated calls when backtracking through recursive expressions
     packrat_cache = (
@@ -4454,15 +4454,16 @@ class Forward(ParseElementEnhance):
             # - The clause is *stored* in the memo:
             #   This is an attempt to parse with a concrete, previous result.
             #   We just repeat the memoized result.
+            key = (self, doActions)
             try:
                 # we are parsing with an intermediate result – use it as-is
-                prev_loc, prev_result = memo[self]
+                prev_loc, prev_result = memo[key]
                 if isinstance(prev_result, Exception):
                     raise prev_result
                 return prev_loc, prev_result.copy()
             except KeyError:
                 # we are searching for the best result – keep on improving
-                prev_loc, prev_result = memo[self] = loc, ParseException(
+                prev_loc, prev_result = memo[key] = loc, ParseException(
                     instring, loc, "Forward recursion without base case", self
                 )
                 while True:
@@ -4484,7 +4485,7 @@ class Forward(ParseElementEnhance):
                         return prev_loc, prev_result
                     # the match did get better: see if we can improve further
                     else:
-                        prev_loc, prev_result = memo[self] = new_loc, new_result
+                        prev_loc, prev_result = memo[key] = new_loc, new_result
 
 
 
