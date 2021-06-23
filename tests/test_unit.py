@@ -287,7 +287,7 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
         test("-9", -9)
         test("--9", 9)
         test("-E", -math.e)
-        test("9 + 3 + 6", 9 + 3 + 6)
+        test("9 + 3 + 5", 9 + 3 + 5)
         test("9 + 3 / 11", 9 + 3.0 / 11)
         test("(9 + 3)", (9 + 3))
         test("(9+3) / 11", (9 + 3.0) / 11)
