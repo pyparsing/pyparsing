@@ -4463,14 +4463,10 @@ class Forward(ParseElementEnhance):
                 return prev_loc, prev_result.copy()
             except KeyError:
                 # we are searching for the best result – keep on improving
-                prev_loc, prev_result = memo[key] = loc, ParseException(
+                prev_loc, prev_result = memo[key] = loc - 1, ParseException(
                     instring, loc, "Forward recursion without base case", self
                 )
                 while True:
-                    # Note:
-                    # Medeiros et al. settles on the *previous* result when there is
-                    # no improvement. Since we can have viable zero-length content
-                    # (due to parse actions) we use the *newest* result if possible.
                     try:
                         new_loc, new_result = super().parseImpl(instring, loc, doActions)
                     except ParseException:
@@ -4479,9 +4475,7 @@ class Forward(ParseElementEnhance):
                             raise
                         new_loc, new_result = prev_loc, prev_result
                     # the match did not get better: we are done
-                    if new_loc == prev_loc:
-                        return new_loc, new_result
-                    elif new_loc < prev_loc:
+                    if new_loc <= prev_loc:
                         return prev_loc, prev_result
                     # the match did get better: see if we can improve further
                     else:
