@@ -4444,42 +4444,49 @@ class Forward(ParseElementEnhance):
         # to find the best possible match. This is handled by a memo table, which
         # provides the previous match to the next level match attempt.
         #
-        # see also "Left Recursion in Parsing Expression Grammars", Medeiros et al.
+        # See also "Left Recursion in Parsing Expression Grammars", Medeiros et al.
+        #
+        # There is a complication since we not only *parse* but also *transform* via
+        # actions: We do not want to run the actions too often while expanding. Thus,
+        # we expand using `doActions=False` and only run `doActions=True` if the next
+        # recursion level is acceptable.
         with ParserElement.recursion_lock:
             memo = ParserElement.recursion_memos.setdefault(loc, {})
-            # there are two cases for the current `self` clause in the memo:
-            # - The clause is *not* in the memo:
-            #   This is the start of a possibly recursive parse. We repeatedly try
-            #   to parse ourselves, each time with the last successful result.
-            # - The clause is *stored* in the memo:
-            #   This is an attempt to parse with a concrete, previous result.
-            #   We just repeat the memoized result.
-            key = (self, doActions)
             try:
-                # we are parsing with an intermediate result – use it as-is
-                prev_loc, prev_result = memo[key]
+                # we are parsing at a specific recursion expansion – use it as-is
+                prev_loc, prev_result = memo[self, doActions]
                 if isinstance(prev_result, Exception):
                     raise prev_result
                 return prev_loc, prev_result.copy()
             except KeyError:
-                # we are searching for the best result – keep on improving
-                prev_loc, prev_result = memo[key] = loc - 1, ParseException(
+                # we are searching for the best recursion expansion – keep on improving
+                # need to track both `doActions` cases separately here!
+                prev_loc, prev_peek = memo[self, False] = loc - 1, ParseException(
                     instring, loc, "Forward recursion without base case", self
                 )
+                if doActions:
+                    memo[self, True] = memo[self, False]
                 while True:
                     try:
-                        new_loc, new_result = super().parseImpl(instring, loc, doActions)
+                        new_loc, new_peek = super().parseImpl(instring, loc, False)
                     except ParseException:
                         # we failed before getting any match – do not hide the error
-                        if isinstance(prev_result, Exception):
+                        if isinstance(prev_peek, Exception):
                             raise
-                        new_loc, new_result = prev_loc, prev_result
+                        new_loc, new_peek = prev_loc, prev_peek
                     # the match did not get better: we are done
                     if new_loc <= prev_loc:
-                        return prev_loc, prev_result.copy()
+                        if doActions:
+                            _, prev_result = memo[self, True]
+                            return prev_loc, prev_result.copy()
+                        return prev_loc, prev_peek.copy()
                     # the match did get better: see if we can improve further
                     else:
-                        prev_loc, prev_result = memo[key] = new_loc, new_result
+                        prev_loc, prev_peek = memo[self, False] = new_loc, new_peek
+                        if doActions:
+                            # TODO: store errors
+                            # TODO: fail on backtrack (we go out of sync otherwise)
+                            memo[self, True] = super().parseImpl(instring, loc, True)
 
 
 
