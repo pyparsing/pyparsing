@@ -4460,7 +4460,7 @@ class Forward(ParseElementEnhance):
                 return prev_loc, prev_result.copy()
             except KeyError:
                 # we are searching for the best recursion expansion – keep on improving
-                # need to track both `doActions` cases separately here!
+                # both `doActions` cases must be tracked separately here!
                 prev_loc, prev_peek = memo[self, False] = loc - 1, ParseException(
                     instring, loc, "Forward recursion without base case", self
                 )
@@ -4477,15 +4477,19 @@ class Forward(ParseElementEnhance):
                     # the match did not get better: we are done
                     if new_loc <= prev_loc:
                         if doActions:
-                            _, prev_result = memo[self, True]
+                            # store the match for doActions=False as well,
+                            # in case the action did backtrack
+                            prev_loc, prev_result = memo[self, False] = memo[self, True]
                             return prev_loc, prev_result.copy()
                         return prev_loc, prev_peek.copy()
                     # the match did get better: see if we can improve further
                     else:
                         if doActions:
-                            # TODO: store errors
-                            # TODO: fail on backtrack? (we go out of sync otherwise)
-                            memo[self, True] = super().parseImpl(instring, loc, True)
+                            try:
+                                memo[self, True] = super().parseImpl(instring, loc, True)
+                            except ParseException as e:
+                                memo[self, False] = memo[self, True] = (new_loc, e)
+                                raise
                         prev_loc, prev_peek = memo[self, False] = new_loc, new_peek
 
 
