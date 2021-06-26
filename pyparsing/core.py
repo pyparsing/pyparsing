@@ -4492,8 +4492,6 @@ class Forward(ParseElementEnhance):
                                 raise
                         prev_loc, prev_peek = memo[self, False] = new_loc, new_peek
 
-
-
     def leaveWhitespace(self, recursive=True):
         self.skipWhitespace = False
         return self
