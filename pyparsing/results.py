@@ -522,7 +522,7 @@ class ParseResults:
         Returns a new copy of a :class:`ParseResults` object.
         """
         ret = ParseResults(self._toklist)
-        ret._tokdict = dict(**self._tokdict)
+        ret._tokdict = self._tokdict.copy()
         ret._parent = self._parent
         ret._all_names |= self._all_names
         ret._name = self._name
