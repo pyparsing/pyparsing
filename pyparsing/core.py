@@ -4476,7 +4476,7 @@ class Forward(ParseElementEnhance):
                         new_loc, new_result = prev_loc, prev_result
                     # the match did not get better: we are done
                     if new_loc <= prev_loc:
-                        return prev_loc, prev_result
+                        return prev_loc, prev_result.copy()
                     # the match did get better: see if we can improve further
                     else:
                         prev_loc, prev_result = memo[key] = new_loc, new_result
