@@ -4482,11 +4482,11 @@ class Forward(ParseElementEnhance):
                         return prev_loc, prev_peek.copy()
                     # the match did get better: see if we can improve further
                     else:
-                        prev_loc, prev_peek = memo[self, False] = new_loc, new_peek
                         if doActions:
                             # TODO: store errors
-                            # TODO: fail on backtrack (we go out of sync otherwise)
+                            # TODO: fail on backtrack? (we go out of sync otherwise)
                             memo[self, True] = super().parseImpl(instring, loc, True)
+                        prev_loc, prev_peek = memo[self, False] = new_loc, new_peek
 
 
 
