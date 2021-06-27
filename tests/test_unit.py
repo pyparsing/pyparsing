@@ -8100,7 +8100,7 @@ class TestLR1_Recursion(ppt.TestParseResultsAsserts, TestCase):
 
     def test_repeat_as_recurse(self):
         """repetition rules formulated with recursion"""
-        one_or_more = pp.Forward()("one_or_more")
+        one_or_more = pp.Forward().setName("one_or_more")
         one_or_more <<= one_or_more + "a" | "a"
         self.assertParseResultsEquals(
             one_or_more.parseString("a"),
@@ -8110,7 +8110,7 @@ class TestLR1_Recursion(ppt.TestParseResultsAsserts, TestCase):
             one_or_more.parseString("aaa aa"),
             expected_list=["a", "a", "a", "a", "a"],
         )
-        delimited_list = pp.Forward()("delimited_list")
+        delimited_list = pp.Forward().setName("delimited_list")
         delimited_list <<= delimited_list + pp.Suppress(',') + "b" | "b"
         self.assertParseResultsEquals(
             delimited_list.parseString("b"),
@@ -8127,7 +8127,7 @@ class TestLR1_Recursion(ppt.TestParseResultsAsserts, TestCase):
 
     def test_binary_recursive(self):
         """parsing of single left-recursive binary operator"""
-        expr = pp.Forward()("expr")
+        expr = pp.Forward().setName("expr")
         num = pp.Word(pp.nums)
         expr <<= expr + '+' - num | num
         self.assertParseResultsEquals(
@@ -8141,7 +8141,7 @@ class TestLR1_Recursion(ppt.TestParseResultsAsserts, TestCase):
 
     def test_binary_associative(self):
         """associative is preserved for single left-recursive binary operator"""
-        expr = pp.Forward()("expr")
+        expr = pp.Forward().setName("expr")
         num = pp.Word(pp.nums)
         expr <<= pp.Group(expr) + '+' - num | num
         self.assertParseResultsEquals(
@@ -8155,7 +8155,7 @@ class TestLR1_Recursion(ppt.TestParseResultsAsserts, TestCase):
 
     def test_add_sub(self):
         """indirectly left-recursive/associative add/sub calculator"""
-        expr = pp.Forward()("expr")
+        expr = pp.Forward().setName("expr")
         num = pp.Word(pp.nums).setParseAction(lambda t: int(t[0]))
         expr <<= (
             (expr + '+' - num).setParseAction(lambda t: t[0] + t[2])
@@ -8171,11 +8171,11 @@ class TestLR1_Recursion(ppt.TestParseResultsAsserts, TestCase):
     def test_math(self):
         """precedence climbing parser for math"""
         # named references
-        expr = pp.Forward()("expr")
-        add_sub = pp.Forward()("add_sub")
-        mul_div = pp.Forward()("mul_div")
-        power = pp.Forward()("power")
-        terminal = pp.Forward()("terminal")
+        expr = pp.Forward().setName("expr")
+        add_sub = pp.Forward().setName("add_sub")
+        mul_div = pp.Forward().setName("mul_div")
+        power = pp.Forward().setName("power")
+        terminal = pp.Forward().setName("terminal")
         # concrete rules
         number = pp.Word(pp.nums).setParseAction(lambda t: int(t[0]))
         signed = ('+' - expr) | ('-' - expr).setParseAction(lambda t: -t[1])
@@ -8216,13 +8216,13 @@ class TestLR1_Recursion(ppt.TestParseResultsAsserts, TestCase):
 
     def test_terminate_empty(self):
         """Recursion with ``Empty`` terminates"""
-        empty = pp.Forward()('e')
+        empty = pp.Forward().setName('e')
         empty <<= empty + pp.Empty() | pp.Empty()
         self.assertParseResultsEquals(empty.parseString(""), expected_list=[])
 
     def test_non_peg(self):
         """Recursion works for non-PEG operators"""
-        expr = pp.Forward()('expr')
+        expr = pp.Forward().setName('expr')
         expr <<= expr + "a" ^ expr + "ab" ^ expr + "abc" ^ "."
         self.assertParseResultsEquals(
             expr.parseString(".abcabaabc"),
