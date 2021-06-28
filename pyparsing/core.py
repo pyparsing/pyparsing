@@ -778,7 +778,7 @@ class ParserElement(ABC):
     @staticmethod
     def disable_memoization():
         """
-        Disables active Packrat or Left Recursion parsing and their memooization
+        Disables active Packrat or Left Recursion parsing and their memoization
 
         This method also works if neither Packrat nor Left Recursion are enabled.
         This makes it safe to call before activating Packrat nor Left Recursion
@@ -809,7 +809,7 @@ class ParserElement(ABC):
             print(E.parseString("1+2+3"))
 
         Searching the ideal recursion depth requires matching elements at least one
-        additional time. In addition, recusion search naturally memoizes matches and
+        additional time. In addition, recursion search naturally memoizes matches and
         may thus skip evaluation during backtracking. This may break existing programs
         with parse actions which rely on side-effects.
 
