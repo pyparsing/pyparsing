@@ -6712,8 +6712,7 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             self.fail("failed to raise exception when matching empty string")
 
     def testExplainException(self):
-        if ParserElement._left_recursion_enabled:
-            return
+        pp.ParserElement.disable_memoization()
         expr = pp.Word(pp.nums).setName("int") + pp.Word(pp.alphas).setName("word")
         try:
             expr.parseString("123 355")
@@ -6734,16 +6733,22 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             return t[0] / t[1]
 
         expr.addParseAction(divide_args)
-        pp.ParserElement.enablePackrat()
-        print()
+        for memo_kind, enable_memo in [
+            ('Packrat', pp.ParserElement.enablePackrat),
+            ('Left Recursion', pp.ParserElement.enable_left_recursion),
+        ]:
+            enable_memo(force=True)
+            print("Explain for", memo_kind)
 
-        try:
-            expr.parseString("123 0")
-        except pp.ParseException as pe:
-            print(pe.explain())
-        except Exception as exc:
-            print(pp.ParseBaseException.explain_exception(exc))
-            raise
+            try:
+                expr.parseString("123 0")
+            except pp.ParseException as pe:
+                print(pe.explain())
+            except Exception as exc:
+                print(pp.ParseBaseException.explain_exception(exc))
+                raise
+        # make sure we leave the state compatible with everything
+        pp.ParserElement.disable_memoization()
 
     def testCaselessKeywordVsKeywordCaseless(self):
         frule = pp.Keyword("t", caseless=True) + pp.Keyword("yes", caseless=True)
