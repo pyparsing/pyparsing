@@ -705,7 +705,7 @@ class ParserElement(ABC):
 
     # cache for left-recursion in Forward references
     recursion_lock = RLock()
-    recursion_memos = {}  # type: dict[int, dict[tuple[Forward, bool], tuple[int, ParseResults | Exception]]]
+    recursion_memos = {}  # type: dict[tuple[int, Forward, bool], tuple[int, ParseResults | Exception]]
 
     # argument cache for optimizing repeated calls when backtracking through recursive expressions
     packrat_cache = (
@@ -4474,21 +4474,23 @@ class Forward(ParseElementEnhance):
         # we expand using `doActions=False` and only run `doActions=True` if the next
         # recursion level is acceptable.
         with ParserElement.recursion_lock:
-            memo = ParserElement.recursion_memos.setdefault(loc, {})
+            memo = ParserElement.recursion_memos
             try:
                 # we are parsing at a specific recursion expansion – use it as-is
-                prev_loc, prev_result = memo[self, doActions]
+                prev_loc, prev_result = memo[loc, self, doActions]
                 if isinstance(prev_result, Exception):
                     raise prev_result
                 return prev_loc, prev_result.copy()
             except KeyError:
+                act_key = (loc, self, True)
+                peek_key = (loc, self, False)
                 # we are searching for the best recursion expansion – keep on improving
                 # both `doActions` cases must be tracked separately here!
-                prev_loc, prev_peek = memo[self, False] = loc - 1, ParseException(
+                prev_loc, prev_peek = memo[peek_key] = loc - 1, ParseException(
                     instring, loc, "Forward recursion without base case", self
                 )
                 if doActions:
-                    memo[self, True] = memo[self, False]
+                    memo[act_key] = memo[peek_key]
                 while True:
                     try:
                         new_loc, new_peek = super().parseImpl(instring, loc, False)
@@ -4500,20 +4502,20 @@ class Forward(ParseElementEnhance):
                     # the match did not get better: we are done
                     if new_loc <= prev_loc:
                         if doActions:
-                            # store the match for doActions=False as well,
+                            # replace the match for doActions=False as well,
                             # in case the action did backtrack
-                            prev_loc, prev_result = memo[self, False] = memo[self, True]
+                            prev_loc, prev_result = memo[peek_key] = memo[act_key]
                             return prev_loc, prev_result.copy()
                         return prev_loc, prev_peek.copy()
                     # the match did get better: see if we can improve further
                     else:
                         if doActions:
                             try:
-                                memo[self, True] = super().parseImpl(instring, loc, True)
+                                memo[act_key] = super().parseImpl(instring, loc, True)
                             except ParseException as e:
-                                memo[self, False] = memo[self, True] = (new_loc, e)
+                                memo[peek_key] = memo[act_key] = (new_loc, e)
                                 raise
-                        prev_loc, prev_peek = memo[self, False] = new_loc, new_peek
+                        prev_loc, prev_peek = memo[peek_key] = new_loc, new_peek
 
     def leaveWhitespace(self, recursive=True):
         self.skipWhitespace = False
