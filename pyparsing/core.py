@@ -776,7 +776,21 @@ class ParserElement(ABC):
     _left_recursion_enabled = False
 
     @staticmethod
-    def enable_left_recursion():
+    def disable_memoization():
+        """
+        Disables active Packrat or Left Recursion parsing and their memooization
+
+        This method also works if neither Packrat nor Left Recursion are enabled.
+        This makes it safe to call before activating Packrat nor Left Recursion
+        to clear any previous settings.
+        """
+        ParserElement.resetCache()
+        ParserElement._left_recursion_enabled = False
+        ParserElement._packratEnabled = False
+        ParserElement._parse = ParserElement._parseNoCache
+
+    @staticmethod
+    def enable_left_recursion(*, force=False):
         """
         Enables "bounded recursion" parsing, which allows for both direct and indirect
         left-recursion. During parsing, left-recursive :class:`Forward` elements are
@@ -799,15 +813,18 @@ class ParserElement(ABC):
         may thus skip evaluation during backtracking. This may break existing programs
         with parse actions which rely on side-effects.
 
-        Bounded Recursion parsing works similar but not identical to Packrat parsing.
-        Thus the two cannot be used together.
+        Bounded Recursion parsing works similar but not identical to Packrat parsing,
+        thus the two cannot be used together. Use ``force=True`` to disable any
+        previous, conflicting settings.
         """
-        if ParserElement._packratEnabled:
+        if force:
+            ParserElement.disable_memoization()
+        elif ParserElement._packratEnabled:
             raise RuntimeError("Packrat and Bounded Recursion are not compatible")
         ParserElement._left_recursion_enabled = True
 
     @staticmethod
-    def enablePackrat(cache_size_limit=128):
+    def enablePackrat(cache_size_limit=128, *, force=False):
         """Enables "packrat" parsing, which adds memoizing to the parsing logic.
            Repeated parse attempts at the same string location (which happens
            often in many complex grammars) can immediately return a cached value,
@@ -832,8 +849,14 @@ class ParserElement(ABC):
 
                import pyparsing
                pyparsing.ParserElement.enablePackrat()
+
+           Packrat parsing works similar but not identical to Bounded Recursion parsing,
+           thus the two cannot be used together. Use ``force=True`` to disable any
+           previous, conflicting settings.
         """
-        if ParserElement._left_recursion_enabled:
+        if force:
+            ParserElement.disable_memoization()
+        elif ParserElement._left_recursion_enabled:
             raise RuntimeError("Packrat and Bounded Recursion are not compatible")
         if not ParserElement._packratEnabled:
             ParserElement._packratEnabled = True
