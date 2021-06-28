@@ -8076,11 +8076,11 @@ class Test8_WithUnboundedPackrat(Test2_WithoutPackrat):
 
 class Test9_WithLeftRecursionParsing(Test2_WithoutPackrat):
     """
-    rerun Test2 tests, now with unbounded packrat cache
+    rerun Test2 tests, now with unbounded left recursion cache
     """
 
     def setUp(self):
-        recursion_suite_context.restore()
+        ParserElement.enable_left_recursion(force=True)
 
     def tearDown(self):
         default_suite_context.restore()
@@ -8088,6 +8088,28 @@ class Test9_WithLeftRecursionParsing(Test2_WithoutPackrat):
     def test000_assert_packrat_status(self):
         print("Left-Recursion enabled:", ParserElement._left_recursion_enabled)
         self.assertTrue(ParserElement._left_recursion_enabled, "left recursion not enabled")
+        self.assertIsInstance(ParserElement.recursion_memos, pp.util.UnboundedMemo)
+
+
+class Test10_WithLeftRecursionParsingBoundedMemo(Test2_WithoutPackrat):
+    """
+    rerun Test2 tests, now with bounded left recursion cache
+    """
+
+    def setUp(self):
+        ParserElement.enable_left_recursion(cache_size_limit=4, force=True)
+
+    def tearDown(self):
+        default_suite_context.restore()
+
+    def test000_assert_packrat_status(self):
+        print("Left-Recursion enabled:", ParserElement._left_recursion_enabled)
+        self.assertTrue(ParserElement._left_recursion_enabled, "left recursion not enabled")
+        self.assertIsInstance(ParserElement.recursion_memos, pp.util.LRUMemo)
+        # check that the cache matches roughly what we expect
+        # – it may be larger due to action handling
+        self.assertLessEqual(ParserElement.recursion_memos._capacity, 4)
+        self.assertGreater(ParserElement.recursion_memos._capacity * 3, 4)
 
 
 class TestLR1_Recursion(ppt.TestParseResultsAsserts, TestCase):

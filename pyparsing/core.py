@@ -1,6 +1,7 @@
 #
 # core.py
 #
+from typing import Optional
 from abc import ABC, abstractmethod
 from enum import Enum
 import string
@@ -23,6 +24,8 @@ from .util import (
     _escapeRegexRangeChars,
     _bslash,
     _flatten,
+    LRUMemo as _LRUMemo,
+    UnboundedMemo as _UnboundedMemo,
 )
 from .exceptions import *
 from .actions import *
@@ -790,7 +793,7 @@ class ParserElement(ABC):
         ParserElement._parse = ParserElement._parseNoCache
 
     @staticmethod
-    def enable_left_recursion(*, force=False):
+    def enable_left_recursion(cache_size_limit: Optional[int] = None, *, force=False):
         """
         Enables "bounded recursion" parsing, which allows for both direct and indirect
         left-recursion. During parsing, left-recursive :class:`Forward` elements are
@@ -821,6 +824,12 @@ class ParserElement(ABC):
             ParserElement.disable_memoization()
         elif ParserElement._packratEnabled:
             raise RuntimeError("Packrat and Bounded Recursion are not compatible")
+        if cache_size_limit is None:
+            ParserElement.recursion_memos = _UnboundedMemo()
+        elif cache_size_limit > 0:
+            ParserElement.recursion_memos = _LRUMemo(capacity=cache_size_limit)
+        else:
+            raise NotImplementedError("Memo size of %s" % cache_size_limit)
         ParserElement._left_recursion_enabled = True
 
     @staticmethod
@@ -4505,7 +4514,9 @@ class Forward(ParseElementEnhance):
                             # replace the match for doActions=False as well,
                             # in case the action did backtrack
                             prev_loc, prev_result = memo[peek_key] = memo[act_key]
+                            del memo[peek_key], memo[act_key]
                             return prev_loc, prev_result.copy()
+                        del memo[peek_key]
                         return prev_loc, prev_peek.copy()
                     # the match did get better: see if we can improve further
                     else:
