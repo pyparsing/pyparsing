@@ -807,14 +807,20 @@ class ParserElement(ABC):
 
             E = pp.Forward("E")
             num = pp.Word(pp.nums)
+            # match `num`, or `num '+' num`, or `num '+' num '+' num`, ...
             E <<= E + '+' - num | num
 
             print(E.parseString("1+2+3"))
 
-        Searching the ideal recursion depth requires matching elements at least one
-        additional time. In addition, recursion search naturally memoizes matches and
-        may thus skip evaluation during backtracking. This may break existing programs
-        with parse actions which rely on side-effects.
+        Recursion search naturally memoizes matches of ``Forward`` elements and may
+        thus skip reevaluation of parse actions during backtracking. This may break
+        programs with parse actions which rely on strict ordering of side-effects.
+
+        Parameters:
+
+        - cache_size_limit - (default=``None``) - memoize at most this many
+          ``Forward`` elements during matching; if ``None`` (the default),
+          memoize all ``Forward`` elements.
 
         Bounded Recursion parsing works similar but not identical to Packrat parsing,
         thus the two cannot be used together. Use ``force=True`` to disable any
