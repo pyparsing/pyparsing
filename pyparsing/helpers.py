@@ -21,7 +21,11 @@ def delimitedList(expr, delim=",", combine=False, *, allowTrailingDelim=False):
         delimitedList(Word(alphas)).parseString("aa,bb,cc") # -> ['aa', 'bb', 'cc']
         delimitedList(Word(hexnums), delim=':', combine=True).parseString("AA:BB:CC:DD:EE") # -> ['AA:BB:CC:DD:EE']
     """
-    dlName = str(expr) + " [" + str(delim) + " " + str(expr) + "]..."
+    dlName = "{expr} [{delim} {expr}]...{end}".format(
+        expr=str(expr),
+        delim=str(delim),
+        end=" [{}]".format(str(delim)) if allowTrailingDelim else "",
+    )
 
     if not combine:
         delim = Suppress(delim)
