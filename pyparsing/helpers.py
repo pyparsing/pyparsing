@@ -23,12 +23,18 @@ def delimitedList(expr, delim=",", combine=False, *, allowTrailingDelim=False):
     """
     dlName = str(expr) + " [" + str(delim) + " " + str(expr) + "]..."
 
-    trailing_delim = Optional(delim) if allowTrailingDelim else Empty()
+    if not combine:
+        delim = Suppress(delim)
+
+    delimited_list_expr = expr + ZeroOrMore(delim + expr)
+
+    if allowTrailingDelim:
+        delimited_list_expr += Optional(delim)
 
     if combine:
-        return Combine(expr + ZeroOrMore(delim + expr) + trailing_delim).setName(dlName)
+        return Combine(delimited_list_expr).setName(dlName)
     else:
-        return (expr + ZeroOrMore(Suppress(delim) + expr) + Suppress(trailing_delim)).setName(dlName)
+        return delimited_list_expr.setName(dlName)
 
 
 def countedArray(expr, intExpr=None):
