@@ -6,7 +6,7 @@ from .util import _bslash, _flatten, _escapeRegexRangeChars
 #
 # global helpers
 #
-def delimitedList(expr, delim=",", combine=False):
+def delimitedList(expr, delim=",", combine=False, *, allowTrailingDelim=False):
     """Helper to define a delimited list of expressions - the delimiter
     defaults to ','. By default, the list elements and delimiters can
     have intervening whitespace, and comments, but this can be
@@ -21,11 +21,24 @@ def delimitedList(expr, delim=",", combine=False):
         delimitedList(Word(alphas)).parseString("aa,bb,cc") # -> ['aa', 'bb', 'cc']
         delimitedList(Word(hexnums), delim=':', combine=True).parseString("AA:BB:CC:DD:EE") # -> ['AA:BB:CC:DD:EE']
     """
-    dlName = str(expr) + " [" + str(delim) + " " + str(expr) + "]..."
+    dlName = "{expr} [{delim} {expr}]...{end}".format(
+        expr=str(expr),
+        delim=str(delim),
+        end=" [{}]".format(str(delim)) if allowTrailingDelim else "",
+    )
+
+    if not combine:
+        delim = Suppress(delim)
+
+    delimited_list_expr = expr + ZeroOrMore(delim + expr)
+
+    if allowTrailingDelim:
+        delimited_list_expr += Optional(delim)
+
     if combine:
-        return Combine(expr + ZeroOrMore(delim + expr)).setName(dlName)
+        return Combine(delimited_list_expr).setName(dlName)
     else:
-        return (expr + ZeroOrMore(Suppress(delim) + expr)).setName(dlName)
+        return delimited_list_expr.setName(dlName)
 
 
 def countedArray(expr, intExpr=None):
