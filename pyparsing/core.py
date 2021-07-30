@@ -1,6 +1,7 @@
 #
 # core.py
 #
+from typing import Optional
 from abc import ABC, abstractmethod
 from enum import Enum
 import string
@@ -23,6 +24,8 @@ from .util import (
     _escapeRegexRangeChars,
     _bslash,
     _flatten,
+    LRUMemo as _LRUMemo,
+    UnboundedMemo as _UnboundedMemo,
 )
 from .exceptions import *
 from .actions import *
@@ -703,6 +706,10 @@ class ParserElement(ABC):
         else:
             return True
 
+    # cache for left-recursion in Forward references
+    recursion_lock = RLock()
+    recursion_memos = {}  # type: dict[tuple[int, Forward, bool], tuple[int, ParseResults | Exception]]
+
     # argument cache for optimizing repeated calls when backtracking through recursive expressions
     packrat_cache = (
         {}
@@ -766,11 +773,73 @@ class ParserElement(ABC):
         ParserElement.packrat_cache_stats[:] = [0] * len(
             ParserElement.packrat_cache_stats
         )
+        ParserElement.recursion_memos.clear()
 
     _packratEnabled = False
+    _left_recursion_enabled = False
 
     @staticmethod
-    def enablePackrat(cache_size_limit=128):
+    def disable_memoization():
+        """
+        Disables active Packrat or Left Recursion parsing and their memoization
+
+        This method also works if neither Packrat nor Left Recursion are enabled.
+        This makes it safe to call before activating Packrat nor Left Recursion
+        to clear any previous settings.
+        """
+        ParserElement.resetCache()
+        ParserElement._left_recursion_enabled = False
+        ParserElement._packratEnabled = False
+        ParserElement._parse = ParserElement._parseNoCache
+
+    @staticmethod
+    def enable_left_recursion(cache_size_limit: Optional[int] = None, *, force=False):
+        """
+        Enables "bounded recursion" parsing, which allows for both direct and indirect
+        left-recursion. During parsing, left-recursive :class:`Forward` elements are
+        repeatedly matched with a fixed recursion depth that is gradually increased
+        until finding the longest match.
+
+        Example::
+
+            import pyparsing as pp
+            pp.ParserElement.enable_left_recursion()
+
+            E = pp.Forward("E")
+            num = pp.Word(pp.nums)
+            # match `num`, or `num '+' num`, or `num '+' num '+' num`, ...
+            E <<= E + '+' - num | num
+
+            print(E.parseString("1+2+3"))
+
+        Recursion search naturally memoizes matches of ``Forward`` elements and may
+        thus skip reevaluation of parse actions during backtracking. This may break
+        programs with parse actions which rely on strict ordering of side-effects.
+
+        Parameters:
+
+        - cache_size_limit - (default=``None``) - memoize at most this many
+          ``Forward`` elements during matching; if ``None`` (the default),
+          memoize all ``Forward`` elements.
+
+        Bounded Recursion parsing works similar but not identical to Packrat parsing,
+        thus the two cannot be used together. Use ``force=True`` to disable any
+        previous, conflicting settings.
+        """
+        if force:
+            ParserElement.disable_memoization()
+        elif ParserElement._packratEnabled:
+            raise RuntimeError("Packrat and Bounded Recursion are not compatible")
+        if cache_size_limit is None:
+            ParserElement.recursion_memos = _UnboundedMemo()
+        elif cache_size_limit > 0:
+            ParserElement.recursion_memos = _LRUMemo(capacity=cache_size_limit)
+        else:
+            raise NotImplementedError("Memo size of %s" % cache_size_limit)
+        ParserElement._left_recursion_enabled = True
+
+    @staticmethod
+    def enablePackrat(cache_size_limit=128, *, force=False):
         """Enables "packrat" parsing, which adds memoizing to the parsing logic.
            Repeated parse attempts at the same string location (which happens
            often in many complex grammars) can immediately return a cached value,
@@ -795,7 +864,15 @@ class ParserElement(ABC):
 
                import pyparsing
                pyparsing.ParserElement.enablePackrat()
+
+           Packrat parsing works similar but not identical to Bounded Recursion parsing,
+           thus the two cannot be used together. Use ``force=True`` to disable any
+           previous, conflicting settings.
         """
+        if force:
+            ParserElement.disable_memoization()
+        elif ParserElement._left_recursion_enabled:
+            raise RuntimeError("Packrat and Bounded Recursion are not compatible")
         if not ParserElement._packratEnabled:
             ParserElement._packratEnabled = True
             if cache_size_limit is None:
@@ -4390,7 +4467,72 @@ class Forward(ParseElementEnhance):
                 "Forward expression was never assigned a value, will not parse any input",
                 stacklevel=stacklevel,
             )
-        return super().parseImpl(instring, loc, doActions)
+        if not ParserElement._left_recursion_enabled:
+            return super().parseImpl(instring, loc, doActions)
+        # ## Bounded Recursion algorithm ##
+        # Recursion only needs to be processed at ``Forward`` elements, since they are
+        # the only ones that can actually refer to themselves. The general idea is
+        # to handle recursion stepwise: We start at no recursion, then recurse once,
+        # recurse twice, ..., until more recursion offers no benefit (we hit the bound).
+        #
+        # The "trick" here is that each ``Forward`` gets evaluated in two contexts
+        # - to *match* a specific recursion level, and
+        # - to *search* the bounded recursion level
+        # and the two run concurrently. The *search* must *match* each recursion level
+        # to find the best possible match. This is handled by a memo table, which
+        # provides the previous match to the next level match attempt.
+        #
+        # See also "Left Recursion in Parsing Expression Grammars", Medeiros et al.
+        #
+        # There is a complication since we not only *parse* but also *transform* via
+        # actions: We do not want to run the actions too often while expanding. Thus,
+        # we expand using `doActions=False` and only run `doActions=True` if the next
+        # recursion level is acceptable.
+        with ParserElement.recursion_lock:
+            memo = ParserElement.recursion_memos
+            try:
+                # we are parsing at a specific recursion expansion – use it as-is
+                prev_loc, prev_result = memo[loc, self, doActions]
+                if isinstance(prev_result, Exception):
+                    raise prev_result
+                return prev_loc, prev_result.copy()
+            except KeyError:
+                act_key = (loc, self, True)
+                peek_key = (loc, self, False)
+                # we are searching for the best recursion expansion – keep on improving
+                # both `doActions` cases must be tracked separately here!
+                prev_loc, prev_peek = memo[peek_key] = loc - 1, ParseException(
+                    instring, loc, "Forward recursion without base case", self
+                )
+                if doActions:
+                    memo[act_key] = memo[peek_key]
+                while True:
+                    try:
+                        new_loc, new_peek = super().parseImpl(instring, loc, False)
+                    except ParseException:
+                        # we failed before getting any match – do not hide the error
+                        if isinstance(prev_peek, Exception):
+                            raise
+                        new_loc, new_peek = prev_loc, prev_peek
+                    # the match did not get better: we are done
+                    if new_loc <= prev_loc:
+                        if doActions:
+                            # replace the match for doActions=False as well,
+                            # in case the action did backtrack
+                            prev_loc, prev_result = memo[peek_key] = memo[act_key]
+                            del memo[peek_key], memo[act_key]
+                            return prev_loc, prev_result.copy()
+                        del memo[peek_key]
+                        return prev_loc, prev_peek.copy()
+                    # the match did get better: see if we can improve further
+                    else:
+                        if doActions:
+                            try:
+                                memo[act_key] = super().parseImpl(instring, loc, True)
+                            except ParseException as e:
+                                memo[peek_key] = memo[act_key] = (new_loc, e)
+                                raise
+                        prev_loc, prev_peek = memo[peek_key] = new_loc, new_peek
 
     def leaveWhitespace(self, recursive=True):
         self.skipWhitespace = False

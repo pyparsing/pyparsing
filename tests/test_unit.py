@@ -287,7 +287,7 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
         test("-9", -9)
         test("--9", 9)
         test("-E", -math.e)
-        test("9 + 3 + 6", 9 + 3 + 6)
+        test("9 + 3 + 5", 9 + 3 + 5)
         test("9 + 3 / 11", 9 + 3.0 / 11)
         test("(9 + 3)", (9 + 3))
         test("(9+3) / 11", (9 + 3.0) / 11)
@@ -1609,8 +1609,8 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             pp.QuotedString("", "\\")
 
     def testRepeater(self):
-        if ParserElement._packratEnabled:
-            print("skipping this test, not compatible with packratting")
+        if ParserElement._packratEnabled or ParserElement._left_recursion_enabled:
+            print("skipping this test, not compatible with memoization")
             return
 
         first = pp.Word("abcdef").setName("word1")
@@ -1715,8 +1715,8 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
     def testRepeater2(self):
         """test matchPreviousLiteral with empty repeater"""
 
-        if ParserElement._packratEnabled:
-            print("skipping this test, not compatible with packratting")
+        if ParserElement._packratEnabled or ParserElement._left_recursion_enabled:
+            print("skipping this test, not compatible with memoization")
             return
 
         first = pp.Optional(pp.Word("abcdef").setName("words1"))
@@ -1735,8 +1735,8 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
     def testRepeater3(self):
         """test matchPreviousLiteral with multiple repeater tokens"""
 
-        if ParserElement._packratEnabled:
-            print("skipping this test, not compatible with packratting")
+        if ParserElement._packratEnabled or ParserElement._left_recursion_enabled:
+            print("skipping this test, not compatible with memoization")
             return
 
         first = pp.Word("a") + pp.Word("d")
@@ -1755,8 +1755,8 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
     def testRepeater4(self):
         """test matchPreviousExpr with multiple repeater tokens"""
 
-        if ParserElement._packratEnabled:
-            print("skipping this test, not compatible with packratting")
+        if ParserElement._packratEnabled or ParserElement._left_recursion_enabled:
+            print("skipping this test, not compatible with memoization")
             return
 
         first = pp.Group(pp.Word(pp.alphas) + pp.Word(pp.alphas))
@@ -1782,8 +1782,8 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
     def testRepeater5(self):
         """a simplified testRepeater4 to examine matchPreviousExpr with a single repeater token"""
 
-        if ParserElement._packratEnabled:
-            print("skipping this test, not compatible with packratting")
+        if ParserElement._packratEnabled or ParserElement._left_recursion_enabled:
+            print("skipping this test, not compatible with memoization")
             return
 
         first = pp.Word(pp.alphas)
@@ -6712,6 +6712,7 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             self.fail("failed to raise exception when matching empty string")
 
     def testExplainException(self):
+        pp.ParserElement.disable_memoization()
         expr = pp.Word(pp.nums).setName("int") + pp.Word(pp.alphas).setName("word")
         try:
             expr.parseString("123 355")
@@ -6732,16 +6733,22 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             return t[0] / t[1]
 
         expr.addParseAction(divide_args)
-        pp.ParserElement.enablePackrat()
-        print()
+        for memo_kind, enable_memo in [
+            ('Packrat', pp.ParserElement.enablePackrat),
+            ('Left Recursion', pp.ParserElement.enable_left_recursion),
+        ]:
+            enable_memo(force=True)
+            print("Explain for", memo_kind)
 
-        try:
-            expr.parseString("123 0")
-        except pp.ParseException as pe:
-            print(pe.explain())
-        except Exception as exc:
-            print(pp.ParseBaseException.explain_exception(exc))
-            raise
+            try:
+                expr.parseString("123 0")
+            except pp.ParseException as pe:
+                print(pe.explain())
+            except Exception as exc:
+                print(pp.ParseBaseException.explain_exception(exc))
+                raise
+        # make sure we leave the state compatible with everything
+        pp.ParserElement.disable_memoization()
 
     def testCaselessKeywordVsKeywordCaseless(self):
         frule = pp.Keyword("t", caseless=True) + pp.Keyword("yes", caseless=True)
@@ -8067,9 +8074,197 @@ class Test8_WithUnboundedPackrat(Test2_WithoutPackrat):
         )
 
 
+class Test9_WithLeftRecursionParsing(Test2_WithoutPackrat):
+    """
+    rerun Test2 tests, now with unbounded left recursion cache
+    """
+
+    def setUp(self):
+        ParserElement.enable_left_recursion(force=True)
+
+    def tearDown(self):
+        default_suite_context.restore()
+
+    def test000_assert_packrat_status(self):
+        print("Left-Recursion enabled:", ParserElement._left_recursion_enabled)
+        self.assertTrue(ParserElement._left_recursion_enabled, "left recursion not enabled")
+        self.assertIsInstance(ParserElement.recursion_memos, pp.util.UnboundedMemo)
+
+
+class Test10_WithLeftRecursionParsingBoundedMemo(Test2_WithoutPackrat):
+    """
+    rerun Test2 tests, now with bounded left recursion cache
+    """
+
+    def setUp(self):
+        ParserElement.enable_left_recursion(cache_size_limit=4, force=True)
+
+    def tearDown(self):
+        default_suite_context.restore()
+
+    def test000_assert_packrat_status(self):
+        print("Left-Recursion enabled:", ParserElement._left_recursion_enabled)
+        self.assertTrue(ParserElement._left_recursion_enabled, "left recursion not enabled")
+        self.assertIsInstance(ParserElement.recursion_memos, pp.util.LRUMemo)
+        # check that the cache matches roughly what we expect
+        # – it may be larger due to action handling
+        self.assertLessEqual(ParserElement.recursion_memos._capacity, 4)
+        self.assertGreater(ParserElement.recursion_memos._capacity * 3, 4)
+
+
+class TestLR1_Recursion(ppt.TestParseResultsAsserts, TestCase):
+    """
+    Tests for recursive parsing
+    """
+    suite_context = None
+    save_suite_context = None
+
+    def setUp(self):
+        recursion_suite_context.restore()
+
+    def tearDown(self):
+        default_suite_context.restore()
+
+    def test_repeat_as_recurse(self):
+        """repetition rules formulated with recursion"""
+        one_or_more = pp.Forward().setName("one_or_more")
+        one_or_more <<= one_or_more + "a" | "a"
+        self.assertParseResultsEquals(
+            one_or_more.parseString("a"),
+            expected_list=["a"],
+        )
+        self.assertParseResultsEquals(
+            one_or_more.parseString("aaa aa"),
+            expected_list=["a", "a", "a", "a", "a"],
+        )
+        delimited_list = pp.Forward().setName("delimited_list")
+        delimited_list <<= delimited_list + pp.Suppress(',') + "b" | "b"
+        self.assertParseResultsEquals(
+            delimited_list.parseString("b"),
+            expected_list=["b"],
+        )
+        self.assertParseResultsEquals(
+            delimited_list.parseString("b,b"),
+            expected_list=["b", "b"],
+        )
+        self.assertParseResultsEquals(
+            delimited_list.parseString("b,b , b, b,b"),
+            expected_list=["b", "b", "b", "b", "b"],
+        )
+
+    def test_binary_recursive(self):
+        """parsing of single left-recursive binary operator"""
+        expr = pp.Forward().setName("expr")
+        num = pp.Word(pp.nums)
+        expr <<= expr + '+' - num | num
+        self.assertParseResultsEquals(
+            expr.parseString("1+2"),
+            expected_list=['1', '+', '2']
+        )
+        self.assertParseResultsEquals(
+            expr.parseString("1+2+3+4"),
+            expected_list=['1', '+', '2', '+', '3', '+', '4']
+        )
+
+    def test_binary_associative(self):
+        """associative is preserved for single left-recursive binary operator"""
+        expr = pp.Forward().setName("expr")
+        num = pp.Word(pp.nums)
+        expr <<= pp.Group(expr) + '+' - num | num
+        self.assertParseResultsEquals(
+            expr.parseString("1+2"),
+            expected_list=[['1'], '+', '2'],
+        )
+        self.assertParseResultsEquals(
+            expr.parseString("1+2+3+4"),
+            expected_list=[[[['1'], '+', '2'], '+', '3'], '+', '4'],
+        )
+
+    def test_add_sub(self):
+        """indirectly left-recursive/associative add/sub calculator"""
+        expr = pp.Forward().setName("expr")
+        num = pp.Word(pp.nums).setParseAction(lambda t: int(t[0]))
+        expr <<= (
+            (expr + '+' - num).setParseAction(lambda t: t[0] + t[2])
+            | (expr + '-' - num).setParseAction(lambda t: t[0] - t[2])
+            | num
+        )
+        self.assertEqual(expr.parseString("1+2")[0], 3)
+        self.assertEqual(expr.parseString("1+2+3")[0], 6)
+        self.assertEqual(expr.parseString("1+2-3")[0], 0)
+        self.assertEqual(expr.parseString("1-2+3")[0], 2)
+        self.assertEqual(expr.parseString("1-2-3")[0], -4)
+
+    def test_math(self):
+        """precedence climbing parser for math"""
+        # named references
+        expr = pp.Forward().setName("expr")
+        add_sub = pp.Forward().setName("add_sub")
+        mul_div = pp.Forward().setName("mul_div")
+        power = pp.Forward().setName("power")
+        terminal = pp.Forward().setName("terminal")
+        # concrete rules
+        number = pp.Word(pp.nums).setParseAction(lambda t: int(t[0]))
+        signed = ('+' - expr) | ('-' - expr).setParseAction(lambda t: -t[1])
+        group = pp.Suppress('(') - expr - pp.Suppress(')')
+        add_sub <<= (
+            (add_sub + '+' - mul_div).setParseAction(lambda t: t[0] + t[2])
+            | (add_sub + '-' - mul_div).setParseAction(lambda t: t[0] - t[2])
+            | mul_div
+        )
+        mul_div <<= (
+            (mul_div + '*' - power).setParseAction(lambda t: t[0] * t[2])
+            | (mul_div + '/' - power).setParseAction(lambda t: t[0] / t[2])
+            | power
+        )
+        power <<= (
+            (terminal + '^' - power).setParseAction(lambda t: t[0] ** t[2])
+            | terminal
+        )
+        terminal <<= number | signed | group
+        expr <<= add_sub
+        # simple add_sub expressions
+        self.assertEqual(expr.parseString("1+2")[0], 3)
+        self.assertEqual(expr.parseString("1+2+3")[0], 6)
+        self.assertEqual(expr.parseString("1+2-3")[0], 0)
+        self.assertEqual(expr.parseString("1-2+3")[0], 2)
+        self.assertEqual(expr.parseString("1-2-3")[0], -4)
+        # precedence overwriting via parentheses
+        self.assertEqual(expr.parseString("1+(2+3)")[0], 6)
+        self.assertEqual(expr.parseString("1+(2-3)")[0], 0)
+        self.assertEqual(expr.parseString("1-(2+3)")[0], -4)
+        self.assertEqual(expr.parseString("1-(2-3)")[0], 2)
+        # complicated math expressions – same as Python expressions
+        self.assertEqual(expr.parseString("1----3")[0], 1----3)
+        self.assertEqual(expr.parseString("1+2*3")[0], 1+2*3)
+        self.assertEqual(expr.parseString("1*2+3")[0], 1*2+3)
+        self.assertEqual(expr.parseString("1*2^3")[0], 1*2**3)
+        self.assertEqual(expr.parseString("4^3^2^1")[0], 4**3**2**1)
+
+    def test_terminate_empty(self):
+        """Recursion with ``Empty`` terminates"""
+        empty = pp.Forward().setName('e')
+        empty <<= empty + pp.Empty() | pp.Empty()
+        self.assertParseResultsEquals(empty.parseString(""), expected_list=[])
+
+    def test_non_peg(self):
+        """Recursion works for non-PEG operators"""
+        expr = pp.Forward().setName('expr')
+        expr <<= expr + "a" ^ expr + "ab" ^ expr + "abc" ^ "."
+        self.assertParseResultsEquals(
+            expr.parseString(".abcabaabc"),
+            expected_list=[".", "abc", "ab", "a", "abc"]
+        )
+
+
 # force clear of packrat parsing flags before saving contexts
 pp.ParserElement._packratEnabled = False
 pp.ParserElement._parse = pp.ParserElement._parseNoCache
 
 Test2_WithoutPackrat.suite_context = ppt.reset_pyparsing_context().save()
 Test2_WithoutPackrat.save_suite_context = ppt.reset_pyparsing_context().save()
+
+default_suite_context = ppt.reset_pyparsing_context().save()
+pp.ParserElement.enable_left_recursion()
+recursion_suite_context = ppt.reset_pyparsing_context().save()
+default_suite_context.restore()
