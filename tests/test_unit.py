@@ -33,12 +33,12 @@ PYPY_ENV = python_impl == "PyPy"
 
 
 # simple utility for flattening nested lists
-def flatten(L):
-    if type(L) is not list:
-        return [L]
-    if L == []:
-        return L
-    return flatten(L[0]) + flatten(L[1:])
+def flatten(nested_list):
+    if not isinstance(nested_list, list):
+        return [nested_list]
+    if not nested_list:
+        return nested_list
+    return flatten(nested_list[0]) + flatten(nested_list[1:])
 
 
 class resetting:
@@ -328,6 +328,10 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
         test("-(sgn(cos(PI/4)))", -1)
 
     def testParseSQL(self):
+        # SQL parser uses packrat parsing, not compatible with LR
+        if ParserElement._left_recursion_enabled:
+            return
+
         import examples.simpleSQL as simpleSQL
 
         def test(s, num_expected_toks, expected_errloc=-1):
