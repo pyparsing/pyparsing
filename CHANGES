@@ -2,8 +2,33 @@
 Change Log
 ==========
 
-Version 3.0.0c1 - April, 2021
------------------------------
+Version 3.0.0b3 - August, 2021
+------------------------------
+- HUGE NEW FEATURE - Support for left-recursive parsers!
+  Following the method used in Python's PEG parser, pyparsing now supports
+  left-recursive parsers when left recursion is enabled.
+
+        import pyparsing as pp
+        pp.ParserElement.enableLeftRecursion()
+
+        # a common left-recursion definition
+        # define a list of items as 'list + item | item'
+        # BNF:
+        #   item_list := item_list item | item
+        #   item := word of alphas
+        item_list = pp.Forward()
+        item = pp.Word(pp.alphas)
+        item_list <<= item_list + item | item
+
+        item_list.runTests("""\
+            To parse or not to parse that is the question
+            """)
+  Prints:
+
+        ['To', 'parse', 'or', 'not', 'to', 'parse', 'that', 'is', 'the', 'question']
+
+  Great work contributed by Max Fischer!
+
 - Removed internal comparison of results values against b"", which
   raised a BytesWarning when run with `python -bb`. Fixes issue #271 reported
   by Florian Bruhin, thank you!

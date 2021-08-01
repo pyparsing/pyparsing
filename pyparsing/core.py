@@ -793,7 +793,7 @@ class ParserElement(ABC):
         ParserElement._parse = ParserElement._parseNoCache
 
     @staticmethod
-    def enable_left_recursion(cache_size_limit: Optional[int] = None, *, force=False):
+    def enableLeftRecursion(cache_size_limit: Optional[int] = None, *, force=False):
         """
         Enables "bounded recursion" parsing, which allows for both direct and indirect
         left-recursion. During parsing, left-recursive :class:`Forward` elements are
@@ -837,6 +837,9 @@ class ParserElement(ABC):
         else:
             raise NotImplementedError("Memo size of %s" % cache_size_limit)
         ParserElement._left_recursion_enabled = True
+
+    # PEP-8 synonym - harbinger of things to come
+    enable_left_recursion = enableLeftRecursion
 
     @staticmethod
     def enablePackrat(cache_size_limit=128, *, force=False):

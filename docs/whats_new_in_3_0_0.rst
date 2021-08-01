@@ -40,6 +40,39 @@ generator for documenting pyparsing parsers. You need to install
 
 (Contributed by Michael Milton)
 
+Support for left-recursive parsers
+----------------------------------
+Another significant enhancement in 3.0 is support for left-recursive (LR)
+parsers. Previously, given a left-recursive parser, pyparsing would
+recurse repeatedly until hitting the Python recursion limit. Following
+the methods of the Python PEG parser, pyparsing uses a variation of
+packrat parsing to detect and handle left-recursion during parsing.::
+
+    import pyparsing as pp
+    pp.ParserElement.enableLeftRecursion()
+
+    # a common left-recursion definition
+    # define a list of items as 'list + item | item'
+    # BNF:
+    #   item_list := item_list item | item
+    #   item := word of alphas
+    item_list = pp.Forward()
+    item = pp.Word(pp.alphas)
+    item_list <<= item_list + item | item
+
+    item_list.runTests("""\
+        To parse or not to parse that is the question
+        """)
+
+Prints::
+
+    ['To', 'parse', 'or', 'not', 'to', 'parse', 'that', 'is', 'the', 'question']
+
+See more examples in left_recursion.py in the pyparsing examples directory.
+
+(Contributed by Max Fischer)
+
+
 Refactored/added diagnostic flags
 ---------------------------------
 Expanded ``__diag__`` and ``__compat__`` to actual classes instead of
