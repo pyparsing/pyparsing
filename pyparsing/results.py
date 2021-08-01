@@ -564,7 +564,7 @@ class ParseResults:
         elif self._parent:
             par = self._parent()
 
-            def find_in_parent(self, sub):
+            def find_in_parent(sub):
                 return next(
                     (
                         k
