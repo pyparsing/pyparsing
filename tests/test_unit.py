@@ -72,7 +72,7 @@ def find_all_re_matches(patt, s):
     return ret
 
 
-class Test1_PyparsingTestInit(TestCase):
+class Test01_PyparsingTestInit(TestCase):
     def runTest(self):
         from pyparsing import (
             __version__ as pyparsingVersion,
@@ -87,7 +87,7 @@ class Test1_PyparsingTestInit(TestCase):
         print("Python version", sys.version)
 
 
-class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
+class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
     suite_context = None
     save_suite_context = None
 
@@ -7986,17 +7986,17 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
         self.assertEqual("(0-9)", repr(expr))
 
 
-class Test3_EnablePackratParsing(TestCase):
+class Test03_EnablePackratParsing(TestCase):
     def runTest(self):
-        Test2_WithoutPackrat.suite_context.restore()
+        Test02_WithoutPackrat.suite_context.restore()
 
         ParserElement.enablePackrat()
 
         # SAVE A NEW SUITE CONTEXT
-        Test2_WithoutPackrat.suite_context = ppt.reset_pyparsing_context().save()
+        Test02_WithoutPackrat.suite_context = ppt.reset_pyparsing_context().save()
 
 
-class Test4_WithPackrat(Test2_WithoutPackrat):
+class Test04_WithPackrat(Test02_WithoutPackrat):
     """
     rerun Test2 tests, now that packrat is enabled
     """
@@ -8016,18 +8016,18 @@ class Test4_WithPackrat(Test2_WithoutPackrat):
         )
 
 
-class Test5_EnableBoundedPackratParsing(TestCase):
+class Test05_EnableBoundedPackratParsing(TestCase):
     def runTest(self):
-        Test2_WithoutPackrat.suite_context = Test2_WithoutPackrat.save_suite_context
-        Test2_WithoutPackrat.suite_context.restore()
+        Test02_WithoutPackrat.suite_context = Test02_WithoutPackrat.save_suite_context
+        Test02_WithoutPackrat.suite_context.restore()
 
         ParserElement.enablePackrat(cache_size_limit=16)
 
         # SAVE A NEW SUITE CONTEXT
-        Test2_WithoutPackrat.suite_context = ppt.reset_pyparsing_context().save()
+        Test02_WithoutPackrat.suite_context = ppt.reset_pyparsing_context().save()
 
 
-class Test6_WithBoundedPackrat(Test2_WithoutPackrat):
+class Test06_WithBoundedPackrat(Test02_WithoutPackrat):
     """
     rerun Test2 tests, now with bounded packrat cache
     """
@@ -8047,18 +8047,18 @@ class Test6_WithBoundedPackrat(Test2_WithoutPackrat):
         )
 
 
-class Test7_EnableUnboundedPackratParsing(TestCase):
+class Test07_EnableUnboundedPackratParsing(TestCase):
     def runTest(self):
-        Test2_WithoutPackrat.suite_context = Test2_WithoutPackrat.save_suite_context
-        Test2_WithoutPackrat.suite_context.restore()
+        Test02_WithoutPackrat.suite_context = Test02_WithoutPackrat.save_suite_context
+        Test02_WithoutPackrat.suite_context.restore()
 
         ParserElement.enablePackrat(cache_size_limit=None)
 
         # SAVE A NEW SUITE CONTEXT
-        Test2_WithoutPackrat.suite_context = ppt.reset_pyparsing_context().save()
+        Test02_WithoutPackrat.suite_context = ppt.reset_pyparsing_context().save()
 
 
-class Test8_WithUnboundedPackrat(Test2_WithoutPackrat):
+class Test08_WithUnboundedPackrat(Test02_WithoutPackrat):
     """
     rerun Test2 tests, now with unbounded packrat cache
     """
@@ -8078,7 +8078,7 @@ class Test8_WithUnboundedPackrat(Test2_WithoutPackrat):
         )
 
 
-class Test9_WithLeftRecursionParsing(Test2_WithoutPackrat):
+class Test09_WithLeftRecursionParsing(Test02_WithoutPackrat):
     """
     rerun Test2 tests, now with unbounded left recursion cache
     """
@@ -8095,7 +8095,7 @@ class Test9_WithLeftRecursionParsing(Test2_WithoutPackrat):
         self.assertIsInstance(ParserElement.recursion_memos, pp.util.UnboundedMemo)
 
 
-class Test10_WithLeftRecursionParsingBoundedMemo(Test2_WithoutPackrat):
+class Test10_WithLeftRecursionParsingBoundedMemo(Test02_WithoutPackrat):
     """
     rerun Test2 tests, now with bounded left recursion cache
     """
@@ -8116,7 +8116,7 @@ class Test10_WithLeftRecursionParsingBoundedMemo(Test2_WithoutPackrat):
         self.assertGreater(ParserElement.recursion_memos._capacity * 3, 4)
 
 
-class TestLR1_Recursion(ppt.TestParseResultsAsserts, TestCase):
+class Test11_LR1_Recursion(ppt.TestParseResultsAsserts, TestCase):
     """
     Tests for recursive parsing
     """
@@ -8265,8 +8265,8 @@ class TestLR1_Recursion(ppt.TestParseResultsAsserts, TestCase):
 pp.ParserElement._packratEnabled = False
 pp.ParserElement._parse = pp.ParserElement._parseNoCache
 
-Test2_WithoutPackrat.suite_context = ppt.reset_pyparsing_context().save()
-Test2_WithoutPackrat.save_suite_context = ppt.reset_pyparsing_context().save()
+Test02_WithoutPackrat.suite_context = ppt.reset_pyparsing_context().save()
+Test02_WithoutPackrat.save_suite_context = ppt.reset_pyparsing_context().save()
 
 default_suite_context = ppt.reset_pyparsing_context().save()
 pp.ParserElement.enable_left_recursion()
