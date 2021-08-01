@@ -4,7 +4,7 @@ What's New in Pyparsing 3.0.0
 
 :author: Paul McGuire
 
-:date: December, 2020
+:date: August, 2021
 
 :abstract: This document summarizes the changes made
     in the 3.0.0 release of pyparsing.
