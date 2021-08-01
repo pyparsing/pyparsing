@@ -5,11 +5,13 @@ from .util import col
 
 
 class OnlyOnce:
-    """Wrapper for parse actions, to ensure they are only called once.
+    """
+    Wrapper for parse actions, to ensure they are only called once.
     """
 
     def __init__(self, methodCall):
         from .core import _trim_arity
+
         self.callable = _trim_arity(methodCall)
         self.called = False
 
@@ -21,14 +23,16 @@ class OnlyOnce:
         raise ParseException(s, l, "OnlyOnce obj called multiple times w/out reset")
 
     def reset(self):
-        """Allow the associated parse action to be called once more.
+        """
+        Allow the associated parse action to be called once more.
         """
 
         self.called = False
 
 
 def matchOnlyAtCol(n):
-    """Helper method for defining parse actions that require matching at
+    """
+    Helper method for defining parse actions that require matching at
     a specific column in the input text.
     """
 
@@ -40,7 +44,8 @@ def matchOnlyAtCol(n):
 
 
 def replaceWith(replStr):
-    """Helper method for common parse actions that simply return
+    """
+    Helper method for common parse actions that simply return
     a literal value.  Especially useful when used with
     :class:`transformString<ParserElement.transformString>` ().
 
@@ -56,7 +61,8 @@ def replaceWith(replStr):
 
 
 def removeQuotes(s, l, t):
-    """Helper parse action for removing quotation marks from parsed
+    """
+    Helper parse action for removing quotation marks from parsed
     quoted strings.
 
     Example::
@@ -72,7 +78,8 @@ def removeQuotes(s, l, t):
 
 
 def withAttribute(*args, **attrDict):
-    """Helper to create a validating parse action to be used with start
+    """
+    Helper to create a validating parse action to be used with start
     tags created with :class:`makeXMLTags` or
     :class:`makeHTMLTags`. Use ``withAttribute`` to qualify
     a starting tag with a required attribute value, to avoid false
@@ -153,7 +160,8 @@ withAttribute.ANY_VALUE = object()
 
 
 def withClass(classname, namespace=""):
-    """Simplified version of :class:`withAttribute` when
+    """
+    Simplified version of :class:`withAttribute` when
     matching on a div class - made difficult because ``class`` is
     a reserved word in Python.
 

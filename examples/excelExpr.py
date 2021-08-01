@@ -75,11 +75,20 @@ addOp = oneOf("+ -")
 numericLiteral = ppc.number
 operand = numericLiteral | funcCall | cellRange | cellRef
 arithExpr = infixNotation(
-    operand, [(multOp, 2, opAssoc.LEFT), (addOp, 2, opAssoc.LEFT),]
+    operand,
+    [
+        (multOp, 2, opAssoc.LEFT),
+        (addOp, 2, opAssoc.LEFT),
+    ],
 )
 
 textOperand = dblQuotedString | cellRef
-textExpr = infixNotation(textOperand, [("&", 2, opAssoc.LEFT),])
+textExpr = infixNotation(
+    textOperand,
+    [
+        ("&", 2, opAssoc.LEFT),
+    ],
+)
 
 expr <<= arithExpr | textExpr
 

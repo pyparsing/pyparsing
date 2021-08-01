@@ -170,9 +170,10 @@ def CORBA_IDL_BNF():
         moduleItem = (
             interfaceDef | exceptionDef | constDef | typedefDef | moduleDef
         ).setName("moduleItem")
-        moduleDef << module_ + identifier + lbrace + ZeroOrMore(
-            moduleItem
-        ) + rbrace + semi
+        (
+            moduleDef
+            << module_ + identifier + lbrace + ZeroOrMore(moduleItem) + rbrace + semi
+        )
 
         bnf = moduleDef | OneOrMore(moduleItem)
 

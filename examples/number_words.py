@@ -43,18 +43,32 @@ def define_numeric_word_range(s, vals):
 
 
 opt_dash = pp.Optional(pp.Suppress("-")).setName("optional '-'")
-opt_and = pp.Optional((pp.CaselessKeyword("and") | "-").suppress()).setName("optional 'and'")
+opt_and = pp.Optional((pp.CaselessKeyword("and") | "-").suppress()).setName(
+    "optional 'and'"
+)
 
 zero = define_numeric_word_range("zero oh", [0, 0])
-one_to_9 = define_numeric_word_range("one two three four five six seven eight nine", range(1, 9 + 1)).setName("1-9")
-eleven_to_19 = define_numeric_word_range("eleven twelve thirteen fourteen fifteen sixteen seventeen eighteen nineteen",
-                                       range(11, 19 + 1)).setName("eleven_to_19")
+one_to_9 = define_numeric_word_range(
+    "one two three four five six seven eight nine", range(1, 9 + 1)
+).setName("1-9")
+eleven_to_19 = define_numeric_word_range(
+    "eleven twelve thirteen fourteen fifteen sixteen seventeen eighteen nineteen",
+    range(11, 19 + 1),
+).setName("eleven_to_19")
 ten_to_19 = (define_numeric_word("ten", 10) | eleven_to_19).setName("ten_to_19")
 one_to_19 = (one_to_9 | ten_to_19).setName("1-19")
-tens = define_numeric_word_range("twenty thirty forty fifty sixty seventy eighty ninety", range(20, 90+1, 10))
-hundreds = (one_to_9 | eleven_to_19 | (tens + opt_dash + one_to_9)) + define_numeric_word("hundred", 100)
-one_to_99 = (one_to_19 | (tens + pp.Optional(opt_dash + one_to_9)).addParseAction(sum)).setName("1-99")
-one_to_999 = ((pp.Optional(hundreds + opt_and) + one_to_99 | hundreds).addParseAction(sum)).setName("1-999")
+tens = define_numeric_word_range(
+    "twenty thirty forty fifty sixty seventy eighty ninety", range(20, 90 + 1, 10)
+)
+hundreds = (
+    one_to_9 | eleven_to_19 | (tens + opt_dash + one_to_9)
+) + define_numeric_word("hundred", 100)
+one_to_99 = (
+    one_to_19 | (tens + pp.Optional(opt_dash + one_to_9)).addParseAction(sum)
+).setName("1-99")
+one_to_999 = (
+    (pp.Optional(hundreds + opt_and) + one_to_99 | hundreds).addParseAction(sum)
+).setName("1-999")
 thousands = one_to_999 + define_numeric_word("thousand", 1000)
 hundreds.setName("100s")
 thousands.setName("1000s")
@@ -62,6 +76,7 @@ thousands.setName("1000s")
 
 def multiply(t):
     return mul(*t)
+
 
 hundreds.addParseAction(multiply)
 thousands.addParseAction(multiply)

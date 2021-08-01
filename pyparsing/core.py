@@ -434,9 +434,10 @@ class ParserElement(ABC):
         return newself
 
     def setBreak(self, breakFlag=True):
-        """Method to invoke the Python pdb debugger when this element is
-           about to be parsed. Set ``breakFlag`` to ``True`` to enable, ``False`` to
-           disable.
+        """
+        Method to invoke the Python pdb debugger when this element is
+        about to be parsed. Set ``breakFlag`` to ``True`` to enable, ``False`` to
+        disable.
         """
         if breakFlag:
             _parseMethod = self._parse
@@ -549,17 +550,18 @@ class ParserElement(ABC):
         return self
 
     def setFailAction(self, fn):
-        """Define action to perform if parsing fails at this expression.
-           Fail acton fn is a callable function that takes the arguments
-           ``fn(s, loc, expr, err)`` where:
+        """
+        Define action to perform if parsing fails at this expression.
+        Fail acton fn is a callable function that takes the arguments
+        ``fn(s, loc, expr, err)`` where:
 
-           - s = string being parsed
-           - loc = location where expression match was attempted and failed
-           - expr = the parse expression that failed
-           - err = the exception thrown
+        - s = string being parsed
+        - loc = location where expression match was attempted and failed
+        - expr = the parse expression that failed
+        - err = the exception thrown
 
-           The function returns no value.  It may throw :class:`ParseFatalException`
-           if it is desired to stop parsing immediately."""
+        The function returns no value.  It may throw :class:`ParseFatalException`
+        if it is desired to stop parsing immediately."""
         self.failAction = fn
         return self
 
@@ -708,7 +710,9 @@ class ParserElement(ABC):
 
     # cache for left-recursion in Forward references
     recursion_lock = RLock()
-    recursion_memos = {}  # type: dict[tuple[int, Forward, bool], tuple[int, ParseResults | Exception]]
+    recursion_memos = (
+        {}
+    )  # type: dict[tuple[int, Forward, bool], tuple[int, ParseResults | Exception]]
 
     # argument cache for optimizing repeated calls when backtracking through recursive expressions
     packrat_cache = (
@@ -843,34 +847,35 @@ class ParserElement(ABC):
 
     @staticmethod
     def enablePackrat(cache_size_limit=128, *, force=False):
-        """Enables "packrat" parsing, which adds memoizing to the parsing logic.
-           Repeated parse attempts at the same string location (which happens
-           often in many complex grammars) can immediately return a cached value,
-           instead of re-executing parsing/validating code.  Memoizing is done of
-           both valid results and parsing exceptions.
+        """
+        Enables "packrat" parsing, which adds memoizing to the parsing logic.
+        Repeated parse attempts at the same string location (which happens
+        often in many complex grammars) can immediately return a cached value,
+        instead of re-executing parsing/validating code.  Memoizing is done of
+        both valid results and parsing exceptions.
 
-           Parameters:
+        Parameters:
 
-           - cache_size_limit - (default= ``128``) - if an integer value is provided
-             will limit the size of the packrat cache; if None is passed, then
-             the cache size will be unbounded; if 0 is passed, the cache will
-             be effectively disabled.
+        - cache_size_limit - (default= ``128``) - if an integer value is provided
+          will limit the size of the packrat cache; if None is passed, then
+          the cache size will be unbounded; if 0 is passed, the cache will
+          be effectively disabled.
 
-           This speedup may break existing programs that use parse actions that
-           have side-effects.  For this reason, packrat parsing is disabled when
-           you first import pyparsing.  To activate the packrat feature, your
-           program must call the class method :class:`ParserElement.enablePackrat`.
-           For best results, call ``enablePackrat()`` immediately after
-           importing pyparsing.
+        This speedup may break existing programs that use parse actions that
+        have side-effects.  For this reason, packrat parsing is disabled when
+        you first import pyparsing.  To activate the packrat feature, your
+        program must call the class method :class:`ParserElement.enablePackrat`.
+        For best results, call ``enablePackrat()`` immediately after
+        importing pyparsing.
 
-           Example::
+        Example::
 
-               import pyparsing
-               pyparsing.ParserElement.enablePackrat()
+            import pyparsing
+            pyparsing.ParserElement.enablePackrat()
 
-           Packrat parsing works similar but not identical to Bounded Recursion parsing,
-           thus the two cannot be used together. Use ``force=True`` to disable any
-           previous, conflicting settings.
+        Packrat parsing works similar but not identical to Bounded Recursion parsing,
+        thus the two cannot be used together. Use ``force=True`` to disable any
+        previous, conflicting settings.
         """
         if force:
             ParserElement.disable_memoization()
@@ -1414,7 +1419,7 @@ class ParserElement(ABC):
         Note that ``expr[..., n]`` and ``expr[m, n]``do not raise an exception
         if more than ``n`` ``expr``s exist in the input stream.  If this behavior is
         desired, then write ``expr[..., n] + ~expr``.
-       """
+        """
 
         # convert single arg keys to tuples
         try:
@@ -1875,7 +1880,16 @@ class ParserElement(ABC):
 
     def create_diagram(expr: "ParserElement", output_html, vertical=3, **kwargs):
         """
+        Create a railroad diagram for the parser.
 
+        Parameters:
+            - output_html (str or file-like object) - output target for generated
+              diagram HTML
+            - vertical (int) - threshold for formatting multiple alternatives vertically
+              instead of horizontally (default=3)
+
+        Additional diagram-formatting keyword arguments can also be included;
+        see railroad.Diagram class.
         """
 
         try:
@@ -1948,7 +1962,8 @@ class Token(ParserElement):
 
 
 class Empty(Token):
-    """An empty token, will always match.
+    """
+    An empty token, will always match.
     """
 
     def __init__(self):
@@ -1958,7 +1973,8 @@ class Empty(Token):
 
 
 class NoMatch(Token):
-    """A token that will never match.
+    """
+    A token that will never match.
     """
 
     def __init__(self):
@@ -1972,7 +1988,8 @@ class NoMatch(Token):
 
 
 class Literal(Token):
-    """Token to exactly match a specified string.
+    """
+    Token to exactly match a specified string.
 
     Example::
 
@@ -2025,7 +2042,8 @@ ParserElement._literalStringClass = Literal
 
 
 class Keyword(Token):
-    """Token to exactly match a specified string as a keyword, that is,
+    """
+    Token to exactly match a specified string as a keyword, that is,
     it must be immediately followed by a non-keyword character.  Compare
     with :class:`Literal`:
 
@@ -2123,13 +2141,15 @@ class Keyword(Token):
 
     @staticmethod
     def setDefaultKeywordChars(chars):
-        """Overrides the default characters used by :class:`Keyword` expressions.
+        """
+        Overrides the default characters used by :class:`Keyword` expressions.
         """
         Keyword.DEFAULT_KEYWORD_CHARS = chars
 
 
 class CaselessLiteral(Literal):
-    """Token to match a specified string, ignoring case of letters.
+    """
+    Token to match a specified string, ignoring case of letters.
     Note: the matched results will always be in the case of the given
     match string, NOT the case of the input text.
 
@@ -3036,7 +3056,8 @@ class StringStart(_PositionToken):
 
 
 class StringEnd(_PositionToken):
-    """Matches if current position is at the end of the parse string
+    """
+    Matches if current position is at the end of the parse string
     """
 
     def __init__(self):
@@ -4010,20 +4031,20 @@ class Located(ParseElementEnhance):
         [18, ['lkkjj'], 23]
 
     """
+
     def parseImpl(self, instring, loc, doActions=True):
         start = loc
-        loc, tokens = self.expr._parse(
-            instring, start, doActions, callPreParse=False
-        )
+        loc, tokens = self.expr._parse(instring, start, doActions, callPreParse=False)
         ret_tokens = ParseResults([start, tokens, loc])
-        ret_tokens['locn_start'] = start
-        ret_tokens['value'] = tokens
-        ret_tokens['locn_end'] = loc
+        ret_tokens["locn_start"] = start
+        ret_tokens["value"] = tokens
+        ret_tokens["locn_end"] = loc
         return loc, ret_tokens
 
 
 class NotAny(ParseElementEnhance):
-    """Lookahead to disallow matching with the given parse expression.
+    """
+    Lookahead to disallow matching with the given parse expression.
     ``NotAny`` does *not* advance the parsing position within the
     input string, it only verifies that the specified parse expression
     does *not* match at the current position.  Also, ``NotAny`` does
@@ -4127,7 +4148,8 @@ class _MultipleMatch(ParseElementEnhance):
 
 
 class OneOrMore(_MultipleMatch):
-    """Repetition of one or more of the given expression.
+    """
+    Repetition of one or more of the given expression.
 
     Parameters:
      - expr - expression that must match one or more times
@@ -4157,7 +4179,8 @@ class OneOrMore(_MultipleMatch):
 
 
 class ZeroOrMore(_MultipleMatch):
-    """Optional repetition of zero or more of the given expression.
+    """
+    Optional repetition of zero or more of the given expression.
 
     Parameters:
      - ``expr`` - expression that must match zero or more times
@@ -4191,7 +4214,8 @@ class _NullToken:
 
 
 class Optional(ParseElementEnhance):
-    """Optional matching of the given expression.
+    """
+    Optional matching of the given expression.
 
     Parameters:
      - ``expr`` - expression that must match zero or more times
@@ -4255,7 +4279,8 @@ class Optional(ParseElementEnhance):
 
 
 class SkipTo(ParseElementEnhance):
-    """Token for skipping over all undefined text until the matched
+    """
+    Token for skipping over all undefined text until the matched
     expression is found.
 
     Parameters:
@@ -4380,7 +4405,8 @@ class SkipTo(ParseElementEnhance):
 
 
 class Forward(ParseElementEnhance):
-    """Forward declaration of an expression to be defined later -
+    """
+    Forward declaration of an expression to be defined later -
     used for recursive grammars, such as algebraic infix notation.
     When the expression is known, it is assigned to the ``Forward``
     variable using the ``'<<'`` operator.

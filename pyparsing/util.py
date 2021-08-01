@@ -38,16 +38,17 @@ class __config_flags:
 
 @lru_cache(maxsize=128)
 def col(loc, strg):
-    """Returns current column within a string, counting newlines as line separators.
-   The first column is number 1.
+    """
+    Returns current column within a string, counting newlines as line separators.
+    The first column is number 1.
 
-   Note: the default parsing behavior is to expand tabs in the input string
-   before starting the parsing process.  See
-   :class:`ParserElement.parseString` for more
-   information on parsing strings containing ``<TAB>`` s, and suggested
-   methods to maintain a consistent view of the parsed string, the parse
-   location, and line and column positions within the parsed string.
-   """
+    Note: the default parsing behavior is to expand tabs in the input string
+    before starting the parsing process.  See
+    :class:`ParserElement.parseString` for more
+    information on parsing strings containing ``<TAB>`` s, and suggested
+    methods to maintain a consistent view of the parsed string, the parse
+    location, and line and column positions within the parsed string.
+    """
     s = strg
     return 1 if 0 < loc < len(s) and s[loc - 1] == "\n" else loc - s.rfind("\n", 0, loc)
 
@@ -68,8 +69,9 @@ def lineno(loc, strg):
 
 @lru_cache(maxsize=128)
 def line(loc, strg):
-    """Returns the line of text containing loc within a string, counting newlines as line separators.
-       """
+    """
+    Returns the line of text containing loc within a string, counting newlines as line separators.
+    """
     lastCR = strg.rfind("\n", 0, loc)
     nextCR = strg.find("\n", loc)
     return strg[lastCR + 1 : nextCR] if nextCR >= 0 else strg[lastCR + 1 :]
@@ -126,6 +128,7 @@ class LRUMemo:
     The memo tracks retained items by their access order; once `capacity` items
     are retained, the least recently used item is discarded.
     """
+
     def __init__(self, capacity):
         self._capacity = capacity
         self._active = {}
@@ -161,6 +164,7 @@ class UnboundedMemo(dict):
     """
     A memoizing mapping that retains all deleted items
     """
+
     def __delitem__(self, key):
         pass
 

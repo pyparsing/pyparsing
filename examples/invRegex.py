@@ -237,10 +237,11 @@ def count(gen):
 
 
 def invert(regex):
-    r"""Call this routine as a generator to return all the strings that
-       match the input regular expression.
-           for s in invert(r"[A-Z]{3}\d{3}"):
-               print s
+    r"""
+    Call this routine as a generator to return all the strings that
+    match the input regular expression.
+        for s in invert(r"[A-Z]{3}\d{3}"):
+            print s
     """
     invReGenerator = GroupEmitter(parser().parseString(regex)).makeGenerator()
     return invReGenerator()

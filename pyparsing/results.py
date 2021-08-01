@@ -69,6 +69,7 @@ class ParseResults:
         - month: 12
         - year: 1999
     """
+
     _null_values = (None, "", [], ())
 
     __slots__ = [
@@ -83,42 +84,42 @@ class ParseResults:
 
     class List(list):
         """
-            Simple wrapper class to distinguish parsed list results that should be preserved
-            as actual Python lists, instead of being converted to :class:`ParseResults`:
+        Simple wrapper class to distinguish parsed list results that should be preserved
+        as actual Python lists, instead of being converted to :class:`ParseResults`:
 
-                LBRACK, RBRACK = map(pp.Suppress, "[]")
-                element = pp.Forward()
-                item = ppc.integer
-                element_list = LBRACK + pp.delimitedList(element) + RBRACK
+            LBRACK, RBRACK = map(pp.Suppress, "[]")
+            element = pp.Forward()
+            item = ppc.integer
+            element_list = LBRACK + pp.delimitedList(element) + RBRACK
 
-                # add parse actions to convert from ParseResults to actual Python collection types
-                def as_python_list(t):
-                    return pp.ParseResults.List(t.asList())
-                element_list.addParseAction(as_python_list)
+            # add parse actions to convert from ParseResults to actual Python collection types
+            def as_python_list(t):
+                return pp.ParseResults.List(t.asList())
+            element_list.addParseAction(as_python_list)
 
-                element <<= item | element_list
+            element <<= item | element_list
 
-                element.runTests('''
-                    100
-                    [2,3,4]
-                    [[2, 1],3,4]
-                    [(2, 1),3,4]
-                    (2,3,4)
-                    ''', postParse=lambda s, r: (r[0], type(r[0])))
-
-            prints:
-
+            element.runTests('''
                 100
-                (100, <class 'int'>)
-
                 [2,3,4]
-                ([2, 3, 4], <class 'list'>)
-
                 [[2, 1],3,4]
-                ([[2, 1], 3, 4], <class 'list'>)
+                [(2, 1),3,4]
+                (2,3,4)
+                ''', postParse=lambda s, r: (r[0], type(r[0])))
 
-            (Used internally by :class:`Group` when `aslist=True`.)
-            """
+        prints:
+
+            100
+            (100, <class 'int'>)
+
+            [2,3,4]
+            ([2, 3, 4], <class 'list'>)
+
+            [[2, 1],3,4]
+            ([[2, 1], 3, 4], <class 'list'>)
+
+        (Used internally by :class:`Group` when `aslist=True`.)
+        """
 
         def __new__(cls, contained=None):
             if contained is None:
@@ -143,7 +144,11 @@ class ParseResults:
         if toklist is None:
             self._toklist = []
         elif isinstance(toklist, (list, _generator_type)):
-            self._toklist = [toklist[:]] if isinstance(toklist, ParseResults.List) else list(toklist)
+            self._toklist = (
+                [toklist[:]]
+                if isinstance(toklist, ParseResults.List)
+                else list(toklist)
+            )
         else:
             self._toklist = [toklist]
         self._tokdict = dict()
@@ -252,8 +257,9 @@ class ParseResults:
         return ((k, self[k]) for k in self.keys())
 
     def haskeys(self):
-        """Since ``keys()`` returns an iterator, this method is helpful in bypassing
-           code that looks for the existence of any defined results names."""
+        """
+        Since ``keys()`` returns an iterator, this method is helpful in bypassing
+        code that looks for the existence of any defined results names."""
         return bool(self._tokdict)
 
     def pop(self, *args, **kwargs):

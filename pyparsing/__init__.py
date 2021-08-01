@@ -1,6 +1,6 @@
 # module pyparsing.py
 #
-# Copyright (c) 2003-2020  Paul T. McGuire
+# Copyright (c) 2003-2021  Paul T. McGuire
 #
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
@@ -103,7 +103,7 @@ __version__ = (
         __version_info__.releaseLevel == "final"
     ]
 )
-__versionTime__ = "24 December 2020 05:11 UTC"
+__versionTime__ = "1 August 2021 17:56 UTC"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 from .util import *

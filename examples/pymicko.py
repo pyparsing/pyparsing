@@ -273,9 +273,10 @@ exshared = ExceptionSharedData()
 
 
 class SemanticException(Exception):
-    """Exception for semantic errors found during parsing, similar to ParseException.
-       Introduced because ParseException is used internally in pyparsing and custom
-       messages got lost and replaced by pyparsing's generic errors.
+    """
+    Exception for semantic errors found during parsing, similar to ParseException.
+    Introduced because ParseException is used internally in pyparsing and custom
+    messages got lost and replaced by pyparsing's generic errors.
     """
 
     def __init__(self, message, print_location=True):
@@ -317,12 +318,13 @@ class SymbolTableEntry:
     """Class which represents one symbol table entry."""
 
     def __init__(self, sname="", skind=0, stype=0, sattr=None, sattr_name="None"):
-        """Initialization of symbol table entry.
-           sname - symbol name
-           skind - symbol kind
-           stype - symbol type
-           sattr - symbol attribute
-           sattr_name - symbol attribute name (used only for table display)
+        """
+        Initialization of symbol table entry.
+        sname - symbol name
+        skind - symbol kind
+        stype - symbol type
+        sattr - symbol attribute
+        sattr_name - symbol attribute name (used only for table display)
         """
         self.name = sname
         self.kind = skind
@@ -363,8 +365,9 @@ class SymbolTable:
         self.shared = shared
 
     def error(self, text=""):
-        """Symbol table error exception. It should happen only if index is out of range while accessing symbol table.
-           This exception is not handled by the compiler, so as to allow traceback printing
+        """
+        Symbol table error exception. It should happen only if index is out of range while accessing symbol table.
+        This exception is not handled by the compiler, so as to allow traceback printing
         """
         if text == "":
             raise Exception("Symbol table index out of range")
@@ -429,11 +432,12 @@ class SymbolTable:
             )
 
     def insert_symbol(self, sname, skind, stype):
-        """Inserts new symbol at the end of the symbol table.
-           Returns symbol index
-           sname - symbol name
-           skind - symbol kind
-           stype - symbol type
+        """
+        Inserts new symbol at the end of the symbol table.
+        Returns symbol index
+        sname - symbol name
+        skind - symbol kind
+        stype - symbol type
         """
         self.table.append(SymbolTableEntry(sname, skind, stype))
         self.table_len = len(self.table)
@@ -453,11 +457,12 @@ class SymbolTable:
         skind=list(SharedData.KINDS.keys()),
         stype=list(SharedData.TYPES.keys()),
     ):
-        """Searches for symbol, from the end to the beginning.
-           Returns symbol index or None
-           sname - symbol name
-           skind - symbol kind (one kind, list of kinds, or None) default: any kind
-           stype - symbol type (or None) default: any type
+        """
+        Searches for symbol, from the end to the beginning.
+        Returns symbol index or None
+        sname - symbol name
+        skind - symbol kind (one kind, list of kinds, or None) default: any kind
+        stype - symbol type (or None) default: any type
         """
         skind = skind if isinstance(skind, list) else [skind]
         stype = stype if isinstance(stype, list) else [stype]
@@ -470,12 +475,13 @@ class SymbolTable:
         return None
 
     def insert_id(self, sname, skind, skinds, stype):
-        """Inserts a new identifier at the end of the symbol table, if possible.
-           Returns symbol index, or raises an exception if the symbol already exists
-           sname   - symbol name
-           skind   - symbol kind
-           skinds  - symbol kinds to check for
-           stype   - symbol type
+        """
+        Inserts a new identifier at the end of the symbol table, if possible.
+        Returns symbol index, or raises an exception if the symbol already exists
+        sname   - symbol name
+        skind   - symbol kind
+        skinds  - symbol kinds to check for
+        stype   - symbol type
         """
         index = self.lookup_symbol(sname, skinds)
         if index == None:
@@ -526,8 +532,9 @@ class SymbolTable:
         return index
 
     def insert_constant(self, cname, ctype):
-        """Inserts a constant (or returns index if the constant already exists)
-           Additionally, checks for range.
+        """
+        Inserts a constant (or returns index if the constant already exists)
+        Additionally, checks for range.
         """
         index = self.lookup_symbol(cname, stype=ctype)
         if index == None:
@@ -558,10 +565,11 @@ class SymbolTable:
         return same
 
     def same_type_as_argument(self, index, function_index, argument_number):
-        """Returns True if index and function's argument are of the same type
-           index - index in symbol table
-           function_index - function's index in symbol table
-           argument_number - # of function's argument
+        """
+        Returns True if index and function's argument are of the same type
+        index - index in symbol table
+        function_index - function's index in symbol table
+        argument_number - # of function's argument
         """
         try:
             same = (
@@ -680,8 +688,9 @@ class CodeGenerator:
         self.symtab = symtab
 
     def error(self, text):
-        """Compiler error exception. It should happen only if something is wrong with compiler.
-           This exception is not handled by the compiler, so as to allow traceback printing
+        """
+        Compiler error exception. It should happen only if something is wrong with compiler.
+        This exception is not handled by the compiler, so as to allow traceback printing
         """
         raise Exception("Compiler error: %s" % text)
 
@@ -720,10 +729,11 @@ class CodeGenerator:
             self.free_register(index)
 
     def label(self, name, internal=False, definition=False):
-        """Generates label name (helper function)
-           name - label name
-           internal - boolean value, adds "@" prefix to label
-           definition - boolean value, adds ":" suffix to label
+        """
+        Generates label name (helper function)
+        name - label name
+        internal - boolean value, adds "@" prefix to label
+        definition - boolean value, adds ":" suffix to label
         """
         return "{}{}{}".format(
             self.internal if internal else "",
@@ -789,15 +799,18 @@ class CodeGenerator:
             self.text("\t\t\t")
 
     def newline_text(self, text, indent=False):
-        """Inserts a newline and text, optionally with indentation (helper function)"""
+        """
+        Inserts a newline and text, optionally with indentation (helper function)
+        """
         self.newline(indent)
         self.text(text)
 
     def newline_label(self, name, internal=False, definition=False):
-        """Inserts a newline and a label (helper function)
-           name - label name
-           internal - boolean value, adds "@" prefix to label
-           definition - boolean value, adds ":" suffix to label
+        """
+        Inserts a newline and a label (helper function)
+        name - label name
+        internal - boolean value, adds "@" prefix to label
+        definition - boolean value, adds ":" suffix to label
         """
         self.newline_text(
             self.label(
@@ -813,14 +826,17 @@ class CodeGenerator:
         self.newline_text("WORD\t1", True)
 
     def arithmetic_mnemonic(self, op_name, op_type):
-        """Generates an arithmetic instruction mnemonic"""
+        """
+        Generates an arithmetic instruction mnemonic
+        """
         return self.OPERATIONS[op_name] + self.OPSIGNS[op_type]
 
     def arithmetic(self, operation, operand1, operand2, operand3=None):
-        """Generates an arithmetic instruction
-           operation - one of supporetd operations
-           operandX - index in symbol table or text representation of operand
-           First two operands are input, third one is output
+        """
+        Generates an arithmetic instruction
+        operation - one of supporetd operations
+        operandX - index in symbol table or text representation of operand
+        First two operands are input, third one is output
         """
         if isinstance(operand1, int):
             output_type = self.symtab.get_type(operand1)
@@ -851,9 +867,10 @@ class CodeGenerator:
         return output
 
     def relop_code(self, relop, operands_type):
-        """Returns code for relational operator
-           relop - relational operator
-           operands_type - int or unsigned
+        """
+        Returns code for relational operator
+        relop - relational operator
+        operands_type - int or unsigned
         """
         code = self.RELATIONAL_DICT[relop]
         offset = (
@@ -864,10 +881,11 @@ class CodeGenerator:
         return code + offset
 
     def jump(self, relcode, opposite, label):
-        """Generates a jump instruction
-           relcode  - relational operator code
-           opposite - generate normal or opposite jump
-           label    - jump label
+        """
+        Generates a jump instruction
+        relcode  - relational operator code
+        opposite - generate normal or opposite jump
+        label    - jump label
         """
         jump = (
             self.OPPOSITE_JUMPS[relcode]
@@ -877,15 +895,17 @@ class CodeGenerator:
         self.newline_text("{}\t{}".format(jump, label), True)
 
     def unconditional_jump(self, label):
-        """Generates an unconditional jump instruction
-           label    - jump label
+        """
+        Generates an unconditional jump instruction
+        label    - jump label
         """
         self.newline_text("JMP \t{}".format(label), True)
 
     def move(self, operand1, operand2):
-        """Generates a move instruction
-           If the output operand (opernad2) is a working register, sets it's type
-           operandX - index in symbol table or text representation of operand
+        """
+        Generates a move instruction
+        If the output operand (opernad2) is a working register, sets it's type
+        operandX - index in symbol table or text representation of operand
         """
         if isinstance(operand1, int):
             output_type = self.symtab.get_type(operand1)
@@ -908,8 +928,9 @@ class CodeGenerator:
         self.newline_text("POP \t%s" % self.symbol(operand), True)
 
     def compare(self, operand1, operand2):
-        """Generates a compare instruction
-           operandX - index in symbol table
+        """
+        Generates a compare instruction
+        operandX - index in symbol table
         """
         typ = self.symtab.get_type(operand1)
         self.free_if_register(operand1)
@@ -944,9 +965,10 @@ class CodeGenerator:
         self.newline_text("RET", True)
 
     def function_call(self, function, arguments):
-        """Generates code for a function call
-           function - function index in symbol table
-           arguments - list of arguments (indexes in symbol table)
+        """
+        Generates code for a function call
+        function - function index in symbol table
+        arguments - list of arguments (indexes in symbol table)
         """
         # push each argument to stack
         for arg in arguments:

@@ -162,7 +162,10 @@ arith_expr = infixNotation(
 
 comparisonop = oneOf("< <= > >= != = <> LT GT LE GE EQ NE")
 comp_expr = infixNotation(
-    arith_expr, [(comparisonop, 2, opAssoc.LEFT, EvalComparisonOp),]
+    arith_expr,
+    [
+        (comparisonop, 2, opAssoc.LEFT, EvalComparisonOp),
+    ],
 )
 
 

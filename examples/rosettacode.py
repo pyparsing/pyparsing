@@ -53,13 +53,41 @@ char = pp.Regex(r"'\\?.'")
 expr = pp.infixNotation(
     identifier | integer | char,
     [
-        (pp.oneOf("+ - !"), 1, pp.opAssoc.RIGHT,),
-        (pp.oneOf("* / %"), 2, pp.opAssoc.LEFT,),
-        (pp.oneOf("+ -"), 2, pp.opAssoc.LEFT,),
-        (pp.oneOf("< <= > >="), 2, pp.opAssoc.LEFT,),
-        (pp.oneOf("== !="), 2, pp.opAssoc.LEFT,),
-        (pp.oneOf("&&"), 2, pp.opAssoc.LEFT,),
-        (pp.oneOf("||"), 2, pp.opAssoc.LEFT,),
+        (
+            pp.oneOf("+ - !"),
+            1,
+            pp.opAssoc.RIGHT,
+        ),
+        (
+            pp.oneOf("* / %"),
+            2,
+            pp.opAssoc.LEFT,
+        ),
+        (
+            pp.oneOf("+ -"),
+            2,
+            pp.opAssoc.LEFT,
+        ),
+        (
+            pp.oneOf("< <= > >="),
+            2,
+            pp.opAssoc.LEFT,
+        ),
+        (
+            pp.oneOf("== !="),
+            2,
+            pp.opAssoc.LEFT,
+        ),
+        (
+            pp.oneOf("&&"),
+            2,
+            pp.opAssoc.LEFT,
+        ),
+        (
+            pp.oneOf("||"),
+            2,
+            pp.opAssoc.LEFT,
+        ),
     ],
 )
 

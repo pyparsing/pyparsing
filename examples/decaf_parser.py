@@ -118,19 +118,51 @@ rvalue = constant | call | read_integer | read_line | new_statement | new_array 
 arith_expr = pp.infixNotation(
     rvalue,
     [
-        ("-", 1, pp.opAssoc.RIGHT,),
-        (pp.oneOf("* / %"), 2, pp.opAssoc.LEFT,),
-        (pp.oneOf("+ -"), 2, pp.opAssoc.LEFT,),
+        (
+            "-",
+            1,
+            pp.opAssoc.RIGHT,
+        ),
+        (
+            pp.oneOf("* / %"),
+            2,
+            pp.opAssoc.LEFT,
+        ),
+        (
+            pp.oneOf("+ -"),
+            2,
+            pp.opAssoc.LEFT,
+        ),
     ],
 )
 comparison_expr = pp.infixNotation(
     arith_expr,
     [
-        ("!", 1, pp.opAssoc.RIGHT,),
-        (pp.oneOf("< > <= >="), 2, pp.opAssoc.LEFT,),
-        (pp.oneOf("== !="), 2, pp.opAssoc.LEFT,),
-        (pp.oneOf("&&"), 2, pp.opAssoc.LEFT,),
-        (pp.oneOf("||"), 2, pp.opAssoc.LEFT,),
+        (
+            "!",
+            1,
+            pp.opAssoc.RIGHT,
+        ),
+        (
+            pp.oneOf("< > <= >="),
+            2,
+            pp.opAssoc.LEFT,
+        ),
+        (
+            pp.oneOf("== !="),
+            2,
+            pp.opAssoc.LEFT,
+        ),
+        (
+            pp.oneOf("&&"),
+            2,
+            pp.opAssoc.LEFT,
+        ),
+        (
+            pp.oneOf("||"),
+            2,
+            pp.opAssoc.LEFT,
+        ),
     ],
 )
 expr <<= (

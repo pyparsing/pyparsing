@@ -18,9 +18,11 @@ item_list = pp.Forward()
 item = pp.Word(pp.alphas)
 item_list <<= item_list + item | item
 
-item_list.runTests("""\
+item_list.runTests(
+    """\
     To parse or not to parse that is the question
-    """)
+    """
+)
 
 # Define a parser for an expression that can be an identifier, a quoted string, or a
 # function call that starts with an expression
@@ -35,11 +37,14 @@ LPAR, RPAR = map(pp.Suppress, "()")
 expr = pp.Forward()
 string = pp.quotedString
 function_call = expr + pp.Group(LPAR + pp.Optional(pp.delimitedList(expr)) + RPAR)
-name = pp.Word(pp.alphas + '_', pp.alphanums + '_')
+name = pp.Word(pp.alphas + "_", pp.alphanums + "_")
 # left recursion - call starts with an expr
 expr <<= function_call | string | name | pp.Group(LPAR + expr + RPAR)
 
-expr.runTests("""\
+expr.runTests(
+    """\
     print("Hello, World!")
     (lookup_function("fprintf"))(stderr, "Hello, World!")
-    """, fullDump=False)
+    """,
+    fullDump=False,
+)

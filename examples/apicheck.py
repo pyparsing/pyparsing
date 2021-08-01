@@ -25,7 +25,11 @@ def apiProc(name, numargs):
 # with FollowedBy allows us to quickly rule out non-api calls while scanning,
 # since all of the api calls begin with a "["
 apiRef = FollowedBy("[") + MatchFirst(
-    [apiProc("procname1", 2), apiProc("procname2", 1), apiProc("procname3", 2),]
+    [
+        apiProc("procname1", 2),
+        apiProc("procname2", 1),
+        apiProc("procname3", 2),
+    ]
 )
 
 test = """[ procname1  $par1 $par2 ]

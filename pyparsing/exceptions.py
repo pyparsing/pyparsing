@@ -95,10 +95,11 @@ class ParseBaseException(Exception):
         return cls(pe.pstr, pe.loc, pe.msg, pe.parserElement)
 
     def __getattr__(self, aname):
-        """supported attributes by name are:
-            - lineno - returns the line number of the exception text
-            - col - returns the column number of the exception text
-            - line - returns the line containing the exception text
+        """
+        Supported attributes by name are:
+        - lineno - returns the line number of the exception text
+        - col - returns the column number of the exception text
+        - line - returns the line containing the exception text
         """
         if aname == "lineno":
             return lineno(self.loc, self.pstr)
@@ -127,8 +128,9 @@ class ParseBaseException(Exception):
         return str(self)
 
     def markInputline(self, markerString=">!<"):
-        """Extracts the exception line from the input string, and marks
-           the location of the exception with a special symbol.
+        """
+        Extracts the exception line from the input string, and marks
+        the location of the exception with a special symbol.
         """
         line_str = self.line
         line_column = self.column - 1
@@ -206,12 +208,15 @@ class ParseException(ParseBaseException):
 
 
 class ParseFatalException(ParseBaseException):
-    """user-throwable exception thrown when inconsistent parse content
-       is found; stops all parsing immediately"""
+    """
+    user-throwable exception thrown when inconsistent parse content
+    is found; stops all parsing immediately
+    """
 
 
 class ParseSyntaxException(ParseFatalException):
-    """just like :class:`ParseFatalException`, but thrown internally
+    """
+    just like :class:`ParseFatalException`, but thrown internally
     when an :class:`ErrorStop<And._ErrorStop>` ('-' operator) indicates
     that parsing is to stop immediately because an unbacktrackable
     syntax error has been found.

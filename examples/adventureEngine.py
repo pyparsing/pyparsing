@@ -182,7 +182,14 @@ class MoveCommand(Command):
 
     def _doCommand(self, player):
         rm = player.room
-        nextRoom = rm.doors[{"N": 0, "S": 1, "E": 2, "W": 3,}[self.direction]]
+        nextRoom = rm.doors[
+            {
+                "N": 0,
+                "S": 1,
+                "E": 2,
+                "W": 3,
+            }[self.direction]
+        ]
         if nextRoom:
             player.moveTo(nextRoom)
         else:
@@ -636,8 +643,10 @@ library = rooms["e"]
 patio = rooms["f"]
 
 # create items
-itemNames = """sword.diamond.apple.flower.coin.shovel.book.mirror.telescope.gold bar""".split(
-    "."
+itemNames = (
+    """sword.diamond.apple.flower.coin.shovel.book.mirror.telescope.gold bar""".split(
+        "."
+    )
 )
 for itemName in itemNames:
     Item(itemName)

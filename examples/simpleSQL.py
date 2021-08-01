@@ -56,7 +56,11 @@ whereCondition = Group(
 
 whereExpression = infixNotation(
     whereCondition,
-    [(NOT, 1, opAssoc.RIGHT), (AND, 2, opAssoc.LEFT), (OR, 2, opAssoc.LEFT),],
+    [
+        (NOT, 1, opAssoc.RIGHT),
+        (AND, 2, opAssoc.LEFT),
+        (OR, 2, opAssoc.LEFT),
+    ],
 )
 
 # define the grammar
