@@ -6,7 +6,7 @@ from .util import _bslash, _flatten, _escapeRegexRangeChars
 #
 # global helpers
 #
-def delimitedList(expr, delim=",", combine=False, *, allowTrailingDelim=False):
+def delimited_list(expr, delim=",", combine=False, *, allowTrailingDelim=False):
     """Helper to define a delimited list of expressions - the delimiter
     defaults to ','. By default, the list elements and delimiters can
     have intervening whitespace, and comments, but this can be
@@ -36,12 +36,12 @@ def delimitedList(expr, delim=",", combine=False, *, allowTrailingDelim=False):
         delimited_list_expr += Optional(delim)
 
     if combine:
-        return Combine(delimited_list_expr).setName(dlName)
+        return Combine(delimited_list_expr).set_name(dlName)
     else:
-        return delimited_list_expr.setName(dlName)
+        return delimited_list_expr.set_name(dlName)
 
 
-def countedArray(expr, intExpr=None):
+def counted_array(expr, intExpr=None):
     """Helper to define a counted list of expressions.
 
     This helper defines a pattern of the form::
@@ -89,12 +89,12 @@ def countedArray(expr, intExpr=None):
         intExpr = Word(nums).setParseAction(lambda t: int(t[0]))
     else:
         intExpr = intExpr.copy()
-    intExpr.setName("arrayLen")
+    intExpr.set_name("arrayLen")
     intExpr.addParseAction(countFieldParseAction, callDuringTry=True)
-    return (intExpr + arrayExpr).setName("(len) " + str(expr) + "...")
+    return (intExpr + arrayExpr).set_name("(len) " + str(expr) + "...")
 
 
-def matchPreviousLiteral(expr):
+def match_previous_literal(expr):
     """Helper to define an expression that is indirectly defined from
     the tokens matched in a previous expression, that is, it looks for
     a 'repeat' of a previous expression.  For example::
@@ -123,11 +123,11 @@ def matchPreviousLiteral(expr):
             rep << Empty()
 
     expr.addParseAction(copyTokenToRepeater, callDuringTry=True)
-    rep.setName("(prev) " + str(expr))
+    rep.set_name("(prev) " + str(expr))
     return rep
 
 
-def matchPreviousExpr(expr):
+def match_previous_expr(expr):
     """Helper to define an expression that is indirectly defined from
     the tokens matched in a previous expression, that is, it looks for
     a 'repeat' of a previous expression.  For example::
@@ -157,11 +157,11 @@ def matchPreviousExpr(expr):
         rep.setParseAction(mustMatchTheseTokens, callDuringTry=True)
 
     expr.addParseAction(copyTokenToRepeater, callDuringTry=True)
-    rep.setName("(prev) " + str(expr))
+    rep.set_name("(prev) " + str(expr))
     return rep
 
 
-def oneOf(strs, caseless=False, useRegex=True, asKeyword=False):
+def one_of(strs, caseless=False, useRegex=True, asKeyword=False):
     """Helper to quickly define a set of alternative :class:`Literal` s,
     and makes sure to do longest-first testing when there is a conflict,
     regardless of the input order, but returns
@@ -241,9 +241,9 @@ def oneOf(strs, caseless=False, useRegex=True, asKeyword=False):
             if len(symbols) == len("".join(symbols)):
                 return Regex(
                     "[%s]" % "".join(_escapeRegexRangeChars(sym) for sym in symbols)
-                ).setName(" | ".join(symbols))
+                ).set_name(" | ".join(symbols))
             else:
-                return Regex("|".join(re.escape(sym) for sym in symbols)).setName(
+                return Regex("|".join(re.escape(sym) for sym in symbols)).set_name(
                     " | ".join(symbols)
                 )
         except sre_constants.error:
@@ -252,12 +252,12 @@ def oneOf(strs, caseless=False, useRegex=True, asKeyword=False):
             )
 
     # last resort, just use MatchFirst
-    return MatchFirst(parseElementClass(sym) for sym in symbols).setName(
+    return MatchFirst(parseElementClass(sym) for sym in symbols).set_name(
         " | ".join(symbols)
     )
 
 
-def dictOf(key, value):
+def dict_of(key, value):
     """Helper to easily and clearly define a dictionary by specifying
     the respective patterns for the key and value.  Takes care of
     defining the :class:`Dict`, :class:`ZeroOrMore`, and
@@ -297,7 +297,7 @@ def dictOf(key, value):
     return Dict(OneOrMore(Group(key + value)))
 
 
-def originalTextFor(expr, asString=True):
+def original_text_for(expr, asString=True):
     """Helper to return the original, untokenized text for a given
     expression.  Useful to restore the parsed fields of an HTML start
     tag into the raw tag text itself, or to revert separate tokens with
@@ -384,7 +384,7 @@ def locatedExpr(expr):
     )
 
 
-def nestedExpr(opener="(", closer=")", content=None, ignoreExpr=quotedString.copy()):
+def nested_expr(opener="(", closer=")", content=None, ignoreExpr=quotedString.copy()):
     """Helper method for defining nested lists enclosed in opening and
     closing delimiters (``"("`` and ``")"`` are the default).
 
@@ -497,7 +497,7 @@ def nestedExpr(opener="(", closer=")", content=None, ignoreExpr=quotedString.cop
         )
     else:
         ret <<= Group(Suppress(opener) + ZeroOrMore(ret | content) + Suppress(closer))
-    ret.setName("nested %s%s expression" % (opener, closer))
+    ret.set_name("nested %s%s expression" % (opener, closer))
     return ret
 
 
@@ -543,7 +543,7 @@ def _makeTags(tagStr, xml, suppress_LT=Suppress("<"), suppress_GT=Suppress(">"))
         )
     closeTag = Combine(Literal("</") + tagStr + ">", adjacent=False)
 
-    openTag.setName("<%s>" % resname)
+    openTag.set_name("<%s>" % resname)
     # add start<tagname> results name in parse action now that ungrouped names are not reported at two levels
     openTag.addParseAction(
         lambda t: t.__setitem__(
@@ -552,14 +552,14 @@ def _makeTags(tagStr, xml, suppress_LT=Suppress("<"), suppress_GT=Suppress(">"))
     )
     closeTag = closeTag(
         "end" + "".join(resname.replace(":", " ").title().split())
-    ).setName("</%s>" % resname)
+    ).set_name("</%s>" % resname)
     openTag.tag = resname
     closeTag.tag = resname
     openTag.tag_body = SkipTo(closeTag())
     return openTag, closeTag
 
 
-def makeHTMLTags(tagStr):
+def make_html_tags(tagStr):
     """Helper to construct opening and closing tag expressions for HTML,
     given a tag name. Matches tags in either upper or lower case,
     attributes with namespaces and with quoted or unquoted values.
@@ -584,7 +584,7 @@ def makeHTMLTags(tagStr):
     return _makeTags(tagStr, False)
 
 
-def makeXMLTags(tagStr):
+def make_xml_tags(tagStr):
     """Helper to construct opening and closing tag expressions for XML,
     given a tag name. Matches tags only in the given upper/lower case.
 
@@ -593,28 +593,28 @@ def makeXMLTags(tagStr):
     return _makeTags(tagStr, True)
 
 
-anyOpenTag, anyCloseTag = makeHTMLTags(
-    Word(alphas, alphanums + "_:").setName("any tag")
+any_open_tag, any_close_tag = make_html_tags(
+    Word(alphas, alphanums + "_:").set_name("any tag")
 )
 
 
 _htmlEntityMap = dict(zip("gt lt amp nbsp quot apos".split(), "><& \"'"))
-commonHTMLEntity = Regex(
+common_html_entity = Regex(
     "&(?P<entity>" + "|".join(_htmlEntityMap.keys()) + ");"
-).setName("common HTML entity")
+).set_name("common HTML entity")
 
 
-def replaceHTMLEntity(t):
+def replace_html_entity(t):
     """Helper parser action to replace common HTML entities with their special characters"""
     return _htmlEntityMap.get(t.entity)
 
 
-class opAssoc(Enum):
+class OpAssoc(Enum):
     LEFT = 1
     RIGHT = 2
 
 
-def infixNotation(baseExpr, opList, lpar=Suppress("("), rpar=Suppress(")")):
+def infix_notation(baseExpr, opList, lpar=Suppress("("), rpar=Suppress(")")):
     """Helper method for constructing grammars of expressions made up of
     operators working in a precedence hierarchy.  Operators may be unary
     or binary, left- or right-associative.  Parse actions can also be
@@ -711,7 +711,7 @@ def infixNotation(baseExpr, opList, lpar=Suppress("("), rpar=Suppress(")")):
             raise ValueError("operator must indicate right or left associativity")
 
         termName = "%s term" % opExpr if arity < 3 else "%s%s term" % opExpr
-        thisExpr = Forward().setName(termName)
+        thisExpr = Forward().set_name(termName)
         if rightLeftAssoc is opAssoc.LEFT:
             if arity == 1:
                 matchExpr = _FB(lastExpr + opExpr) + Group(
@@ -754,7 +754,7 @@ def infixNotation(baseExpr, opList, lpar=Suppress("("), rpar=Suppress(")")):
                 matchExpr.setParseAction(*pa)
             else:
                 matchExpr.setParseAction(pa)
-        thisExpr <<= matchExpr.setName(termName) | lastExpr
+        thisExpr <<= matchExpr.set_name(termName) | lastExpr
         lastExpr = thisExpr
     ret <<= lastExpr
     return ret
@@ -875,9 +875,9 @@ def indentedBlock(blockStatementExpr, indentStack, indent=True, backup_stacks=[]
             indentStack.pop()
 
     NL = OneOrMore(LineEnd().setWhitespaceChars("\t ").suppress())
-    INDENT = (Empty() + Empty().setParseAction(checkSubIndent)).setName("INDENT")
-    PEER = Empty().setParseAction(checkPeerIndent).setName("")
-    UNDENT = Empty().setParseAction(checkUnindent).setName("UNINDENT")
+    INDENT = (Empty() + Empty().setParseAction(checkSubIndent)).set_name("INDENT")
+    PEER = Empty().setParseAction(checkPeerIndent).set_name("")
+    UNDENT = Empty().setParseAction(checkUnindent).set_name("UNINDENT")
     if indent:
         smExpr = Group(
             Optional(NL)
@@ -898,7 +898,7 @@ def indentedBlock(blockStatementExpr, indentStack, indent=True, backup_stacks=[]
     )
     smExpr.setFailAction(lambda a, b, c, d: reset_stack())
     blockStatementExpr.ignore(_bslash + LineEnd())
-    return smExpr.setName("indented block")
+    return smExpr.set_name("indented block")
 
 
 class IndentedBlock(ParseElementEnhance):
@@ -932,30 +932,55 @@ class IndentedBlock(ParseElementEnhance):
 
 
 # it's easy to get these comment structures wrong - they're very common, so may as well make them available
-cStyleComment = Combine(Regex(r"/\*(?:[^*]|\*(?!/))*") + "*/").setName(
+c_style_comment = Combine(Regex(r"/\*(?:[^*]|\*(?!/))*") + "*/").set_name(
     "C style comment"
 )
 "Comment of the form ``/* ... */``"
 
-htmlComment = Regex(r"<!--[\s\S]*?-->").setName("HTML comment")
+html_comment = Regex(r"<!--[\s\S]*?-->").set_name("HTML comment")
 "Comment of the form ``<!-- ... -->``"
 
-restOfLine = Regex(r".*").leaveWhitespace().setName("rest of line")
-dblSlashComment = Regex(r"//(?:\\\n|[^\n])*").setName("// comment")
+rest_of_line = Regex(r".*").leave_whitespace().set_name("rest of line")
+dbl_slash_comment = Regex(r"//(?:\\\n|[^\n])*").set_name("// comment")
 "Comment of the form ``// ... (to end of line)``"
 
-cppStyleComment = Combine(
-    Regex(r"/\*(?:[^*]|\*(?!/))*") + "*/" | dblSlashComment
-).setName("C++ style comment")
+cpp_style_comment = Combine(
+    Regex(r"/\*(?:[^*]|\*(?!/))*") + "*/" | dbl_slash_comment
+).set_name("C++ style comment")
 "Comment of either form :class:`cStyleComment` or :class:`dblSlashComment`"
 
-javaStyleComment = cppStyleComment
+java_style_comment = cpp_style_comment
 "Same as :class:`cppStyleComment`"
 
-pythonStyleComment = Regex(r"#.*").setName("Python style comment")
+python_style_comment = Regex(r"#.*").set_name("Python style comment")
 "Comment of the form ``# ... (to end of line)``"
 
 
 # build list of built-in expressions, for future reference if a global default value
 # gets updated
 _builtin_exprs = [v for v in vars().values() if isinstance(v, ParserElement)]
+
+
+# pre-PEP8 compatible names
+delimitedList = delimited_list
+countedArray = counted_array
+matchPreviousLiteral = match_previous_literal
+matchPreviousExpr = match_previous_expr
+oneOf = one_of
+dictOf = dict_of
+originalTextFor = original_text_for
+nestedExpr = nested_expr
+makeHTMLTags = make_html_tags
+makeXMLTags = make_xml_tags
+anyOpenTag, anyCloseTag = any_open_tag, any_close_tag
+commonHTMLEntity = common_html_entity
+replaceHTMLEntity = replace_html_entity
+opAssoc = OpAssoc
+infixNotation = infix_notation
+cStyleComment = c_style_comment
+htmlComment = html_comment
+restOfLine = rest_of_line
+dblSlashComment = dbl_slash_comment
+cppStyleComment = cpp_style_comment
+javaStyleComment = java_style_comment
+pythonStyleComment = python_style_comment
