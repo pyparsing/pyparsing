@@ -474,7 +474,7 @@ class ParseResults:
                 out.append(str(item))
         return out
 
-    def asList(self):
+    def as_list(self):
         """
         Returns the parse results as a nested list of matching tokens, all converted to strings.
 
@@ -494,7 +494,7 @@ class ParseResults:
             for res in self._toklist
         ]
 
-    def asDict(self):
+    def as_dict(self):
         """
         Returns the named parse results as a nested dictionary.
 
@@ -534,7 +534,7 @@ class ParseResults:
         ret._name = self._name
         return ret
 
-    def getName(self):
+    def get_name(self):
         r"""
         Returns the results name for this token expression. Useful when several
         different expressions might match at a particular location.
@@ -575,7 +575,7 @@ class ParseResults:
                     None,
                 )
 
-            return find_in_parent(self) if par else None
+            return find_in_parent(name) if par else None
         elif (
             len(self) == 1
             and len(self._tokdict) == 1
@@ -743,6 +743,10 @@ class ParseResults:
         if name is not None:
             ret = cls([ret], name=name)
         return ret
+
+    asList = as_list
+    asDict = as_dict
+    getName = get_name
 
 
 MutableMapping.register(ParseResults)
