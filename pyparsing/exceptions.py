@@ -182,6 +182,8 @@ class ParseBaseException(Exception):
         """
         return self.explain_exception(self, depth)
 
+    mark_input_line = markInputline
+
 
 class ParseException(ParseBaseException):
     """
@@ -221,20 +223,6 @@ class ParseSyntaxException(ParseFatalException):
     that parsing is to stop immediately because an unbacktrackable
     syntax error has been found.
     """
-
-
-# ~ class ReparseException(ParseBaseException):
-# ~ """Experimental class - parse actions can raise this exception to cause
-# ~ pyparsing to reparse the input string:
-# ~ - with a modified input string, and/or
-# ~ - with a modified start location
-# ~ Set the values of the ReparseException in the constructor, and raise the
-# ~ exception in a parse action to cause pyparsing to use the new string/location.
-# ~ Setting the values as None causes no change to be made.
-# ~ """
-# ~ def __init_( self, newstring, restartLoc ):
-# ~ self.newParseText = newstring
-# ~ self.reparseLoc = restartLoc
 
 
 class RecursiveGrammarException(Exception):
