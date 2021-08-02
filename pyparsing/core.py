@@ -4882,7 +4882,7 @@ class Suppress(TokenConverter):
         return self
 
 
-def traceParseAction(f):
+def trace_parse_action(f):
     """Decorator for debugging parse actions.
 
     When the parse action is called, this decorator will print
@@ -4931,10 +4931,10 @@ def traceParseAction(f):
 
 # convenience constants for positional expressions
 empty = Empty().set_name("empty")
-lineStart = LineStart().set_name("lineStart")
-lineEnd = LineEnd().set_name("lineEnd")
-stringStart = StringStart().set_name("stringStart")
-stringEnd = StringEnd().set_name("stringEnd")
+line_start = LineStart().set_name("line_start")
+line_end = LineEnd().set_name("line_end")
+string_start = StringStart().set_name("string_start")
+string_end = StringEnd().set_name("string_end")
 
 _escapedPunc = Word(_bslash, r"\[]-*.$+^?()~ ", exact=2).set_parse_action(
     lambda s, l, t: t[0][1]
@@ -4994,7 +4994,7 @@ def srange(s):
         return ""
 
 
-def tokenMap(func, *args):
+def token_map(func, *args):
     """Helper to define a parse action by mapping a function to all
     elements of a :class:`ParseResults` list. If any additional args are passed,
     they are forwarded to the given function as additional arguments
@@ -5064,9 +5064,15 @@ punc8bit = srange(r"[\0xa1-\0xbf\0xd7\0xf7]")
 _builtin_exprs = [v for v in vars().values() if isinstance(v, ParserElement)]
 
 # backward compatibility names
+tokenMap = token_map
 conditionAsParseAction = condition_as_parse_action
 nullDebugAction = null_debug_action
 sglQuotedString = sgl_quoted_string
 dblQuotedString = dbl_quoted_string
 quotedString = quoted_string
 unicodeString = unicode_string
+lineStart = line_start
+lineEnd = line_end
+stringStart = string_start
+stringEnd = string_end
+traceParseAction = trace_parse_action
