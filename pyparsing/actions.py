@@ -30,20 +30,20 @@ class OnlyOnce:
         self.called = False
 
 
-def matchOnlyAtCol(n):
+def match_only_at_col(n):
     """
     Helper method for defining parse actions that require matching at
     a specific column in the input text.
     """
 
-    def verifyCol(strg, locn, toks):
+    def verify_col(strg, locn, toks):
         if col(locn, strg) != n:
             raise ParseException(strg, locn, "matched token not at column {}".format(n))
 
-    return verifyCol
+    return verify_col
 
 
-def replaceWith(replStr):
+def replace_with(repl_str):
     """
     Helper method for common parse actions that simply return
     a literal value.  Especially useful when used with
@@ -57,10 +57,10 @@ def replaceWith(replStr):
 
         OneOrMore(term).parseString("324 234 N/A 234") # -> [324, 234, nan, 234]
     """
-    return lambda s, l, t: [replStr]
+    return lambda s, l, t: [repl_str]
 
 
-def removeQuotes(s, l, t):
+def remove_quotes(s, l, t):
     """
     Helper parse action for removing quotation marks from parsed
     quoted strings.
@@ -77,7 +77,7 @@ def removeQuotes(s, l, t):
     return t[0][1:-1]
 
 
-def withAttribute(*args, **attrDict):
+def with_attribute(*args, **attr_dict):
     """
     Helper to create a validating parse action to be used with start
     tags created with :class:`makeXMLTags` or
@@ -137,14 +137,14 @@ def withAttribute(*args, **attrDict):
     if args:
         attrs = args[:]
     else:
-        attrs = attrDict.items()
+        attrs = attr_dict.items()
     attrs = [(k, v) for k, v in attrs]
 
     def pa(s, l, tokens):
         for attrName, attrValue in attrs:
             if attrName not in tokens:
                 raise ParseException(s, l, "no matching attribute " + attrName)
-            if attrValue != withAttribute.ANY_VALUE and tokens[attrName] != attrValue:
+            if attrValue != with_attribute.ANY_VALUE and tokens[attrName] != attrValue:
                 raise ParseException(
                     s,
                     l,
@@ -156,10 +156,10 @@ def withAttribute(*args, **attrDict):
     return pa
 
 
-withAttribute.ANY_VALUE = object()
+with_attribute.ANY_VALUE = object()
 
 
-def withClass(classname, namespace=""):
+def with_class(classname, namespace=""):
     """
     Simplified version of :class:`withAttribute` when
     matching on a div class - made difficult because ``class`` is
@@ -197,3 +197,11 @@ def withClass(classname, namespace=""):
     """
     classattr = "{}:class".format(namespace) if namespace else "class"
     return withAttribute(**{classattr: classname})
+
+
+# pre-PEP8 compatibility symbols
+replaceWith = replace_with
+removeQuotes = remove_quotes
+withAttribute = with_attribute
+withClass = with_class
+matchOnlyAtCol = match_only_at_col
