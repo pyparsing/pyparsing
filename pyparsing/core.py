@@ -161,7 +161,19 @@ def enable_all_warnings():
 del __config_flags
 
 # build list of single arg builtins, that can be used as parse actions
-_single_arg_builtins = {sum, len, sorted, reversed, list, tuple, set, any, all, min, max}
+_single_arg_builtins = {
+    sum,
+    len,
+    sorted,
+    reversed,
+    list,
+    tuple,
+    set,
+    any,
+    all,
+    min,
+    max,
+}
 
 _generatorType = types.GeneratorType
 
@@ -279,7 +291,9 @@ def _default_start_debug_action(instring, loc, expr, cache_hit=False):
     )
 
 
-def _default_success_debug_action(instring, startloc, endloc, expr, toks, cache_hit=False):
+def _default_success_debug_action(
+    instring, startloc, endloc, expr, toks, cache_hit=False
+):
     cache_hit_str = "*" if cache_hit else ""
     print("{}Matched {} -> {}".format(cache_hit_str, expr, toks.asList()))
 
@@ -841,7 +855,6 @@ class ParserElement(ABC):
         else:
             raise NotImplementedError("Memo size of %s" % cache_size_limit)
         ParserElement._left_recursion_enabled = True
-
 
     @staticmethod
     def enable_packrat(cache_size_limit=128, *, force=False):
@@ -4102,9 +4115,7 @@ class NotAny(ParseElementEnhance):
     def __init__(self, expr):
         super().__init__(expr)
         # self.leave_whitespace()
-        self.skipWhitespace = (
-            False  # do NOT use self.leave_whitespace(), don't want to propagate to exprs
-        )
+        self.skipWhitespace = False  # do NOT use self.leave_whitespace(), don't want to propagate to exprs
         self.mayReturnEmpty = True
         self.errmsg = "Found unwanted token, " + str(self.expr)
 
