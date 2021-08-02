@@ -161,7 +161,7 @@ def enable_all_warnings():
 del __config_flags
 
 # build list of single arg builtins, that can be used as parse actions
-singleArgBuiltins = [sum, len, sorted, reversed, list, tuple, set, any, all, min, max]
+_single_arg_builtins = {sum, len, sorted, reversed, list, tuple, set, any, all, min, max}
 
 _generatorType = types.GeneratorType
 
@@ -178,7 +178,7 @@ def _trim_arity(func, maxargs=2):
     """decorator to trim function calls to match the arity of the target"""
     global _trim_arity_call_line
 
-    if func in singleArgBuiltins:
+    if func in _single_arg_builtins:
         return lambda s, l, t: func(t)
 
     limit = 0
@@ -236,7 +236,7 @@ def _trim_arity(func, maxargs=2):
     return wrapper
 
 
-def conditionAsParseAction(fn, message=None, fatal=False):
+def condition_as_parse_action(fn, message=None, fatal=False):
     """
     Function to convert a simple predicate function that returns ``True`` or ``False``
     into a parse action. Can be used in places when a parse action is required
@@ -262,7 +262,7 @@ def conditionAsParseAction(fn, message=None, fatal=False):
     return pa
 
 
-def _defaultStartDebugAction(instring, loc, expr, cache_hit=False):
+def _default_start_debug_action(instring, loc, expr, cache_hit=False):
     cache_hit_str = "*" if cache_hit else ""
     print(
         (
@@ -279,17 +279,17 @@ def _defaultStartDebugAction(instring, loc, expr, cache_hit=False):
     )
 
 
-def _defaultSuccessDebugAction(instring, startloc, endloc, expr, toks, cache_hit=False):
+def _default_success_debug_action(instring, startloc, endloc, expr, toks, cache_hit=False):
     cache_hit_str = "*" if cache_hit else ""
     print("{}Matched {} -> {}".format(cache_hit_str, expr, toks.asList()))
 
 
-def _defaultExceptionDebugAction(instring, loc, expr, exc, cache_hit=False):
+def _default_exception_debug_action(instring, loc, expr, exc, cache_hit=False):
     cache_hit_str = "*" if cache_hit else ""
     print("{}{} raised: {}".format(cache_hit_str, type(exc).__name__, exc))
 
 
-def nullDebugAction(*args):
+def null_debug_action(*args):
     """'Do-nothing' debug action, to suppress debugging output during parsing."""
 
 
@@ -300,7 +300,7 @@ class ParserElement(ABC):
     verbose_stacktrace = False
 
     @staticmethod
-    def setDefaultWhitespaceChars(chars):
+    def set_default_whitespace_chars(chars):
         r"""
         Overrides the default whitespace chars
 
@@ -321,7 +321,7 @@ class ParserElement(ABC):
                 expr.whiteChars = chars
 
     @staticmethod
-    def inlineLiteralsUsing(cls):
+    def inline_literals_using(cls):
         """
         Set class to be used for inclusion of string literals into a parser.
 
@@ -399,7 +399,7 @@ class ParserElement(ABC):
             cpy.whiteChars = ParserElement.DEFAULT_WHITE_CHARS
         return cpy
 
-    def setResultsName(self, name, listAllMatches=False):
+    def set_results_name(self, name, listAllMatches=False):
         """
         Define name for referencing matching tokens as a nested attribute
         of the returned parse results.
@@ -433,7 +433,7 @@ class ParserElement(ABC):
         newself.modalResults = not listAllMatches
         return newself
 
-    def setBreak(self, breakFlag=True):
+    def set_break(self, breakFlag=True):
         """
         Method to invoke the Python pdb debugger when this element is
         about to be parsed. Set ``breakFlag`` to ``True`` to enable, ``False`` to
@@ -456,7 +456,7 @@ class ParserElement(ABC):
                 self._parse = self._parse._originalParseMethod
         return self
 
-    def setParseAction(self, *fns, **kwargs):
+    def set_parse_action(self, *fns, **kwargs):
         """
         Define one or more actions to perform when successfully matching parse element definition.
         Parse action fn is a callable method with 0-3 arguments, called as ``fn(s, loc, toks)`` ,
@@ -506,7 +506,7 @@ class ParserElement(ABC):
             self.callDuringTry = kwargs.get("callDuringTry", False)
         return self
 
-    def addParseAction(self, *fns, **kwargs):
+    def add_parse_action(self, *fns, **kwargs):
         """
         Add one or more parse actions to expression's list of parse actions. See :class:`setParseAction`.
 
@@ -516,7 +516,7 @@ class ParserElement(ABC):
         self.callDuringTry = self.callDuringTry or kwargs.get("callDuringTry", False)
         return self
 
-    def addCondition(self, *fns, **kwargs):
+    def add_condition(self, *fns, **kwargs):
         """Add a boolean predicate function to expression's list of parse actions. See
         :class:`setParseAction` for function call signatures. Unlike ``setParseAction``,
         functions passed to ``addCondition`` need to return boolean success/fail of the condition.
@@ -549,7 +549,7 @@ class ParserElement(ABC):
         self.callDuringTry = self.callDuringTry or kwargs.get("callDuringTry", False)
         return self
 
-    def setFailAction(self, fn):
+    def set_fail_action(self, fn):
         """
         Define action to perform if parsing fails at this expression.
         Fail acton fn is a callable function that takes the arguments
@@ -692,7 +692,7 @@ class ParserElement(ABC):
 
         return loc, retTokens
 
-    def tryParse(self, instring, loc, raise_fatal=False):
+    def try_parse(self, instring, loc, raise_fatal=False):
         try:
             return self._parse(instring, loc, doActions=False)[0]
         except ParseFatalException:
@@ -700,7 +700,7 @@ class ParserElement(ABC):
                 raise
             raise ParseException(instring, loc, self.errmsg, self)
 
-    def canParseNext(self, instring, loc):
+    def can_parse_next(self, instring, loc):
         try:
             self.tryParse(instring, loc)
         except (ParseException, IndexError):
@@ -772,7 +772,7 @@ class ParserElement(ABC):
     _parse = _parseNoCache
 
     @staticmethod
-    def resetCache():
+    def reset_cache():
         ParserElement.packrat_cache.clear()
         ParserElement.packrat_cache_stats[:] = [0] * len(
             ParserElement.packrat_cache_stats
@@ -797,7 +797,7 @@ class ParserElement(ABC):
         ParserElement._parse = ParserElement._parseNoCache
 
     @staticmethod
-    def enableLeftRecursion(cache_size_limit: Optional[int] = None, *, force=False):
+    def enable_left_recursion(cache_size_limit: Optional[int] = None, *, force=False):
         """
         Enables "bounded recursion" parsing, which allows for both direct and indirect
         left-recursion. During parsing, left-recursive :class:`Forward` elements are
@@ -842,11 +842,9 @@ class ParserElement(ABC):
             raise NotImplementedError("Memo size of %s" % cache_size_limit)
         ParserElement._left_recursion_enabled = True
 
-    # PEP-8 synonym - harbinger of things to come
-    enable_left_recursion = enableLeftRecursion
 
     @staticmethod
-    def enablePackrat(cache_size_limit=128, *, force=False):
+    def enable_packrat(cache_size_limit=128, *, force=False):
         """
         Enables "packrat" parsing, which adds memoizing to the parsing logic.
         Repeated parse attempts at the same string location (which happens
@@ -889,7 +887,7 @@ class ParserElement(ABC):
                 ParserElement.packrat_cache = _FifoCache(cache_size_limit)
             ParserElement._parse = ParserElement._parseCache
 
-    def parseString(self, instring, parseAll=False):
+    def parse_string(self, instring, parseAll=False):
         """
         Parse a string with respect to the parser definition. This function is intended as the primary interface to the
         client code.
@@ -955,7 +953,7 @@ class ParserElement(ABC):
         else:
             return tokens
 
-    def scanString(self, instring, maxMatches=_MAX_INT, overlap=False):
+    def scan_string(self, instring, maxMatches=_MAX_INT, overlap=False):
         """
         Scan the input string for expression matches.  Each match will return the
         matching tokens, start location, and end location.  May be called with optional
@@ -1027,7 +1025,7 @@ class ParserElement(ABC):
                 # catch and re-raise exception from here, clears out pyparsing internal stack trace
                 raise exc.with_traceback(None)
 
-    def transformString(self, instring):
+    def transform_string(self, instring):
         """
         Extension to :class:`scanString`, to modify matching text with modified tokens that may
         be returned from a parse action.  To use ``transformString``, define a grammar and
@@ -1073,7 +1071,7 @@ class ParserElement(ABC):
                 # catch and re-raise exception from here, clears out pyparsing internal stack trace
                 raise exc.with_traceback(None)
 
-    def searchString(self, instring, maxMatches=_MAX_INT):
+    def search_string(self, instring, maxMatches=_MAX_INT):
         """
         Another extension to :class:`scanString`, simplifying the access to the tokens found
         to match the given parse expression.  May be called with optional
@@ -1467,7 +1465,7 @@ class ParserElement(ABC):
         """
         return Suppress(self)
 
-    def ignoreWhitespace(self, recursive=True):
+    def ignore_whitespace(self, recursive=True):
         """
         Enables the skipping of whitespace before matching the characters in the
         :class:`ParserElement`'s defined pattern.
@@ -1477,7 +1475,7 @@ class ParserElement(ABC):
         self.skipWhitespace = True
         return self
 
-    def leaveWhitespace(self, recursive=True):
+    def leave_whitespace(self, recursive=True):
         """
         Disables the skipping of whitespace before matching the characters in the
         :class:`ParserElement`'s defined pattern.  This is normally only used internally by
@@ -1488,7 +1486,7 @@ class ParserElement(ABC):
         self.skipWhitespace = False
         return self
 
-    def setWhitespaceChars(self, chars, copy_defaults=False):
+    def set_whitespace_chars(self, chars, copy_defaults=False):
         """
         Overrides the default whitespace chars
         """
@@ -1497,7 +1495,7 @@ class ParserElement(ABC):
         self.copyDefaultWhiteChars = copy_defaults
         return self
 
-    def parseWithTabs(self):
+    def parse_with_tabs(self):
         """
         Overrides default behavior to expand ``<TAB>`` s to spaces before parsing the input string.
         Must be called before ``parseString`` when the input grammar contains elements that
@@ -1532,7 +1530,7 @@ class ParserElement(ABC):
             self.ignoreExprs.append(Suppress(other.copy()))
         return self
 
-    def setDebugActions(self, startAction, successAction, exceptionAction):
+    def set_debug_actions(self, startAction, successAction, exceptionAction):
         """
         Customize display of debugging messages while doing pattern matching::
 
@@ -1544,14 +1542,14 @@ class ParserElement(ABC):
            should have the signature ``fn(input_string, location, expression, exception)``
         """
         self.debugActions = (
-            startAction or _defaultStartDebugAction,
-            successAction or _defaultSuccessDebugAction,
-            exceptionAction or _defaultExceptionDebugAction,
+            startAction or _default_start_debug_action,
+            successAction or _default_success_debug_action,
+            exceptionAction or _default_exception_debug_action,
         )
         self.debug = True
         return self
 
-    def setDebug(self, flag=True):
+    def set_debug(self, flag=True):
         """
         Enable display of debugging messages while doing pattern matching.
         Set ``flag`` to ``True`` to enable, ``False`` to disable.
@@ -1590,16 +1588,16 @@ class ParserElement(ABC):
         """
         if flag:
             self.setDebugActions(
-                _defaultStartDebugAction,
-                _defaultSuccessDebugAction,
-                _defaultExceptionDebugAction,
+                _default_start_debug_action,
+                _default_success_debug_action,
+                _default_exception_debug_action,
             )
         else:
             self.debug = False
         return self
 
     @property
-    def defaultName(self):
+    def default_name(self):
         if self._defaultName is None:
             self._defaultName = self._generateDefaultName()
         return self._defaultName
@@ -1610,7 +1608,7 @@ class ParserElement(ABC):
         Child classes must define this method, which defines how the ``defaultName`` is set.
         """
 
-    def setName(self, name):
+    def set_name(self, name):
         """
         Define name for this expression, makes debugging and exception messages clearer.
         Example::
@@ -1626,7 +1624,7 @@ class ParserElement(ABC):
     @property
     def name(self):
         # This will use a user-defined name if available, but otherwise defaults back to the auto-generated name
-        return self.customName if self.customName is not None else self.defaultName
+        return self.customName if self.customName is not None else self.default_name
 
     def __str__(self):
         return self.name
@@ -1653,7 +1651,7 @@ class ParserElement(ABC):
         """
         self._checkRecursion([])
 
-    def parseFile(self, file_or_filename, encoding="utf-8", parseAll=False):
+    def parse_file(self, file_or_filename, encoding="utf-8", parseAll=False):
         """
         Execute the parse expression on the given file or filename.
         If a filename is specified (instead of a file object),
@@ -1705,7 +1703,7 @@ class ParserElement(ABC):
         except ParseBaseException:
             return False
 
-    def runTests(
+    def run_tests(
         self,
         tests,
         parseAll=True,
@@ -1906,6 +1904,34 @@ class ParserElement(ABC):
         else:
             # we were passed a file-like object, just write to it
             output_html.write(railroad_to_html(railroad))
+
+    setDefaultWhitespaceChars = set_default_whitespace_chars
+    inlineLiteralsUsing = inline_literals_using
+    setResultsName = set_results_name
+    setBreak = set_break
+    setParseAction = set_parse_action
+    addParseAction = add_parse_action
+    addCondition = add_condition
+    setFailAction = set_fail_action
+    tryParse = try_parse
+    canParseNext = can_parse_next
+    resetCache = reset_cache
+    enableLeftRecursion = enable_left_recursion
+    enablePackrat = enable_packrat
+    parseString = parse_string
+    scanString = scan_string
+    searchString = search_string
+    transformString = transform_string
+    setWhitespaceChars = set_whitespace_chars
+    parseWithTabs = parse_with_tabs
+    setDebugActions = set_debug_actions
+    setDebug = set_debug
+    defaultName = default_name
+    setName = set_name
+    parseFile = parse_file
+    runTests = run_tests
+    ignoreWhitespace = ignore_whitespace
+    leaveWhitespace = leave_whitespace
 
 
 class _PendingSkip(ParserElement):
@@ -2905,11 +2931,11 @@ class White(Token):
     def __init__(self, ws=" \t\r\n", min=1, max=0, exact=0):
         super().__init__()
         self.matchWhite = ws
-        self.setWhitespaceChars(
+        self.set_whitespace_chars(
             "".join(c for c in self.whiteChars if c not in self.matchWhite),
             copy_defaults=True,
         )
-        # self.leaveWhitespace()
+        # self.leave_whitespace()
         self.mayReturnEmpty = True
         self.errmsg = "Expected " + self.name
 
@@ -3021,7 +3047,7 @@ class LineEnd(_PositionToken):
 
     def __init__(self):
         super().__init__()
-        self.setWhitespaceChars(
+        self.set_whitespace_chars(
             ParserElement.DEFAULT_WHITE_CHARS.replace("\n", ""), copy_defaults=False
         )
         self.errmsg = "Expected end of line"
@@ -3164,29 +3190,29 @@ class ParseExpression(ParserElement):
         self._defaultName = None
         return self
 
-    def leaveWhitespace(self, recursive=True):
+    def leave_whitespace(self, recursive=True):
         """
-        Extends ``leaveWhitespace`` defined in base class, and also invokes ``leaveWhitespace`` on
+        Extends ``leave_whitespace`` defined in base class, and also invokes ``leave_whitespace`` on
            all contained expressions.
         """
-        super().leaveWhitespace(recursive)
+        super().leave_whitespace(recursive)
 
         if recursive:
             self.exprs = [e.copy() for e in self.exprs]
             for e in self.exprs:
-                e.leaveWhitespace(recursive)
+                e.leave_whitespace(recursive)
         return self
 
-    def ignoreWhitespace(self, recursive=True):
+    def ignore_whitespace(self, recursive=True):
         """
-        Extends ``ignoreWhitespace`` defined in base class, and also invokes ``leaveWhitespace`` on
+        Extends ``ignore_whitespace`` defined in base class, and also invokes ``leave_whitespace`` on
            all contained expressions.
         """
-        super().ignoreWhitespace(recursive)
+        super().ignore_whitespace(recursive)
         if recursive:
             self.exprs = [e.copy() for e in self.exprs]
             for e in self.exprs:
-                e.ignoreWhitespace(recursive)
+                e.ignore_whitespace(recursive)
         return self
 
     def ignore(self, other):
@@ -3270,6 +3296,9 @@ class ParseExpression(ParserElement):
 
         return super()._setResultsName(name, listAllMatches)
 
+    ignoreWhitespace = ignore_whitespace
+    leaveWhitespace = leave_whitespace
+
 
 class And(ParseExpression):
     """
@@ -3292,7 +3321,7 @@ class And(ParseExpression):
     class _ErrorStop(Empty):
         def __init__(self, *args, **kwargs):
             super().__init__(*args, **kwargs)
-            self.leaveWhitespace()
+            self.leave_whitespace()
 
         def _generateDefaultName(self):
             return "-"
@@ -3315,7 +3344,7 @@ class And(ParseExpression):
             exprs[:] = tmp
         super().__init__(exprs, savelist)
         self.mayReturnEmpty = all(e.mayReturnEmpty for e in self.exprs)
-        self.setWhitespaceChars(
+        self.set_whitespace_chars(
             self.exprs[0].whiteChars, copy_defaults=self.exprs[0].copyDefaultWhiteChars
         )
         self.skipWhitespace = self.exprs[0].skipWhitespace
@@ -3817,7 +3846,7 @@ class ParseElementEnhance(ParserElement):
         if expr is not None:
             self.mayIndexError = expr.mayIndexError
             self.mayReturnEmpty = expr.mayReturnEmpty
-            self.setWhitespaceChars(
+            self.set_whitespace_chars(
                 expr.whiteChars, copy_defaults=expr.copyDefaultWhiteChars
             )
             self.skipWhitespace = expr.skipWhitespace
@@ -3834,22 +3863,22 @@ class ParseElementEnhance(ParserElement):
         else:
             raise ParseException("", loc, self.errmsg, self)
 
-    def leaveWhitespace(self, recursive=True):
-        super().leaveWhitespace(recursive)
+    def leave_whitespace(self, recursive=True):
+        super().leave_whitespace(recursive)
 
         if recursive:
             self.expr = self.expr.copy()
             if self.expr is not None:
-                self.expr.leaveWhitespace(recursive)
+                self.expr.leave_whitespace(recursive)
         return self
 
-    def ignoreWhitespace(self, recursive=True):
-        super().ignoreWhitespace(recursive)
+    def ignore_whitespace(self, recursive=True):
+        super().ignore_whitespace(recursive)
 
         if recursive:
             self.expr = self.expr.copy()
             if self.expr is not None:
-                self.expr.ignoreWhitespace(recursive)
+                self.expr.ignore_whitespace(recursive)
         return self
 
     def ignore(self, other):
@@ -3887,6 +3916,9 @@ class ParseElementEnhance(ParserElement):
 
     def _generateDefaultName(self):
         return "{}:({})".format(self.__class__.__name__, str(self.expr))
+
+    ignoreWhitespace = ignore_whitespace
+    leaveWhitespace = leave_whitespace
 
 
 class FollowedBy(ParseElementEnhance):
@@ -3957,7 +3989,7 @@ class PrecededBy(ParseElementEnhance):
 
     def __init__(self, expr, retreat=None):
         super().__init__(expr)
-        self.expr = self.expr().leaveWhitespace()
+        self.expr = self.expr().leave_whitespace()
         self.mayReturnEmpty = True
         self.mayIndexError = False
         self.exact = False
@@ -4069,9 +4101,9 @@ class NotAny(ParseElementEnhance):
 
     def __init__(self, expr):
         super().__init__(expr)
-        # self.leaveWhitespace()
+        # self.leave_whitespace()
         self.skipWhitespace = (
-            False  # do NOT use self.leaveWhitespace(), don't want to propagate to exprs
+            False  # do NOT use self.leave_whitespace(), don't want to propagate to exprs
         )
         self.mayReturnEmpty = True
         self.errmsg = "Found unwanted token, " + str(self.expr)
@@ -4446,7 +4478,7 @@ class Forward(ParseElementEnhance):
         self.expr = other
         self.mayIndexError = self.expr.mayIndexError
         self.mayReturnEmpty = self.expr.mayReturnEmpty
-        self.setWhitespaceChars(
+        self.set_whitespace_chars(
             self.expr.whiteChars, copy_defaults=self.expr.copyDefaultWhiteChars
         )
         self.skipWhitespace = self.expr.skipWhitespace
@@ -4563,11 +4595,11 @@ class Forward(ParseElementEnhance):
                                 raise
                         prev_loc, prev_peek = memo[peek_key] = new_loc, new_peek
 
-    def leaveWhitespace(self, recursive=True):
+    def leave_whitespace(self, recursive=True):
         self.skipWhitespace = False
         return self
 
-    def ignoreWhitespace(self, recursive=True):
+    def ignore_whitespace(self, recursive=True):
         self.skipWhitespace = True
         return self
 
@@ -4623,6 +4655,9 @@ class Forward(ParseElementEnhance):
 
         return super()._setResultsName(name, listAllMatches)
 
+    ignoreWhitespace = ignore_whitespace
+    leaveWhitespace = leave_whitespace
+
 
 class TokenConverter(ParseElementEnhance):
     """
@@ -4657,7 +4692,7 @@ class Combine(TokenConverter):
         super().__init__(expr)
         # suppress whitespace-stripping in contained parse expressions, but re-enable it on the Combine itself
         if adjacent:
-            self.leaveWhitespace()
+            self.leave_whitespace()
         self.adjacent = adjacent
         self.skipWhitespace = True
         self.joinString = joinString
@@ -4884,19 +4919,19 @@ def traceParseAction(f):
 
 
 # convenience constants for positional expressions
-empty = Empty().setName("empty")
-lineStart = LineStart().setName("lineStart")
-lineEnd = LineEnd().setName("lineEnd")
-stringStart = StringStart().setName("stringStart")
-stringEnd = StringEnd().setName("stringEnd")
+empty = Empty().set_name("empty")
+lineStart = LineStart().set_name("lineStart")
+lineEnd = LineEnd().set_name("lineEnd")
+stringStart = StringStart().set_name("stringStart")
+stringEnd = StringEnd().set_name("stringEnd")
 
-_escapedPunc = Word(_bslash, r"\[]-*.$+^?()~ ", exact=2).setParseAction(
+_escapedPunc = Word(_bslash, r"\[]-*.$+^?()~ ", exact=2).set_parse_action(
     lambda s, l, t: t[0][1]
 )
-_escapedHexChar = Regex(r"\\0?[xX][0-9a-fA-F]+").setParseAction(
+_escapedHexChar = Regex(r"\\0?[xX][0-9a-fA-F]+").set_parse_action(
     lambda s, l, t: chr(int(t[0].lstrip(r"\0x"), 16))
 )
-_escapedOctChar = Regex(r"\\0[0-7]+").setParseAction(
+_escapedOctChar = Regex(r"\\0[0-7]+").set_parse_action(
     lambda s, l, t: chr(int(t[0][1:], 8))
 )
 _singleChar = (
@@ -4905,8 +4940,8 @@ _singleChar = (
 _charRange = Group(_singleChar + Suppress("-") + _singleChar)
 _reBracketExpr = (
     Literal("[")
-    + Optional("^").setResultsName("negate")
-    + Group(OneOrMore(_charRange | _singleChar)).setResultsName("body")
+    + Optional("^").set_results_name("negate")
+    + Group(OneOrMore(_charRange | _singleChar)).set_results_name("body")
     + "]"
 )
 
@@ -4994,20 +5029,20 @@ def tokenMap(func, *args):
     return pa
 
 
-dblQuotedString = Combine(
+dbl_quoted_string = Combine(
     Regex(r'"(?:[^"\n\r\\]|(?:"")|(?:\\(?:[^x]|x[0-9a-fA-F]+)))*') + '"'
-).setName("string enclosed in double quotes")
+).set_name("string enclosed in double quotes")
 
-sglQuotedString = Combine(
+sgl_quoted_string = Combine(
     Regex(r"'(?:[^'\n\r\\]|(?:'')|(?:\\(?:[^x]|x[0-9a-fA-F]+)))*") + "'"
-).setName("string enclosed in single quotes")
+).set_name("string enclosed in single quotes")
 
-quotedString = Combine(
+quoted_string = Combine(
     Regex(r'"(?:[^"\n\r\\]|(?:"")|(?:\\(?:[^x]|x[0-9a-fA-F]+)))*') + '"'
     | Regex(r"'(?:[^'\n\r\\]|(?:'')|(?:\\(?:[^x]|x[0-9a-fA-F]+)))*") + "'"
-).setName("quotedString using single or double quotes")
+).set_name("quotedString using single or double quotes")
 
-unicodeString = Combine("u" + quotedString.copy()).setName("unicode string literal")
+unicode_string = Combine("u" + quoted_string.copy()).set_name("unicode string literal")
 
 
 alphas8bit = srange(r"[\0xc0-\0xd6\0xd8-\0xf6\0xf8-\0xff]")
@@ -5016,3 +5051,11 @@ punc8bit = srange(r"[\0xa1-\0xbf\0xd7\0xf7]")
 # build list of built-in expressions, for future reference if a global default value
 # gets updated
 _builtin_exprs = [v for v in vars().values() if isinstance(v, ParserElement)]
+
+# backward compatibility names
+conditionAsParseAction = condition_as_parse_action
+nullDebugAction = null_debug_action
+sglQuotedString = sgl_quoted_string
+dblQuotedString = dbl_quoted_string
+quotedString = quoted_string
+unicodeString = unicode_string
