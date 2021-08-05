@@ -6572,6 +6572,7 @@ class Test2_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             data,
             [["A", [100, 101, 102]], ["B", [["b", [200, 201]]]], ["C", [300]]],
         )
+        print("searchString test complete")
 
     def testInvalidDiagSetting(self):
         with self.assertRaises(
@@ -8065,6 +8066,22 @@ class Test8_WithUnboundedPackrat(Test2_WithoutPackrat):
             type(ParserElement.packrat_cache).__name__,
             msg="incorrect cache type",
         )
+
+
+class Test2a_WithPyjion(Test2_WithoutPackrat):
+    """
+    rerun Test2 tests, using pyjion JIT
+    """
+
+    def test000_enable_pyjion(self):
+        # test pyjion compatibility
+        try:
+            import pyjion
+        except ImportError:
+            pyjion = None
+        else:
+            print("Pyjion enabled (version {})".format(pyjion.__version__))
+            pyjion.enable()
 
 
 # force clear of packrat parsing flags before saving contexts
