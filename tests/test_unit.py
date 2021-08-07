@@ -2628,6 +2628,15 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
     def testParseResultsNewEdgeCases(self):
         """test less common paths of ParseResults.__new__()"""
 
+        parser = pp.Word(pp.alphas)[...]
+        result = parser.parseString("sldkjf sldkjf")
+
+        # hasattr uses __getattr__, which for ParseResults will return "" if the
+        # results name is not defined. So hasattr() won't work with ParseResults.
+        # Have to use __contains__ instead to test for existence.
+        # self.assertFalse(hasattr(result, "A"))
+        self.assertFalse("A" in result)
+
         # create new ParseResults w/ None
         result1 = pp.ParseResults(None)
         print(result1.dump())
@@ -4633,14 +4642,13 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
         print(res.dump())
         self.assertEqual(
             "ID PARI12345678",
-            samplestr1[res.locn_start:res.locn_end],
+            samplestr1[res.locn_start : res.locn_end],
             "incorrect location calculation",
         )
-        self.assertParseResultsEquals(res,
-                                      [28, ['ID', 'PARI12345678'], 43],
-                                      {'locn_end': 43,
-                                       'locn_start': 28,
-                                       'value': {'id': 'PARI12345678'}}
+        self.assertParseResultsEquals(
+            res,
+            [28, ["ID", "PARI12345678"], 43],
+            {"locn_end": 43, "locn_start": 28, "value": {"id": "PARI12345678"}},
         )
 
         wd = pp.Word(pp.alphas)
@@ -4648,9 +4656,9 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
         pp_matches = pp.Located(wd).searchString(test_string)
         re_matches = find_all_re_matches("[a-z]+", test_string)
         for pp_match, re_match in zip(pp_matches, re_matches):
-            self.assertParseResultsEquals(pp_match, [re_match.start(),
-                                                     [re_match.group(0)],
-                                                     re_match.end()])
+            self.assertParseResultsEquals(
+                pp_match, [re_match.start(), [re_match.group(0)], re_match.end()]
+            )
             print(pp_match)
             print(re_match)
             print(pp_match.value)
@@ -6738,8 +6746,8 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
 
         expr.addParseAction(divide_args)
         for memo_kind, enable_memo in [
-            ('Packrat', pp.ParserElement.enablePackrat),
-            ('Left Recursion', pp.ParserElement.enable_left_recursion),
+            ("Packrat", pp.ParserElement.enablePackrat),
+            ("Left Recursion", pp.ParserElement.enable_left_recursion),
         ]:
             enable_memo(force=True)
             print("Explain for", memo_kind)
@@ -6801,9 +6809,9 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
 
     def testWarnUngroupedNamedTokens(self):
         """
-         - warn_ungrouped_named_tokens_in_collection - flag to enable warnings when a results
-           name is defined on a containing expression with ungrouped subexpressions that also
-           have results names (default=True)
+        - warn_ungrouped_named_tokens_in_collection - flag to enable warnings when a results
+          name is defined on a containing expression with ungrouped subexpressions that also
+          have results names (default=True)
         """
 
         with ppt.reset_pyparsing_context():
@@ -6822,8 +6830,8 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
 
     def testWarnNameSetOnEmptyForward(self):
         """
-         - warn_name_set_on_empty_Forward - flag to enable warnings when a Forward is defined
-           with a results name, but has no contents defined (default=False)
+        - warn_name_set_on_empty_Forward - flag to enable warnings when a Forward is defined
+          with a results name, but has no contents defined (default=False)
         """
 
         with ppt.reset_pyparsing_context():
@@ -6839,8 +6847,8 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
 
     def testWarnParsingEmptyForward(self):
         """
-         - warn_on_parse_using_empty_Forward - flag to enable warnings when a Forward
-           has no contents defined (default=False)
+        - warn_on_parse_using_empty_Forward - flag to enable warnings when a Forward
+          has no contents defined (default=False)
         """
 
         with ppt.reset_pyparsing_context():
@@ -6859,8 +6867,8 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
 
     def testWarnIncorrectAssignmentToForward(self):
         """
-         - warn_on_parse_using_empty_Forward - flag to enable warnings when a Forward
-           has no contents defined (default=False)
+        - warn_on_parse_using_empty_Forward - flag to enable warnings when a Forward
+          has no contents defined (default=False)
         """
         if PYPY_ENV:
             print("warn_on_assignment_to_Forward not supported on PyPy")
@@ -6881,8 +6889,8 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
 
     def testWarnOnMultipleStringArgsToOneOf(self):
         """
-         - warn_on_multiple_string_args_to_oneof - flag to enable warnings when oneOf is
-           incorrectly called with multiple str arguments (default=True)
+        - warn_on_multiple_string_args_to_oneof - flag to enable warnings when oneOf is
+          incorrectly called with multiple str arguments (default=True)
         """
 
         with ppt.reset_pyparsing_context():
@@ -6896,8 +6904,8 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
 
     def testEnableDebugOnNamedExpressions(self):
         """
-         - enable_debug_on_named_expressions - flag to auto-enable debug on all subsequent
-           calls to ParserElement.setName() (default=False)
+        - enable_debug_on_named_expressions - flag to auto-enable debug on all subsequent
+          calls to ParserElement.setName() (default=False)
         """
         with ppt.reset_pyparsing_context():
             test_stdout = StringIO()
@@ -8091,7 +8099,9 @@ class Test09_WithLeftRecursionParsing(Test02_WithoutPackrat):
 
     def test000_assert_packrat_status(self):
         print("Left-Recursion enabled:", ParserElement._left_recursion_enabled)
-        self.assertTrue(ParserElement._left_recursion_enabled, "left recursion not enabled")
+        self.assertTrue(
+            ParserElement._left_recursion_enabled, "left recursion not enabled"
+        )
         self.assertIsInstance(ParserElement.recursion_memos, pp.util.UnboundedMemo)
 
 
@@ -8108,7 +8118,9 @@ class Test10_WithLeftRecursionParsingBoundedMemo(Test02_WithoutPackrat):
 
     def test000_assert_packrat_status(self):
         print("Left-Recursion enabled:", ParserElement._left_recursion_enabled)
-        self.assertTrue(ParserElement._left_recursion_enabled, "left recursion not enabled")
+        self.assertTrue(
+            ParserElement._left_recursion_enabled, "left recursion not enabled"
+        )
         self.assertIsInstance(ParserElement.recursion_memos, pp.util.LRUMemo)
         # check that the cache matches roughly what we expect
         # – it may be larger due to action handling
@@ -8120,6 +8132,7 @@ class Test11_LR1_Recursion(ppt.TestParseResultsAsserts, TestCase):
     """
     Tests for recursive parsing
     """
+
     suite_context = None
     save_suite_context = None
 
@@ -8142,7 +8155,7 @@ class Test11_LR1_Recursion(ppt.TestParseResultsAsserts, TestCase):
             expected_list=["a", "a", "a", "a", "a"],
         )
         delimited_list = pp.Forward().setName("delimited_list")
-        delimited_list <<= delimited_list + pp.Suppress(',') + "b" | "b"
+        delimited_list <<= delimited_list + pp.Suppress(",") + "b" | "b"
         self.assertParseResultsEquals(
             delimited_list.parseString("b"),
             expected_list=["b"],
@@ -8160,28 +8173,27 @@ class Test11_LR1_Recursion(ppt.TestParseResultsAsserts, TestCase):
         """parsing of single left-recursive binary operator"""
         expr = pp.Forward().setName("expr")
         num = pp.Word(pp.nums)
-        expr <<= expr + '+' - num | num
+        expr <<= expr + "+" - num | num
         self.assertParseResultsEquals(
-            expr.parseString("1+2"),
-            expected_list=['1', '+', '2']
+            expr.parseString("1+2"), expected_list=["1", "+", "2"]
         )
         self.assertParseResultsEquals(
             expr.parseString("1+2+3+4"),
-            expected_list=['1', '+', '2', '+', '3', '+', '4']
+            expected_list=["1", "+", "2", "+", "3", "+", "4"],
         )
 
     def test_binary_associative(self):
         """associative is preserved for single left-recursive binary operator"""
         expr = pp.Forward().setName("expr")
         num = pp.Word(pp.nums)
-        expr <<= pp.Group(expr) + '+' - num | num
+        expr <<= pp.Group(expr) + "+" - num | num
         self.assertParseResultsEquals(
             expr.parseString("1+2"),
-            expected_list=[['1'], '+', '2'],
+            expected_list=[["1"], "+", "2"],
         )
         self.assertParseResultsEquals(
             expr.parseString("1+2+3+4"),
-            expected_list=[[[['1'], '+', '2'], '+', '3'], '+', '4'],
+            expected_list=[[[["1"], "+", "2"], "+", "3"], "+", "4"],
         )
 
     def test_add_sub(self):
@@ -8189,8 +8201,8 @@ class Test11_LR1_Recursion(ppt.TestParseResultsAsserts, TestCase):
         expr = pp.Forward().setName("expr")
         num = pp.Word(pp.nums).setParseAction(lambda t: int(t[0]))
         expr <<= (
-            (expr + '+' - num).setParseAction(lambda t: t[0] + t[2])
-            | (expr + '-' - num).setParseAction(lambda t: t[0] - t[2])
+            (expr + "+" - num).setParseAction(lambda t: t[0] + t[2])
+            | (expr + "-" - num).setParseAction(lambda t: t[0] - t[2])
             | num
         )
         self.assertEqual(expr.parseString("1+2")[0], 3)
@@ -8209,22 +8221,21 @@ class Test11_LR1_Recursion(ppt.TestParseResultsAsserts, TestCase):
         terminal = pp.Forward().setName("terminal")
         # concrete rules
         number = pp.Word(pp.nums).setParseAction(lambda t: int(t[0]))
-        signed = ('+' - expr) | ('-' - expr).setParseAction(lambda t: -t[1])
-        group = pp.Suppress('(') - expr - pp.Suppress(')')
+        signed = ("+" - expr) | ("-" - expr).setParseAction(lambda t: -t[1])
+        group = pp.Suppress("(") - expr - pp.Suppress(")")
         add_sub <<= (
-            (add_sub + '+' - mul_div).setParseAction(lambda t: t[0] + t[2])
-            | (add_sub + '-' - mul_div).setParseAction(lambda t: t[0] - t[2])
+            (add_sub + "+" - mul_div).setParseAction(lambda t: t[0] + t[2])
+            | (add_sub + "-" - mul_div).setParseAction(lambda t: t[0] - t[2])
             | mul_div
         )
         mul_div <<= (
-            (mul_div + '*' - power).setParseAction(lambda t: t[0] * t[2])
-            | (mul_div + '/' - power).setParseAction(lambda t: t[0] / t[2])
+            (mul_div + "*" - power).setParseAction(lambda t: t[0] * t[2])
+            | (mul_div + "/" - power).setParseAction(lambda t: t[0] / t[2])
             | power
         )
-        power <<= (
-            (terminal + '^' - power).setParseAction(lambda t: t[0] ** t[2])
-            | terminal
-        )
+        power <<= (terminal + "^" - power).setParseAction(
+            lambda t: t[0] ** t[2]
+        ) | terminal
         terminal <<= number | signed | group
         expr <<= add_sub
         # simple add_sub expressions
@@ -8239,25 +8250,24 @@ class Test11_LR1_Recursion(ppt.TestParseResultsAsserts, TestCase):
         self.assertEqual(expr.parseString("1-(2+3)")[0], -4)
         self.assertEqual(expr.parseString("1-(2-3)")[0], 2)
         # complicated math expressions – same as Python expressions
-        self.assertEqual(expr.parseString("1----3")[0], 1----3)
-        self.assertEqual(expr.parseString("1+2*3")[0], 1+2*3)
-        self.assertEqual(expr.parseString("1*2+3")[0], 1*2+3)
-        self.assertEqual(expr.parseString("1*2^3")[0], 1*2**3)
-        self.assertEqual(expr.parseString("4^3^2^1")[0], 4**3**2**1)
+        self.assertEqual(expr.parseString("1----3")[0], 1 - ---3)
+        self.assertEqual(expr.parseString("1+2*3")[0], 1 + 2 * 3)
+        self.assertEqual(expr.parseString("1*2+3")[0], 1 * 2 + 3)
+        self.assertEqual(expr.parseString("1*2^3")[0], 1 * 2 ** 3)
+        self.assertEqual(expr.parseString("4^3^2^1")[0], 4 ** 3 ** 2 ** 1)
 
     def test_terminate_empty(self):
         """Recursion with ``Empty`` terminates"""
-        empty = pp.Forward().setName('e')
+        empty = pp.Forward().setName("e")
         empty <<= empty + pp.Empty() | pp.Empty()
         self.assertParseResultsEquals(empty.parseString(""), expected_list=[])
 
     def test_non_peg(self):
         """Recursion works for non-PEG operators"""
-        expr = pp.Forward().setName('expr')
+        expr = pp.Forward().setName("expr")
         expr <<= expr + "a" ^ expr + "ab" ^ expr + "abc" ^ "."
         self.assertParseResultsEquals(
-            expr.parseString(".abcabaabc"),
-            expected_list=[".", "abc", "ab", "a", "abc"]
+            expr.parseString(".abcabaabc"), expected_list=[".", "abc", "ab", "a", "abc"]
         )
 
 

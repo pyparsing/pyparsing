@@ -280,7 +280,10 @@ class TestRepetition(PyparsingExpressionTestCase):
         PpTestSpec(
             desc="Using delimitedList, with ':' delimiter",
             expr=pp.delimitedList(
-                pp.Word(pp.hexnums, exact=2), delim=":", combine=True, allowTrailingDelim=True
+                pp.Word(pp.hexnums, exact=2),
+                delim=":",
+                combine=True,
+                allowTrailingDelim=True,
             ),
             text="0A:4B:73:21:FE:76:",
             expected_list=["0A:4B:73:21:FE:76:"],

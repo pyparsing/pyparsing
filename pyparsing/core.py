@@ -12,7 +12,7 @@ import sre_constants
 from collections.abc import Iterable
 import traceback
 import types
-from operator import itemgetter
+from operator import itemgetter, attrgetter
 from functools import wraps
 from threading import RLock
 
@@ -583,9 +583,8 @@ class ParserElement(ABC):
             loc = self._skipIgnorables(instring, loc)
 
         if self.skipWhitespace:
-            wt = self.whiteChars
             instrlen = len(instring)
-            while loc < instrlen and instring[loc] in wt:
+            while loc < instrlen and instring[loc] in self.whiteChars:
                 loc += 1
 
         return loc
@@ -600,6 +599,7 @@ class ParserElement(ABC):
     def _parseNoCache(self, instring, loc, doActions=True, callPreParse=True):
         TRY, MATCH, FAIL = 0, 1, 2
         debugging = self.debug  # and doActions)
+        len_instring = len(instring)
 
         if debugging or self.failAction:
             # print("Match {} at loc {}({}, {})".format(self, loc, lineno(loc, instring), col(loc, instring)))
@@ -611,11 +611,11 @@ class ParserElement(ABC):
                 tokensStart = preloc
                 if self.debugActions[TRY]:
                     self.debugActions[TRY](instring, tokensStart, self)
-                if self.mayIndexError or preloc >= len(instring):
+                if self.mayIndexError or preloc >= len_instring:
                     try:
                         loc, tokens = self.parseImpl(instring, preloc, doActions)
                     except IndexError:
-                        raise ParseException(instring, len(instring), self.errmsg, self)
+                        raise ParseException(instring, len_instring, self.errmsg, self)
                 else:
                     loc, tokens = self.parseImpl(instring, preloc, doActions)
             except Exception as err:
@@ -631,11 +631,11 @@ class ParserElement(ABC):
             else:
                 preloc = loc
             tokensStart = preloc
-            if self.mayIndexError or preloc >= len(instring):
+            if self.mayIndexError or preloc >= len_instring:
                 try:
                     loc, tokens = self.parseImpl(instring, preloc, doActions)
                 except IndexError:
-                    raise ParseException(instring, len(instring), self.errmsg, self)
+                    raise ParseException(instring, len_instring, self.errmsg, self)
             else:
                 loc, tokens = self.parseImpl(instring, preloc, doActions)
 
@@ -1397,10 +1397,9 @@ class ParserElement(ABC):
         """
         return NotAny(self)
 
-    def __iter__(self):
-        # must implement __iter__ to override legacy use of sequential access to __getitem__ to
-        # iterate over a sequence
-        raise TypeError("{} object is not iterable".format(self.__class__.__name__))
+    # disable __iter__ to override legacy use of sequential access to __getitem__ to
+    # iterate over a sequence
+    __iter__ = None
 
     def __getitem__(self, key):
         """
@@ -2579,8 +2578,9 @@ class Regex(Token):
         loc = result.end()
         ret = ParseResults(result.group())
         d = result.groupdict()
-        for k, v in d.items():
-            ret[k] = v
+        if d:
+            for k, v in d.items():
+                ret[k] = v
         return loc, ret
 
     def parseImplAsGroupList(self, instring, loc, doActions=True):
@@ -3347,7 +3347,7 @@ class And(ParseExpression):
         return self
 
     def parseImpl(self, instring, loc, doActions=True):
-        # pass False as last arg to _parse for first element, since we already
+        # pass False as callPreParse arg to _parse for first element, since we already
         # pre-parsed the string as part of our And pre-parsing
         loc, resultlist = self.exprs[0]._parse(
             instring, loc, doActions, callPreParse=False
@@ -3572,10 +3572,9 @@ class MatchFirst(ParseExpression):
 
         for e in self.exprs:
             try:
-                ret = e._parse(
+                return e._parse(
                     instring, loc, doActions, callPreParse=not self.callPreparse
                 )
-                return ret
             except ParseFatalException as pfe:
                 pfe.__traceback__ = None
                 pfe.parserElement = e
@@ -3595,9 +3594,12 @@ class MatchFirst(ParseExpression):
         # only got here if no expression matched, raise exception for match that made it the furthest
         if fatals:
             if len(fatals) > 1:
-                fatals.sort(key=lambda e: -e.loc)
+                fatals.sort(key=attrgetter("loc"), reverse=True)
                 if fatals[0].loc == fatals[1].loc:
-                    fatals.sort(key=lambda e: (-e.loc, -len(str(e.parserElement))))
+                    fatals.sort(
+                        key=lambda fatal: (fatal.loc, len(str(fatal.parserElement))),
+                        reverse=True,
+                    )
             max_fatal = fatals[0]
             raise max_fatal
 
@@ -4122,7 +4124,7 @@ class _MultipleMatch(ParseElementEnhance):
                 else:
                     preloc = loc
                 loc, tmptokens = self_expr_parse(instring, preloc, doActions)
-                if tmptokens:
+                if tmptokens or tmptokens.haskeys():
                     tokens += tmptokens
         except (ParseException, IndexError):
             pass
@@ -4261,15 +4263,17 @@ class Optional(ParseElementEnhance):
         self.mayReturnEmpty = True
 
     def parseImpl(self, instring, loc, doActions=True):
+        self_expr = self.expr
         try:
-            loc, tokens = self.expr._parse(instring, loc, doActions, callPreParse=False)
+            loc, tokens = self_expr._parse(instring, loc, doActions, callPreParse=False)
         except (ParseException, IndexError):
-            if self.defaultValue is not self.__optionalNotMatched:
-                if self.expr.resultsName:
-                    tokens = ParseResults([self.defaultValue])
-                    tokens[self.expr.resultsName] = self.defaultValue
+            default_value = self.defaultValue
+            if default_value is not self.__optionalNotMatched:
+                if self_expr.resultsName:
+                    tokens = ParseResults([default_value])
+                    tokens[self_expr.resultsName] = default_value
                 else:
-                    tokens = [self.defaultValue]
+                    tokens = [default_value]
             else:
                 tokens = []
         return loc, tokens
