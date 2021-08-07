@@ -36,6 +36,10 @@ Version 3.0.0b3 - August, 2021
 - Fixed STUDENTS table in sql2dot.py example, fixes issue #261 reported by
   legrandlegrand - much better.
 
+- Python 3.5 will not be supported in the pyparsing 3 releases. This will allow
+  for future pyparsing releases to add parameter type annotations, and to take
+  advantage of dict key ordering in internal results name tracking.
+
 
 Version 3.0.0b2 - December, 2020
 --------------------------------
