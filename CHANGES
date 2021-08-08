@@ -42,6 +42,10 @@ Version 3.0.0b3 - August, 2021
 
   Great work contributed by Max Fischer!
 
+- `delimited_list` now supports an additional flag `allow_trailing_delim`,
+  to optionally parse an additional delimiter at the end of the list.
+  Contributed by Kazantcev Andrey, thanks!
+
 - Removed internal comparison of results values against b"", which
   raised a BytesWarning when run with `python -bb`. Fixes issue #271 reported
   by Florian Bruhin, thank you!

@@ -263,6 +263,10 @@ New / improved examples
 
 Other new features
 ------------------
+- ``delimited_list`` now supports an additional flag ``allow_trailing_delim``,
+  to optionally parse an additional delimiter at the end of the list.
+  Submitted by Kazantcev Andrey.
+
 - Enhanced default strings created for Word expressions, now showing
   string ranges if possible. ``Word(alphas)`` would formerly
   print as ``W:(ABCD...)``, now prints as ``W:(A-Za-z)``.
@@ -539,5 +543,8 @@ And finally, many thanks to those who helped in the restructuring
 of the pyparsing code base as part of this release. Pyparsing now
 has more standard package structure, more standard unit tests,
 and more standard code formatting (using black). Special thanks
-to jdufresne, klahnakoski, mattcarmody, and ckeygusuz,
+to jdufresne, klahnakoski, mattcarmody, ckeygusuz,
 tmiguelt, and toonarmycaptain to name just a few.
+
+Thanks also to Michael Milton and Max Fischer, who added some
+significant new features to pyparsing.
