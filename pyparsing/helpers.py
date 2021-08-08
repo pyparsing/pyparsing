@@ -36,7 +36,7 @@ def delimited_list(expr, delim=",", combine=False, *, allow_trailing_delim=False
     delimited_list_expr = expr + ZeroOrMore(delim + expr)
 
     if allow_trailing_delim:
-        delimited_list_expr += Optional(delim)
+        delimited_list_expr += Opt(delim)
 
     if combine:
         return Combine(delimited_list_expr).set_name(dlName)
@@ -444,7 +444,7 @@ def nested_expr(
     Example::
 
         data_type = one_of("void int short long char float double")
-        decl_data_type = Combine(data_type + Optional(Word('*')))
+        decl_data_type = Combine(data_type + Opt(Word('*')))
         ident = Word(alphas+'_', alphanums+'_')
         number = pyparsing_common.number
         arg = Group(decl_data_type + ident)
@@ -454,7 +454,7 @@ def nested_expr(
 
         c_function = (decl_data_type("type")
                       + ident("name")
-                      + LPAR + Optional(delimited_list(arg), [])("args") + RPAR
+                      + LPAR + Opt(delimited_list(arg), [])("args") + RPAR
                       + code_body("body"))
         c_function.ignore(c_style_comment)
 
@@ -549,7 +549,7 @@ def _makeTags(tagStr, xml, suppress_LT=Suppress("<"), suppress_GT=Suppress(">"))
             suppress_LT
             + tagStr("tag")
             + Dict(ZeroOrMore(Group(tagAttrName + Suppress("=") + tagAttrValue)))
-            + Optional("/", default=[False])("empty").set_parse_action(
+            + Opt("/", default=[False])("empty").set_parse_action(
                 lambda s, l, t: t[0] == "/"
             )
             + suppress_GT
@@ -565,11 +565,11 @@ def _makeTags(tagStr, xml, suppress_LT=Suppress("<"), suppress_GT=Suppress(">"))
                 ZeroOrMore(
                     Group(
                         tagAttrName.set_parse_action(lambda t: t[0].lower())
-                        + Optional(Suppress("=") + tagAttrValue)
+                        + Opt(Suppress("=") + tagAttrValue)
                     )
                 )
             )
-            + Optional("/", default=[False])("empty").set_parse_action(
+            + Opt("/", default=[False])("empty").set_parse_action(
                 lambda s, l, t: t[0] == "/"
             )
             + suppress_GT
@@ -766,8 +766,8 @@ def infix_notation(base_expr, op_list, lpar=Suppress("("), rpar=Suppress(")")):
         elif rightLeftAssoc is OpAssoc.RIGHT:
             if arity == 1:
                 # try to avoid LR with this extra test
-                if not isinstance(opExpr, Optional):
-                    opExpr = Optional(opExpr)
+                if not isinstance(opExpr, Opt):
+                    opExpr = Opt(opExpr)
                 matchExpr = _FB(opExpr.expr + thisExpr) + Group(opExpr + thisExpr)
             elif arity == 2:
                 if opExpr is not None:
@@ -843,12 +843,12 @@ def indentedBlock(blockStatementExpr, indentStack, indent=True, backup_stacks=[]
         stmt = Forward()
 
         identifier = Word(alphas, alphanums)
-        funcDecl = ("def" + identifier + Group("(" + Optional(delimitedList(identifier)) + ")") + ":")
+        funcDecl = ("def" + identifier + Group("(" + Opt(delimitedList(identifier)) + ")") + ":")
         func_body = indentedBlock(stmt, indentStack)
         funcDef = Group(funcDecl + func_body)
 
         rvalue = Forward()
-        funcCall = Group(identifier + "(" + Optional(delimitedList(rvalue)) + ")")
+        funcCall = Group(identifier + "(" + Opt(delimitedList(rvalue)) + ")")
         rvalue << (funcCall | identifier | Word(nums))
         assignment = Group(identifier + "=" + rvalue)
         stmt << (funcDef | assignment | identifier)
@@ -915,16 +915,16 @@ def indentedBlock(blockStatementExpr, indentStack, indent=True, backup_stacks=[]
     UNDENT = Empty().set_parse_action(checkUnindent).set_name("UNINDENT")
     if indent:
         smExpr = Group(
-            Optional(NL)
+            Opt(NL)
             + INDENT
-            + OneOrMore(PEER + Group(blockStatementExpr) + Optional(NL))
+            + OneOrMore(PEER + Group(blockStatementExpr) + Opt(NL))
             + UNDENT
         )
     else:
         smExpr = Group(
-            Optional(NL)
-            + OneOrMore(PEER + Group(blockStatementExpr) + Optional(NL))
-            + Optional(UNDENT)
+            Opt(NL)
+            + OneOrMore(PEER + Group(blockStatementExpr) + Opt(NL))
+            + Opt(UNDENT)
         )
 
     # add a parse action to remove backup_stack from list of backups
@@ -961,7 +961,7 @@ class IndentedBlock(ParseElementEnhance):
                 lambda s, l, t, relative_to_col=indent_col: col(l, s) > relative_to_col
             )
             indent_expr = FollowedBy(self.expr).add_parse_action(indent_parse_action)
-            inner_expr += Optional(indent_expr + self)
+            inner_expr += Opt(indent_expr + self)
 
         return OneOrMore(inner_expr).parseImpl(instring, loc, doActions)
 

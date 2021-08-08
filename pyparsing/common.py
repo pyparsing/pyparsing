@@ -183,7 +183,7 @@ class pyparsing_common:
     fraction.add_parse_action(lambda t: t[0] / t[-1])
 
     mixed_integer = (
-        fraction | signed_integer + Optional(Optional("-").suppress() + fraction)
+        fraction | signed_integer + Opt(Opt("-").suppress() + fraction)
     ).set_name("fraction or mixed integer-fraction")
     """mixed integer of the form 'integer - fraction', with optional leading integer, returns float"""
     mixed_integer.add_parse_action(sum)
@@ -227,9 +227,9 @@ class pyparsing_common:
         "full IPv6 address"
     )
     _short_ipv6_address = (
-        Optional(_ipv6_part + (":" + _ipv6_part) * (0, 6))
+        Opt(_ipv6_part + (":" + _ipv6_part) * (0, 6))
         + "::"
-        + Optional(_ipv6_part + (":" + _ipv6_part) * (0, 6))
+        + Opt(_ipv6_part + (":" + _ipv6_part) * (0, 6))
     ).set_name("short IPv6 address")
     _short_ipv6_address.add_condition(
         lambda t: sum(1 for tt in t if pyparsing_common._ipv6_part.matches(tt)) < 8
@@ -340,14 +340,14 @@ class pyparsing_common:
                 ~Literal(",")
                 + ~LineEnd()
                 + Word(printables, exclude_chars=",")
-                + Optional(White(" \t") + ~FollowedBy(LineEnd() | ","))
+                + Opt(White(" \t") + ~FollowedBy(LineEnd() | ","))
             )
         )
         .streamline()
         .set_name("commaItem")
     )
     comma_separated_list = delimited_list(
-        Optional(quoted_string.copy() | _commasepitem, default="")
+        Opt(quoted_string.copy() | _commasepitem, default="")
     ).set_name("comma separated list")
     """Predefined expression of 1 or more printable words or quoted strings, separated by commas."""
 

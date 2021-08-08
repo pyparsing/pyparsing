@@ -104,8 +104,8 @@ Usage notes
 
     integer  = Word(nums)            # simple unsigned integer
     variable = Char(alphas)          # single letter variable, such as x, z, m, etc.
-    arithOp  = one_of("+ - * /")      # arithmetic operators
-    equation = variable + "=" + integer + arithOp + integer    # will match "x=2+2", etc.
+    arith_op = one_of("+ - * /")      # arithmetic operators
+    equation = variable + "=" + integer + arith_op + integer    # will match "x=2+2", etc.
 
   In the definition of ``equation``, the string ``"="`` will get added as
   a ``Literal("=")``, but in a more readable way.
@@ -163,7 +163,7 @@ Usage notes
 
   - ``expr*3`` is equivalent to ``expr + expr + expr``
 
-  - ``expr[2, 3]`` is equivalent to ``expr + expr + Optional(expr)``
+  - ``expr[2, 3]`` is equivalent to ``expr + expr + Opt(expr)``
 
   - ``expr[n, ...]`` or ``expr[n,]`` is equivalent
     to ``expr*n + ZeroOrMore(expr)`` (read as "at least n instances of expr")
@@ -197,7 +197,7 @@ Usage notes
 - If parsing the contents of an entire file, pass it to the
   ``parse_file`` method using::
 
-    expr.parse_file(sourceFile)
+    expr.parse_file(source_file)
 
 - ``ParseExceptions`` will report the location where an expected token
   or expression failed to match.  For example, if we tried to use our
@@ -258,10 +258,10 @@ Classes in the pyparsing module
 ``ParserElement`` - abstract base class for all pyparsing classes;
 methods for code to use are:
 
-- ``parse_string(sourceString, parse_all=False)`` - only called once, on the overall
+- ``parse_string(source_string, parse_all=False)`` - only called once, on the overall
   matching pattern; returns a ParseResults_ object that makes the
   matched tokens available as a list, and optionally as a dictionary,
-  or as an object with named attributes; if parseAll is set to True, then
+  or as an object with named attributes; if ``parse_all`` is set to True, then
   parse_string will raise a ParseException if the grammar does not process
   the complete input string.
 
@@ -269,7 +269,7 @@ methods for code to use are:
   input file object or filename.  The file contents are passed as a
   string to ``parse_string()``.  ``parse_file`` also supports the ``parse_all`` argument.
 
-- ``scan_string(sourceString)`` - generator function, used to find and
+- ``scan_string(source_string)`` - generator function, used to find and
   extract matching text in the given source string; for each matched text,
   returns a tuple of:
 
@@ -283,7 +283,7 @@ methods for code to use are:
   random matches, instead of exhaustively defining the grammar for the entire
   source text (as would be required with ``parse_string``).
 
-- ``transform_string(sourceString)`` - convenience wrapper function for
+- ``transform_string(source_string)`` - convenience wrapper function for
   ``scan_string``, to process the input source string, and replace matching
   text with the tokens returned from parse actions defined in the grammar
   (see set_parse_action_).
@@ -381,7 +381,7 @@ methods for code to use are:
   lambda - here is an example of using a parse action to convert matched
   integer tokens from strings to integers::
 
-    intNumber = Word(nums).set_parse_action(lambda s, l, t: [int(t[0])])
+    int_number = Word(nums).set_parse_action(lambda s, l, t: [int(t[0])])
 
   If ``fn`` modifies the ``toks`` list in-place, it does not need to return
   and pyparsing will use the modified ``toks`` list.
@@ -544,7 +544,7 @@ Basic ParserElement subclasses
 
   - ``unquote_results`` - boolean indicating whether the matched text should be unquoted (default=True)
 
-  - ``end_quote_char`` - string of one or more characters defining the end of the quote delimited string (default=None => same as quoteChar)
+  - ``end_quote_char`` - string of one or more characters defining the end of the quote delimited string (default=None => same as quote_char)
 
 - ``SkipTo`` - skips ahead in the input string, accepting any
   characters up to the specified pattern; may be constructed with
@@ -585,47 +585,47 @@ Basic ParserElement subclasses
 Expression subclasses
 ---------------------
 
-- ``And`` - construct with a list of ParserElements, all of which must
+- ``And`` - construct with a list of ``ParserElements``, all of which must
   match for And to match; can also be created using the '+'
   operator; multiple expressions can be Anded together using the '*'
   operator as in::
 
-    ipAddress = Word(nums) + ('.' + Word(nums)) * 3
+    ip_address = Word(nums) + ('.' + Word(nums)) * 3
 
   A tuple can be used as the multiplier, indicating a min/max::
 
-    usPhoneNumber = Word(nums) + ('-' + Word(nums)) * (1,2)
+    us_phone_number = Word(nums) + ('-' + Word(nums)) * (1,2)
 
   A special form of ``And`` is created if the '-' operator is used
-  instead of the '+' operator.  In the ipAddress example above, if
-  no trailing '.' and Word(nums) are found after matching the initial
-  Word(nums), then pyparsing will back up in the grammar and try other
-  alternatives to ipAddress.  However, if ipAddress is defined as::
+  instead of the '+' operator.  In the ``ip_address`` example above, if
+  no trailing '.' and ``Word(nums)`` are found after matching the initial
+  ``Word(nums)``, then pyparsing will back up in the grammar and try other
+  alternatives to ``ip_address``.  However, if ``ip_address`` is defined as::
 
-    strictIpAddress = Word(nums) - ('.'+Word(nums))*3
+    strict_ip_address = Word(nums) - ('.'+Word(nums))*3
 
-  then no backing up is done.  If the first Word(nums) of strictIpAddress
-  is matched, then any mismatch after that will raise a ParseSyntaxException,
+  then no backing up is done.  If the first ``Word(nums)`` of ``strict_ip_address``
+  is matched, then any mismatch after that will raise a ``ParseSyntaxException``,
   which will halt the parsing process immediately.  By careful use of the
   '-' operator, grammars can provide meaningful error messages close to
   the location where the incoming text does not match the specified
   grammar.
 
-- ``Or`` - construct with a list of ParserElements, any of which must
+- ``Or`` - construct with a list of ``ParserElements``, any of which must
   match for Or to match; if more than one expression matches, the
   expression that makes the longest match will be used; can also
   be created using the '^' operator
 
-- ``MatchFirst`` - construct with a list of ParserElements, any of
+- ``MatchFirst`` - construct with a list of ``ParserElements``, any of
   which must match for MatchFirst to match; matching is done
   left-to-right, taking the first expression that matches; can
   also be created using the '|' operator
 
-- ``Each`` - similar to And, in that all of the provided expressions
+- ``Each`` - similar to ``And``, in that all of the provided expressions
   must match; however, Each permits matching to be done in any order;
   can also be created using the '&' operator
 
-- ``Opt`` - construct with a ParserElement, but this element is
+- ``Opt`` - construct with a ``ParserElement``, but this element is
   not required to match; can be constructed with an optional ``default`` argument,
   containing a default string or object to be supplied if the given optional
   parse element is not found in the input string; parse action will only
@@ -636,10 +636,10 @@ Expression subclasses
   been renamed to ``Opt``. A compatibility synonym ``Optional`` is defined,
   but will be removed in a future release.)
 
-- ``ZeroOrMore`` - similar to Optional, but can be repeated; ``ZeroOrMore(expr)``
+- ``ZeroOrMore`` - similar to ``Opt``, but can be repeated; ``ZeroOrMore(expr)``
   can also be written as ``expr[...]``.
 
-- ``OneOrMore`` - similar to ZeroOrMore, but at least one match must
+- ``OneOrMore`` - similar to ``ZeroOrMore``, but at least one match must
   be present; ``OneOrMore(expr)`` can also be written as ``expr[1, ...]``.
 
 - ``FollowedBy`` - a lookahead expression, requires matching of the given
@@ -710,7 +710,7 @@ Converter subclasses
 --------------------
 
 - ``Combine`` - joins all matched tokens into a single string, using
-  specified joinString (default ``joinString=""``); expects
+  specified join_string (default ``join_string=""``); expects
   all matching tokens to be adjacent, with no intervening
   whitespace (can be overridden by specifying ``adjacent=False`` in constructor)
 
@@ -783,7 +783,7 @@ Other classes
       extraction instead of list extraction.
 
     - new named elements can be added (in a parse action, for instance), using the same
-      syntax as adding an item to a dict (``parseResults["X"] = "new item"``); named elements can be removed using ``del parseResults["X"]``
+      syntax as adding an item to a dict (``parse_results["X"] = "new item"``); named elements can be removed using ``del parse_results["X"]``
 
   - as a nested list
 
@@ -809,7 +809,7 @@ Other classes
   Here is sample code illustrating some of these methods::
 
     >>> number = Word(nums)
-    >>> name = Combine(Word(alphas)[...], adjacent=False, joinString=" ")
+    >>> name = Combine(Word(alphas)[...], adjacent=False, join_string=" ")
     >>> parser = number("house_number") + name("street_name")
     >>> result = parser.parse_string("123 Main St")
     >>> print(result)
@@ -824,7 +824,7 @@ Other classes
     'Main St'
     >>> result.as_list()
     ['123', 'Main St']
-    >>> result.asDict()
+    >>> result.as_dict()
     {'house_number': '123', 'street_name': 'Main St'}
     >>> print(result.dump())
     ['123', 'Main St']
@@ -849,9 +849,9 @@ Exception classes and Troubleshooting
 - ``RecursiveGrammarException`` - exception returned by ``validate()`` if
   the grammar contains a recursive infinite loop, such as::
 
-    badGrammar = Forward()
-    goodToken = Literal("A")
-    badGrammar <<= Optional(goodToken) + badGrammar
+    bad_grammar = Forward()
+    good_token = Literal("A")
+    bad_grammar <<= Opt(good_token) + bad_grammar
 
 - ``ParseFatalException`` - exception that parse actions can raise to stop parsing
   immediately.  Should be used when a semantic error is found in the input text, such
@@ -934,14 +934,14 @@ Helper methods
 - ``dict_off(key, value)`` - convenience function for quickly declaring a
   dictionary pattern of ``Dict(ZeroOrMore(Group(key + value)))``.
 
-- ``make_html_tags(tagName)`` and ``make_xml_tags(tagName)`` - convenience
+- ``make_html_tags(tag_str)`` and ``make_xml_tags(tag_str)`` - convenience
   functions to create definitions of opening and closing tag expressions.  Returns
   a pair of expressions, for the corresponding ``<tag>`` and ``</tag>`` strings.  Includes
   support for attributes in the opening tag, such as ``<tag attr1="abc">`` - attributes
   are returned as named results in the returned ParseResults.  ``make_html_tags`` is less
   restrictive than ``make_xml_tags``, especially with respect to case sensitivity.
 
-- ``infix_notation(baseOperand, operatorList)`` -
+- ``infix_notation(base_operand, operator_list)`` -
   convenience function to define a grammar for parsing infix notation
   expressions with a hierarchical precedence of operators. To use the ``infix_notation``
   helper:
@@ -953,23 +953,23 @@ Helper methods
 
   2.  Define a list of tuples for each level of operator
       precedence.  Each tuple is of the form
-      ``(opExpr, numTerms, rightLeftAssoc, parseAction)``, where:
+      ``(operand_expr, num_operands, right_left_assoc, parse_action)``, where:
 
-      - ``opExpr`` - the pyparsing expression for the operator;
+      - ``operand_expr`` - the pyparsing expression for the operator;
         may also be a string, which will be converted to a Literal; if
         None, indicates an empty operator, such as the implied
         multiplication operation between 'm' and 'x' in "y = mx + b".
 
-      - ``numTerms`` - the number of terms for this operator (must
+      - ``num_operands`` - the number of terms for this operator (must
         be 1, 2, or 3)
 
-      - ``rightLeftAssoc`` is the indicator whether the operator is
+      - ``right_left_assoc`` is the indicator whether the operator is
         right or left associative, using the pyparsing-defined
-        constants ``opAssoc.RIGHT`` and ``opAssoc.LEFT``.
+        constants ``OpAssoc.RIGHT`` and ``OpAssoc.LEFT``.
 
-      - ``parseAction`` is the parse action to be associated with
+      - ``parse_action`` is the parse action to be associated with
         expressions matching this operator expression (the
-        ``parseAction`` tuple member may be omitted)
+        ``parse_action`` tuple member may be omitted)
 
   3.  Call ``infix_notation`` passing the operand expression and
       the operator precedence list, and save the returned value
@@ -977,12 +977,12 @@ Helper methods
       this expression to parse input strings, or incorporate it
       into a larger, more complex grammar.
 
-- ``matchPreviousLiteral`` and ``matchPreviousExpr`` - function to define and
+- ``match_previous_literal`` and ``match_previous_expr`` - function to define and
   expression that matches the same content
   as was parsed in a previous parse expression.  For instance::
 
         first = Word(nums)
-        matchExpr = first + ":" + matchPreviousLiteral(first)
+        match_expr = first + ":" + match_previous_literal(first)
 
   will match "1:1", but not "1:2".  Since this matches at the literal
   level, this will also match the leading "1:1" in "1:10".
@@ -990,12 +990,12 @@ Helper methods
   In contrast::
 
         first = Word(nums)
-        matchExpr = first + ":" + matchPreviousExpr(first)
+        match_expr = first + ":" + match_previous_expr(first)
 
   will *not* match the leading "1:1" in "1:10"; the expressions are
   evaluated first, and then compared, so "1" is compared with "10".
 
-- ``nestedExpr(opener, closer, content=None, ignoreExpr=quotedString)`` - method for defining nested
+- ``nested_expr(opener, closer, content=None, ignore_expr=quoted_string)`` - method for defining nested
   lists enclosed in opening and closing delimiters.
 
   - ``opener`` - opening character for a nested list (default="("); can also be a pyparsing expression
@@ -1004,49 +1004,39 @@ Helper methods
 
   - ``content`` - expression for items within the nested lists (default=None)
 
-  - ``ignoreExpr`` - expression for ignoring opening and closing delimiters (default=quotedString)
+  - ``ignore_expr`` - expression for ignoring opening and closing delimiters (default=quoted_string)
 
   If an expression is not provided for the content argument, the nested
   expression will capture all whitespace-delimited content between delimiters
   as a list of separate values.
 
-  Use the ignoreExpr argument to define expressions that may contain
+  Use the ``ignore_expr`` argument to define expressions that may contain
   opening or closing characters that should not be treated as opening
-  or closing characters for nesting, such as quotedString or a comment
+  or closing characters for nesting, such as quoted_string or a comment
   expression.  Specify multiple expressions using an Or or MatchFirst.
-  The default is quotedString, but if no expressions are to be ignored,
+  The default is quoted_string, but if no expressions are to be ignored,
   then pass None for this argument.
 
 
-- ``indentedBlock(statementExpr, indentationStackVar, indent=True)`` -
+- ``IndentedBlock(statement_expr, recursive=True)`` -
   function to define an indented block of statements, similar to
   indentation-based blocking in Python source code:
 
-  - ``statementExpr`` - the expression defining a statement that
-    will be found in the indented block; a valid ``indentedBlock``
-    must contain at least 1 matching ``statementExpr``
-
-  - ``indentationStackVar`` - a Python list variable; this variable
-    should be common to all ``indentedBlock`` expressions defined
-    within the same grammar, and should be reinitialized to [1]
-    each time the grammar is to be used
-
-  - ``indent`` - a boolean flag indicating whether the expressions
-    within the block must be indented from the current parse
-    location; if using ``indentedBlock`` to define the left-most
-    statements (all starting in column 1), set ``indent`` to False
+  - ``statement_expr`` - the expression defining a statement that
+    will be found in the indented block; a valid ``IndentedBlock``
+    must contain at least 1 matching ``statement_expr``
 
 .. _originalTextFor:
 
-- ``originalTextFor(expr)`` - helper function to preserve the originally parsed text, regardless of any
+- ``original_text_for(expr)`` - helper function to preserve the originally parsed text, regardless of any
   token processing or conversion done by the contained expression.  For instance, the following expression::
 
-        fullName = Word(alphas) + Word(alphas)
+        full_name = Word(alphas) + Word(alphas)
 
   will return the parse of "John Smith" as ['John', 'Smith'].  In some applications, the actual name as it
-  was given in the input string is what is desired.  To do this, use ``originalTextFor``::
+  was given in the input string is what is desired.  To do this, use ``original_text_for``::
 
-        fullName = originalTextFor(Word(alphas) + Word(alphas))
+        full_name = original_text_for(Word(alphas) + Word(alphas))
 
 - ``ungroup(expr)`` - function to "ungroup" returned tokens; useful
   to undo the default behavior of And to always group the returned tokens, even
@@ -1064,13 +1054,13 @@ Helper methods
   representing ``lineno(loc, string)``; useful when printing out diagnostic
   messages for exceptions
 
-- ``srange(rangeSpec)`` - function to define a string of characters,
+- ``srange(range_spec)`` - function to define a string of characters,
   given a string of the form used by regexp string ranges, such as ``"[0-9]"`` for
   all numeric digits, ``"[A-Z_]"`` for uppercase characters plus underscore, and
-  so on (note that rangeSpec does not include support for generic regular
+  so on (note that range_spec does not include support for generic regular
   expressions, just string range specs)
 
-- ``traceParseAction(fn)`` - decorator function to debug parse actions. Lists
+- ``trace_parse_action(fn)`` - decorator function to debug parse actions. Lists
   each call, called arguments, and return value or exception
 
 
@@ -1078,40 +1068,40 @@ Helper methods
 Helper parse actions
 --------------------
 
-- ``removeQuotes`` - removes the first and last characters of a quoted string;
+- ``remove_quotes`` - removes the first and last characters of a quoted string;
   useful to remove the delimiting quotes from quoted strings
 
-- ``replaceWith(replString)`` - returns a parse action that simply returns the
-  replString; useful when using transform_string, or converting HTML entities, as in::
+- ``replace_with(repl_string)`` - returns a parse action that simply returns the
+  repl_string; useful when using transform_string, or converting HTML entities, as in::
 
-      nbsp = Literal("&nbsp;").set_parse_action(replaceWith("<BLANK>"))
+      nbsp = Literal("&nbsp;").set_parse_action(replace_with("<BLANK>"))
 
-- ``keepOriginalText``- (deprecated, use originalTextFor_ instead) restores any internal whitespace or suppressed
+- ``keepOriginalText``- (deprecated, use original_text_for_ instead) restores any internal whitespace or suppressed
   text within the tokens for a matched parse
   expression.  This is especially useful when defining expressions
   for scan_string or transform_string applications.
 
-- ``withAttribute(*args, **kwargs)`` - helper to create a validating parse action to be used with start tags created
-  with ``makeXMLTags`` or ``makeHTMLTags``. Use ``withAttribute`` to qualify a starting tag
+- ``with_attribute(*args, **kwargs)`` - helper to create a validating parse action to be used with start tags created
+  with ``make_xml_tags`` or ``make_html_tags``. Use ``with_attribute`` to qualify a starting tag
   with a required attribute value, to avoid false matches on common tags such as
   ``<TD>`` or ``<DIV>``.
 
-  ``withAttribute`` can be called with:
+  ``with_attribute`` can be called with:
 
   - keyword arguments, as in ``(class="Customer", align="right")``, or
 
   - a list of name-value tuples, as in ``(("ns1:class", "Customer"), ("ns2:align", "right"))``
 
   An attribute can be specified to have the special value
-  ``withAttribute.ANY_VALUE``, which will match any value - use this to
+  ``with_attribute.ANY_VALUE``, which will match any value - use this to
   ensure that an attribute is present but any attribute value is
   acceptable.
 
-- ``downcaseTokens`` - converts all matched tokens to lowercase
+- ``downcase_tokens`` - converts all matched tokens to lowercase
 
-- ``upcaseTokens`` - converts all matched tokens to uppercase
+- ``upcase_tokens`` - converts all matched tokens to uppercase
 
-- ``matchOnlyAtCol(columnNumber)`` - a parse action that verifies that
+- ``match_only_at_col(column_number)`` - a parse action that verifies that
   an expression was matched at a particular column, raising a
   ParseException if matching at a different column number; useful when parsing
   tabular data
@@ -1135,25 +1125,25 @@ Common string and token constants
 
 - ``empty`` - a global ``Empty()``; will always match
 
-- ``sglQuotedString`` - a string of characters enclosed in 's; may
+- ``sgl_quoted_string`` - a string of characters enclosed in 's; may
   include whitespace, but not newlines
 
-- ``dblQuotedString`` - a string of characters enclosed in "s; may
+- ``dbl_quoted_string`` - a string of characters enclosed in "s; may
   include whitespace, but not newlines
 
-- ``quotedString`` - ``sglQuotedString | dblQuotedString``
+- ``quoted_string`` - ``sgl_quoted_string | dbl_quoted_string``
 
-- ``cStyleComment`` - a comment block delimited by ``'/*'`` and ``'*/'`` sequences; can span
+- ``c_style_comment`` - a comment block delimited by ``'/*'`` and ``'*/'`` sequences; can span
   multiple lines, but does not support nesting of comments
 
-- ``htmlComment`` - a comment block delimited by ``'<!--'`` and ``'-->'`` sequences; can span
+- ``html_comment`` - a comment block delimited by ``'<!--'`` and ``'-->'`` sequences; can span
   multiple lines, but does not support nesting of comments
 
-- ``commaSeparatedList`` - similar to ``delimited_list``, except that the
+- ``comma_separated_list`` - similar to ``delimited_list``, except that the
   list expressions can be any text value, or a quoted string; quoted strings can
   safely include commas without incorrectly breaking the string into two tokens
 
-- ``restOfLine`` - all remaining printable characters up to but not including the next
+- ``rest_of_line`` - all remaining printable characters up to but not including the next
   newline
 
 Generating Railroad Diagrams
