@@ -95,12 +95,12 @@ classes inherit from. Use the docstrings for examples of how to:
 """
 from collections import namedtuple
 
-version_info = namedtuple("version_info", "major minor micro releaseLevel serial")
+version_info = namedtuple("version_info", "major minor micro release_level serial")
 __version_info__ = version_info(3, 0, 0, "beta", 3)
 __version__ = (
     "{}.{}.{}".format(*__version_info__[:3])
-    + ("{}{}".format(__version_info__.releaseLevel[0], __version_info__.serial), "")[
-        __version_info__.releaseLevel == "final"
+    + ("{}{}".format(__version_info__.release_level[0], __version_info__.serial), "")[
+        __version_info__.release_level == "final"
     ]
 )
 __versionTime__ = "7 August 2021 21:29 UTC"

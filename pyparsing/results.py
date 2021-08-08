@@ -451,7 +451,7 @@ class ParseResults:
             return other + self
 
     def __repr__(self):
-        return "{}({!r}, {})".format(type(self).__name__, self._toklist, self.asDict())
+        return "{}({!r}, {})".format(type(self).__name__, self._toklist, self.as_dict())
 
     def __str__(self):
         return (

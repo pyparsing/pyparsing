@@ -121,7 +121,7 @@ def match_previous_literal(expr):
                 rep << t[0]
             else:
                 # flatten t tokens
-                tflat = _flatten(t.asList())
+                tflat = _flatten(t.as_list())
                 rep << And(Literal(tt) for tt in tflat)
         else:
             rep << Empty()
@@ -151,10 +151,10 @@ def match_previous_expr(expr):
     rep <<= e2
 
     def copy_token_to_repeater(s, l, t):
-        matchTokens = _flatten(t.asList())
+        matchTokens = _flatten(t.as_list())
 
         def must_match_these_tokens(s, l, t):
-            theseTokens = _flatten(t.asList())
+            theseTokens = _flatten(t.as_list())
             if theseTokens != matchTokens:
                 raise ParseException("", 0, "")
 
@@ -165,7 +165,15 @@ def match_previous_expr(expr):
     return rep
 
 
-def one_of(strs, caseless=False, use_regex=True, as_keyword=False, *, useRegex=True, asKeyword=False):
+def one_of(
+    strs,
+    caseless=False,
+    use_regex=True,
+    as_keyword=False,
+    *,
+    useRegex=True,
+    asKeyword=False
+):
     """Helper to quickly define a set of alternative :class:`Literal` s,
     and makes sure to do longest-first testing when there is a conflict,
     regardless of the input order, but returns
@@ -321,7 +329,7 @@ def original_text_for(expr, as_string=True, *, asString=True):
     :class:`original_text_for` contains expressions with defined
     results names, you must set ``as_string`` to ``False`` if you
     want to preserve those results name values.
-    
+
     The ``asString`` pre-PEP8 argument is retained for compatibility,
     but will be removed in a future release.
 
@@ -339,7 +347,7 @@ def original_text_for(expr, as_string=True, *, asString=True):
         ['<i>text</i>']
     """
     asString = asString and as_string
-    
+
     locMarker = Empty().set_parse_action(lambda s, loc, t: loc)
     endlocMarker = locMarker.copy()
     endlocMarker.callPreparse = False
@@ -398,7 +406,14 @@ def locatedExpr(expr):
     )
 
 
-def nested_expr(opener="(", closer=")", content=None, ignore_expr=quoted_string(), *, ignoreExpr=quoted_string()):
+def nested_expr(
+    opener="(",
+    closer=")",
+    content=None,
+    ignore_expr=quoted_string(),
+    *,
+    ignoreExpr=quoted_string()
+):
     """Helper method for defining nested lists enclosed in opening and
     closing delimiters (``"("`` and ``")"`` are the default).
 
@@ -529,7 +544,7 @@ def _makeTags(tagStr, xml, suppress_LT=Suppress("<"), suppress_GT=Suppress(">"))
 
     tagAttrName = Word(alphas, alphanums + "_-:")
     if xml:
-        tagAttrValue = dblQuotedString.copy().set_parse_action(removeQuotes)
+        tagAttrValue = dbl_quoted_string.copy().set_parse_action(remove_quotes)
         openTag = (
             suppress_LT
             + tagStr("tag")
@@ -540,8 +555,8 @@ def _makeTags(tagStr, xml, suppress_LT=Suppress("<"), suppress_GT=Suppress(">"))
             + suppress_GT
         )
     else:
-        tagAttrValue = quotedString.copy().set_parse_action(removeQuotes) | Word(
-            printables, excludeChars=">"
+        tagAttrValue = quoted_string.copy().set_parse_action(remove_quotes) | Word(
+            printables, exclude_chars=">"
         )
         openTag = (
             suppress_LT
@@ -706,7 +721,7 @@ def infix_notation(base_expr, op_list, lpar=Suppress("("), rpar=Suppress(")")):
     # captive version of FollowedBy that does not do parse actions or capture results names
     class _FB(FollowedBy):
         def parseImpl(self, instring, loc, doActions=True):
-            self.expr.tryParse(instring, loc)
+            self.expr.try_parse(instring, loc)
             return loc, []
 
     ret = Forward()
@@ -725,12 +740,12 @@ def infix_notation(base_expr, op_list, lpar=Suppress("("), rpar=Suppress(")")):
         if not 1 <= arity <= 3:
             raise ValueError("operator must be unary (1), binary (2), or ternary (3)")
 
-        if rightLeftAssoc not in (opAssoc.LEFT, opAssoc.RIGHT):
+        if rightLeftAssoc not in (OpAssoc.LEFT, OpAssoc.RIGHT):
             raise ValueError("operator must indicate right or left associativity")
 
         termName = "%s term" % opExpr if arity < 3 else "%s%s term" % opExpr
         thisExpr = Forward().set_name(termName)
-        if rightLeftAssoc is opAssoc.LEFT:
+        if rightLeftAssoc is OpAssoc.LEFT:
             if arity == 1:
                 matchExpr = _FB(lastExpr + opExpr) + Group(
                     lastExpr + opExpr + opExpr[...]
@@ -748,7 +763,7 @@ def infix_notation(base_expr, op_list, lpar=Suppress("("), rpar=Suppress(")")):
                 matchExpr = _FB(
                     lastExpr + opExpr1 + lastExpr + opExpr2 + lastExpr
                 ) + Group(lastExpr + OneOrMore(opExpr1 + lastExpr + opExpr2 + lastExpr))
-        elif rightLeftAssoc is opAssoc.RIGHT:
+        elif rightLeftAssoc is OpAssoc.RIGHT:
             if arity == 1:
                 # try to avoid LR with this extra test
                 if not isinstance(opExpr, Optional):
@@ -780,7 +795,7 @@ def infix_notation(base_expr, op_list, lpar=Suppress("("), rpar=Suppress(")")):
 
 def indentedBlock(blockStatementExpr, indentStack, indent=True, backup_stacks=[]):
     """
-   	(DEPRECATED - use IndentedBlock class instead)
+        (DEPRECATED - use IndentedBlock class instead)
     Helper method for defining space-delimited indentation blocks,
     such as those used to define block statements in Python source code.
 

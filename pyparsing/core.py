@@ -161,7 +161,19 @@ def enable_all_warnings():
 del __config_flags
 
 # build list of single arg builtins, that can be used as parse actions
-_single_arg_builtins = [sum, len, sorted, reversed, list, tuple, set, any, all, min, max]
+_single_arg_builtins = [
+    sum,
+    len,
+    sorted,
+    reversed,
+    list,
+    tuple,
+    set,
+    any,
+    all,
+    min,
+    max,
+]
 
 _generatorType = types.GeneratorType
 
@@ -513,7 +525,9 @@ class ParserElement(ABC):
             if not all(callable(fn) for fn in fns):
                 raise TypeError("parse actions must be callable")
             self.parseAction = list(map(_trim_arity, list(fns)))
-            self.callDuringTry = kwargs.get("call_during_try", kwargs.get("callDuringTry", False))
+            self.callDuringTry = kwargs.get(
+                "call_during_try", kwargs.get("callDuringTry", False)
+            )
         return self
 
     def add_parse_action(self, *fns, **kwargs):
@@ -523,7 +537,9 @@ class ParserElement(ABC):
         See examples in :class:`copy`.
         """
         self.parseAction += list(map(_trim_arity, list(fns)))
-        self.callDuringTry = self.callDuringTry or kwargs.get("call_during_try", kwargs.get("callDuringTry", False))
+        self.callDuringTry = self.callDuringTry or kwargs.get(
+            "call_during_try", kwargs.get("callDuringTry", False)
+        )
         return self
 
     def add_condition(self, *fns, **kwargs):
@@ -551,12 +567,14 @@ class ParserElement(ABC):
         """
         for fn in fns:
             self.parseAction.append(
-                conditionAsParseAction(
+                condition_as_parse_action(
                     fn, message=kwargs.get("message"), fatal=kwargs.get("fatal", False)
                 )
             )
 
-        self.callDuringTry = self.callDuringTry or kwargs.get("call_during_try", kwargs.get("callDuringTry", False))
+        self.callDuringTry = self.callDuringTry or kwargs.get(
+            "call_during_try", kwargs.get("callDuringTry", False)
+        )
         return self
 
     def set_fail_action(self, fn):
@@ -696,7 +714,7 @@ class ParserElement(ABC):
                             modal=self.modalResults,
                         )
         if debugging:
-            # print("Matched", self, "->", retTokens.asList())
+            # print("Matched", self, "->", retTokens.as_list())
             if self.debugActions[MATCH]:
                 self.debugActions[MATCH](instring, tokensStart, loc, self, retTokens)
 
@@ -712,7 +730,7 @@ class ParserElement(ABC):
 
     def can_parse_next(self, instring, loc):
         try:
-            self.tryParse(instring, loc)
+            self.try_parse(instring, loc)
         except (ParseException, IndexError):
             return False
         else:
@@ -807,7 +825,9 @@ class ParserElement(ABC):
         ParserElement._parse = ParserElement._parseNoCache
 
     @staticmethod
-    def enable_left_recursion(cache_size_limit: OptionalType[int] = None, *, force=False):
+    def enable_left_recursion(
+        cache_size_limit: OptionalType[int] = None, *, force=False
+    ):
         """
         Enables "bounded recursion" parsing, which allows for both direct and indirect
         left-recursion. During parsing, left-recursive :class:`Forward` elements are
@@ -964,7 +984,9 @@ class ParserElement(ABC):
         else:
             return tokens
 
-    def scan_string(self, instring, max_matches=_MAX_INT, overlap=False, *, maxMatches=_MAX_INT):
+    def scan_string(
+        self, instring, max_matches=_MAX_INT, overlap=False, *, maxMatches=_MAX_INT
+    ):
         """
         Scan the input string for expression matches.  Each match will return the
         matching tokens, start location, and end location.  May be called with optional
@@ -1116,7 +1138,14 @@ class ParserElement(ABC):
                 # catch and re-raise exception from here, clears out pyparsing internal stack trace
                 raise exc.with_traceback(None)
 
-    def split(self, instring, maxsplit=_MAX_INT, include_separators=False, *, includeSeparators=False):
+    def split(
+        self,
+        instring,
+        maxsplit=_MAX_INT,
+        include_separators=False,
+        *,
+        includeSeparators=False,
+    ):
         """
         Generator method to split a string using the given expression as a separator.
         May be called with optional ``maxsplit`` argument, to limit the number of splits;
@@ -1630,7 +1659,7 @@ class ParserElement(ABC):
         self.customName = name
         self.errmsg = "Expected " + self.name
         if __diag__.enable_debug_on_named_expressions:
-            self.setDebug()
+            self.set_debug()
         return self
 
     @property
@@ -1663,7 +1692,9 @@ class ParserElement(ABC):
         """
         self._checkRecursion([])
 
-    def parse_file(self, file_or_filename, encoding="utf-8", parse_all=False, *, parseAll=False):
+    def parse_file(
+        self, file_or_filename, encoding="utf-8", parse_all=False, *, parseAll=False
+    ):
         """
         Execute the parse expression on the given file or filename.
         If a filename is specified (instead of a file object),
@@ -2121,7 +2152,9 @@ class Keyword(Token):
 
     DEFAULT_KEYWORD_CHARS = alphanums + "_$"
 
-    def __init__(self, match_string, ident_chars=None, caseless=False, *, identChars=None):
+    def __init__(
+        self, match_string, ident_chars=None, caseless=False, *, identChars=None
+    ):
         super().__init__()
         identChars = identChars or ident_chars
         if identChars is None:
@@ -2555,7 +2588,15 @@ class Char(_WordRegex):
     characters.
     """
 
-    def __init__(self, charset, as_keyword=False, exclude_chars=None, *, asKeyword=False, excludeChars=None):
+    def __init__(
+        self,
+        charset,
+        as_keyword=False,
+        exclude_chars=None,
+        *,
+        asKeyword=False,
+        excludeChars=None,
+    ):
         asKeyword = asKeyword or as_keyword
         excludeChars = excludeChars or exclude_chars
         super().__init__(
@@ -2593,7 +2634,16 @@ class Regex(Token):
         parser = pp.Regex(regex.compile(r'[0-9]'))
     """
 
-    def __init__(self, pattern, flags=0, as_group_list=False, as_match=False, *, asGroupList=False, asMatch=False):
+    def __init__(
+        self,
+        pattern,
+        flags=0,
+        as_group_list=False,
+        as_match=False,
+        *,
+        asGroupList=False,
+        asMatch=False,
+    ):
         """The parameters ``pattern`` and ``flags`` are passed
         to the ``re.compile()`` function as-is. See the Python
         `re module <https://docs.python.org/3/library/re.html>`_ module for an
@@ -2701,7 +2751,7 @@ class Regex(Token):
             def pa(tokens):
                 return self.re.sub(repl, tokens[0])
 
-        return self.addParseAction(pa)
+        return self.add_parse_action(pa)
 
 
 class QuotedString(Token):
@@ -2766,7 +2816,9 @@ class QuotedString(Token):
         escQuote = escQuote or esc_quote
         unquoteResults = unquoteResults and unquote_results
         endQuoteChar = endQuoteChar or end_quote_char
-        convertWhitespaceEscapes = convertWhitespaceEscapes and convert_whitespace_escapes
+        convertWhitespaceEscapes = (
+            convertWhitespaceEscapes and convert_whitespace_escapes
+        )
 
         # remove white space from quote chars - wont work anyway
         quote_char = quote_char.strip()
@@ -3520,7 +3572,7 @@ class Or(ParseExpression):
             loc = self.preParse(instring, loc)
         for e in self.exprs:
             try:
-                loc2 = e.tryParse(instring, loc, raise_fatal=True)
+                loc2 = e.try_parse(instring, loc, raise_fatal=True)
             except ParseFatalException as pfe:
                 pfe.__traceback__ = None
                 pfe.parserElement = e
@@ -3808,19 +3860,17 @@ class Each(ParseExpression):
             ]
             self.optionals = opt1 + opt2
             self.multioptionals = [
-                e.expr.setResultsName(e.resultsName, listAllMatches=True)
+                e.expr.set_results_name(e.resultsName, list_all_matches=True)
                 for e in self.exprs
                 if isinstance(e, _MultipleMatch)
             ]
             self.multirequired = [
-                e.expr.setResultsName(e.resultsName, listAllMatches=True)
+                e.expr.set_results_name(e.resultsName, list_all_matches=True)
                 for e in self.exprs
                 if isinstance(e, OneOrMore)
             ]
             self.required = [
-                e
-                for e in self.exprs
-                if not isinstance(e, (Opt, ZeroOrMore, OneOrMore))
+                e for e in self.exprs if not isinstance(e, (Opt, ZeroOrMore, OneOrMore))
             ]
             self.required += self.multirequired
             self.initExprGroups = False
@@ -3840,7 +3890,7 @@ class Each(ParseExpression):
             fatals.clear()
             for e in tmpExprs:
                 try:
-                    tmpLoc = e.tryParse(instring, tmpLoc, raise_fatal=True)
+                    tmpLoc = e.try_parse(instring, tmpLoc, raise_fatal=True)
                 except ParseFatalException as pfe:
                     pfe.__traceback__ = None
                     pfe.parserElement = e
@@ -3875,9 +3925,7 @@ class Each(ParseExpression):
             )
 
         # add any unmatched Opts, in case they have default values defined
-        matchOrder += [
-            e for e in self.exprs if isinstance(e, Opt) and e.expr in tmpOpt
-        ]
+        matchOrder += [e for e in self.exprs if isinstance(e, Opt) and e.expr in tmpOpt]
 
         total_results = ParseResults([])
         for e in matchOrder:
@@ -4169,7 +4217,7 @@ class NotAny(ParseElementEnhance):
         self.errmsg = "Found unwanted token, " + str(self.expr)
 
     def parseImpl(self, instring, loc, doActions=True):
-        if self.expr.canParseNext(instring, loc):
+        if self.expr.can_parse_next(instring, loc):
             raise ParseException(instring, loc, self.errmsg, self)
         return loc, []
 
@@ -4371,6 +4419,7 @@ class Opt(ParseElementEnhance):
 
     def _generateDefaultName(self):
         return "[" + str(self.expr) + "]"
+
 
 Optional = Opt
 
@@ -4582,7 +4631,12 @@ class Forward(ParseElementEnhance):
     def parseImpl(self, instring, loc, doActions=True):
         if self.expr is None and __diag__.warn_on_parse_using_empty_Forward:
             # walk stack until parse_string, scan_string, search_string, or transform_string is found
-            parse_fns = ["parse_string", "scan_string", "search_string", "transform_string"]
+            parse_fns = [
+                "parse_string",
+                "scan_string",
+                "search_string",
+                "transform_string",
+            ]
             tb = traceback.extract_stack(limit=200)
             for i, frm in enumerate(reversed(tb), start=1):
                 if frm.name in parse_fns:
@@ -4905,7 +4959,7 @@ class Dict(TokenConverter):
                 else:
                     tokenlist[ikey] = _ParseResultsWithOffset(dictvalue[0], i)
 
-        return tokenlist if not self._asPythonDict else tokenlist.asDict()
+        return tokenlist if not self._asPythonDict else tokenlist.as_dict()
 
 
 class Suppress(TokenConverter):

@@ -332,14 +332,14 @@ class pyparsing_common:
 
             More info at the pyparsing wiki page
         """
-        return pyparsing_common._html_stripper.transformString(tokens[0])
+        return pyparsing_common._html_stripper.transform_string(tokens[0])
 
     _commasepitem = (
         Combine(
             OneOrMore(
                 ~Literal(",")
                 + ~LineEnd()
-                + Word(printables, excludeChars=",")
+                + Word(printables, exclude_chars=",")
                 + Optional(White(" \t") + ~FollowedBy(LineEnd() | ","))
             )
         )
@@ -347,9 +347,9 @@ class pyparsing_common:
         .set_name("commaItem")
     )
     comma_separated_list = delimited_list(
-        Optional(quotedString.copy() | _commasepitem, default="")
+        Optional(quoted_string.copy() | _commasepitem, default="")
     ).set_name("comma separated list")
-    """Predefined expression of 1 or more printable words or quoted strin gs, separated by commas."""
+    """Predefined expression of 1 or more printable words or quoted strings, separated by commas."""
 
     upcase_tokens = staticmethod(token_map(lambda t: t.upper()))
     """Parse action to convert tokens to upper case."""
