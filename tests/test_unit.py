@@ -7925,6 +7925,7 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
                 "line",
                 "lineno",
                 "markInputline",
+                "mark_input_line",
                 "with_traceback",
             ]
             observed_dir = [attr for attr in dir(pe) if not attr.startswith("_")]

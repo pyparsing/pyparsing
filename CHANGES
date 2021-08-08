@@ -4,12 +4,25 @@ Change Log
 
 Version 3.0.0b3 - August, 2021
 ------------------------------
+- PEP-8 compatible names are being introduced in pyparsing version 3.0!
+  All methods such as `parseString` have been replaced with the PEP-8
+  compliant name `parse_string`. In addition, arguments such as `parseAll`
+  have been renamed to `parse_all`. For backward-compatibility, synonyms for
+  all renamed methods and arguments have been added, so that existing
+  pyparsing parsers will not break. These synonyms will be removed in a future
+  release.
+
+  In addition, the Optional class has been renamed to Opt, since it clashes
+  with the common typing.Optional type specifier that is used in the Python
+  type annotations. A compatibility synonym is defined for now, but will be
+  removed in a future release.
+
 - HUGE NEW FEATURE - Support for left-recursive parsers!
   Following the method used in Python's PEG parser, pyparsing now supports
   left-recursive parsers when left recursion is enabled.
 
         import pyparsing as pp
-        pp.ParserElement.enableLeftRecursion()
+        pp.ParserElement.enable_left_recursion()
 
         # a common left-recursion definition
         # define a list of items as 'list + item | item'
@@ -20,7 +33,7 @@ Version 3.0.0b3 - August, 2021
         item = pp.Word(pp.alphas)
         item_list <<= item_list + item | item
 
-        item_list.runTests("""\
+        item_list.run_tests("""\
             To parse or not to parse that is the question
             """)
   Prints:

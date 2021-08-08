@@ -127,11 +127,12 @@ class ParseBaseException(Exception):
     def __repr__(self):
         return str(self)
 
-    def markInputline(self, markerString=">!<"):
+    def mark_input_line(self, marker_string=None, *, markerString=">!<"):
         """
         Extracts the exception line from the input string, and marks
         the location of the exception with a special symbol.
         """
+        markerString = marker_string if marker_string is not None else markerString
         line_str = self.line
         line_column = self.column - 1
         if markerString:
@@ -161,7 +162,7 @@ class ParseBaseException(Exception):
 
             expr = pp.Word(pp.nums) * 3
             try:
-                expr.parseString("123 456 A789")
+                expr.parse_string("123 456 A789")
             except pp.ParseException as pe:
                 print(pe.explain(depth=0))
 
@@ -172,7 +173,7 @@ class ParseBaseException(Exception):
             ParseException: Expected W:(0-9), found 'A'  (at char 8), (line:1, col:9)
 
         Note: the diagnostic output will include string representations of the expressions
-        that failed to parse. These representations will be more helpful if you use `setName` to
+        that failed to parse. These representations will be more helpful if you use `set_name` to
         give identifiable names to your expressions. Otherwise they will use the default string
         forms, which may be cryptic to read.
 
@@ -181,6 +182,8 @@ class ParseBaseException(Exception):
         of parser expressions, you may have to set ``ParserElement.verbose_stacktrace = True``
         """
         return self.explain_exception(self, depth)
+
+    markInputline = mark_input_line
 
 
 class ParseException(ParseBaseException):
@@ -194,7 +197,7 @@ class ParseException(ParseBaseException):
     Example::
 
         try:
-            Word(nums).setName("integer").parseString("ABC")
+            Word(nums).set_name("integer").parse_string("ABC")
         except ParseException as pe:
             print(pe)
             print("column: {}".format(pe.col))
@@ -221,20 +224,6 @@ class ParseSyntaxException(ParseFatalException):
     that parsing is to stop immediately because an unbacktrackable
     syntax error has been found.
     """
-
-
-# ~ class ReparseException(ParseBaseException):
-# ~ """Experimental class - parse actions can raise this exception to cause
-# ~ pyparsing to reparse the input string:
-# ~ - with a modified input string, and/or
-# ~ - with a modified start location
-# ~ Set the values of the ReparseException in the constructor, and raise the
-# ~ exception in a parse action to cause pyparsing to use the new string/location.
-# ~ Setting the values as None causes no change to be made.
-# ~ """
-# ~ def __init_( self, newstring, restartLoc ):
-# ~ self.newParseText = newstring
-# ~ self.reparseLoc = restartLoc
 
 
 class RecursiveGrammarException(Exception):

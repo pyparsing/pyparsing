@@ -265,7 +265,7 @@ class TestRepetition(PyparsingExpressionTestCase):
         ),
         PpTestSpec(
             desc="Using delimitedList (comma is the default delimiter) with trailing delimiter",
-            expr=pp.delimitedList(pp.Word(pp.alphas), allowTrailingDelim=True),
+            expr=pp.delimitedList(pp.Word(pp.alphas), allow_trailing_delim=True),
             text="xxyx,xy,y,xxyx,yxx, xy,",
             expected_list=["xxyx", "xy", "y", "xxyx", "yxx", "xy"],
         ),
@@ -283,7 +283,7 @@ class TestRepetition(PyparsingExpressionTestCase):
                 pp.Word(pp.hexnums, exact=2),
                 delim=":",
                 combine=True,
-                allowTrailingDelim=True,
+                allow_trailing_delim=True,
             ),
             text="0A:4B:73:21:FE:76:",
             expected_list=["0A:4B:73:21:FE:76:"],
