@@ -16,68 +16,88 @@
     optional_and ::= ["and" | "-"]
     optional_dash ::= ["-"]
     units ::= one | two | three | ... | nine
-    teens_only ::= eleven | twelve | ... | nineteen
     teens ::= ten | teens_only
     tens ::= twenty | thirty | ... | ninety
-    hundreds ::= (units | teens_only | tens optional_dash units) "hundred"
     one_to_99 ::= units | teens | (tens [optional_dash units])
-    thousands = one_to_99 "thousand"
+    teens_only ::= eleven | twelve | ... | nineteen
+    hundreds ::= (units | teens_only | tens optional_dash units) "hundred"
+    thousands ::= one_to_99 "thousand"
 
-    number = [thousands] [hundreds] optional_and units | [thousands] optional_and hundreds | thousands
+    # number from 1-999,999
+    number ::= [thousands [optional_and]] [hundreds[optional_and]] one_to_99
+               | [thousands [optional_and]] hundreds
+               | thousands
 """
 import pyparsing as pp
 from operator import mul
-import pyparsing.diagram
 
 
-def define_numeric_word(s, value):
-    return pp.CaselessKeyword(s).addParseAction(lambda: value)
+def define_numeric_word_range(
+    names: str, from_: int, to_: int = None, step: int = 1
+) -> pp.MatchFirst:
+    """
+    Compose a MatchFirst of CaselessKeywords, given their names and values,
+    which when parsed, are converted to their value
+    """
 
+    def define_numeric_word(nm: str, val: int):
+        return pp.CaselessKeyword(nm).add_parse_action(lambda: val)
 
-def define_numeric_word_range(s, vals):
-    if isinstance(s, str):
-        s = s.split()
-    return pp.MatchFirst(
-        define_numeric_word(nm, nm_value) for nm, nm_value in zip(s, vals)
+    names = names.split()
+    if to_ is None:
+        to_ = from_
+    values = range(from_, to_ + 1, step)
+    ret = pp.MatchFirst(
+        define_numeric_word(name, value) for name, value in zip(names, values)
     )
 
+    if len(names) == 1:
+        ret.setName(names[0])
+    else:
+        ret.setName("{}-{}".format(names[0], names[-1]))
 
-opt_dash = pp.Optional(pp.Suppress("-")).setName("optional '-'")
-opt_and = pp.Optional((pp.CaselessKeyword("and") | "-").suppress()).setName(
-    "optional 'and'"
-)
-
-zero = define_numeric_word_range("zero oh", [0, 0])
-one_to_9 = define_numeric_word_range(
-    "one two three four five six seven eight nine", range(1, 9 + 1)
-).setName("1-9")
-eleven_to_19 = define_numeric_word_range(
-    "eleven twelve thirteen fourteen fifteen sixteen seventeen eighteen nineteen",
-    range(11, 19 + 1),
-).setName("eleven_to_19")
-ten_to_19 = (define_numeric_word("ten", 10) | eleven_to_19).setName("ten_to_19")
-one_to_19 = (one_to_9 | ten_to_19).setName("1-19")
-tens = define_numeric_word_range(
-    "twenty thirty forty fifty sixty seventy eighty ninety", range(20, 90 + 1, 10)
-)
-hundreds = (
-    one_to_9 | eleven_to_19 | (tens + opt_dash + one_to_9)
-) + define_numeric_word("hundred", 100)
-one_to_99 = (
-    one_to_19 | (tens + pp.Optional(opt_dash + one_to_9)).addParseAction(sum)
-).setName("1-99")
-one_to_999 = (
-    (pp.Optional(hundreds + opt_and) + one_to_99 | hundreds).addParseAction(sum)
-).setName("1-999")
-thousands = one_to_999 + define_numeric_word("thousand", 1000)
-hundreds.setName("100s")
-thousands.setName("1000s")
+    return ret
 
 
 def multiply(t):
+    """
+    Parse action for hundreds and thousands.
+    """
     return mul(*t)
 
 
+opt_dash = pp.Optional(pp.Suppress("-")).setName("'-'")
+opt_and = pp.Optional((pp.CaselessKeyword("and") | "-").suppress()).setName("'and/-'")
+
+units = define_numeric_word_range("one two three four five six seven eight nine", 1, 9)
+teens_only = define_numeric_word_range(
+    "eleven twelve thirteen fourteen fifteen sixteen seventeen eighteen nineteen",
+    11,
+    19,
+)
+ten = define_numeric_word_range("ten", 10)
+teens = ten | teens_only
+
+tens = define_numeric_word_range(
+    "twenty thirty forty fifty sixty seventy eighty ninety", 20, 90, 10
+)
+one_to_99 = (units | teens | (tens + pp.Optional(opt_dash + units))).setName("1-99")
+one_to_99.addParseAction(sum)
+
+hundred = define_numeric_word_range("hundred", 100)
+thousand = define_numeric_word_range("thousand", 1000)
+
+hundreds = (units | teens_only | (tens + opt_dash + units)) + hundred
+hundreds.setName("100s")
+
+one_to_999 = (
+    (pp.Optional(hundreds + opt_and) + one_to_99 | hundreds).addParseAction(sum)
+).setName("1-999")
+
+thousands = one_to_999 + thousand
+thousands.setName("1000s")
+
+# for hundreds and thousands, must scale up (multiply) accordingly
 hundreds.addParseAction(multiply)
 thousands.addParseAction(multiply)
 
@@ -86,6 +106,8 @@ numeric_expression = (
     | pp.Optional(thousands + opt_and) + hundreds
     | thousands
 ).setName("numeric_words")
+
+# sum all sub-results into total
 numeric_expression.addParseAction(sum)
 
 
@@ -104,7 +126,11 @@ if __name__ == "__main__":
         nine hundred thousand nine hundred and ninety nine
         nine hundred and ninety nine thousand nine hundred and ninety nine
         nineteen hundred thousand nineteen hundred and ninety nine
-        """
+        
+        # invalid
+        twenty hundred
+        """,
+        postParse=lambda _, s: "{:,}".format(s[0]),
     )
 
     # create railroad diagram

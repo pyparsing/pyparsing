@@ -20,10 +20,8 @@ import pyparsing as pp
 
 
 def define_numeric_word_range(
-        names: str,
-        from_: int,
-        to_: int,
-        step: int = 1) -> pp.MatchFirst:
+    names: str, from_: int, to_: int, step: int = 1
+) -> pp.MatchFirst:
     """
     Compose a MatchFirst of CaselessKeywords, given their names and values,
     which when parsed, are converted to their value
@@ -43,7 +41,9 @@ units = define_numeric_word_range(
     "one two three four five six seven eight nine", 1, 9
 ).set_name("units")
 teens = define_numeric_word_range(
-    "ten eleven twelve thirteen fourteen fifteen sixteen seventeen eighteen nineteen", 10, 19
+    "ten eleven twelve thirteen fourteen fifteen sixteen seventeen eighteen nineteen",
+    10,
+    19,
 ).set_name("teens")
 tens = define_numeric_word_range(
     "twenty thirty forty fifty sixty seventy eighty ninety", 20, 90, step=10
@@ -53,6 +53,8 @@ opt_dash = pp.Opt(pp.Suppress("-"))
 twenty_to_99 = tens + pp.Opt(opt_dash + units)
 
 one_to_99 = (units | teens | twenty_to_99).set_name("1-99")
+
+# for expressions that parse multiple values, add them up
 one_to_99.add_parse_action(sum)
 
 numeric_expression = one_to_99
