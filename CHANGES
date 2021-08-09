@@ -2,6 +2,18 @@
 Change Log
 ==========
 
+Version 3.0.0c1 -
+-----------------
+- Better exception messages to show full word where an exception occurred.
+
+      Word(alphas)[...].parseString("abc 123", parseAll=True)
+
+  Was:
+      pyparsing.ParseException: Expected end of text, found '1'  (at char 4), (line:1, col:5)
+  Now:
+      pyparsing.exceptions.ParseException: Expected end of text, found '123'  (at char 4), (line:1, col:5)
+
+
 Version 3.0.0b3 - August, 2021
 ------------------------------
 - PEP-8 compatible names are being introduced in pyparsing version 3.0!

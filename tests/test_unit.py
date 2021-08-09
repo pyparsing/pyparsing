@@ -6976,7 +6976,7 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             Match integer at loc 4(1,5)
               123 A100
                   ^
-            ParseException raised: Expected integer, found 'A'  (at char 4), (line:1, col:5)
+            ParseException raised: Expected integer, found 'A100'  (at char 4), (line:1, col:5)
             Match W:(0-9A-Za-z) at loc 4(1,5)
               123 A100
                   ^
@@ -6998,7 +6998,7 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             Match integer at loc 4(1,5)
               123 A100
                   ^
-            ParseException raised: Expected integer, found 'A'  (at char 4), (line:1, col:5)
+            ParseException raised: Expected integer, found 'A100'  (at char 4), (line:1, col:5)
             Match W:(0-9A-Za-z) at loc 4(1,5)
               123 A100
                   ^
@@ -7042,7 +7042,7 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             Match Z at loc 0(1,1)
               aba
               ^
-            ParseException raised: Expected Z, found 'a'  (at char 0), (line:1, col:1)
+            ParseException raised: Expected Z, found 'aba'  (at char 0), (line:1, col:1)
             Match leading_a at loc 0(1,1)
               aba
               ^
@@ -7053,11 +7053,11 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             Match Z at loc 1(1,2)
               aba
                ^
-            ParseException raised: Expected Z, found 'b'  (at char 1), (line:1, col:2)
+            ParseException raised: Expected Z, found 'ba'  (at char 1), (line:1, col:2)
             Match A at loc 1(1,2)
               aba
                ^
-            ParseException raised: Expected A, found 'b'  (at char 1), (line:1, col:2)
+            ParseException raised: Expected A, found 'ba'  (at char 1), (line:1, col:2)
             Match B at loc 1(1,2)
               aba
                ^
@@ -7066,15 +7066,15 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             *Match Z at loc 1(1,2)
               aba
                ^
-            *ParseException raised: Expected Z, found 'b'  (at char 1), (line:1, col:2)
+            *ParseException raised: Expected Z, found 'ba'  (at char 1), (line:1, col:2)
             Match leading_a at loc 1(1,2)
               aba
                ^
             *Match A at loc 1(1,2)
               aba
                ^
-            *ParseException raised: Expected A, found 'b'  (at char 1), (line:1, col:2)
-            ParseException raised: Expected A, found 'b'  (at char 1), (line:1, col:2)
+            *ParseException raised: Expected A, found 'ba'  (at char 1), (line:1, col:2)
+            ParseException raised: Expected A, found 'ba'  (at char 1), (line:1, col:2)
             *Match B at loc 1(1,2)
               aba
                ^
@@ -7913,7 +7913,7 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             with self.assertRaises(AttributeError):
                 print(pe.nonexistent_attribute)
 
-            expected_str = "Expected W:(0-9), found 'A'  (at char 0), (line:1, col:1)"
+            expected_str = "Expected W:(0-9), found 'ABC'  (at char 0), (line:1, col:1)"
             self.assertEqual(expected_str, str(pe), "invalid ParseException str")
             self.assertEqual(expected_str, repr(pe), "invalid ParseException repr")
 

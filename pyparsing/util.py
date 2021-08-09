@@ -200,7 +200,7 @@ def _collapseStringToRanges(s, re_escape=True):
         escape_re_range_char = no_escape_re_range_char
 
     ret = []
-    for _, chars in itertools.groupby(sorted(s), key=is_consecutive):
+    for _, chars in itertools.groupby(sorted(set(s)), key=is_consecutive):
         first = last = next(chars)
         last = collections.deque(itertools.chain(iter([last]), chars), maxlen=1).pop()
         if first == last:

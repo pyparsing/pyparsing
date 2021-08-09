@@ -1,7 +1,17 @@
 # exceptions.py
 
+import re
 import sys
-from .util import col, line, lineno
+from .util import col, line, lineno, _collapseStringToRanges
+from .unicode import pyparsing_unicode as ppu
+
+
+class ExceptionWordUnicode(ppu.Latin1, ppu.LatinA, ppu.LatinB, ppu.Greek, ppu.Cyrillic):
+    pass
+
+
+_extract_alphanums = _collapseStringToRanges(ExceptionWordUnicode.alphanums)
+_exception_word_extractor = re.compile("([" + _extract_alphanums + "]{1,16})|.")
 
 
 class ParseBaseException(Exception):
@@ -115,9 +125,13 @@ class ParseBaseException(Exception):
             if self.loc >= len(self.pstr):
                 foundstr = ", found end of text"
             else:
-                foundstr = (", found %r" % self.pstr[self.loc : self.loc + 1]).replace(
-                    r"\\", "\\"
-                )
+                # pull out next word at error location
+                found_match = _exception_word_extractor.match(self.pstr, self.loc)
+                if found_match is not None:
+                    found = found_match.group(0)
+                else:
+                    found = self.pstr[self.loc : self.loc + 1]
+                foundstr = (", found %r" % found).replace(r"\\", "\\")
         else:
             foundstr = ""
         return "{}{}  (at char {}), (line:{}, col:{})".format(
