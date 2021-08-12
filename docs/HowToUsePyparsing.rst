@@ -33,8 +33,8 @@ directory of the pyparsing GitHub repo.
 
 Note: In pyparsing 3.0, many method and function names which were
 originally written using camelCase have been converted to PEP8-compatible
-snake_case. So ``parse_string()`` is being renamed to ``parse_string()``, 
-``delimited_list`` to ``delimited_list``, and so on. You may see the old
+snake_case. So ``parseString()`` is being renamed to ``parse_string()``, 
+``delimitedList`` to ``delimited_list``, and so on. You may see the old
 names in legacy parsers, and they will be supported for a time with
 synonyms, but the synonyms will be removed in a future release.
 
