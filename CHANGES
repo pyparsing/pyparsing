@@ -13,6 +13,19 @@ Version 3.0.0c1 -
   Now:
       pyparsing.exceptions.ParseException: Expected end of text, found '123'  (at char 4), (line:1, col:5)
 
+- Suppress can be used to suppress text skipped using "...".
+
+     source = "lead in START relevant text END trailing text"
+     start_marker = Keyword("START")
+     end_marker = Keyword("END")
+     find_body = Suppress(...) + start_marker + ... + end_marker
+     print(find_body.parseString(source).dump())
+
+  Prints:
+
+      ['START', 'relevant text ', 'END']
+      - _skipped: ['relevant text ']
+
 
 Version 3.0.0b3 - August, 2021
 ------------------------------

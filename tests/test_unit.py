@@ -75,14 +75,14 @@ def find_all_re_matches(patt, s):
 class Test01_PyparsingTestInit(TestCase):
     def runTest(self):
         from pyparsing import (
-            __version__ as pyparsingVersion,
-            __versionTime__ as pyparsingVersionTime,
+            __version__ as pyparsing_version,
+            __versionTime__ as pyparsing_version_time,
         )
 
         print(
             "Beginning test of pyparsing, version",
-            pyparsingVersion,
-            pyparsingVersionTime,
+            pyparsing_version,
+            pyparsing_version_time,
         )
         print("Python version", sys.version)
 
@@ -1261,27 +1261,27 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
 
     def testReStringRange(self):
         testCases = (
-            (r"[A-Z]"),
-            (r"[A-A]"),
-            (r"[A-Za-z]"),
-            (r"[A-z]"),
-            (r"[\ -\~]"),
-            (r"[\0x20-0]"),
-            (r"[\0x21-\0x7E]"),
-            (r"[\0xa1-\0xfe]"),
-            (r"[\040-0]"),
-            (r"[A-Za-z0-9]"),
-            (r"[A-Za-z0-9_]"),
-            (r"[A-Za-z0-9_$]"),
-            (r"[A-Za-z0-9_$\-]"),
-            (r"[^0-9\\]"),
-            (r"[a-zA-Z]"),
-            (r"[/\^~]"),
-            (r"[=\+\-!]"),
-            (r"[A-]"),
-            (r"[-A]"),
-            (r"[\x21]"),
-            (r"[а-яА-ЯёЁA-Z$_\041α-ω]"),
+            r"[A-Z]",
+            r"[A-A]",
+            r"[A-Za-z]",
+            r"[A-z]",
+            r"[\ -\~]",
+            r"[\0x20-0]",
+            r"[\0x21-\0x7E]",
+            r"[\0xa1-\0xfe]",
+            r"[\040-0]",
+            r"[A-Za-z0-9]",
+            r"[A-Za-z0-9_]",
+            r"[A-Za-z0-9_$]",
+            r"[A-Za-z0-9_$\-]",
+            r"[^0-9\\]",
+            r"[a-zA-Z]",
+            r"[/\^~]",
+            r"[=\+\-!]",
+            r"[A-]",
+            r"[-A]",
+            r"[\x21]",
+            r"[а-яА-ЯёЁA-Z$_\041α-ω]",
         )
         expectedResults = (
             "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
@@ -1377,8 +1377,17 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
         e = ... + pp.Literal("end")
         test(e, "start 123 end", ["start 123 ", "end"], {"_skipped": ["start 123 "]})
 
+        e = pp.Suppress(...) + pp.Literal("end")
+        test(e, "start 123 end", ["end"], {})
+
         e = pp.Literal("start") + ... + pp.Literal("end")
-        test(e, "start 123 end", ["start", "123 ", "end"], {"_skipped": ["123 "]})
+        test(e, "start 123 end", ["start", "123 ", "end"], {'_skipped': ['123 ']})
+
+        e = ... + pp.Literal("middle") + ... + pp.Literal("end")
+        test(e, "start 123 middle 456 end", ["start 123 ", "middle", "456 ", "end"], {"_skipped": ["start 123 ", "456 "]})
+
+        e = pp.Suppress(...) + pp.Literal("middle") + ... + pp.Literal("end")
+        test(e, "start 123 middle 456 end", ["middle", "456 ", "end"], {"_skipped": ["456 "]})
 
         e = pp.Literal("start") + ...
         test(e, "start 123 end", None, None)
@@ -1496,7 +1505,7 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
 
         self.assertTrue(all_success, "failed getItem_ellipsis test")
 
-    def testEllipsisRepetionWithResultsNames(self):
+    def testEllipsisRepetitionWithResultsNames(self):
         label = pp.Word(pp.alphas)
         val = ppc.integer()
         parser = label("label") + pp.ZeroOrMore(val)("values")
@@ -4628,7 +4637,7 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
         print(res.dump())
         self.assertEqual(
             "ID PARI12345678",
-            samplestr1[res.locn_start : res.locn_end],
+            samplestr1[res.locn_start: res.locn_end],
             "incorrect location calculation",
         )
 
@@ -4642,7 +4651,7 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
         print(res.dump())
         self.assertEqual(
             "ID PARI12345678",
-            samplestr1[res.locn_start : res.locn_end],
+            samplestr1[res.locn_start: res.locn_end],
             "incorrect location calculation",
         )
         self.assertParseResultsEquals(

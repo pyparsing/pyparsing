@@ -4977,13 +4977,31 @@ class Suppress(TokenConverter):
         wd_list2 = wd + ZeroOrMore(Suppress(',') + wd)
         print(wd_list2.parse_string(source))
 
+        # Skipped text (using '...') can be suppressed as well
+        source = "lead in START relevant text END trailing text"
+        start_marker = Keyword("START")
+        end_marker = Keyword("END")
+        find_body = Suppress(...) + start_marker + ... + end_marker
+        print(find_body.parseString(source)
+
     prints::
 
         ['a', ',', 'b', ',', 'c', ',', 'd']
         ['a', 'b', 'c', 'd']
+        ['START', 'relevant text ', 'END']
 
     (See also :class:`delimited_list`.)
     """
+    def __init__(self, expr, savelist=False):
+        if expr is ...:
+            expr = _PendingSkip(NoMatch())
+        super().__init__(expr)
+
+    def __add__(self, other):
+        if isinstance(self.expr, _PendingSkip):
+            return Suppress(SkipTo(other)) + other
+        else:
+            return super().__add__(other)
 
     def postParse(self, instring, loc, tokenlist):
         return []

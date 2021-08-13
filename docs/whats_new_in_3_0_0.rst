@@ -92,7 +92,7 @@ Prints::
 
     ['To', 'parse', 'or', 'not', 'to', 'parse', 'that', 'is', 'the', 'question']
 
-See more examples in left_recursion.py in the pyparsing examples directory.
+See more examples in ``left_recursion.py`` in the pyparsing examples directory.
 
 (Contributed by Max Fischer)
 
@@ -169,7 +169,7 @@ the docs for ``locaatedExpr`` show this output::
         [[18, 'lkkjj', 23]]
 
 The parsed values and the start and end locations are merged into a single
-nested ParseResults (and any results names in the parsed values are also
+nested ``ParseResults`` (and any results names in the parsed values are also
 merged in with the start and end location names).
 
 Using ``Located``, the output is::
@@ -228,7 +228,7 @@ Improved debug logging
 ----------------------
 Debug logging has been improved by:
 
-- Including try/match/fail logging when getting results from the
+- Including ``try/match/fail`` logging when getting results from the
   packrat cache (previously cache hits did not show debug logging).
   Values returned from the packrat cache are marked with an '*'.
 
@@ -237,8 +237,8 @@ Debug logging has been improved by:
 
 New / improved examples
 -----------------------
-- ``number_words.py`` includes a parser/evaluator to parse "forty-two"
-  and return 42. Also includes example code to generate a railroad
+- ``number_words.py`` includes a parser/evaluator to parse ``"forty-two"``
+  and return ``42``. Also includes example code to generate a railroad
   diagram for this parser.
 
 - ``BigQueryViewParser.py`` added to examples directory, submitted
@@ -267,9 +267,35 @@ Other new features
   to optionally parse an additional delimiter at the end of the list.
   Submitted by Kazantcev Andrey.
 
-- Enhanced default strings created for Word expressions, now showing
+- Enhanced default strings created for ``Word`` expressions, now showing
   string ranges if possible. ``Word(alphas)`` would formerly
   print as ``W:(ABCD...)``, now prints as ``W:(A-Za-z)``.
+
+- Better exception messages to show full word where an exception occurred.::
+
+      Word(alphas)[...].parseString("abc 123", parseAll=True)
+
+  Was::
+
+      pyparsing.ParseException: Expected end of text, found '1'  (at char 4), (line:1, col:5)
+
+  Now::
+
+      pyparsing.exceptions.ParseException: Expected end of text, found '123'  (at char 4), (line:1, col:5)
+
+- Using ``...`` for ``SkipTo`` can now be wrapped in ``Suppress`` to suppress
+  the skipped text from the returned parse results.::
+
+     source = "lead in START relevant text END trailing text"
+     start_marker = Keyword("START")
+     end_marker = Keyword("END")
+     find_body = Suppress(...) + start_marker + ... + end_marker
+     print(find_body.parseString(source).dump())
+
+  Prints::
+
+      ['START', 'relevant text ', 'END']
+      - _skipped: ['relevant text ']
 
 - Added ``ignoreWhitespace(recurse:bool = True)`` and added a
   ``recurse`` argument to ``leaveWhitespace``, both added to provide finer
@@ -323,7 +349,7 @@ Other new features
 - Potential performance enhancement when parsing ``Word``
   expressions built from ``pyparsing_unicode`` character sets. ``Word`` now
   internally converts ranges of consecutive characters to regex
-  character ranges (converting "0123456789" to "0-9" for instance).
+  character ranges (converting ``"0123456789"`` to ``"0-9"`` for instance).
 
 
 API Changes
@@ -355,7 +381,7 @@ API Changes
 
         123 456 A789
                 ^
-        ParseException: Expected W:(0-9), found 'A'  (at char 8), (line:1, col:9)
+        ParseException: Expected W:(0-9), found 'A789'  (at char 8), (line:1, col:9)
 
   To run explain against other exceptions, use
   ``ParseException.explain_exception()``.
