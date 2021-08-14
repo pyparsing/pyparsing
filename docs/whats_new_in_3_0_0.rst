@@ -96,6 +96,19 @@ See more examples in ``left_recursion.py`` in the pyparsing examples directory.
 
 (Contributed by Max Fischer)
 
+Packrat/memoization enable and disable methods
+----------------------------------------------
+As part of the implementation of left-recursion support, new methods have been added
+to enable and disable packrat parsing.
+
+======================  =======================================================
+Name                       Description
+----------------------  -------------------------------------------------------
+enable_packrat          Enable packrat parsing (with specified cache size)
+enable_left_recursion   Enable left-recursion cache
+disable_memoization     Disable all internal parsing caches
+======================  =======================================================
+
 
 Refactored/added diagnostic flags
 ---------------------------------
