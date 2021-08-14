@@ -1383,13 +1383,23 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
         test(e, "start 123 end", ["end"], {})
 
         e = pp.Literal("start") + ... + pp.Literal("end")
-        test(e, "start 123 end", ["start", "123 ", "end"], {'_skipped': ['123 ']})
+        test(e, "start 123 end", ["start", "123 ", "end"], {"_skipped": ["123 "]})
 
         e = ... + pp.Literal("middle") + ... + pp.Literal("end")
-        test(e, "start 123 middle 456 end", ["start 123 ", "middle", "456 ", "end"], {"_skipped": ["start 123 ", "456 "]})
+        test(
+            e,
+            "start 123 middle 456 end",
+            ["start 123 ", "middle", "456 ", "end"],
+            {"_skipped": ["start 123 ", "456 "]},
+        )
 
         e = pp.Suppress(...) + pp.Literal("middle") + ... + pp.Literal("end")
-        test(e, "start 123 middle 456 end", ["middle", "456 ", "end"], {"_skipped": ["456 "]})
+        test(
+            e,
+            "start 123 middle 456 end",
+            ["middle", "456 ", "end"],
+            {"_skipped": ["456 "]},
+        )
 
         e = pp.Literal("start") + ...
         test(e, "start 123 end", None, None)
@@ -4639,7 +4649,7 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
         print(res.dump())
         self.assertEqual(
             "ID PARI12345678",
-            samplestr1[res.locn_start: res.locn_end],
+            samplestr1[res.locn_start : res.locn_end],
             "incorrect location calculation",
         )
 
@@ -4653,7 +4663,7 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
         print(res.dump())
         self.assertEqual(
             "ID PARI12345678",
-            samplestr1[res.locn_start: res.locn_end],
+            samplestr1[res.locn_start : res.locn_end],
             "incorrect location calculation",
         )
         self.assertParseResultsEquals(
