@@ -31,6 +31,8 @@ IRON_PYTHON_ENV = python_impl == "IronPython"
 JYTHON_ENV = python_impl == "Jython"
 PYPY_ENV = python_impl == "PyPy"
 
+# get full stack traces during testing
+pp.ParserElement.verbose_stacktrace = True
 
 # simple utility for flattening nested lists
 def flatten(nested_list):
@@ -6733,7 +6735,6 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             self.fail("failed to raise exception when matching empty string")
 
     def testExplainException(self):
-        pp.ParserElement.disable_memoization()
         expr = pp.Word(pp.nums).setName("int") + pp.Word(pp.alphas).setName("word")
         try:
             expr.parseString("123 355")
@@ -6745,6 +6746,29 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             expr.parseString("123 355 (test using ErrorStop)")
         except pp.ParseSyntaxException as pe:
             print(pe.explain())
+
+        integer = pp.Word(pp.nums).setName("int").addParseAction(lambda t: int(t[0]))
+        expr = integer + integer
+
+        def divide_args(t):
+            integer.parseString("A")
+            return t[0] / t[1]
+
+        expr.addParseAction(divide_args)
+        try:
+            expr.parseString("123 0")
+        except pp.ParseException as pe:
+            print(pe.explain())
+        except Exception as exc:
+            print(pp.ParseBaseException.explain_exception(exc))
+            raise
+
+    def testExplainExceptionWithMemoizationCheck(self):
+        if pp.ParserElement._left_recursion_enabled or pp.ParserElement._packratEnabled:
+            print("test does local memoization enable/disable during test")
+            return
+
+        pp.ParserElement.disable_memoization()
 
         integer = pp.Word(pp.nums).setName("int").addParseAction(lambda t: int(t[0]))
         expr = integer + integer
@@ -6768,6 +6792,7 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             except Exception as exc:
                 print(pp.ParseBaseException.explain_exception(exc))
                 raise
+
         # make sure we leave the state compatible with everything
         pp.ParserElement.disable_memoization()
 
