@@ -4671,6 +4671,24 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             [28, ["ID", "PARI12345678"], 43],
             {"locn_end": 43, "locn_start": 28, "value": {"id": "PARI12345678"}},
         )
+        self.assertEqual("PARI12345678", res.value.id)
+
+        # if Located has a results name, handle appropriately
+        id_ref = pp.Located("ID" + pp.Word(pp.alphanums, exact=12)("id"))("loc")
+
+        res = id_ref.searchString(samplestr1)[0]
+        print(res.dump())
+        self.assertEqual(
+            "ID PARI12345678",
+            samplestr1[res.loc.locn_start : res.loc.locn_end],
+            "incorrect location calculation",
+        )
+        self.assertParseResultsEquals(
+            res.loc,
+            [28, ["ID", "PARI12345678"], 43],
+            {"locn_end": 43, "locn_start": 28, "value": {"id": "PARI12345678"}},
+        )
+        self.assertEqual("PARI12345678", res.loc.value.id)
 
         wd = pp.Word(pp.alphas)
         test_string = "ljsdf123lksdjjf123lkkjj1222"

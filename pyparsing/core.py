@@ -4181,7 +4181,11 @@ class Located(ParseElementEnhance):
         ret_tokens["locn_start"] = start
         ret_tokens["value"] = tokens
         ret_tokens["locn_end"] = loc
-        return loc, ret_tokens
+        if self.resultsName:
+            # must return as a list, so that the name will be attached to the complete group
+            return loc, [ret_tokens]
+        else:
+            return loc, ret_tokens
 
 
 class NotAny(ParseElementEnhance):
@@ -4992,6 +4996,7 @@ class Suppress(TokenConverter):
 
     (See also :class:`delimited_list`.)
     """
+
     def __init__(self, expr, savelist=False):
         if expr is ...:
             expr = _PendingSkip(NoMatch())

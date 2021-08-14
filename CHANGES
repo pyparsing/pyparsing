@@ -26,6 +26,8 @@ Version 3.0.0c1 -
       ['START', 'relevant text ', 'END']
       - _skipped: ['relevant text ']
 
+- Fixed bug in Located class when used with a results name. (Issue #294)
+
 
 Version 3.0.0b3 - August, 2021
 ------------------------------
