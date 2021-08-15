@@ -2085,8 +2085,9 @@ class Literal(Token):
     use :class:`Keyword` or :class:`CaselessKeyword`.
     """
 
-    def __init__(self, match_string):
+    def __init__(self, match_string="", *, matchString=""):
         super().__init__()
+        match_string = matchString or match_string
         self.match = match_string
         self.matchLen = len(match_string)
         try:
@@ -2153,12 +2154,13 @@ class Keyword(Token):
     DEFAULT_KEYWORD_CHARS = alphanums + "_$"
 
     def __init__(
-        self, match_string, ident_chars=None, caseless=False, *, identChars=None
+        self, match_string="", ident_chars=None, caseless=False, *, matchString="", identChars=None
     ):
         super().__init__()
         identChars = identChars or ident_chars
         if identChars is None:
             identChars = Keyword.DEFAULT_KEYWORD_CHARS
+        match_string = matchString or match_string
         self.match = match_string
         self.matchLen = len(match_string)
         try:
@@ -2248,7 +2250,8 @@ class CaselessLiteral(Literal):
     (Contrast with example for :class:`CaselessKeyword`.)
     """
 
-    def __init__(self, match_string):
+    def __init__(self, match_string="", *, matchString=""):
+        match_string = matchString or match_string
         super().__init__(match_string.upper())
         # Preserve the defining literal.
         self.returnString = match_string
@@ -2272,8 +2275,9 @@ class CaselessKeyword(Keyword):
     (Contrast with example for :class:`CaselessLiteral`.)
     """
 
-    def __init__(self, match_string, ident_chars=None, *, identChars=None):
+    def __init__(self, match_string="", ident_chars=None, *, matchString="", identChars=None):
         identChars = identChars or ident_chars
+        match_string = matchString or match_string
         super().__init__(match_string, identChars, caseless=True)
 
 
@@ -2421,7 +2425,7 @@ class Word(Token):
 
     def __init__(
         self,
-        init_chars,
+        init_chars="",
         body_chars=None,
         min=1,
         max=0,
@@ -2797,7 +2801,7 @@ class QuotedString(Token):
 
     def __init__(
         self,
-        quote_char,
+        quote_char="",
         esc_char=None,
         esc_quote=None,
         multiline=False,
@@ -2805,6 +2809,7 @@ class QuotedString(Token):
         end_quote_char=None,
         convert_whitespace_escapes=True,
         *,
+        quoteChar="",
         escChar=None,
         escQuote=None,
         unquoteResults=True,
@@ -2819,6 +2824,7 @@ class QuotedString(Token):
         convertWhitespaceEscapes = (
             convertWhitespaceEscapes and convert_whitespace_escapes
         )
+        quote_char = quoteChar or quote_char
 
         # remove white space from quote chars - wont work anyway
         quote_char = quote_char.strip()
@@ -2952,10 +2958,10 @@ class CharsNotIn(Token):
         ['dkls', 'lsdkjf', 's12 34', '@!#', '213']
     """
 
-    def __init__(self, not_chars, min=1, max=0, exact=0):
+    def __init__(self, not_chars="", min=1, max=0, exact=0, *, notChars=""):
         super().__init__()
         self.skipWhitespace = False
-        self.notChars = not_chars
+        self.notChars = not_chars or notChars
 
         if min < 1:
             raise ValueError(
