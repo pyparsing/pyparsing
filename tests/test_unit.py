@@ -6642,6 +6642,31 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             [["A", [100, 101, 102]], ["B", [["b", [200, 201]]]], ["C", [300]]],
         )
 
+        print("using parseString")
+        print(group[...].parseString(data).dump())
+
+        print("test bad indentation")
+        dotted_int = pp.delimited_list(
+            pp.Word(pp.nums), ".", allow_trailing_delim=True, combine=True
+        )
+        indented_expr = pp.IndentedBlock(dotted_int, recursive=True)
+        good_data = """\
+            1.
+                1.1
+                    1.1.1
+            2."""
+        bad_data = """\
+            1.
+                1.1
+                    1.1.1
+                 1.2
+            2."""
+        indented_expr.parseString(good_data, parseAll=True)
+        with self.assertRaisesParseException(
+            msg="Failed to raise exception with bad indentation"
+        ):
+            indented_expr.parseString(bad_data, parseAll=True)
+
     def testInvalidDiagSetting(self):
         with self.assertRaises(
             ValueError,
