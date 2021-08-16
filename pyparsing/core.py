@@ -1932,7 +1932,7 @@ class ParserElement(ABC):
 
         return success, allResults
 
-    def create_diagram(expr: "ParserElement", output_html, vertical=3, **kwargs):
+    def create_diagram(self, output_html, vertical=3, **kwargs):
         """
         Create a railroad diagram for the parser.
 
@@ -1953,7 +1953,7 @@ class ParserElement(ABC):
                 "must install 'Railroad-Diagram Generator' from https://pypi.org/project/railroad-diagrams to generate parser railroad diagrams"
             ) from ie
 
-        railroad = to_railroad(expr, vertical=vertical, diagram_kwargs=kwargs)
+        railroad = to_railroad(self, vertical=vertical, diagram_kwargs=kwargs)
         if isinstance(output_html, str):
             with open(output_html, "w", encoding="utf-8") as diag_file:
                 diag_file.write(railroad_to_html(railroad))
@@ -2012,7 +2012,7 @@ class _PendingSkip(ParserElement):
 
             def show_skip(t):
                 if t._skipped.as_list()[-1:] == [""]:
-                    skipped = t.pop("_skipped")
+                    t.pop("_skipped")
                     t["_skipped"] = "missing <" + repr(self.anchor) + ">"
 
             return (
@@ -4541,8 +4541,7 @@ class SkipTo(ParseElementEnhance):
     def parseImpl(self, instring, loc, doActions=True):
         startloc = loc
         instrlen = len(instring)
-        expr = self.expr
-        expr_parse = self.expr._parse
+        self_expr_parse = self.expr._parse
         self_failOn_canParseNext = (
             self.failOn.canParseNext if self.failOn is not None else None
         )
@@ -4566,7 +4565,7 @@ class SkipTo(ParseElementEnhance):
                         break
 
             try:
-                expr_parse(instring, tmploc, doActions=False, callPreParse=False)
+                self_expr_parse(instring, tmploc, doActions=False, callPreParse=False)
             except (ParseException, IndexError):
                 # no match, advance loc in string
                 tmploc += 1
@@ -4584,7 +4583,7 @@ class SkipTo(ParseElementEnhance):
         skipresult = ParseResults(skiptext)
 
         if self.includeMatch:
-            loc, mat = expr_parse(instring, loc, doActions, callPreParse=False)
+            loc, mat = self_expr_parse(instring, loc, doActions, callPreParse=False)
             skipresult += mat
 
         return loc, skipresult

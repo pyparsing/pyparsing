@@ -424,8 +424,8 @@ def nested_expr(
        (default= ``")"``); can also be a pyparsing expression
      - ``content`` - expression for items within the nested lists
        (default= ``None``)
-     - ``ignore_expr`` - expression for ignoring opening and closing
-       delimiters (default= :class:`quoted_string`)
+     - ``ignore_expr`` - expression for ignoring opening and closing delimiters
+       (default= :class:`quoted_string`)
      - ``ignoreExpr`` - this pre-PEP8 argument is retained for compatibility
        but will be removed in a future release
 
@@ -661,8 +661,8 @@ def infix_notation(base_expr, op_list, lpar=Suppress("("), rpar=Suppress(")")):
     improve your parser performance.
 
     Parameters:
-     - ``base_expr`` - expression representing the most basic element for the
-       nested
+     - ``base_expr`` - expression representing the most basic operand to
+       be used in the expression
      - ``op_list`` - list of tuples, one for each operator precedence level
        in the expression grammar; each tuple is of the form ``(op_expr,
        num_operands, right_left_assoc, (optional)parse_action)``, where:
@@ -807,8 +807,8 @@ def indentedBlock(blockStatementExpr, indentStack, indent=True, backup_stacks=[]
        (multiple ``statementWithIndentedBlock`` expressions within a single
        grammar should share a common ``indentStack``)
      - ``indent`` - boolean indicating whether block must be indented beyond
-       the current level; set to ``False`` for block of left-most
-       statements (default= ``True``)
+       the current level; set to ``False`` for block of left-most statements
+       (default= ``True``)
 
     A valid block must contain at least one ``blockStatement``.
 

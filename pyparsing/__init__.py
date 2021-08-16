@@ -103,7 +103,8 @@ __version__ = (
         __version_info__.release_level == "final"
     ]
 )
-__versionTime__ = "14 August 2021 15:20 UTC"
+__version_time__ = "16 August 2021 05:31 UTC"
+__versionTime__ = __version_time__
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 from .util import *
@@ -133,7 +134,7 @@ core_builtin_exprs += common_builtin_exprs + helper_builtin_exprs
 
 __all__ = [
     "__version__",
-    "__versionTime__",
+    "__version_time__",
     "__author__",
     "__compat__",
     "__diag__",
@@ -248,6 +249,7 @@ __all__ = [
     "condition_as_parse_action",
     "pyparsing_test",
     # pre-PEP8 compatibility names
+    "__versionTime__",
     "anyCloseTag",
     "anyOpenTag",
     "cStyleComment",

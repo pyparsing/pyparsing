@@ -78,7 +78,7 @@ class Test01_PyparsingTestInit(TestCase):
     def runTest(self):
         from pyparsing import (
             __version__ as pyparsing_version,
-            __versionTime__ as pyparsing_version_time,
+            __version_time__ as pyparsing_version_time,
         )
 
         print(
@@ -1611,7 +1611,7 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             print(quoteExpr.pattern)
             print(quoteExpr.searchString(testString))
             print(quoteExpr.searchString(testString)[0][0])
-            print(f"{expected=}")
+            print(f"{expected}")
             self.assertEqual(
                 expected,
                 quoteExpr.searchString(testString)[0][0],
@@ -1940,7 +1940,7 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
                         return True
                 return False
 
-        class BoolNot(BoolOperand):
+        class BoolNot:
             def __init__(self, t):
                 self.arg = t[0][1]
 
@@ -2082,6 +2082,8 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
                 return mult * self.tokens[1].eval()
 
         class BinOp(ExprNode):
+            opn_map = {}
+
             def eval(self):
                 ret = self.tokens[0].eval()
                 for op, operand in zip(self.tokens[1::2], self.tokens[2::2]):
