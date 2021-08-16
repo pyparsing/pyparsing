@@ -28,6 +28,9 @@ Version 3.0.0c1 -
 
 - Fixed bug in Located class when used with a results name. (Issue #294)
 
+- Fixed bug in QuotedString class when the escaped quote string is not a
+  repeated character. (Issue #263)
+
 
 Version 3.0.0b3 - August, 2021
 ------------------------------

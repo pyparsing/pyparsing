@@ -1598,17 +1598,20 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             sdlfjs ^^^==sdf\:j=lz::--djf: sl=^^=kfsjf
             sdlfjs ==sdf\:j=ls::--djf: sl==kfsjf^^^
         """
+        print(testString)
+
         colonQuotes = pp.QuotedString(":", "\\", "::")
         dashQuotes = pp.QuotedString("-", "\\", "--")
         hatQuotes = pp.QuotedString("^", "\\")
         hatQuotes1 = pp.QuotedString("^", "\\", "^^")
         dblEqQuotes = pp.QuotedString("==", "\\")
 
-        def test(quoteExpr, expected):
+        def test(label, quoteExpr, expected):
+            print(label)
             print(quoteExpr.pattern)
             print(quoteExpr.searchString(testString))
             print(quoteExpr.searchString(testString)[0][0])
-            print(expected)
+            print(f"{expected=}")
             self.assertEqual(
                 expected,
                 quoteExpr.searchString(testString)[0][0],
@@ -1618,14 +1621,15 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             )
             print()
 
-        test(colonQuotes, r"sdf:jls:djf")
-        test(dashQuotes, r"sdf:jls::-djf: sl")
-        test(hatQuotes, r"sdf:jls")
-        test(hatQuotes1, r"sdf:jls^--djf")
-        test(dblEqQuotes, r"sdf:j=ls::--djf: sl")
-        test(pp.QuotedString(":::"), "jls::--djf: sl")
-        test(pp.QuotedString("==", endQuoteChar="--"), r"sdf\:j=lz::")
+        test("colonQuotes", colonQuotes, r"sdf:jls:djf")
+        test("dashQuotes", dashQuotes, r"sdf:jls::-djf: sl")
+        test("hatQuotes", hatQuotes, r"sdf:jls")
+        test("hatQuotes1", hatQuotes1, r"sdf:jls^--djf")
+        test("dblEqQuotes", dblEqQuotes, r"sdf:j=ls::--djf: sl")
+        test("::: quotes", pp.QuotedString(":::"), "jls::--djf: sl")
+        test("==-- quotes", pp.QuotedString("==", endQuoteChar="--"), r"sdf\:j=lz::")
         test(
+            "^^^ multiline quotes",
             pp.QuotedString("^^^", multiline=True),
             r"""==sdf\:j=lz::--djf: sl=^^=kfsjf
             sdlfjs ==sdf\:j=ls::--djf: sl==kfsjf""",
@@ -4344,6 +4348,20 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
         self.assertEqual(
             5, len(vals.parseString(src)), "error in greedy quote escaping"
         )
+
+    def testQuotedStringEscapedQuotes(self):
+        quoted = pp.QuotedString('"', escQuote='""')
+        res = quoted.parseString('"like ""SQL"""')
+        print(res.asList())
+        self.assertEqual(['like "SQL"'], res.asList())
+
+        # Issue #263 - handle case when the escQuote is not a repeated character
+        quoted = pp.QuotedString("y", escChar=None, escQuote="xy")
+        res = quoted.parseString("yaaay")
+        self.assertEqual(["aaa"], res.asList())
+        res = quoted.parseString("yaaaxyaaay")
+        print(res.asList())
+        self.assertEqual(["aaayaaa"], res.asList())
 
     def testWordBoundaryExpressions(self):
 
@@ -8209,23 +8227,17 @@ class Test11_LR1_Recursion(ppt.TestParseResultsAsserts, TestCase):
         """repetition rules formulated with recursion"""
         one_or_more = pp.Forward().setName("one_or_more")
         one_or_more <<= one_or_more + "a" | "a"
+        self.assertParseResultsEquals(one_or_more.parseString("a"), expected_list=["a"])
         self.assertParseResultsEquals(
-            one_or_more.parseString("a"),
-            expected_list=["a"],
-        )
-        self.assertParseResultsEquals(
-            one_or_more.parseString("aaa aa"),
-            expected_list=["a", "a", "a", "a", "a"],
+            one_or_more.parseString("aaa aa"), expected_list=["a", "a", "a", "a", "a"]
         )
         delimited_list = pp.Forward().setName("delimited_list")
         delimited_list <<= delimited_list + pp.Suppress(",") + "b" | "b"
         self.assertParseResultsEquals(
-            delimited_list.parseString("b"),
-            expected_list=["b"],
+            delimited_list.parseString("b"), expected_list=["b"]
         )
         self.assertParseResultsEquals(
-            delimited_list.parseString("b,b"),
-            expected_list=["b", "b"],
+            delimited_list.parseString("b,b"), expected_list=["b", "b"]
         )
         self.assertParseResultsEquals(
             delimited_list.parseString("b,b , b, b,b"),
@@ -8251,8 +8263,7 @@ class Test11_LR1_Recursion(ppt.TestParseResultsAsserts, TestCase):
         num = pp.Word(pp.nums)
         expr <<= pp.Group(expr) + "+" - num | num
         self.assertParseResultsEquals(
-            expr.parseString("1+2"),
-            expected_list=[["1"], "+", "2"],
+            expr.parseString("1+2"), expected_list=[["1"], "+", "2"]
         )
         self.assertParseResultsEquals(
             expr.parseString("1+2+3+4"),

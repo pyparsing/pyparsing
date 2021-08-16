@@ -2154,7 +2154,13 @@ class Keyword(Token):
     DEFAULT_KEYWORD_CHARS = alphanums + "_$"
 
     def __init__(
-        self, match_string="", ident_chars=None, caseless=False, *, matchString="", identChars=None
+        self,
+        match_string="",
+        ident_chars=None,
+        caseless=False,
+        *,
+        matchString="",
+        identChars=None,
     ):
         super().__init__()
         identChars = identChars or ident_chars
@@ -2275,7 +2281,9 @@ class CaselessKeyword(Keyword):
     (Contrast with example for :class:`CaselessLiteral`.)
     """
 
-    def __init__(self, match_string="", ident_chars=None, *, matchString="", identChars=None):
+    def __init__(
+        self, match_string="", ident_chars=None, *, matchString="", identChars=None
+    ):
         identChars = identChars or ident_chars
         match_string = matchString or match_string
         super().__init__(match_string, identChars, caseless=True)
@@ -2848,39 +2856,58 @@ class QuotedString(Token):
         self.unquoteResults = unquoteResults
         self.convertWhitespaceEscapes = convertWhitespaceEscapes
 
-        if multiline:
-            self.flags = re.MULTILINE | re.DOTALL
-            self.pattern = r"{}(?:[^{}{}]".format(
-                re.escape(self.quoteChar),
-                _escapeRegexRangeChars(self.endQuoteChar[0]),
-                (escChar is not None and _escapeRegexRangeChars(escChar) or ""),
-            )
-        else:
-            self.flags = 0
-            self.pattern = r"{}(?:[^{}\n\r{}]".format(
-                re.escape(self.quoteChar),
-                _escapeRegexRangeChars(self.endQuoteChar[0]),
-                (escChar is not None and _escapeRegexRangeChars(escChar) or ""),
-            )
+        sep = ""
+        inner_pattern = ""
+
+        if escQuote:
+            inner_pattern += r"{}(?:{})".format(sep, re.escape(escQuote))
+            sep = "|"
+
+        if escChar:
+            inner_pattern += r"{}(?:{}.)".format(sep, re.escape(escChar))
+            sep = "|"
+            self.escCharReplacePattern = re.escape(self.escChar) + "(.)"
+
         if len(self.endQuoteChar) > 1:
-            self.pattern += (
-                "|(?:"
-                + ")|(?:".join(
-                    "{}[^{}]".format(
+            inner_pattern += (
+                "{}(?:".format(sep)
+                + "|".join(
+                    "(?:{}(?!{}))".format(
                         re.escape(self.endQuoteChar[:i]),
-                        _escapeRegexRangeChars(self.endQuoteChar[i]),
+                        _escapeRegexRangeChars(self.endQuoteChar[i:]),
                     )
                     for i in range(len(self.endQuoteChar) - 1, 0, -1)
                 )
                 + ")"
             )
+            sep = "|"
 
-        if escQuote:
-            self.pattern += r"|(?:{})".format(re.escape(escQuote))
-        if escChar:
-            self.pattern += r"|(?:{}.)".format(re.escape(escChar))
-            self.escCharReplacePattern = re.escape(self.escChar) + "(.)"
-        self.pattern += r")*{}".format(re.escape(self.endQuoteChar))
+        if multiline:
+            self.flags = re.MULTILINE | re.DOTALL
+            inner_pattern += r"{}(?:[^{}{}])".format(
+                sep,
+                _escapeRegexRangeChars(self.endQuoteChar[0]),
+                (_escapeRegexRangeChars(escChar) if escChar is not None else ""),
+            )
+            sep = "|"
+        else:
+            self.flags = 0
+            inner_pattern += r"{}(?:[^{}\n\r{}])".format(
+                sep,
+                _escapeRegexRangeChars(self.endQuoteChar[0]),
+                (_escapeRegexRangeChars(escChar) if escChar is not None else ""),
+            )
+            sep = "|"
+
+        self.pattern = "".join(
+            [
+                re.escape(self.quoteChar),
+                "(?:",
+                inner_pattern,
+                ")*",
+                re.escape(self.endQuoteChar),
+            ]
+        )
 
         try:
             self.re = re.compile(self.pattern, self.flags)
@@ -4221,8 +4248,10 @@ class NotAny(ParseElementEnhance):
 
     def __init__(self, expr):
         super().__init__(expr)
+        # do NOT use self.leave_whitespace(), don't want to propagate to exprs
         # self.leave_whitespace()
-        self.skipWhitespace = False  # do NOT use self.leave_whitespace(), don't want to propagate to exprs
+        self.skipWhitespace = False
+
         self.mayReturnEmpty = True
         self.errmsg = "Found unwanted token, " + str(self.expr)
 
@@ -4692,8 +4721,11 @@ class Forward(ParseElementEnhance):
                 peek_key = (loc, self, False)
                 # we are searching for the best recursion expansion – keep on improving
                 # both `doActions` cases must be tracked separately here!
-                prev_loc, prev_peek = memo[peek_key] = loc - 1, ParseException(
-                    instring, loc, "Forward recursion without base case", self
+                prev_loc, prev_peek = memo[peek_key] = (
+                    loc - 1,
+                    ParseException(
+                        instring, loc, "Forward recursion without base case", self
+                    ),
                 )
                 if doActions:
                     memo[act_key] = memo[peek_key]
