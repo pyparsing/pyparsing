@@ -30,12 +30,13 @@ from .util import (
 from .exceptions import *
 from .actions import *
 from .results import ParseResults, _ParseResultsWithOffset
+from .unicode import pyparsing_unicode
 
 _MAX_INT = sys.maxsize
 str_type = (str, bytes)
 
 #
-# Copyright (c) 2003-2019  Paul T. McGuire
+# Copyright (c) 2003-2021  Paul T. McGuire
 #
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
@@ -178,6 +179,8 @@ _single_arg_builtins = [
 _generatorType = types.GeneratorType
 
 alphas = string.ascii_uppercase + string.ascii_lowercase
+identchars = pyparsing_unicode.Latin1.identchars
+identbodychars = pyparsing_unicode.Latin1.identbodychars
 nums = "0123456789"
 hexnums = nums + "ABCDEFabcdef"
 alphanums = alphas + nums
@@ -2889,7 +2892,6 @@ class QuotedString(Token):
                 _escapeRegexRangeChars(self.endQuoteChar[0]),
                 (_escapeRegexRangeChars(escChar) if escChar is not None else ""),
             )
-            sep = "|"
         else:
             self.flags = 0
             inner_pattern += r"{}(?:[^{}\n\r{}])".format(
@@ -2897,7 +2899,6 @@ class QuotedString(Token):
                 _escapeRegexRangeChars(self.endQuoteChar[0]),
                 (_escapeRegexRangeChars(escChar) if escChar is not None else ""),
             )
-            sep = "|"
 
         self.pattern = "".join(
             [
@@ -4710,7 +4711,7 @@ class Forward(ParseElementEnhance):
         with ParserElement.recursion_lock:
             memo = ParserElement.recursion_memos
             try:
-                # we are parsing at a specific recursion expansion – use it as-is
+                # we are parsing at a specific recursion expansion - use it as-is
                 prev_loc, prev_result = memo[loc, self, doActions]
                 if isinstance(prev_result, Exception):
                     raise prev_result
@@ -4718,7 +4719,7 @@ class Forward(ParseElementEnhance):
             except KeyError:
                 act_key = (loc, self, True)
                 peek_key = (loc, self, False)
-                # we are searching for the best recursion expansion – keep on improving
+                # we are searching for the best recursion expansion - keep on improving
                 # both `doActions` cases must be tracked separately here!
                 prev_loc, prev_peek = memo[peek_key] = (
                     loc - 1,

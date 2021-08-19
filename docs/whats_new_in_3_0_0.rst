@@ -109,6 +109,28 @@ enable_left_recursion   Enable left-recursion cache
 disable_memoization     Disable all internal parsing caches
 ======================  =======================================================
 
+New string constants ``identchars`` and ``identbodychars`` to help in defining identifier Word expressions
+----------------------------------------------------------------------------------------------------------
+Two new module-level strings have been added to help when defining identifiers,
+``identchars`` and ``identbodychars``.
+
+Instead of writing::
+
+    import pyparsing as pp
+    identifier = pp.Word(pp.alphas + "_", pp.alphanums + "_")
+
+you will be able to write::
+
+    identifier = pp.Word(pp.indentchars, pp.identbodychars)
+
+Those constants have also been added to all the Unicode string classes::
+
+    import pyparsing as pp
+    ppu = pp.pyparsing_unicode
+
+    cjk_identifier = pp.Word(ppu.CJK.identchars, ppu.CJK.identbodychars)
+    greek_identifier = pp.Word(ppu.Greek.identchars, ppu.Greek.identbodychars)
+
 
 Refactored/added diagnostic flags
 ---------------------------------

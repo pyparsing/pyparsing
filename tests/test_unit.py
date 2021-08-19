@@ -7484,6 +7484,53 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             )
             print()
 
+    def testWordWithIdentChars(self):
+        ppu = pp.pyparsing_unicode
+
+        latin_identifier = pp.Word(pp.identchars, pp.identbodychars)("latin*")
+        japanese_identifier = pp.Word(
+            ppu.Japanese.identchars, ppu.Japanese.identbodychars
+        )("japanese*")
+        cjk_identifier = pp.Word(ppu.CJK.identchars, ppu.CJK.identbodychars)("cjk")
+        greek_identifier = pp.Word(ppu.Greek.identchars, ppu.Greek.identbodychars)(
+            "greek"
+        )
+        cyrillic_identifier = pp.Word(
+            ppu.Cyrillic.identchars, ppu.Cyrillic.identbodychars
+        )("cyrillic*")
+        thai_identifier = pp.Word(ppu.Thai.identchars, ppu.Thai.identbodychars)("thai")
+        idents = (
+            latin_identifier
+            | japanese_identifier
+            | cjk_identifier  # must follow japanese_identifier, since CJK is superset
+            | thai_identifier
+            | greek_identifier
+            | cyrillic_identifier
+        )
+
+        result = idents[...].parseString(
+            "abc_100 кириллицаx_10 日本語f_300 ไทยg_600 def_200 漢字y_300 한국어_中文c_400 Ελληνικάb_500"
+        )
+        self.assertParseResultsEquals(
+            result,
+            [
+                "abc_100",
+                "кириллицаx_10",
+                "日本語f_300",
+                "ไทยg_600",
+                "def_200",
+                "漢字y_300",
+                "한국어_中文c_400",
+                "Ελληνικάb_500",
+            ],
+            {'cjk': '한국어_中文c_400',
+             'cyrillic': ['кириллицаx_10'],
+             'greek': 'Ελληνικάb_500',
+             'japanese': ['日本語f_300', '漢字y_300'],
+             'latin': ['abc_100', 'def_200'],
+             'thai': 'ไทยg_600'},
+        )
+
     def testChainedTernaryOperator(self):
         TERNARY_INFIX = pp.infixNotation(
             ppc.integer, [(("?", ":"), 3, pp.opAssoc.LEFT)]

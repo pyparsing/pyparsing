@@ -206,6 +206,8 @@ __all__ = [
     "empty",
     "hexnums",
     "html_comment",
+    "identchars",
+    "identbodychars",
     "java_style_comment",
     "line",
     "line_end",
