@@ -7491,14 +7491,14 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
         japanese_identifier = pp.Word(
             ppu.Japanese.identchars, ppu.Japanese.identbodychars
         )("japanese*")
-        cjk_identifier = pp.Word(ppu.CJK.identchars, ppu.CJK.identbodychars)("cjk")
+        cjk_identifier = pp.Word(ppu.CJK.identchars, ppu.CJK.identbodychars)("cjk*")
         greek_identifier = pp.Word(ppu.Greek.identchars, ppu.Greek.identbodychars)(
-            "greek"
+            "greek*"
         )
         cyrillic_identifier = pp.Word(
             ppu.Cyrillic.identchars, ppu.Cyrillic.identbodychars
         )("cyrillic*")
-        thai_identifier = pp.Word(ppu.Thai.identchars, ppu.Thai.identbodychars)("thai")
+        thai_identifier = pp.Word(ppu.Thai.identchars, ppu.Thai.identbodychars)("thai*")
         idents = (
             latin_identifier
             | japanese_identifier
@@ -7523,12 +7523,14 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
                 "한국어_中文c_400",
                 "Ελληνικάb_500",
             ],
-            {'cjk': '한국어_中文c_400',
-             'cyrillic': ['кириллицаx_10'],
-             'greek': 'Ελληνικάb_500',
-             'japanese': ['日本語f_300', '漢字y_300'],
-             'latin': ['abc_100', 'def_200'],
-             'thai': 'ไทยg_600'},
+            {
+                "cjk": ["한국어_中文c_400"],
+                "cyrillic": ["кириллицаx_10"],
+                "greek": ["Ελληνικάb_500"],
+                "japanese": ["日本語f_300", "漢字y_300"],
+                "latin": ["abc_100", "def_200"],
+                "thai": ["ไทยg_600"],
+            },
         )
 
     def testChainedTernaryOperator(self):
