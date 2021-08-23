@@ -201,12 +201,12 @@ ParseCondition = Union[
     Callable[[int, ParseResults], bool],
     Callable[[str, int, ParseResults], bool],
 ]
-ParseFailAction = Callable[[str, int, "ParserElement", Exception], NoReturn]
-DebugStartAction = Callable[[str, int, "ParserElement", bool], NoReturn]
+ParseFailAction = Callable[[str, int, "ParserElement", Exception], None]
+DebugStartAction = Callable[[str, int, "ParserElement", bool], None]
 DebugSuccessAction = Callable[
-    [str, int, int, "ParserElement", ParseResults, bool], NoReturn
+    [str, int, int, "ParserElement", ParseResults, bool], None
 ]
-DebugExceptionAction = Callable[[str, int, "ParserElement", Exception, bool], NoReturn]
+DebugExceptionAction = Callable[[str, int, "ParserElement", Exception, bool], None]
 
 
 alphas = string.ascii_uppercase + string.ascii_lowercase
