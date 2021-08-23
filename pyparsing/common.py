@@ -3,6 +3,7 @@ from .core import *
 from .helpers import delimited_list, any_open_tag, any_close_tag
 from datetime import datetime
 
+
 # some other useful expressions - using lower-case class name since we are really using this as a namespace
 class pyparsing_common:
     """Here are some common low-level expressions that may be useful in
@@ -180,7 +181,7 @@ class pyparsing_common:
         + signed_integer().set_parse_action(convert_to_float)
     ).set_name("fraction")
     """fractional expression of an integer divided by an integer, returns a float"""
-    fraction.add_parse_action(lambda t: t[0] / t[-1])
+    fraction.add_parse_action(lambda tt: tt[0] / tt[-1])
 
     mixed_integer = (
         fraction | signed_integer + Opt(Opt("-").suppress() + fraction)
@@ -248,7 +249,7 @@ class pyparsing_common:
     "MAC address xx:xx:xx:xx:xx (may also have '-' or '.' delimiters)"
 
     @staticmethod
-    def convert_to_date(fmt="%Y-%m-%d"):
+    def convert_to_date(fmt: str = "%Y-%m-%d"):
         """
         Helper to create a parse action for converting parsed date string to Python datetime.date
 
@@ -266,16 +267,16 @@ class pyparsing_common:
             [datetime.date(1999, 12, 31)]
         """
 
-        def cvt_fn(s, l, t):
+        def cvt_fn(ss, ll, tt):
             try:
-                return datetime.strptime(t[0], fmt).date()
+                return datetime.strptime(tt[0], fmt).date()
             except ValueError as ve:
-                raise ParseException(s, l, str(ve))
+                raise ParseException(ss, ll, str(ve))
 
         return cvt_fn
 
     @staticmethod
-    def convert_to_datetime(fmt="%Y-%m-%dT%H:%M:%S.%f"):
+    def convert_to_datetime(fmt: str = "%Y-%m-%dT%H:%M:%S.%f"):
         """Helper to create a parse action for converting parsed
         datetime string to Python datetime.datetime
 
@@ -317,7 +318,7 @@ class pyparsing_common:
     _html_stripper = any_open_tag.suppress() | any_close_tag.suppress()
 
     @staticmethod
-    def strip_html_tags(s, l, tokens):
+    def strip_html_tags(s: str, l: int, tokens: ParseResults):
         """Parse action to remove HTML tags from web page HTML source
 
         Example::

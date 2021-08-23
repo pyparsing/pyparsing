@@ -2,6 +2,8 @@
 
 import re
 import sys
+from typing import Optional
+
 from .util import col, line, lineno, _collapseStringToRanges
 from .unicode import pyparsing_unicode as ppu
 
@@ -19,7 +21,7 @@ class ParseBaseException(Exception):
 
     # Performance tuning: we construct a *lot* of these, so keep this
     # constructor as small and fast as possible
-    def __init__(self, pstr, loc=0, msg=None, elem=None):
+    def __init__(self, pstr: str, loc: int = 0, msg: Optional[str] = None, elem=None):
         self.loc = loc
         if msg is None:
             self.msg = pstr

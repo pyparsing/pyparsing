@@ -4,6 +4,8 @@ Change Log
 
 Version 3.0.0c1 -
 -----------------
+- Type annotations have been added to most public API methods and classes.
+
 - Better exception messages to show full word where an exception occurred.
 
       Word(alphas)[...].parseString("abc 123", parseAll=True)

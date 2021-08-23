@@ -6,7 +6,13 @@ from .util import _bslash, _flatten, _escapeRegexRangeChars
 #
 # global helpers
 #
-def delimited_list(expr, delim=",", combine=False, *, allow_trailing_delim=False):
+def delimited_list(
+    expr: ParserElement,
+    delim: str = ",",
+    combine: bool = False,
+    *,
+    allow_trailing_delim: bool = False
+) -> ParserElement:
     """Helper to define a delimited list of expressions - the delimiter
     defaults to ','. By default, the list elements and delimiters can
     have intervening whitespace, and comments, but this can be
@@ -44,7 +50,12 @@ def delimited_list(expr, delim=",", combine=False, *, allow_trailing_delim=False
         return delimited_list_expr.set_name(dlName)
 
 
-def counted_array(expr, int_expr=None, *, intExpr=None):
+def counted_array(
+    expr: ParserElement,
+    int_expr: OptionalType[ParserElement] = None,
+    *,
+    intExpr: OptionalType[ParserElement] = None
+) -> ParserElement:
     """Helper to define a counted list of expressions.
 
     This helper defines a pattern of the form::
@@ -98,7 +109,7 @@ def counted_array(expr, int_expr=None, *, intExpr=None):
     return (intExpr + arrayExpr).set_name("(len) " + str(expr) + "...")
 
 
-def match_previous_literal(expr):
+def match_previous_literal(expr: ParserElement) -> ParserElement:
     """Helper to define an expression that is indirectly defined from
     the tokens matched in a previous expression, that is, it looks for
     a 'repeat' of a previous expression.  For example::
@@ -131,7 +142,7 @@ def match_previous_literal(expr):
     return rep
 
 
-def match_previous_expr(expr):
+def match_previous_expr(expr: ParserElement) -> ParserElement:
     """Helper to define an expression that is indirectly defined from
     the tokens matched in a previous expression, that is, it looks for
     a 'repeat' of a previous expression.  For example::
@@ -166,14 +177,14 @@ def match_previous_expr(expr):
 
 
 def one_of(
-    strs,
-    caseless=False,
-    use_regex=True,
-    as_keyword=False,
+    strs: Union[Iterable[str], str],
+    caseless: bool = False,
+    use_regex: bool = True,
+    as_keyword: bool = False,
     *,
-    useRegex=True,
-    asKeyword=False
-):
+    useRegex: bool = True,
+    asKeyword: bool = False
+) -> ParserElement:
     """Helper to quickly define a set of alternative :class:`Literal` s,
     and makes sure to do longest-first testing when there is a conflict,
     regardless of the input order, but returns
@@ -274,7 +285,7 @@ def one_of(
     )
 
 
-def dict_of(key, value):
+def dict_of(key: ParserElement, value: ParserElement) -> ParserElement:
     """Helper to easily and clearly define a dictionary by specifying
     the respective patterns for the key and value.  Takes care of
     defining the :class:`Dict`, :class:`ZeroOrMore`, and
@@ -314,7 +325,9 @@ def dict_of(key, value):
     return Dict(OneOrMore(Group(key + value)))
 
 
-def original_text_for(expr, as_string=True, *, asString=True):
+def original_text_for(
+    expr: ParserElement, as_string: bool = True, *, asString: bool = True
+) -> ParserElement:
     """Helper to return the original, untokenized text for a given
     expression.  Useful to restore the parsed fields of an HTML start
     tag into the raw tag text itself, or to revert separate tokens with
@@ -364,14 +377,14 @@ def original_text_for(expr, as_string=True, *, asString=True):
     return matchExpr
 
 
-def ungroup(expr):
+def ungroup(expr: ParserElement) -> ParserElement:
     """Helper to undo pyparsing's default grouping of And expressions,
     even if all but one are non-empty.
     """
     return TokenConverter(expr).add_parse_action(lambda t: t[0])
 
 
-def locatedExpr(expr):
+def locatedExpr(expr: ParserElement) -> ParserElement:
     """
     (DEPRECATED - future code should use the Located class)
     Helper to decorate a returned token with its starting and ending
@@ -398,7 +411,7 @@ def locatedExpr(expr):
         [[8, 'lksdjjf', 15]]
         [[18, 'lkkjj', 23]]
     """
-    locator = Empty().set_parse_action(lambda s, l, t: l)
+    locator = Empty().set_parse_action(lambda ss, ll, tt: ll)
     return Group(
         locator("locn_start")
         + expr("value")
@@ -407,13 +420,13 @@ def locatedExpr(expr):
 
 
 def nested_expr(
-    opener="(",
-    closer=")",
-    content=None,
-    ignore_expr=quoted_string(),
+    opener: Union[str, ParserElement] = "(",
+    closer: Union[str, ParserElement] = ")",
+    content: OptionalType[ParserElement] = None,
+    ignore_expr: ParserElement = quoted_string(),
     *,
-    ignoreExpr=quoted_string()
-):
+    ignoreExpr: ParserElement = quoted_string()
+) -> ParserElement:
     """Helper method for defining nested lists enclosed in opening and
     closing delimiters (``"("`` and ``")"`` are the default).
 
@@ -592,7 +605,9 @@ def _makeTags(tagStr, xml, suppress_LT=Suppress("<"), suppress_GT=Suppress(">"))
     return openTag, closeTag
 
 
-def make_html_tags(tag_str):
+def make_html_tags(
+    tag_str: Union[str, ParserElement]
+) -> Tuple[ParserElement, ParserElement]:
     """Helper to construct opening and closing tag expressions for HTML,
     given a tag name. Matches tags in either upper or lower case,
     attributes with namespaces and with quoted or unquoted values.
@@ -617,7 +632,9 @@ def make_html_tags(tag_str):
     return _makeTags(tag_str, False)
 
 
-def make_xml_tags(tag_str):
+def make_xml_tags(
+    tag_str: Union[str, ParserElement]
+) -> Tuple[ParserElement, ParserElement]:
     """Helper to construct opening and closing tag expressions for XML,
     given a tag name. Matches tags only in the given upper/lower case.
 
@@ -647,7 +664,17 @@ class OpAssoc(Enum):
     RIGHT = 2
 
 
-def infix_notation(base_expr, op_list, lpar=Suppress("("), rpar=Suppress(")")):
+InfixNotationOperatorSpec = Tuple[
+    Union[ParserElement, str], int, OpAssoc, OptionalType[ParseAction]
+]
+
+
+def infix_notation(
+    base_expr: ParserElement,
+    op_list: List[InfixNotationOperatorSpec],
+    lpar: Union[str, ParserElement] = Suppress("("),
+    rpar: Union[str, ParserElement] = Suppress(")"),
+) -> ParserElement:
     """Helper method for constructing grammars of expressions made up of
     operators working in a precedence hierarchy.  Operators may be unary
     or binary, left- or right-associative.  Parse actions can also be
@@ -725,6 +752,8 @@ def infix_notation(base_expr, op_list, lpar=Suppress("("), rpar=Suppress(")")):
             return loc, []
 
     ret = Forward()
+    lpar = Suppress(lpar)
+    rpar = Suppress(rpar)
     lastExpr = base_expr | (lpar + ret + rpar)
     for i, operDef in enumerate(op_list):
         opExpr, arity, rightLeftAssoc, pa = (operDef + (None,))[:4]
@@ -942,7 +971,7 @@ class IndentedBlock(ParseElementEnhance):
     Useful for parsing text where structure is implied by indentation (like Python source code).
     """
 
-    def __init__(self, expr, recursive=True):
+    def __init__(self, expr: ParserElement, recursive: bool = True):
         super().__init__(expr, savelist=True)
         self._recursive = recursive
 
