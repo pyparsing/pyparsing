@@ -177,7 +177,7 @@ def match_previous_expr(expr: ParserElement) -> ParserElement:
 
 
 def one_of(
-    strs: Union[Iterable[str], str],
+    strs: Union[IterableType[str], str],
     caseless: bool = False,
     use_regex: bool = True,
     as_keyword: bool = False,

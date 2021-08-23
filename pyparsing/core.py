@@ -3,6 +3,7 @@
 #
 from typing import (
     Optional as OptionalType,
+    Iterable as IterableType,
     Union,
     Callable,
     Any,
@@ -3394,7 +3395,7 @@ class ParseExpression(ParserElement):
     post-processing parsed tokens.
     """
 
-    def __init__(self, exprs: Iterable[ParserElement], savelist: bool = False):
+    def __init__(self, exprs: IterableType[ParserElement], savelist: bool = False):
         super().__init__(savelist)
         if isinstance(exprs, _generatorType):
             exprs = list(exprs)
@@ -3563,7 +3564,7 @@ class And(ParseExpression):
         def _generateDefaultName(self):
             return "-"
 
-    def __init__(self, exprs: Iterable[ParserElement], savelist: bool = True):
+    def __init__(self, exprs: IterableType[ParserElement], savelist: bool = True):
         exprs: List["ParserElement"] = list(exprs)
         if exprs and Ellipsis in exprs:
             tmp = []
@@ -3676,7 +3677,7 @@ class Or(ParseExpression):
         [['123'], ['3.1416'], ['789']]
     """
 
-    def __init__(self, exprs: Iterable[ParserElement], savelist: bool = False):
+    def __init__(self, exprs: IterableType[ParserElement], savelist: bool = False):
         super().__init__(exprs, savelist)
         if self.exprs:
             self.mayReturnEmpty = any(e.mayReturnEmpty for e in self.exprs)
@@ -3813,7 +3814,7 @@ class MatchFirst(ParseExpression):
         print(number.search_string("123 3.1416 789")) #  Better -> [['123'], ['3.1416'], ['789']]
     """
 
-    def __init__(self, exprs: Iterable[ParserElement], savelist: bool = False):
+    def __init__(self, exprs: IterableType[ParserElement], savelist: bool = False):
         super().__init__(exprs, savelist)
         if self.exprs:
             self.mayReturnEmpty = any(e.mayReturnEmpty for e in self.exprs)
@@ -3960,7 +3961,7 @@ class Each(ParseExpression):
         - size: 20
     """
 
-    def __init__(self, exprs: Iterable[ParserElement], savelist: bool = True):
+    def __init__(self, exprs: IterableType[ParserElement], savelist: bool = True):
         super().__init__(exprs, savelist)
         self.mayReturnEmpty = all(e.mayReturnEmpty for e in self.exprs)
         self.skipWhitespace = True
