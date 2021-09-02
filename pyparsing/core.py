@@ -2413,7 +2413,12 @@ class CloseMatch(Token):
     """
 
     def __init__(
-        self, match_string: str, max_mismatches: int = None, *, maxMismatches: int = 1, caseless=False
+        self,
+        match_string: str,
+        max_mismatches: int = None,
+        *,
+        maxMismatches: int = 1,
+        caseless=False,
     ):
         maxMismatches = max_mismatches if max_mismatches is not None else maxMismatches
         super().__init__()
