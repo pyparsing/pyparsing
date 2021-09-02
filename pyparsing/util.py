@@ -4,6 +4,8 @@ import types
 import collections
 import itertools
 from functools import lru_cache
+from typing import List
+
 
 _bslash = chr(92)
 
@@ -11,8 +13,8 @@ _bslash = chr(92)
 class __config_flags:
     """Internal class for defining compatibility and debugging flags"""
 
-    _all_names = []
-    _fixed_names = []
+    _all_names: List[str] = []
+    _fixed_names: List[str] = []
     _type_desc = "configuration"
 
     @classmethod

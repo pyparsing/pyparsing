@@ -665,7 +665,12 @@ class OpAssoc(Enum):
 
 
 InfixNotationOperatorSpec = Tuple[
-    Union[ParserElement, str], int, OpAssoc, OptionalType[ParseAction]
+    Union[
+        ParserElement, str, Tuple[Union[ParserElement, str], Union[ParserElement, str]]
+    ],
+    int,
+    OpAssoc,
+    OptionalType[ParseAction],
 ]
 
 
@@ -765,6 +770,9 @@ def infix_notation(
                     "if numterms=3, opExpr must be a tuple or list of two expressions"
                 )
             opExpr1, opExpr2 = opExpr
+            term_name = "{}{} term".format(opExpr1, opExpr2)
+        else:
+            term_name = "{} term".format(opExpr)
 
         if not 1 <= arity <= 3:
             raise ValueError("operator must be unary (1), binary (2), or ternary (3)")
@@ -772,8 +780,7 @@ def infix_notation(
         if rightLeftAssoc not in (OpAssoc.LEFT, OpAssoc.RIGHT):
             raise ValueError("operator must indicate right or left associativity")
 
-        termName = "%s term" % opExpr if arity < 3 else "%s%s term" % opExpr
-        thisExpr = Forward().set_name(termName)
+        thisExpr = Forward().set_name(term_name)
         if rightLeftAssoc is OpAssoc.LEFT:
             if arity == 1:
                 matchExpr = _FB(lastExpr + opExpr) + Group(
@@ -816,7 +823,7 @@ def infix_notation(
                 matchExpr.set_parse_action(*pa)
             else:
                 matchExpr.set_parse_action(pa)
-        thisExpr <<= matchExpr.set_name(termName) | lastExpr
+        thisExpr <<= matchExpr.set_name(term_name) | lastExpr
         lastExpr = thisExpr
     ret <<= lastExpr
     return ret

@@ -407,7 +407,7 @@ class ParserElement(ABC):
 
     def __init__(self, savelist: bool = False):
         self.parseAction: List[ParseAction] = list()
-        self.failAction = None
+        self.failAction: OptionalType[ParseFailAction] = None
         self.customName = None
         self._defaultName = None
         self.resultsName = None
@@ -428,7 +428,9 @@ class ParserElement(ABC):
         self.modalResults = True
         # custom debug actions
         self.debugActions: Tuple[
-            DebugStartAction, DebugSuccessAction, DebugExceptionAction
+            OptionalType[DebugStartAction],
+            OptionalType[DebugSuccessAction],
+            OptionalType[DebugExceptionAction],
         ] = (None, None, None)
         self.re = None
         # avoid redundant calls to preParse
@@ -461,7 +463,7 @@ class ParserElement(ABC):
         cpy.parseAction = self.parseAction[:]
         cpy.ignoreExprs = self.ignoreExprs[:]
         if self.copyDefaultWhiteChars:
-            cpy.whiteChars = ParserElement.DEFAULT_WHITE_CHARS
+            cpy.whiteChars = set(ParserElement.DEFAULT_WHITE_CHARS)
         return cpy
 
     def set_results_name(
@@ -855,7 +857,7 @@ class ParserElement(ABC):
     _parse = _parseNoCache
 
     @staticmethod
-    def reset_cache() -> NoReturn:
+    def reset_cache() -> None:
         ParserElement.packrat_cache.clear()
         ParserElement.packrat_cache_stats[:] = [0] * len(
             ParserElement.packrat_cache_stats
@@ -866,7 +868,7 @@ class ParserElement(ABC):
     _left_recursion_enabled = False
 
     @staticmethod
-    def disable_memoization() -> NoReturn:
+    def disable_memoization() -> None:
         """
         Disables active Packrat or Left Recursion parsing and their memoization
 
@@ -882,7 +884,7 @@ class ParserElement(ABC):
     @staticmethod
     def enable_left_recursion(
         cache_size_limit: OptionalType[int] = None, *, force=False
-    ) -> NoReturn:
+    ) -> None:
         """
         Enables "bounded recursion" parsing, which allows for both direct and indirect
         left-recursion. During parsing, left-recursive :class:`Forward` elements are
@@ -928,7 +930,7 @@ class ParserElement(ABC):
         ParserElement._left_recursion_enabled = True
 
     @staticmethod
-    def enable_packrat(cache_size_limit: int = 128, *, force: bool = False) -> NoReturn:
+    def enable_packrat(cache_size_limit: int = 128, *, force: bool = False) -> None:
         """
         Enables "packrat" parsing, which adds memoizing to the parsing logic.
         Repeated parse attempts at the same string location (which happens
@@ -1169,7 +1171,7 @@ class ParserElement(ABC):
 
     def search_string(
         self, instring: str, max_matches: int = _MAX_INT, *, maxMatches: int = _MAX_INT
-    ) -> List[ParseResults]:
+    ) -> ParseResults:
         """
         Another extension to :class:`scan_string`, simplifying the access to the tokens found
         to match the given parse expression.  May be called with optional
@@ -1205,7 +1207,7 @@ class ParserElement(ABC):
     def split(
         self,
         instring: str,
-        maxsplit: bool = _MAX_INT,
+        maxsplit: int = _MAX_INT,
         include_separators: bool = False,
         *,
         includeSeparators=False,
@@ -3565,8 +3567,8 @@ class And(ParseExpression):
         def _generateDefaultName(self):
             return "-"
 
-    def __init__(self, exprs: IterableType[ParserElement], savelist: bool = True):
-        exprs: List["ParserElement"] = list(exprs)
+    def __init__(self, exprs_arg: IterableType[ParserElement], savelist: bool = True):
+        exprs: List["ParserElement"] = list(exprs_arg)
         if exprs and Ellipsis in exprs:
             tmp = []
             for i, expr in enumerate(exprs):
