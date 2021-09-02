@@ -52,8 +52,8 @@ generator for documenting pyparsing parsers. You need to install
     # define a simple grammar for parsing street addresses such
     # as "123 Main Street"
     #     number word...
-    number = pp.Word(pp.nums).setName("number")
-    name = pp.Word(pp.alphas).setName("word")[1, ...]
+    number = pp.Word(pp.nums).set_name("number")
+    name = pp.Word(pp.alphas).set_name("word")[1, ...]
 
     parser = number("house_number") + name("street")
     parser.set_name("street address")
@@ -73,7 +73,7 @@ the methods of the Python PEG parser, pyparsing uses a variation of
 packrat parsing to detect and handle left-recursion during parsing.::
 
     import pyparsing as pp
-    pp.ParserElement.enableLeftRecursion()
+    pp.ParserElement.enable_left_recursion()
 
     # a common left-recursion definition
     # define a list of items as 'list + item | item'
@@ -200,7 +200,7 @@ nesting level).
 For this code::
 
         wd = Word(alphas)
-        for match in locatedExpr(wd).searchString("ljsdf123lksdjjf123lkkjj1222"):
+        for match in locatedExpr(wd).search_string("ljsdf123lksdjjf123lkkjj1222"):
             print(match)
 
 the docs for ``locaatedExpr`` show this output::
@@ -261,7 +261,7 @@ deprecated in a future release.
 Shortened tracebacks
 --------------------
 Cleaned up default tracebacks when getting a ``ParseException`` when calling
-``parseString``. Exception traces should now stop at the call in ``parseString``,
+``parse_string``. Exception traces should now stop at the call in ``parse_string``,
 and not include the internal pyparsing traceback frames. (If the full traceback
 is desired, then set ``ParserElement.verbose_traceback`` to ``True``.)
 
@@ -314,7 +314,7 @@ Other new features
 
 - Better exception messages to show full word where an exception occurred.::
 
-      Word(alphas)[...].parseString("abc 123", parseAll=True)
+      Word(alphas)[...].parse_string("abc 123", parse_all=True)
 
   Was::
 
@@ -331,15 +331,15 @@ Other new features
      start_marker = Keyword("START")
      end_marker = Keyword("END")
      find_body = Suppress(...) + start_marker + ... + end_marker
-     print(find_body.parseString(source).dump())
+     print(find_body.parse_string(source).dump())
 
   Prints::
 
       ['START', 'relevant text ', 'END']
       - _skipped: ['relevant text ']
 
-- Added ``ignoreWhitespace(recurse:bool = True)`` and added a
-  ``recurse`` argument to ``leaveWhitespace``, both added to provide finer
+- Added ``ignore_whitespace(recurse:bool = True)`` and added a
+  ``recurse`` argument to ``leave_whitespace``, both added to provide finer
   control over pyparsing's whitespace skipping. Contributed by
   Michael Milton.
 
@@ -355,7 +355,7 @@ Other new features
   and was easily misinterpreted as a ``tuple`` containing a ``list`` and
   a ``dict``.
 
-- Minor reformatting of output from ``runTests`` to make embedded
+- Minor reformatting of output from ``run_tests`` to make embedded
   comments more visible.
 
 - New ``pyparsing_test`` namespace, assert methods and classes added to support writing
@@ -404,7 +404,7 @@ API Changes
   to ``True`` or ``False``). ``enable_all_warnings()`` has
   also been added.
 
-- ``countedArray`` formerly returned its list of items nested
+- ``counted_array`` formerly returned its list of items nested
   within another list, so that accessing the items required
   indexing the 0'th element to get the actual list. This
   extra nesting has been removed. In addition, if there are
@@ -417,7 +417,7 @@ API Changes
 
         expr = pp.Word(pp.nums) * 3
         try:
-            expr.parseString("123 456 A789")
+            expr.parse_string("123 456 A789")
         except pp.ParseException as pe:
             print(pe.explain(depth=0))
 
@@ -443,10 +443,10 @@ API Changes
   will now always return ``True``. This code will need to change to
   ``"if name in results and results[name]:"`` or just
   ``"if results[name]:"``. Also, any parser unit tests that check the
-  ``asDict()`` contents will now see additional entries for parsers
+  ``as_dict()`` contents will now see additional entries for parsers
   having named ``ZeroOrMore`` expressions, whose values will be ``[]``.
 
-- ``ParserElement.setDefaultWhitespaceChars`` will now update
+- ``ParserElement.set_default_whitespace_chars`` will now update
   whitespace characters on all built-in expressions defined
   in the pyparsing module.
 
