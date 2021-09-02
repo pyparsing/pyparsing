@@ -2030,7 +2030,8 @@ class ParserElement(ABC):
             from .diagram import to_railroad, railroad_to_html
         except ImportError as ie:
             raise Exception(
-                "must install 'Railroad-Diagram Generator' from https://pypi.org/project/railroad-diagrams to generate parser railroad diagrams"
+                "must install 'Railroad-Diagram Generator' from https://pypi.org/project/railroad-diagrams"
+                "and jinja2 from https://pypi.org/project/jinja2 to generate parser railroad diagrams"
             ) from ie
 
         railroad = to_railroad(self, vertical=vertical, diagram_kwargs=kwargs)
