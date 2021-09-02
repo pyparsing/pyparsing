@@ -342,7 +342,7 @@ def _to_diagram_element(
             ret = EditablePartial.from_call(railroad.Choice, 0, items=[])
         else:
             ret = EditablePartial.from_call(railroad.HorizontalChoice, items=[])
-    elif isinstance(element, pyparsing.Optional):
+    elif isinstance(element, pyparsing.Opt):
         ret = EditablePartial.from_call(railroad.Optional, item="")
     elif isinstance(element, pyparsing.OneOrMore):
         ret = EditablePartial.from_call(railroad.OneOrMore, item="")
