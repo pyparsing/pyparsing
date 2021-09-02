@@ -2383,6 +2383,7 @@ class CloseMatch(Token):
     :class:`CloseMatch` takes parameters:
 
      - ``match_string`` - string to be matched
+     - ``caseless`` - a boolean indicating whether to ignore casing when comparing characters
      - ``max_mismatches`` - (``default=1``) maximum number of
        mismatches allowed to count as a match
 
@@ -2412,7 +2413,7 @@ class CloseMatch(Token):
     """
 
     def __init__(
-        self, match_string: str, max_mismatches: int = None, *, maxMismatches: int = 1
+        self, match_string: str, max_mismatches: int = None, *, maxMismatches: int = 1, caseless=False
     ):
         maxMismatches = max_mismatches if max_mismatches is not None else maxMismatches
         super().__init__()
@@ -2421,6 +2422,7 @@ class CloseMatch(Token):
         self.errmsg = "Expected {!r} (with up to {} mismatches)".format(
             self.match_string, self.maxMismatches
         )
+        self.caseless = caseless
         self.mayIndexError = False
         self.mayReturnEmpty = False
 
@@ -2442,6 +2444,9 @@ class CloseMatch(Token):
                 zip(instring[loc:maxloc], match_string)
             ):
                 src, mat = s_m
+                if self.caseless:
+                    src, mat = src.lower(), mat.lower()
+
                 if src != mat:
                     mismatches.append(match_stringloc)
                     if len(mismatches) > maxMismatches:

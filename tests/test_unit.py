@@ -5857,6 +5857,38 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
                 else ("no match", "match")[r[1].mismatches == exp],
             )
 
+    def testCloseMatchCaseless(self):
+
+        searchseq = pp.CloseMatch("ATCATCGAATGGA", 2, caseless=True)
+
+        _, results = searchseq.runTests(
+            """
+            atcatcgaatgga
+            xtcatcgaatggx
+            atcatcgaaxgga
+            atcaxxgaatgga
+            atcaxxgaatgxa
+            atcaxxgaatgg
+            """
+        )
+        expected = ([], [0, 12], [9], [4, 5], None, None)
+
+        for r, exp in zip(results, expected):
+            if exp is not None:
+                self.assertEqual(
+                    exp,
+                    r[1].mismatches,
+                    "fail CaselessCloseMatch between {!r} and {!r}".format(
+                        searchseq.match_string, r[0]
+                    ),
+                )
+            print(
+                r[0],
+                "exc: %s" % r[1]
+                if exp is None and isinstance(r[1], Exception)
+                else ("no match", "match")[r[1].mismatches == exp],
+            )
+
     def testDefaultKeywordChars(self):
 
         with self.assertRaisesParseException(
