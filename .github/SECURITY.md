@@ -1,6 +1,6 @@
 # Security Policy
 
-Pyparsing itself has no known security security vulnerabilities. It does not 
+Pyparsing itself has no known security vulnerabilities. It does not 
 itself access any risk-inherent methods like `exec` or `eval`, nor does it import 
 any modules not part of the Python standard library.
 
