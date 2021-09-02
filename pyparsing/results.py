@@ -71,7 +71,7 @@ class ParseResults:
         - year: 1999
     """
 
-    _null_values: Tuple[Any, ...] = (None, "", [], ())
+    _null_values: Tuple[Any, ...] = (None, [], "", ())
 
     __slots__ = [
         "_name",
@@ -161,7 +161,7 @@ class ParseResults:
         self, toklist=None, name=None, asList=True, modal=True, isinstance=isinstance
     ):
         self._modal = modal
-        if name not in (None, ""):
+        if name is not None and name != "":
             if isinstance(name, int):
                 name = str(name)
             if not modal:

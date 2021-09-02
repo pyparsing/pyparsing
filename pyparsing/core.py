@@ -174,7 +174,7 @@ def enable_all_warnings():
 del __config_flags
 
 # build list of single arg builtins, that can be used as parse actions
-_single_arg_builtins = [
+_single_arg_builtins = {
     sum,
     len,
     sorted,
@@ -186,7 +186,7 @@ _single_arg_builtins = [
     all,
     min,
     max,
-]
+}
 
 _generatorType = types.GeneratorType
 ParseAction = Union[
@@ -3095,6 +3095,7 @@ class CharsNotIn(Token):
         super().__init__()
         self.skipWhitespace = False
         self.notChars = not_chars or notChars
+        self.notCharsSet = set(self.notChars)
 
         if min < 1:
             raise ValueError(
@@ -3125,12 +3126,12 @@ class CharsNotIn(Token):
             return "!W:({})".format(self.notChars)
 
     def parseImpl(self, instring, loc, doActions=True):
-        if instring[loc] in self.notChars:
+        notchars = self.notCharsSet
+        if instring[loc] in notchars:
             raise ParseException(instring, loc, self.errmsg, self)
 
         start = loc
         loc += 1
-        notchars = self.notChars
         maxlen = min(start + self.maxLen, len(instring))
         while loc < maxlen and instring[loc] not in notchars:
             loc += 1
