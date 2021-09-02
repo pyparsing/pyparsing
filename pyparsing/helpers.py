@@ -206,12 +206,12 @@ def one_of(
 
     Example::
 
-        comp_oper = oneOf("< = > <= >= !=")
+        comp_oper = one_of("< = > <= >= !=")
         var = Word(alphas)
         number = Word(nums)
         term = var | number
         comparison_expr = term + comp_oper + term
-        print(comparison_expr.searchString("B = 12  AA=23 B<=AA AA>12"))
+        print(comparison_expr.search_string("B = 12  AA=23 B<=AA AA>12"))
 
     prints::
 

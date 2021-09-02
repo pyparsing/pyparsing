@@ -45,7 +45,7 @@ and the strings are auto-converted to :class:`Literal` expressions)::
     greet = Word(alphas) + "," + Word(alphas) + "!"
 
     hello = "Hello, World!"
-    print(hello, "->", greet.parseString(hello))
+    print(hello, "->", greet.parse_string(hello))
 
 The program outputs the following::
 

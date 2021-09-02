@@ -5155,7 +5155,7 @@ class Suppress(TokenConverter):
         start_marker = Keyword("START")
         end_marker = Keyword("END")
         find_body = Suppress(...) + start_marker + ... + end_marker
-        print(find_body.parseString(source)
+        print(find_body.parse_string(source)
 
     prints::
 
