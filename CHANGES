@@ -51,12 +51,13 @@ Version 3.0.0c1 -
       greek_identifier = pp.Word(ppu.Greek.identchars, ppu.Greek.identbodychars)
 
 
+- Added a caseless parameter to the `CloseMatch` class to allow for casing to be
+  ignored when checking for close matches. (Issue #281) (PR by Adrian Edwards, thanks!)
+
 - Fixed bug in Located class when used with a results name. (Issue #294)
 
 - Fixed bug in QuotedString class when the escaped quote string is not a
   repeated character. (Issue #263)
-
-- Added a caseless parameter to the `CloseMatch` class to allow for casing to be ignored when checking for close matches
 
 
 

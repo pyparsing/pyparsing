@@ -4,7 +4,7 @@ What's New in Pyparsing 3.0.0
 
 :author: Paul McGuire
 
-:date: August, 2021
+:date: September, 2021
 
 :abstract: This document summarizes the changes made
     in the 3.0.0 release of pyparsing.
@@ -56,7 +56,7 @@ generator for documenting pyparsing parsers. You need to install
     name = pp.Word(pp.alphas).setName("word")[1, ...]
 
     parser = number("house_number") + name("street")
-    parser.setName("street address")
+    parser.set_name("street address")
 
     # construct railroad track diagram for this parser and
     # save as HTML
@@ -84,7 +84,7 @@ packrat parsing to detect and handle left-recursion during parsing.::
     item = pp.Word(pp.alphas)
     item_list <<= item_list + item | item
 
-    item_list.runTests("""\
+    item_list.run_tests("""\
         To parse or not to parse that is the question
         """)
 
@@ -108,6 +108,12 @@ enable_packrat          Enable packrat parsing (with specified cache size)
 enable_left_recursion   Enable left-recursion cache
 disable_memoization     Disable all internal parsing caches
 ======================  =======================================================
+
+Type annotations on all public methods
+--------------------------------------
+Python 3.6 and upward compatible type annotations have been added to most of the
+public methods in pyparsing. This should facilitate developing pyparsing-based
+applications using IDEs for development-time type checking.
 
 New string constants ``identchars`` and ``identbodychars`` to help in defining identifier Word expressions
 ----------------------------------------------------------------------------------------------------------
@@ -386,6 +392,9 @@ Other new features
   internally converts ranges of consecutive characters to regex
   character ranges (converting ``"0123456789"`` to ``"0-9"`` for instance).
 
+- Added a caseless parameter to the `CloseMatch` class to allow for casing to be
+  ignored when checking for close matches.
+
 
 API Changes
 ===========
@@ -543,18 +552,18 @@ Other discontinued features
 ---------------------------
 - ``ParseResults.asXML()`` - if used for debugging, switch
   to using ``ParseResults.dump()``; if used for data transfer,
-  use ``ParseResults.asDict()`` to convert to a nested Python
+  use ``ParseResults.as_dict()`` to convert to a nested Python
   dict, which can then be converted to XML or JSON or
   other transfer format
 
 - ``operatorPrecedence`` synonym for ``infixNotation`` -
-  convert to calling ``infixNotation``
+  convert to calling ``infix_notation``
 
 - ``commaSeparatedList`` - convert to using
   ``pyparsing_common.comma_separated_list``
 
 - ``upcaseTokens`` and ``downcaseTokens`` - convert to using
-  ``pyparsing_common.upcaseTokens`` and ``downcaseTokens``
+  ``pyparsing_common.upcase_tokens`` and ``downcase_tokens``
 
 - ``__compat__.collect_all_And_tokens`` will not be settable to
   ``False`` to revert to pre-2.3.1 results name behavior -
