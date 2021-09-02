@@ -103,7 +103,7 @@ __version__ = (
         __version_info__.release_level == "final"
     ]
 )
-__version_time__ = "16 August 2021 05:31 UTC"
+__version_time__ = "2 September 2021 17:43 UTC"
 __versionTime__ = __version_time__
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
@@ -125,9 +125,12 @@ from .common import (
 )
 
 # define backward compat synonyms
-pyparsing_unicode = unicode
-pyparsing_common = common
-pyparsing_test = testing
+if "pyparsing_unicode" not in globals():
+    pyparsing_unicode = unicode
+if "pyparsing_common" not in globals():
+    pyparsing_common = common
+if "pyparsing_test" not in globals():
+    pyparsing_test = testing
 
 core_builtin_exprs += common_builtin_exprs + helper_builtin_exprs
 
