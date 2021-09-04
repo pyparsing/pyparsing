@@ -31,7 +31,9 @@ using the Python interpreter's built-in ``help()`` function). You will also
 find many example scripts in the `examples <https://github.com/pyparsing/pyparsing/tree/master/examples>`_
 directory of the pyparsing GitHub repo.
 
-*Note: In pyparsing 3.0, many method and function names which were
+-----------
+
+**Note**: *In pyparsing 3.0, many method and function names which were
 originally written using camelCase have been converted to PEP8-compatible
 snake_case. So ``parseString()`` is being renamed to ``parse_string()``,
 ``delimitedList`` to ``delimited_list``, and so on. You may see the old
@@ -43,6 +45,8 @@ you'll need to convert methods and arguments from the documented snake_case
 names to the legacy camelCase names. In pyparsing 3.0.x, both forms are
 supported, but the legacy forms are deprecated; they will be dropped in a
 future release.*
+
+-----------
 
 
 Steps to follow
