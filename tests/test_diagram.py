@@ -30,17 +30,17 @@ class TestRailroadDiagrams(unittest.TestCase):
             assert len(railroad) == 4
             temp.write(railroad_to_html(railroad))
 
-            if self.railroad_debug():
-                print("bool expr:" + temp.name)
+        if self.railroad_debug():
+            print("bool expr: " + temp.name)
 
     def test_json(self):
         with self.get_temp() as temp:
             railroad = to_railroad(jsonObject)
-            assert len(railroad) == 11
+            assert len(railroad) == 9
             temp.write(railroad_to_html(railroad))
 
-            if self.railroad_debug():
-                print("json: " + temp.name)
+        if self.railroad_debug():
+            print("json: " + temp.name)
 
     def test_sql(self):
         with self.get_temp() as temp:
@@ -48,16 +48,16 @@ class TestRailroadDiagrams(unittest.TestCase):
             assert len(railroad) == 16
             temp.write(railroad_to_html(railroad))
 
-            if self.railroad_debug():
-                print("sql: " + temp.name)
+        if self.railroad_debug():
+            print("sql: " + temp.name)
 
     def test_calendars(self):
         with self.get_temp() as temp:
             railroad = to_railroad(calendars)
             temp.write(railroad_to_html(railroad))
 
-            if self.railroad_debug():
-                print("calendar: " + temp.name)
+        if self.railroad_debug():
+            print("calendar: " + temp.name)
 
     def test_none_name(self):
         grammar = Or(["foo", "bar"])

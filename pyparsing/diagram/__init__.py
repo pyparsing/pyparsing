@@ -4,6 +4,7 @@ from pkg_resources import resource_filename
 from typing import (
     List,
     Optional,
+    NamedTuple,
     Generic,
     TypeVar,
     Dict,
@@ -13,19 +14,15 @@ from typing import (
 from jinja2 import Template
 from io import StringIO
 import inspect
-import dataclasses
 
 with open(resource_filename(__name__, "template.jinja2"), encoding="utf-8") as fp:
     template = Template(fp.read())
 
-
-@dataclasses.dataclass
-class NamedDiagram:
-    name: str
-    diagram: Optional[railroad.DiagramItem]
-    index: int
-
-
+# Note: ideally this would be a dataclass, but we're supporting Python 3.5+ so we can't do this yet
+NamedDiagram = NamedTuple(
+    "NamedDiagram",
+    [("name", str), ("diagram", Optional[railroad.DiagramItem]), ("index", int)],
+)
 """
 A simple structure for associating a name with a railroad diagram
 """
@@ -149,27 +146,37 @@ def _should_vertical(specification: int, count: int) -> bool:
         return count >= specification
 
 
-@dataclasses.dataclass
 class ElementState:
     """
     State recorded for an individual pyparsing Element
     """
+
+    # Note: this should be a dataclass, but we have to support Python 3.5
+    def __init__(
+        self,
+        element: pyparsing.ParserElement,
+        converted: EditablePartial,
+        parent: EditablePartial,
+        number: int,
+        name: str = None,
+        parent_index: Optional[int] = None,
+    ):
     #: The pyparsing element that this represents
-    element: pyparsing.ParserElement
+        self.element = element  # type: pyparsing.ParserElement
+        #: The name of the element
+        self.name = name  # type: str
     #: The output Railroad element in an unconverted state
-    converted: EditablePartial
+        self.converted = converted  # type: EditablePartial
     #: The parent Railroad element, which we store so that we can extract this if it's duplicated
-    parent: EditablePartial
+        self.parent = parent  # type: EditablePartial
     #: The order in which we found this element, used for sorting diagrams if this is extracted into a diagram
-    number: int
-    #: The name of the element
-    name: str = None
+        self.number = number  # type: int
     #: The index of this inside its parent
-    parent_index: Optional[int] = None
+        self.parent_index = parent_index  # type: Optional[int]
     #: If true, we should extract this out into a subdiagram
-    extract: bool = False
+        self.extract = False  # type: bool
     #: If true, all of this element's children have been filled out
-    complete: bool = False
+        self.complete = False  # type: bool
 
     def mark_for_extraction(
         self, el_id: int, state: "ConverterState", name: str = None, force: bool = False
@@ -321,16 +328,16 @@ def _to_diagram_element(
     element_results_name = element.resultsName
     ret = None
 
-    # some elements don't go in the diagram at all
-    if isinstance(element, (pyparsing.FollowedBy, pyparsing.PrecededBy)):
-        return
+    # # some elements don't go in the diagram at all
+    # if isinstance(element, (pyparsing.FollowedBy, pyparsing.PrecededBy)):
+    #     return
 
     # Here we basically bypass processing certain wrapper elements if they contribute nothing to the diagram
     if not element.customName:
         if isinstance(element,
                       (
                           pyparsing.TokenConverter,
-                          # pyparsing.Forward,
+                          pyparsing.Forward,
                           pyparsing.Located,
                       )
                       ):
