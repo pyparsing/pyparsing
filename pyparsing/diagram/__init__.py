@@ -4,24 +4,28 @@ from pkg_resources import resource_filename
 from typing import (
     List,
     Optional,
-    NamedTuple,
     Generic,
     TypeVar,
     Dict,
     Callable,
+    Set,
 )
 from jinja2 import Template
 from io import StringIO
 import inspect
+import dataclasses
 
 with open(resource_filename(__name__, "template.jinja2"), encoding="utf-8") as fp:
     template = Template(fp.read())
 
-# Note: ideally this would be a dataclass, but we're supporting Python 3.5+ so we can't do this yet
-NamedDiagram = NamedTuple(
-    "NamedDiagram",
-    [("name", str), ("diagram", Optional[railroad.DiagramItem]), ("index", int)],
-)
+
+@dataclasses.dataclass
+class NamedDiagram:
+    name: str
+    diagram: Optional[railroad.DiagramItem]
+    index: int
+
+
 """
 A simple structure for associating a name with a railroad diagram
 """
@@ -50,6 +54,10 @@ class EditablePartial(Generic[T]):
         as you expect. For example EditablePartial.from_call(Fraction, 1, 3)() == Fraction(1, 3)
         """
         return EditablePartial(func=func, args=list(args), kwargs=kwargs)
+
+    @property
+    def name(self):
+        return self.kwargs["name"]
 
     def __call__(self) -> T:
         """
@@ -102,26 +110,32 @@ def resolve_partial(partial: "EditablePartial[T]") -> T:
 
 def to_railroad(
     element: pyparsing.ParserElement,
-    diagram_kwargs: dict = {},
+    diagram_kwargs: Optional[Dict] = None,
     vertical: int = None,
 ) -> List[NamedDiagram]:
     """
     Convert a pyparsing element tree into a list of diagrams. This is the recommended entrypoint to diagram
     creation if you want to access the Railroad tree before it is converted to HTML
+    :param element:
     :param diagram_kwargs: kwargs to pass to the Diagram() constructor
     :param vertical: (optional)
     """
     # Convert the whole tree underneath the root
-    lookup = ConverterState(diagram_kwargs=diagram_kwargs)
-    _to_diagram_element(element, lookup=lookup, parent=None, vertical=vertical)
+    show_results_names = diagram_kwargs.pop('show_results_names', False) if diagram_kwargs is not None else False
+    lookup = ConverterState(diagram_kwargs=diagram_kwargs or {})
+    _to_diagram_element(element, lookup=lookup, parent=None, vertical=vertical, show_results_names=show_results_names)
 
     root_id = id(element)
     # Convert the root if it hasn't been already
-    if root_id in lookup.first:
-        lookup.first[root_id].mark_for_extraction(root_id, lookup, force=True)
+    if root_id in lookup:
+        lookup[root_id].mark_for_extraction(root_id, lookup, force=True)
 
     # Now that we're finished, we can convert from intermediate structures into Railroad elements
-    resolved = [resolve_partial(partial) for partial in lookup.diagrams.values()]
+    diags = list(lookup.diagrams.values())
+    # collapse out duplicate diags with the same name
+    seen = set()
+    deduped_diags = [d for d in diags if d.name not in seen and (seen.add(d.name) or d)]
+    resolved = [resolve_partial(partial) for partial in deduped_diags]
     return sorted(resolved, key=lambda diag: diag.index)
 
 
@@ -135,43 +149,36 @@ def _should_vertical(specification: int, count: int) -> bool:
         return count >= specification
 
 
+@dataclasses.dataclass
 class ElementState:
     """
     State recorded for an individual pyparsing Element
     """
-
-    # Note: this should be a dataclass, but we have to support Python 3.5
-    def __init__(
-        self,
-        element: pyparsing.ParserElement,
-        converted: EditablePartial,
-        parent: EditablePartial,
-        number: int,
-        name: str = None,
-        index: Optional[int] = None,
-    ):
-        #: The pyparsing element that this represents
-        self.element = element  # type: pyparsing.ParserElement
-        #: The name of the element
-        self.name = name  # type: str
-        #: The output Railroad element in an unconverted state
-        self.converted = converted  # type: EditablePartial
-        #: The parent Railroad element, which we store so that we can extract this if it's duplicated
-        self.parent = parent  # type: EditablePartial
-        #: The order in which we found this element, used for sorting diagrams if this is extracted into a diagram
-        self.number = number  # type: int
-        #: The index of this inside its parent
-        self.parent_index = index  # type: Optional[int]
-        #: If true, we should extract this out into a subdiagram
-        self.extract = False  # type: bool
-        #: If true, all of this element's children have been filled out
-        self.complete = False  # type: bool
+    #: The pyparsing element that this represents
+    element: pyparsing.ParserElement
+    #: The output Railroad element in an unconverted state
+    converted: EditablePartial
+    #: The parent Railroad element, which we store so that we can extract this if it's duplicated
+    parent: EditablePartial
+    #: The order in which we found this element, used for sorting diagrams if this is extracted into a diagram
+    number: int
+    #: The name of the element
+    name: str = None
+    #: The index of this inside its parent
+    parent_index: Optional[int] = None
+    #: If true, we should extract this out into a subdiagram
+    extract: bool = False
+    #: If true, all of this element's children have been filled out
+    complete: bool = False
 
     def mark_for_extraction(
         self, el_id: int, state: "ConverterState", name: str = None, force: bool = False
     ):
         """
         Called when this instance has been seen twice, and thus should eventually be extracted into a sub-diagram
+        :param el_id:
+        :param state:
+        :param name:
         :param force: If true, force extraction now, regardless of the state of this. Only useful for extracting the
         root element when we know we're finished
         """
@@ -200,17 +207,30 @@ class ConverterState:
     Stores some state that persists between recursions into the element tree
     """
 
-    def __init__(self, diagram_kwargs: dict = {}):
+    def __init__(self, diagram_kwargs: Optional[Dict] = None):
         #: A dictionary mapping ParserElement IDs to state relating to them
-        self.first = {}  # type:  Dict[int, ElementState]
+        self._first: Dict[int, ElementState] = {}
         #: A dictionary mapping ParserElement IDs to subdiagrams generated from them
-        self.diagrams = {}  # type: Dict[int, EditablePartial[NamedDiagram]]
+        self.diagrams: Dict[int, EditablePartial[NamedDiagram]] = {}
         #: The index of the next unnamed element
-        self.unnamed_index = 1  # type:  int
+        self.unnamed_index: int = 1
         #: The index of the next element. This is used for sorting
-        self.index = 0  # type:  int
+        self.index: int = 0
         #: Shared kwargs that are used to customize the construction of diagrams
-        self.diagram_kwargs = diagram_kwargs  # type:  dict
+        self.diagram_kwargs: Dict = diagram_kwargs or {}
+        self.extracted_diagram_names: Set[str] = set()
+
+    def __setitem__(self, key, value):
+        self._first[key] = value
+
+    def __getitem__(self, key):
+        return self._first[key]
+
+    def __delitem__(self, key):
+        del self._first[key]
+
+    def __contains__(self, key):
+        return key in self._first
 
     def generate_unnamed(self) -> int:
         """
@@ -228,17 +248,18 @@ class ConverterState:
 
     def extract_into_diagram(self, el_id: int):
         """
-        Used when we encounter the same token twice in the same tree. When this happens, we replace all instances of that
-        token with a terminal, and create a new subdiagram for the token
+        Used when we encounter the same token twice in the same tree. When this
+        happens, we replace all instances of that token with a terminal, and
+        create a new subdiagram for the token
         """
-        position = self.first[el_id]
+        position = self[el_id]
 
         # Replace the original definition of this element with a regular block
         if position.parent:
             ret = EditablePartial.from_call(railroad.NonTerminal, text=position.name)
             if "item" in position.parent.kwargs:
                 position.parent.kwargs["item"] = ret
-            else:
+            elif "items" in position.parent.kwargs:
                 position.parent.kwargs["items"][position.parent_index] = ret
 
         # If the element we're extracting is a group, skip to its content but keep the title
@@ -255,7 +276,8 @@ class ConverterState:
             ),
             index=position.number,
         )
-        del self.first[el_id]
+
+        del self[el_id]
 
 
 def _worth_extracting(element: pyparsing.ParserElement) -> bool:
@@ -276,6 +298,8 @@ def _to_diagram_element(
     vertical: int = None,
     index: int = 0,
     name_hint: str = None,
+    group_results_name: str = None,
+    show_results_names: bool = False,
 ) -> Optional[EditablePartial]:
     """
     Recursively converts a PyParsing Element to a railroad Element
@@ -294,40 +318,64 @@ def _to_diagram_element(
     # Python's id() is used to provide a unique identifier for elements
     el_id = id(element)
 
-    # Here we basically bypass processing certain wrapper elements if they contribute nothing to the diagram
-    if isinstance(element, (pyparsing.Group, pyparsing.Forward)) and (
-        not element.customName or not exprs[0].customName
-    ):
-        # However, if this element has a useful custom name, we can pass it on to the child
-        if not exprs[0].customName:
-            propagated_name = name
-        else:
-            propagated_name = None
+    element_results_name = element.resultsName
+    ret = None
 
-        return _to_diagram_element(
-            element.expr,
-            parent=parent,
-            lookup=lookup,
-            vertical=vertical,
-            index=index,
-            name_hint=propagated_name,
-        )
+    # some elements don't go in the diagram at all
+    if isinstance(element, (pyparsing.FollowedBy, pyparsing.PrecededBy)):
+        return
+
+    # Here we basically bypass processing certain wrapper elements if they contribute nothing to the diagram
+    if not element.customName:
+        if isinstance(element,
+                      (
+                          pyparsing.TokenConverter,
+                          # pyparsing.Forward,
+                          pyparsing.Located,
+                      )
+                      ):
+            # However, if this element has a useful custom name, we can pass it on to the child
+            if not exprs[0].customName:
+                propagated_name = name
+            else:
+                propagated_name = None
+
+            return _to_diagram_element(
+                element.expr,
+                parent=parent,
+                lookup=lookup,
+                vertical=vertical,
+                index=index,
+                name_hint=propagated_name,
+                group_results_name=element_results_name,
+                show_results_names=show_results_names,
+            )
 
     # If the element isn't worth extracting, we always treat it as the first time we say it
     if _worth_extracting(element):
-        if el_id in lookup.first:
+        if el_id in lookup:
             # If we've seen this element exactly once before, we are only just now finding out that it's a duplicate,
             # so we have to extract it into a new diagram.
-            looked_up = lookup.first[el_id]
+            looked_up = lookup[el_id]
             looked_up.mark_for_extraction(el_id, lookup, name=name_hint)
-            return EditablePartial.from_call(railroad.NonTerminal, text=looked_up.name)
+            ret = EditablePartial.from_call(railroad.NonTerminal, text=looked_up.name)
+            if show_results_names and element_results_name:
+                ret = EditablePartial.from_call(
+                    railroad.Group, item=ret, label=element_results_name
+                )
+            return ret
 
         elif el_id in lookup.diagrams:
             # If we have seen the element at least twice before, and have already extracted it into a subdiagram, we
             # just put in a marker element that refers to the sub-diagram
-            return EditablePartial.from_call(
+            ret = EditablePartial.from_call(
                 railroad.NonTerminal, text=lookup.diagrams[el_id].kwargs["name"]
             )
+            if show_results_names and element_results_name:
+                ret = EditablePartial.from_call(
+                    railroad.Group, item=ret, label=element_results_name
+                )
+            return ret
 
     # Recursively convert child elements
     # Here we find the most relevant Railroad element for matching pyparsing Element
@@ -342,6 +390,8 @@ def _to_diagram_element(
             ret = EditablePartial.from_call(railroad.Choice, 0, items=[])
         else:
             ret = EditablePartial.from_call(railroad.HorizontalChoice, items=[])
+    elif isinstance(element, pyparsing.Each):
+        ret = EditablePartial.from_call(railroad.AlternatingSequence, item="")
     elif isinstance(element, pyparsing.Opt):
         ret = EditablePartial.from_call(railroad.Optional, item="")
     elif isinstance(element, pyparsing.OneOrMore):
@@ -349,33 +399,33 @@ def _to_diagram_element(
     elif isinstance(element, pyparsing.ZeroOrMore):
         ret = EditablePartial.from_call(railroad.ZeroOrMore, item="")
     elif isinstance(element, pyparsing.Group):
-        ret = EditablePartial.from_call(railroad.Group, item=None, label=name)
+        ret = EditablePartial.from_call(railroad.Group,
+                                        item=None,
+                                        label=element_results_name)
     elif isinstance(element, pyparsing.Empty) and not element.customName:
         # Skip unnamed "Empty" elements
         ret = None
     elif len(exprs) > 1:
         ret = EditablePartial.from_call(railroad.Sequence, items=[])
-    elif len(exprs) > 0:
+    elif len(exprs) > 0 and not element_results_name:
         ret = EditablePartial.from_call(railroad.Group, item="", label=name)
     else:
-        # If the terminal has a custom name, we annotate the terminal with it, but still show the defaultName, because
-        # it describes the pattern that it matches, which is useful to have present in the diagram
         terminal = EditablePartial.from_call(railroad.Terminal, element.defaultName)
-        if element.customName is not None:
-            ret = EditablePartial.from_call(
-                railroad.Group, item=terminal, label=element.customName
-            )
-        else:
-            ret = terminal
+        ret = terminal
+
+    if ret is None:
+        return
 
     # Indicate this element's position in the tree so we can extract it if necessary
-    lookup.first[el_id] = ElementState(
+    lookup[el_id] = ElementState(
         element=element,
         converted=ret,
         parent=parent,
-        index=index,
+        parent_index=index,
         number=lookup.generate_index(),
     )
+    if element.customName:
+        lookup[el_id].mark_for_extraction(el_id, lookup, element.customName)
 
     i = 0
     for expr in exprs:
@@ -384,7 +434,7 @@ def _to_diagram_element(
             ret.kwargs["items"].insert(i, None)
 
         item = _to_diagram_element(
-            expr, parent=ret, lookup=lookup, vertical=vertical, index=i
+            expr, parent=ret, lookup=lookup, vertical=vertical, index=i, show_results_names=show_results_names
         )
 
         # Some elements don't need to be shown in the diagram
@@ -393,8 +443,7 @@ def _to_diagram_element(
                 ret.kwargs["item"] = item
             elif "items" in ret.kwargs:
                 # If we've already extracted the child, don't touch this index, since it's occupied by a nonterminal
-                if ret.kwargs["items"][i] is None:
-                    ret.kwargs["items"][i] = item
+                ret.kwargs["items"][i] = item
                 i += 1
         elif "items" in ret.kwargs:
             # If we're supposed to skip this element, remove it from the parent
@@ -405,20 +454,31 @@ def _to_diagram_element(
         ("items" in ret.kwargs and len(ret.kwargs["items"]) == 0)
         or ("item" in ret.kwargs and ret.kwargs["item"] is None)
     ):
-        return EditablePartial.from_call(railroad.Terminal, name)
+        ret = EditablePartial.from_call(railroad.Terminal, name)
 
     # Mark this element as "complete", ie it has all of its children
-    if el_id in lookup.first:
-        lookup.first[el_id].complete = True
+    if el_id in lookup:
+        lookup[el_id].complete = True
 
     if (
-        el_id in lookup.first
-        and lookup.first[el_id].extract
-        and lookup.first[el_id].complete
+        el_id in lookup
+        and lookup[el_id].extract
+        and lookup[el_id].complete
     ):
         lookup.extract_into_diagram(el_id)
-        return EditablePartial.from_call(
-            railroad.NonTerminal, text=lookup.diagrams[el_id].kwargs["name"]
+        if ret is not None:
+            ret = EditablePartial.from_call(
+                railroad.NonTerminal, text=lookup.diagrams[el_id].kwargs["name"]
+            )
+
+    if show_results_names and element_results_name:
+        ret = EditablePartial.from_call(
+            railroad.Group, item=ret, label=element_results_name
         )
-    else:
-        return ret
+
+    elif show_results_names and group_results_name:
+        ret = EditablePartial.from_call(
+            railroad.Group, item=ret, label=group_results_name
+        )
+
+    return ret

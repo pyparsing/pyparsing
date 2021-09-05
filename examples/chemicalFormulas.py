@@ -17,7 +17,7 @@ atomicWeight = {
 digits = "0123456789"
 
 # Version 1
-element = pp.Word(pp.alphas.upper(), pp.alphas.lower(), max=2)
+element = pp.Word(pp.alphas.upper(), pp.alphas.lower(), max=2).set_name("element")
 # for stricter matching, use this Regex instead
 # element = Regex("A[cglmrstu]|B[aehikr]?|C[adeflmorsu]?|D[bsy]|"
 #                 "E[rsu]|F[emr]?|G[ade]|H[efgos]?|I[nr]?|Kr?|L[airu]|"
@@ -69,9 +69,9 @@ formula.runTests(
 print()
 
 # Version 3 - convert integers during parsing process
-integer = pp.Word(digits).setParseAction(lambda t: int(t[0]))
+integer = pp.Word(digits).setParseAction(lambda t: int(t[0])).setName("integer")
 elementRef = pp.Group(element("symbol") + pp.Optional(integer, default=1)("qty"))
-formula = elementRef[...]
+formula = elementRef[...].setName("chemical_formula")
 
 
 def sum_atomic_weights_by_results_name_with_converted_ints(element_list):
@@ -103,10 +103,10 @@ def cvt_subscript_int(s):
     return ret
 
 
-subscript_int = pp.Word(subscript_digits).addParseAction(cvt_subscript_int)
+subscript_int = pp.Word(subscript_digits).addParseAction(cvt_subscript_int).set_name("subscript")
 
 elementRef = pp.Group(element("symbol") + pp.Optional(subscript_int, default=1)("qty"))
-formula = elementRef[...]
+formula = elementRef[1, ...].setName("chemical_formula")
 formula.runTests(
     """\
     H₂O
