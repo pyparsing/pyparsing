@@ -45,9 +45,9 @@ def delimited_list(
         delimited_list_expr += Opt(delim)
 
     if combine:
-        return Combine(delimited_list_expr).set_name(dlName)
+        return Combine(delimited_list_expr)
     else:
-        return delimited_list_expr.set_name(dlName)
+        return delimited_list_expr
 
 
 def counted_array(
