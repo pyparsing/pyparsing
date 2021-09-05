@@ -205,7 +205,7 @@ class pyparsing_common:
     scientific notation and returns a float"""
 
     # streamlining this expression makes the docs nicer-looking
-    number = (sci_real | real | signed_integer).streamline()
+    number = (sci_real | real | signed_integer).setName("number").streamline()
     """any numeric expression, returns the corresponding Python type"""
 
     fnumber = (
@@ -215,7 +215,7 @@ class pyparsing_common:
     )
     """any int or real number, returned as float"""
 
-    identifier = Word(alphas + "_", alphanums + "_").set_name("identifier")
+    identifier = Word(identchars, identbodychars).set_name("identifier")
     """typical code identifier (leading alpha or '_', followed by 0 or more alphas, nums, or '_')"""
 
     ipv4_address = Regex(
