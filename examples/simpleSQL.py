@@ -35,12 +35,12 @@ NOT_NULL = NOT + NULL
 ident = Word(alphas, alphanums + "_$").setName("identifier")
 columnName = delimitedList(ident, ".", combine=True).setName("column name")
 columnName.addParseAction(ppc.upcaseTokens)
-columnNameList = Group(delimitedList(columnName))
+columnNameList = Group(delimitedList(columnName)).setName("column_list")
 tableName = delimitedList(ident, ".", combine=True).setName("table name")
 tableName.addParseAction(ppc.upcaseTokens)
-tableNameList = Group(delimitedList(tableName))
+tableNameList = Group(delimitedList(tableName)).setName("table_list")
 
-binop = oneOf("= != < > >= <= eq ne lt le gt ge", caseless=True)
+binop = oneOf("= != < > >= <= eq ne lt le gt ge", caseless=True).setName("binop")
 realNum = ppc.real()
 intNum = ppc.signed_integer()
 
@@ -52,7 +52,7 @@ whereCondition = Group(
     | (columnName + IN + Group("(" + delimitedList(columnRval) + ")"))
     | (columnName + IN + Group("(" + selectStmt + ")"))
     | (columnName + IS + (NULL | NOT_NULL))
-)
+).setName("where_condition")
 
 whereExpression = infixNotation(
     whereCondition,
@@ -61,7 +61,7 @@ whereExpression = infixNotation(
         (AND, 2, opAssoc.LEFT),
         (OR, 2, opAssoc.LEFT),
     ],
-)
+).setName("where_expression")
 
 # define the grammar
 selectStmt <<= (
@@ -70,7 +70,7 @@ selectStmt <<= (
     + FROM
     + tableNameList("tables")
     + Optional(Group(WHERE + whereExpression), "")("where")
-)
+).setName("select_statement")
 
 simpleSQL = selectStmt
 
