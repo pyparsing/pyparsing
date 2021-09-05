@@ -4929,7 +4929,7 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             arith_expr2,
             arith_expr2.expr,
             recursive,
-            pp.delimitedList(pp.Word(pp.nums).setName("int")).setName("int [, int]..."),
+            pp.delimitedList(pp.Word(pp.nums).setName("int")),
             pp.countedArray(pp.Word(pp.nums).setName("int")),
             pp.nestedExpr(),
             pp.makeHTMLTags("Z"),

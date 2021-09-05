@@ -108,7 +108,7 @@ def resolve_partial(partial: "EditablePartial[T]") -> T:
 def to_railroad(
     element: pyparsing.ParserElement,
     diagram_kwargs: Optional[Dict] = None,
-    vertical: int = None,
+    vertical: int = 3,
 ) -> List[NamedDiagram]:
     """
     Convert a pyparsing element tree into a list of diagrams. This is the recommended entrypoint to diagram
