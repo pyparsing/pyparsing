@@ -7,7 +7,6 @@ from typing import (
     Union,
     Callable,
     Any,
-    NoReturn,
     Generator,
     Tuple,
     List,
@@ -2018,7 +2017,7 @@ class ParserElement(ABC):
         vertical: int = 3,
         show_results_names: bool = False,
         **kwargs,
-    ) -> NoReturn:
+    ) -> None:
         """
         Create a railroad diagram for the parser.
 
@@ -2607,21 +2606,40 @@ class Word(Token):
         self.asKeyword = asKeyword
 
         if " " not in self.initCharsOrig + self.bodyCharsOrig and (
-            min == 1 and max == 0 and exact == 0
+            min == 1 and exact == 0
         ):
             if self.bodyCharsOrig == self.initCharsOrig:
-                self.reString = "[{}]+".format(
-                    _collapseStringToRanges(self.initCharsOrig)
+                if max == 0:
+                    repeat = "+"
+                elif max == 1:
+                    repeat = ""
+                else:
+                    repeat = "{{{}}}".format(max)
+                self.reString = "[{}]{}".format(
+                    _collapseStringToRanges(self.initCharsOrig),
+                    repeat,
                 )
             elif len(self.initCharsOrig) == 1:
-                self.reString = "{}[{}]*".format(
+                if max == 0:
+                    repeat = "*"
+                else:
+                    repeat = "{{0,{}}}".format(max - 1)
+                self.reString = "{}[{}]{}".format(
                     re.escape(self.initCharsOrig),
                     _collapseStringToRanges(self.bodyCharsOrig),
+                    repeat,
                 )
             else:
-                self.reString = "[{}][{}]*".format(
+                if max == 0:
+                    repeat = "*"
+                elif max == 2:
+                    repeat = ""
+                else:
+                    repeat = "{{0,{}}}".format(max - 1)
+                self.reString = "[{}][{}]{}".format(
                     _collapseStringToRanges(self.initCharsOrig),
                     _collapseStringToRanges(self.bodyCharsOrig),
+                    repeat,
                 )
             if self.asKeyword:
                 self.reString = r"\b" + self.reString + r"\b"
