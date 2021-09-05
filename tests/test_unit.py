@@ -3,7 +3,7 @@
 #
 # Unit tests for pyparsing module
 #
-# Copyright 2002-2020, Paul McGuire
+# Copyright 2002-2021, Paul McGuire
 #
 #
 
@@ -11,6 +11,7 @@ import contextlib
 import datetime
 import re
 import sys
+from types import SimpleNamespace
 from io import StringIO
 from textwrap import dedent
 from unittest import TestCase
@@ -33,6 +34,7 @@ PYPY_ENV = python_impl == "PyPy"
 
 # get full stack traces during testing
 pp.ParserElement.verbose_stacktrace = True
+
 
 # simple utility for flattening nested lists
 def flatten(nested_list):
@@ -72,6 +74,17 @@ def find_all_re_matches(patt, s):
         else:
             break
     return ret
+
+
+def current_method_name(level=2):
+    import traceback
+
+    stack = traceback.extract_stack(limit=level)
+    return stack[0].name
+
+
+def __():
+    return current_method_name(3) + ": "
 
 
 class Test01_PyparsingTestInit(TestCase):
@@ -1954,7 +1967,7 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
                     v = bool(self.arg)
                 return not v
 
-        boolOperand = pp.Word(pp.alphas, max=1) | pp.oneOf("True False")
+        boolOperand = pp.Word(pp.alphas, max=1, asKeyword=True) | pp.oneOf("True False")
         boolExpr = pp.infixNotation(
             boolOperand,
             [
@@ -4162,6 +4175,39 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
 
         with self.assertRaises(ValueError, msg="expected min 0 to error"):
             expr = pp.Word(pp.nums, min=0, max=10)
+
+    @staticmethod
+    def setup_testWordMaxGreaterThanZeroAndAsKeyword():
+        # fmt: off
+        bool_operand = (
+                pp.Word(pp.alphas, max=1, asKeyword=True)
+                | pp.one_of("True False")
+        )
+        test_string = "p q r False"
+        return SimpleNamespace(**locals())
+        # fmt: on
+
+    def testWordMaxGreaterThanZeroAndAsKeyword1(self):
+        """test a Word with max>0 and asKeyword=True"""
+        setup = self.setup_testWordMaxGreaterThanZeroAndAsKeyword()
+
+        result = setup.bool_operand[...].parseString(setup.test_string)
+        self.assertParseAndCheckList(
+            setup.bool_operand[...],
+            setup.test_string,
+            setup.test_string.split(),
+            msg=__() + "Failed to parse Word(max=1, asKeyword=True)",
+            verbose=True,
+        )
+
+    def testWordMaxGreaterThanZeroAndAsKeyword2(self):
+        """test a Word with max>0 and asKeyword=True"""
+        setup = self.setup_testWordMaxGreaterThanZeroAndAsKeyword()
+
+        with self.assertRaisesParseException(
+            msg=__() + "failed to detect Word with max > 0 and asKeyword=True"
+        ):
+            setup.bool_operand.parseString("abc")
 
     def testCharAsKeyword(self):
         """test a Char with asKeyword=True"""
