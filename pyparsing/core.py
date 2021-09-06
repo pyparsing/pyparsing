@@ -2013,7 +2013,11 @@ class ParserElement(ABC):
         return success, allResults
 
     def create_diagram(
-        self, output_html: Union[TextIO, str], vertical: int = 3, **kwargs
+        self,
+        output_html: Union[TextIO, str],
+        vertical: int = 3,
+        show_results_names: bool = False,
+        **kwargs,
     ) -> NoReturn:
         """
         Create a railroad diagram for the parser.
@@ -2023,6 +2027,8 @@ class ParserElement(ABC):
               diagram HTML
             - vertical (int) - threshold for formatting multiple alternatives vertically
               instead of horizontally (default=3)
+            - show_results_names - bool flag whether diagram should show annotations for
+              defined results names
 
         Additional diagram-formatting keyword arguments can also be included;
         see railroad.Diagram class.
@@ -2036,7 +2042,12 @@ class ParserElement(ABC):
                 "and jinja2 from https://pypi.org/project/jinja2 to generate parser railroad diagrams"
             ) from ie
 
-        railroad = to_railroad(self, vertical=vertical, diagram_kwargs=kwargs)
+        railroad = to_railroad(
+            self,
+            vertical=vertical,
+            show_results_names=show_results_names,
+            diagram_kwargs=kwargs,
+        )
         if isinstance(output_html, str):
             with open(output_html, "w", encoding="utf-8") as diag_file:
                 diag_file.write(railroad_to_html(railroad))

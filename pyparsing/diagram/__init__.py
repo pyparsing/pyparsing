@@ -109,18 +109,27 @@ def to_railroad(
     element: pyparsing.ParserElement,
     diagram_kwargs: Optional[Dict] = None,
     vertical: int = 3,
+    show_results_names: bool = False,
 ) -> List[NamedDiagram]:
     """
     Convert a pyparsing element tree into a list of diagrams. This is the recommended entrypoint to diagram
     creation if you want to access the Railroad tree before it is converted to HTML
-    :param element:
+    :param element: base element of the parser being diagrammed
     :param diagram_kwargs: kwargs to pass to the Diagram() constructor
-    :param vertical: (optional)
+    :param vertical: (optional) - int - limit at which number of alternatives should be
+       shown vertically instead of horizontally
+    :param show_results_names - bool to indicate whether results name annotations should be
+       included in the diagram
     """
     # Convert the whole tree underneath the root
-    show_results_names = diagram_kwargs.pop('show_results_names', False) if diagram_kwargs is not None else False
     lookup = ConverterState(diagram_kwargs=diagram_kwargs or {})
-    _to_diagram_element(element, lookup=lookup, parent=None, vertical=vertical, show_results_names=show_results_names)
+    _to_diagram_element(
+        element,
+        lookup=lookup,
+        parent=None,
+        vertical=vertical,
+        show_results_names=show_results_names,
+    )
 
     root_id = id(element)
     # Convert the root if it hasn't been already
@@ -235,16 +244,16 @@ class ConverterState:
         self.diagram_kwargs: Dict = diagram_kwargs or {}
         self.extracted_diagram_names: Set[str] = set()
 
-    def __setitem__(self, key, value):
+    def __setitem__(self, key: int, value: ElementState):
         self._first[key] = value
 
-    def __getitem__(self, key):
+    def __getitem__(self, key: int) -> ElementState:
         return self._first[key]
 
-    def __delitem__(self, key):
+    def __delitem__(self, key: int):
         del self._first[key]
 
-    def __contains__(self, key):
+    def __contains__(self, key: int):
         return key in self._first
 
     def generate_unnamed(self) -> int:
@@ -301,9 +310,7 @@ def _worth_extracting(element: pyparsing.ParserElement) -> bool:
     themselves have children, then its complex enough to extract
     """
     children = element.recurse()
-    return any(
-        child.recurse() for child in children
-    )
+    return any(child.recurse() for child in children)
 
 
 def _to_diagram_element(
@@ -325,6 +332,8 @@ def _to_diagram_element(
     it sets the threshold of the number of items before we go vertical. If True, always go vertical, if False, never
     do so
     :param name_hint: If provided, this will override the generated name
+    :param group_results_name: results name from parent
+    :param show_results_name: bool flag indicating whether to add annotations for results names
     :returns: The converted version of the input element, but as a Partial that hasn't yet been constructed
     """
     exprs = element.recurse()
@@ -342,13 +351,14 @@ def _to_diagram_element(
 
     # Here we basically bypass processing certain wrapper elements if they contribute nothing to the diagram
     if not element.customName:
-        if isinstance(element,
-                      (
-                          pyparsing.TokenConverter,
-                          # pyparsing.Forward,
-                          pyparsing.Located,
-                      )
-                      ):
+        if isinstance(
+            element,
+            (
+                pyparsing.TokenConverter,
+                # pyparsing.Forward,
+                pyparsing.Located,
+            ),
+        ):
             # However, if this element has a useful custom name, we can pass it on to the child
             if not exprs[0].customName:
                 propagated_name = name
@@ -414,9 +424,9 @@ def _to_diagram_element(
     elif isinstance(element, pyparsing.ZeroOrMore):
         ret = EditablePartial.from_call(railroad.ZeroOrMore, item="")
     elif isinstance(element, pyparsing.Group):
-        ret = EditablePartial.from_call(railroad.Group,
-                                        item=None,
-                                        label=element_results_name)
+        ret = EditablePartial.from_call(
+            railroad.Group, item=None, label=element_results_name
+        )
     elif isinstance(element, pyparsing.Empty) and not element.customName:
         # Skip unnamed "Empty" elements
         ret = None
@@ -449,7 +459,12 @@ def _to_diagram_element(
             ret.kwargs["items"].insert(i, None)
 
         item = _to_diagram_element(
-            expr, parent=ret, lookup=lookup, vertical=vertical, index=i, show_results_names=show_results_names
+            expr,
+            parent=ret,
+            lookup=lookup,
+            vertical=vertical,
+            index=i,
+            show_results_names=show_results_names,
         )
 
         # Some elements don't need to be shown in the diagram
@@ -475,11 +490,7 @@ def _to_diagram_element(
     if el_id in lookup:
         lookup[el_id].complete = True
 
-    if (
-        el_id in lookup
-        and lookup[el_id].extract
-        and lookup[el_id].complete
-    ):
+    if el_id in lookup and lookup[el_id].extract and lookup[el_id].complete:
         lookup.extract_into_diagram(el_id)
         if ret is not None:
             ret = EditablePartial.from_call(
