@@ -760,7 +760,7 @@ def infix_notation(
     ret = Forward()
     lpar = Suppress(lpar)
     rpar = Suppress(rpar)
-    lastExpr = (base_expr | (lpar + ret + rpar)).setName("base_expr")
+    lastExpr = (base_expr | (lpar + ret + rpar))
     for i, operDef in enumerate(op_list):
         opExpr, arity, rightLeftAssoc, pa = (operDef + (None,))[:4]
         if isinstance(opExpr, str_type):

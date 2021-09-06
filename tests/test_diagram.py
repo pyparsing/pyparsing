@@ -33,7 +33,7 @@ class TestRailroadDiagrams(unittest.TestCase):
             railroad = to_railroad(boolExpr)
             temp.write(railroad_to_html(railroad))
 
-        assert len(railroad) == 6
+        assert len(railroad) == 5
 
         if self.railroad_debug():
             print("bool expr: " + temp.name)
@@ -53,7 +53,7 @@ class TestRailroadDiagrams(unittest.TestCase):
             railroad = to_railroad(simpleSQL, vertical=3)
             temp.write(railroad_to_html(railroad))
 
-        assert len(railroad) == 18
+        assert len(railroad) == 17
 
         if self.railroad_debug():
             print("sql: " + temp.name)
