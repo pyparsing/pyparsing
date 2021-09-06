@@ -14,7 +14,6 @@ class TestRailroadDiagrams(unittest.TestCase):
         """
         Returns True if we're in debug mode
         """
-        return True
         return os.environ.get("RAILROAD_DEBUG", False)
 
     def get_temp(self):
