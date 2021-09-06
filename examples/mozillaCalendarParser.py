@@ -37,19 +37,20 @@ ALARM = Literal("VALARM").suppress()
 
 # TOKENS
 
-CALPROP = oneOf("VERSION PRODID METHOD")
-ALMPROP = oneOf("TRIGGER")
+CALPROP = oneOf("VERSION PRODID METHOD", asKeyword=True)
+ALMPROP = oneOf("TRIGGER", asKeyword=True)
 EVTPROP = oneOf(
-    "X-MOZILLA-RECUR-DEFAULT-INTERVAL \
-                     X-MOZILLA-RECUR-DEFAULT-UNITS \
-                     UID DTSTAMP LAST-MODIFIED X RRULE EXDATE"
+    """X-MOZILLA-RECUR-DEFAULT-INTERVAL
+       X-MOZILLA-RECUR-DEFAULT-UNITS
+       UID DTSTAMP LAST-MODIFIED X RRULE EXDATE""", asKeyword=True
 )
 
-propval = Word(valstr)
-typeval = Word(valstr)
-typename = oneOf("VALUE MEMBER FREQ UNTIL INTERVAL")
+valuestr = Word(valstr).setName("valuestr")
+propval = valuestr
+typeval = valuestr
+typename = oneOf("VALUE MEMBER FREQ UNTIL INTERVAL", asKeyword=True)
 
-proptype = Group(SEMI + typename + EQ + typeval).suppress()
+proptype = Group(SEMI + typename + EQ + typeval).setName("proptype").suppress()
 
 calprop = Group(CALPROP + ZeroOrMore(proptype) + COLON + propval)
 almprop = Group(ALMPROP + ZeroOrMore(proptype) + COLON + propval)
@@ -65,15 +66,15 @@ evtprop = (
     | "STATUS" + COLON + propval.setResultsName("status")
     | "SUMMARY" + COLON + propval.setResultsName("summary")
     | "URL" + COLON + propval.setResultsName("url")
-)
-calprops = Group(OneOrMore(calprop)).suppress()
+).setName("evtprop")
+calprops = Group(OneOrMore(calprop)).setName("calprops").suppress()
 evtprops = Group(OneOrMore(evtprop))
-almprops = Group(OneOrMore(almprop)).suppress()
+almprops = Group(OneOrMore(almprop)).setName("almprops").suppress()
 
-alarm = BEGIN + ALARM + almprops + END + ALARM
-event = BEGIN + EVENT + evtprops + Optional(alarm) + END + EVENT
+alarm = (BEGIN + ALARM + almprops + END + ALARM).setName("alarm")
+event = (BEGIN + EVENT + evtprops + Optional(alarm) + END + EVENT).setName("event")
 events = Group(OneOrMore(event))
-calendar = BEGIN + CALENDAR + calprops + ZeroOrMore(event) + END + CALENDAR
+calendar = (BEGIN + CALENDAR + calprops + ZeroOrMore(event) + END + CALENDAR).setName("calendar")
 calendars = OneOrMore(calendar)
 
 

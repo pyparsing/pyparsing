@@ -30,6 +30,22 @@ A simple structure for associating a name with a railroad diagram
 T = TypeVar("T")
 
 
+class EachItem(railroad.Group):
+    """
+    Custom railroad item to compose a:
+    - Group containing a
+      - OneOrMore containing a
+        - Choice of the elements in the Each
+    with the group label indicating that all must be matched
+    """
+    all_label = "(all)"
+
+    def __init__(self, *items):
+        choice_item = railroad.Choice(0, *items)
+        one_or_more_item = railroad.OneOrMore(item=choice_item)
+        super().__init__(one_or_more_item, label=self.all_label)
+
+
 class EditablePartial(Generic[T]):
     """
     Acts like a functools.partial, but can be edited. In other words, it represents a type that hasn't yet been
@@ -416,7 +432,7 @@ def _to_diagram_element(
         else:
             ret = EditablePartial.from_call(railroad.HorizontalChoice, items=[])
     elif isinstance(element, pyparsing.Each):
-        ret = EditablePartial.from_call(railroad.AlternatingSequence, item="")
+        ret = EditablePartial.from_call(EachItem, items=[])
     elif isinstance(element, pyparsing.Opt):
         ret = EditablePartial.from_call(railroad.Optional, item="")
     elif isinstance(element, pyparsing.OneOrMore):
