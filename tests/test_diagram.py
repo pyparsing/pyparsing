@@ -94,3 +94,10 @@ class TestRailroadDiagrams(unittest.TestCase):
         railroad = to_railroad(grammar)
         assert len(railroad) == 1
         assert railroad[0].name is not None
+
+    def test_none_name2(self):
+        grammar = pp.Or(["foo", "bar"]) + pp.Word(pp.nums)
+        railroad = to_railroad(grammar)
+        assert len(railroad) == 1
+        assert railroad[0].name is not None
+

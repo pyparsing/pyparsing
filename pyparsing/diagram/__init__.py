@@ -150,6 +150,8 @@ def to_railroad(
     root_id = id(element)
     # Convert the root if it hasn't been already
     if root_id in lookup:
+        if not element.customName:
+            lookup[root_id].name = ""
         lookup[root_id].mark_for_extraction(root_id, lookup, force=True)
 
     # Now that we're finished, we can convert from intermediate structures into Railroad elements
@@ -159,7 +161,7 @@ def to_railroad(
         seen = set()
         deduped_diags = []
         for d in diags:
-            if d.name and d.name not in seen:
+            if d.name is not None and d.name not in seen:
                 seen.add(d.name)
                 deduped_diags.append(d)
         resolved = [resolve_partial(partial) for partial in deduped_diags]
