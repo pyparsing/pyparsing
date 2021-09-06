@@ -38,7 +38,7 @@ can now be written as::
 Pyparsing 3.0 will run both versions of this example.
 
 New code should be written using the PEP-8 compatible names. The compatibility
-synonyms will be removed in a future version.
+synonyms will be removed in a future version of pyparsing.
 
 
 Railroad diagramming
@@ -62,7 +62,9 @@ generator for documenting pyparsing parsers. You need to install
     # save as HTML
     parser.create_diagram('parser_rr_diag.html')
 
-(Contributed by Michael Milton)
+See more in the examples directory: ``make_diagram.py`` and ``railroad_diagram_demo.py``.
+
+(Railroad diagram enhancement contributed by Michael Milton)
 
 Support for left-recursive parsers
 ----------------------------------
@@ -94,7 +96,7 @@ Prints::
 
 See more examples in ``left_recursion.py`` in the pyparsing examples directory.
 
-(Contributed by Max Fischer)
+(LR parsing support contributed by Max Fischer)
 
 Packrat/memoization enable and disable methods
 ----------------------------------------------
@@ -393,7 +395,7 @@ Other new features
   character ranges (converting ``"0123456789"`` to ``"0-9"`` for instance).
 
 - Added a caseless parameter to the `CloseMatch` class to allow for casing to be
-  ignored when checking for close matches.
+  ignored when checking for close matches. Contributed by Adrian Edwards.
 
 
 API Changes

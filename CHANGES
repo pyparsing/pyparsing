@@ -68,6 +68,7 @@ Version 3.0.0c1 -
     annotations
   . removed annotations for Suppress elements
   . some diagram cleanup when a grammar contains Forward elements
+  . check out the examples make_diagram.py and railroad_diagram_demo.py
 
 - Added a caseless parameter to the `CloseMatch` class to allow for casing to be
   ignored when checking for close matches. (Issue #281) (PR by Adrian Edwards, thanks!)
