@@ -55,11 +55,11 @@ class TestRailroadDiagrams(unittest.TestCase):
 
     def test_sql(self):
         railroad = self.generate_railroad(simpleSQL, "simpleSQL")
-        assert len(railroad) == 17
+        assert len(railroad) == 18
 
     def test_calendars(self):
         railroad = self.generate_railroad(calendars, "calendars")
-        assert len(railroad) == 12
+        assert len(railroad) == 13
 
     def test_nested_forward_with_inner_and_outer_names(self):
         outer = pp.Forward().setName("outer")
@@ -75,7 +75,7 @@ class TestRailroadDiagrams(unittest.TestCase):
         outer <<= inner
 
         railroad = self.generate_railroad(outer, "inner_only")
-        assert len(railroad) == 1
+        assert len(railroad) == 2
 
     def test_each_grammar(self):
 
@@ -96,8 +96,8 @@ class TestRailroadDiagrams(unittest.TestCase):
         assert railroad[0].name is not None
 
     def test_none_name2(self):
-        grammar = pp.Or(["foo", "bar"]) + pp.Word(pp.nums)
+        grammar = pp.Or(["foo", "bar"]) + pp.Word(pp.nums).setName("integer")
         railroad = to_railroad(grammar)
-        assert len(railroad) == 1
+        assert len(railroad) == 2
         assert railroad[0].name is not None
 

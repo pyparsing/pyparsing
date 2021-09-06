@@ -17,7 +17,7 @@ from examples.delta_time import time_expression as imported_expr
 # from examples.oc import program as imported_expr
 # from examples.mozillaCalendarParser import calendars as imported_expr
 # from examples.pgn import pgnGrammar as imported_expr
-# from examples.idlParse import CORBA_IDL_BNF as imported_expr
+# from examples.idlParse import CORBA_IDL_BNF; imported_expr = CORBA_IDL_BNF()
 # from examples.chemicalFormulas import formula as imported_expr
 # from examples.romanNumerals import romanNumeral as imported_expr
 # from examples.protobuf_parser import parser as imported_expr
@@ -25,5 +25,10 @@ from examples.delta_time import time_expression as imported_expr
 # from examples.one_to_ninety_nine import one_to_99 as imported_expr
 # from examples.simpleSQL import simpleSQL as imported_expr
 # from examples.simpleBool import boolExpr as imported_expr
+grammar = imported_expr
 
-imported_expr.create_diagram(output_html="output.html")
+# or define a custom grammar here
+# import pyparsing as pp
+# grammar = pp.Or(["foo", "bar"]) + pp.Word(pp.nums) + pp.pyparsing_common.uuid
+
+grammar.create_diagram(output_html="output.html", show_results_names=True)
