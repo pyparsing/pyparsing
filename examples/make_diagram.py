@@ -23,6 +23,7 @@ from examples.delta_time import time_expression as imported_expr
 # from examples.protobuf_parser import parser as imported_expr
 # from examples.parsePythonValue import listItem as imported_expr
 # from examples.one_to_ninety_nine import one_to_99 as imported_expr
-from examples.simpleBool import boolExpr as imported_expr
+# from examples.simpleSQL import simpleSQL as imported_expr
+# from examples.simpleBool import boolExpr as imported_expr
 
 imported_expr.create_diagram(output_html="output.html")

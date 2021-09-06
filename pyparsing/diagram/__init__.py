@@ -129,10 +129,19 @@ def to_railroad(
 
     # Now that we're finished, we can convert from intermediate structures into Railroad elements
     diags = list(lookup.diagrams.values())
-    # collapse out duplicate diags with the same name
-    seen = set()
-    deduped_diags = [d for d in diags if d.name not in seen and (seen.add(d.name) or d)]
-    resolved = [resolve_partial(partial) for partial in deduped_diags]
+    if len(diags) > 1:
+        # collapse out duplicate diags with the same name
+        seen = set()
+        deduped_diags = []
+        for d in diags:
+            if d.name and d.name not in seen:
+                seen.add(d.name)
+                deduped_diags.append(d)
+        resolved = [resolve_partial(partial) for partial in deduped_diags]
+    else:
+        # special case - if just one diagram, always display it, even if
+        # it has no name
+        resolved = [resolve_partial(partial) for partial in diags]
     return sorted(resolved, key=lambda diag: diag.index)
 
 
@@ -161,21 +170,21 @@ class ElementState:
         name: str = None,
         parent_index: Optional[int] = None,
     ):
-    #: The pyparsing element that this represents
+        #: The pyparsing element that this represents
         self.element = element  # type: pyparsing.ParserElement
         #: The name of the element
         self.name = name  # type: str
-    #: The output Railroad element in an unconverted state
+        #: The output Railroad element in an unconverted state
         self.converted = converted  # type: EditablePartial
-    #: The parent Railroad element, which we store so that we can extract this if it's duplicated
+        #: The parent Railroad element, which we store so that we can extract this if it's duplicated
         self.parent = parent  # type: EditablePartial
-    #: The order in which we found this element, used for sorting diagrams if this is extracted into a diagram
+        #: The order in which we found this element, used for sorting diagrams if this is extracted into a diagram
         self.number = number  # type: int
-    #: The index of this inside its parent
+        #: The index of this inside its parent
         self.parent_index = parent_index  # type: Optional[int]
-    #: If true, we should extract this out into a subdiagram
+        #: If true, we should extract this out into a subdiagram
         self.extract = False  # type: bool
-    #: If true, all of this element's children have been filled out
+        #: If true, all of this element's children have been filled out
         self.complete = False  # type: bool
 
     def mark_for_extraction(
@@ -199,8 +208,7 @@ class ElementState:
             elif self.element.customName:
                 self.name = self.element.customName
             else:
-                unnamed_number = 1 if self.parent is None else state.generate_unnamed()
-                self.name = "Unnamed {}".format(unnamed_number)
+                self.name = ""
 
         # Just because this is marked for extraction doesn't mean we can do it yet. We may have to wait for children
         # to be added
@@ -294,7 +302,7 @@ def _worth_extracting(element: pyparsing.ParserElement) -> bool:
     """
     children = element.recurse()
     return any(
-        [hasattr(child, "expr") or hasattr(child, "exprs") for child in children]
+        child.recurse() for child in children
     )
 
 
@@ -337,7 +345,7 @@ def _to_diagram_element(
         if isinstance(element,
                       (
                           pyparsing.TokenConverter,
-                          pyparsing.Forward,
+                          # pyparsing.Forward,
                           pyparsing.Located,
                       )
                       ):

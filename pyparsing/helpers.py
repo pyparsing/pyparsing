@@ -759,7 +759,7 @@ def infix_notation(
     ret = Forward()
     lpar = Suppress(lpar)
     rpar = Suppress(rpar)
-    lastExpr = base_expr | (lpar + ret + rpar)
+    lastExpr = (base_expr | (lpar + ret + rpar)).setName("base_expr")
     for i, operDef in enumerate(op_list):
         opExpr, arity, rightLeftAssoc, pa = (operDef + (None,))[:4]
         if isinstance(opExpr, str_type):
@@ -784,16 +784,16 @@ def infix_notation(
         if rightLeftAssoc is OpAssoc.LEFT:
             if arity == 1:
                 matchExpr = _FB(lastExpr + opExpr) + Group(
-                    lastExpr + opExpr + opExpr[...]
+                    lastExpr + opExpr[1, ...]
                 )
             elif arity == 2:
                 if opExpr is not None:
                     matchExpr = _FB(lastExpr + opExpr + lastExpr) + Group(
-                        lastExpr + opExpr + lastExpr + (opExpr + lastExpr)[...]
+                        lastExpr + (opExpr + lastExpr)[1, ...]
                     )
                 else:
                     matchExpr = _FB(lastExpr + lastExpr) + Group(
-                        lastExpr + lastExpr + lastExpr[...]
+                        lastExpr + lastExpr[1, ...]
                     )
             elif arity == 3:
                 matchExpr = _FB(
@@ -808,11 +808,11 @@ def infix_notation(
             elif arity == 2:
                 if opExpr is not None:
                     matchExpr = _FB(lastExpr + opExpr + thisExpr) + Group(
-                        lastExpr + opExpr + thisExpr + (opExpr + thisExpr)[...]
+                        lastExpr + (opExpr + thisExpr)[1, ...]
                     )
                 else:
                     matchExpr = _FB(lastExpr + thisExpr) + Group(
-                        lastExpr + thisExpr + thisExpr[...]
+                        lastExpr + thisExpr[1, ...]
                     )
             elif arity == 3:
                 matchExpr = _FB(
@@ -823,7 +823,7 @@ def infix_notation(
                 matchExpr.set_parse_action(*pa)
             else:
                 matchExpr.set_parse_action(pa)
-        thisExpr <<= matchExpr.set_name(term_name) | lastExpr
+        thisExpr <<= (matchExpr | lastExpr).setName(term_name)
         lastExpr = thisExpr
     ret <<= lastExpr
     return ret
