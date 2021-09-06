@@ -755,12 +755,11 @@ def infix_notation(
         def parseImpl(self, instring, loc, doActions=True):
             self.expr.try_parse(instring, loc)
             return loc, []
-    _FB.__name__ = "FollowedBy"
 
     ret = Forward()
     lpar = Suppress(lpar)
     rpar = Suppress(rpar)
-    lastExpr = (base_expr | (lpar + ret + rpar))
+    lastExpr = base_expr | (lpar + ret + rpar)
     for i, operDef in enumerate(op_list):
         opExpr, arity, rightLeftAssoc, pa = (operDef + (None,))[:4]
         if isinstance(opExpr, str_type):

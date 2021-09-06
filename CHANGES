@@ -50,6 +50,24 @@ Version 3.0.0c1 -
       cjk_identifier = pp.Word(ppu.CJK.identchars, ppu.CJK.identbodychars)
       greek_identifier = pp.Word(ppu.Greek.identchars, ppu.Greek.identbodychars)
 
+- Railroad diagrams have been reformatted:
+  . creating diagrams is easier - call
+
+        expr.create_diagram("diagram_output.html")
+
+    create_diagram() takes 3 arguments:
+    . the filename to write the diagram HTML
+    . optional 'vertical' argument, to specify the minimum number of items in a path
+      to be shown vertically; default=3
+    . optional 'show_results_names' argument, to specify whether results name
+      annotations should be shown; default=False
+  . every expression that gets a name using setName() gets separated out as
+    a separate subdiagram
+  . results names can be shown as annotations to diagram items
+  . Each, FollowedBy, and PreceededBy elements get [ALL], [LOOKAHEAD], and [LOOKBEHIND]
+    annotations
+  . removed annotations for Suppress elements
+  . some diagram cleanup when a grammar contains Forward elements
 
 - Added a caseless parameter to the `CloseMatch` class to allow for casing to be
   ignored when checking for close matches. (Issue #281) (PR by Adrian Edwards, thanks!)
@@ -58,7 +76,6 @@ Version 3.0.0c1 -
 
 - Fixed bug in QuotedString class when the escaped quote string is not a
   repeated character. (Issue #263)
-
 
 
 Version 3.0.0b3 - August, 2021

@@ -17,6 +17,7 @@ matrix:
   fast_finish: true
 
 install:
+  - pip install railroad-diagrams, jinja2
   - pip install tox codecov
 
 script:

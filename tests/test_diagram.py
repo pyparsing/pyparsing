@@ -32,7 +32,9 @@ class TestRailroadDiagrams(unittest.TestCase):
             suffix=".html",
         )
 
-    def generate_railroad(self, expr: pp.ParserElement, label: str, show_results_names: bool=False) -> List[NamedDiagram]:
+    def generate_railroad(
+        self, expr: pp.ParserElement, label: str, show_results_names: bool = False
+    ) -> List[NamedDiagram]:
         """
         Generate an intermediate list of NamedDiagrams from a pyparsing expression.
         """
@@ -100,4 +102,3 @@ class TestRailroadDiagrams(unittest.TestCase):
         railroad = to_railroad(grammar)
         assert len(railroad) == 2
         assert railroad[0].name is not None
-

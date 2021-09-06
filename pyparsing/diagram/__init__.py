@@ -38,12 +38,22 @@ class EachItem(railroad.Group):
         - Choice of the elements in the Each
     with the group label indicating that all must be matched
     """
-    all_label = "(all)"
+
+    all_label = "[ALL]"
 
     def __init__(self, *items):
-        choice_item = railroad.Choice(0, *items)
+        choice_item = railroad.Choice(len(items) - 1, *items)
         one_or_more_item = railroad.OneOrMore(item=choice_item)
         super().__init__(one_or_more_item, label=self.all_label)
+
+
+class AnnotatedItem(railroad.Group):
+    """
+    Simple subclass of Group that creates an annotation label
+    """
+
+    def __init__(self, label: str, item):
+        super().__init__(item=item, label="[{}]".format(label))
 
 
 class EditablePartial(Generic[T]):
@@ -250,8 +260,8 @@ class ConverterState:
     """
 
     def __init__(self, diagram_kwargs: Optional[Dict] = None):
-        #: A dictionary mapping ParserElement IDs to state relating to them
-        self._first: Dict[int, ElementState] = {}
+        #: A dictionary mapping ParserElements to state relating to them
+        self._element_diagram_states: Dict[int, ElementState] = {}
         #: A dictionary mapping ParserElement IDs to subdiagrams generated from them
         self.diagrams: Dict[int, EditablePartial[NamedDiagram]] = {}
         #: The index of the next unnamed element
@@ -263,16 +273,16 @@ class ConverterState:
         self.extracted_diagram_names: Set[str] = set()
 
     def __setitem__(self, key: int, value: ElementState):
-        self._first[key] = value
+        self._element_diagram_states[key] = value
 
     def __getitem__(self, key: int) -> ElementState:
-        return self._first[key]
+        return self._element_diagram_states[key]
 
     def __delitem__(self, key: int):
-        del self._first[key]
+        del self._element_diagram_states[key]
 
     def __contains__(self, key: int):
-        return key in self._first
+        return key in self._element_diagram_states
 
     def generate_unnamed(self) -> int:
         """
@@ -435,6 +445,10 @@ def _to_diagram_element(
             ret = EditablePartial.from_call(railroad.HorizontalChoice, items=[])
     elif isinstance(element, pyparsing.Each):
         ret = EditablePartial.from_call(EachItem, items=[])
+    elif isinstance(element, pyparsing.FollowedBy):
+        ret = EditablePartial.from_call(AnnotatedItem, label="LOOKAHEAD", item="")
+    elif isinstance(element, pyparsing.PrecededBy):
+        ret = EditablePartial.from_call(AnnotatedItem, label="LOOKBEHIND", item="")
     elif isinstance(element, pyparsing.Opt):
         ret = EditablePartial.from_call(railroad.Optional, item="")
     elif isinstance(element, pyparsing.OneOrMore):

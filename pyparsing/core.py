@@ -2042,6 +2042,8 @@ class ParserElement(ABC):
                 "and jinja2 from https://pypi.org/project/jinja2 to generate parser railroad diagrams"
             ) from ie
 
+        self.streamline()
+
         railroad = to_railroad(
             self,
             vertical=vertical,
