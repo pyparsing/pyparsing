@@ -341,6 +341,47 @@ def _worth_extracting(element: pyparsing.ParserElement) -> bool:
     return any(child.recurse() for child in children)
 
 
+def _apply_diagram_item_enhancements(fn):
+    """
+    decorator to ensure enhancements to a diagram item (such as results name annotations)
+    get applied on return from _to_diagram_element (we do this since there are several
+    returns in _to_diagram_element)
+    """
+
+    def _inner(
+        element: pyparsing.ParserElement,
+        parent: Optional[EditablePartial],
+        lookup: ConverterState = None,
+        vertical: int = None,
+        index: int = 0,
+        name_hint: str = None,
+        show_results_names: bool = False,
+    ) -> Optional[EditablePartial]:
+
+        ret = fn(
+            element,
+            parent,
+            lookup,
+            vertical,
+            index,
+            name_hint,
+            show_results_names,
+        )
+
+        # apply annotation for results name, if present
+        if show_results_names and ret is not None:
+            element_results_name = element.resultsName
+            if element_results_name:
+                ret = EditablePartial.from_call(
+                    railroad.Group, item=ret, label=element_results_name
+                )
+
+        return ret
+
+    return _inner
+
+
+@_apply_diagram_item_enhancements
 def _to_diagram_element(
     element: pyparsing.ParserElement,
     parent: Optional[EditablePartial],
@@ -348,7 +389,6 @@ def _to_diagram_element(
     vertical: int = None,
     index: int = 0,
     name_hint: str = None,
-    group_results_name: str = None,
     show_results_names: bool = False,
 ) -> Optional[EditablePartial]:
     """
@@ -360,8 +400,7 @@ def _to_diagram_element(
     it sets the threshold of the number of items before we go vertical. If True, always go vertical, if False, never
     do so
     :param name_hint: If provided, this will override the generated name
-    :param group_results_name: results name from parent
-    :param show_results_name: bool flag indicating whether to add annotations for results names
+    :param show_results_names: bool flag indicating whether to add annotations for results names
     :returns: The converted version of the input element, but as a Partial that hasn't yet been constructed
     """
     exprs = element.recurse()
@@ -372,10 +411,6 @@ def _to_diagram_element(
 
     element_results_name = element.resultsName
     ret = None
-
-    # # some elements don't go in the diagram at all
-    # if isinstance(element, (pyparsing.FollowedBy, pyparsing.PrecededBy)):
-    #     return
 
     # Here we basically bypass processing certain wrapper elements if they contribute nothing to the diagram
     if not element.customName:
@@ -400,7 +435,6 @@ def _to_diagram_element(
                 vertical=vertical,
                 index=index,
                 name_hint=propagated_name,
-                group_results_name=element_results_name,
                 show_results_names=show_results_names,
             )
 
@@ -412,10 +446,6 @@ def _to_diagram_element(
             looked_up = lookup[el_id]
             looked_up.mark_for_extraction(el_id, lookup, name=name_hint)
             ret = EditablePartial.from_call(railroad.NonTerminal, text=looked_up.name)
-            if show_results_names and element_results_name:
-                ret = EditablePartial.from_call(
-                    railroad.Group, item=ret, label=element_results_name
-                )
             return ret
 
         elif el_id in lookup.diagrams:
@@ -424,10 +454,6 @@ def _to_diagram_element(
             ret = EditablePartial.from_call(
                 railroad.NonTerminal, text=lookup.diagrams[el_id].kwargs["name"]
             )
-            if show_results_names and element_results_name:
-                ret = EditablePartial.from_call(
-                    railroad.Group, item=ret, label=element_results_name
-                )
             return ret
 
     # Recursively convert child elements
@@ -530,15 +556,5 @@ def _to_diagram_element(
             ret = EditablePartial.from_call(
                 railroad.NonTerminal, text=lookup.diagrams[el_id].kwargs["name"]
             )
-
-    if show_results_names and element_results_name:
-        ret = EditablePartial.from_call(
-            railroad.Group, item=ret, label=element_results_name
-        )
-
-    elif show_results_names and group_results_name:
-        ret = EditablePartial.from_call(
-            railroad.Group, item=ret, label=group_results_name
-        )
 
     return ret
