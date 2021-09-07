@@ -133,7 +133,7 @@ def resolve_partial(partial: "EditablePartial[T]") -> T:
 
 def to_railroad(
     element: pyparsing.ParserElement,
-    diagram_kwargs: Optional[Dict] = None,
+    diagram_kwargs: Optional[dict] = None,
     vertical: int = 3,
     show_results_names: bool = False,
 ) -> List[NamedDiagram]:
@@ -208,30 +208,30 @@ class ElementState:
         parent_index: Optional[int] = None,
     ):
         #: The pyparsing element that this represents
-        self.element = element  # type: pyparsing.ParserElement
+        self.element: pyparsing.ParserElement = element
         #: The name of the element
-        self.name = name  # type: str
+        self.name: str = name
         #: The output Railroad element in an unconverted state
-        self.converted = converted  # type: EditablePartial
+        self.converted: EditablePartial = converted
         #: The parent Railroad element, which we store so that we can extract this if it's duplicated
-        self.parent = parent  # type: EditablePartial
+        self.parent: EditablePartial = parent
         #: The order in which we found this element, used for sorting diagrams if this is extracted into a diagram
-        self.number = number  # type: int
+        self.number: int = number
         #: The index of this inside its parent
-        self.parent_index = parent_index  # type: Optional[int]
+        self.parent_index: Optional[int] = parent_index
         #: If true, we should extract this out into a subdiagram
-        self.extract = False  # type: bool
+        self.extract: bool = False
         #: If true, all of this element's children have been filled out
-        self.complete = False  # type: bool
+        self.complete: bool = False
 
     def mark_for_extraction(
         self, el_id: int, state: "ConverterState", name: str = None, force: bool = False
     ):
         """
         Called when this instance has been seen twice, and thus should eventually be extracted into a sub-diagram
-        :param el_id:
-        :param state:
-        :param name:
+        :param el_id: id of the element
+        :param state: element/diagram state tracker
+        :param name: name to use for this element's text
         :param force: If true, force extraction now, regardless of the state of this. Only useful for extracting the
         root element when we know we're finished
         """
@@ -259,7 +259,7 @@ class ConverterState:
     Stores some state that persists between recursions into the element tree
     """
 
-    def __init__(self, diagram_kwargs: Optional[Dict] = None):
+    def __init__(self, diagram_kwargs: Optional[dict] = None):
         #: A dictionary mapping ParserElements to state relating to them
         self._element_diagram_states: Dict[int, ElementState] = {}
         #: A dictionary mapping ParserElement IDs to subdiagrams generated from them
@@ -269,7 +269,7 @@ class ConverterState:
         #: The index of the next element. This is used for sorting
         self.index: int = 0
         #: Shared kwargs that are used to customize the construction of diagrams
-        self.diagram_kwargs: Dict = diagram_kwargs or {}
+        self.diagram_kwargs: dict = diagram_kwargs or {}
         self.extracted_diagram_names: Set[str] = set()
 
     def __setitem__(self, key: int, value: ElementState):
@@ -387,7 +387,7 @@ def _to_diagram_element(
                 pyparsing.Located,
             ),
         ):
-            # However, if this element has a useful custom name, we can pass it on to the child
+            # However, if this element has a useful custom name, and its child does not, we can pass it on to the child
             if not exprs[0].customName:
                 propagated_name = name
             else:
@@ -445,6 +445,8 @@ def _to_diagram_element(
             ret = EditablePartial.from_call(railroad.HorizontalChoice, items=[])
     elif isinstance(element, pyparsing.Each):
         ret = EditablePartial.from_call(EachItem, items=[])
+    elif isinstance(element, pyparsing.NotAny):
+        ret = EditablePartial.from_call(AnnotatedItem, label="NOT", item="")
     elif isinstance(element, pyparsing.FollowedBy):
         ret = EditablePartial.from_call(AnnotatedItem, label="LOOKAHEAD", item="")
     elif isinstance(element, pyparsing.PrecededBy):
