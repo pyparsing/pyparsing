@@ -664,13 +664,21 @@ class OpAssoc(Enum):
     RIGHT = 2
 
 
-InfixNotationOperatorSpec = Tuple[
-    Union[
-        ParserElement, str, Tuple[Union[ParserElement, str], Union[ParserElement, str]]
+InfixNotationOperatorArgType = Union[
+    ParserElement, str, Tuple[Union[ParserElement, str], Union[ParserElement, str]]
+]
+InfixNotationOperatorSpec = Union[
+    Tuple[
+        InfixNotationOperatorArgType,
+        int,
+        OpAssoc,
+        OptionalType[ParseAction],
     ],
-    int,
-    OpAssoc,
-    OptionalType[ParseAction],
+    Tuple[
+        InfixNotationOperatorArgType,
+        int,
+        OpAssoc,
+    ],
 ]
 
 
