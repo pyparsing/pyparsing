@@ -99,9 +99,14 @@ version_info = namedtuple("version_info", "major minor micro release_level seria
 __version_info__ = version_info(3, 0, 0, "candidate", 1)
 __version__ = (
     "{}.{}.{}".format(*__version_info__[:3])
-    + ("{}{}".format(__version_info__.release_level[0], __version_info__.serial), "")[
-        __version_info__.release_level == "final"
-    ]
+    + (
+        "{}{}{}".format(
+            "r" if __version_info__.release_level[0] == "c" else "",
+            __version_info__.release_level[0],
+            __version_info__.serial,
+        ),
+        "",
+    )[__version_info__.release_level == "final"]
 )
 __version_time__ = "8 September 2021 22:22 UTC"
 __versionTime__ = __version_time__
