@@ -171,6 +171,9 @@ def to_railroad(
         seen = set()
         deduped_diags = []
         for d in diags:
+            # don't extract SkipTo elements, they are uninformative as subdiagrams
+            if d.name == "...":
+                continue
             if d.name is not None and d.name not in seen:
                 seen.add(d.name)
                 deduped_diags.append(d)
@@ -460,7 +463,11 @@ def _to_diagram_element(
     # Here we find the most relevant Railroad element for matching pyparsing Element
     # We use ``items=[]`` here to hold the place for where the child elements will go once created
     if isinstance(element, pyparsing.And):
-        if _should_vertical(vertical, len(exprs)):
+        # detect And's created with ``expr*N`` notation - for these use a OneOrMore with a repeat
+        # (all will have the same name, and resultsName)
+        if len(set((e.name, e.resultsName) for e in exprs)) == 1:
+            ret = EditablePartial.from_call(railroad.OneOrMore, item="", repeat=str(len(exprs)))
+        elif _should_vertical(vertical, len(exprs)):
             ret = EditablePartial.from_call(railroad.Stack, items=[])
         else:
             ret = EditablePartial.from_call(railroad.Sequence, items=[])
