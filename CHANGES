@@ -78,6 +78,9 @@ Version 3.0.0c1 -
 - Fixed bug in QuotedString class when the escaped quote string is not a
   repeated character. (Issue #263)
 
+- parseFile() and create_diagram() methods now will accept pathlib.Path
+  arguments.
+
 
 Version 3.0.0b3 - August, 2021
 ------------------------------

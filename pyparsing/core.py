@@ -26,6 +26,7 @@ import types
 from operator import itemgetter, attrgetter
 from functools import wraps
 from threading import RLock
+from pathlib import Path
 
 from .util import (
     _FifoCache,
@@ -1766,7 +1767,7 @@ class ParserElement(ABC):
 
     def parse_file(
         self,
-        file_or_filename: Union[str, TextIO],
+        file_or_filename: Union[str, Path, TextIO],
         encoding: str = "utf-8",
         parse_all: bool = False,
         *,
@@ -2013,7 +2014,7 @@ class ParserElement(ABC):
 
     def create_diagram(
         self,
-        output_html: Union[TextIO, str],
+        output_html: Union[TextIO, Path, str],
         vertical: int = 3,
         show_results_names: bool = False,
         **kwargs,
@@ -2048,7 +2049,7 @@ class ParserElement(ABC):
             show_results_names=show_results_names,
             diagram_kwargs=kwargs,
         )
-        if isinstance(output_html, str):
+        if isinstance(output_html, (str, Path)):
             with open(output_html, "w", encoding="utf-8") as diag_file:
                 diag_file.write(railroad_to_html(railroad))
         else:
