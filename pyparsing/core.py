@@ -2605,10 +2605,10 @@ class Word(Token):
         self.mayIndexError = False
         self.asKeyword = asKeyword
 
-        if " " not in self.initCharsOrig + self.bodyCharsOrig and (
+        if " " not in self.initChars | self.bodyChars and (
             min == 1 and exact == 0
         ):
-            if self.bodyCharsOrig == self.initCharsOrig:
+            if self.bodyChars == self.initChars:
                 if max == 0:
                     repeat = "+"
                 elif max == 1:
@@ -2616,17 +2616,17 @@ class Word(Token):
                 else:
                     repeat = "{{{}}}".format(max)
                 self.reString = "[{}]{}".format(
-                    _collapseStringToRanges(self.initCharsOrig),
+                    _collapseStringToRanges(self.initChars),
                     repeat,
                 )
-            elif len(self.initCharsOrig) == 1:
+            elif len(self.initChars) == 1:
                 if max == 0:
                     repeat = "*"
                 else:
                     repeat = "{{0,{}}}".format(max - 1)
                 self.reString = "{}[{}]{}".format(
                     re.escape(self.initCharsOrig),
-                    _collapseStringToRanges(self.bodyCharsOrig),
+                    _collapseStringToRanges(self.bodyChars),
                     repeat,
                 )
             else:
@@ -2637,8 +2637,8 @@ class Word(Token):
                 else:
                     repeat = "{{0,{}}}".format(max - 1)
                 self.reString = "[{}][{}]{}".format(
-                    _collapseStringToRanges(self.initCharsOrig),
-                    _collapseStringToRanges(self.bodyCharsOrig),
+                    _collapseStringToRanges(self.initChars),
+                    _collapseStringToRanges(self.bodyChars),
                     repeat,
                 )
             if self.asKeyword:
@@ -2661,12 +2661,12 @@ class Word(Token):
             else:
                 return s
 
-        if self.initCharsOrig != self.bodyCharsOrig:
+        if self.initChars != self.bodyChars:
             base = "W:({}, {})".format(
-                charsAsStr(self.initCharsOrig), charsAsStr(self.bodyCharsOrig)
+                charsAsStr(self.initChars), charsAsStr(self.bodyChars)
             )
         else:
-            base = "W:({})".format(charsAsStr(self.initCharsOrig))
+            base = "W:({})".format(charsAsStr(self.initChars))
 
         # add length specification
         if self.minLen > 1 or self.maxLen != _MAX_INT:

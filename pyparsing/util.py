@@ -202,8 +202,9 @@ def _collapseStringToRanges(s, re_escape=True):
         escape_re_range_char = no_escape_re_range_char
 
     ret = []
+    s = sorted(set(s))
     if len(s) > 3:
-        for _, chars in itertools.groupby(sorted(set(s)), key=is_consecutive):
+        for _, chars in itertools.groupby(s, key=is_consecutive):
             first = last = next(chars)
             last = collections.deque(itertools.chain(iter([last]), chars), maxlen=1).pop()
             if first == last:
@@ -214,6 +215,7 @@ def _collapseStringToRanges(s, re_escape=True):
                 )
     else:
         ret = [escape_re_range_char(c) for c in s]
+
     return "".join(ret)
 
 

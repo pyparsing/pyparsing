@@ -7388,9 +7388,7 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
                 "__diag__.{} not set to True".format(diag_name),
             )
 
-    def testWordInternalReRanges(self):
-        import random
-
+    def testWordInternalReRangesKnownSets(self):
         self.assertEqual(
             "[!-~]+",
             pp.Word(pp.printables).reString,
@@ -7412,18 +7410,26 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             "failed to generate correct internal re",
         )
 
+    def testWordInternalReRanges(self):
+        import random
+
         esc_chars = r"\^-]["
         esc_chars2 = r"*+.?"
+
+        def esc_re_set_char(c):
+            return "\\" + c if c in esc_chars else c
+
+        def esc_re_set2_char(c):
+            return "\\" + c if c in esc_chars + esc_chars2 else c
+
         for esc_char in esc_chars + esc_chars2:
             # test escape char as first character in range
             next_char = chr(ord(esc_char) + 1)
             prev_char = chr(ord(esc_char) - 1)
             esc_word = pp.Word(esc_char + next_char)
-            expected = r"[{}{}-{}{}]+".format(
-                "\\" if esc_char in esc_chars else "",
-                esc_char,
-                "\\" if next_char in esc_chars else "",
-                next_char,
+            expected = r"[{}{}]+".format(
+                esc_re_set_char(esc_char),
+                esc_re_set_char(next_char),
             )
             print(
                 "Testing escape char: {} -> {} re: '{}')".format(
@@ -7449,11 +7455,9 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
 
             # test escape char as last character in range
             esc_word = pp.Word(prev_char + esc_char)
-            expected = r"[{}{}-{}{}]+".format(
-                "\\" if prev_char in esc_chars else "",
-                prev_char,
-                "\\" if esc_char in esc_chars else "",
-                esc_char,
+            expected = r"[{}{}]+".format(
+                esc_re_set_char(prev_char),
+                esc_re_set_char(esc_char),
             )
             print(
                 "Testing escape char: {} -> {} re: '{}')".format(
@@ -7481,11 +7485,9 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             next_char = chr(ord(esc_char) + 1)
             prev_char = chr(ord(esc_char) - 1)
             esc_word = pp.Word(esc_char + next_char)
-            expected = r"[{}{}-{}{}]+".format(
-                "\\" if esc_char in esc_chars else "",
-                esc_char,
-                "\\" if next_char in esc_chars else "",
-                next_char,
+            expected = r"[{}{}]+".format(
+                esc_re_set_char(esc_char),
+                esc_re_set_char(next_char),
             )
             print(
                 "Testing escape char: {} -> {} re: '{}')".format(
@@ -7510,9 +7512,9 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             )
 
             # test escape char as only character in range
-            esc_word = pp.Word(esc_char + esc_char, pp.alphas.upper())
-            expected = r"[{}{}][A-Z]*".format(
-                "\\" if esc_char in esc_chars else "", esc_char
+            esc_word = pp.Word(esc_char, pp.alphas.upper())
+            expected = r"{}[A-Z]*".format(
+                esc_re_set2_char(esc_char)
             )
             print(
                 "Testing escape char: {} -> {} re: '{}')".format(
