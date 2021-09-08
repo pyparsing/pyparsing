@@ -2606,9 +2606,7 @@ class Word(Token):
         self.mayIndexError = False
         self.asKeyword = asKeyword
 
-        if " " not in self.initChars | self.bodyChars and (
-            min == 1 and exact == 0
-        ):
+        if " " not in self.initChars | self.bodyChars and (min == 1 and exact == 0):
             if self.bodyChars == self.initChars:
                 if max == 0:
                     repeat = "+"

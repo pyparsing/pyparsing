@@ -206,12 +206,16 @@ def _collapseStringToRanges(s, re_escape=True):
     if len(s) > 3:
         for _, chars in itertools.groupby(s, key=is_consecutive):
             first = last = next(chars)
-            last = collections.deque(itertools.chain(iter([last]), chars), maxlen=1).pop()
+            last = collections.deque(
+                itertools.chain(iter([last]), chars), maxlen=1
+            ).pop()
             if first == last:
                 ret.append(escape_re_range_char(first))
             else:
                 ret.append(
-                    "{}-{}".format(escape_re_range_char(first), escape_re_range_char(last))
+                    "{}-{}".format(
+                        escape_re_range_char(first), escape_re_range_char(last)
+                    )
                 )
     else:
         ret = [escape_re_range_char(c) for c in s]

@@ -763,6 +763,7 @@ def infix_notation(
         def parseImpl(self, instring, loc, doActions=True):
             self.expr.try_parse(instring, loc)
             return loc, []
+
     _FB.__name__ = "FollowedBy>"
 
     ret = Forward()
@@ -792,18 +793,14 @@ def infix_notation(
         thisExpr = Forward().set_name(term_name)
         if rightLeftAssoc is OpAssoc.LEFT:
             if arity == 1:
-                matchExpr = _FB(lastExpr + opExpr) + Group(
-                    lastExpr + opExpr[1, ...]
-                )
+                matchExpr = _FB(lastExpr + opExpr) + Group(lastExpr + opExpr[1, ...])
             elif arity == 2:
                 if opExpr is not None:
                     matchExpr = _FB(lastExpr + opExpr + lastExpr) + Group(
                         lastExpr + (opExpr + lastExpr)[1, ...]
                     )
                 else:
-                    matchExpr = _FB(lastExpr + lastExpr) + Group(
-                        lastExpr[2, ...]
-                    )
+                    matchExpr = _FB(lastExpr + lastExpr) + Group(lastExpr[2, ...])
             elif arity == 3:
                 matchExpr = _FB(
                     lastExpr + opExpr1 + lastExpr + opExpr2 + lastExpr

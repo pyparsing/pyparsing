@@ -466,7 +466,9 @@ def _to_diagram_element(
         # detect And's created with ``expr*N`` notation - for these use a OneOrMore with a repeat
         # (all will have the same name, and resultsName)
         if len(set((e.name, e.resultsName) for e in exprs)) == 1:
-            ret = EditablePartial.from_call(railroad.OneOrMore, item="", repeat=str(len(exprs)))
+            ret = EditablePartial.from_call(
+                railroad.OneOrMore, item="", repeat=str(len(exprs))
+            )
         elif _should_vertical(vertical, len(exprs)):
             ret = EditablePartial.from_call(railroad.Stack, items=[])
         else:
