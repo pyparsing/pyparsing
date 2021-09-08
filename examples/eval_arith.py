@@ -173,6 +173,7 @@ comp_expr = infixNotation(
 # in safely evaluating them
 rules = [
     "( A - B ) = 0",
+    "( B - C + B ) = 0",
     "(A + B + C + D + E + F + G + H + I) = J",
     "(A + B + C + D + E + F + G + H) = I",
     "(A + B + C + D + E + F) = G",
@@ -180,6 +181,7 @@ rules = [
     "(A + B + C + D + E) = (F + G + H + I)",
     "(A + B + C + D + E) = F",
     "(A + B + C + D) = (E + F + G + H)",
+    "(A + B + C) = D",
     "(A + B + C) = (D + E + F)",
     "(A + B) = (C + D + E + F)",
     "(A + B) = (C + D)",
@@ -212,7 +214,7 @@ rules = [
     "A LT -1000.00",
     "A LT -5000",
     "A LT 0",
-    "A=(B+C+D)",
+    "G=(B+C+D)",
     "A=B",
     "I = (G + H)",
     "0.00 LE A LE 4.00",
@@ -255,7 +257,7 @@ for test, expected in tests:
     ret = comp_expr.parseString(test)[0]
     parsedvalue = ret.eval()
     print(test, expected, parsedvalue)
-    if parsedvalue != expected:
+    if abs(parsedvalue - expected) > 1e-6:
         print("<<< FAIL")
         failed += 1
     else:
