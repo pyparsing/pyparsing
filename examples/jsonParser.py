@@ -51,12 +51,12 @@ NULL = make_keyword("null", None)
 LBRACK, RBRACK, LBRACE, RBRACE, COLON = map(pp.Suppress, "[]{}:")
 
 jsonString = pp.dblQuotedString().setParseAction(pp.removeQuotes)
-jsonNumber = ppc.number()
+jsonNumber = ppc.number().setName("jsonNumber")
 
 jsonObject = pp.Forward().setName("jsonObject")
 jsonValue = pp.Forward().setName("jsonValue")
 
-jsonElements = pp.delimitedList(jsonValue)
+jsonElements = pp.delimitedList(jsonValue).setName(None)
 # jsonArray = pp.Group(LBRACK + pp.Optional(jsonElements, []) + RBRACK)
 # jsonValue << (
 #     jsonString | jsonNumber | pp.Group(jsonObject) | jsonArray | TRUE | FALSE | NULL
@@ -65,7 +65,7 @@ jsonElements = pp.delimitedList(jsonValue)
 
 jsonArray = pp.Group(
     LBRACK + pp.Optional(jsonElements) + RBRACK, aslist=RETURN_PYTHON_COLLECTIONS
-)
+).setName("jsonArray")
 
 jsonValue << (jsonString | jsonNumber | jsonObject | jsonArray | TRUE | FALSE | NULL)
 
@@ -73,7 +73,7 @@ memberDef = pp.Group(
     jsonString + COLON + jsonValue, aslist=RETURN_PYTHON_COLLECTIONS
 ).setName("jsonMember")
 
-jsonMembers = pp.delimitedList(memberDef)
+jsonMembers = pp.delimitedList(memberDef).setName(None)
 # jsonObject << pp.Dict(LBRACE + pp.Optional(jsonMembers) + RBRACE)
 jsonObject << pp.Dict(
     LBRACE + pp.Optional(jsonMembers) + RBRACE, asdict=RETURN_PYTHON_COLLECTIONS

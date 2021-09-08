@@ -73,7 +73,7 @@ class BoolNot:
 TRUE = Keyword("True")
 FALSE = Keyword("False")
 boolOperand = TRUE | FALSE | Word(alphas, max=1)
-boolOperand.setParseAction(BoolOperand)
+boolOperand.setParseAction(BoolOperand).setName("bool_operand")
 
 # define expression, based on expression operand and
 # list of operations in precedence order
@@ -84,7 +84,7 @@ boolExpr = infixNotation(
         ("and", 2, opAssoc.LEFT, BoolAnd),
         ("or", 2, opAssoc.LEFT, BoolOr),
     ],
-)
+).setName("boolean_expression")
 
 
 if __name__ == "__main__":

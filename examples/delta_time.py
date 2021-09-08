@@ -36,6 +36,7 @@ import calendar
 
 __all__ = ["time_expression"]
 
+
 # basic grammar definitions
 def make_integer_word_expr(int_name, int_value):
     return pp.CaselessKeyword(int_name).addParseAction(pp.replaceWith(int_value))
@@ -49,7 +50,8 @@ integer_word = pp.MatchFirst(
         " seventeen eighteen nineteen twenty".split(),
         start=1,
     )
-)
+).setName("integer_word")
+
 integer = pp.pyparsing_common.integer | integer_word
 integer.setName("numeric")
 
@@ -66,7 +68,7 @@ def plural(s):
 
 week, day, hour, minute, second = map(plural, "week day hour minute second".split())
 time_units = hour | minute | second
-any_time_units = week | day | time_units
+any_time_units = (week | day | time_units).setName("time_units")
 
 am = CL("am")
 pm = CL("pm")
@@ -110,9 +112,9 @@ def fill_default_time_fields(t):
 
 
 weekday_name_list = list(calendar.day_name)
-weekday_name = pp.oneOf(weekday_name_list)
+weekday_name = pp.oneOf(weekday_name_list).setName("weekday_name")
 
-_24hour_time = ~(integer + any_time_units) + pp.Word(pp.nums, exact=4).addParseAction(
+_24hour_time = ~(integer + any_time_units).setName("numbered_time_units") + pp.Word(pp.nums, exact=4).setName("HHMM").addParseAction(
     lambda t: [int(t[0][:2]), int(t[0][2:])], fill_24hr_time_fields
 )
 _24hour_time.setName("0000 time")
