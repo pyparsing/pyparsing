@@ -2350,6 +2350,18 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
         )
         self.assertEqual("123/dice/rolledfirsttry", expr.parseString(test_string)[0])
 
+    def testParseResultsAcceptingACollectionTypeValue(self):
+        # from Issue #276 - ParseResults parameterizes generic types if passed as the value of toklist parameter
+        # https://github.com/pyparsing/pyparsing/issues/276?notification_referrer_id=MDE4Ok5vdGlmaWNhdGlvblRocmVhZDE4MzU4NDYwNzI6MzgzODc1
+        #
+        # behavior of ParseResults code changed with Python 3.9
+
+        results_with_int = pp.ParseResults(toklist=int, name='type_', asList=False)
+        self.assertEqual(int, results_with_int["type_"])
+
+        results_with_tuple = pp.ParseResults(toklist=tuple, name='type_', asList=False)
+        self.assertEqual(tuple, results_with_tuple["type_"])
+
     def testMatchOnlyAtCol(self):
         """successfully use matchOnlyAtCol helper function"""
 

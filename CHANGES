@@ -7,6 +7,10 @@ Version 3.0.0rc2 -
 - Added `url` expression to `pyparsing_common`. (Sample code posted by Wolfgang Fahl,
   very nice!)
 
+- Fixed bug in which ParseResults replaces a collection type value with an invalid
+  type annotation (changed behavior in Python 3.9). Addresses issue #276, reported by
+  Rob Shuler, thanks.
+
 
 Version 3.0.0rc1 - September, 2021
 ----------------------------------
@@ -24,7 +28,7 @@ Version 3.0.0rc1 - September, 2021
   . every expression that gets a name using setName() gets separated out as
     a separate subdiagram
   . results names can be shown as annotations to diagram items
-  . Each, FollowedBy, and PreceededBy elements get [ALL], [LOOKAHEAD], and [LOOKBEHIND]
+  . Each, FollowedBy, and PrecededBy elements get [ALL], [LOOKAHEAD], and [LOOKBEHIND]
     annotations
   . removed annotations for Suppress elements
   . some diagram cleanup when a grammar contains Forward elements

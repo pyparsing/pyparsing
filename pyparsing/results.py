@@ -168,7 +168,7 @@ class ParseResults:
                 self._all_names = {name}
             self._name = name
             if toklist not in self._null_values:
-                if isinstance(toklist, str_type):
+                if isinstance(toklist, (str_type, type)):
                     toklist = [toklist]
                 if asList:
                     if isinstance(toklist, ParseResults):
