@@ -1797,7 +1797,7 @@ class ParserElement(ABC):
         if self is other:
             return True
         elif isinstance(other, str_type):
-            return self.matches(other)
+            return self.matches(other, parse_all=True)
         elif isinstance(other, ParserElement):
             return vars(self) == vars(other)
         return False
