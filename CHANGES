@@ -7,6 +7,9 @@ Version 3.0.0rc2 -
 - Added `url` expression to `pyparsing_common`. (Sample code posted by Wolfgang Fahl,
   very nice!)
 
+  This new expression has been added to the `urlExtractorNew.py` example, to show how
+  it extracts URL fields into separate results names.
+
 - Fixed bug in which ParseResults replaces a collection type value with an invalid
   type annotation (changed behavior in Python 3.9). Addresses issue #276, reported by
   Rob Shuler, thanks.

@@ -358,6 +358,7 @@ class pyparsing_common:
     downcase_tokens = staticmethod(token_map(lambda t: t.lower()))
     """Parse action to convert tokens to lower case."""
 
+    # fmt: off
     url = Regex(
         # https://mathiasbynens.be/demo/url-regex
         # https://gist.github.com/dperini/729294
@@ -405,6 +406,7 @@ class pyparsing_common:
         r"(?P<fragment>#\S*)?" +
         r"$"
     ).set_name("url")
+    # fmt: on
 
     # pre-PEP8 compatibility names
     convertToInteger = convert_to_integer
