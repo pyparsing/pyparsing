@@ -2356,10 +2356,10 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
         #
         # behavior of ParseResults code changed with Python 3.9
 
-        results_with_int = pp.ParseResults(toklist=int, name='type_', asList=False)
+        results_with_int = pp.ParseResults(toklist=int, name="type_", asList=False)
         self.assertEqual(int, results_with_int["type_"])
 
-        results_with_tuple = pp.ParseResults(toklist=tuple, name='type_', asList=False)
+        results_with_tuple = pp.ParseResults(toklist=tuple, name="type_", asList=False)
         self.assertEqual(tuple, results_with_tuple["type_"])
 
     def testMatchOnlyAtCol(self):
@@ -3471,6 +3471,8 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             success = test_patt.runTests(fail_tests, failureTests=True)[0]
             self.assertTrue(success, "failed LineStart failure mode tests (3)")
 
+    def testLineStart2(self):
+
         test = """\
         AAA 1
         AAA 2
@@ -3485,7 +3487,7 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
         print(test)
 
         for t, s, e in (pp.LineStart() + "AAA").scanString(test):
-            print(s, e, pp.lineno(s, test), pp.line(s, test), ord(test[s]))
+            print(s, e, pp.lineno(s, test), pp.line(s, test), repr(test[s]))
             print()
             self.assertEqual(
                 "A", test[s], "failed LineStart with insignificant newlines"
@@ -3494,7 +3496,7 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
         with ppt.reset_pyparsing_context():
             pp.ParserElement.setDefaultWhitespaceChars(" ")
             for t, s, e in (pp.LineStart() + "AAA").scanString(test):
-                print(s, e, pp.lineno(s, test), pp.line(s, test), ord(test[s]))
+                print(s, e, pp.lineno(s, test), pp.line(s, test), repr(test[s]))
                 print()
                 self.assertEqual(
                     "A", test[s], "failed LineStart with insignificant newlines"
@@ -5910,6 +5912,37 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
         #
         # self.assertTrue(success, "bad handling of syntax error")
 
+    def testParseFatalException2(self):
+        # Fatal exception raised in MatchFirst should not be superseded later non-fatal exceptions
+        # addresses Issue #251
+
+        def raise_exception(tokens):
+            raise pp.ParseSyntaxException("should raise here")
+
+        test = pp.MatchFirst(
+            (
+                pp.pyparsing_common.integer + pp.pyparsing_common.identifier
+            ).setParseAction(raise_exception)
+            | pp.pyparsing_common.number
+        )
+
+        with self.assertRaisesParseException(pp.ParseFatalException):
+            test.parseString("1s")
+
+    def testParseFatalException3(self):
+        # Fatal exception raised in MatchFirst should not be superseded later non-fatal exceptions
+        # addresses Issue #251
+
+        test = pp.MatchFirst(
+            (
+                pp.pyparsing_common.integer - pp.pyparsing_common.identifier
+            )
+            | pp.pyparsing_common.integer
+        )
+
+        with self.assertRaisesParseException(pp.ParseFatalException):
+            test.parseString("1")
+
     def testInlineLiteralsUsing(self):
 
         wd = pp.Word(pp.alphas)
@@ -7605,9 +7638,7 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
 
             # test escape char as only character in range
             esc_word = pp.Word(esc_char, pp.alphas.upper())
-            expected = r"{}[A-Z]*".format(
-                esc_re_set2_char(esc_char)
-            )
+            expected = r"{}[A-Z]*".format(esc_re_set2_char(esc_char))
             print(
                 "Testing escape char: {} -> {} re: '{}')".format(
                     esc_char, esc_word, esc_word.reString
@@ -7804,7 +7835,7 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
     def testReturnOfFurthestException(self):
         # test return of furthest exception
         testGrammar = (
-            pp.Literal("A") | (pp.Optional("B") + pp.Literal("C")) | pp.Literal("D")
+            pp.Literal("A") | (pp.Literal("B") + pp.Literal("C")) | pp.Literal("E")
         )
         try:
             testGrammar.parseString("BC")
@@ -7814,6 +7845,9 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             self.assertEqual("BD", pe.pstr, "wrong test string failed to parse")
             self.assertEqual(
                 1, pe.loc, "error in Optional matching, pe.loc=" + str(pe.loc)
+            )
+            self.assertTrue(
+                "found 'D'" in str(pe), "wrong alternative raised exception"
             )
 
     def testValidateCorrectlyDetectsInvalidLeftRecursion(self):

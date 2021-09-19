@@ -3882,7 +3882,6 @@ class MatchFirst(ParseExpression):
     def parseImpl(self, instring, loc, doActions=True):
         maxExcLoc = -1
         maxException = None
-        fatals = []
 
         for e in self.exprs:
             try:
@@ -3892,10 +3891,9 @@ class MatchFirst(ParseExpression):
             except ParseFatalException as pfe:
                 pfe.__traceback__ = None
                 pfe.parserElement = e
-                fatals.append(pfe)
-                maxException = None
+                raise
             except ParseException as err:
-                if not fatals and err.loc > maxExcLoc:
+                if err.loc > maxExcLoc:
                     maxException = err
                     maxExcLoc = err.loc
             except IndexError:
@@ -3904,18 +3902,6 @@ class MatchFirst(ParseExpression):
                         instring, len(instring), e.errmsg, self
                     )
                     maxExcLoc = len(instring)
-
-        # only got here if no expression matched, raise exception for match that made it the furthest
-        if fatals:
-            if len(fatals) > 1:
-                fatals.sort(key=attrgetter("loc"), reverse=True)
-                if fatals[0].loc == fatals[1].loc:
-                    fatals.sort(
-                        key=lambda fatal: (fatal.loc, len(str(fatal.parserElement))),
-                        reverse=True,
-                    )
-            max_fatal = fatals[0]
-            raise max_fatal
 
         if maxException is not None:
             maxException.msg = self.errmsg
