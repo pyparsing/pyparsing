@@ -23,7 +23,7 @@ import sre_constants
 from collections.abc import Iterable
 import traceback
 import types
-from operator import itemgetter, attrgetter
+from operator import itemgetter
 from functools import wraps
 from threading import RLock
 from pathlib import Path
@@ -667,7 +667,8 @@ class ParserElement(ABC):
 
         if self.skipWhitespace:
             instrlen = len(instring)
-            while loc < instrlen and instring[loc] in self.whiteChars:
+            white_chars = self.whiteChars
+            while loc < instrlen and instring[loc] in white_chars:
                 loc += 1
 
         return loc
@@ -735,8 +736,7 @@ class ParserElement(ABC):
                             tokens = fn(instring, tokensStart, retTokens)
                         except IndexError as parse_action_exc:
                             exc = ParseException("exception raised in parse action")
-                            exc.__cause__ = parse_action_exc
-                            raise exc
+                            raise exc from parse_action_exc
 
                         if tokens is not None and tokens is not retTokens:
                             retTokens = ParseResults(
@@ -757,8 +757,7 @@ class ParserElement(ABC):
                         tokens = fn(instring, tokensStart, retTokens)
                     except IndexError as parse_action_exc:
                         exc = ParseException("exception raised in parse action")
-                        exc.__cause__ = parse_action_exc
-                        raise exc
+                        raise exc from parse_action_exc
 
                     if tokens is not None and tokens is not retTokens:
                         retTokens = ParseResults(
@@ -1594,7 +1593,7 @@ class ParserElement(ABC):
         return self
 
     def set_whitespace_chars(
-        self, chars: Union[Set, str], copy_defaults: bool = False
+        self, chars: Union[Set[str], str], copy_defaults: bool = False
     ) -> "ParserElement":
         """
         Overrides the default whitespace chars
@@ -2570,18 +2569,20 @@ class Word(Token):
                 )
             )
 
+        initChars = set(initChars)
+        self.initChars = initChars
         if excludeChars:
             excludeChars = set(excludeChars)
-            initChars = "".join(c for c in initChars if c not in excludeChars)
+            initChars -= excludeChars
             if bodyChars:
-                bodyChars = "".join(c for c in bodyChars if c not in excludeChars)
-        self.initCharsOrig = initChars
-        self.initChars = set(initChars)
+                bodyChars = set(bodyChars) - excludeChars
+        self.initCharsOrig = "".join(sorted(initChars))
+
         if bodyChars:
-            self.bodyCharsOrig = bodyChars
+            self.bodyCharsOrig = "".join(sorted(bodyChars))
             self.bodyChars = set(bodyChars)
         else:
-            self.bodyCharsOrig = initChars
+            self.bodyCharsOrig = "".join(sorted(initChars))
             self.bodyChars = set(initChars)
 
         self.maxSpecified = max > 0
@@ -3326,9 +3327,8 @@ class LineEnd(_PositionToken):
 
     def __init__(self):
         super().__init__()
-        self.set_whitespace_chars(
-            ParserElement.DEFAULT_WHITE_CHARS.replace("\n", ""), copy_defaults=False
-        )
+        self.whiteChars.discard("\n")
+        self.set_whitespace_chars(self.whiteChars, copy_defaults=False)
         self.errmsg = "Expected end of line"
 
     def parseImpl(self, instring, loc, doActions=True):
@@ -3608,7 +3608,7 @@ class And(ParseExpression):
             return "-"
 
     def __init__(self, exprs_arg: IterableType[ParserElement], savelist: bool = True):
-        exprs: List["ParserElement"] = list(exprs_arg)
+        exprs: List[ParserElement] = list(exprs_arg)
         if exprs and Ellipsis in exprs:
             tmp = []
             for i, expr in enumerate(exprs):
@@ -5155,8 +5155,7 @@ class Dict(TokenConverter):
                         "could not extract dict values from parsed results"
                         " - Dict expression must contain Grouped expressions"
                     )
-                    exc.__cause__ = None
-                    raise exc
+                    raise exc from None
 
                 del dictvalue[0]
 
