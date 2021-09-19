@@ -17,6 +17,10 @@ Version 3.0.0rc2 -
   type annotation (changed behavior in Python 3.9). Addresses issue #276, reported by
   Rob Shuler, thanks.
 
+- Fixed bug in ParseResults when calling `__getattr__` for special double-underscored
+  methods. Now raises AttributeError for non-existent results when accessing a
+  name starting with '__'. Addresses issue #208, reported by Joachim Metz.
+
 
 Version 3.0.0rc1 - September, 2021
 ----------------------------------

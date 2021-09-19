@@ -417,6 +417,8 @@ class ParseResults:
         try:
             return self[name]
         except KeyError:
+            if name.startswith("__"):
+                raise AttributeError(name)
             return ""
 
     def __add__(self, other):

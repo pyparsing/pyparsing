@@ -2362,6 +2362,16 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
         results_with_tuple = pp.ParseResults(toklist=tuple, name="type_", asList=False)
         self.assertEqual(tuple, results_with_tuple["type_"])
 
+    def testParseResultsReturningDunderAttribute(self):
+        # from Issue #208
+        parser = pp.Word(pp.alphas)("A")
+        result = parser.parseString("abc")
+        print(result.dump())
+        self.assertEqual("abc", result.A)
+        self.assertEqual("", result.B)
+        with self.assertRaises(AttributeError):
+            result.__xyz__
+
     def testMatchOnlyAtCol(self):
         """successfully use matchOnlyAtCol helper function"""
 
