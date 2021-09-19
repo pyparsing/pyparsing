@@ -97,18 +97,15 @@ from collections import namedtuple
 
 version_info = namedtuple("version_info", "major minor micro release_level serial")
 __version_info__ = version_info(3, 0, 0, "candidate", 2)
-__version__ = (
-    "{}.{}.{}".format(*__version_info__[:3])
-    + (
-        "{}{}{}".format(
-            "r" if __version_info__.release_level[0] == "c" else "",
-            __version_info__.release_level[0],
-            __version_info__.serial,
-        ),
-        "",
-    )[__version_info__.release_level == "final"]
-)
-__version_time__ = "9 September 2021 19:06 UTC"
+__version__ = "{}.{}.{}".format(*__version_info__[:3]) + (
+    "{}{}{}".format(
+        "r" if __version_info__.release_level[0] == "c" else "",
+        __version_info__.release_level[0],
+        __version_info__.serial,
+    ),
+    "",
+)[__version_info__.release_level == "final"]
+__version_time__ = "19 September 2021 13:27 UTC"
 __versionTime__ = __version_time__
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
