@@ -3699,7 +3699,11 @@ class And(ParseExpression):
                 break
 
     def _generateDefaultName(self):
-        return "{" + " ".join(str(e) for e in self.exprs) + "}"
+        inner = " ".join(str(e) for e in self.exprs)
+        # strip off redundant inner {}'s
+        while len(inner) > 1 and inner[0 :: len(inner) - 1] == "{}":
+            inner = inner[1:-1]
+        return "{" + inner + "}"
 
 
 class Or(ParseExpression):
@@ -4609,7 +4613,11 @@ class Opt(ParseElementEnhance):
         return loc, tokens
 
     def _generateDefaultName(self):
-        return "[" + str(self.expr) + "]"
+        inner = str(self.expr)
+        # strip off redundant inner {}'s
+        while len(inner) > 1 and inner[0 :: len(inner) - 1] == "{}":
+            inner = inner[1:-1]
+        return "[" + inner + "]"
 
 
 Optional = Opt
