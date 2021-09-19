@@ -5944,9 +5944,7 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
         # addresses Issue #251
 
         test = pp.MatchFirst(
-            (
-                pp.pyparsing_common.integer - pp.pyparsing_common.identifier
-            )
+            (pp.pyparsing_common.integer - pp.pyparsing_common.identifier)
             | pp.pyparsing_common.integer
         )
 
