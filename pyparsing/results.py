@@ -233,13 +233,13 @@ class ParseResults:
         else:
             del self._tokdict[i]
 
-    def __contains__(self, k):
+    def __contains__(self, k) -> bool:
         return k in self._tokdict
 
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self._toklist)
 
-    def __bool__(self):
+    def __bool__(self) -> bool:
         return not not self._toklist or not not self._tokdict
 
     def __iter__(self):
@@ -257,7 +257,7 @@ class ParseResults:
     def items(self):
         return ((k, self[k]) for k in self.keys())
 
-    def haskeys(self):
+    def haskeys(self) -> bool:
         """
         Since ``keys()`` returns an iterator, this method is helpful in bypassing
         code that looks for the existence of any defined results names."""
@@ -421,12 +421,12 @@ class ParseResults:
                 raise AttributeError(name)
             return ""
 
-    def __add__(self, other):
+    def __add__(self, other) -> "ParseResults":
         ret = self.copy()
         ret += other
         return ret
 
-    def __iadd__(self, other):
+    def __iadd__(self, other) -> "ParseResults":
         if other._tokdict:
             offset = len(self._toklist)
             addoffset = lambda a: offset if a < 0 else a + offset
@@ -445,7 +445,7 @@ class ParseResults:
         self._all_names |= other._all_names
         return self
 
-    def __radd__(self, other):
+    def __radd__(self, other) -> "ParseResults":
         if isinstance(other, int) and other == 0:
             # useful for merging many ParseResults using sum() builtin
             return self.copy()
@@ -453,10 +453,10 @@ class ParseResults:
             # this may raise a TypeError - so be it
             return other + self
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return "{}({!r}, {})".format(type(self).__name__, self._toklist, self.as_dict())
 
-    def __str__(self):
+    def __str__(self) -> str:
         return (
             "["
             + ", ".join(
@@ -477,7 +477,7 @@ class ParseResults:
                 out.append(str(item))
         return out
 
-    def as_list(self):
+    def as_list(self) -> list:
         """
         Returns the parse results as a nested list of matching tokens, all converted to strings.
 
@@ -497,7 +497,7 @@ class ParseResults:
             for res in self._toklist
         ]
 
-    def as_dict(self):
+    def as_dict(self) -> dict:
         """
         Returns the named parse results as a nested dictionary.
 
@@ -526,7 +526,7 @@ class ParseResults:
 
         return dict((k, to_item(v)) for k, v in self.items())
 
-    def copy(self):
+    def copy(self) -> "ParseResults":
         """
         Returns a new copy of a :class:`ParseResults` object.
         """
@@ -588,7 +588,7 @@ class ParseResults:
         else:
             return None
 
-    def dump(self, indent="", full=True, include_list=True, _depth=0):
+    def dump(self, indent="", full=True, include_list=True, _depth=0) -> str:
         """
         Diagnostic method for listing out the contents of
         a :class:`ParseResults`. Accepts an optional ``indent`` argument so
@@ -722,7 +722,7 @@ class ParseResults:
         return dir(type(self)) + list(self.keys())
 
     @classmethod
-    def from_dict(cls, other, name=None):
+    def from_dict(cls, other, name=None) -> "ParseResults":
         """
         Helper classmethod to construct a ``ParseResults`` from a ``dict``, preserving the
         name-value relations as results names. If an optional ``name`` argument is

@@ -8280,27 +8280,9 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
         try:
             pp.Word(pp.nums).parseString("ABC")
         except pp.ParseException as pe:
-            with self.assertRaises(AttributeError):
-                print(pe.nonexistent_attribute)
-
             expected_str = "Expected W:(0-9), found 'ABC'  (at char 0), (line:1, col:1)"
             self.assertEqual(expected_str, str(pe), "invalid ParseException str")
             self.assertEqual(expected_str, repr(pe), "invalid ParseException repr")
-
-            expected_dir = [
-                "args",
-                "col",
-                "explain",
-                "explain_exception",
-                "line",
-                "lineno",
-                "markInputline",
-                "mark_input_line",
-                "with_traceback",
-            ]
-            observed_dir = [attr for attr in dir(pe) if not attr.startswith("_")]
-            print(observed_dir)
-            self.assertEqual(expected_dir, observed_dir, "invalid dir(ParseException)")
 
             self.assertEqual(
                 ">!<ABC", pe.markInputline(), "invalid default mark input line"

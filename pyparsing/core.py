@@ -418,7 +418,7 @@ class ParserElement(ABC):
         # used when checking for left-recursion
         self.mayReturnEmpty = False
         self.keepTabs = False
-        self.ignoreExprs = list()
+        self.ignoreExprs: List["ParserElement"] = list()
         self.debug = False
         self.streamlined = False
         # optimize exception handling for subclasses that don't advance parse index
@@ -1152,7 +1152,7 @@ class ParserElement(ABC):
                 out.append(instring[lastE:s])
                 if t:
                     if isinstance(t, ParseResults):
-                        out += t.asList()
+                        out += t.as_list()
                     elif isinstance(t, Iterable) and not isinstance(t, str_type):
                         out += list(t)
                     else:

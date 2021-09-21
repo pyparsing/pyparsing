@@ -21,7 +21,13 @@ class ParseBaseException(Exception):
 
     # Performance tuning: we construct a *lot* of these, so keep this
     # constructor as small and fast as possible
-    def __init__(self, pstr: str, loc: int = 0, msg: Optional[str] = None, elem=None):
+    def __init__(
+        self,
+        pstr: str,
+        loc: int = 0,
+        msg: Optional[str] = None,
+        elem=None,
+    ):
         self.loc = loc
         if msg is None:
             self.msg = pstr
@@ -57,7 +63,7 @@ class ParseBaseException(Exception):
         ret = []
         if isinstance(exc, ParseBaseException):
             ret.append(exc.line)
-            ret.append(" " * (exc.col - 1) + "^")
+            ret.append(" " * (exc.column - 1) + "^")
         ret.append("{}: {}".format(type(exc).__name__, exc))
 
         if depth > 0:
@@ -106,23 +112,35 @@ class ParseBaseException(Exception):
         """
         return cls(pe.pstr, pe.loc, pe.msg, pe.parserElement)
 
-    def __getattr__(self, aname):
+    @property
+    def line(self) -> str:
         """
-        Supported attributes by name are:
-        - lineno - returns the line number of the exception text
-        - col - returns the column number of the exception text
-        - line - returns the line containing the exception text
+        Return the line of text where the exception occurred.
         """
-        if aname == "lineno":
-            return lineno(self.loc, self.pstr)
-        elif aname in ("col", "column"):
-            return col(self.loc, self.pstr)
-        elif aname == "line":
-            return line(self.loc, self.pstr)
-        else:
-            raise AttributeError(aname)
+        return line(self.loc, self.pstr)
 
-    def __str__(self):
+    @property
+    def lineno(self) -> int:
+        """
+        Return the 1-based line number of text where the exception occurred.
+        """
+        return lineno(self.loc, self.pstr)
+
+    @property
+    def col(self) -> int:
+        """
+        Return the 1-based column on the line of text where the exception occurred.
+        """
+        return col(self.loc, self.pstr)
+
+    @property
+    def column(self) -> int:
+        """
+        Return the 1-based column on the line of text where the exception occurred.
+        """
+        return col(self.loc, self.pstr)
+
+    def __str__(self) -> str:
         if self.pstr:
             if self.loc >= len(self.pstr):
                 foundstr = ", found end of text"
@@ -143,7 +161,7 @@ class ParseBaseException(Exception):
     def __repr__(self):
         return str(self)
 
-    def mark_input_line(self, marker_string=None, *, markerString=">!<"):
+    def mark_input_line(self, marker_string: str = None, *, markerString=">!<") -> str:
         """
         Extracts the exception line from the input string, and marks
         the location of the exception with a special symbol.
@@ -157,10 +175,7 @@ class ParseBaseException(Exception):
             )
         return line_str.strip()
 
-    def __dir__(self):
-        return "lineno col line".split() + dir(type(self))
-
-    def explain(self, depth=16):
+    def explain(self, depth=16) -> str:
         """
         Method to translate the Python internal traceback into a list
         of the pyparsing expressions that caused the exception to be raised.
@@ -204,11 +219,7 @@ class ParseBaseException(Exception):
 
 class ParseException(ParseBaseException):
     """
-    Exception thrown when parse expressions don't match class;
-    supported attributes by name are:
-     - lineno - returns the line number of the exception text
-     - col - returns the column number of the exception text
-     - line - returns the line containing the exception text
+    Exception thrown when a parse expression doesn't match the input string
 
     Example::
 
@@ -216,7 +227,7 @@ class ParseException(ParseBaseException):
             Word(nums).set_name("integer").parse_string("ABC")
         except ParseException as pe:
             print(pe)
-            print("column: {}".format(pe.col))
+            print("column: {}".format(pe.column))
 
     prints::
 
@@ -228,14 +239,14 @@ class ParseException(ParseBaseException):
 
 class ParseFatalException(ParseBaseException):
     """
-    user-throwable exception thrown when inconsistent parse content
+    User-throwable exception thrown when inconsistent parse content
     is found; stops all parsing immediately
     """
 
 
 class ParseSyntaxException(ParseFatalException):
     """
-    just like :class:`ParseFatalException`, but thrown internally
+    Just like :class:`ParseFatalException`, but thrown internally
     when an :class:`ErrorStop<And._ErrorStop>` ('-' operator) indicates
     that parsing is to stop immediately because an unbacktrackable
     syntax error has been found.
@@ -243,12 +254,14 @@ class ParseSyntaxException(ParseFatalException):
 
 
 class RecursiveGrammarException(Exception):
-    """exception thrown by :class:`ParserElement.validate` if the
-    grammar could be improperly recursive
+    """
+    Exception thrown by :class:`ParserElement.validate` if the
+    grammar could be left-recursive; parser may need to enable
+    left recursion using :class:`ParserElement.enable_left_recursion<ParserElement.enable_left_recursion>`
     """
 
     def __init__(self, parseElementList):
         self.parseElementTrace = parseElementList
 
-    def __str__(self):
+    def __str__(self) -> str:
         return "RecursiveGrammarException: {}".format(self.parseElementTrace)
