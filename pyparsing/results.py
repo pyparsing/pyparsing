@@ -1,6 +1,5 @@
 # results.py
-
-from collections.abc import MutableMapping, Mapping, MutableSequence
+from collections.abc import MutableMapping, Mapping, MutableSequence, Iterator
 import pprint
 from weakref import ref as wkref
 from typing import Tuple, Any
@@ -240,12 +239,12 @@ class ParseResults:
         return len(self._toklist)
 
     def __bool__(self) -> bool:
-        return not not self._toklist or not not self._tokdict
+        return not not (self._toklist or self._tokdict)
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator:
         return iter(self._toklist)
 
-    def __reversed__(self):
+    def __reversed__(self) -> Iterator:
         return iter(self._toklist[::-1])
 
     def keys(self):

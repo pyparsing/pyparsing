@@ -3496,6 +3496,7 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
         test = dedent(test)
         print(test)
 
+        print("normal parsing")
         for t, s, e in (pp.LineStart() + "AAA").scanString(test):
             print(s, e, pp.lineno(s, test), pp.line(s, test), repr(test[s]))
             print()
@@ -3503,6 +3504,7 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
                 "A", test[s], "failed LineStart with insignificant newlines"
             )
 
+        print(r"parsing without \n in whitespace chars")
         with ppt.reset_pyparsing_context():
             pp.ParserElement.setDefaultWhitespaceChars(" ")
             for t, s, e in (pp.LineStart() + "AAA").scanString(test):
@@ -6847,7 +6849,8 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
         )
 
         print("using searchString")
-        print(sum(group.searchString(data)).dump())
+        print(group.searchString(data))
+        # print(sum(group.searchString(data)).dump())
 
         self.assertParseAndCheckList(
             group[...],
@@ -7341,18 +7344,19 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
 
     def testEnableDebugWithCachedExpressionsMarkedWithAsterisk(self):
 
+        a = pp.Literal("a").setName("A").setDebug()
+        b = pp.Literal("b").setName("B").setDebug()
+        z = pp.Literal("z").setName("Z").setDebug()
+        leading_a = a + pp.FollowedBy(z | a | b)
+        leading_a.setName("leading_a").setDebug()
+
+        grammar = (z | leading_a | b)[...] + "a"
+
+        # parse test string and capture debug output
         test_stdout = StringIO()
         with resetting(sys, "stdout", "stderr"):
             sys.stdout = test_stdout
             sys.stderr = test_stdout
-
-            a = pp.Literal("a").setName("A").setDebug()
-            b = pp.Literal("b").setName("B").setDebug()
-            z = pp.Literal("z").setName("Z").setDebug()
-            leading_a = a + pp.FollowedBy(z | a | b)
-            leading_a.setName("leading_a").setDebug()
-
-            grammar = (z | leading_a | b)[...] + "a"
             grammar.parseString("aba")
 
         expected_debug_output = dedent(
@@ -7433,6 +7437,7 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             # remove '*' cache markers from expected output
             expected_debug_output = expected_debug_output.replace("*", "")
             packrat_status = "disabled"
+        print("Packrat status:", packrat_status)
 
         output = test_stdout.getvalue()
         print(output)
