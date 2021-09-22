@@ -44,8 +44,7 @@ synonyms will be removed in a future version of pyparsing.
 Railroad diagramming
 --------------------
 An excellent new enhancement is the new railroad diagram
-generator for documenting pyparsing parsers. You need to install
-`Railroad-Diagram Generator package` https://pypi.org/project/railroad-diagrams/ to test this example::
+generator for documenting pyparsing parsers.::
 
     import pyparsing as pp
 
@@ -61,6 +60,10 @@ generator for documenting pyparsing parsers. You need to install
     # construct railroad track diagram for this parser and
     # save as HTML
     parser.create_diagram('parser_rr_diag.html')
+
+To use this new feature, install the supporting diagramming packages using::
+
+    pip install pyparsing[diagrams]
 
 See more in the examples directory: ``make_diagram.py`` and ``railroad_diagram_demo.py``.
 
@@ -306,6 +309,10 @@ New / improved examples
 
 Other new features
 ------------------
+- ``url`` expression added to ``pyparsing_common``, with named fields for
+  common fields in URLs. See the updated ``urlExtractorNew.py`` file in the
+  ``examples`` directory. Submitted by Wolfgang Fahl.
+
 - ``delimited_list`` now supports an additional flag ``allow_trailing_delim``,
   to optionally parse an additional delimiter at the end of the list.
   Submitted by Kazantcev Andrey.
@@ -452,7 +459,15 @@ API Changes
   whitespace characters on all built-in expressions defined
   in the pyparsing module.
 
-- ``camelCase`` names have been converted to PEP-8 ``snake_case`` names:
+- ``camelCase`` names have been converted to PEP-8 ``snake_case`` names.
+
+  Method arguments that were camel case have also been replaced with
+  snake case versions.
+
+  Backward-compatibility synonyms for all names and arguments have
+  been included, to allow parsers written using the old names to run
+  without change. The synonyms will be removed in a future release.
+  New parser code should be written using the new camel case names.
 
         ==============================  ================================
         Name                            Previous name
@@ -536,10 +551,6 @@ API Changes
         with_attribute                  withAttribute
         with_class                      withClass
         ==============================  ================================
-
-  Backward-compatibility synonyms will allow parsers written using the old
-  names to run, allowing developers to convert to the new names. The
-  synonyms will be removed in a future release.
 
 Discontinued Features
 =====================
