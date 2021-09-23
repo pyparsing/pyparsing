@@ -21,7 +21,8 @@ Version 3.0.0rc2 -
   methods. Now raises AttributeError for non-existent results when accessing a
   name starting with '__'. Addresses issue #208, reported by Joachim Metz.
 
-- Code cleanup in exceptions.py, replaced dynamic attributes with Python properties.
+- Modified debug fail messages to include the expression name to make it easier to sync
+  up match vs success/fail debug messages.
 
 
 Version 3.0.0rc1 - September, 2021

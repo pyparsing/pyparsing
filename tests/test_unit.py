@@ -7257,7 +7257,7 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
                 Match integer at loc 5(1,6)
                   1 2 3
                        ^
-                ParseException raised: Expected integer, found end of text  (at char 5), (line:1, col:6)
+                Match integer failed, ParseException raised: Expected integer, found end of text  (at char 5), (line:1, col:6)
                 """
             )
             output = test_stdout.getvalue()
@@ -7297,7 +7297,7 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             Match integer at loc 4(1,5)
               123 A100
                   ^
-            ParseException raised: Expected integer, found 'A100'  (at char 4), (line:1, col:5)
+            Match integer failed, ParseException raised: Expected integer, found 'A100'  (at char 4), (line:1, col:5)
             Match W:(0-9A-Za-z) at loc 4(1,5)
               123 A100
                   ^
@@ -7305,11 +7305,11 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             Match integer at loc 8(1,9)
               123 A100
                       ^
-            ParseException raised: Expected integer, found end of text  (at char 8), (line:1, col:9)
+            Match integer failed, ParseException raised: Expected integer, found end of text  (at char 8), (line:1, col:9)
             Match W:(0-9A-Za-z) at loc 8(1,9)
               123 A100
                       ^
-            ParseException raised: Expected W:(0-9A-Za-z), found end of text  (at char 8), (line:1, col:9)
+            Match W:(0-9A-Za-z) failed, ParseException raised: Expected W:(0-9A-Za-z), found end of text  (at char 8), (line:1, col:9)
             Matched [{integer | W:(0-9A-Za-z)}]... -> [123, 'A100']
             
             Match integer at loc 0(1,1)
@@ -7319,7 +7319,7 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             Match integer at loc 4(1,5)
               123 A100
                   ^
-            ParseException raised: Expected integer, found 'A100'  (at char 4), (line:1, col:5)
+            Match integer failed, ParseException raised: Expected integer, found 'A100'  (at char 4), (line:1, col:5)
             Match W:(0-9A-Za-z) at loc 4(1,5)
               123 A100
                   ^
@@ -7327,11 +7327,11 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             Match integer at loc 8(1,9)
               123 A100
                       ^
-            ParseException raised: Expected integer, found end of text  (at char 8), (line:1, col:9)
+            Match integer failed, ParseException raised: Expected integer, found end of text  (at char 8), (line:1, col:9)
             Match W:(0-9A-Za-z) at loc 8(1,9)
               123 A100
                       ^
-            ParseException raised: Expected W:(0-9A-Za-z), found end of text  (at char 8), (line:1, col:9)
+            Match W:(0-9A-Za-z) failed, ParseException raised: Expected W:(0-9A-Za-z), found end of text  (at char 8), (line:1, col:9)
             """
         )
         output = test_stdout.getvalue()
@@ -7364,7 +7364,7 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             Match Z at loc 0(1,1)
               aba
               ^
-            ParseException raised: Expected Z, found 'aba'  (at char 0), (line:1, col:1)
+            Match Z failed, ParseException raised: Expected Z, found 'aba'  (at char 0), (line:1, col:1)
             Match leading_a at loc 0(1,1)
               aba
               ^
@@ -7375,11 +7375,11 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             Match Z at loc 1(1,2)
               aba
                ^
-            ParseException raised: Expected Z, found 'ba'  (at char 1), (line:1, col:2)
+            Match Z failed, ParseException raised: Expected Z, found 'ba'  (at char 1), (line:1, col:2)
             Match A at loc 1(1,2)
               aba
                ^
-            ParseException raised: Expected A, found 'ba'  (at char 1), (line:1, col:2)
+            Match A failed, ParseException raised: Expected A, found 'ba'  (at char 1), (line:1, col:2)
             Match B at loc 1(1,2)
               aba
                ^
@@ -7388,15 +7388,15 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             *Match Z at loc 1(1,2)
               aba
                ^
-            *ParseException raised: Expected Z, found 'ba'  (at char 1), (line:1, col:2)
+            *Match Z failed, ParseException raised: Expected Z, found 'ba'  (at char 1), (line:1, col:2)
             Match leading_a at loc 1(1,2)
               aba
                ^
             *Match A at loc 1(1,2)
               aba
                ^
-            *ParseException raised: Expected A, found 'ba'  (at char 1), (line:1, col:2)
-            ParseException raised: Expected A, found 'ba'  (at char 1), (line:1, col:2)
+            *Match A failed, ParseException raised: Expected A, found 'ba'  (at char 1), (line:1, col:2)
+            Match leading_a failed, ParseException raised: Expected A, found 'ba'  (at char 1), (line:1, col:2)
             *Match B at loc 1(1,2)
               aba
                ^
@@ -7404,7 +7404,7 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             Match Z at loc 2(1,3)
               aba
                 ^
-            ParseException raised: Expected Z, found 'a'  (at char 2), (line:1, col:3)
+            Match Z failed, ParseException raised: Expected Z, found 'a'  (at char 2), (line:1, col:3)
             Match leading_a at loc 2(1,3)
               aba
                 ^
@@ -7415,20 +7415,20 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             Match Z at loc 3(1,4)
               aba
                  ^
-            ParseException raised: Expected Z, found end of text  (at char 3), (line:1, col:4)
+            Match Z failed, ParseException raised: Expected Z, found end of text  (at char 3), (line:1, col:4)
             Match A at loc 3(1,4)
               aba
                  ^
-            ParseException raised: Expected A, found end of text  (at char 3), (line:1, col:4)
+            Match A failed, ParseException raised: Expected A, found end of text  (at char 3), (line:1, col:4)
             Match B at loc 3(1,4)
               aba
                  ^
-            ParseException raised: Expected B, found end of text  (at char 3), (line:1, col:4)
-            ParseException raised: Expected {Z | A | B}, found end of text  (at char 3), (line:1, col:4)
+            Match B failed, ParseException raised: Expected B, found end of text  (at char 3), (line:1, col:4)
+            Match leading_a failed, ParseException raised: Expected {Z | A | B}, found end of text  (at char 3), (line:1, col:4)
             Match B at loc 2(1,3)
               aba
                 ^
-            ParseException raised: Expected B, found 'a'  (at char 2), (line:1, col:3)
+            Match B failed, ParseException raised: Expected B, found 'a'  (at char 2), (line:1, col:3)
             """
         )
         if pp.ParserElement._packratEnabled:

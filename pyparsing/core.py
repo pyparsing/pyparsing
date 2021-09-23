@@ -349,7 +349,7 @@ def _default_exception_debug_action(
     cache_hit: bool = False,
 ):
     cache_hit_str = "*" if cache_hit else ""
-    print("{}{} raised: {}".format(cache_hit_str, type(exc).__name__, exc))
+    print("{}Match {} failed, {} raised: {}".format(cache_hit_str, expr, type(exc).__name__, exc))
 
 
 def null_debug_action(*args):
