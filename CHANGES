@@ -10,6 +10,9 @@ Version 3.0.0rc2 -
   This new expression has been added to the `urlExtractorNew.py` example, to show how
   it extracts URL fields into separate results names.
 
+- Added new example `cuneiform_python.py` to demonstrate creating a new Unicode
+  range, and writing a Cuneiform->Python transformer (inspired by zhpy).
+
 - Fixed ParseFatalExceptions failing to override normal exceptions or expression
   matches in MatchFirst expressions. Addresses issue #251, reported by zyp-rgb.
 
