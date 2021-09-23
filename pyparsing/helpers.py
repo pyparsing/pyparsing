@@ -989,9 +989,13 @@ class IndentedBlock(ParseElementEnhance):
         self._recursive = recursive
 
     def parseImpl(self, instring, loc, doActions=True):
+        # advance parse position to non-whitespace by using an Empty()
+        # this should be the column to be used for all subsequent indented lines
+        loc = Empty().preParse(instring, loc)
+
         # see if self.expr matches at the current location - if not it will raise an exception
         # and no further work is necessary
-        self.expr.parseImpl(instring, loc, doActions)
+        self.expr.try_parse(instring, loc, doActions)
 
         indent_col = col(loc, instring)
         peer_parse_action = match_only_at_col(indent_col)

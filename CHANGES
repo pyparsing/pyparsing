@@ -24,6 +24,8 @@ Version 3.0.0rc2 -
 - Modified debug fail messages to include the expression name to make it easier to sync
   up match vs success/fail debug messages.
 
+- Fix to IndentedBlock where first line of block was suppressed.
+
 
 Version 3.0.0rc1 - September, 2021
 ----------------------------------
