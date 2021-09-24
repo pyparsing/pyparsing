@@ -13,6 +13,7 @@ class Cuneiform(pp.unicode_set):
     """Unicode set for Cuneiform Character Range"""
 
     _ranges: List[Tuple[int, ...]] = [
+        (0x10380, 0x103d5),
         (0x12000, 0x123FF),
     ]
 
@@ -73,7 +74,7 @@ cuneiform_hello_world = r"""
     𒄑𒉿𒅔𒋫(𒀁)
 
 𒀄𒂖𒆷𒁎()"""
-script.parseString(cuneiform_hello_world).pprint(width=30)
+script.parseString(cuneiform_hello_world).pprint(width=40)
 
 
 # use transform_string to convert keywords and builtins to runnable Python
@@ -85,7 +86,8 @@ def_.add_parse_action(lambda: "def")
 
 print("\nconvert Cuneiform Python to executable Python")
 transformed = (
-    (ident | def_)
+    # always put ident last
+    (def_ | ident)
     .ignore(pp.quoted_string)
     .transform_string(cuneiform_hello_world)
     .strip()
