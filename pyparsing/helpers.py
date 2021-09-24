@@ -92,11 +92,12 @@ def counted_array(
         # - type: 'bool'
     """
     intExpr = intExpr or int_expr
-    arrayExpr = Forward()
+    array_expr = Forward()
 
-    def countFieldParseAction(s, l, t):
+    def count_field_parse_action(s, l, t):
+        nonlocal array_expr
         n = t[0]
-        arrayExpr << (And([expr] * n) if n else empty)
+        array_expr <<= (expr * n) if n else Empty()
         # clear list contents, but keep any named results
         del t[:]
 
@@ -105,8 +106,8 @@ def counted_array(
     else:
         intExpr = intExpr.copy()
     intExpr.set_name("arrayLen")
-    intExpr.add_parse_action(countFieldParseAction, callDuringTry=True)
-    return (intExpr + arrayExpr).set_name("(len) " + str(expr) + "...")
+    intExpr.add_parse_action(count_field_parse_action, call_during_try=True)
+    return (intExpr + array_expr).set_name("(len) " + str(expr) + "...")
 
 
 def match_previous_literal(expr: ParserElement) -> ParserElement:

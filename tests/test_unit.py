@@ -2477,12 +2477,6 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
     def testParserElementMulOperatorWithTuples(self):
         """test ParserElement "*" with various tuples"""
 
-        # ParserElement * (0, 0)
-        with self.assertRaises(
-            ValueError, msg="ParserElement * (0,0) should raise error"
-        ):
-            expr = pp.Word(pp.alphas)("first") + pp.Word(pp.nums)("second*") * (0, 0)
-
         # ParserElement * (None, n)
         expr = pp.Word(pp.alphas)("first") + pp.Word(pp.nums)("second*") * (None, 3)
 
@@ -2555,6 +2549,18 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             TypeError, msg="ParserElement * (str, str) should raise error"
         ):
             expr = pp.Word(pp.alphas)("first") + pp.Word(pp.nums)("second") * ("2", "3")
+
+    def testParserElementMulByZero(self):
+        alpwd = pp.Word(pp.alphas)
+        numwd = pp.Word(pp.nums)
+
+        test_string = "abd def ghi jkl"
+
+        parser = alpwd * 2 + numwd * 0 + alpwd * 2
+        self.assertParseAndCheckList(parser, test_string, expected_list=test_string.split())
+
+        parser = alpwd * 2 + numwd * (0, 0) + alpwd * 2
+        self.assertParseAndCheckList(parser, test_string, expected_list=test_string.split())
 
     def testParserElementMulOperatorWithOtherTypes(self):
         """test the overridden "*" operator with other data types"""

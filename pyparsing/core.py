@@ -1386,7 +1386,7 @@ class ParserElement(ABC):
                 "second tuple value must be greater or equal to first tuple value"
             )
         if minElements == optElements == 0:
-            raise ValueError("cannot multiply ParserElement by 0 or (0, 0)")
+            return And([])
 
         if optElements:
 
@@ -3629,10 +3629,12 @@ class And(ParseExpression):
             exprs[:] = tmp
         super().__init__(exprs, savelist)
         self.mayReturnEmpty = all(e.mayReturnEmpty for e in self.exprs)
-        self.set_whitespace_chars(
-            self.exprs[0].whiteChars, copy_defaults=self.exprs[0].copyDefaultWhiteChars
-        )
-        self.skipWhitespace = self.exprs[0].skipWhitespace
+        if self.exprs:
+            self.set_whitespace_chars(
+                self.exprs[0].whiteChars,
+                copy_defaults=self.exprs[0].copyDefaultWhiteChars,
+            )
+            self.skipWhitespace = self.exprs[0].skipWhitespace
         self.callPreparse = True
 
     def streamline(self):
