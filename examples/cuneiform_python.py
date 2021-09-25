@@ -15,6 +15,7 @@ class Cuneiform(pp.unicode_set):
     _ranges: List[Tuple[int, ...]] = [
         (0x10380, 0x103d5),
         (0x12000, 0x123FF),
+        (0x12400, 0x1247F),
     ]
 
 
