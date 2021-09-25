@@ -228,3 +228,27 @@ class pyparsing_test:
         def assertRaisesParseException(self, exc_type=ParseException, msg=None):
             with self.assertRaises(exc_type, msg=msg):
                 yield
+
+    def with_line_numbers(s: str) -> str:
+        """
+        Helpful method for debugging a parser - prints a string with line and column numbers.
+        """
+        lineno_width = len(str(len(s)))
+        max_line_len = max(len(line) for line in s.splitlines())
+        lead = " " * (lineno_width + 1)
+        header1 = (
+            lead
+            + "".join(
+                "         {}".format(i + 1) for i in range(-(-max_line_len // 10))
+            )
+            + "\n"
+        )
+        header2 = lead + "1234567890" * (-(-max_line_len // 10)) + "\n"
+        return (
+            header1
+            + header2
+            + "\n".join(
+                "{:{}d}:{}".format(i, lineno_width, line)
+                for i, line in enumerate(s.splitlines(), start=1)
+            )
+        )

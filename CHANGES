@@ -10,6 +10,31 @@ Version 3.0.0rc2 -
   This new expression has been added to the `urlExtractorNew.py` example, to show how
   it extracts URL fields into separate results names.
 
+- Added method to `pyparsing_testing` to help debugging, `with_line_numbers`.
+  Returns a string with line and column numbers corresponding to values shown
+  when parsing with expr.set_debug():
+
+      data = """\
+         A
+            100"""
+      expr = pp.Word(pp.alphanums).set_debug()
+      print(ppt.with_line_numbers(data))
+      expr[...].parseString(data)
+
+  prints:
+
+                1
+       1234567890
+     1:   A
+     2:      100
+    Match word at loc 3(1,4)
+         A
+         ^
+    Matched word -> ['A']
+    Match word at loc 11(2,7)
+            100
+            ^
+
 - Added new example `cuneiform_python.py` to demonstrate creating a new Unicode
   range, and writing a Cuneiform->Python transformer (inspired by zhpy).
 
