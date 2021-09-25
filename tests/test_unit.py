@@ -6806,7 +6806,6 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
 
     def testIndentedBlockClass(self):
         data = """\
-
             A
                 100
                 101
@@ -6829,6 +6828,43 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
         self.assertParseAndCheckList(
             group[...], data, [["A", [100, 101, 102]], ["B", [200, 201]], ["C", [300]]]
         )
+
+    def testIndentedBlockClass2(self):
+        datas = [
+            """\
+             A
+                100
+             B
+                200
+             201
+            """,
+            """\
+             A
+                100
+             B
+                200
+               201
+            """,
+            """\
+             A
+                100
+             B
+                200
+                  201
+            """,
+        ]
+        integer = ppc.integer
+        group = pp.Group(pp.Char(pp.alphas) + pp.Group(pp.IndentedBlock(integer, recursive=False)))
+
+        for data in datas:
+            print()
+            print(ppt.with_line_numbers(data))
+
+            print(group[...].parse_string(data).as_list())
+            self.assertParseAndCheckList(
+                group[...] + integer.suppress(), data, [["A", [100]], ["B", [200]]],
+                verbose=False
+            )
 
     def testIndentedBlockClassWithRecursion(self):
         data = """\

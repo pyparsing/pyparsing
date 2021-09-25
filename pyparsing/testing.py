@@ -148,6 +148,8 @@ class pyparsing_test:
             result = expr.parse_string(test_string, parse_all=True)
             if verbose:
                 print(result.dump())
+            else:
+                print(result.as_list())
             self.assertParseResultsEquals(result, expected_list=expected_list, msg=msg)
 
         def assertParseAndCheckDict(
@@ -160,6 +162,8 @@ class pyparsing_test:
             result = expr.parse_string(test_string, parseAll=True)
             if verbose:
                 print(result.dump())
+            else:
+                print(result.as_list())
             self.assertParseResultsEquals(result, expected_dict=expected_dict, msg=msg)
 
         def assertRunTestResults(
@@ -232,28 +236,29 @@ class pyparsing_test:
 
     @staticmethod
     def with_line_numbers(
-        s: str, start: Optional[int] = None, end: Optional[int] = None
+        s: str, start_line: Optional[int] = None, end_line: Optional[int] = None
     ) -> str:
         """
         Helpful method for debugging a parser - prints a string with line and column numbers.
+        (Line and column numbers are 1-based.)
 
         :param s: tuple(bool, str - string to be printed with line and column numbers
-        :param start: int - (optional) starting line in s to print (default=0)
-        :param end: int - (optional) ending line in s to print (default=len(s))
+        :param start_line: int - (optional) starting line number in s to print (default=1)
+        :param end_line: int - (optional) ending line number in s to print (default=len(s))
         :return: str - input string with leading line numbers and column number headers
         """
-        if start is None:
-            start = 1
-        if end is None:
-            end = len(s)
-        end = min(end, len(s))
-        start = min(max(1, start), end)
+        if start_line is None:
+            start_line = 1
+        if end_line is None:
+            end_line = len(s)
+        end_line = min(end_line, len(s))
+        start_line = min(max(1, start_line), end_line)
 
-        s_lines = s.splitlines()[start - 1 : end]
+        s_lines = s.splitlines()[start_line - 1: end_line]
         if not s_lines:
             return ""
 
-        lineno_width = len(str(end))
+        lineno_width = len(str(end_line))
         max_line_len = max(len(line) for line in s_lines)
         lead = " " * (lineno_width + 1)
         header1 = (
@@ -269,6 +274,6 @@ class pyparsing_test:
             + header2
             + "\n".join(
                 "{:{}d}:{}".format(i, lineno_width, line)
-                for i, line in enumerate(s_lines, start=start)
+                for i, line in enumerate(s_lines, start=start_line)
             )
         )
