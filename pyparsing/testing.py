@@ -254,7 +254,7 @@ class pyparsing_test:
         end_line = min(end_line, len(s))
         start_line = min(max(1, start_line), end_line)
 
-        s_lines = s.splitlines()[start_line - 1: end_line]
+        s_lines = s.splitlines()[start_line - 1 : end_line]
         if not s_lines:
             return ""
 

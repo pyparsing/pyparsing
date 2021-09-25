@@ -11,7 +11,7 @@ def delimited_list(
     delim: str = ",",
     combine: bool = False,
     *,
-    allow_trailing_delim: bool = False
+    allow_trailing_delim: bool = False,
 ) -> ParserElement:
     """Helper to define a delimited list of expressions - the delimiter
     defaults to ','. By default, the list elements and delimiters can
@@ -54,7 +54,7 @@ def counted_array(
     expr: ParserElement,
     int_expr: OptionalType[ParserElement] = None,
     *,
-    intExpr: OptionalType[ParserElement] = None
+    intExpr: OptionalType[ParserElement] = None,
 ) -> ParserElement:
     """Helper to define a counted list of expressions.
 
@@ -184,7 +184,7 @@ def one_of(
     as_keyword: bool = False,
     *,
     useRegex: bool = True,
-    asKeyword: bool = False
+    asKeyword: bool = False,
 ) -> ParserElement:
     """Helper to quickly define a set of alternative :class:`Literal` s,
     and makes sure to do longest-first testing when there is a conflict,
@@ -426,7 +426,7 @@ def nested_expr(
     content: OptionalType[ParserElement] = None,
     ignore_expr: ParserElement = quoted_string(),
     *,
-    ignoreExpr: ParserElement = quoted_string()
+    ignoreExpr: ParserElement = quoted_string(),
 ) -> ParserElement:
     """Helper method for defining nested lists enclosed in opening and
     closing delimiters (``"("`` and ``")"`` are the default).

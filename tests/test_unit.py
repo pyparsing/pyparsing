@@ -2557,10 +2557,14 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
         test_string = "abd def ghi jkl"
 
         parser = alpwd * 2 + numwd * 0 + alpwd * 2
-        self.assertParseAndCheckList(parser, test_string, expected_list=test_string.split())
+        self.assertParseAndCheckList(
+            parser, test_string, expected_list=test_string.split()
+        )
 
         parser = alpwd * 2 + numwd * (0, 0) + alpwd * 2
-        self.assertParseAndCheckList(parser, test_string, expected_list=test_string.split())
+        self.assertParseAndCheckList(
+            parser, test_string, expected_list=test_string.split()
+        )
 
     def testParserElementMulOperatorWithOtherTypes(self):
         """test the overridden "*" operator with other data types"""
@@ -6854,7 +6858,9 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             """,
         ]
         integer = ppc.integer
-        group = pp.Group(pp.Char(pp.alphas) + pp.Group(pp.IndentedBlock(integer, recursive=False)))
+        group = pp.Group(
+            pp.Char(pp.alphas) + pp.Group(pp.IndentedBlock(integer, recursive=False))
+        )
 
         for data in datas:
             print()
@@ -6862,8 +6868,10 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
 
             print(group[...].parse_string(data).as_list())
             self.assertParseAndCheckList(
-                group[...] + integer.suppress(), data, [["A", [100]], ["B", [200]]],
-                verbose=False
+                group[...] + integer.suppress(),
+                data,
+                [["A", [100]], ["B", [200]]],
+                verbose=False,
             )
 
     def testIndentedBlockClassWithRecursion(self):
