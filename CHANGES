@@ -17,7 +17,7 @@ Version 3.0.0rc2 -
       data = """\
          A
             100"""
-      expr = pp.Word(pp.alphanums).set_debug()
+      expr = pp.Word(pp.alphanums).set_name("word").set_debug()
       print(ppt.with_line_numbers(data))
       expr[...].parseString(data)
 
@@ -34,6 +34,7 @@ Version 3.0.0rc2 -
     Match word at loc 11(2,7)
             100
             ^
+    Matched word -> ['100']
 
 - Added new example `cuneiform_python.py` to demonstrate creating a new Unicode
   range, and writing a Cuneiform->Python transformer (inspired by zhpy).
