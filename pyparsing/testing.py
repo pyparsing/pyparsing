@@ -1,6 +1,7 @@
 # testing.py
 
 from contextlib import contextmanager
+from typing import Optional
 
 from .core import (
     ParserElement,
@@ -229,12 +230,31 @@ class pyparsing_test:
             with self.assertRaises(exc_type, msg=msg):
                 yield
 
-    def with_line_numbers(s: str) -> str:
+    @staticmethod
+    def with_line_numbers(
+        s: str, start: Optional[int] = None, end: Optional[int] = None
+    ) -> str:
         """
         Helpful method for debugging a parser - prints a string with line and column numbers.
+
+        :param s: tuple(bool, str - string to be printed with line and column numbers
+        :param start: int - (optional) starting line in s to print (default=0)
+        :param end: int - (optional) ending line in s to print (default=len(s))
+        :return: str - input string with leading line numbers and column number headers
         """
-        lineno_width = len(str(len(s)))
-        max_line_len = max(len(line) for line in s.splitlines())
+        if start is None:
+            start = 1
+        if end is None:
+            end = len(s)
+        end = min(end, len(s))
+        start = min(max(1, start), end)
+
+        s_lines = s.splitlines()[start - 1 : end]
+        if not s_lines:
+            return ""
+
+        lineno_width = len(str(end))
+        max_line_len = max(len(line) for line in s_lines)
         lead = " " * (lineno_width + 1)
         header1 = (
             lead
@@ -249,6 +269,6 @@ class pyparsing_test:
             + header2
             + "\n".join(
                 "{:{}d}:{}".format(i, lineno_width, line)
-                for i, line in enumerate(s.splitlines(), start=1)
+                for i, line in enumerate(s_lines, start=start)
             )
         )
