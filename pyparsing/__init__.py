@@ -105,7 +105,7 @@ __version__ = "{}.{}.{}".format(*__version_info__[:3]) + (
     ),
     "",
 )[__version_info__.release_level == "final"]
-__version_time__ = "25 September 2021 17:02 UTC"
+__version_time__ = "27 September 2021 10:38 UTC"
 __versionTime__ = __version_time__
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
@@ -119,7 +119,7 @@ from .core import _builtin_exprs as core_builtin_exprs
 from .helpers import *
 from .helpers import _builtin_exprs as helper_builtin_exprs
 
-from .unicode import unicode_set, pyparsing_unicode as unicode
+from .unicode import unicode_set, UnicodeRangeList, pyparsing_unicode as unicode
 from .testing import pyparsing_test as testing
 from .common import (
     pyparsing_common as common,
