@@ -13,7 +13,7 @@
 # Updated 2013-Sep-14 - improved Python 2/3 cross-compatibility
 # Updated 2021-Sep-27 - removed Py2 compat; added type annotations
 #
-from typing import Sequence, Callable, Union
+from typing import Callable, Iterable
 
 from pyparsing import infixNotation, opAssoc, Keyword, Word, alphas, ParserElement
 
@@ -53,7 +53,7 @@ class BoolNot:
 class BoolBinOp:
     repr_symbol: str = ""
     eval_fn: Callable[
-        [Sequence[Union["BoolBinOp", BoolOperand]]], bool
+        [Iterable[bool]], bool
     ] = lambda _: False
 
     def __init__(self, t):
