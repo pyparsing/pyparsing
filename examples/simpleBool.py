@@ -11,10 +11,14 @@
 #
 # Copyright 2006, by Paul McGuire
 # Updated 2013-Sep-14 - improved Python 2/3 cross-compatibility
+# Updated 2021-Sep-27 - removed Py2 compat; added type annotations
 #
+from typing import Sequence, Callable, Union
+
 from pyparsing import infixNotation, opAssoc, Keyword, Word, alphas, ParserElement
 
 ParserElement.enablePackrat()
+
 
 # define classes to be built at parse time, as each matching
 # expression type is parsed
@@ -23,55 +27,63 @@ class BoolOperand:
         self.label = t[0]
         self.value = eval(t[0])
 
-    def __bool__(self):
+    def __bool__(self) -> bool:
         return self.value
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.label
 
     __repr__ = __str__
-
-
-class BoolBinOp:
-    def __init__(self, t):
-        self.args = t[0][0::2]
-
-    def __str__(self):
-        sep = " %s " % self.reprsymbol
-        return "(" + sep.join(map(str, self.args)) + ")"
-
-    def __bool__(self):
-        return self.evalop(bool(a) for a in self.args)
-
-    __nonzero__ = __bool__
-
-
-class BoolAnd(BoolBinOp):
-    reprsymbol = "&"
-    evalop = all
-
-
-class BoolOr(BoolBinOp):
-    reprsymbol = "|"
-    evalop = any
 
 
 class BoolNot:
     def __init__(self, t):
         self.arg = t[0][1]
 
-    def __bool__(self):
+    def __bool__(self) -> bool:
         v = bool(self.arg)
         return not v
 
-    def __str__(self):
+    def __str__(self) -> str:
         return "~" + str(self.arg)
 
     __repr__ = __str__
 
 
+class BoolBinOp:
+    repr_symbol: str = ""
+    eval_fn: Callable[
+        [Sequence[Union["BoolBinOp", BoolOperand]]], bool
+    ] = lambda _: False
+
+    def __init__(self, t):
+        self.args = t[0][0::2]
+
+    def __str__(self) -> str:
+        sep = " %s " % self.repr_symbol
+        return "(" + sep.join(map(str, self.args)) + ")"
+
+    def __bool__(self) -> bool:
+        return self.eval_fn(bool(a) for a in self.args)
+
+
+class BoolAnd(BoolBinOp):
+    repr_symbol = "&"
+    eval_fn = all
+
+
+class BoolOr(BoolBinOp):
+    repr_symbol = "|"
+    eval_fn = any
+
+
+# define keywords and simple infix notation grammar for boolean
+# expressions
 TRUE = Keyword("True")
 FALSE = Keyword("False")
+NOT = Keyword("not")
+AND = Keyword("and")
+OR = Keyword("or")
 boolOperand = TRUE | FALSE | Word(alphas, max=1)
 boolOperand.setParseAction(BoolOperand).setName("bool_operand")
 
@@ -80,9 +92,9 @@ boolOperand.setParseAction(BoolOperand).setName("bool_operand")
 boolExpr = infixNotation(
     boolOperand,
     [
-        ("not", 1, opAssoc.RIGHT, BoolNot),
-        ("and", 2, opAssoc.LEFT, BoolAnd),
-        ("or", 2, opAssoc.LEFT, BoolOr),
+        (NOT, 1, opAssoc.RIGHT, BoolNot),
+        (AND, 2, opAssoc.LEFT, BoolAnd),
+        (OR, 2, opAssoc.LEFT, BoolOr),
     ],
 ).setName("boolean_expression")
 
@@ -110,7 +122,7 @@ if __name__ == "__main__":
     print("q =", q)
     print("r =", r)
     print()
-    for t, expected in tests:
-        res = boolExpr.parseString(t)[0]
+    for test_string, expected in tests:
+        res = boolExpr.parseString(test_string)[0]
         success = "PASS" if bool(res) == expected else "FAIL"
-        print(t, "\n", res, "=", bool(res), "\n", success, "\n")
+        print(test_string, "\n", res, "=", bool(res), "\n", success, "\n")
