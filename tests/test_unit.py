@@ -3524,6 +3524,67 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
                     "A", test[s], "failed LineStart with insignificant newlines"
                 )
 
+    def testLineStart3(self):
+        # testing issue #272
+        instring = dedent("""
+        a
+         b
+          c
+        d
+        e
+         f
+          g
+        """)
+        print(pp.testing.with_line_numbers(instring))
+
+        alpha_line = pp.LineStart().leaveWhitespace() + pp.Word(pp.alphas) + pp.LineEnd().suppress()
+
+        tests = [
+            alpha_line,
+            pp.Group(alpha_line),
+            alpha_line | pp.Word("_"),
+            alpha_line | alpha_line,
+            pp.MatchFirst([alpha_line, alpha_line]),
+            pp.LineStart() + pp.Word(pp.alphas) + pp.LineEnd().suppress(),
+            pp.And([pp.LineStart(), pp.Word(pp.alphas), pp.LineEnd().suppress()])
+            ]
+        for test in tests:
+            print(test.searchString(instring))
+            self.assertEqual(["a", "d", "e"], flatten(sum(test.search_string(instring)).as_list()))
+
+    def testLineStart4(self):
+        test = dedent('''\
+        AAA this line
+        AAA and this line
+          AAA but not this one
+        B AAA and definitely not this one
+        ''')
+
+        expr = pp.AtLineStart('AAA') + pp.restOfLine
+        for t in expr.search_string(test):
+            print(t)
+
+        self.assertEqual(['AAA', ' this line', 'AAA', ' and this line'], sum(expr.search_string(test)).as_list())
+
+    def testStringStart(self):
+        self.assertParseAndCheckList(
+            pp.AtStringStart(pp.Word(pp.nums)),
+            "123",
+            ["123"]
+        )
+
+        self.assertParseAndCheckList(
+            pp.AtStringStart("123"),
+            "123",
+            ["123"]
+        )
+
+        with self.assertRaisesParseException():
+            pp.AtStringStart(pp.Word(pp.nums)).parse_string("    123")
+
+        with self.assertRaisesParseException():
+            pp.AtStringStart("123").parse_string("    123")
+
     def testLineAndStringEnd(self):
 
         NLs = pp.OneOrMore(pp.lineEnd)
