@@ -39,6 +39,15 @@ Version 3.0.0rc2 -
 - Added new example `cuneiform_python.py` to demonstrate creating a new Unicode
   range, and writing a Cuneiform->Python transformer (inspired by zhpy).
 
+- Fixed issue #272, reported by PhasecoreX, when LineStart() expressions would match
+  expressions that were not necessarily at the beginning of a line.
+
+  As part of this fix, two new classes have been added: AtLineStart and AtStringStart.
+  The following expressions are equivalent:
+
+      LineStart() + expr      and     AtLineStart(expr)
+      StringStart() + expr    and     AtStringStart(expr)
+
 - Fixed ParseFatalExceptions failing to override normal exceptions or expression
   matches in MatchFirst expressions. Addresses issue #251, reported by zyp-rgb.
 

@@ -3318,6 +3318,22 @@ class LineStart(_PositionToken):
         super().__init__()
         self.errmsg = "Expected start of line"
 
+    def __add__(self, other):
+        return AtLineStart(other)
+
+    def __sub__(self, other):
+        return AtLineStart(other) - Empty()
+
+    def preParse(self, instring, loc):
+        if loc == 0:
+            return loc
+        else:
+            if instring[loc : loc + 1] == "\n" and "\n" in self.whiteChars:
+                ret = loc + 1
+            else:
+                ret = super().preParse(instring, loc)
+            return ret
+
     def parseImpl(self, instring, loc, doActions=True):
         if col(loc, instring) == 1:
             return loc, []
@@ -3355,6 +3371,12 @@ class StringStart(_PositionToken):
     def __init__(self):
         super().__init__()
         self.errmsg = "Expected start of text"
+
+    def __add__(self, other):
+        return AtStringStart(other)
+
+    def __sub__(self, other):
+        return AtStringStart(other) - Empty()
 
     def parseImpl(self, instring, loc, doActions=True):
         if loc != 0:
@@ -4194,6 +4216,60 @@ class ParseElementEnhance(ParserElement):
 
     ignoreWhitespace = ignore_whitespace
     leaveWhitespace = leave_whitespace
+
+
+class AtStringStart(ParseElementEnhance):
+    """Matches if expression matches at the beginning of the parse
+    string::
+
+        AtStringStart(Word(nums)).parse_string("123")
+        # prints ["123"]
+
+        AtStringStart(Word(nums)).parse_string("    123")
+        # raises ParseException
+    """
+
+    def __init__(self, expr):
+        super().__init__(expr)
+        self.callPreparse = False
+
+    def parseImpl(self, instring, loc, doActions=True):
+        if loc != 0:
+            raise ParseException(instring, loc, "not found at string start")
+        return super().parseImpl(instring, loc, doActions)
+
+
+class AtLineStart(ParseElementEnhance):
+    r"""Matches if an expression matches at the beginning of a line within
+    the parse string
+
+    Example::
+
+        test = '''\
+        AAA this line
+        AAA and this line
+          AAA but not this one
+        B AAA and definitely not this one
+        '''
+
+        for t in (AtLineStart('AAA') + restOfLine).search_string(test):
+            print(t)
+
+    prints::
+
+        ['AAA', ' this line']
+        ['AAA', ' and this line']
+
+    """
+
+    def __init__(self, expr):
+        super().__init__(expr)
+        self.callPreparse = False
+
+    def parseImpl(self, instring, loc, doActions=True):
+        if col(loc, instring) != 1:
+            raise ParseException(instring, loc, "not found at line start")
+        return super().parseImpl(instring, loc, doActions)
 
 
 class FollowedBy(ParseElementEnhance):
@@ -5210,6 +5286,12 @@ class Suppress(TokenConverter):
             return Suppress(SkipTo(other)) + other
         else:
             return super().__add__(other)
+
+    def __sub__(self, other):
+        if isinstance(self.expr, _PendingSkip):
+            return Suppress(SkipTo(other)) - other
+        else:
+            return super().__sub__(other)
 
     def postParse(self, instring, loc, tokenlist):
         return []
