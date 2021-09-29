@@ -39,7 +39,7 @@ class __config_flags:
 
 
 @lru_cache(maxsize=128)
-def col(loc, strg):
+def col(loc: int, strg: str):
     """
     Returns current column within a string, counting newlines as line separators.
     The first column is number 1.
@@ -56,7 +56,7 @@ def col(loc, strg):
 
 
 @lru_cache(maxsize=128)
-def lineno(loc, strg):
+def lineno(loc: int, strg: str):
     """Returns current line number within a string, counting newlines as line separators.
     The first line is number 1.
 
@@ -70,7 +70,7 @@ def lineno(loc, strg):
 
 
 @lru_cache(maxsize=128)
-def line(loc, strg):
+def line(loc: int, strg: str):
     """
     Returns the line of text containing loc within a string, counting newlines as line separators.
     """
@@ -171,7 +171,7 @@ class UnboundedMemo(dict):
         pass
 
 
-def _escapeRegexRangeChars(s):
+def _escapeRegexRangeChars(s: str):
     # escape these chars: ^-[]
     for c in r"\^-[]":
         s = s.replace(c, _bslash + c)
@@ -180,7 +180,7 @@ def _escapeRegexRangeChars(s):
     return str(s)
 
 
-def _collapseStringToRanges(s, re_escape=True):
+def _collapseStringToRanges(s: str, re_escape: bool = True):
     def is_consecutive(c):
         c_int = ord(c)
         is_consecutive.prev, prev = c_int, is_consecutive.prev
@@ -202,7 +202,7 @@ def _collapseStringToRanges(s, re_escape=True):
         escape_re_range_char = no_escape_re_range_char
 
     ret = []
-    s = sorted(set(s))
+    s = "".join(sorted(set(s)))
     if len(s) > 3:
         for _, chars in itertools.groupby(s, key=is_consecutive):
             first = last = next(chars)
@@ -223,9 +223,9 @@ def _collapseStringToRanges(s, re_escape=True):
     return "".join(ret)
 
 
-def _flatten(L):
+def _flatten(ll: List):
     ret = []
-    for i in L:
+    for i in ll:
         if isinstance(i, list):
             ret.extend(_flatten(i))
         else:

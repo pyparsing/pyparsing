@@ -363,8 +363,9 @@ def null_debug_action(*args):
 class ParserElement(ABC):
     """Abstract base level parser element class."""
 
-    DEFAULT_WHITE_CHARS = " \n\t\r"
-    verbose_stacktrace = False
+    DEFAULT_WHITE_CHARS: str = " \n\t\r"
+    verbose_stacktrace: bool = False
+    _literalStringClass: type = None
 
     @staticmethod
     def set_default_whitespace_chars(chars: str):
@@ -2943,20 +2944,20 @@ class QuotedString(Token):
 
     def __init__(
         self,
-        quote_char="",
-        esc_char=None,
-        esc_quote=None,
-        multiline=False,
-        unquote_results=True,
-        end_quote_char=None,
-        convert_whitespace_escapes=True,
+        quote_char: str = "",
+        esc_char: OptionalType[str] = None,
+        esc_quote: OptionalType[str] = None,
+        multiline: bool = False,
+        unquote_results: bool = True,
+        end_quote_char: OptionalType[str] = None,
+        convert_whitespace_escapes: bool = True,
         *,
-        quoteChar="",
-        escChar=None,
-        escQuote=None,
-        unquoteResults=True,
-        endQuoteChar=None,
-        convertWhitespaceEscapes=True,
+        quoteChar: str = "",
+        escChar: OptionalType[str] = None,
+        escQuote: OptionalType[str] = None,
+        unquoteResults: bool = True,
+        endQuoteChar: OptionalType[str] = None,
+        convertWhitespaceEscapes: bool = True,
     ):
         super().__init__()
         escChar = escChar or esc_char
@@ -4229,7 +4230,7 @@ class AtStringStart(ParseElementEnhance):
         # raises ParseException
     """
 
-    def __init__(self, expr):
+    def __init__(self, expr: Union[ParserElement, str]):
         super().__init__(expr)
         self.callPreparse = False
 
@@ -4262,7 +4263,7 @@ class AtLineStart(ParseElementEnhance):
 
     """
 
-    def __init__(self, expr):
+    def __init__(self, expr: Union[ParserElement, str]):
         super().__init__(expr)
         self.callPreparse = False
 
@@ -4478,9 +4479,9 @@ class _MultipleMatch(ParseElementEnhance):
     def __init__(
         self,
         expr: ParserElement,
-        stop_on: OptionalType[ParserElement] = None,
+        stop_on: OptionalType[Union[ParserElement, str]] = None,
         *,
-        stopOn: OptionalType[ParserElement] = None,
+        stopOn: OptionalType[Union[ParserElement, str]] = None,
     ):
         super().__init__(expr)
         stopOn = stopOn or stop_on
@@ -4590,9 +4591,9 @@ class ZeroOrMore(_MultipleMatch):
     def __init__(
         self,
         expr: ParserElement,
-        stop_on: OptionalType[ParserElement] = None,
+        stop_on: OptionalType[Union[ParserElement, str]] = None,
         *,
-        stopOn: OptionalType[ParserElement] = None,
+        stopOn: OptionalType[Union[ParserElement, str]] = None,
     ):
         super().__init__(expr, stopOn=stopOn or stop_on)
         self.mayReturnEmpty = True
@@ -4854,7 +4855,7 @@ class Forward(ParseElementEnhance):
     parser created using ``Forward``.
     """
 
-    def __init__(self, other=None):
+    def __init__(self, other: Union[ParserElement, str] = None):
         self.caller_frame = traceback.extract_stack(limit=2)[0]
         super().__init__(other, savelist=False)
         self.lshift_line = None
@@ -5061,7 +5062,7 @@ class TokenConverter(ParseElementEnhance):
     Abstract subclass of :class:`ParseExpression`, for converting parsed results.
     """
 
-    def __init__(self, expr, savelist=False):
+    def __init__(self, expr: Union[ParserElement, str], savelist=False):
         super().__init__(expr)  # , savelist)
         self.saveAsList = False
 

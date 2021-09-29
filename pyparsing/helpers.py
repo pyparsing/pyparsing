@@ -8,7 +8,7 @@ from .util import _bslash, _flatten, _escapeRegexRangeChars
 #
 def delimited_list(
     expr: ParserElement,
-    delim: str = ",",
+    delim: Union[str, ParserElement] = ",",
     combine: bool = False,
     *,
     allow_trailing_delim: bool = False,
