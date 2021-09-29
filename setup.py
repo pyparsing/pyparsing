@@ -32,7 +32,7 @@ setup(  # Distribution meta-data
     download_url="https://pypi.org/project/pyparsing/",
     license="MIT License",
     packages=packages,
-    python_requires=">=3.5",
+    python_requires=">=3.6",
     extras_require={
         "diagrams": ["railroad-diagrams", "jinja2"],
     },
