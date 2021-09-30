@@ -89,7 +89,7 @@ Version 3.0.0rc1 - September, 2021
 
 - Better exception messages to show full word where an exception occurred.
 
-      Word(alphas)[...].parseString("abc 123", parseAll=True)
+      Word(alphas, alphanums)[...].parseString("ab1 123", parseAll=True)
 
   Was:
       pyparsing.ParseException: Expected end of text, found '1'  (at char 4), (line:1, col:5)
@@ -108,7 +108,6 @@ Version 3.0.0rc1 - September, 2021
 
       ['START', 'relevant text ', 'END']
       - _skipped: ['relevant text ']
-
 
 - New string constants `identchars` and `identbodychars` to help in defining identifier Word expressions
 
