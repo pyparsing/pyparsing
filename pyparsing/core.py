@@ -1653,11 +1653,13 @@ class ParserElement(ABC):
         Customize display of debugging messages while doing pattern matching::
 
          - ``start_action`` - method to be called when an expression is about to be parsed;
-           should have the signature ``fn(input_string, location, expression)``
+           should have the signature ``fn(input_string: str, location: int, expression: ParserElement, cache_hit: bool)``
+
          - ``success_action`` - method to be called when an expression has successfully parsed;
-           should have the signature ``fn(input_string, start_location, end_location, expression, parsed_tokens)``
+           should have the signature ``fn(input_string: str, start_location: int, end_location: int, expression: ParserELement, parsed_tokens: ParseResults, cache_hit: bool)``
+
          - ``exception_action`` - method to be called when expression fails to parse;
-           should have the signature ``fn(input_string, location, expression, exception)``
+           should have the signature ``fn(input_string: str, location: int, expression: ParserElement, exception: Exception, cache_hit: bool)``
         """
         self.debugActions = (
             start_action or _default_start_debug_action,
