@@ -208,7 +208,7 @@ For this code::
         for match in locatedExpr(wd).search_string("ljsdf123lksdjjf123lkkjj1222"):
             print(match)
 
-the docs for ``locaatedExpr`` show this output::
+the docs for ``locatedExpr`` show this output::
 
         [[0, 'ljsdf', 5]]
         [[8, 'lksdjjf', 15]]
@@ -482,13 +482,13 @@ API Changes
 
 - ``camelCase`` names have been converted to PEP-8 ``snake_case`` names.
 
-  Method arguments that were camel case have also been replaced with
-  snake case versions.
+  Method names and arguments that were camel case (such as ``parseString``)
+  have been replaced with PEP-8 snake case versions (``parse_string``).
 
   Backward-compatibility synonyms for all names and arguments have
   been included, to allow parsers written using the old names to run
   without change. The synonyms will be removed in a future release.
-  New parser code should be written using the new camel case names.
+  New parser code should be written using the new PEP-8 snake case names.
 
         ==============================  ================================
         Name                            Previous name
