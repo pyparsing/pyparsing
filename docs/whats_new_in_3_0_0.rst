@@ -4,7 +4,7 @@ What's New in Pyparsing 3.0.0
 
 :author: Paul McGuire
 
-:date: September, 2021
+:date: October, 2021
 
 :abstract: This document summarizes the changes made
     in the 3.0.0 release of pyparsing.
@@ -230,6 +230,27 @@ on the whole result.
 
 The existing ``locatedExpr`` is retained for backward-compatibility, but will be
 deprecated in a future release.
+
+New AtLineStart and AtStringStart classes
+-----------------------------------------
+As part fixing some matching behavior in LineStart and StringStart, two new
+classes have been added: AtLineStart and AtStringStart.
+
+The following expressions are equivalent::
+
+    LineStart() + expr      and     AtLineStart(expr)
+    StringStart() + expr    and     AtStringStart(expr)
+
+LineStart and StringStart now will only match if their related expression is
+actually at the start of the string or current line, without skipping whitespace.
+
+    (LineStart() + Word(alphas)).parseString("ABC")  # passes
+    (LineStart() + Word(alphas)).parseString("  ABC")  # fails
+
+LineStart is also smarter about matching at the beginning of the string.
+
+This was the intended behavior previously, but could be bypassed if wrapped
+in other ParserElements.
 
 New IndentedBlock class to replace indentedBlock helper method
 --------------------------------------------------------------
