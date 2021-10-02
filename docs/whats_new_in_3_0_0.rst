@@ -242,7 +242,7 @@ The following expressions are equivalent::
     StringStart() + expr    and     AtStringStart(expr)
 
 LineStart and StringStart now will only match if their related expression is
-actually at the start of the string or current line, without skipping whitespace.
+actually at the start of the string or current line, without skipping whitespace.::
 
     (LineStart() + Word(alphas)).parseString("ABC")  # passes
     (LineStart() + Word(alphas)).parseString("  ABC")  # fails
@@ -324,6 +324,10 @@ New / improved examples
 
 - A simplified Lua parser has been added to the examples
   (``lua_parser.py``).
+
+- Demonstration of defining a custom Unicode set for cuneiform
+  symbols, as well as simple Cuneiform->Python conversion is included
+  in ``cuneiform_python.py``.
 
 - Fixed bug in ``delta_time.py`` example, when using a quantity
   of seconds/minutes/hours/days > 999.
