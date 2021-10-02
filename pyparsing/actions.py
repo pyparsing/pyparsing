@@ -88,10 +88,10 @@ def with_attribute(*args, **attr_dict):
     Call ``with_attribute`` with a series of attribute names and
     values. Specify the list of filter attributes names and values as:
 
-     - keyword arguments, as in ``(align="right")``, or
-     - as an explicit dict with ``**`` operator, when an attribute
-       name is also a Python reserved word, as in ``**{"class":"Customer", "align":"right"}``
-     - a list of name-value tuples, as in ``(("ns1:class", "Customer"), ("ns2:align", "right"))``
+    - keyword arguments, as in ``(align="right")``, or
+    - as an explicit dict with ``**`` operator, when an attribute
+      name is also a Python reserved word, as in ``**{"class":"Customer", "align":"right"}``
+    - a list of name-value tuples, as in ``(("ns1:class", "Customer"), ("ns2:align", "right"))``
 
     For attribute names with a namespace prefix, you must use the second
     form.  Attribute names are matched insensitive to upper/lower case.

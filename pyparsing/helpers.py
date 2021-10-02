@@ -193,17 +193,17 @@ def one_of(
 
     Parameters:
 
-     - ``strs`` - a string of space-delimited literals, or a collection of
-       string literals
-     - ``caseless`` - treat all literals as caseless - (default= ``False``)
-     - ``use_regex`` - as an optimization, will
-       generate a :class:`Regex` object; otherwise, will generate
-       a :class:`MatchFirst` object (if ``caseless=True`` or ``asKeyword=True``, or if
-       creating a :class:`Regex` raises an exception) - (default= ``True``)
-     - ``as_keyword`` - enforce :class:`Keyword`-style matching on the
-       generated expressions - (default= ``False``)
-     - ``asKeyword`` and ``useRegex`` are retained for pre-PEP8 compatibility,
-       but will be removed in a future release
+    - ``strs`` - a string of space-delimited literals, or a collection of
+      string literals
+    - ``caseless`` - treat all literals as caseless - (default= ``False``)
+    - ``use_regex`` - as an optimization, will
+      generate a :class:`Regex` object; otherwise, will generate
+      a :class:`MatchFirst` object (if ``caseless=True`` or ``asKeyword=True``, or if
+      creating a :class:`Regex` raises an exception) - (default= ``True``)
+    - ``as_keyword`` - enforce :class:`Keyword`-style matching on the
+      generated expressions - (default= ``False``)
+    - ``asKeyword`` and ``useRegex`` are retained for pre-PEP8 compatibility,
+      but will be removed in a future release
 
     Example::
 
@@ -393,9 +393,9 @@ def locatedExpr(expr: ParserElement) -> ParserElement:
 
     This helper adds the following results names:
 
-     - ``locn_start`` - location where matched expression begins
-     - ``locn_end`` - location where matched expression ends
-     - ``value`` - the actual parsed results
+    - ``locn_start`` - location where matched expression begins
+    - ``locn_end`` - location where matched expression ends
+    - ``value`` - the actual parsed results
 
     Be careful if the input text contains ``<TAB>`` characters, you
     may want to call :class:`ParserElement.parseWithTabs`
@@ -432,16 +432,16 @@ def nested_expr(
     closing delimiters (``"("`` and ``")"`` are the default).
 
     Parameters:
-     - ``opener`` - opening character for a nested list
-       (default= ``"("``); can also be a pyparsing expression
-     - ``closer`` - closing character for a nested list
-       (default= ``")"``); can also be a pyparsing expression
-     - ``content`` - expression for items within the nested lists
-       (default= ``None``)
-     - ``ignore_expr`` - expression for ignoring opening and closing delimiters
-       (default= :class:`quoted_string`)
-     - ``ignoreExpr`` - this pre-PEP8 argument is retained for compatibility
-       but will be removed in a future release
+    - ``opener`` - opening character for a nested list
+      (default= ``"("``); can also be a pyparsing expression
+    - ``closer`` - closing character for a nested list
+      (default= ``")"``); can also be a pyparsing expression
+    - ``content`` - expression for items within the nested lists
+      (default= ``None``)
+    - ``ignore_expr`` - expression for ignoring opening and closing delimiters
+      (default= :class:`quoted_string`)
+    - ``ignoreExpr`` - this pre-PEP8 argument is retained for compatibility
+      but will be removed in a future release
 
     If an expression is not provided for the content argument, the
     nested expression will capture all whitespace-delimited content
@@ -702,31 +702,31 @@ def infix_notation(
     improve your parser performance.
 
     Parameters:
-     - ``base_expr`` - expression representing the most basic operand to
-       be used in the expression
-     - ``op_list`` - list of tuples, one for each operator precedence level
-       in the expression grammar; each tuple is of the form ``(op_expr,
-       num_operands, right_left_assoc, (optional)parse_action)``, where:
+    - ``base_expr`` - expression representing the most basic operand to
+      be used in the expression
+    - ``op_list`` - list of tuples, one for each operator precedence level
+      in the expression grammar; each tuple is of the form ``(op_expr,
+      num_operands, right_left_assoc, (optional)parse_action)``, where:
 
-       - ``op_expr`` is the pyparsing expression for the operator; may also
-         be a string, which will be converted to a Literal; if ``num_operands``
-         is 3, ``op_expr`` is a tuple of two expressions, for the two
-         operators separating the 3 terms
-       - ``num_operands`` is the number of terms for this operator (must be 1,
-         2, or 3)
-       - ``right_left_assoc`` is the indicator whether the operator is right
-         or left associative, using the pyparsing-defined constants
-         ``OpAssoc.RIGHT`` and ``OpAssoc.LEFT``.
-       - ``parse_action`` is the parse action to be associated with
-         expressions matching this operator expression (the parse action
-         tuple member may be omitted); if the parse action is passed
-         a tuple or list of functions, this is equivalent to calling
-         ``set_parse_action(*fn)``
-         (:class:`ParserElement.set_parse_action`)
-     - ``lpar`` - expression for matching left-parentheses
-       (default= ``Suppress('(')``)
-     - ``rpar`` - expression for matching right-parentheses
-       (default= ``Suppress(')')``)
+      - ``op_expr`` is the pyparsing expression for the operator; may also
+        be a string, which will be converted to a Literal; if ``num_operands``
+        is 3, ``op_expr`` is a tuple of two expressions, for the two
+        operators separating the 3 terms
+      - ``num_operands`` is the number of terms for this operator (must be 1,
+        2, or 3)
+      - ``right_left_assoc`` is the indicator whether the operator is right
+        or left associative, using the pyparsing-defined constants
+        ``OpAssoc.RIGHT`` and ``OpAssoc.LEFT``.
+      - ``parse_action`` is the parse action to be associated with
+        expressions matching this operator expression (the parse action
+        tuple member may be omitted); if the parse action is passed
+        a tuple or list of functions, this is equivalent to calling
+        ``set_parse_action(*fn)``
+        (:class:`ParserElement.set_parse_action`)
+    - ``lpar`` - expression for matching left-parentheses
+      (default= ``Suppress('(')``)
+    - ``rpar`` - expression for matching right-parentheses
+      (default= ``Suppress(')')``)
 
     Example::
 
@@ -838,20 +838,20 @@ def infix_notation(
 
 def indentedBlock(blockStatementExpr, indentStack, indent=True, backup_stacks=[]):
     """
-        (DEPRECATED - use IndentedBlock class instead)
+    (DEPRECATED - use IndentedBlock class instead)
     Helper method for defining space-delimited indentation blocks,
     such as those used to define block statements in Python source code.
 
     Parameters:
 
-     - ``blockStatementExpr`` - expression defining syntax of statement that
-       is repeated within the indented block
-     - ``indentStack`` - list created by caller to manage indentation stack
-       (multiple ``statementWithIndentedBlock`` expressions within a single
-       grammar should share a common ``indentStack``)
-     - ``indent`` - boolean indicating whether block must be indented beyond
-       the current level; set to ``False`` for block of left-most statements
-       (default= ``True``)
+    - ``blockStatementExpr`` - expression defining syntax of statement that
+      is repeated within the indented block
+    - ``indentStack`` - list created by caller to manage indentation stack
+      (multiple ``statementWithIndentedBlock`` expressions within a single
+      grammar should share a common ``indentStack``)
+    - ``indent`` - boolean indicating whether block must be indented beyond
+      the current level; set to ``False`` for block of left-most statements
+      (default= ``True``)
 
     A valid block must contain at least one ``blockStatement``.
 

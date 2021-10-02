@@ -78,10 +78,10 @@ class __compat__(__config_flags):
     those features can be enabled in prior versions for compatibility development
     and testing.
 
-     - ``collect_all_And_tokens`` - flag to enable fix for Issue #63 that fixes erroneous grouping
-       of results names when an :class:`And` expression is nested within an :class:`Or` or :class:`MatchFirst`;
-       maintained for compatibility, but setting to ``False`` no longer restores pre-2.3.1
-       behavior
+    - ``collect_all_And_tokens`` - flag to enable fix for Issue #63 that fixes erroneous grouping
+      of results names when an :class:`And` expression is nested within an :class:`Or` or :class:`MatchFirst`;
+      maintained for compatibility, but setting to ``False`` no longer restores pre-2.3.1
+      behavior
     """
 
     _type_desc = "compatibility"
@@ -119,21 +119,21 @@ class __diag__(__config_flags):
 class Diagnostics(Enum):
     """
     Diagnostic configuration (all default to disabled)
-     - ``warn_multiple_tokens_in_named_alternation`` - flag to enable warnings when a results
-       name is defined on a :class:`MatchFirst` or :class:`Or` expression with one or more :class:`And` subexpressions
-     - ``warn_ungrouped_named_tokens_in_collection`` - flag to enable warnings when a results
-       name is defined on a containing expression with ungrouped subexpressions that also
-       have results names
-     - ``warn_name_set_on_empty_Forward`` - flag to enable warnings when a :class:`Forward` is defined
-       with a results name, but has no contents defined
-     - ``warn_on_parse_using_empty_Forward`` - flag to enable warnings when a :class:`Forward` is
-       defined in a grammar but has never had an expression attached to it
-     - ``warn_on_assignment_to_Forward`` - flag to enable warnings when a :class:`Forward` is defined
-       but is overwritten by assigning using ``'='`` instead of ``'<<='`` or ``'<<'``
-     - ``warn_on_multiple_string_args_to_oneof`` - flag to enable warnings when :class:`one_of` is
-       incorrectly called with multiple str arguments
-     - ``enable_debug_on_named_expressions`` - flag to auto-enable debug on all subsequent
-       calls to :class:`ParserElement.set_name`
+    - ``warn_multiple_tokens_in_named_alternation`` - flag to enable warnings when a results
+      name is defined on a :class:`MatchFirst` or :class:`Or` expression with one or more :class:`And` subexpressions
+    - ``warn_ungrouped_named_tokens_in_collection`` - flag to enable warnings when a results
+      name is defined on a containing expression with ungrouped subexpressions that also
+      have results names
+    - ``warn_name_set_on_empty_Forward`` - flag to enable warnings when a :class:`Forward` is defined
+      with a results name, but has no contents defined
+    - ``warn_on_parse_using_empty_Forward`` - flag to enable warnings when a :class:`Forward` is
+      defined in a grammar but has never had an expression attached to it
+    - ``warn_on_assignment_to_Forward`` - flag to enable warnings when a :class:`Forward` is defined
+      but is overwritten by assigning using ``'='`` instead of ``'<<='`` or ``'<<'``
+    - ``warn_on_multiple_string_args_to_oneof`` - flag to enable warnings when :class:`one_of` is
+      incorrectly called with multiple str arguments
+    - ``enable_debug_on_named_expressions`` - flag to auto-enable debug on all subsequent
+      calls to :class:`ParserElement.set_name`
 
     Diagnostics are enabled/disabled by calling :class:`enable_diag` and :class:`disable_diag`.
     All warnings can be enabled by calling :class:`enable_all_warnings`.
@@ -1331,13 +1331,13 @@ class ParserElement(ABC):
         ``expr + expr + expr``.  Expressions may also be multiplied by a 2-integer
         tuple, similar to ``{min, max}`` multipliers in regular expressions.  Tuples
         may also include ``None`` as in:
-         - ``expr*(n, None)`` or ``expr*(n, )`` is equivalent
-              to ``expr*n + ZeroOrMore(expr)``
-              (read as "at least n instances of ``expr``")
-         - ``expr*(None, n)`` is equivalent to ``expr*(0, n)``
-              (read as "0 to n instances of ``expr``")
-         - ``expr*(None, None)`` is equivalent to ``ZeroOrMore(expr)``
-         - ``expr*(1, None)`` is equivalent to ``OneOrMore(expr)``
+        - ``expr*(n, None)`` or ``expr*(n, )`` is equivalent
+             to ``expr*n + ZeroOrMore(expr)``
+             (read as "at least n instances of ``expr``")
+        - ``expr*(None, n)`` is equivalent to ``expr*(0, n)``
+             (read as "0 to n instances of ``expr``")
+        - ``expr*(None, None)`` is equivalent to ``ZeroOrMore(expr)``
+        - ``expr*(1, None)`` is equivalent to ``OneOrMore(expr)``
 
         Note that ``expr*(None, n)`` does not raise an exception if
         more than n exprs exist in the input stream; that is,
@@ -1514,16 +1514,18 @@ class ParserElement(ABC):
     def __getitem__(self, key):
         """
         use ``[]`` indexing notation as a short form for expression repetition:
-         - ``expr[n]`` is equivalent to ``expr*n``
-         - ``expr[m, n]`` is equivalent to ``expr*(m, n)``
-         - ``expr[n, ...]`` or ``expr[n,]`` is equivalent
-              to ``expr*n + ZeroOrMore(expr)``
-              (read as "at least n instances of ``expr``")
-         - ``expr[..., n]`` is equivalent to ``expr*(0, n)``
-              (read as "0 to n instances of ``expr``")
-         - ``expr[...]`` and ``expr[0, ...]`` are equivalent to ``ZeroOrMore(expr)``
-         - ``expr[1, ...]`` is equivalent to ``OneOrMore(expr)``
-         ``None`` may be used in place of ``...``.
+
+        - ``expr[n]`` is equivalent to ``expr*n``
+        - ``expr[m, n]`` is equivalent to ``expr*(m, n)``
+        - ``expr[n, ...]`` or ``expr[n,]`` is equivalent
+             to ``expr*n + ZeroOrMore(expr)``
+             (read as "at least n instances of ``expr``")
+        - ``expr[..., n]`` is equivalent to ``expr*(0, n)``
+             (read as "0 to n instances of ``expr``")
+        - ``expr[...]`` and ``expr[0, ...]`` are equivalent to ``ZeroOrMore(expr)``
+        - ``expr[1, ...]`` is equivalent to ``OneOrMore(expr)``
+
+        ``None`` may be used in place of ``...``.
 
         Note that ``expr[..., n]`` and ``expr[m, n]``do not raise an exception
         if more than ``n`` ``expr``s exist in the input stream.  If this behavior is
@@ -1652,14 +1654,14 @@ class ParserElement(ABC):
         """
         Customize display of debugging messages while doing pattern matching:
 
-         - ``start_action`` - method to be called when an expression is about to be parsed;
-           should have the signature ``fn(input_string: str, location: int, expression: ParserElement, cache_hit: bool)``
+        - ``start_action`` - method to be called when an expression is about to be parsed;
+          should have the signature ``fn(input_string: str, location: int, expression: ParserElement, cache_hit: bool)``
 
-         - ``success_action`` - method to be called when an expression has successfully parsed;
-           should have the signature ``fn(input_string: str, start_location: int, end_location: int, expression: ParserELement, parsed_tokens: ParseResults, cache_hit: bool)``
+        - ``success_action`` - method to be called when an expression has successfully parsed;
+          should have the signature ``fn(input_string: str, start_location: int, end_location: int, expression: ParserELement, parsed_tokens: ParseResults, cache_hit: bool)``
 
-         - ``exception_action`` - method to be called when expression fails to parse;
-           should have the signature ``fn(input_string: str, location: int, expression: ParserElement, exception: Exception, cache_hit: bool)``
+        - ``exception_action`` - method to be called when expression fails to parse;
+          should have the signature ``fn(input_string: str, location: int, expression: ParserElement, exception: Exception, cache_hit: bool)``
         """
         self.debugActions = (
             start_action or _default_start_debug_action,
@@ -1819,8 +1821,8 @@ class ParserElement(ABC):
         inline microtests of sub expressions while building up larger parser.
 
         Parameters:
-         - ``test_string`` - to test against this expression for a match
-         - ``parse_all`` - (default= ``True``) - flag to pass to :class:`parse_string` when running tests
+        - ``test_string`` - to test against this expression for a match
+        - ``parse_all`` - (default= ``True``) - flag to pass to :class:`parse_string` when running tests
 
         Example::
 
@@ -1857,18 +1859,18 @@ class ParserElement(ABC):
         run a parse expression against a list of sample strings.
 
         Parameters:
-         - ``tests`` - a list of separate test strings, or a multiline string of test strings
-         - ``parse_all`` - (default= ``True``) - flag to pass to :class:`parse_string` when running tests
-         - ``comment`` - (default= ``'#'``) - expression for indicating embedded comments in the test
-           string; pass None to disable comment filtering
-         - ``full_dump`` - (default= ``True``) - dump results as list followed by results names in nested outline;
-           if False, only dump nested list
-         - ``print_results`` - (default= ``True``) prints test output to stdout
-         - ``failure_tests`` - (default= ``False``) indicates if these tests are expected to fail parsing
-         - ``post_parse`` - (default= ``None``) optional callback for successful parse results; called as
-           `fn(test_string, parse_results)` and returns a string to be added to the test output
-         - ``file`` - (default= ``None``) optional file-like object to which test output will be written;
-           if None, will default to ``sys.stdout``
+        - ``tests`` - a list of separate test strings, or a multiline string of test strings
+        - ``parse_all`` - (default= ``True``) - flag to pass to :class:`parse_string` when running tests
+        - ``comment`` - (default= ``'#'``) - expression for indicating embedded comments in the test
+          string; pass None to disable comment filtering
+        - ``full_dump`` - (default= ``True``) - dump results as list followed by results names in nested outline;
+          if False, only dump nested list
+        - ``print_results`` - (default= ``True``) prints test output to stdout
+        - ``failure_tests`` - (default= ``False``) indicates if these tests are expected to fail parsing
+        - ``post_parse`` - (default= ``None``) optional callback for successful parse results; called as
+          `fn(test_string, parse_results)` and returns a string to be added to the test output
+        - ``file`` - (default= ``None``) optional file-like object to which test output will be written;
+          if None, will default to ``sys.stdout``
 
         Returns: a (success, results) tuple, where success indicates that all tests succeeded
         (or failed if ``failure_tests`` is True), and the results contain a list of lines of each
@@ -2029,12 +2031,12 @@ class ParserElement(ABC):
         Create a railroad diagram for the parser.
 
         Parameters:
-            - output_html (str or file-like object) - output target for generated
-              diagram HTML
-            - vertical (int) - threshold for formatting multiple alternatives vertically
-              instead of horizontally (default=3)
-            - show_results_names - bool flag whether diagram should show annotations for
-              defined results names
+        - output_html (str or file-like object) - output target for generated
+          diagram HTML
+        - vertical (int) - threshold for formatting multiple alternatives vertically
+          instead of horizontally (default=3)
+        - show_results_names - bool flag whether diagram should show annotations for
+          defined results names
 
         Additional diagram-formatting keyword arguments can also be included;
         see railroad.Diagram class.
@@ -2231,18 +2233,18 @@ class Keyword(Token):
     it must be immediately followed by a non-keyword character.  Compare
     with :class:`Literal`:
 
-     - ``Literal("if")`` will match the leading ``'if'`` in
-       ``'ifAndOnlyIf'``.
-     - ``Keyword("if")`` will not; it will only match the leading
-       ``'if'`` in ``'if x=1'``, or ``'if(y==2)'``
+    - ``Literal("if")`` will match the leading ``'if'`` in
+      ``'ifAndOnlyIf'``.
+    - ``Keyword("if")`` will not; it will only match the leading
+      ``'if'`` in ``'if x=1'``, or ``'if(y==2)'``
 
     Accepts two optional constructor arguments in addition to the
     keyword string:
 
-     - ``identChars`` is a string of characters that would be valid
-       identifier characters, defaulting to all alphanumerics + "_" and
-       "$"
-     - ``caseless`` allows case-insensitive matching, default is ``False``.
+    - ``identChars`` is a string of characters that would be valid
+      identifier characters, defaulting to all alphanumerics + "_" and
+      "$"
+    - ``caseless`` allows case-insensitive matching, default is ``False``.
 
     Example::
 
@@ -2400,18 +2402,18 @@ class CloseMatch(Token):
     that is, strings with at most 'n' mismatching characters.
     :class:`CloseMatch` takes parameters:
 
-     - ``match_string`` - string to be matched
-     - ``caseless`` - a boolean indicating whether to ignore casing when comparing characters
-     - ``max_mismatches`` - (``default=1``) maximum number of
-       mismatches allowed to count as a match
+    - ``match_string`` - string to be matched
+    - ``caseless`` - a boolean indicating whether to ignore casing when comparing characters
+    - ``max_mismatches`` - (``default=1``) maximum number of
+      mismatches allowed to count as a match
 
     The results from a successful parse will contain the matched text
     from the input string and the following named results:
 
-     - ``mismatches`` - a list of the positions within the
-       match_string where mismatches were found
-     - ``original`` - the original match_string used to compare
-       against the input string
+    - ``mismatches`` - a list of the positions within the
+      match_string where mismatches were found
+    - ``original`` - the original match_string used to compare
+      against the input string
 
     If ``mismatches`` is an empty list, then the match was an exact
     match.
@@ -2487,23 +2489,23 @@ class CloseMatch(Token):
 class Word(Token):
     """Token for matching words composed of allowed character sets.
     Parameters:
-     - ``init_chars`` - string of all characters that should be used to
-       match as a word; "ABC" will match "AAA", "ABAB", "CBAC", etc.;
-       if ``body_chars`` is also specified, then this is the string of
-       initial characters
-     - ``body_chars`` - string of characters that
-       can be used for matching after a matched initial character as
-       given in ``init_chars``; if omitted, same as the initial characters
-       (default=``None``)
-     - ``min`` - minimum number of characters to match (default=1)
-     - ``max`` - maximum number of characters to match (default=0)
-     - ``exact`` - exact number of characters to match (default=0)
-     - ``as_keyword`` - match as a keyword (default=``False``)
-     - ``exclude_chars`` - characters that might be
-       found in the input ``body_chars`` string but which should not be
-       accepted for matching ;useful to define a word of all
-       printables except for one or two characters, for instance
-       (default=``None``)
+    - ``init_chars`` - string of all characters that should be used to
+      match as a word; "ABC" will match "AAA", "ABAB", "CBAC", etc.;
+      if ``body_chars`` is also specified, then this is the string of
+      initial characters
+    - ``body_chars`` - string of characters that
+      can be used for matching after a matched initial character as
+      given in ``init_chars``; if omitted, same as the initial characters
+      (default=``None``)
+    - ``min`` - minimum number of characters to match (default=1)
+    - ``max`` - maximum number of characters to match (default=0)
+    - ``exact`` - exact number of characters to match (default=0)
+    - ``as_keyword`` - match as a keyword (default=``False``)
+    - ``exclude_chars`` - characters that might be
+      found in the input ``body_chars`` string but which should not be
+      accepted for matching ;useful to define a word of all
+      printables except for one or two characters, for instance
+      (default=``None``)
 
     :class:`srange` is useful for defining custom character set strings
     for defining :class:`Word` expressions, using range notation from
@@ -2518,15 +2520,15 @@ class Word(Token):
 
     pyparsing includes helper strings for building Words:
 
-     - :class:`alphas`
-     - :class:`nums`
-     - :class:`alphanums`
-     - :class:`hexnums`
-     - :class:`alphas8bit` (alphabetic characters in ASCII range 128-255
-       - accented, tilded, umlauted, etc.)
-     - :class:`punc8bit` (non-alphabetic characters in ASCII range
-       128-255 - currency, symbols, superscripts, diacriticals, etc.)
-     - :class:`printables` (any non-whitespace character)
+    - :class:`alphas`
+    - :class:`nums`
+    - :class:`alphanums`
+    - :class:`hexnums`
+    - :class:`alphas8bit` (alphabetic characters in ASCII range 128-255
+      - accented, tilded, umlauted, etc.)
+    - :class:`punc8bit` (non-alphabetic characters in ASCII range
+      128-255 - currency, symbols, superscripts, diacriticals, etc.)
+    - :class:`printables` (any non-whitespace character)
 
     ``alphas``, ``nums``, and ``printables`` are also defined in several
     Unicode sets - see :class:`pyparsing_unicode``.
@@ -2909,23 +2911,23 @@ class QuotedString(Token):
 
     Defined with the following parameters:
 
-     - ``quote_char`` - string of one or more characters defining the
-       quote delimiting string
-     - ``esc_char`` - character to re_escape quotes, typically backslash
-       (default= ``None``)
-     - ``esc_quote`` - special quote sequence to re_escape an embedded quote
-       string (such as SQL's ``""`` to re_escape an embedded ``"``)
-       (default= ``None``)
-     - ``multiline`` - boolean indicating whether quotes can span
-       multiple lines (default= ``False``)
-     - ``unquote_results`` - boolean indicating whether the matched text
-       should be unquoted (default= ``True``)
-     - ``end_quote_char`` - string of one or more characters defining the
-       end of the quote delimited string (default= ``None``  => same as
-       quote_char)
-     - ``convert_whitespace_escapes`` - convert escaped whitespace
-       (``'\t'``, ``'\n'``, etc.) to actual whitespace
-       (default= ``True``)
+    - ``quote_char`` - string of one or more characters defining the
+      quote delimiting string
+    - ``esc_char`` - character to re_escape quotes, typically backslash
+      (default= ``None``)
+    - ``esc_quote`` - special quote sequence to re_escape an embedded quote
+      string (such as SQL's ``""`` to re_escape an embedded ``"``)
+      (default= ``None``)
+    - ``multiline`` - boolean indicating whether quotes can span
+      multiple lines (default= ``False``)
+    - ``unquote_results`` - boolean indicating whether the matched text
+      should be unquoted (default= ``True``)
+    - ``end_quote_char`` - string of one or more characters defining the
+      end of the quote delimited string (default= ``None``  => same as
+      quote_char)
+    - ``convert_whitespace_escapes`` - convert escaped whitespace
+      (``'\t'``, ``'\n'``, etc.) to actual whitespace
+      (default= ``True``)
 
     Example::
 
@@ -4321,10 +4323,10 @@ class PrecededBy(ParseElementEnhance):
 
     Parameters:
 
-     - expr - expression that must match prior to the current parse
-       location
-     - retreat - (default= ``None``) - (int) maximum number of characters
-       to lookbehind prior to the current parse location
+    - expr - expression that must match prior to the current parse
+      location
+    - retreat - (default= ``None``) - (int) maximum number of characters
+      to lookbehind prior to the current parse location
 
     If the lookbehind expression is a string, :class:`Literal`,
     :class:`Keyword`, or a :class:`Word` or :class:`CharsNotIn`
@@ -4399,9 +4401,9 @@ class Located(ParseElementEnhance):
 
     This helper adds the following results names:
 
-     - ``locn_start`` - location where matched expression begins
-     - ``locn_end`` - location where matched expression ends
-     - ``value`` - the actual parsed results
+    - ``locn_start`` - location where matched expression begins
+    - ``locn_end`` - location where matched expression ends
+    - ``value`` - the actual parsed results
 
     Be careful if the input text contains ``<TAB>`` characters, you
     may want to call :class:`ParserElement.parse_with_tabs`
@@ -4551,10 +4553,10 @@ class OneOrMore(_MultipleMatch):
     Repetition of one or more of the given expression.
 
     Parameters:
-     - expr - expression that must match one or more times
-     - stop_on - (default= ``None``) - expression for a terminating sentinel
-          (only required if the sentinel would ordinarily match the repetition
-          expression)
+    - expr - expression that must match one or more times
+    - stop_on - (default= ``None``) - expression for a terminating sentinel
+         (only required if the sentinel would ordinarily match the repetition
+         expression)
 
     Example::
 
@@ -4582,10 +4584,10 @@ class ZeroOrMore(_MultipleMatch):
     Optional repetition of zero or more of the given expression.
 
     Parameters:
-     - ``expr`` - expression that must match zero or more times
-     - ``stop_on`` - expression for a terminating sentinel
-       (only required if the sentinel would ordinarily match the repetition
-       expression) - (default= ``None``)
+    - ``expr`` - expression that must match zero or more times
+    - ``stop_on`` - expression for a terminating sentinel
+      (only required if the sentinel would ordinarily match the repetition
+      expression) - (default= ``None``)
 
     Example: similar to :class:`OneOrMore`
     """
@@ -4623,8 +4625,8 @@ class Opt(ParseElementEnhance):
     Optional matching of the given expression.
 
     Parameters:
-     - ``expr`` - expression that must match zero or more times
-     - ``default`` (optional) - value to be returned if the optional expression is not found.
+    - ``expr`` - expression that must match zero or more times
+    - ``default`` (optional) - value to be returned if the optional expression is not found.
 
     Example::
 
@@ -4700,15 +4702,15 @@ class SkipTo(ParseElementEnhance):
     expression is found.
 
     Parameters:
-     - ``expr`` - target expression marking the end of the data to be skipped
-     - ``include`` - if ``True``, the target expression is also parsed
-       (the skipped text and target expression are returned as a 2-element
-       list) (default= ``False``).
-     - ``ignore`` - (default= ``None``) used to define grammars (typically quoted strings and
-       comments) that might contain false matches to the target expression
-     - ``fail_on`` - (default= ``None``) define expressions that are not allowed to be
-       included in the skipped test; if found before the target expression is found,
-       the :class:`SkipTo` is not a match
+    - ``expr`` - target expression marking the end of the data to be skipped
+    - ``include`` - if ``True``, the target expression is also parsed
+      (the skipped text and target expression are returned as a 2-element
+      list) (default= ``False``).
+    - ``ignore`` - (default= ``None``) used to define grammars (typically quoted strings and
+      comments) that might contain false matches to the target expression
+    - ``fail_on`` - (default= ``None``) define expressions that are not allowed to be
+      included in the skipped test; if found before the target expression is found,
+      the :class:`SkipTo` is not a match
 
     Example::
 
@@ -5391,18 +5393,18 @@ def srange(s):
     is the expanded character set joined into a single string. The
     values enclosed in the []'s may be:
 
-     - a single character
-     - an escaped character with a leading backslash (such as ``\-``
-       or ``\]``)
-     - an escaped hex character with a leading ``'\x'``
-       (``\x21``, which is a ``'!'`` character) (``\0x##``
-       is also supported for backwards compatibility)
-     - an escaped octal character with a leading ``'\0'``
-       (``\041``, which is a ``'!'`` character)
-     - a range of any of the above, separated by a dash (``'a-z'``,
-       etc.)
-     - any combination of the above (``'aeiouy'``,
-       ``'a-zA-Z0-9_$'``, etc.)
+    - a single character
+    - an escaped character with a leading backslash (such as ``\-``
+      or ``\]``)
+    - an escaped hex character with a leading ``'\x'``
+      (``\x21``, which is a ``'!'`` character) (``\0x##``
+      is also supported for backwards compatibility)
+    - an escaped octal character with a leading ``'\0'``
+      (``\041``, which is a ``'!'`` character)
+    - a range of any of the above, separated by a dash (``'a-z'``,
+      etc.)
+    - any combination of the above (``'aeiouy'``,
+      ``'a-zA-Z0-9_$'``, etc.)
     """
     _expanded = (
         lambda p: p

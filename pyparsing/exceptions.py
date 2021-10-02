@@ -46,11 +46,11 @@ class ParseBaseException(Exception):
 
         Parameters:
 
-         - exc - exception raised during parsing (need not be a ParseException, in support
-           of Python exceptions that might be raised in a parse action)
-         - depth (default=16) - number of levels back in the stack trace to list expression
-           and function names; if None, the full stack trace names will be listed; if 0, only
-           the failing input line, marker, and exception string will be shown
+        - exc - exception raised during parsing (need not be a ParseException, in support
+          of Python exceptions that might be raised in a parse action)
+        - depth (default=16) - number of levels back in the stack trace to list expression
+          and function names; if None, the full stack trace names will be listed; if 0, only
+          the failing input line, marker, and exception string will be shown
 
         Returns a multi-line string listing the ParserElements and/or function names in the
         exception's stack trace.
@@ -182,9 +182,9 @@ class ParseBaseException(Exception):
 
         Parameters:
 
-         - depth (default=16) - number of levels back in the stack trace to list expression
-           and function names; if None, the full stack trace names will be listed; if 0, only
-           the failing input line, marker, and exception string will be shown
+        - depth (default=16) - number of levels back in the stack trace to list expression
+          and function names; if None, the full stack trace names will be listed; if 0, only
+          the failing input line, marker, and exception string will be shown
 
         Returns a multi-line string listing the ParserElements and/or function names in the
         exception's stack trace.

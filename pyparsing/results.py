@@ -28,9 +28,9 @@ class ParseResults:
     """Structured parse results, to provide multiple means of access to
     the parsed data:
 
-       - as a list (``len(results)``)
-       - by list index (``results[0], results[1]``, etc.)
-       - by attribute (``results.<results_name>`` - see :class:`ParserElement.set_results_name`)
+    - as a list (``len(results)``)
+    - by list index (``results[0], results[1]``, etc.)
+    - by attribute (``results.<results_name>`` - see :class:`ParserElement.set_results_name`)
 
     Example::
 

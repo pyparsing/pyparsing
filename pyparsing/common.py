@@ -9,25 +9,26 @@ class pyparsing_common:
     """Here are some common low-level expressions that may be useful in
     jump-starting parser development:
 
-     - numeric forms (:class:`integers<integer>`, :class:`reals<real>`,
-       :class:`scientific notation<sci_real>`)
-     - common :class:`programming identifiers<identifier>`
-     - network addresses (:class:`MAC<mac_address>`,
-       :class:`IPv4<ipv4_address>`, :class:`IPv6<ipv6_address>`)
-     - ISO8601 :class:`dates<iso8601_date>` and
-       :class:`datetime<iso8601_datetime>`
-     - :class:`UUID<uuid>`
-     - :class:`comma-separated list<comma_separated_list>`
+    - numeric forms (:class:`integers<integer>`, :class:`reals<real>`,
+      :class:`scientific notation<sci_real>`)
+    - common :class:`programming identifiers<identifier>`
+    - network addresses (:class:`MAC<mac_address>`,
+      :class:`IPv4<ipv4_address>`, :class:`IPv6<ipv6_address>`)
+    - ISO8601 :class:`dates<iso8601_date>` and
+      :class:`datetime<iso8601_datetime>`
+    - :class:`UUID<uuid>`
+    - :class:`comma-separated list<comma_separated_list>`
+    - :class:`url`
 
     Parse actions:
 
-     - :class:`convertToInteger`
-     - :class:`convertToFloat`
-     - :class:`convertToDate`
-     - :class:`convertToDatetime`
-     - :class:`stripHTMLTags`
-     - :class:`upcaseTokens`
-     - :class:`downcaseTokens`
+    - :class:`convertToInteger`
+    - :class:`convertToFloat`
+    - :class:`convertToDate`
+    - :class:`convertToDatetime`
+    - :class:`stripHTMLTags`
+    - :class:`upcaseTokens`
+    - :class:`downcaseTokens`
 
     Example::
 
@@ -254,7 +255,7 @@ class pyparsing_common:
         Helper to create a parse action for converting parsed date string to Python datetime.date
 
         Params -
-         - fmt - format to be passed to datetime.strptime (default= ``"%Y-%m-%d"``)
+        - fmt - format to be passed to datetime.strptime (default= ``"%Y-%m-%d"``)
 
         Example::
 
@@ -281,7 +282,7 @@ class pyparsing_common:
         datetime string to Python datetime.datetime
 
         Params -
-         - fmt - format to be passed to datetime.strptime (default= ``"%Y-%m-%dT%H:%M:%S.%f"``)
+        - fmt - format to be passed to datetime.strptime (default= ``"%Y-%m-%dT%H:%M:%S.%f"``)
 
         Example::
 
