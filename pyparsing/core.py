@@ -1650,7 +1650,7 @@ class ParserElement(ABC):
         exception_action: DebugExceptionAction,
     ) -> "ParserElement":
         """
-        Customize display of debugging messages while doing pattern matching::
+        Customize display of debugging messages while doing pattern matching:
 
          - ``start_action`` - method to be called when an expression is about to be parsed;
            should have the signature ``fn(input_string: str, location: int, expression: ParserElement, cache_hit: bool)``
