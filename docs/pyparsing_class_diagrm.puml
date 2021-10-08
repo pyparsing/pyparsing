@@ -1,0 +1,151 @@
+@startuml
+'https://plantuml.com/class-diagram
+
+top to bottom direction
+hide circle
+hide empty members
+'hide empty methods
+skinparam groupInheritance 3
+
+package exceptions {
+class BaseParseException
+class ParseException
+class ParseFatalException
+class ParseSyntaxException
+
+BaseParseException <|-- ParseException
+BaseParseException <|-- ParseFatalException
+ParseFatalException <|-- ParseSyntaxException
+}
+
+package core {
+class ParserElement {
+name: str
+results_name: str
+---
+{classifier} enable_packrat()
+{classifier} enable_left_recursion()
+{classifier} disable_memoization()
+{classifier} set_default_whitespace_chars()
+{classifier} inline_literals_using()
+operator + () -> And
+operator - () -> And.ErrorStop
+operator | () -> MatchFirst
+operator ^ () -> Or
+operator & () -> Each
+operator ~ () -> NotAny
+operator [] () -> _MultipleMatch
+add_condition()
+add_parse_action()
+set_parse_action()
+copy()
+ignore(expr)
+leave_whitespace()
+parse_with_tabs()
+suppress()
+set_break()
+set_debug()
+set_debug_actions()
+set_name()
+set_results_name()
+parse_string()
+scan_string()
+search_string()
+transform_string()
+split()
+run_tests()
+create_diagram()
+}
+class Token
+class ParseExpression {
+exprs: list[ParserElement]
+}
+class ParseElementEnhance {
+expr: ParserElement
+}
+class PositionalExpression
+class TokenConverter
+class Literal
+class CaselessLiteral
+class Word
+class Char
+class Keyword
+class CaselessKeyword
+class Empty
+class White
+class NoMatch
+class Regex
+class QuotedString
+class CharsNotIn
+
+class And
+class Or
+class MatchFirst
+class Each
+
+class OneOrMore
+class ZeroOrMore
+class SkipTo
+class Group
+class Forward {
+operator <<= ()
+}
+class LineStart
+class LineEnd
+class StringStart
+class StringEnd
+
+ParserElement <|-- Token
+ParserElement <|--- ParseExpression
+ParserElement <|-- PositionalExpression
+ParserElement <|----- ParseElementEnhance
+
+'ParseElementEnhance ---> ParserElement
+'ParseExpression ---> "*" ParserElement
+
+
+ParseSyntaxException <-[hidden]- ParserElement
+Token <|-- Empty
+Token <|-- CloseMatch
+Token <|---- NoMatch
+Token <|---- Literal
+Token <|---- Word
+Token <|---- Keyword
+Token <|--- Regex
+Token <|--- CharsNotIn
+Token <|--- White
+Token <|---- QuotedString
+Word <|-- Char
+Literal <|-- CaselessLiteral
+Keyword <|-- CaselessKeyword
+
+ParseExpression <|-- And
+ParseExpression <|--- Or
+ParseExpression <|-- MatchFirst
+ParseExpression <|--- Each
+
+ParseElementEnhance <|-- SkipTo
+ParseElementEnhance <|-- Forward
+ParseElementEnhance <|-- Located
+ParseElementEnhance <|--- _MultipleMatch
+_MultipleMatch <|-- OneOrMore
+_MultipleMatch <|-- ZeroOrMore
+ParseElementEnhance <|-- NotAny
+ParseElementEnhance <|-- FollowedBy
+ParseElementEnhance <|-- PrecededBy
+ParseElementEnhance <|-- Opt
+ParseElementEnhance <|--- TokenConverter
+ParseElementEnhance <|-- AtStringStart
+ParseElementEnhance <|-- AtLineStart
+TokenConverter <|-- Group
+TokenConverter <|-- Dict
+TokenConverter <|-- Suppress
+TokenConverter <|-- Combine
+
+PositionalExpression <|-- LineStart
+PositionalExpression <|-- LineEnd
+PositionalExpression <|-- StringStart
+PositionalExpression <|-- StringEnd
+}
+
+@enduml
