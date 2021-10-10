@@ -4,15 +4,17 @@ dist: xenial
 
 matrix:
   include:
-    - python: 3.6
+    - python: "3.6"
       env: TOXENV=py36
-    - python: 3.7
+    - python: "3.7"
       env: TOXENV=py37
-    - python: 3.8
+    - python: "3.8"
       env: TOXENV=py38
-    - python: 3.9
+    - python: "3.9"
       env: TOXENV=py39
-    - python: pypy3
+    - python: "3.10-dev"
+      env: TOXENV=py310
+    - python: "pypy3"
       env: TOXENV=pypy3
   fast_finish: true
 
