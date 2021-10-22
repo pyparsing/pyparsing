@@ -27,7 +27,7 @@ setup(  # Distribution meta-data
     long_description=pyparsing_main_doc,
     long_description_content_type="text/x-rst",
     author="Paul McGuire",
-    author_email="ptmcg@users.sourceforge.net",
+    author_email="ptmcg.gm+pyparsing@gmail.com",
     url="https://github.com/pyparsing/pyparsing/",
     download_url="https://pypi.org/project/pyparsing/",
     license="MIT License",
