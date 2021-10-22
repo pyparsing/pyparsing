@@ -23,6 +23,9 @@ Version 3.0.0 -
 - Modified helpers common_html_entity and replace_html_entity() to use the HTML
   entity definitions from html.entities.html5.
 
+- Updated the class diagram in the pyparsing docs directory, along with the supporting
+  .puml file (PlantUML markup) used to create the diagram.
+
 
 Version 3.0.0rc2 -
 ------------------
