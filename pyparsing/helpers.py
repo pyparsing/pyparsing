@@ -1,4 +1,6 @@
 # helpers.py
+import html.entities
+
 from .core import *
 from .util import _bslash, _flatten, _escapeRegexRangeChars
 
@@ -648,10 +650,9 @@ any_open_tag, any_close_tag = make_html_tags(
     Word(alphas, alphanums + "_:").set_name("any tag")
 )
 
-
-_htmlEntityMap = dict(zip("gt lt amp nbsp quot apos".split(), "><& \"'"))
+_htmlEntityMap = {k.rstrip(";"): v for k, v in html.entities.html5.items()}
 common_html_entity = Regex(
-    "&(?P<entity>" + "|".join(_htmlEntityMap.keys()) + ");"
+    "&(?P<entity>" + "|".join(_htmlEntityMap) + ");"
 ).set_name("common HTML entity")
 
 

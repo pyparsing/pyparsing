@@ -1860,6 +1860,31 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
 
         self.assertParseResultsEquals(testVal, expected_list=expected)
 
+    def testHTMLEntities(self):
+        html_source = dedent("""\
+        This &amp; that
+        2 &gt; 1
+        0 &lt; 1
+        Don&apos;t get excited!
+        I said &quot;Don&apos;t get excited!&quot;
+        Copyright &copy; 2021
+        Dot &longrightarrow; &dot;
+        """)
+        transformer = pp.common_html_entity.add_parse_action(pp.replace_html_entity)
+        transformed = transformer.transform_string(html_source)
+        print(transformed)
+
+        expected = dedent("""\
+        This & that
+        2 > 1
+        0 < 1
+        Don't get excited!
+        I said "Don't get excited!"
+        Copyright © 2021
+        Dot ⟶ ˙
+        """)
+        self.assertEqual(expected, transformed)
+
     def testInfixNotationBasicArithEval(self):
         import ast
 

@@ -16,6 +16,9 @@ Version 3.0.0 -
   . added mark_control argument to support highlighting of control characters using
     '.' or Unicode symbols, such as "␍" and "␊".
 
+- Modified helpers common_html_entity and replace_html_entity() to use the HTML
+  entity definitions from html.entities.html5.
+
 
 Version 3.0.0rc2 -
 ------------------
