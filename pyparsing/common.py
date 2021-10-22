@@ -398,13 +398,13 @@ class pyparsing_common:
         r"(?:[a-z\u00a1-\uffff]{2,}\.?)" +
         r")" +
         # port number (optional)
-        r"(?P<port>:\d{2,5})?" +
+        r"(:(?P<port>\d{2,5}))?" +
         # resource path (optional)
         r"(?P<path>\/[^?# ]*)?" +
         # query string (optional)
-        r"(?P<query>\?[^#]*)?" +
+        r"(\?(?P<query>[^#]*))?" +
         # fragment (optional)
-        r"(?P<fragment>#\S*)?" +
+        r"(#(?P<fragment>\S*))?" +
         r"$"
     ).set_name("url")
     # fmt: on

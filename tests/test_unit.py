@@ -5682,6 +5682,23 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
         success, report = ppc.url.runTests(url_bad_tests, failure_tests=True)
         self.assertTrue(success)
 
+    def testCommonUrlParts(self):
+        from urllib.parse import urlparse
+        sample_url = "https://bob:secret@www.example.com:8080/path/to/resource?filter=int#book-mark"
+
+        parts = urlparse(sample_url)
+        expected = {
+            "scheme": parts.scheme,
+            "auth": "{}:{}".format(parts.username, parts.password),
+            "host": parts.hostname,
+            "port": str(parts.port),
+            "path": parts.path,
+            "query": parts.query,
+            "fragment": parts.fragment,
+        }
+
+        self.assertParseAndCheckDict(ppc.url, sample_url, expected, verbose=True)
+
     def testNumericExpressions(self):
 
         # disable parse actions that do type conversion so we don't accidentally trigger

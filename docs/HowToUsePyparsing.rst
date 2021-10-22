@@ -1132,15 +1132,24 @@ Helper parse actions
   ensure that an attribute is present but any attribute value is
   acceptable.
 
-- ``downcase_tokens`` - converts all matched tokens to lowercase
-
-- ``upcase_tokens`` - converts all matched tokens to uppercase
-
 - ``match_only_at_col(column_number)`` - a parse action that verifies that
   an expression was matched at a particular column, raising a
   ``ParseException`` if matching at a different column number; useful when parsing
   tabular data
 
+- ``common.convert_to_integer()`` - converts all matched tokens to uppercase
+
+- ``common.convert_to_float()`` - converts all matched tokens to uppercase
+
+- ``common.convert_to_date()`` - converts matched token to a datetime.date
+
+- ``common.convert_to_datetime()`` - converts matched token to a datetime.datetime
+
+- ``common.strip_html_tags()`` - removes HTML tags from matched token
+
+- ``common.downcase_tokens()`` - converts all matched tokens to lowercase
+
+- ``common.upcase_tokens()`` - converts all matched tokens to uppercase
 
 
 Common string and token constants
@@ -1180,6 +1189,42 @@ Common string and token constants
 
 - ``rest_of_line`` - all remaining printable characters up to but not including the next
   newline
+
+- ``common.integer`` - an integer with no leading sign; parsed token is converted to int
+
+- ``common.hex_integer`` - a hexadecimal integer; parsed token is converted to int
+
+- ``common.signed_integer`` - an integer with optional leading sign; parsed token is converted to int
+
+- ``common.fraction`` - signed_integer '/' signed_integer; parsed tokens are converted to float
+
+- ``common.mixed_integer`` - signed_integer '-' fraction; parsed tokens are converted to float
+
+- ``common.real`` - real number; parsed tokens are converted to float
+
+- ``common.sci_real`` - real number with optional scientific notation; parsed tokens are convert to float
+
+- ``common.number`` - any numeric expression; parsed tokens are returned as converted by the matched expression
+
+- ``common.fnumber`` - any numeric expression; parsed tokens are converted to float
+
+- ``common.identifier`` - a programming identifier (follows Python's syntax convention of leading alpha or "_",
+  followed by 0 or more alpha, num, or "_")
+
+- ``common.ipv4_address`` - IPv4 address
+
+- ``common.ipv6_address`` - IPv6 address
+
+- ``common.mac_address`` - MAC address (with ":", "-", or "." delimiters)
+
+- ``common.iso8601_date`` - date in ``YYYY-MM-DD`` format
+
+- ``common.iso8601_datetime`` - datetime in ``YYYY-MM-DDThh:mm:ss.s(Z|+-00:00)`` format; trailing seconds,
+  milliseconds, and timezone optional; accepts separating ``'T'`` or ``' '``
+
+- ``common.url`` - matches URL strings and returns a ParseResults with named fields like those returned
+  by ``urllib.parse.urlparse()``
+
 
 Generating Railroad Diagrams
 ============================
