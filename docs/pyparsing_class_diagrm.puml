@@ -51,6 +51,7 @@ remove_quotes()
 with_attribute()
 with_class()
 trace_parse_action()
+condition_as_parse_action()
 }
 
 class ParseResults {
@@ -88,7 +89,15 @@ get_name()
 pprint()
 }
 
-class ParseBaseException #ffffff
+class ParseBaseException #ffffff {
+{static} explain_exception()
+explain()
+mark_input_line()
+line
+lineno
+column
+parser_element
+}
 class ParseException
 class ParseFatalException
 class ParseSyntaxException
@@ -106,6 +115,10 @@ results_name: str
 {classifier} disable_memoization()
 {classifier} set_default_whitespace_chars()
 {classifier} inline_literals_using()
+{classifier} reset_cache()
+
+{static} verbose_stacktrace
+
 operator + () -> And
 operator - () -> And.ErrorStop
 operator | () -> MatchFirst
