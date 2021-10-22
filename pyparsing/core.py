@@ -538,26 +538,41 @@ class ParserElement(ABC):
                 self._parse = self._parse._originalParseMethod
         return self
 
-    def set_parse_action(self, *fns: ParseAction, **kwargs) -> "ParserElement":
+    def set_parse_action(self, *fns: ParseAction, **kwargs) -> OptionalType["ParserElement"]:
         """
         Define one or more actions to perform when successfully matching parse element definition.
-        Parse action fn is a callable method with 0-3 arguments, called as ``fn(s, loc, toks)`` ,
-        ``fn(loc, toks)`` , ``fn(toks)`` , or just ``fn()`` , where:
+
+        Parse actions can be called to perform data conversions, do extra validation,
+        update external data structures, or enhance or replace the parsed tokens.
+        Each parse action ``fn`` is a callable method with 0-3 arguments, called as
+        ``fn(s, loc, toks)`` , ``fn(loc, toks)`` , ``fn(toks)`` , or just ``fn()`` , where:
 
         - s   = the original string being parsed (see note below)
         - loc = the location of the matching substring
         - toks = a list of the matched tokens, packaged as a :class:`ParseResults` object
 
-        If the functions in fns modify the tokens, they can return them as the return
-        value from fn, and the modified list of tokens will replace the original.
-        Otherwise, fn does not need to return any value.
+        The parsed tokens are passed to the parse action as ParseResults. They can be
+        modified in place using list-style append, extend, and pop operations to update
+        the parsed list elements; and with dictionary-style item set and del operations
+        to add, update, or remove any named results. If the tokens are modified in place,
+        it is not necessary to return them with a return statement.
 
-        If None is passed as the parse action, all previously added parse actions for this
+        Parse actions can also completely replace the given tokens, with another ``ParseResults``
+        object, or with some entirely different object (common for parse actions that perform data
+        conversions). A convenient way to build a new parse result is to define the values
+        using a dict, and then create the return value using :class:`ParseResults.from_dict`.
+
+        If None is passed as the ``fn`` parse action, all previously added parse actions for this
         expression are cleared.
 
         Optional keyword arguments:
 
-        - call_during_try = (default= ``False``) indicate if parse action should be run during lookaheads and alternate testing
+        - call_during_try = (default= ``False``) indicate if parse action should be run during
+          lookaheads and alternate testing. For parse actions that have side effects, it is
+          important to only call the parse action once it is determined that it is being
+          called as part of a successful parse. For parse actions that perform additional
+          validation, then call_during_try should be passed as True, so that the validation
+          code is included in the preliminary "try" parses.
 
         Note: the default parsing behavior is to expand tabs in the input string
         before starting the parsing process.  See :class:`parse_string` for more
@@ -567,17 +582,36 @@ class ParserElement(ABC):
 
         Example::
 
+            # parse dates in the form YYYY/MM/DD
+
+            # use parse action to convert toks from str to int at parse time
+            def convert_to_int(toks):
+                return int(toks[0])
+
+            # use a parse action to verify that the date is a valid date
+            def is_valid_date(toks):
+                from datetime import date
+                year, month, day = toks[::2]
+                try:
+                    date(year, month, day)
+                except ValueError:
+                    raise ParseException("invalid date given")
+
             integer = Word(nums)
             date_str = integer + '/' + integer + '/' + integer
 
-            date_str.parse_string("1999/12/31")  # -> ['1999', '/', '12', '/', '31']
-
-            # use parse action to convert to ints at parse time
-            integer = Word(nums).set_parse_action(lambda toks: int(toks[0]))
-            date_str = integer + '/' + integer + '/' + integer
+            # add parse actions
+            integer.set_parse_action(convert_to_int)
+            date_str.set_parse_action(is_valid_date)
 
             # note that integer fields are now ints, not strings
-            date_str.parse_string("1999/12/31")  # -> [1999, '/', 12, '/', 31]
+            date_str.run_tests('''
+                # successful parse - note that integer fields were converted to ints
+                1999/12/31
+
+                # fail - invalid date
+                1999/13/31
+                ''')
         """
         if list(fns) == [None]:
             self.parseAction = []
