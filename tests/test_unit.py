@@ -8484,6 +8484,14 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
         print(expr)
         self.assertEqual("(0-9)", repr(expr))
 
+    def testEmptyExpressionsAreHandledProperly(self):
+        from pyparsing.diagram import to_railroad
+        for cls in (pp.And, pp.Or, pp.MatchFirst, pp.Each):
+            print("testing empty", cls.__name__)
+            expr = cls([])
+            expr.streamline()
+            to_railroad(expr)
+
 
 class Test03_EnablePackratParsing(TestCase):
     def runTest(self):

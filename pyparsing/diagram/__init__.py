@@ -413,7 +413,6 @@ def _to_diagram_element(
     el_id = id(element)
 
     element_results_name = element.resultsName
-    ret = None
 
     # Here we basically bypass processing certain wrapper elements if they contribute nothing to the diagram
     if not element.customName:
@@ -426,20 +425,21 @@ def _to_diagram_element(
             ),
         ):
             # However, if this element has a useful custom name, and its child does not, we can pass it on to the child
-            if not exprs[0].customName:
-                propagated_name = name
-            else:
-                propagated_name = None
+            if exprs:
+                if not exprs[0].customName:
+                    propagated_name = name
+                else:
+                    propagated_name = None
 
-            return _to_diagram_element(
-                element.expr,
-                parent=parent,
-                lookup=lookup,
-                vertical=vertical,
-                index=index,
-                name_hint=propagated_name,
-                show_results_names=show_results_names,
-            )
+                return _to_diagram_element(
+                    element.expr,
+                    parent=parent,
+                    lookup=lookup,
+                    vertical=vertical,
+                    index=index,
+                    name_hint=propagated_name,
+                    show_results_names=show_results_names,
+                )
 
     # If the element isn't worth extracting, we always treat it as the first time we say it
     if _worth_extracting(element):
@@ -465,6 +465,8 @@ def _to_diagram_element(
     if isinstance(element, pyparsing.And):
         # detect And's created with ``expr*N`` notation - for these use a OneOrMore with a repeat
         # (all will have the same name, and resultsName)
+        if not exprs:
+            return None
         if len(set((e.name, e.resultsName) for e in exprs)) == 1:
             ret = EditablePartial.from_call(
                 railroad.OneOrMore, item="", repeat=str(len(exprs))
@@ -474,11 +476,15 @@ def _to_diagram_element(
         else:
             ret = EditablePartial.from_call(railroad.Sequence, items=[])
     elif isinstance(element, (pyparsing.Or, pyparsing.MatchFirst)):
+        if not exprs:
+            return None
         if _should_vertical(vertical, len(exprs)):
             ret = EditablePartial.from_call(railroad.Choice, 0, items=[])
         else:
             ret = EditablePartial.from_call(railroad.HorizontalChoice, items=[])
     elif isinstance(element, pyparsing.Each):
+        if not exprs:
+            return None
         ret = EditablePartial.from_call(EachItem, items=[])
     elif isinstance(element, pyparsing.NotAny):
         ret = EditablePartial.from_call(AnnotatedItem, label="NOT", item="")

@@ -3655,13 +3655,15 @@ class And(ParseExpression):
                     tmp.append(expr)
             exprs[:] = tmp
         super().__init__(exprs, savelist)
-        self.mayReturnEmpty = all(e.mayReturnEmpty for e in self.exprs)
         if self.exprs:
+            self.mayReturnEmpty = all(e.mayReturnEmpty for e in self.exprs)
             self.set_whitespace_chars(
                 self.exprs[0].whiteChars,
                 copy_defaults=self.exprs[0].copyDefaultWhiteChars,
             )
             self.skipWhitespace = self.exprs[0].skipWhitespace
+        else:
+            self.mayReturnEmpty = True
         self.callPreparse = True
 
     def streamline(self):
@@ -3766,7 +3768,10 @@ class Or(ParseExpression):
 
     def streamline(self):
         super().streamline()
-        self.saveAsList = any(e.saveAsList for e in self.exprs)
+        if self.exprs:
+            self.saveAsList = any(e.saveAsList for e in self.exprs)
+        else:
+            self.saveAsList = False
         return self
 
     def parseImpl(self, instring, loc, doActions=True):
@@ -3904,11 +3909,12 @@ class MatchFirst(ParseExpression):
 
     def streamline(self):
         super().streamline()
-        self.saveAsList = any(e.saveAsList for e in self.exprs)
         if self.exprs:
+            self.saveAsList = any(e.saveAsList for e in self.exprs)
             self.mayReturnEmpty = any(e.mayReturnEmpty for e in self.exprs)
             self.callPreparse = all(e.callPreparse for e in self.exprs)
         else:
+            self.saveAsList = False
             self.mayReturnEmpty = True
         return self
 
@@ -4029,14 +4035,20 @@ class Each(ParseExpression):
 
     def __init__(self, exprs: IterableType[ParserElement], savelist: bool = True):
         super().__init__(exprs, savelist)
-        self.mayReturnEmpty = all(e.mayReturnEmpty for e in self.exprs)
+        if self.exprs:
+            self.mayReturnEmpty = all(e.mayReturnEmpty for e in self.exprs)
+        else:
+            self.mayReturnEmpty = True
         self.skipWhitespace = True
         self.initExprGroups = True
         self.saveAsList = True
 
     def streamline(self):
         super().streamline()
-        self.mayReturnEmpty = all(e.mayReturnEmpty for e in self.exprs)
+        if self.exprs:
+            self.mayReturnEmpty = all(e.mayReturnEmpty for e in self.exprs)
+        else:
+            self.mayReturnEmpty = True
         return self
 
     def parseImpl(self, instring, loc, doActions=True):
@@ -5178,7 +5190,6 @@ class Dict(TokenConverter):
 
         data_word = Word(alphas)
         label = data_word + FollowedBy(':')
-        attr_expr = Group(label + Suppress(':') + OneOrMore(data_word).set_parse_action(' '.join))
 
         text = "shape: SQUARE posn: upper left color: light blue texture: burlap"
         attr_expr = (label + Suppress(':') + OneOrMore(data_word, stop_on=label).set_parse_action(' '.join))
