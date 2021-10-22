@@ -539,6 +539,9 @@ API Changes
         - as_dict                       asDict
         - get_name                      getName
 
+        ParseBaseException
+        - parser_element                parserElement
+
         any_open_tag                    anyOpenTag
         any_close_tag                   anyCloseTag
         c_style_comment                 cStyleComment

@@ -35,7 +35,7 @@ class ParseBaseException(Exception):
         else:
             self.msg = msg
             self.pstr = pstr
-        self.parserElement = elem
+        self.parser_element = self.parserElement = elem
         self.args = (pstr, loc, msg)
 
     @staticmethod
