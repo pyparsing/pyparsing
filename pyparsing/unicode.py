@@ -85,20 +85,34 @@ class unicode_set:
     @_lazyclassproperty
     def identchars(cls):
         "all characters in this range that are valid identifier characters, plus underscore '_'"
-        return (
-            "".join(filter(str.isidentifier, cls._chars_for_ranges))
-            + "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyzªµº"
-            + "ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝÞßàáâãäåæçèéêëìíîïðñòóôõöøùúûüýþÿ"
-            + "_"
+        return "".join(
+            sorted(
+                set(
+                    "".join(filter(str.isidentifier, cls._chars_for_ranges))
+                    + "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyzªµº"
+                    + "ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝÞßàáâãäåæçèéêëìíîïðñòóôõöøùúûüýþÿ"
+                    + "_"
+                )
+            )
         )
 
     @_lazyclassproperty
     def identbodychars(cls):
         """
-        all characters in this range that are valid identifier characters,
+        all characters in this range that are valid identifier body characters,
         plus the digits 0-9
         """
-        return cls.identchars + "0123456789"
+        return "".join(
+            sorted(
+                set(
+                    cls.identchars
+                    + "0123456789"
+                    + "".join(
+                        c for c in cls._chars_for_ranges if ("_" + c).isidentifier()
+                    )
+                )
+            )
+        )
 
 
 class pyparsing_unicode(unicode_set):
