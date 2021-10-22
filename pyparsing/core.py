@@ -365,7 +365,7 @@ class ParserElement(ABC):
 
     DEFAULT_WHITE_CHARS: str = " \n\t\r"
     verbose_stacktrace: bool = False
-    _literalStringClass: type = None
+    _literalStringClass: OptionalType[type] = None
 
     @staticmethod
     def set_default_whitespace_chars(chars: str):
@@ -1669,7 +1669,8 @@ class ParserElement(ABC):
             patt.parse_string('ablaj /* comment */ lskjd')
             # -> ['ablaj', 'lskjd']
         """
-        if isinstance(other, str_type):
+        import typing
+        if isinstance(other, typing.AnyStr):
             other = Suppress(other)
 
         if isinstance(other, Suppress):
@@ -1874,7 +1875,7 @@ class ParserElement(ABC):
         self,
         tests: Union[str, List[str]],
         parse_all: bool = True,
-        comment: OptionalType[str] = "#",
+        comment: OptionalType[Union[ParserElement, str]] = "#",
         full_dump: bool = True,
         print_results: bool = True,
         failure_tests: bool = False,
@@ -1993,6 +1994,7 @@ class ParserElement(ABC):
             file = sys.stdout
         print_ = file.write
 
+        result: Union[ParseResults, Exception]
         allResults = []
         comments = []
         success = True
@@ -3505,6 +3507,8 @@ class ParseExpression(ParserElement):
 
     def __init__(self, exprs: IterableType[ParserElement], savelist: bool = False):
         super().__init__(savelist)
+        self.exprs : List[ParserElement]
+        exprs : Iterable[ParserElement]
         if isinstance(exprs, _generatorType):
             exprs = list(exprs)
 
@@ -4905,7 +4909,7 @@ class Forward(ParseElementEnhance):
     parser created using ``Forward``.
     """
 
-    def __init__(self, other: Union[ParserElement, str] = None):
+    def __init__(self, other: OptionalType[Union[ParserElement, str]] = None):
         self.caller_frame = traceback.extract_stack(limit=2)[0]
         super().__init__(other, savelist=False)
         self.lshift_line = None
