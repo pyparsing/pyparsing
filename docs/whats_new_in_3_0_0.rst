@@ -163,6 +163,10 @@ just namespaces, to add some helpful behavior:
 
         pp.enable_all_warnings()
 
+- added support for calling ``enable_all_warnings()`` if warnings are enabled
+  using the Python ``-W`` switch, or setting a non-empty value to the environment
+  variable ``PYPARSINGENABLEALLWARNINGS``.
+
 - added new warning, ``warn_on_match_first_with_lshift_operator`` to
   warn when using ``'<<'`` with a ``'|'`` ``MatchFirst`` operator,
   which will
