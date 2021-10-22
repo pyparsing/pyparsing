@@ -236,7 +236,12 @@ class pyparsing_test:
 
     @staticmethod
     def with_line_numbers(
-        s: str, start_line: Optional[int] = None, end_line: Optional[int] = None
+        s: str,
+        start_line: Optional[int] = None,
+        end_line: Optional[int] = None,
+        expand_tabs: bool = True,
+        mark_spaces: Optional[str] = None,
+        mark_control: Optional[str] = None,
     ) -> str:
         """
         Helpful method for debugging a parser - prints a string with line and column numbers.
@@ -245,8 +250,37 @@ class pyparsing_test:
         :param s: tuple(bool, str - string to be printed with line and column numbers
         :param start_line: int - (optional) starting line number in s to print (default=1)
         :param end_line: int - (optional) ending line number in s to print (default=len(s))
+        :param expand_tabs: bool - (optional) expand tabs to spaces, to match the pyparsing default
+        :param mark_spaces: str - (optional) special character to display in place of spaces
+        :param mark_control: str - (optional) convert non-printing control characters to a placeholding
+                                 character; valid values:
+                                 - "unicode" - replaces control chars with Unicode symbols, such as "␍" and "␊"
+                                 - any single character string - replace control characters with given string
+                                 - None (default) - string is displayed as-is
+
         :return: str - input string with leading line numbers and column number headers
         """
+        if expand_tabs:
+            s = s.expandtabs()
+        line_end_mark = "<<"
+        if mark_control is not None:
+            if mark_control == "unicode":
+                tbl = str.maketrans(
+                    {c: u for c, u in zip(range(0, 33), range(0x2400, 0x2433))}
+                    | {127: 0x2421}
+                )
+                line_end_mark = ""
+            else:
+                tbl = str.maketrans(
+                    {c: mark_control for c in list(range(0, 32)) + [127]}
+                )
+            s = s.translate(tbl)
+        if mark_spaces is not None and mark_spaces != " ":
+            if mark_spaces == "unicode":
+                tbl = str.maketrans({9: 0x2409, 32: 0x2423})
+                s = s.translate(tbl)
+            else:
+                s = s.replace(" ", mark_spaces)
         if start_line is None:
             start_line = 1
         if end_line is None:
@@ -273,7 +307,7 @@ class pyparsing_test:
             header1
             + header2
             + "\n".join(
-                "{:{}d}:{}".format(i, lineno_width, line)
+                "{:{}d}:{}{}".format(i, lineno_width, line, line_end_mark)
                 for i, line in enumerate(s_lines, start=start_line)
             )
         )

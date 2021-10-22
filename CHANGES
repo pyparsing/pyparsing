@@ -7,6 +7,15 @@ Version 3.0.0 -
 - Fixed named results returned by `url` to match fields as they would be parsed
   using urllib.parse.urlparse.
 
+- Early response to `with_line_numbers` was positive, with some requested enhancements:
+  . added a trailing "<<" at the end of each line (to show presence of trailing spaces)
+  . added expand_tabs argument, to control calling str.expandtabs (defaults to True
+    to match parseString)
+  . added mark_spaces argument to support display of a printing character in place of
+    spaces, or Unicode symbols for space and tab characters
+  . added mark_control argument to support highlighting of control characters using
+    '.' or Unicode symbols, such as "␍" and "␊".
+
 
 Version 3.0.0rc2 -
 ------------------
