@@ -102,6 +102,37 @@ class Test01_PyparsingTestInit(TestCase):
         print("Python version", sys.version)
 
 
+class Test01a_PyparsingEnvironmentTests(TestCase):
+    def runTest(self):
+        # test warnings enable detection
+        tests = [
+            (([], "",), False),
+            ((["d", ], "",), True),
+            ((["d", "i:::pyparsing", ], "",), False),
+            ((["d:::pyparsing", ], "",), True),
+            ((["d:::pyparsing", "i", ], "",), False),
+            ((["d:::blah", ], "",), False),
+            ((["i", ], "",), False),
+            (([], "1",), True),
+            ((["d", ], "1",), True),
+            ((["d", "i:::pyparsing", ], "1",), False),
+            ((["d:::pyparsing", ], "1",), True),
+            ((["d:::pyparsing", "i", ], "1",), False),
+            ((["d:::blah", ], "1",), True),
+            ((["i", ], "1",), False),
+        ]
+
+        all_success = True
+        for args, expected in tests:
+            message = "{} should be {}".format(args, expected)
+            print(message, end=" -> ")
+            actual = pp.core._should_enable_warnings(*args)
+            print("PASS" if actual == expected else "FAIL")
+            if actual != expected:
+                all_success = False
+        self.assertTrue(all_success, "failed warnings enable test")
+
+
 class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
     suite_context = None
     save_suite_context = None

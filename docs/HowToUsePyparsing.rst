@@ -936,6 +936,9 @@ Exception classes and Troubleshooting
     >>> UserWarning: warn_name_set_on_empty_Forward: setting results name 'recursive_expr'
                      on Forward expression that has no contained expression
 
+  Warnings can also be enabled using the Python ``-W`` switch, or setting a non-empty
+  value to the environment variable ``PYPARSINGENABLEALLWARNINGS``
+
 
 Miscellaneous attributes and methods
 ====================================

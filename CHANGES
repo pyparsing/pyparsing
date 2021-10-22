@@ -4,6 +4,10 @@ Change Log
 
 Version 3.0.0 -
 ---------------
+- Added support for python -W warning option to call enable_all_warnings() at startup.
+  Also detects setting of PYPARSINGENABLEALLWARNINGS environment variable to any non-blank
+  value.
+
 - Fixed named results returned by `url` to match fields as they would be parsed
   using urllib.parse.urlparse.
 

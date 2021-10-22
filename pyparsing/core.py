@@ -1,6 +1,7 @@
 #
 # core.py
 #
+import os
 from typing import (
     Optional as OptionalType,
     Iterable as IterableType,
@@ -20,6 +21,7 @@ import copy
 import warnings
 import re
 import sre_constants
+import sys
 from collections.abc import Iterable
 import traceback
 import types
@@ -172,6 +174,26 @@ def enable_all_warnings():
 
 # hide abstract class
 del __config_flags
+
+
+def _should_enable_warnings(cmd_line_warn_options: List[str], warn_env_var: str) -> bool:
+    enable = bool(warn_env_var)
+    for warn_opt in cmd_line_warn_options:
+        w_action, w_message, w_category, w_module, w_line = (warn_opt + "::::").split(
+            ":"
+        )[:5]
+        if not w_action.lower().startswith("i") and (
+            not (w_message or w_category or w_module) or w_module == "pyparsing"
+        ):
+            enable = True
+        elif w_action.lower().startswith("i") and w_module in ("pyparsing", ""):
+            enable = False
+    return enable
+
+
+if _should_enable_warnings(sys.warnoptions, os.environ.get("PYPARSINGENABLEALLWARNINGS")):
+    enable_all_warnings()
+
 
 # build list of single arg builtins, that can be used as parse actions
 _single_arg_builtins = {
