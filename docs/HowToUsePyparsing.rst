@@ -3,10 +3,10 @@ Using the pyparsing module
 ==========================
 
 :author: Paul McGuire
-:address: ptmcg@users.sourceforge.net
+:address: ptmcg.pm+pyparsing@gmail.com
 
-:revision: 3.0.1
-:date: September, 2021
+:revision: 3.0.0
+:date: October, 2021
 
 :copyright: Copyright |copy| 2003-2021 Paul McGuire.
 
@@ -1246,10 +1246,24 @@ Create your parser as you normally would. Then call ``create_diagram()``, passin
 
 This will result in the railroad diagram being written to ``street_address_diagram.html``.
 
+Diagrams usually will vertically wrap expressions containing more than 3 terms. You can override this by
+passing the `vertical` argument to `create_diagram` with a larger value.
+
 Example
 -------
 You can view an example railroad diagram generated from `a pyparsing grammar for
 SQL SELECT statements <_static/sql_railroad.html>`_.
+
+Naming tip
+----------
+Parser elements that are separately named will be broken out as their own sub-diagrams. As a short-cut alternative
+to going through and adding ``.set_name()`` calls on all your sub-expressions, you can include this snippet after
+defining your complete grammar::
+
+    # iterate over all locals, and call set_name on those that are ParserElements
+    for name, value in list(locals().items()):
+        if isinstance(value, ParserElement):
+            value.set_name(name)
 
 Customization
 -------------
