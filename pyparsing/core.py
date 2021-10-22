@@ -1670,7 +1670,7 @@ class ParserElement(ABC):
             # -> ['ablaj', 'lskjd']
         """
         import typing
-        if isinstance(other, typing.AnyStr):
+        if isinstance(other, str_type):
             other = Suppress(other)
 
         if isinstance(other, Suppress):
@@ -1875,7 +1875,7 @@ class ParserElement(ABC):
         self,
         tests: Union[str, List[str]],
         parse_all: bool = True,
-        comment: OptionalType[Union[ParserElement, str]] = "#",
+        comment: OptionalType[Union["ParserElement", str]] = "#",
         full_dump: bool = True,
         print_results: bool = True,
         failure_tests: bool = False,
