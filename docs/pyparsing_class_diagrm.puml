@@ -52,6 +52,9 @@ with_attribute()
 with_class()
 trace_parse_action()
 condition_as_parse_action()
+srange()
+token_map()
+autoname_elements()
 }
 
 class ParseResults {
