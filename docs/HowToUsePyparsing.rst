@@ -1301,13 +1301,14 @@ SQL SELECT statements <_static/sql_railroad.html>`_.
 Naming tip
 ----------
 Parser elements that are separately named will be broken out as their own sub-diagrams. As a short-cut alternative
-to going through and adding ``.set_name()`` calls on all your sub-expressions, you can include this snippet after
-defining your complete grammar::
+to going through and adding ``.set_name()`` calls on all your sub-expressions, you can use ``autoname_elements()`` after
+defining your complete grammar. For example::
 
-    # iterate over all locals, and call set_name on those that are ParserElements
-    for name, value in list(locals().items()):
-        if isinstance(value, ParserElement):
-            value.set_name(name)
+            a = pp.Literal("a")
+            b = pp.Literal("b").set_name("bbb")
+            pp.autoname_elements()
+
+`a` will get named "a", while `b` will keep its name "bbb".
 
 Customization
 -------------

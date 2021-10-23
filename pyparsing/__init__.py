@@ -301,4 +301,5 @@ __all__ = [
     "withClass",
     "tokenMap",
     "conditionAsParseAction",
+    "autoname_elements",
 ]

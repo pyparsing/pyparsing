@@ -33,6 +33,17 @@ Version 3.0.0.final -
 - Updated the class diagram in the pyparsing docs directory, along with the supporting
   .puml file (PlantUML markup) used to create the diagram.
 
+- Added global method `autoname_elements()` to call `set_name()` on all locally
+  defined `ParserElements` that haven't been explicitly named using `set_name()`, using
+  their local variable name. Useful for setting names on multiple elements when
+  creating a railroad diagram.
+
+            a = pp.Literal("a")
+            b = pp.Literal("b").set_name("bbb")
+            pp.autoname_elements()
+
+  `a` will get named "a", while `b` will keep its name "bbb".
+
 
 Version 3.0.0rc2 -
 ------------------

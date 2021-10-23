@@ -398,6 +398,17 @@ Other new features
   to optionally parse an additional delimiter at the end of the list.
   Submitted by Kazantcev Andrey.
 
+- Added global method ``autoname_elements()`` to call ``set_name()`` on all locally
+  defined ``ParserElements`` that haven't been explicitly named using ``set_name()``, using
+  their local variable name. Useful for setting names on multiple elements when
+  creating a railroad diagram::
+
+            a = pp.Literal("a")
+            b = pp.Literal("b").set_name("bbb")
+            pp.autoname_elements()
+
+  `a` will get named "a", while `b` will keep its name "bbb".
+
 - Enhanced default strings created for ``Word`` expressions, now showing
   string ranges if possible. ``Word(alphas)`` would formerly
   print as ``W:(ABCD...)``, now prints as ``W:(A-Za-z)``.

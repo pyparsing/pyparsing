@@ -7412,6 +7412,24 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             ):
                 a = pp.oneOf("A", "B")
 
+    def testAutonameElements(self):
+        with ppt.reset_pyparsing_context():
+            pp.enable_diag(pp.Diagnostics.enable_debug_on_named_expressions)
+
+            a = pp.Literal("a")
+            b = pp.Literal("b").set_name("bbb")
+            z = pp.Literal("z")
+            leading_a = a + pp.FollowedBy(z | a | b)
+
+            grammar = (z | leading_a | b)[...] + "a"
+
+            self.assertFalse(a.debug)
+            self.assertFalse(a.customName)
+            pp.autoname_elements()
+            self.assertTrue(a.debug)
+            self.assertEqual('a', a.name)
+            self.assertEqual('bbb', b.name)
+
     def testEnableDebugOnNamedExpressions(self):
         """
         - enable_debug_on_named_expressions - flag to auto-enable debug on all subsequent

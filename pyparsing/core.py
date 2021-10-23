@@ -1083,7 +1083,6 @@ class ParserElement(ABC):
         ParserElement.reset_cache()
         if not self.streamlined:
             self.streamline()
-            # self.saveAsList = True
         for e in self.ignoreExprs:
             e.streamline()
         if not self.keepTabs:
@@ -3603,6 +3602,9 @@ class ParseExpression(ParserElement):
         return "{}:({})".format(self.__class__.__name__, str(self.exprs))
 
     def streamline(self):
+        if self.streamlined:
+            return
+
         super().streamline()
 
         for e in self.exprs:
@@ -3968,6 +3970,9 @@ class MatchFirst(ParseExpression):
             self.mayReturnEmpty = True
 
     def streamline(self):
+        if self.streamlined:
+            return
+
         super().streamline()
         if self.exprs:
             self.saveAsList = any(e.saveAsList for e in self.exprs)
@@ -5532,6 +5537,16 @@ def token_map(func, *args):
     pa.__name__ = func_name
 
     return pa
+
+
+def autoname_elements():
+    """
+    Utility to simplify mass-naming of parser elements, for
+    generating railroad diagram with named subdiagrams.
+    """
+    for name, var in sys._getframe().f_back.f_locals.items():
+        if isinstance(var, ParserElement) and not var.customName:
+            var.set_name(name)
 
 
 dbl_quoted_string = Combine(
