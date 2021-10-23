@@ -35,7 +35,7 @@ Version 3.0.0rc2 -
   This new expression has been added to the `urlExtractorNew.py` example, to show how
   it extracts URL fields into separate results names.
 
-- Added method to `pyparsing_testing` to help debugging, `with_line_numbers`.
+- Added method to `pyparsing_test` to help debugging, `with_line_numbers`.
   Returns a string with line and column numbers corresponding to values shown
   when parsing with expr.set_debug():
 
@@ -65,7 +65,7 @@ Version 3.0.0rc2 -
   range, and writing a Cuneiform->Python transformer (inspired by zhpy).
 
 - Fixed issue #272, reported by PhasecoreX, when LineStart() expressions would match
-  expressions that were not necessarily at the beginning of a line.
+  input text that was not necessarily at the beginning of a line.
 
   As part of this fix, two new classes have been added: AtLineStart and AtStringStart.
   The following expressions are equivalent:
@@ -77,7 +77,7 @@ Version 3.0.0rc2 -
   matches in MatchFirst expressions. Addresses issue #251, reported by zyp-rgb.
 
 - Fixed bug in which ParseResults replaces a collection type value with an invalid
-  type annotation (changed behavior in Python 3.9). Addresses issue #276, reported by
+  type annotation (as a result of changed behavior in Python 3.9). Addresses issue #276, reported by
   Rob Shuler, thanks.
 
 - Fixed bug in ParseResults when calling `__getattr__` for special double-underscored
@@ -145,7 +145,7 @@ Version 3.0.0rc1 - September, 2021
 
   you will be able to write::
 
-      identifier = pp.Word(pp.indentchars, pp.identbodychars)
+      identifier = pp.Word(pp.identchars, pp.identbodychars)
 
   Those constants have also been added to all the Unicode string classes::
 

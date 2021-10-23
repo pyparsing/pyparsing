@@ -790,6 +790,18 @@ Other classes
       using ``pop()``, or any element can be extracted and removed
       using ``pop(n)``
 
+    - a nested ParseResults_ can be created by using the pyparsing ``Group`` class
+      around elements in an expression::
+
+          Word(alphas) + Group(Word(nums)[...]) + Word(alphas)
+
+      will parse the string "abc 100 200 300 end" as::
+
+          ['abc', ['100', '200', '300'], 'end']
+
+      If the ``Group`` is constructed using ``aslist=True``, the resulting tokens
+      will be a Python list instead of a ParseResults_.
+
   - as a dictionary
 
     - if ``set_results_name()`` is used to name elements within the
@@ -800,7 +812,8 @@ Other classes
       input text - in addition to ParseResults_ listed as ``[ [ a1, b1, c1, ...], [ a2, b2, c2, ...]  ]``
       it also acts as a dictionary with entries defined as ``{ a1 : [ b1, c1, ... ] }, { a2 : [ b2, c2, ... ] }``;
       this is especially useful when processing tabular data where the first column contains a key
-      value for that line of data
+      value for that line of data; when constructed with ``aslist=True``, will
+      return an actual Python ``dict`` instead of a ParseResults_.
 
     - list elements that are deleted using ``del`` will still be accessible by their
       dictionary keys
@@ -900,6 +913,33 @@ Exception classes and Troubleshooting
   and ``set_debug()``, or test the matching of expression fragments by testing them using
   ``search_string()`` or ``scan_string()``.
 
+- Use ``with_line_numbers`` from ``pyparsing_testing`` to display the input string
+  being parsed, with line and column numbers that correspond to the values reported
+  in set_debug() output::
+
+      data = """\
+         A
+            100"""
+      expr = pp.Word(pp.alphanums).set_name("word").set_debug()
+      print(ppt.with_line_numbers(data))
+      expr[...].parseString(data)
+
+  prints::
+
+      .          1
+        1234567890
+      1:   A
+      2:      100
+      Match word at loc 3(1,4)
+          A
+          ^
+      Matched word -> ['A']
+      Match word at loc 11(2,7)
+             100
+             ^
+      Matched word -> ['100']
+
+
 - Diagnostics can be enabled using ``pyparsing.enable_diag`` and passing
   one of the following enum values defined in ``pyparsing.Diagnostics``
 
@@ -952,7 +992,8 @@ Helper methods
   only the separate list elements.  Can optionally specify ``combine=True``,
   indicating that the expressions and delimiters should be returned as one
   combined value (useful for scoped variables, such as ``"a.b.c"``, or
-  ``"a::b::c"``, or paths such as ``"a/b/c"``).
+  ``"a::b::c"``, or paths such as ``"a/b/c"``). Can also optionally specify
+  ``allow_trailing_delim`` to accept a trailing delimiter at the end of the list.
 
 - ``counted_array(expr)`` - convenience function for a pattern where an list of
   instances of the given expression are preceded by an integer giving the count of

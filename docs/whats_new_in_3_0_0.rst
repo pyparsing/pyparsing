@@ -197,6 +197,32 @@ just namespaces, to add some helpful behavior:
   mistake when using Forwards)
   (**currently not working on PyPy**)
 
+Support for yielding native Python ``list`` and ``dict`` types in place of ``ParseResults``
+-------------------------------------------------------------------------------
+To support parsers that are intended to generate native Python collection
+types such as lists and dicts, the ``Group`` and `Dict` classes now accept an
+additional boolean keyword argument ``aslist`` and `asdict` respectively. See
+the ``jsonParser.py`` example in the ``pyparsing/examples`` source directory for
+how to return types as ``ParseResults`` and as Python collection types, and the
+distinctions in working with the different types.
+
+In addition parse actions that must return a value of list type (which would
+normally be converted internally to a ``ParseResults``) can override this default
+behavior by returning their list wrapped in the new ``ParseResults.List`` class::
+
+      # this parse action tries to return a list, but pyparsing
+      # will convert to a ParseResults
+      def return_as_list_but_still_get_parse_results(tokens):
+          return tokens.asList()
+
+      # this parse action returns the tokens as a list, and pyparsing will
+      # maintain its list type in the final parsing results
+      def return_as_list(tokens):
+          return ParseResults.List(tokens.asList())
+
+This is the mechanism used internally by the ``Group`` class when defined
+using ``aslist=True``.
+
 New Located class to replace locatedExpr helper method
 ------------------------------------------------------
 The new ``Located`` class will replace the current ``locatedExpr`` method for
@@ -303,8 +329,34 @@ Debug logging has been improved by:
   packrat cache (previously cache hits did not show debug logging).
   Values returned from the packrat cache are marked with an '*'.
 
-- Improved fail logging, showing the failed text line and marker where
+- Improved fail logging, showing the failed expression, text line, and marker where
   the failure occurred.
+
+- Adding ``with_line_numbers`` to ``pyparsing_testing``. Use ``with_line_numbers``
+  to visualize the data being parsed, with line and column numbers corresponding
+  to the values output when enabling ``set_debug()`` on an expression::
+
+      data = """\
+         A
+            100"""
+      expr = pp.Word(pp.alphanums).set_name("word").set_debug()
+      print(ppt.with_line_numbers(data))
+      expr[...].parseString(data)
+
+  prints::
+
+      .          1
+        1234567890
+      1:   A
+      2:      100
+      Match word at loc 3(1,4)
+          A
+          ^
+      Matched word -> ['A']
+      Match word at loc 11(2,7)
+             100
+             ^
+      Matched word -> ['100']
 
 New / improved examples
 -----------------------
@@ -628,6 +680,9 @@ Other discontinued features
 Fixed Bugs
 ==========
 
+- Fixed issue when LineStart() expressions would match input text that was not
+  necessarily at the beginning of a line.
+
 - Fixed bug in regex definitions for ``real`` and ``sci_real`` expressions in
   ``pyparsing_common``.
 
@@ -646,11 +701,31 @@ Fixed Bugs
 - Fixed bug in ``Each`` when using ``Regex``, when ``Regex`` expression would
   get parsed twice.
 
+- Fixed bugs in ``Each`` when passed ``OneOrMore`` or ``ZeroOrMore`` expressions:
+  . first expression match could be enclosed in an extra nesting level
+  . out-of-order expressions now handled correctly if mixed with required
+    expressions
+  . results names are maintained correctly for these expression
+
 - Fixed ``FutureWarning`` that sometimes is raised when ``'['`` passed as a
   character to ``Word``.
 
 - Fixed debug logging to show failure location after whitespace skipping.
 
+- Fixed ``ParseFatalExceptions`` failing to override normal exceptions or expression
+  matches in ``MatchFirst`` expressions.
+
+- Fixed bug in which ``ParseResults`` replaces a collection type value with an invalid
+  type annotation (as a result of changed behavior in Python 3.9).
+
+- Fixed bug in ``ParseResults`` when calling ``__getattr__`` for special double-underscored
+  methods. Now raises ``AttributeError`` for non-existent results when accessing a
+  name starting with '__'.
+
+- Fixed bug in ``Located`` class when used with a results name.
+
+- Fixed bug in ``QuotedString`` class when the escaped quote string is not a
+  repeated character.
 
 Acknowledgments
 ===============
