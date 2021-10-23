@@ -4,6 +4,13 @@ Change Log
 
 Version 3.0.0 -
 ---------------
+- A consolidated list of all the changes in the 3.0.0 release can be found in
+  docs/whats_new_in_3_0_0.rst.
+  (https://github.com/pyparsing/pyparsing/blob/master/docs/whats_new_in_3_0_0.rst)
+
+
+Version 3.0.0.final -
+---------------------
 - Added support for python -W warning option to call enable_all_warnings() at startup.
   Also detects setting of PYPARSINGENABLEALLWARNINGS environment variable to any non-blank
   value.
