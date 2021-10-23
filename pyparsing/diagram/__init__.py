@@ -375,6 +375,8 @@ def _apply_diagram_item_enhancements(fn):
         if show_results_names and ret is not None:
             element_results_name = element.resultsName
             if element_results_name:
+                # add "*" to indicate if this is a "list all results" name
+                element_results_name += "" if element.modalResults else "*"
                 ret = EditablePartial.from_call(
                     railroad.Group, item=ret, label=element_results_name
                 )
