@@ -225,7 +225,7 @@ def one_of(
 
     if isinstance(caseless, str_type):
         warnings.warn(
-            "More than one string argument passed to oneOf, pass"
+            "More than one string argument passed to one_of, pass"
             " choices as a list or space-delimited string",
             stacklevel=2,
         )
@@ -245,7 +245,7 @@ def one_of(
     elif isinstance(strs, Iterable):
         symbols = list(strs)
     else:
-        raise TypeError("Invalid argument to oneOf, expected string or iterable")
+        raise TypeError("Invalid argument to one_of, expected string or iterable")
     if not symbols:
         return NoMatch()
 
@@ -279,7 +279,7 @@ def one_of(
                 )
         except sre_constants.error:
             warnings.warn(
-                "Exception creating Regex for oneOf, building MatchFirst", stacklevel=2
+                "Exception creating Regex for one_of, building MatchFirst", stacklevel=2
             )
 
     # last resort, just use MatchFirst
