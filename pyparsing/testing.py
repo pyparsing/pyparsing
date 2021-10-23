@@ -240,6 +240,7 @@ class pyparsing_test:
         start_line: Optional[int] = None,
         end_line: Optional[int] = None,
         expand_tabs: bool = True,
+        eol_mark: str = "|",
         mark_spaces: Optional[str] = None,
         mark_control: Optional[str] = None,
     ) -> str:
@@ -251,6 +252,7 @@ class pyparsing_test:
         :param start_line: int - (optional) starting line number in s to print (default=1)
         :param end_line: int - (optional) ending line number in s to print (default=len(s))
         :param expand_tabs: bool - (optional) expand tabs to spaces, to match the pyparsing default
+        :param eol_mark: str - (optional) string to mark the end of lines, helps visualize trailing spaces (default="|")
         :param mark_spaces: str - (optional) special character to display in place of spaces
         :param mark_control: str - (optional) convert non-printing control characters to a placeholding
                                  character; valid values:
@@ -262,14 +264,13 @@ class pyparsing_test:
         """
         if expand_tabs:
             s = s.expandtabs()
-        line_end_mark = "<<"
         if mark_control is not None:
             if mark_control == "unicode":
                 tbl = str.maketrans(
                     {c: u for c, u in zip(range(0, 33), range(0x2400, 0x2433))}
                     | {127: 0x2421}
                 )
-                line_end_mark = ""
+                eol_mark = ""
             else:
                 tbl = str.maketrans(
                     {c: mark_control for c in list(range(0, 32)) + [127]}
@@ -288,7 +289,10 @@ class pyparsing_test:
         end_line = min(end_line, len(s))
         start_line = min(max(1, start_line), end_line)
 
-        s_lines = s.splitlines()[start_line - 1 : end_line]
+        if mark_control != "unicode":
+            s_lines = s.splitlines()[start_line - 1 : end_line]
+        else:
+            s_lines = [line+"␊" for line in s.split("␊")[start_line - 1 : end_line]]
         if not s_lines:
             return ""
 
@@ -307,7 +311,8 @@ class pyparsing_test:
             header1
             + header2
             + "\n".join(
-                "{:{}d}:{}{}".format(i, lineno_width, line, line_end_mark)
+                "{:{}d}:{}{}".format(i, lineno_width, line, eol_mark)
                 for i, line in enumerate(s_lines, start=start_line)
             )
+            + "\n"
         )

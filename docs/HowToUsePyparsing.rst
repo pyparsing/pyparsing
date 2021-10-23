@@ -917,9 +917,13 @@ Exception classes and Troubleshooting
   being parsed, with line and column numbers that correspond to the values reported
   in set_debug() output::
 
+      import pyparsing as pp
+      ppt = pp.testing
+
       data = """\
          A
             100"""
+
       expr = pp.Word(pp.alphanums).set_name("word").set_debug()
       print(ppt.with_line_numbers(data))
       expr[...].parseString(data)
@@ -928,8 +932,9 @@ Exception classes and Troubleshooting
 
       .          1
         1234567890
-      1:   A
-      2:      100
+      1:   A|
+      2:      100|
+
       Match word at loc 3(1,4)
           A
           ^
@@ -939,6 +944,9 @@ Exception classes and Troubleshooting
              ^
       Matched word -> ['100']
 
+  `with_line_numbers` has several options for displaying control characters, end-of-line
+  and space markers, Unicode symbols for control characters - these are documented in the
+  function's docstring.
 
 - Diagnostics can be enabled using ``pyparsing.enable_diag`` and passing
   one of the following enum values defined in ``pyparsing.Diagnostics``

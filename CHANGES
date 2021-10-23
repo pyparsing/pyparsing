@@ -19,7 +19,8 @@ Version 3.0.0.final -
   using urllib.parse.urlparse.
 
 - Early response to `with_line_numbers` was positive, with some requested enhancements:
-  . added a trailing "<<" at the end of each line (to show presence of trailing spaces)
+  . added a trailing "|" at the end of each line (to show presence of trailing spaces);
+    can be customized using `eol_mark` argument
   . added expand_tabs argument, to control calling str.expandtabs (defaults to True
     to match parseString)
   . added mark_spaces argument to support display of a printing character in place of
