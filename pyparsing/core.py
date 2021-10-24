@@ -2680,6 +2680,7 @@ class Word(Token):
         self.mayIndexError = False
         self.asKeyword = asKeyword
 
+        # see if we can make a regex for this Word
         if " " not in self.initChars | self.bodyChars and (min == 1 and exact == 0):
             if self.bodyChars == self.initChars:
                 if max == 0:
@@ -2687,7 +2688,10 @@ class Word(Token):
                 elif max == 1:
                     repeat = ""
                 else:
-                    repeat = "{{{}}}".format(max)
+                    repeat = "{{{},{}}}".format(
+                        self.minLen,
+                        "" if self.maxLen == _MAX_INT else self.maxLen
+                    )
                 self.reString = "[{}]{}".format(
                     _collapseStringToRanges(self.initChars),
                     repeat,

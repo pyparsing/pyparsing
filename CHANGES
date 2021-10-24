@@ -4,6 +4,8 @@ Change Log
 
 Version 3.0.1 -
 ---------------
+- Fixed bug where Word(max=n) did not match word groups less than length 'n'.
+
 - Fixed bug where warn_on_multiple_string_args_to_oneof warning is raised
   even when not enabled.
 

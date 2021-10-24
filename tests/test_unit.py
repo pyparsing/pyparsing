@@ -4335,6 +4335,44 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             msg="using different openers and closers shouldn't affect resulting ParseResults",
         )
 
+    def testWordMinMaxArgs(self):
+        parsers = [
+            "A" + pp.Word(pp.nums),
+            "A" + pp.Word(pp.nums, min=1),
+            "A" + pp.Word(pp.nums, max=6),
+            "A" + pp.Word(pp.nums, min=1, max=6),
+            "A" + pp.Word(pp.nums, min=1),
+            "A" + pp.Word(pp.nums, min=2),
+            "A" + pp.Word(pp.nums, min=2, max=6),
+            pp.Word("A", pp.nums),
+            pp.Word("A", pp.nums, min=1),
+            pp.Word("A", pp.nums, max=6),
+            pp.Word("A", pp.nums, min=1, max=6),
+            pp.Word("A", pp.nums, min=1),
+            pp.Word("A", pp.nums, min=2),
+            pp.Word("A", pp.nums, min=2, max=6),
+            pp.Word(pp.alphas, pp.nums),
+            pp.Word(pp.alphas, pp.nums, min=1),
+            pp.Word(pp.alphas, pp.nums, max=6),
+            pp.Word(pp.alphas, pp.nums, min=1, max=6),
+            pp.Word(pp.alphas, pp.nums, min=1),
+            pp.Word(pp.alphas, pp.nums, min=2),
+            pp.Word(pp.alphas, pp.nums, min=2, max=6),
+        ]
+
+        fails = []
+        for p in parsers:
+            print(p, getattr(p, "reString", "..."), end=" ", flush=True)
+            try:
+                p.parseString("A123")
+            except Exception as e:
+                print("      <<< FAIL")
+                fails.append(p)
+            else:
+                print()
+        if fails:
+            self.fail("{} failed to match".format(",".join(str(f) for f in fails)))
+
     def testWordExclude(self):
 
         allButPunc = pp.Word(pp.printables, excludeChars=".,:;-_!?")
