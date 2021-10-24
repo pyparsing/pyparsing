@@ -224,7 +224,10 @@ def one_of(
     asKeyword = asKeyword or as_keyword
     useRegex = useRegex and use_regex
 
-    if isinstance(caseless, str_type) and __diag__.warn_on_multiple_string_args_to_oneof:
+    if (
+        isinstance(caseless, str_type)
+        and __diag__.warn_on_multiple_string_args_to_oneof
+    ):
         warnings.warn(
             "More than one string argument passed to one_of, pass"
             " choices as a list or space-delimited string",
@@ -652,9 +655,9 @@ any_open_tag, any_close_tag = make_html_tags(
 )
 
 _htmlEntityMap = {k.rstrip(";"): v for k, v in html.entities.html5.items()}
-common_html_entity = Regex(
-    "&(?P<entity>" + "|".join(_htmlEntityMap) + ");"
-).set_name("common HTML entity")
+common_html_entity = Regex("&(?P<entity>" + "|".join(_htmlEntityMap) + ");").set_name(
+    "common HTML entity"
+)
 
 
 def replace_html_entity(t):

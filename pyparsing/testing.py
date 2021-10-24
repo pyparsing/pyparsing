@@ -292,7 +292,7 @@ class pyparsing_test:
         if mark_control != "unicode":
             s_lines = s.splitlines()[start_line - 1 : end_line]
         else:
-            s_lines = [line+"␊" for line in s.split("␊")[start_line - 1 : end_line]]
+            s_lines = [line + "␊" for line in s.split("␊")[start_line - 1 : end_line]]
         if not s_lines:
             return ""
 
