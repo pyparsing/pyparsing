@@ -7423,6 +7423,11 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
         - warn_on_multiple_string_args_to_oneof - flag to enable warnings when oneOf is
           incorrectly called with multiple str arguments (default=True)
         """
+        with self.assertDoesNotWarn(
+            "warn_on_multiple_string_args_to_oneof warning raised when not enabled"
+        ):
+            a = pp.oneOf("A", "B")
+
         with ppt.reset_pyparsing_context():
             pp.enable_diag(pp.Diagnostics.warn_on_multiple_string_args_to_oneof)
 

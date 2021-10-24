@@ -1,6 +1,7 @@
 # helpers.py
 import html.entities
 
+from . import __diag__
 from .core import *
 from .util import _bslash, _flatten, _escapeRegexRangeChars
 
@@ -223,7 +224,7 @@ def one_of(
     asKeyword = asKeyword or as_keyword
     useRegex = useRegex and use_regex
 
-    if isinstance(caseless, str_type):
+    if isinstance(caseless, str_type) and __diag__.warn_on_multiple_string_args_to_oneof:
         warnings.warn(
             "More than one string argument passed to one_of, pass"
             " choices as a list or space-delimited string",
