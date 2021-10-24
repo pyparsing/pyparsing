@@ -183,7 +183,10 @@ class ParseResults:
                     try:
                         self[name] = toklist[0]
                     except (KeyError, TypeError, IndexError):
-                        self[name] = toklist
+                        if toklist is not self:
+                            self[name] = toklist
+                        else:
+                            self._name = name
 
     def __getitem__(self, i):
         if isinstance(i, (int, slice)):

@@ -5,6 +5,10 @@ Change Log
 Version 3.0.1 -
 ---------------
 - Fixed bug where Word(max=n) did not match word groups less than length 'n'.
+  Thanks to Joachim Metz for catching this!
+
+- Fixed bug where ParseResults accidentally created recursive contents.
+  Joachim Metz on this one also!
 
 - Fixed bug where warn_on_multiple_string_args_to_oneof warning is raised
   even when not enabled.

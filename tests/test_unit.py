@@ -2964,6 +2964,13 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             result, compare_list, msg="issue with ParseResults.insert()"
         )
 
+    def testParseResultsAddingSuppressedTokenWithResultsName(self):
+        parser = "aaa" + (pp.NoMatch() | pp.Suppress("-"))("B")
+        try:
+            dd = parser.parse_string("aaa -").as_dict()
+        except RecursionError:
+            self.fail("fail getting named result when empty")
+
     def testIgnoreString(self):
         """test ParserElement.ignore() passed a string arg"""
 
