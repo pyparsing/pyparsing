@@ -1,5 +1,6 @@
 # helpers.py
 import html.entities
+import re
 
 from . import __diag__
 from .core import *
@@ -253,9 +254,9 @@ def one_of(
     if not symbols:
         return NoMatch()
 
-    if not asKeyword:
-        # if not producing keywords, need to reorder to take care to avoid masking
-        # longer choices with shorter ones
+    # reorder given symbols to take care to avoid masking longer choices with shorter ones
+    # (but only if the given symbols are not just single characters)
+    if any(len(sym) > 1 for sym in symbols):
         i = 0
         while i < len(symbols) - 1:
             cur = symbols[i]
@@ -270,17 +271,30 @@ def one_of(
             else:
                 i += 1
 
-    if not (caseless or asKeyword) and useRegex:
-        # ~ print(strs, "->", "|".join([_escapeRegexChars(sym) for sym in symbols]))
+    if useRegex:
+        re_flags: int = re.IGNORECASE if caseless else 0
+
         try:
-            if len(symbols) == len("".join(symbols)):
-                return Regex(
-                    "[%s]" % "".join(_escapeRegexRangeChars(sym) for sym in symbols)
-                ).set_name(" | ".join(symbols))
+            if all(len(sym) == 1 for sym in symbols):
+                # symbols are just single characters, create range regex pattern
+                patt = "[{}]".format("".join(_escapeRegexRangeChars(sym) for sym in symbols))
             else:
-                return Regex("|".join(re.escape(sym) for sym in symbols)).set_name(
-                    " | ".join(symbols)
-                )
+                patt = "|".join(re.escape(sym) for sym in symbols)
+
+            # wrap with \b word break markers if defining as keywords
+            if asKeyword:
+                patt = r"\b(:?{})\b".format(patt)
+
+            ret = Regex(patt, flags=re_flags).set_name(" | ".join(symbols))
+
+            if caseless:
+                # add parse action to return symbols as specified, not in random
+                # casing as found in input string
+                symbol_map = {sym.lower(): sym for sym in symbols}
+                ret.add_parse_action(lambda s, l, t: symbol_map[t[0].lower()])
+
+            return ret
+
         except sre_constants.error:
             warnings.warn(
                 "Exception creating Regex for one_of, building MatchFirst", stacklevel=2

@@ -2,33 +2,40 @@
 Change Log
 ==========
 
+Version 3.0.2 -
+---------------
+- Performance enhancement to `one_of` to always generate `regex`, even
+  if `caseless` or `as_keyword` args are given as `True` (unless explicitly
+  disabled by passing `use_regex=True`.
+
+
 Version 3.0.1 -
 ---------------
-- Fixed bug where Word(max=n) did not match word groups less than length 'n'.
+- Fixed bug where `Word(max=n)` did not match word groups less than length 'n'.
   Thanks to Joachim Metz for catching this!
 
-- Fixed bug where ParseResults accidentally created recursive contents.
+- Fixed bug where `ParseResults` accidentally created recursive contents.
   Joachim Metz on this one also!
 
-- Fixed bug where warn_on_multiple_string_args_to_oneof warning is raised
+- Fixed bug where `warn_on_multiple_string_args_to_oneof` warning is raised
   even when not enabled.
 
 
 Version 3.0.0 -
 ---------------
 - A consolidated list of all the changes in the 3.0.0 release can be found in
-  docs/whats_new_in_3_0_0.rst.
+  `docs/whats_new_in_3_0_0.rst`.
   (https://github.com/pyparsing/pyparsing/blob/master/docs/whats_new_in_3_0_0.rst)
 
 
 Version 3.0.0.final -
 ---------------------
-- Added support for python -W warning option to call enable_all_warnings() at startup.
-  Also detects setting of PYPARSINGENABLEALLWARNINGS environment variable to any non-blank
+- Added support for python `-W` warning option to call `enable_all_warnings`() at startup.
+  Also detects setting of `PYPARSINGENABLEALLWARNINGS` environment variable to any non-blank
   value.
 
 - Fixed named results returned by `url` to match fields as they would be parsed
-  using urllib.parse.urlparse.
+  using `urllib.parse.urlparse`.
 
 - Early response to `with_line_numbers` was positive, with some requested enhancements:
   . added a trailing "|" at the end of each line (to show presence of trailing spaces);
@@ -40,8 +47,8 @@ Version 3.0.0.final -
   . added mark_control argument to support highlighting of control characters using
     '.' or Unicode symbols, such as "␍" and "␊".
 
-- Modified helpers common_html_entity and replace_html_entity() to use the HTML
-  entity definitions from html.entities.html5.
+- Modified helpers `common_html_entity` and `replace_html_entity()` to use the HTML
+  entity definitions from `html.entities.html5`.
 
 - Updated the class diagram in the pyparsing docs directory, along with the supporting
   .puml file (PlantUML markup) used to create the diagram.
