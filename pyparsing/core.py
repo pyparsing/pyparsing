@@ -2689,8 +2689,7 @@ class Word(Token):
                     repeat = ""
                 else:
                     repeat = "{{{},{}}}".format(
-                        self.minLen,
-                        "" if self.maxLen == _MAX_INT else self.maxLen
+                        self.minLen, "" if self.maxLen == _MAX_INT else self.maxLen
                     )
                 self.reString = "[{}]{}".format(
                     _collapseStringToRanges(self.initChars),

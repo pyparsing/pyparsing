@@ -277,7 +277,9 @@ def one_of(
         try:
             if all(len(sym) == 1 for sym in symbols):
                 # symbols are just single characters, create range regex pattern
-                patt = "[{}]".format("".join(_escapeRegexRangeChars(sym) for sym in symbols))
+                patt = "[{}]".format(
+                    "".join(_escapeRegexRangeChars(sym) for sym in symbols)
+                )
             else:
                 patt = "|".join(re.escape(sym) for sym in symbols)
 
