@@ -3587,14 +3587,14 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
         """
 
         test = dedent(test)
-        print(test)
+        print(pp.testing.with_line_numbers(test))
 
         print("normal parsing")
         for t, s, e in (pp.LineStart() + "AAA").scanString(test):
-            print(s, e, pp.lineno(s, test), pp.line(s, test), repr(test[s]))
+            print(s, e, pp.lineno(s, test), pp.line(s, test), repr(t))
             print()
             self.assertEqual(
-                "A", test[s], "failed LineStart with insignificant newlines"
+                "A", t[0][0], "failed LineStart with insignificant newlines"
             )
 
         print(r"parsing without \n in whitespace chars")
@@ -3604,10 +3604,10 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
                 print(s, e, pp.lineno(s, test), pp.line(s, test), repr(test[s]))
                 print()
                 self.assertEqual(
-                    "A", test[s], "failed LineStart with insignificant newlines"
+                    "A", t[0][0], "failed LineStart with insignificant newlines"
                 )
 
-    def testLineStart3(self):
+    def testLineStartWithLeadingSpaces(self):
         # testing issue #272
         instring = dedent(
             """
@@ -3634,16 +3634,21 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             alpha_line | pp.Word("_"),
             alpha_line | alpha_line,
             pp.MatchFirst([alpha_line, alpha_line]),
+            alpha_line ^ pp.Word("_"),
+            alpha_line ^ alpha_line,
+            pp.Or([alpha_line, pp.Word("_")]),
             pp.LineStart() + pp.Word(pp.alphas) + pp.LineEnd().suppress(),
             pp.And([pp.LineStart(), pp.Word(pp.alphas), pp.LineEnd().suppress()]),
         ]
+        fails = []
         for test in tests:
             print(test.searchString(instring))
-            self.assertEqual(
-                ["a", "d", "e"], flatten(sum(test.search_string(instring)).as_list())
-            )
+            if ['a', 'b', 'c', 'd', 'e', 'f', 'g'] != flatten(sum(test.search_string(instring)).as_list()):
+                fails.append(test)
+        if fails:
+            self.fail("failed LineStart tests:\n{}".format("\n".join(str(expr) for expr in fails)))
 
-    def testLineStart4(self):
+    def testAtLineStart(self):
         test = dedent(
             """\
         AAA this line
@@ -3663,6 +3668,10 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
         )
 
     def testStringStart(self):
+        self.assertParseAndCheckList(pp.StringStart() + pp.Word(pp.nums), "123", ["123"])
+        self.assertParseAndCheckList(pp.StringStart() + pp.Word(pp.nums), "   123", ["123"])
+        self.assertParseAndCheckList(pp.StringStart() + "123", "123", ["123"])
+        self.assertParseAndCheckList(pp.StringStart() + "123", "   123", ["123"])
         self.assertParseAndCheckList(pp.AtStringStart(pp.Word(pp.nums)), "123", ["123"])
 
         self.assertParseAndCheckList(pp.AtStringStart("123"), "123", ["123"])
@@ -3672,6 +3681,40 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
 
         with self.assertRaisesParseException():
             pp.AtStringStart("123").parse_string("    123")
+
+    def testStringStartAndLineStartInsideAnd(self):
+        P_MTARG = (
+                pp.StringStart()
+                + pp.Word("abcde")
+                + pp.StringEnd()
+        )
+
+        P_MTARG2 = (
+                pp.LineStart()
+                + pp.Word("abcde")
+                + pp.StringEnd()
+        )
+
+        P_MTARG3 = (
+                pp.AtLineStart(pp.Word("abcde"))
+                + pp.StringEnd()
+        )
+
+        def test(expr, string):
+            expr.streamline()
+            print(expr, repr(string), end=" ")
+            print(expr.parse_string(string))
+
+        test(P_MTARG, "aaa")
+        test(P_MTARG2, "aaa")
+        test(P_MTARG2, "\naaa")
+        test(P_MTARG2, "   aaa")
+        test(P_MTARG2, "\n   aaa")
+
+        with self.assertRaisesParseException():
+            test(P_MTARG3, "   aaa")
+        with self.assertRaisesParseException():
+            test(P_MTARG3, "\n   aaa")
 
     def testLineAndStringEnd(self):
 

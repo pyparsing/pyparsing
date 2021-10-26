@@ -4,9 +4,33 @@ Change Log
 
 Version 3.0.2 -
 ---------------
-- Performance enhancement to `one_of` to always generate `regex`, even
-  if `caseless` or `as_keyword` args are given as `True` (unless explicitly
-  disabled by passing `use_regex=True`).
+- Reverted change in behavior with LineStart and StringStart, which changed the
+  interpretation of when and how LineStart and StringStart should match when
+  a line starts with spaces. In 3.0.0, the xxxStart expressions were not
+  really treated like expressions in their own right, but as modifiers to the
+  following expression when used like `LineStart() + expr`, so that if there
+  were whitespace on the line before `expr` (which would match in versions prior
+  to 3.0.0), the match would fail.
+
+  3.0.0 implemented this by automatically promoting `LineStart() + expr` to
+  `AtLineStart(expr)`, which broke existing parsers that did not expect `expr` to
+  necessarily be right at the start of the line, but only be the first token
+  found on the line. This was reported as a regression in Issue #317.
+
+  In 3.0.2, pyparsing reverts to the previous behavior, but will retain the new
+  `AtLineStart` and `AtStringStart` expression classes, so that parsers can chose
+  whichever behavior applies in their specific instance. Specifically:
+
+      # matches expr if it is the first token on the line
+      # (allows for leading whitespace)
+      LineStart() + expr
+
+      # matches only if expr is found in column 1
+      AtLineStart(expr)
+
+- Performance enhancement to `one_of` to always generate an internal `Regex`,
+  even if `caseless` or `as_keyword` args are given as `True` (unless explicitly
+  disabled by passing `use_regex=False`).
 
 
 Version 3.0.1 -

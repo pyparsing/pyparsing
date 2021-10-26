@@ -2009,6 +2009,8 @@ class ParserElement(ABC):
 
         (Note that this is a raw string literal, you must include the leading ``'r'``.)
         """
+        from .testing import pyparsing_test
+
         parseAll = parseAll and parse_all
         fullDump = fullDump and full_dump
         printResults = printResults and print_results
@@ -2030,11 +2032,14 @@ class ParserElement(ABC):
         BOM = "\ufeff"
         for t in tests:
             if comment is not None and comment.matches(t, False) or comments and not t:
-                comments.append(t)
+                comments.append(pyparsing_test.with_line_numbers(t))
                 continue
             if not t:
                 continue
-            out = ["\n" + "\n".join(comments) if comments else "", t]
+            out = [
+                "\n" + "\n".join(comments) if comments else "",
+                pyparsing_test.with_line_numbers(t),
+            ]
             comments = []
             try:
                 # convert newline marks to actual newlines, and strip leading BOM if present
@@ -2042,11 +2047,7 @@ class ParserElement(ABC):
                 result = self.parse_string(t, parse_all=parseAll)
             except ParseBaseException as pe:
                 fatal = "(FATAL)" if isinstance(pe, ParseFatalException) else ""
-                if "\n" in t:
-                    out.append(line(pe.loc, t))
-                    out.append(" " * (col(pe.loc, t) - 1) + "^" + fatal)
-                else:
-                    out.append(" " * pe.loc + "^" + fatal)
+                out.append(pe.explain())
                 out.append("FAIL: " + str(pe))
                 success = success and failureTests
                 result = pe
@@ -3388,22 +3389,20 @@ class LineStart(_PositionToken):
 
     def __init__(self):
         super().__init__()
+        self.leave_whitespace()
+        self.orig_whiteChars = set() | self.whiteChars
+        self.whiteChars.discard("\n")
+        self.skipper = Empty().set_whitespace_chars(self.whiteChars)
         self.errmsg = "Expected start of line"
-
-    def __add__(self, other):
-        return AtLineStart(other)
-
-    def __sub__(self, other):
-        return AtLineStart(other) - Empty()
 
     def preParse(self, instring, loc):
         if loc == 0:
             return loc
         else:
-            if instring[loc : loc + 1] == "\n" and "\n" in self.whiteChars:
-                ret = loc + 1
-            else:
-                ret = super().preParse(instring, loc)
+            ret = self.skipper.preParse(instring, loc)
+            if "\n" in self.orig_whiteChars:
+                while instring[ret : ret + 1] == "\n":
+                    ret = self.skipper.preParse(instring, ret + 1)
             return ret
 
     def parseImpl(self, instring, loc, doActions=True):
@@ -3443,12 +3442,6 @@ class StringStart(_PositionToken):
     def __init__(self):
         super().__init__()
         self.errmsg = "Expected start of text"
-
-    def __add__(self, other):
-        return AtStringStart(other)
-
-    def __sub__(self, other):
-        return AtStringStart(other) - Empty()
 
     def parseImpl(self, instring, loc, doActions=True):
         if loc != 0:
@@ -3835,6 +3828,7 @@ class Or(ParseExpression):
         super().__init__(exprs, savelist)
         if self.exprs:
             self.mayReturnEmpty = any(e.mayReturnEmpty for e in self.exprs)
+            self.skipWhitespace = all(e.skipWhitespace for e in self.exprs)
         else:
             self.mayReturnEmpty = True
 
@@ -3976,6 +3970,7 @@ class MatchFirst(ParseExpression):
         if self.exprs:
             self.mayReturnEmpty = any(e.mayReturnEmpty for e in self.exprs)
             self.callPreparse = all(e.callPreparse for e in self.exprs)
+            self.skipWhitespace = all(e.skipWhitespace for e in self.exprs)
         else:
             self.mayReturnEmpty = True
 
