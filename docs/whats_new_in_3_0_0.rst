@@ -165,7 +165,8 @@ just namespaces, to add some helpful behavior:
 
 - added support for calling ``enable_all_warnings()`` if warnings are enabled
   using the Python ``-W`` switch, or setting a non-empty value to the environment
-  variable ``PYPARSINGENABLEALLWARNINGS``.
+  variable ``PYPARSINGENABLEALLWARNINGS``. (If using `-Wd` for testing, but
+  wishing to disable pyparsing warnings, add `-Wi:::pyparsing`.)
 
 - added new warning, ``warn_on_match_first_with_lshift_operator`` to
   warn when using ``'<<'`` with a ``'|'`` ``MatchFirst`` operator,

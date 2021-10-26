@@ -6,7 +6,7 @@ Version 3.0.2 -
 ---------------
 - Performance enhancement to `one_of` to always generate `regex`, even
   if `caseless` or `as_keyword` args are given as `True` (unless explicitly
-  disabled by passing `use_regex=True`.
+  disabled by passing `use_regex=True`).
 
 
 Version 3.0.1 -
@@ -32,7 +32,8 @@ Version 3.0.0.final -
 ---------------------
 - Added support for python `-W` warning option to call `enable_all_warnings`() at startup.
   Also detects setting of `PYPARSINGENABLEALLWARNINGS` environment variable to any non-blank
-  value.
+  value. (If using `-Wd` for testing, but wishing to disable pyparsing warnings, add
+  `-Wi:::pyparsing`.)
 
 - Fixed named results returned by `url` to match fields as they would be parsed
   using `urllib.parse.urlparse`.

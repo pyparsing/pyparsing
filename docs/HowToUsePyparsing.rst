@@ -985,7 +985,8 @@ Exception classes and Troubleshooting
                      on Forward expression that has no contained expression
 
   Warnings can also be enabled using the Python ``-W`` switch, or setting a non-empty
-  value to the environment variable ``PYPARSINGENABLEALLWARNINGS``
+  value to the environment variable ``PYPARSINGENABLEALLWARNINGS``. (If using `-Wd` for
+  testing, but wishing to disable pyparsing warnings, add `-Wi:::pyparsing`.)
 
 
 Miscellaneous attributes and methods
