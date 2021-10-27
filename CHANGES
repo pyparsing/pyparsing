@@ -4,9 +4,9 @@ Change Log
 
 Version 3.0.2 -
 ---------------
-- Reverted change in behavior with LineStart and StringStart, which changed the
-  interpretation of when and how LineStart and StringStart should match when
-  a line starts with spaces. In 3.0.0, the xxxStart expressions were not
+- Reverted change in behavior with `LineStart` and `StringStart`, which changed the
+  interpretation of when and how `LineStart` and `StringStart` should match when
+  a line starts with spaces. In 3.0.0, the `xxxStart` expressions were not
   really treated like expressions in their own right, but as modifiers to the
   following expression when used like `LineStart() + expr`, so that if there
   were whitespace on the line before `expr` (which would match in versions prior
@@ -70,7 +70,7 @@ Version 3.0.0.final -
   . added a trailing "|" at the end of each line (to show presence of trailing spaces);
     can be customized using `eol_mark` argument
   . added expand_tabs argument, to control calling str.expandtabs (defaults to True
-    to match parseString)
+    to match `parseString`)
   . added mark_spaces argument to support display of a printing character in place of
     spaces, or Unicode symbols for space and tab characters
   . added mark_control argument to support highlighting of control characters using
@@ -131,7 +131,7 @@ Version 3.0.0rc2 -
 - Added new example `cuneiform_python.py` to demonstrate creating a new Unicode
   range, and writing a Cuneiform->Python transformer (inspired by zhpy).
 
-- Fixed issue #272, reported by PhasecoreX, when LineStart() expressions would match
+- Fixed issue #272, reported by PhasecoreX, when `LineStart`() expressions would match
   input text that was not necessarily at the beginning of a line.
 
   As part of this fix, two new classes have been added: AtLineStart and AtStringStart.
@@ -140,15 +140,17 @@ Version 3.0.0rc2 -
       LineStart() + expr      and     AtLineStart(expr)
       StringStart() + expr    and     AtStringStart(expr)
 
-- Fixed ParseFatalExceptions failing to override normal exceptions or expression
-  matches in MatchFirst expressions. Addresses issue #251, reported by zyp-rgb.
+  [`LineStart` and `StringStart` changes reverted in 3.0.2.]
 
-- Fixed bug in which ParseResults replaces a collection type value with an invalid
+- Fixed `ParseFatalExceptions` failing to override normal exceptions or expression
+  matches in `MatchFirst` expressions. Addresses issue #251, reported by zyp-rgb.
+
+- Fixed bug in which `ParseResults` replaces a collection type value with an invalid
   type annotation (as a result of changed behavior in Python 3.9). Addresses issue #276, reported by
   Rob Shuler, thanks.
 
-- Fixed bug in ParseResults when calling `__getattr__` for special double-underscored
-  methods. Now raises AttributeError for non-existent results when accessing a
+- Fixed bug in `ParseResults` when calling `__getattr__` for special double-underscored
+  methods. Now raises `AttributeError` for non-existent results when accessing a
   name starting with '__'. Addresses issue #208, reported by Joachim Metz.
 
 - Modified debug fail messages to include the expression name to make it easier to sync
@@ -168,10 +170,10 @@ Version 3.0.0rc1 - September, 2021
       to be shown vertically; default=3
     . optional 'show_results_names' argument, to specify whether results name
       annotations should be shown; default=False
-  . every expression that gets a name using setName() gets separated out as
+  . every expression that gets a name using `setName()` gets separated out as
     a separate subdiagram
   . results names can be shown as annotations to diagram items
-  . Each, FollowedBy, and PrecededBy elements get [ALL], [LOOKAHEAD], and [LOOKBEHIND]
+  . `Each`, `FollowedBy`, and `PrecededBy` elements get [ALL], [LOOKAHEAD], and [LOOKBEHIND]
     annotations
   . removed annotations for Suppress elements
   . some diagram cleanup when a grammar contains Forward elements
@@ -227,10 +229,10 @@ Version 3.0.0rc1 - September, 2021
 
 - Fixed bug in Located class when used with a results name. (Issue #294)
 
-- Fixed bug in QuotedString class when the escaped quote string is not a
+- Fixed bug in `QuotedString` class when the escaped quote string is not a
   repeated character. (Issue #263)
 
-- parseFile() and create_diagram() methods now will accept pathlib.Path
+- `parseFile()` and `create_diagram()` methods now will accept `pathlib.Path`
   arguments.
 
 
@@ -279,7 +281,7 @@ Version 3.0.0b3 - August, 2021
   Contributed by Kazantcev Andrey, thanks!
 
 - Removed internal comparison of results values against b"", which
-  raised a BytesWarning when run with `python -bb`. Fixes issue #271 reported
+  raised a `BytesWarning` when run with `python -bb`. Fixes issue #271 reported
   by Florian Bruhin, thank you!
 
 - Fixed STUDENTS table in sql2dot.py example, fixes issue #261 reported by
@@ -324,7 +326,7 @@ Version 3.0.0b1 - November, 2020
   distinctions in working with the different types.
 
   In addition parse actions that must return a value of list type (which would
-  normally be converted internally to a ParseResults) can override this default
+  normally be converted internally to a `ParseResults`) can override this default
   behavior by returning their list wrapped in the new `ParseResults.List` class:
 
       # this parse action tries to return a list, but pyparsing
@@ -387,7 +389,7 @@ Version 3.0.0b1 - November, 2020
 
       (['abc', 'def'], {'qty': 100}]
 
-- Fixed bugs in Each when passed OneOrMore or ZeroOrMore expressions:
+- Fixed bugs in Each when passed `OneOrMore` or `ZeroOrMore` expressions:
   . first expression match could be enclosed in an extra nesting level
   . out-of-order expressions now handled correctly if mixed with required
     expressions
@@ -427,7 +429,7 @@ Version 3.0.0a2 - June, 2020
   documentation.
 
 - API CHANGE
-  Changed result returned when parsing using countedArray,
+  Changed result returned when parsing using `countedArray`,
   the array items are no longer returned in a doubly-nested
   list.
 
@@ -458,8 +460,8 @@ Version 3.0.0a2 - June, 2020
   string ranges if possible. `Word(alphas)` would formerly
   print as `W:(ABCD...)`, now prints as `W:(A-Za-z)`.
 
-- Added ignoreWhitespace(recurse:bool = True) and added a
-  recurse argument to leaveWhitespace, both added to provide finer
+- Added `ignoreWhitespace(recurse:bool = True)`` and added a
+  recurse argument to `leaveWhitespace`, both added to provide finer
   control over pyparsing's whitespace skipping. Also contributed
   by Michael Milton.
 
@@ -471,9 +473,9 @@ Version 3.0.0a2 - June, 2020
   Also, pyparsing_unicode.Korean was renamed to Hangul (Korean
   is also defined as a synonym for compatibility).
 
-- Enhanced ParseResults dump() to show both results names and list
+- Enhanced `ParseResults` dump() to show both results names and list
   subitems. Fixes bug where adding a results name would hide
-  lower-level structures in the ParseResults.
+  lower-level structures in the `ParseResults`.
 
 - Added new __diag__ warnings:
 
@@ -487,13 +489,13 @@ Version 3.0.0a2 - June, 2020
     mistake when using Forwards)
     (**currently not working on PyPy**)
 
-- Added ParserElement.recurse() method to make it simpler for
+- Added `ParserElement`.recurse() method to make it simpler for
   grammar utilities to navigate through the tree of expressions in
   a pyparsing grammar.
 
-- Fixed bug in ParseResults repr() which showed all matching
-  entries for a results name, even if listAllMatches was set
-  to False when creating the ParseResults originally. Reported
+- Fixed bug in `ParseResults` repr() which showed all matching
+  entries for a results name, even if `listAllMatches` was set
+  to False when creating the `ParseResults` originally. Reported
   by Nicholas42 on GitHub, good catch! (Issue #205)
 
 - Modified refactored modules to use relative imports, as
@@ -519,24 +521,24 @@ Version 3.0.0a1 - April, 2020
   version of Python, you must use a Pyparsing 2.4.x version
 
   Deprecated features removed:
-  . ParseResults.asXML() - if used for debugging, switch
-    to using ParseResults.dump(); if used for data transfer,
-    use ParseResults.asDict() to convert to a nested Python
+  . `ParseResults.asXML()` - if used for debugging, switch
+    to using `ParseResults.dump()`; if used for data transfer,
+    use `ParseResults.asDict()` to convert to a nested Python
     dict, which can then be converted to XML or JSON or
     other transfer format
 
-  . operatorPrecedence synonym for infixNotation -
-    convert to calling infixNotation
+  . `operatorPrecedence` synonym for `infixNotation` -
+    convert to calling `infixNotation`
 
-  . commaSeparatedList - convert to using
+  . `commaSeparatedList` - convert to using
     pyparsing_common.comma_separated_list
 
-  . upcaseTokens and downcaseTokens - convert to using
-    pyparsing_common.upcaseTokens and downcaseTokens
+  . `upcaseTokens` and `downcaseTokens` - convert to using
+    `pyparsing_common.upcaseTokens` and `downcaseTokens`
 
   . __compat__.collect_all_And_tokens will not be settable to
     False to revert to pre-2.3.1 results name behavior -
-    review use of names for MatchFirst and Or expressions
+    review use of names for `MatchFirst` and Or expressions
     containing And expressions, as they will return the
     complete list of parsed tokens, not just the first one.
     Use `__diag__.warn_multiple_tokens_in_named_alternation`
@@ -551,7 +553,7 @@ Version 3.0.0a1 - April, 2020
 - API CHANGE:
   The staticmethod `ParseException.explain` has been moved to
   `ParseBaseException.explain_exception`, and a new `explain` instance
-  method added to ParseBaseException. This will make calls to `explain`
+  method added to `ParseBaseException`. This will make calls to `explain`
   much more natural:
 
       try:
@@ -560,23 +562,23 @@ Version 3.0.0a1 - April, 2020
           print(pe.explain())
 
 - POTENTIAL API CHANGE:
-  ZeroOrMore expressions that have results names will now
+  `ZeroOrMore` expressions that have results names will now
   include empty lists for their name if no matches are found.
   Previously, no named result would be present. Code that tested
   for the presence of any expressions using "if name in results:"
   will now always return True. This code will need to change to
   "if name in results and results[name]:" or just
   "if results[name]:". Also, any parser unit tests that check the
-  asDict() contents will now see additional entries for parsers
-  having named ZeroOrMore expressions, whose values will be `[]`.
+  `asDict()` contents will now see additional entries for parsers
+  having named `ZeroOrMore` expressions, whose values will be `[]`.
 
 - POTENTIAL API CHANGE:
-  Fixed a bug in which calls to ParserElement.setDefaultWhitespaceChars
+  Fixed a bug in which calls to `ParserElement.setDefaultWhitespaceChars`
   did not change whitespace definitions on any pyparsing built-in
-  expressions defined at import time (such as quotedString, or those
+  expressions defined at import time (such as `quotedString`, or those
   defined in pyparsing_common). This would lead to confusion when
   built-in expressions would not use updated default whitespace
-  characters. Now a call to ParserElement.setDefaultWhitespaceChars
+  characters. Now a call to `ParserElement.setDefaultWhitespaceChars`
   will also go and update all pyparsing built-ins to use the new
   default whitespace characters. (Note that this will only modify
   expressions defined within the pyparsing module.) Prompted by
@@ -600,7 +602,7 @@ Version 3.0.0a1 - April, 2020
         pp.__diag__.enable_all_warnings()
 
   - added new warning, "warn_on_match_first_with_lshift_operator" to
-    warn when using '<<' with a '|' MatchFirst operator, which will
+    warn when using '<<' with a '|' `MatchFirst` operator, which will
     create an unintended expression due to precedence of operations.
 
     Example: This statement will erroneously define the `fwd` expression
@@ -616,26 +618,26 @@ Version 3.0.0a1 - April, 2020
                  or
         fwd << (expr_a | expr_b)
 
-- Cleaned up default tracebacks when getting a ParseException when calling
-  parseString. Exception traces should now stop at the call in parseString,
+- Cleaned up default tracebacks when getting a `ParseException` when calling
+  `parseString`. Exception traces should now stop at the call in `parseString`,
   and not include the internal traceback frames. (If the full traceback
-  is desired, then set ParserElement.verbose_traceback to True.)
+  is desired, then set `ParserElement`.verbose_traceback to True.)
 
-- Fixed FutureWarnings that sometimes are raised when '[' passed as a
+- Fixed `FutureWarnings` that sometimes are raised when '[' passed as a
   character to Word.
 
 - New namespace, assert methods and classes added to support writing
   unit tests.
-  - assertParseResultsEquals
-  - assertParseAndCheckList
-  - assertParseAndCheckDict
-  - assertRunTestResults
-  - assertRaisesParseException
-  - reset_pyparsing_context context manager, to restore pyparsing
+  - `assertParseResultsEquals`
+  - `assertParseAndCheckList`
+  - `assertParseAndCheckDict`
+  - `assertRunTestResults`
+  - `assertRaisesParseException`
+  - `reset_pyparsing_context` context manager, to restore pyparsing
     config settings
 
 - Enhanced error messages and error locations when parsing fails on
-  the Keyword or CaselessKeyword classes due to the presence of a
+  the Keyword or `CaselessKeyword` classes due to the presence of a
   preceding or trailing keyword character. Surfaced while
   working with metaperl on issue #201.
 
@@ -651,7 +653,7 @@ Version 3.0.0a1 - April, 2020
 
   Inspired by PR submitted by bjrnfrdnnd on GitHub, very nice!
 
-- Fixed handling of ParseSyntaxExceptions raised as part of Each
+- Fixed handling of `ParseSyntaxExceptions` raised as part of Each
   expressions, when sub-expressions contain '-' backtrack
   suppression. As part of resolution to a question posted by John
   Greene on StackOverflow.
@@ -666,20 +668,20 @@ Version 3.0.0a1 - April, 2020
 - Improvements in select_parser.py, to include new SQL syntax
   from SQLite. PR submitted by Robert Coup, nice work!
 
-- Fixed bug in PrecededBy which caused infinite recursion, issue #127
+- Fixed bug in `PrecededBy` which caused infinite recursion, issue #127
   submitted by EdwardJB.
 
-- Fixed bug in CloseMatch where end location was incorrectly
+- Fixed bug in `CloseMatch` where end location was incorrectly
   computed; and updated partial_gene_match.py example.
 
-- Fixed bug in indentedBlock with a parser using two different
+- Fixed bug in `indentedBlock` with a parser using two different
   types of nested indented blocks with different indent values,
   but sharing the same indent stack, submitted by renzbagaporo.
 
 - Fixed bug in Each when using Regex, when Regex expression would
   get parsed twice; issue #183 submitted by scauligi, thanks!
 
-- BigQueryViewParser.py added to examples directory, PR submitted
+- `BigQueryViewParser.py` added to examples directory, PR submitted
   by Michael Smedberg, nice work!
 
 - booleansearchparser.py added to examples directory, PR submitted
@@ -692,10 +694,10 @@ Version 3.0.0a1 - April, 2020
 - Fixed bug in regex definitions for real and sci_real expressions in
   pyparsing_common. Issue #194, reported by Michael Wayne Goodman, thanks!
 
-- Fixed FutureWarning raised beginning in Python 3.7 for Regex expressions
+- Fixed `FutureWarning` raised beginning in Python 3.7 for Regex expressions
   containing '[' within a regex set.
 
-- Minor reformatting of output from runTests to make embedded
+- Minor reformatting of output from `runTests` to make embedded
   comments more visible.
 
 - And finally, many thanks to those who helped in the restructuring

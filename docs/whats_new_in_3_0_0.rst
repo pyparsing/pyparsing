@@ -8,6 +8,7 @@ What's New in Pyparsing 3.0.0
 
 :abstract: This document summarizes the changes made
     in the 3.0.0 release of pyparsing.
+    (Updated to reflect changes up to 3.0.2)
 
 .. sectnum::    :depth: 4
 
@@ -224,7 +225,7 @@ behavior by returning their list wrapped in the new ``ParseResults.List`` class:
 This is the mechanism used internally by the ``Group`` class when defined
 using ``aslist=True``.
 
-New Located class to replace locatedExpr helper method
+New Located class to replace ``locatedExpr`` helper method
 ------------------------------------------------------
 The new ``Located`` class will replace the current ``locatedExpr`` method for
 marking parsed results with the start and end locations of the parsed data in
@@ -262,28 +263,22 @@ on the whole result.
 The existing ``locatedExpr`` is retained for backward-compatibility, but will be
 deprecated in a future release.
 
-New AtLineStart and AtStringStart classes
------------------------------------------
-As part fixing some matching behavior in LineStart and StringStart, two new
-classes have been added: AtLineStart and AtStringStart.
+New ``AtLineStart`` and ``AtStringStart`` classes
+-------------------------------------------------
+As part of fixing some matching behavior in ``LineStart`` and ``StringStart``, two new
+classes have been added: ``AtLineStart`` and ``AtStringStart``.
 
-The following expressions are equivalent::
+``LineStart`` and ``StringStart`` can be treated as separate elements, including whitespace skipping.
+``AtLineStart`` and ``AtStringStart`` enforce that an expression starts exactly at column 1, with no
+leading whitespace.
 
-    LineStart() + expr      and     AtLineStart(expr)
-    StringStart() + expr    and     AtStringStart(expr)
+    (LineStart() + Word(alphas)).parseString("ABC")    # passes
+    (LineStart() + Word(alphas)).parseString("  ABC")  # passes
+    AtLineStart(Word(alphas)).parseString("  ABC")     # fails
 
-LineStart and StringStart now will only match if their related expression is
-actually at the start of the string or current line, without skipping whitespace.::
+[This is a fix to behavior that was added in 3.0.0, but was actually a regression from 2.4.x.]
 
-    (LineStart() + Word(alphas)).parseString("ABC")  # passes
-    (LineStart() + Word(alphas)).parseString("  ABC")  # fails
-
-LineStart is also smarter about matching at the beginning of the string.
-
-This was the intended behavior previously, but could be bypassed if wrapped
-in other ParserElements.
-
-New IndentedBlock class to replace indentedBlock helper method
+New ``IndentedBlock`` class to replace ``indentedBlock`` helper method
 --------------------------------------------------------------
 The new ``IndentedBlock`` class will replace the current ``indentedBlock`` method
 for defining indented blocks of text, similar to Python source code. Using
@@ -294,7 +289,7 @@ Here is a simple example of an expression containing an alphabetic key, followed
 by an indented list of integers::
 
     integer = pp.Word(pp.nums)
-    group = pp.Group(pp.Char(pp.alphas) + pp.Group(pp.IndentedBlock(integer)))
+    group = pp.Group(pp.Char(pp.alphas) + pp.IndentedBlock(integer))
 
 parses::
 
@@ -308,6 +303,8 @@ parses::
 as::
 
     [['A', [100, 101]], ['B', [200, 201]]]
+
+By default, the results returned from the ``IndentedBlock`` are grouped.
 
 ``IndentedBlock`` may also be used to define a recursive indented block (containing nested
 indented blocks).
@@ -692,8 +689,11 @@ Other discontinued features
 Fixed Bugs
 ==========
 
-- Fixed issue when LineStart() expressions would match input text that was not
+- [Reverted in 3.0.2]Fixed issue when ``LineStart``() expressions would match input text that was not
   necessarily at the beginning of a line.
+  [The previous behavior was the correct behavior, since it represents the ``LineStart`` as its own
+  matching expression. ``ParserElements`` that must start in column 1 can be wrapped in the new
+  ``AtLineStart`` class.]
 
 - Fixed bug in regex definitions for ``real`` and ``sci_real`` expressions in
   ``pyparsing_common``.
