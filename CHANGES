@@ -10,6 +10,9 @@ Version 3.0.3 -
   of the `LineStart` changes. Reported by Marc-Alexandre Côté,
   thanks!
 
+- Added header column labeling > 100 in `with_line_numbers` - some input lines
+  are longer than others.
+
 
 Version 3.0.2 -
 ---------------
