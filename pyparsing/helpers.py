@@ -285,7 +285,7 @@ def one_of(
 
             # wrap with \b word break markers if defining as keywords
             if asKeyword:
-                patt = r"\b(:?{})\b".format(patt)
+                patt = r"\b(?:{})\b".format(patt)
 
             ret = Regex(patt, flags=re_flags).set_name(" | ".join(symbols))
 
