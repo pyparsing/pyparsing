@@ -4341,7 +4341,7 @@ class IndentedBlock(ParseElementEnhance):
             self.errmsg = "expected indent at column greater than {}".format(ref_col)
             self.add_condition(lambda s, l, t: col(l, s) > ref_col)
 
-    def __init__(self, expr: ParserElement, *, recursive: bool = False, grouped=True):
+    def __init__(self, expr: ParserElement, *, recursive: bool = False, grouped: bool = True):
         super().__init__(expr, savelist=True)
         # if recursive:
         #     raise NotImplementedError("IndentedBlock with recursive is not implemented")
