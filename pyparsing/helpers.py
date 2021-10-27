@@ -1000,41 +1000,6 @@ def indentedBlock(blockStatementExpr, indentStack, indent=True, backup_stacks=[]
     return smExpr.set_name("indented block")
 
 
-class IndentedBlock(ParseElementEnhance):
-    """
-    Expression to match one or more expressions at a given indentation level.
-    Useful for parsing text where structure is implied by indentation (like Python source code).
-    """
-
-    def __init__(self, expr: ParserElement, recursive: bool = True):
-        super().__init__(expr, savelist=True)
-        self._recursive = recursive
-
-    def parseImpl(self, instring, loc, doActions=True):
-        # advance parse position to non-whitespace by using an Empty()
-        # this should be the column to be used for all subsequent indented lines
-        anchor_loc = Empty().preParse(instring, loc)
-
-        # see if self.expr matches at the current location - if not it will raise an exception
-        # and no further work is necessary
-        self.expr.try_parse(instring, anchor_loc, doActions)
-
-        indent_col = col(anchor_loc, instring)
-        peer_parse_action = match_only_at_col(indent_col)
-        peer_detect_expr = Empty().add_parse_action(peer_parse_action)
-        inner_expr = Empty() + peer_detect_expr + self.expr
-        inner_expr.set_name(f"inner {hex(id(inner_expr))[-4:].upper()}@{indent_col}")
-
-        if self._recursive:
-            indent_parse_action = condition_as_parse_action(
-                lambda s, l, t, relative_to_col=indent_col: col(l, s) > relative_to_col
-            )
-            indent_expr = FollowedBy(self.expr).add_parse_action(indent_parse_action)
-            inner_expr += Opt(Group(indent_expr + self.copy()))
-
-        return OneOrMore(inner_expr).parseImpl(instring, loc, doActions)
-
-
 # it's easy to get these comment structures wrong - they're very common, so may as well make them available
 c_style_comment = Combine(Regex(r"/\*(?:[^*]|\*(?!/))*") + "*/").set_name(
     "C style comment"

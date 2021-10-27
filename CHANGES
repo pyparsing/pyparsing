@@ -32,6 +32,10 @@ Version 3.0.2 -
   even if `caseless` or `as_keyword` args are given as `True` (unless explicitly
   disabled by passing `use_regex=False`).
 
+- `IndentedBlock` class now works with `recursive` flag. By default, the
+  results parsed by an `IndentedBlock` are grouped. This can be disabled by constructing
+  the `IndentedBlock` with `grouped=False`.
+
 
 Version 3.0.1 -
 ---------------
