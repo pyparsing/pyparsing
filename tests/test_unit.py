@@ -3617,16 +3617,19 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
 
     def testLineStartWithLeadingSpaces(self):
         # testing issue #272
+        # reverted in 3.0.2 - LineStart() + expr will match expr even if there
+        # are leading spaces. To force "only at column 1" matching, use
+        # AtLineStart(expr).
         instring = dedent(
             """
-        a
-         b
-          c
-        d
-        e
-         f
-          g
-        """
+            a
+             b
+              c
+            d
+            e
+             f
+              g
+            """
         )
         print(pp.testing.with_line_numbers(instring))
 
@@ -7711,10 +7714,10 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             Match leading_a at loc 1(1,2)
               aba
                ^
-            *Match A at loc 1(1,2)
+            Match A at loc 1(1,2)
               aba
                ^
-            *Match A failed, ParseException raised: Expected A, found 'ba'  (at char 1), (line:1, col:2)
+            Match A failed, ParseException raised: Expected A, found 'ba'  (at char 1), (line:1, col:2)
             Match leading_a failed, ParseException raised: Expected A, found 'ba'  (at char 1), (line:1, col:2)
             *Match B at loc 1(1,2)
               aba

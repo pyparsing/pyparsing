@@ -3853,7 +3853,9 @@ class Or(ParseExpression):
     def streamline(self):
         super().streamline()
         if self.exprs:
+            self.mayReturnEmpty = any(e.mayReturnEmpty for e in self.exprs)
             self.saveAsList = any(e.saveAsList for e in self.exprs)
+            self.skipWhitespace = all(e.skipWhitespace for e in self.exprs)
         else:
             self.saveAsList = False
         return self
@@ -3967,7 +3969,7 @@ class Or(ParseExpression):
 
 class MatchFirst(ParseExpression):
     """Requires that at least one :class:`ParseExpression` is found. If
-    two expressions match, the first one listed is the one that will
+    more than one expression matches, the first one listed is the one that will
     match. May be constructed using the ``'|'`` operator.
 
     Example::
@@ -3987,7 +3989,6 @@ class MatchFirst(ParseExpression):
         super().__init__(exprs, savelist)
         if self.exprs:
             self.mayReturnEmpty = any(e.mayReturnEmpty for e in self.exprs)
-            self.callPreparse = all(e.callPreparse for e in self.exprs)
             self.skipWhitespace = all(e.skipWhitespace for e in self.exprs)
         else:
             self.mayReturnEmpty = True
@@ -4000,7 +4001,7 @@ class MatchFirst(ParseExpression):
         if self.exprs:
             self.saveAsList = any(e.saveAsList for e in self.exprs)
             self.mayReturnEmpty = any(e.mayReturnEmpty for e in self.exprs)
-            self.callPreparse = all(e.callPreparse for e in self.exprs)
+            self.skipWhitespace = all(e.skipWhitespace for e in self.exprs)
         else:
             self.saveAsList = False
             self.mayReturnEmpty = True
@@ -4013,7 +4014,7 @@ class MatchFirst(ParseExpression):
         for e in self.exprs:
             try:
                 return e._parse(
-                    instring, loc, doActions, callPreParse=not self.callPreparse
+                    instring, loc, doActions,
                 )
             except ParseFatalException as pfe:
                 pfe.__traceback__ = None

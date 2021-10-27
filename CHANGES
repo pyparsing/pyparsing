@@ -6,6 +6,10 @@ Version 3.0.3 -
 ---------------
 - Fixed regex typo in `one_of` fix for `as_keyword=True`.
 
+- Fixed a whitespace-skipping bug, Issue #319, introduced as part of the revert
+  of the `LineStart` changes. Reported by Marc-Alexandre Côté,
+  thanks!
+
 
 Version 3.0.2 -
 ---------------
