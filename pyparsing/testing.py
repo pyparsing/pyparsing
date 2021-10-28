@@ -303,17 +303,19 @@ class pyparsing_test:
             header0 = (
                 lead
                 + "".join(
-                    "{}{}".format(' ' * 99, (i + 1) % 100) for i in range(max(max_line_len // 100, 1))
+                    "{}{}".format(" " * 99, (i + 1) % 100)
+                    for i in range(max(max_line_len // 100, 1))
                 )
                 + "\n"
             )
         else:
             header0 = ""
         header1 = (
-            header0 +
-            lead
+            header0
+            + lead
             + "".join(
-                "         {}".format((i + 1) % 10) for i in range(-(-max_line_len // 10))
+                "         {}".format((i + 1) % 10)
+                for i in range(-(-max_line_len // 10))
             )
             + "\n"
         )
