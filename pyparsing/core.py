@@ -5410,7 +5410,7 @@ class Dict(TokenConverter):
                     tokenlist[ikey] = _ParseResultsWithOffset(dictvalue[0], i)
 
         if self._asPythonDict:
-            return tokenlist.asDict()
+            return tokenlist.as_dict()
         else:
             return [tokenlist] if self.resultsName else tokenlist
 
