@@ -2914,6 +2914,101 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             result1, expected, msg="issue with ParseResults.extend(ParseResults)"
         )
 
+    def testParseResultsWithNestedNames(self):
+        from pyparsing import (
+            Dict,
+            Literal,
+            Group,
+            Optional,
+            Regex,
+            QuotedString,
+            oneOf,
+            Or,
+            CaselessKeyword,
+            ZeroOrMore,
+        )
+
+        RELATION_SYMBOLS = "= > < >= <= <> =="
+
+        def _set_info(string, location, tokens):
+            for t in tokens:
+                try:
+                    t["_info_"] = (string, location)
+                except TypeError:
+                    pass
+            tokens["_info_"] = (string, location)
+
+        def keywords(name):
+            words = "any all within encloses adj".split()
+            return Or(map(CaselessKeyword, words))
+
+        charString1 = Group(Regex(r'[^()=<>"/\s]+'))("identifier")
+        charString1.addParseAction(_set_info)
+        charString2 = Group(QuotedString('"', "\\"))("quoted")
+        charString2.addParseAction(_set_info)
+
+        term = Group(charString1 | charString2)
+        modifier_key = charString1
+
+        # relations
+        comparitor_symbol = oneOf(RELATION_SYMBOLS)
+        named_comparitors = keywords("comparitors")
+        comparitor = Group(comparitor_symbol | named_comparitors)("comparitor")
+        comparitor.addParseAction(_set_info)
+
+        def modifier_list1(key):
+            modifier = Dict(
+                Literal("/")
+                + Group(modifier_key(key))("name")
+                + Optional(comparitor_symbol("symbol") + term("value"))
+            )("modifier")
+            modifier.addParseAction(_set_info)
+            return ZeroOrMore(modifier)("modifier_list")
+
+        def modifier_list2(key):
+            modifier = Dict(
+                Literal("/")
+                + Group(modifier_key(key))("name")
+                + Optional(comparitor_symbol("symbol") + term("value")),
+                asdict=True,
+            )("modifier")
+            modifier.addParseAction(_set_info)
+            return ZeroOrMore(modifier)("modifier_list")
+
+        def modifier_list3(key):
+            modifier = Group( # this line is different from the others, must group to get results names
+                Dict(
+                    Literal("/")
+                    + Group(modifier_key(key))("name")
+                    + Optional(comparitor_symbol("symbol") + term("value"))
+                )
+            )
+            modifier.addParseAction(_set_info)
+            return ZeroOrMore(modifier)("modifier_list")
+
+        def modifier_list4(key):
+            modifier = Dict(
+                Literal("/")
+                + Group(modifier_key(key))("name")
+                + Optional(comparitor_symbol("symbol") + term("value")),
+                asdict=True,
+            )
+            modifier.addParseAction(_set_info)
+            return ZeroOrMore(modifier)("modifier_list")
+
+        for modifier_list_fn in (
+            modifier_list1,
+            modifier_list2,
+            modifier_list3,
+            modifier_list4,
+        ):
+            modifier_parser = modifier_list_fn("default")
+
+            result = modifier_parser.parseString("/respectaccents/ignoreaccents")
+            for r in result:
+                print(r)
+                print(r.get("_info_"))
+
     def testParseResultsFromDict(self):
         """test helper classmethod ParseResults.from_dict()"""
 
