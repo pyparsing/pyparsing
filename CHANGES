@@ -4,8 +4,27 @@ Change Log
 
 Version 3.0.4 -
 ---------------
-- Fixed bug in which Dict classes did not correctly return tokens as nested
-  ParseResults, reported by and fix identified by Bu Sun Kim, many thanks!!!
+- Fixed bug in which `Dict` classes did not correctly return tokens as nested
+  `ParseResults`, reported by and fix identified by Bu Sun Kim, many thanks!!!
+
+- Documented API-changing side-effect of converting `ParseResults` to use `__slots__`
+  to pre-define instance attributes. This means that code written like this (which
+  was allowed in pyparsing 2.4.7):
+
+    result = Word(alphas).parseString("abc")
+    result.xyz = 100
+
+  now raises this Python exception:
+
+    AttributeError: 'ParseResults' object has no attribute 'xyz'
+
+  To add new attribute values to ParseResults object in 3.0.0 and later, you must
+  assign them using indexed notation:
+
+    result["xyz"] = 100
+
+  You will still be able to access this new value as an attribute or as an
+  indexed item.
 
 
 Version 3.0.3 -
