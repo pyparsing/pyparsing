@@ -105,7 +105,7 @@ __version__ = "{}.{}.{}".format(*__version_info__[:3]) + (
     ),
     "",
 )[__version_info__.release_level == "final"]
-__version_time__ = "28 October 2021 21:16 UTC"
+__version_time__ = "29 October 2021 05:11 UTC"
 __versionTime__ = __version_time__
 __author__ = "Paul McGuire <ptmcg.gm+pyparsing@gmail.com>"
 

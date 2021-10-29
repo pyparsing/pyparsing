@@ -2976,7 +2976,7 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             return ZeroOrMore(modifier)("modifier_list")
 
         def modifier_list3(key):
-            modifier = Group( # this line is different from the others, must group to get results names
+            modifier = Group(  # this line is different from the others, must group to get results names
                 Dict(
                     Literal("/")
                     + Group(modifier_key(key))("name")
