@@ -689,8 +689,9 @@ Other discontinued features
 Fixed Bugs
 ==========
 
-- [Reverted in 3.0.2]Fixed issue when ``LineStart``() expressions would match input text that was not
+- [Reverted in 3.0.2]Fixed issue when ``LineStart()`` expressions would match input text that was not
   necessarily at the beginning of a line.
+
   [The previous behavior was the correct behavior, since it represents the ``LineStart`` as its own
   matching expression. ``ParserElements`` that must start in column 1 can be wrapped in the new
   ``AtLineStart`` class.]
@@ -715,8 +716,7 @@ Fixed Bugs
 
 - Fixed bugs in ``Each`` when passed ``OneOrMore`` or ``ZeroOrMore`` expressions:
   . first expression match could be enclosed in an extra nesting level
-  . out-of-order expressions now handled correctly if mixed with required
-    expressions
+  . out-of-order expressions now handled correctly if mixed with required expressions
   . results names are maintained correctly for these expression
 
 - Fixed ``FutureWarning`` that sometimes is raised when ``'['`` passed as a
