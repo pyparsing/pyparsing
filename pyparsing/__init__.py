@@ -96,7 +96,7 @@ classes inherit from. Use the docstrings for examples of how to:
 from collections import namedtuple
 
 version_info = namedtuple("version_info", "major minor micro release_level serial")
-__version_info__ = version_info(3, 0, 4, "final", 0)
+__version_info__ = version_info(3, 0, 5, "final", 0)
 __version__ = "{}.{}.{}".format(*__version_info__[:3]) + (
     "{}{}{}".format(
         "r" if __version_info__.release_level[0] == "c" else "",
@@ -105,7 +105,7 @@ __version__ = "{}.{}.{}".format(*__version_info__[:3]) + (
     ),
     "",
 )[__version_info__.release_level == "final"]
-__version_time__ = "29 October 2021 05:11 UTC"
+__version_time__ = "30 October 2021 16:35 UTC"
 version_info.__str__ = lambda *args: "pyparsing {} - {}".format(
     __version__, __version_time__
 )
