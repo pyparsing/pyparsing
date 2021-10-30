@@ -181,6 +181,7 @@ __all__ = [
     "ParseResults",
     "ParseSyntaxException",
     "ParserElement",
+    "PositionToken",
     "QuotedString",
     "RecursiveGrammarException",
     "Regex",

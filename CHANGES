@@ -26,6 +26,10 @@ Version 3.0.4 -
   You will still be able to access this new value as an attribute or as an
   indexed item.
 
+- Fixed bug in railroad diagramming where the vertical limit would count all
+  expressions in a group, not just those that would create visible railroad
+  elements.
+
 
 Version 3.0.3 -
 ---------------

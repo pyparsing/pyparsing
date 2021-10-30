@@ -10,6 +10,7 @@ from typing import (
     Dict,
     Callable,
     Set,
+    Iterable,
 )
 from jinja2 import Template
 from io import StringIO
@@ -185,14 +186,16 @@ def to_railroad(
     return sorted(resolved, key=lambda diag: diag.index)
 
 
-def _should_vertical(specification: int, count: int) -> bool:
+def _should_vertical(
+    specification: int, exprs: Iterable[pyparsing.ParserElement]
+) -> bool:
     """
     Returns true if we should return a vertical list of elements
     """
     if specification is None:
         return False
     else:
-        return count >= specification
+        return len(_visible_exprs(exprs)) >= specification
 
 
 class ElementState:
@@ -386,6 +389,19 @@ def _apply_diagram_item_enhancements(fn):
     return _inner
 
 
+def _visible_exprs(exprs: Iterable[pyparsing.ParserElement]):
+    non_diagramming_exprs = (
+        pyparsing.ParseElementEnhance,
+        pyparsing.PositionToken,
+        pyparsing.And._ErrorStop,
+    )
+    return [
+        e
+        for e in exprs
+        if not (e.customName or e.resultsName or isinstance(e, non_diagramming_exprs))
+    ]
+
+
 @_apply_diagram_item_enhancements
 def _to_diagram_element(
     element: pyparsing.ParserElement,
@@ -473,14 +489,14 @@ def _to_diagram_element(
             ret = EditablePartial.from_call(
                 railroad.OneOrMore, item="", repeat=str(len(exprs))
             )
-        elif _should_vertical(vertical, len(exprs)):
+        elif _should_vertical(vertical, exprs):
             ret = EditablePartial.from_call(railroad.Stack, items=[])
         else:
             ret = EditablePartial.from_call(railroad.Sequence, items=[])
     elif isinstance(element, (pyparsing.Or, pyparsing.MatchFirst)):
         if not exprs:
             return None
-        if _should_vertical(vertical, len(exprs)):
+        if _should_vertical(vertical, exprs):
             ret = EditablePartial.from_call(railroad.Choice, 0, items=[])
         else:
             ret = EditablePartial.from_call(railroad.HorizontalChoice, items=[])
