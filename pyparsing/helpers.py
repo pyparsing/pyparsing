@@ -35,7 +35,7 @@ def delimited_list(
         delimited_list(Word(hexnums), delim=':', combine=True).parse_string("AA:BB:CC:DD:EE") # -> ['AA:BB:CC:DD:EE']
     """
     dlName = "{expr} [{delim} {expr}]...{end}".format(
-        expr=str(expr),
+        expr=str(expr.streamline()),
         delim=str(delim),
         end=" [{}]".format(str(delim)) if allow_trailing_delim else "",
     )

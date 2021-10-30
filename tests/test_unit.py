@@ -7640,6 +7640,22 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             self.assertEqual("a", a.name)
             self.assertEqual("bbb", b.name)
 
+    def testDelimitedListName(self):
+        bool_constant = pp.Literal("True") | "true" | "False" | "false"
+        bool_list = pp.delimitedList(bool_constant)
+        print(bool_list)
+        self.assertEqual("{'True' | 'true' | 'False' | 'false'} [, {'True' | 'true' | 'False' | 'false'}]...",
+                         str(bool_list))
+
+        bool_constant.setName("bool")
+        print(bool_constant)
+        print(bool_constant.streamline())
+        bool_list2 = pp.delimitedList(bool_constant)
+        print(bool_constant)
+        print(bool_constant.streamline())
+        print(bool_list2)
+        self.assertEqual("bool [, bool]...", str(bool_list2))
+
     def testEnableDebugOnNamedExpressions(self):
         """
         - enable_debug_on_named_expressions - flag to auto-enable debug on all subsequent
@@ -8240,6 +8256,12 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
         self.assertTrue(
             len(results) > 0, "MatchFirst error - not iterating over all choices"
         )
+
+    def testStreamlineOfExpressionsAfterSetName(self):
+        bool_constant = pp.Literal("True") | "true" | "False" | "false"
+        self.assertEqual("{'True' | 'true' | 'False' | 'false'}", str(bool_constant.streamline()))
+        bool_constant.setName("bool")
+        self.assertEqual("bool", str(bool_constant.streamline()))
 
     def testStreamlineOfSubexpressions(self):
         # verify streamline of subexpressions

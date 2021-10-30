@@ -3606,7 +3606,7 @@ class ParseExpression(ParserElement):
 
     def streamline(self):
         if self.streamlined:
-            return
+            return self
 
         super().streamline()
 
@@ -3731,7 +3731,7 @@ class And(ParseExpression):
             self.mayReturnEmpty = True
         self.callPreparse = True
 
-    def streamline(self):
+    def streamline(self) -> ParserElement:
         # collapse any _PendingSkip's
         if self.exprs:
             if any(
@@ -3850,7 +3850,7 @@ class Or(ParseExpression):
         else:
             self.mayReturnEmpty = True
 
-    def streamline(self):
+    def streamline(self) -> ParserElement:
         super().streamline()
         if self.exprs:
             self.mayReturnEmpty = any(e.mayReturnEmpty for e in self.exprs)
@@ -3993,9 +3993,9 @@ class MatchFirst(ParseExpression):
         else:
             self.mayReturnEmpty = True
 
-    def streamline(self):
+    def streamline(self) -> ParserElement:
         if self.streamlined:
-            return
+            return self
 
         super().streamline()
         if self.exprs:
@@ -4134,7 +4134,7 @@ class Each(ParseExpression):
         self.initExprGroups = True
         self.saveAsList = True
 
-    def streamline(self):
+    def streamline(self) -> ParserElement:
         super().streamline()
         if self.exprs:
             self.mayReturnEmpty = all(e.mayReturnEmpty for e in self.exprs)
