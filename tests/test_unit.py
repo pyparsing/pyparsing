@@ -7529,6 +7529,14 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
           name is defined on a containing expression with ungrouped subexpressions that also
           have results names (default=True)
         """
+        with self.assertDoesNotWarn(
+            msg="raised {} warning when not enabled".format(
+                pp.Diagnostics.warn_ungrouped_named_tokens_in_collection
+            )
+        ):
+            COMMA = pp.Suppress(",").setName("comma")
+            coord = ppc.integer("x") + COMMA + ppc.integer("y")
+            path = coord[...].setResultsName("path")
 
         with ppt.reset_pyparsing_context():
             pp.enable_diag(pp.Diagnostics.warn_ungrouped_named_tokens_in_collection)
@@ -7550,6 +7558,13 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
           with a results name, but has no contents defined (default=False)
         """
 
+        with self.assertDoesNotWarn(
+            msg="raised {} warning when not enabled".format(
+                pp.Diagnostics.warn_name_set_on_empty_Forward
+            )
+        ):
+            base = pp.Forward()("z")
+
         with ppt.reset_pyparsing_context():
             pp.enable_diag(pp.Diagnostics.warn_name_set_on_empty_Forward)
 
@@ -7566,6 +7581,17 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
         - warn_on_parse_using_empty_Forward - flag to enable warnings when a Forward
           has no contents defined (default=False)
         """
+
+        with self.assertDoesNotWarn(
+            msg="raised {} warning when not enabled".format(
+                pp.Diagnostics.warn_on_parse_using_empty_Forward
+            )
+        ):
+            base = pp.Forward()
+            try:
+                print(base.parseString("x"))
+            except ParseException as pe:
+                pass
 
         with ppt.reset_pyparsing_context():
             pp.enable_diag(pp.Diagnostics.warn_on_parse_using_empty_Forward)
@@ -7590,12 +7616,19 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             print("warn_on_assignment_to_Forward not supported on PyPy")
             return
 
+        def a_method():
+            base = pp.Forward()
+            base = pp.Word(pp.alphas)[...] | "(" + base + ")"
+
+        with self.assertDoesNotWarn(
+            msg="raised {} warning when not enabled".format(
+                pp.Diagnostics.warn_on_assignment_to_Forward
+            )
+        ):
+            a_method()
+
         with ppt.reset_pyparsing_context():
             pp.enable_diag(pp.Diagnostics.warn_on_assignment_to_Forward)
-
-            def a_method():
-                base = pp.Forward()
-                base = pp.Word(pp.alphas)[...] | "(" + base + ")"
 
             with self.assertWarns(
                 UserWarning,
@@ -7609,7 +7642,9 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
           incorrectly called with multiple str arguments (default=True)
         """
         with self.assertDoesNotWarn(
-            "warn_on_multiple_string_args_to_oneof warning raised when not enabled"
+            msg="raised {} warning when not enabled".format(
+                pp.Diagnostics.warn_on_multiple_string_args_to_oneof
+            )
         ):
             a = pp.oneOf("A", "B")
 
@@ -7644,8 +7679,10 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
         bool_constant = pp.Literal("True") | "true" | "False" | "false"
         bool_list = pp.delimitedList(bool_constant)
         print(bool_list)
-        self.assertEqual("{'True' | 'true' | 'False' | 'false'} [, {'True' | 'true' | 'False' | 'false'}]...",
-                         str(bool_list))
+        self.assertEqual(
+            "{'True' | 'true' | 'False' | 'false'} [, {'True' | 'true' | 'False' | 'false'}]...",
+            str(bool_list),
+        )
 
         bool_constant.setName("bool")
         print(bool_constant)
@@ -8259,7 +8296,9 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
 
     def testStreamlineOfExpressionsAfterSetName(self):
         bool_constant = pp.Literal("True") | "true" | "False" | "false"
-        self.assertEqual("{'True' | 'true' | 'False' | 'false'}", str(bool_constant.streamline()))
+        self.assertEqual(
+            "{'True' | 'true' | 'False' | 'false'}", str(bool_constant.streamline())
+        )
         bool_constant.setName("bool")
         self.assertEqual("bool", str(bool_constant.streamline()))
 
