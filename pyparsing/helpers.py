@@ -4,7 +4,7 @@ import re
 
 from . import __diag__
 from .core import *
-from .util import _bslash, _flatten, _escapeRegexRangeChars
+from .util import _bslash, _flatten, _escape_regex_range_chars
 
 
 #
@@ -278,7 +278,7 @@ def one_of(
             if all(len(sym) == 1 for sym in symbols):
                 # symbols are just single characters, create range regex pattern
                 patt = "[{}]".format(
-                    "".join(_escapeRegexRangeChars(sym) for sym in symbols)
+                    "".join(_escape_regex_range_chars(sym) for sym in symbols)
                 )
             else:
                 patt = "|".join(re.escape(sym) for sym in symbols)

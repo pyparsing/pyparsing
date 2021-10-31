@@ -13,6 +13,7 @@ from typing import (
     List,
     TextIO,
     Set,
+    Dict,
 )
 from abc import ABC, abstractmethod
 from enum import Enum
@@ -34,8 +35,8 @@ from .util import (
     _FifoCache,
     _UnboundedCache,
     __config_flags,
-    _collapseStringToRanges,
-    _escapeRegexRangeChars,
+    _collapse_string_to_ranges,
+    _escape_regex_range_chars,
     _bslash,
     _flatten,
     LRUMemo as _LRUMemo,
@@ -756,43 +757,43 @@ class ParserElement(ABC):
             # print("Match {} at loc {}({}, {})".format(self, loc, lineno(loc, instring), col(loc, instring)))
             try:
                 if callPreParse and self.callPreparse:
-                    preloc = self.preParse(instring, loc)
+                    pre_loc = self.preParse(instring, loc)
                 else:
-                    preloc = loc
-                tokensStart = preloc
+                    pre_loc = loc
+                tokens_start = pre_loc
                 if self.debugActions[TRY]:
-                    self.debugActions[TRY](instring, tokensStart, self)
-                if self.mayIndexError or preloc >= len_instring:
+                    self.debugActions[TRY](instring, tokens_start, self)
+                if self.mayIndexError or pre_loc >= len_instring:
                     try:
-                        loc, tokens = self.parseImpl(instring, preloc, doActions)
+                        loc, tokens = self.parseImpl(instring, pre_loc, doActions)
                     except IndexError:
                         raise ParseException(instring, len_instring, self.errmsg, self)
                 else:
-                    loc, tokens = self.parseImpl(instring, preloc, doActions)
+                    loc, tokens = self.parseImpl(instring, pre_loc, doActions)
             except Exception as err:
                 # print("Exception raised:", err)
                 if self.debugActions[FAIL]:
-                    self.debugActions[FAIL](instring, tokensStart, self, err)
+                    self.debugActions[FAIL](instring, tokens_start, self, err)
                 if self.failAction:
-                    self.failAction(instring, tokensStart, self, err)
+                    self.failAction(instring, tokens_start, self, err)
                 raise
         else:
             if callPreParse and self.callPreparse:
-                preloc = self.preParse(instring, loc)
+                pre_loc = self.preParse(instring, loc)
             else:
-                preloc = loc
-            tokensStart = preloc
-            if self.mayIndexError or preloc >= len_instring:
+                pre_loc = loc
+            tokens_start = pre_loc
+            if self.mayIndexError or pre_loc >= len_instring:
                 try:
-                    loc, tokens = self.parseImpl(instring, preloc, doActions)
+                    loc, tokens = self.parseImpl(instring, pre_loc, doActions)
                 except IndexError:
                     raise ParseException(instring, len_instring, self.errmsg, self)
             else:
-                loc, tokens = self.parseImpl(instring, preloc, doActions)
+                loc, tokens = self.parseImpl(instring, pre_loc, doActions)
 
         tokens = self.postParse(instring, loc, tokens)
 
-        retTokens = ParseResults(
+        ret_tokens = ParseResults(
             tokens, self.resultsName, asList=self.saveAsList, modal=self.modalResults
         )
         if self.parseAction and (doActions or self.callDuringTry):
@@ -800,13 +801,13 @@ class ParserElement(ABC):
                 try:
                     for fn in self.parseAction:
                         try:
-                            tokens = fn(instring, tokensStart, retTokens)
+                            tokens = fn(instring, tokens_start, ret_tokens)
                         except IndexError as parse_action_exc:
                             exc = ParseException("exception raised in parse action")
                             raise exc from parse_action_exc
 
-                        if tokens is not None and tokens is not retTokens:
-                            retTokens = ParseResults(
+                        if tokens is not None and tokens is not ret_tokens:
+                            ret_tokens = ParseResults(
                                 tokens,
                                 self.resultsName,
                                 asList=self.saveAsList
@@ -816,18 +817,18 @@ class ParserElement(ABC):
                 except Exception as err:
                     # print "Exception raised in user parse action:", err
                     if self.debugActions[FAIL]:
-                        self.debugActions[FAIL](instring, tokensStart, self, err)
+                        self.debugActions[FAIL](instring, tokens_start, self, err)
                     raise
             else:
                 for fn in self.parseAction:
                     try:
-                        tokens = fn(instring, tokensStart, retTokens)
+                        tokens = fn(instring, tokens_start, ret_tokens)
                     except IndexError as parse_action_exc:
                         exc = ParseException("exception raised in parse action")
                         raise exc from parse_action_exc
 
-                    if tokens is not None and tokens is not retTokens:
-                        retTokens = ParseResults(
+                    if tokens is not None and tokens is not ret_tokens:
+                        ret_tokens = ParseResults(
                             tokens,
                             self.resultsName,
                             asList=self.saveAsList
@@ -835,11 +836,11 @@ class ParserElement(ABC):
                             modal=self.modalResults,
                         )
         if debugging:
-            # print("Matched", self, "->", retTokens.as_list())
+            # print("Matched", self, "->", ret_tokens.as_list())
             if self.debugActions[MATCH]:
-                self.debugActions[MATCH](instring, tokensStart, loc, self, retTokens)
+                self.debugActions[MATCH](instring, tokens_start, loc, self, ret_tokens)
 
-        return loc, retTokens
+        return loc, ret_tokens
 
     def try_parse(self, instring: str, loc: int, raise_fatal: bool = False) -> int:
         try:
@@ -859,9 +860,9 @@ class ParserElement(ABC):
 
     # cache for left-recursion in Forward references
     recursion_lock = RLock()
-    recursion_memos = (
-        {}
-    )  # type: dict[tuple[int, Forward, bool], tuple[int, ParseResults | Exception]]
+    recursion_memos: Dict[
+        Tuple[int, "Forward", bool], Tuple[int, Union[ParseResults, Exception]]
+    ] = {}
 
     # argument cache for optimizing repeated calls when backtracking through recursive expressions
     packrat_cache = (
@@ -2693,7 +2694,7 @@ class Word(Token):
                         self.minLen, "" if self.maxLen == _MAX_INT else self.maxLen
                     )
                 self.reString = "[{}]{}".format(
-                    _collapseStringToRanges(self.initChars),
+                    _collapse_string_to_ranges(self.initChars),
                     repeat,
                 )
             elif len(self.initChars) == 1:
@@ -2703,7 +2704,7 @@ class Word(Token):
                     repeat = "{{0,{}}}".format(max - 1)
                 self.reString = "{}[{}]{}".format(
                     re.escape(self.initCharsOrig),
-                    _collapseStringToRanges(self.bodyChars),
+                    _collapse_string_to_ranges(self.bodyChars),
                     repeat,
                 )
             else:
@@ -2714,8 +2715,8 @@ class Word(Token):
                 else:
                     repeat = "{{0,{}}}".format(max - 1)
                 self.reString = "[{}][{}]{}".format(
-                    _collapseStringToRanges(self.initChars),
-                    _collapseStringToRanges(self.bodyChars),
+                    _collapse_string_to_ranges(self.initChars),
+                    _collapse_string_to_ranges(self.bodyChars),
                     repeat,
                 )
             if self.asKeyword:
@@ -2732,7 +2733,7 @@ class Word(Token):
     def _generateDefaultName(self):
         def charsAsStr(s):
             max_repr_len = 16
-            s = _collapseStringToRanges(s, re_escape=False)
+            s = _collapse_string_to_ranges(s, re_escape=False)
             if len(s) > max_repr_len:
                 return s[: max_repr_len - 3] + "..."
             else:
@@ -2821,7 +2822,7 @@ class Char(_WordRegex):
         super().__init__(
             charset, exact=1, asKeyword=asKeyword, excludeChars=excludeChars
         )
-        self.reString = "[{}]".format(_collapseStringToRanges(self.initChars))
+        self.reString = "[{}]".format(_collapse_string_to_ranges(self.initChars))
         if asKeyword:
             self.reString = r"\b{}\b".format(self.reString)
         self.re = re.compile(self.reString)
@@ -3081,7 +3082,7 @@ class QuotedString(Token):
                 + "|".join(
                     "(?:{}(?!{}))".format(
                         re.escape(self.endQuoteChar[:i]),
-                        _escapeRegexRangeChars(self.endQuoteChar[i:]),
+                        _escape_regex_range_chars(self.endQuoteChar[i:]),
                     )
                     for i in range(len(self.endQuoteChar) - 1, 0, -1)
                 )
@@ -3093,15 +3094,15 @@ class QuotedString(Token):
             self.flags = re.MULTILINE | re.DOTALL
             inner_pattern += r"{}(?:[^{}{}])".format(
                 sep,
-                _escapeRegexRangeChars(self.endQuoteChar[0]),
-                (_escapeRegexRangeChars(escChar) if escChar is not None else ""),
+                _escape_regex_range_chars(self.endQuoteChar[0]),
+                (_escape_regex_range_chars(escChar) if escChar is not None else ""),
             )
         else:
             self.flags = 0
             inner_pattern += r"{}(?:[^{}\n\r{}])".format(
                 sep,
-                _escapeRegexRangeChars(self.endQuoteChar[0]),
-                (_escapeRegexRangeChars(escChar) if escChar is not None else ""),
+                _escape_regex_range_chars(self.endQuoteChar[0]),
+                (_escape_regex_range_chars(escChar) if escChar is not None else ""),
             )
 
         self.pattern = "".join(
@@ -3226,7 +3227,7 @@ class CharsNotIn(Token):
         self.mayIndexError = False
 
     def _generateDefaultName(self):
-        not_chars_str = _collapseStringToRanges(self.notChars)
+        not_chars_str = _collapse_string_to_ranges(self.notChars)
         if len(not_chars_str) > 16:
             return "!W:({}...)".format(self.notChars[: 16 - 3])
         else:

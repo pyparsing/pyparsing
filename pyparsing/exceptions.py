@@ -4,7 +4,7 @@ import re
 import sys
 from typing import Optional
 
-from .util import col, line, lineno, _collapseStringToRanges
+from .util import col, line, lineno, _collapse_string_to_ranges
 from .unicode import pyparsing_unicode as ppu
 
 
@@ -12,7 +12,7 @@ class ExceptionWordUnicode(ppu.Latin1, ppu.LatinA, ppu.LatinB, ppu.Greek, ppu.Cy
     pass
 
 
-_extract_alphanums = _collapseStringToRanges(ExceptionWordUnicode.alphanums)
+_extract_alphanums = _collapse_string_to_ranges(ExceptionWordUnicode.alphanums)
 _exception_word_extractor = re.compile("([" + _extract_alphanums + "]{1,16})|.")
 
 

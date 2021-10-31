@@ -4,8 +4,7 @@ import types
 import collections
 import itertools
 from functools import lru_cache
-from typing import List
-
+from typing import List, Union, Iterable
 
 _bslash = chr(92)
 
@@ -74,9 +73,9 @@ def line(loc: int, strg: str):
     """
     Returns the line of text containing loc within a string, counting newlines as line separators.
     """
-    lastCR = strg.rfind("\n", 0, loc)
-    nextCR = strg.find("\n", loc)
-    return strg[lastCR + 1 : nextCR] if nextCR >= 0 else strg[lastCR + 1 :]
+    last_cr = strg.rfind("\n", 0, loc)
+    next_cr = strg.find("\n", loc)
+    return strg[last_cr + 1 : next_cr] if next_cr >= 0 else strg[last_cr + 1 :]
 
 
 class _UnboundedCache:
@@ -171,7 +170,7 @@ class UnboundedMemo(dict):
         pass
 
 
-def _escapeRegexRangeChars(s: str):
+def _escape_regex_range_chars(s: str):
     # escape these chars: ^-[]
     for c in r"\^-[]":
         s = s.replace(c, _bslash + c)
@@ -180,7 +179,7 @@ def _escapeRegexRangeChars(s: str):
     return str(s)
 
 
-def _collapseStringToRanges(s: str, re_escape: bool = True):
+def _collapse_string_to_ranges(s: Union[str, Iterable[str]], re_escape: bool = True):
     def is_consecutive(c):
         c_int = ord(c)
         is_consecutive.prev, prev = c_int, is_consecutive.prev
