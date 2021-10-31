@@ -7552,6 +7552,22 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             ):
                 path = coord[...].setResultsName("path")
 
+    def testDontWarnUngroupedNamedTokensIfUngroupedNamesStartWithNOWARN(self):
+        """
+        - warn_ungrouped_named_tokens_in_collection - flag to enable warnings when a results
+          name is defined on a containing expression with ungrouped subexpressions that also
+          have results names (default=True)
+        """
+        with ppt.reset_pyparsing_context():
+            pp.enable_diag(pp.Diagnostics.warn_ungrouped_named_tokens_in_collection)
+
+            with self.assertDoesNotWarn(
+                msg="raised {} warning inner names start with '_NOWARN'".format(
+                    pp.Diagnostics.warn_ungrouped_named_tokens_in_collection
+                )
+            ):
+                pp.originalTextFor(pp.Word("ABC")[...])("words")
+
     def testWarnNameSetOnEmptyForward(self):
         """
         - warn_name_set_on_empty_Forward - flag to enable warnings when a Forward is defined

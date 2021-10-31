@@ -3660,7 +3660,7 @@ class ParseExpression(ParserElement):
     def _setResultsName(self, name, listAllMatches=False):
         if __diag__.warn_ungrouped_named_tokens_in_collection:
             for e in self.exprs:
-                if isinstance(e, ParserElement) and e.resultsName:
+                if isinstance(e, ParserElement) and e.resultsName and not e.resultsName.startswith("_NOWARN"):
                     warnings.warn(
                         "{}: setting results name {!r} on {} expression "
                         "collides with {!r} on contained expression".format(
@@ -4701,7 +4701,7 @@ class _MultipleMatch(ParseElementEnhance):
     def _setResultsName(self, name, listAllMatches=False):
         if __diag__.warn_ungrouped_named_tokens_in_collection:
             for e in [self.expr] + self.expr.recurse():
-                if isinstance(e, ParserElement) and e.resultsName:
+                if isinstance(e, ParserElement) and e.resultsName and not e.resultsName.startswith("_NOWARN"):
                     warnings.warn(
                         "{}: setting results name {!r} on {} expression "
                         "collides with {!r} on contained expression".format(
