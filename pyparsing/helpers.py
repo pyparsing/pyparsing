@@ -388,9 +388,15 @@ def original_text_for(
     endlocMarker = locMarker.copy()
     endlocMarker.callPreparse = False
     # prefix these transient names with _NOWARN to suppress ungrouped name warnings
-    matchExpr = locMarker("_NOWARN_original_start") + expr + endlocMarker("_NOWARN_original_end")
+    matchExpr = (
+        locMarker("_NOWARN_original_start")
+        + expr
+        + endlocMarker("_NOWARN_original_end")
+    )
     if asString:
-        extractText = lambda s, l, t: s[t._NOWARN_original_start : t._NOWARN_original_end]
+        extractText = lambda s, l, t: s[
+            t._NOWARN_original_start : t._NOWARN_original_end
+        ]
     else:
 
         def extractText(s, l, t):
