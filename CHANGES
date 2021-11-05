@@ -4,9 +4,14 @@ Change Log
 
 Version 3.0.5 -
 ---------------
+- Added return type annotations for `col`, `line`, and `lineno`.
+
 - Fixed bug when `warn_ungrouped_named_tokens_in_collection` warning was raised
   when assigning a results name to an `original_text_for` expression.
   (Issue #110, would raise warning in packaging.)
+
+- Fixed internal bug where ParserElement.streamline() would not return self if
+  already streamlined.
 
 - Changed run_tests() output to default to not showing line and column numbers.
   If line numbering is desired, call with `with_line_numbers=True`. Also fixed
