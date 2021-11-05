@@ -105,7 +105,7 @@ __version__ = "{}.{}.{}".format(*__version_info__[:3]) + (
     ),
     "",
 )[__version_info__.release_level == "final"]
-__version_time__ = "31 October 2021 11:23 UTC"
+__version_time__ = "5 November 2021 10:05 UTC"
 version_info.__str__ = lambda *args: "pyparsing {} - {}".format(
     __version__, __version_time__
 )

@@ -1910,6 +1910,7 @@ class ParserElement(ABC):
         failure_tests: bool = False,
         post_parse: Callable[[str, ParseResults], str] = None,
         file: OptionalType[TextIO] = None,
+        with_line_numbers: bool = False,
         *,
         parseAll: bool = True,
         fullDump: bool = True,
@@ -1935,6 +1936,7 @@ class ParserElement(ABC):
           `fn(test_string, parse_results)` and returns a string to be added to the test output
         - ``file`` - (default= ``None``) optional file-like object to which test output will be written;
           if None, will default to ``sys.stdout``
+        - ``with_line_numbers`` - default= ``False``) show test strings with line and column numbers
 
         Returns: a (success, results) tuple, where success indicates that all tests succeeded
         (or failed if ``failure_tests`` is True), and the results contain a list of lines of each
@@ -2039,7 +2041,7 @@ class ParserElement(ABC):
                 continue
             out = [
                 "\n" + "\n".join(comments) if comments else "",
-                pyparsing_test.with_line_numbers(t),
+                pyparsing_test.with_line_numbers(t) if with_line_numbers else t,
             ]
             comments = []
             try:
@@ -2077,7 +2079,7 @@ class ParserElement(ABC):
                         )
                 else:
                     out.append(result.dump(full=fullDump))
-                out.append("")
+            out.append("")
 
             if printResults:
                 print_("\n".join(out))
