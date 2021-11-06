@@ -13,7 +13,7 @@ from typing import (
     List,
     TextIO,
     Set,
-    Dict,
+    Dict as DictType,
 )
 from abc import ABC, abstractmethod
 from enum import Enum
@@ -48,7 +48,7 @@ from .results import ParseResults, _ParseResultsWithOffset
 from .unicode import pyparsing_unicode
 
 _MAX_INT = sys.maxsize
-str_type = (str, bytes)
+str_type: Tuple[type, ...] = (str, bytes)
 
 #
 # Copyright (c) 2003-2021  Paul T. McGuire
@@ -178,7 +178,7 @@ del __config_flags
 
 
 def _should_enable_warnings(
-    cmd_line_warn_options: List[str], warn_env_var: str
+    cmd_line_warn_options: List[str], warn_env_var: OptionalType[str]
 ) -> bool:
     enable = bool(warn_env_var)
     for warn_opt in cmd_line_warn_options:
@@ -413,7 +413,7 @@ class ParserElement(ABC):
         # update whitespace all parse expressions defined in this module
         for expr in _builtin_exprs:
             if expr.copyDefaultWhiteChars:
-                expr.whiteChars = chars
+                expr.whiteChars = set(chars)
 
     @staticmethod
     def inline_literals_using(cls: type):
@@ -748,7 +748,9 @@ class ParserElement(ABC):
         return tokenlist
 
     # @profile
-    def _parseNoCache(self, instring, loc, doActions=True, callPreParse=True):
+    def _parseNoCache(
+        self, instring, loc, doActions=True, callPreParse=True
+    ) -> Tuple[int, ParseResults]:
         TRY, MATCH, FAIL = 0, 1, 2
         debugging = self.debug  # and doActions)
         len_instring = len(instring)
@@ -860,7 +862,7 @@ class ParserElement(ABC):
 
     # cache for left-recursion in Forward references
     recursion_lock = RLock()
-    recursion_memos: Dict[
+    recursion_memos: DictType[
         Tuple[int, "Forward", bool], Tuple[int, Union[ParseResults, Exception]]
     ] = {}
 
@@ -3535,7 +3537,6 @@ class ParseExpression(ParserElement):
     def __init__(self, exprs: IterableType[ParserElement], savelist: bool = False):
         super().__init__(savelist)
         self.exprs: List[ParserElement]
-        exprs: Iterable[ParserElement]
         if isinstance(exprs, _generatorType):
             exprs = list(exprs)
 

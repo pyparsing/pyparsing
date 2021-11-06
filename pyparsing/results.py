@@ -4,7 +4,7 @@ import pprint
 from weakref import ref as wkref
 from typing import Tuple, Any
 
-str_type = (str, bytes)
+str_type: Tuple[type, ...] = (str, bytes)
 _generator_type = type((_ for _ in ()))
 
 
