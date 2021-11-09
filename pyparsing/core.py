@@ -2054,10 +2054,14 @@ class ParserElement(ABC):
                 fatal = "(FATAL)" if isinstance(pe, ParseFatalException) else ""
                 out.append(pe.explain())
                 out.append("FAIL: " + str(pe))
+                if ParserElement.verbose_stacktrace:
+                    out.extend(traceback.format_tb(pe.__traceback__))
                 success = success and failureTests
                 result = pe
             except Exception as exc:
-                out.append("FAIL-EXCEPTION: " + str(exc))
+                out.append("FAIL-EXCEPTION: {}: {}".format(type(exc).__name__, exc))
+                if ParserElement.verbose_stacktrace:
+                    out.extend(traceback.format_tb(exc.__traceback__))
                 success = success and failureTests
                 result = exc
             else:
