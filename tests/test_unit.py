@@ -7709,6 +7709,12 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
         print(bool_list2)
         self.assertEqual("bool [, bool]...", str(bool_list2))
 
+    def testDelimitedListOfStrLiterals(self):
+        expr = pp.delimitedList("ABC")
+        print(str(expr))
+        source = "ABC, ABC,ABC"
+        self.assertParseAndCheckList(expr, source, [s.strip() for s in source.split(",")])
+
     def testEnableDebugOnNamedExpressions(self):
         """
         - enable_debug_on_named_expressions - flag to auto-enable debug on all subsequent

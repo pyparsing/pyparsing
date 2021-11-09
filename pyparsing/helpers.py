@@ -11,7 +11,7 @@ from .util import _bslash, _flatten, _escape_regex_range_chars
 # global helpers
 #
 def delimited_list(
-    expr: ParserElement,
+    expr: Union[str, ParserElement],
     delim: Union[str, ParserElement] = ",",
     combine: bool = False,
     *,
@@ -34,6 +34,9 @@ def delimited_list(
         delimited_list(Word(alphas)).parse_string("aa,bb,cc") # -> ['aa', 'bb', 'cc']
         delimited_list(Word(hexnums), delim=':', combine=True).parse_string("AA:BB:CC:DD:EE") # -> ['AA:BB:CC:DD:EE']
     """
+    if isinstance(expr, str_type):
+        expr = ParserElement._literalStringClass(expr)
+
     dlName = "{expr} [{delim} {expr}]...{end}".format(
         expr=str(expr.streamline()),
         delim=str(delim),

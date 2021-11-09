@@ -2,6 +2,12 @@
 Change Log
 ==========
 
+Version 3.0.6 -
+---------------
+- Fix bug when `delimited_list` was called with a str literal instead of a
+  parse expression.
+
+
 Version 3.0.5 -
 ---------------
 - Added return type annotations for `col`, `line`, and `lineno`.
