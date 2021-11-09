@@ -22,7 +22,7 @@ install:
   - pip install tox codecov
 
 script:
- - tox
+ - tox -e ALL
 
 after_success:
   - codecov
