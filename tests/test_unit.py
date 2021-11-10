@@ -126,17 +126,14 @@ class TestCase(unittest.TestCase):
 
 class Test01_PyparsingTestInit(TestCase):
     def runTest(self):
-        from pyparsing import (
-            __version__ as pyparsing_version,
-            __version_time__ as pyparsing_version_time,
-        )
-
         print(
             "Beginning test of pyparsing, version",
-            pyparsing_version,
-            pyparsing_version_time,
+            pp.__version__,
+            pp.__version_time__,
         )
         print("Python version", sys.version)
+        print("__version_info__     :", pp.__version_info__)
+        print("__version_info__ repr:", repr(pp.__version_info__))
 
 
 class Test01a_PyparsingEnvironmentTests(TestCase):
@@ -7713,7 +7710,9 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
         expr = pp.delimitedList("ABC")
         print(str(expr))
         source = "ABC, ABC,ABC"
-        self.assertParseAndCheckList(expr, source, [s.strip() for s in source.split(",")])
+        self.assertParseAndCheckList(
+            expr, source, [s.strip() for s in source.split(",")]
+        )
 
     def testEnableDebugOnNamedExpressions(self):
         """

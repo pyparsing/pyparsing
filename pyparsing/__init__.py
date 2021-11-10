@@ -93,22 +93,41 @@ classes inherit from. Use the docstrings for examples of how to:
  - find more useful common expressions in the :class:`pyparsing_common`
    namespace class
 """
-from collections import namedtuple
+from typing import NamedTuple
 
-version_info = namedtuple("version_info", "major minor micro release_level serial")
+
+class version_info(NamedTuple):
+    major: int
+    minor: int
+    micro: int
+    releaselevel: str
+    serial: int
+
+    @property
+    def __version__(self):
+        return "{}.{}.{}".format(self.major, self.minor, self.micro) + (
+            "{}{}{}".format(
+                "r" if self.releaselevel[0] == "c" else "",
+                self.releaselevel[0],
+                self.serial,
+            ),
+            "",
+        )[self.releaselevel == "final"]
+
+    def __str__(self):
+        return "{} {} / {}".format(__name__, self.__version__, __version_time__)
+
+    def __repr__(self):
+        return "{}.{}({})".format(
+            __name__,
+            type(self).__name__,
+            ", ".join("{}={!r}".format(*nv) for nv in zip(self._fields, self)),
+        )
+
+
 __version_info__ = version_info(3, 0, 6, "final", 0)
-__version__ = "{}.{}.{}".format(*__version_info__[:3]) + (
-    "{}{}{}".format(
-        "r" if __version_info__.release_level[0] == "c" else "",
-        __version_info__.release_level[0],
-        __version_info__.serial,
-    ),
-    "",
-)[__version_info__.release_level == "final"]
-__version_time__ = "7 November 2021 18:08 UTC"
-version_info.__str__ = lambda *args: "pyparsing {} - {}".format(
-    __version__, __version_time__
-)
+__version_time__ = "10 Nov 2021 07:13 UTC"
+__version__ = __version_info__.__version__
 __versionTime__ = __version_time__
 __author__ = "Paul McGuire <ptmcg.gm+pyparsing@gmail.com>"
 
