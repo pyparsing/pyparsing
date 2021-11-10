@@ -1117,6 +1117,7 @@ class ParserElement(ABC):
         max_matches: int = _MAX_INT,
         overlap: bool = False,
         *,
+        debug: bool = False,
         maxMatches: int = _MAX_INT,
     ) -> Generator[Tuple[ParseResults, int, int], None, None]:
         """
@@ -1173,6 +1174,14 @@ class ParserElement(ABC):
                 else:
                     if nextLoc > loc:
                         matches += 1
+                        if debug:
+                            print(
+                                {
+                                    "tokens": tokens.asList(),
+                                    "start": preloc,
+                                    "end": nextLoc,
+                                }
+                            )
                         yield tokens, preloc, nextLoc
                         if overlap:
                             nextloc = preparseFn(instring, loc)
@@ -1191,7 +1200,7 @@ class ParserElement(ABC):
                 # catch and re-raise exception from here, clears out pyparsing internal stack trace
                 raise exc.with_traceback(None)
 
-    def transform_string(self, instring: str) -> str:
+    def transform_string(self, instring: str, *, debug: bool = False) -> str:
         """
         Extension to :class:`scan_string`, to modify matching text with modified tokens that may
         be returned from a parse action.  To use ``transform_string``, define a grammar and
@@ -1217,7 +1226,7 @@ class ParserElement(ABC):
         # keep string locs straight between transform_string and scan_string
         self.keepTabs = True
         try:
-            for t, s, e in self.scan_string(instring):
+            for t, s, e in self.scan_string(instring, debug=debug):
                 out.append(instring[lastE:s])
                 if t:
                     if isinstance(t, ParseResults):
@@ -1238,7 +1247,12 @@ class ParserElement(ABC):
                 raise exc.with_traceback(None)
 
     def search_string(
-        self, instring: str, max_matches: int = _MAX_INT, *, maxMatches: int = _MAX_INT
+        self,
+        instring: str,
+        max_matches: int = _MAX_INT,
+        *,
+        debug: bool = False,
+        maxMatches: int = _MAX_INT,
     ) -> ParseResults:
         """
         Another extension to :class:`scan_string`, simplifying the access to the tokens found
@@ -1263,7 +1277,7 @@ class ParserElement(ABC):
         maxMatches = min(maxMatches, max_matches)
         try:
             return ParseResults(
-                [t for t, s, e in self.scan_string(instring, maxMatches)]
+                [t for t, s, e in self.scan_string(instring, maxMatches, debug=debug)]
             )
         except ParseBaseException as exc:
             if ParserElement.verbose_stacktrace:
