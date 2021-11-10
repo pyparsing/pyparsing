@@ -3005,6 +3005,10 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             for r in result:
                 print(r)
                 print(r.get("_info_"))
+            self.assertEqual(
+                [0, 15],
+                [r["_info_"][1] for r in result]
+            )
 
     def testParseResultsFromDict(self):
         """test helper classmethod ParseResults.from_dict()"""
