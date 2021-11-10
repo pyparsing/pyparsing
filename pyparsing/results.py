@@ -250,6 +250,12 @@ class ParseResults:
     def __reversed__(self) -> Iterator:
         return iter(self._toklist[::-1])
 
+    def __eq__(self, o: object) -> bool:
+        if isinstance(o, self.__class__):
+            return all(map(lambda slot: getattr(self, slot) == getattr(o, slot), ParseResults.__slots__))
+        else:
+            return False
+
     def keys(self):
         return iter(self._tokdict)
 

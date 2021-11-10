@@ -679,6 +679,15 @@ class TestWhitespaceMethods(PyparsingExpressionTestCase):
         # ),
     ]
 
+class TestResult(unittest.TestCase):
+    def test_result_equality(self):
+        text ="abc"
+        r1 = pp.Literal("abc").parse_string(text)
+        r2 = pp.Word(pp.alphas).parse_string(text)
+        r3 = pp.Word(pp.alphas).parse_string("ab")
+        self.assertEqual(r1, r2)
+        self.assertNotEqual(r1, r3)
+
 
 def _get_decl_line_no(cls):
     import inspect
