@@ -14,6 +14,8 @@ def delimited_list(
     expr: Union[str, ParserElement],
     delim: Union[str, ParserElement] = ",",
     combine: bool = False,
+    _min: OptionalType[int] = None,
+    _max: OptionalType[int] = None,
     *,
     allow_trailing_delim: bool = False,
 ) -> ParserElement:
@@ -46,7 +48,12 @@ def delimited_list(
     if not combine:
         delim = Suppress(delim)
 
-    delimited_list_expr = expr + ZeroOrMore(delim + expr)
+    if _min is None and _max is None:
+        delimited_list_expr = expr + ZeroOrMore(delim + expr)
+    else:
+        _min = ... if _min is None else max(0, _min - 1)
+        _max = ... if _max is None else max(0, _max - 1)
+        delimited_list_expr = expr + (delim + expr)[_min, _max]
 
     if allow_trailing_delim:
         delimited_list_expr += Opt(delim)
