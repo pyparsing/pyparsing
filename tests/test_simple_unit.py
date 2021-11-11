@@ -271,13 +271,13 @@ class TestRepetition(PyparsingExpressionTestCase):
         ),
         PpTestSpec(
             desc="Using delimited_list (comma is the default delimiter) with minimum size",
-            expr=pp.delimited_list(pp.Word(pp.alphas), _min=3),
+            expr=pp.delimited_list(pp.Word(pp.alphas), min=3),
             text="xxyx,xy",
             expected_fail_locn=7,
         ),
         PpTestSpec(
             desc="Using delimited_list (comma is the default delimiter) with maximum size",
-            expr=pp.delimited_list(pp.Word(pp.alphas), _max=3),
+            expr=pp.delimited_list(pp.Word(pp.alphas), max=3),
             text="xxyx,xy,y,xxyx,yxx, xy,",
             expected_list=["xxyx", "xy", "y"],
         ),

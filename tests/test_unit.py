@@ -7714,6 +7714,25 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             expr, source, [s.strip() for s in source.split(",")]
         )
 
+    def testDelimitedListMinMax(self):
+        source = "ABC, ABC,ABC"
+        with self.assertRaises(ValueError, msg="min must be greater than 0"):
+            pp.delimited_list("ABC", min=0)
+        with self.assertRaises(ValueError, msg="max must be greater than, or equal to min"):
+            pp.delimited_list("ABC", min=1, max=0)
+        with self.assertRaises(pp.ParseException):
+            pp.delimited_list("ABC", min=4).parse_string(source)
+
+        source_expr_pairs = [
+            ("ABC,  ABC", pp.delimited_list("ABC", max=2)),
+            (source, pp.delimited_list("ABC", min=2, max=4)),
+        ]
+        for source, expr in source_expr_pairs:
+            print(str(expr))
+            self.assertParseAndCheckList(
+                expr, source, [s.strip() for s in source.split(",")]
+            )
+
     def testEnableDebugOnNamedExpressions(self):
         """
         - enable_debug_on_named_expressions - flag to auto-enable debug on all subsequent
