@@ -114,13 +114,13 @@ class TestCase(unittest.TestCase):
 
     @contextlib.contextmanager
     def assertDoesNotWarn(self, warning_type: type = UserWarning, msg: str = None):
-        if msg is None:
-            msg = "unexpected warning raised"
         with warnings.catch_warnings(record=True) as w:
             warnings.simplefilter("error")
             try:
                 yield
             except Exception as e:
+                if msg is None:
+                    msg = "unexpected warning {} raised".format(e)
                 if isinstance(e, warning_type):
                     self.fail("{}: {}".format(msg, e))
                 else:
@@ -180,7 +180,7 @@ class Test01b_PyparsingUnitTestUtilitiesTests(TestCase):
             # test assertDoesNotWarn raises an AssertionError
             with self.assertRaises(AssertionError):
                 with self.assertDoesNotWarn(
-                    msg="failed to warn when naming an empty Forward expression",
+                    msg="warned when parsing with an empty Forward expression warning was suppressed",
                 ):
                     base = pp.Forward()
                     try:
@@ -7409,6 +7409,11 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             ):
                 expr = (expr_a | expr_b)("rexp")
 
+            with self.assertDoesNotWarn(
+                UserWarning, msg="warned when And within alternation warning was suppressed"
+            ):
+                expr = (expr_a | expr_b).suppress_warning(pp.Diagnostics.warn_multiple_tokens_in_named_alternation)("rexp")
+
             success, report = expr.runTests(
                 """
                 not the bird
@@ -7469,6 +7474,11 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
                 UserWarning, msg="failed to warn of And within alternation"
             ):
                 expr = (expr_a ^ expr_b)("rexp")
+
+            with self.assertDoesNotWarn(
+                UserWarning, msg="warned when And within alternation warning was suppressed"
+            ):
+                expr = (expr_a ^ expr_b).suppress_warning(pp.Diagnostics.warn_multiple_tokens_in_named_alternation)("rexp")
 
             expr.runTests(
                 """\
@@ -7641,17 +7651,19 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             ):
                 path = coord[...].setResultsName("path")
 
-    def testDontWarnUngroupedNamedTokensIfUngroupedNamesStartWithNOWARN(self):
-        """
-        - warn_ungrouped_named_tokens_in_collection - flag to enable warnings when a results
-          name is defined on a containing expression with ungrouped subexpressions that also
-          have results names (default=True)
-        """
+            with self.assertDoesNotWarn(
+                UserWarning,
+                msg="warned when named repetition of"
+                " ungrouped named expressions warning was suppressed",
+            ):
+                path = coord[...].suppress_warning(pp.Diagnostics.warn_ungrouped_named_tokens_in_collection).setResultsName("path")
+
+    def testDontWarnUngroupedNamedTokensIfWarningSuppressed(self):
         with ppt.reset_pyparsing_context():
             pp.enable_diag(pp.Diagnostics.warn_ungrouped_named_tokens_in_collection)
 
             with self.assertDoesNotWarn(
-                msg="raised {} warning inner names start with '_NOWARN'".format(
+                msg="raised {} warning when warn on ungrouped named tokens was suppressed (original_text_for)".format(
                     pp.Diagnostics.warn_ungrouped_named_tokens_in_collection
                 )
             ):
@@ -7681,6 +7693,12 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             ):
                 base("x")
 
+            with self.assertDoesNotWarn(
+                UserWarning,
+                msg="warned when naming an empty Forward expression warning was suppressed",
+            ):
+                base.suppress_warning(pp.Diagnostics.warn_name_set_on_empty_Forward)("x")
+
     def testWarnParsingEmptyForward(self):
         """
         - warn_on_parse_using_empty_Forward - flag to enable warnings when a Forward
@@ -7705,8 +7723,18 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
 
             with self.assertWarns(
                 UserWarning,
-                msg="failed to warn when naming an empty Forward expression",
+                msg="failed to warn when parsing using an empty Forward expression",
             ):
+                try:
+                    print(base.parseString("x"))
+                except ParseException as pe:
+                    pass
+
+            with self.assertDoesNotWarn(
+                    UserWarning,
+                    msg="warned when parsing using an empty Forward expression warning was suppressed",
+            ):
+                base.suppress_warning(pp.Diagnostics.warn_on_parse_using_empty_Forward)
                 try:
                     print(base.parseString("x"))
                 except ParseException as pe:
@@ -7740,6 +7768,17 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
                 msg="failed to warn when using '=' to assign expression to a Forward",
             ):
                 a_method()
+
+            def a_method():
+                base = pp.Forward().suppress_warning(pp.Diagnostics.warn_on_assignment_to_Forward)
+                base = pp.Word(pp.alphas)[...] | "(" + base + ")"
+
+            with self.assertDoesNotWarn(
+                UserWarning,
+                msg="warned when using '=' to assign expression to a Forward warning was suppressed",
+            ):
+                a_method()
+
 
     def testWarnOnMultipleStringArgsToOneOf(self):
         """

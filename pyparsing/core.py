@@ -471,6 +471,18 @@ class ParserElement(ABC):
         self.suppress_warnings_ = []
 
     def suppress_warning(self, warning_type: Diagnostics):
+        """
+        Suppress warnings emitted for a particular diagnostic on this expression.
+
+        Example::
+
+            base = pp.Forward()
+            base.suppress_warning(Diagnostics.warn_on_parse_using_empty_Forward)
+
+            # statement would normally raise a warning, but is now suppressed
+            print(base.parseString("x"))
+
+        """
         self.suppress_warnings_.append(warning_type)
         return self
 
@@ -3987,8 +3999,17 @@ class Or(ParseExpression):
         return "{" + " ^ ".join(str(e) for e in self.exprs) + "}"
 
     def _setResultsName(self, name, listAllMatches=False):
-        if __diag__.warn_multiple_tokens_in_named_alternation:
-            if any(isinstance(e, And) for e in self.exprs):
+        if (
+            __diag__.warn_multiple_tokens_in_named_alternation
+            and Diagnostics.warn_multiple_tokens_in_named_alternation
+            not in self.suppress_warnings_
+        ):
+            if any(
+                isinstance(e, And)
+                and Diagnostics.warn_multiple_tokens_in_named_alternation
+                not in e.suppress_warnings_
+                for e in self.exprs
+            ):
                 warnings.warn(
                     "{}: setting results name {!r} on {} expression "
                     "will return a list of all parsed tokens in an And alternative, "
@@ -4087,8 +4108,17 @@ class MatchFirst(ParseExpression):
         return "{" + " | ".join(str(e) for e in self.exprs) + "}"
 
     def _setResultsName(self, name, listAllMatches=False):
-        if __diag__.warn_multiple_tokens_in_named_alternation:
-            if any(isinstance(e, And) for e in self.exprs):
+        if (
+            __diag__.warn_multiple_tokens_in_named_alternation
+            and Diagnostics.warn_multiple_tokens_in_named_alternation
+            not in self.suppress_warnings_
+        ):
+            if any(
+                isinstance(e, And)
+                and Diagnostics.warn_multiple_tokens_in_named_alternation
+                not in e.suppress_warnings_
+                for e in self.exprs
+            ):
                 warnings.warn(
                     "{}: setting results name {!r} on {} expression "
                     "will return a list of all parsed tokens in an And alternative, "
@@ -5103,6 +5133,8 @@ class Forward(ParseElementEnhance):
         if (
             __diag__.warn_on_match_first_with_lshift_operator
             and caller_line == self.lshift_line
+            and Diagnostics.warn_on_match_first_with_lshift_operator
+            not in self.suppress_warnings_
         ):
             warnings.warn(
                 "using '<<' operator with '|' is probably an error, use '<<='",
@@ -5113,7 +5145,11 @@ class Forward(ParseElementEnhance):
 
     def __del__(self):
         # see if we are getting dropped because of '=' reassignment of var instead of '<<=' or '<<'
-        if self.expr is None and __diag__.warn_on_assignment_to_Forward:
+        if (
+            self.expr is None
+            and __diag__.warn_on_assignment_to_Forward
+            and Diagnostics.warn_on_assignment_to_Forward not in self.suppress_warnings_
+        ):
             warnings.warn_explicit(
                 "Forward defined here but no expression attached later using '<<=' or '<<'",
                 UserWarning,
@@ -5122,7 +5158,12 @@ class Forward(ParseElementEnhance):
             )
 
     def parseImpl(self, instring, loc, doActions=True):
-        if self.expr is None and __diag__.warn_on_parse_using_empty_Forward:
+        if (
+            self.expr is None
+            and __diag__.warn_on_parse_using_empty_Forward
+            and Diagnostics.warn_on_parse_using_empty_Forward
+            not in self.suppress_warnings_
+        ):
             # walk stack until parse_string, scan_string, search_string, or transform_string is found
             parse_fns = [
                 "parse_string",
@@ -5259,7 +5300,11 @@ class Forward(ParseElementEnhance):
             return ret
 
     def _setResultsName(self, name, list_all_matches=False):
-        if __diag__.warn_name_set_on_empty_Forward:
+        if (
+            __diag__.warn_name_set_on_empty_Forward
+            and Diagnostics.warn_name_set_on_empty_Forward
+            not in self.suppress_warnings_
+        ):
             if self.expr is None:
                 warnings.warn(
                     "{}: setting results name {!r} on {} expression "
