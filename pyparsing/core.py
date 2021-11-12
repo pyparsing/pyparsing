@@ -468,6 +468,11 @@ class ParserElement(ABC):
         # avoid redundant calls to preParse
         self.callPreparse = True
         self.callDuringTry = False
+        self.suppress_warnings_ = []
+
+    def suppress_warning(self, warning_type: Diagnostics):
+        self.suppress_warnings_.append(warning_type)
+        return self
 
     def copy(self) -> "ParserElement":
         """
@@ -3679,12 +3684,17 @@ class ParseExpression(ParserElement):
         return ret
 
     def _setResultsName(self, name, listAllMatches=False):
-        if __diag__.warn_ungrouped_named_tokens_in_collection:
+        if (
+            __diag__.warn_ungrouped_named_tokens_in_collection
+            and Diagnostics.warn_ungrouped_named_tokens_in_collection
+            not in self.suppress_warnings_
+        ):
             for e in self.exprs:
                 if (
                     isinstance(e, ParserElement)
                     and e.resultsName
-                    and not e.resultsName.startswith("_NOWARN")
+                    and Diagnostics.warn_ungrouped_named_tokens_in_collection
+                    not in e.suppress_warnings_
                 ):
                     warnings.warn(
                         "{}: setting results name {!r} on {} expression "
@@ -3982,7 +3992,8 @@ class Or(ParseExpression):
                 warnings.warn(
                     "{}: setting results name {!r} on {} expression "
                     "will return a list of all parsed tokens in an And alternative, "
-                    "in prior versions only the first token was returned".format(
+                    "in prior versions only the first token was returned; enclose"
+                    "contained argument in Group".format(
                         "warn_multiple_tokens_in_named_alternation",
                         name,
                         type(self).__name__,
@@ -4080,8 +4091,9 @@ class MatchFirst(ParseExpression):
             if any(isinstance(e, And) for e in self.exprs):
                 warnings.warn(
                     "{}: setting results name {!r} on {} expression "
-                    "may only return a single token for an And alternative, "
-                    "in future will return the full list of tokens".format(
+                    "will return a list of all parsed tokens in an And alternative, "
+                    "in prior versions only the first token was returned; enclose"
+                    "contained argument in Group".format(
                         "warn_multiple_tokens_in_named_alternation",
                         name,
                         type(self).__name__,
@@ -4724,12 +4736,17 @@ class _MultipleMatch(ParseElementEnhance):
         return loc, tokens
 
     def _setResultsName(self, name, listAllMatches=False):
-        if __diag__.warn_ungrouped_named_tokens_in_collection:
+        if (
+            __diag__.warn_ungrouped_named_tokens_in_collection
+            and Diagnostics.warn_ungrouped_named_tokens_in_collection
+            not in self.suppress_warnings_
+        ):
             for e in [self.expr] + self.expr.recurse():
                 if (
                     isinstance(e, ParserElement)
                     and e.resultsName
-                    and not e.resultsName.startswith("_NOWARN")
+                    and Diagnostics.warn_ungrouped_named_tokens_in_collection
+                    not in e.suppress_warnings_
                 ):
                     warnings.warn(
                         "{}: setting results name {!r} on {} expression "

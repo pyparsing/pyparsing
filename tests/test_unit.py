@@ -113,7 +113,7 @@ class TestCase(unittest.TestCase):
         return ar
 
     @contextlib.contextmanager
-    def assertDoesNotWarn(self, msg: str = None):
+    def assertDoesNotWarn(self, warning_type: type = UserWarning, msg: str = None):
         if msg is None:
             msg = "unexpected warning raised"
         with warnings.catch_warnings(record=True) as w:
@@ -121,7 +121,10 @@ class TestCase(unittest.TestCase):
             try:
                 yield
             except Exception as e:
-                self.fail("{}: {}".format(msg, e))
+                if isinstance(e, warning_type):
+                    self.fail("{}: {}".format(msg, e))
+                else:
+                    raise
 
 
 class Test01_PyparsingTestInit(TestCase):
@@ -167,6 +170,23 @@ class Test01a_PyparsingEnvironmentTests(TestCase):
             if actual != expected:
                 all_success = False
         self.assertTrue(all_success, "failed warnings enable test")
+
+
+class Test01b_PyparsingUnitTestUtilitiesTests(TestCase):
+    def runTest(self):
+        with ppt.reset_pyparsing_context():
+            pp.enable_diag(pp.Diagnostics.warn_on_parse_using_empty_Forward)
+
+            # test assertDoesNotWarn raises an AssertionError
+            with self.assertRaises(AssertionError):
+                with self.assertDoesNotWarn(
+                    msg="failed to warn when naming an empty Forward expression",
+                ):
+                    base = pp.Forward()
+                    try:
+                        print(base.parseString("x"))
+                    except ParseException as pe:
+                        pass
 
 
 class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
