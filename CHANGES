@@ -4,7 +4,37 @@ Change Log
 
 Version 3.0.7 -
 ---------------
+- Added new API change note in `whats_new_in_pyparsing_3_0_0`, regarding a
+  bug fix in the `bool()` behavior of `ParseResults`.
 
+  The `ParseResults` class implementation of `__bool__` would formerly return `False`
+  if the `ParseResults` item list was empty, even if it contained named
+  results. Now `ParseResults` will return `True` if either the item list is not empty
+  *or* if the named results list is not empty.
+
+      # generate an empty ParseResults by parsing a blank string with a ZeroOrMore
+      result = Word(alphas)[...].parse_string("")
+      print(result.as_list())
+      print(result.as_dict())
+      print(bool(result))
+
+      # add a results name to the result
+      result["name"] = "empty result"
+      print(result.as_list())
+      print(result.as_dict())
+      print(bool(result))
+
+  Prints:
+
+      []
+      {}
+      False
+
+      []
+      {'name': 'empty result'}
+      True
+
+  In previous versions, the second test would return `False`.
 
 Version 3.0.6 -
 ---------------

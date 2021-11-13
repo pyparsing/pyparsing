@@ -498,7 +498,37 @@ Other new features
 API Changes
 ===========
 
-- [Note added in pyparsing 3.0.4]
+- [Note added in pyparsing 3.0.7, reflecting a change in 3.0.0]
+  Fixed a bug in the `ParseResults` class implementation of `__bool__`, which
+  would formerly return `False` if the `ParseResults` item list was empty, even if it
+  contained named results. Now `ParseResults` will return `True` if either the item
+  list is not empty *or* if the named results list is not empty.
+
+      # generate an empty ParseResults by parsing a blank string with a ZeroOrMore
+      result = Word(alphas)[...].parse_string("")
+      print(result.as_list())
+      print(result.as_dict())
+      print(bool(result))
+
+      # add a results name to the result
+      result["name"] = "empty result"
+      print(result.as_list())
+      print(result.as_dict())
+      print(bool(result))
+
+  Prints::
+
+      []
+      {}
+      False
+
+      []
+      {'name': 'empty result'}
+      True
+
+  In previous versions, the second test would return `False`.
+
+- [Note added in pyparsing 3.0.4, reflecting a change in 3.0.0]
   The `ParseResults` class now uses `__slots__` to pre-define instance attributes. This
   means that code written like this (which was allowed in pyparsing 2.4.7)::
 

@@ -3163,6 +3163,16 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
         except RecursionError:
             self.fail("fail getting named result when empty")
 
+    def testParseResultsBool(self):
+        result = pp.Word(pp.alphas)[...].parseString("AAA")
+        self.assertTrue(result, "non-empty ParseResults evaluated as False")
+
+        result = pp.Word(pp.alphas)[...].parseString("")
+        self.assertFalse(result, "empty ParseResults evaluated as True")
+
+        result["A"] = 0
+        self.assertTrue(result, "ParseResults with empty list but containing a results name evaluated as False")
+
     def testIgnoreString(self):
         """test ParserElement.ignore() passed a string arg"""
 
