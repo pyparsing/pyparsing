@@ -526,7 +526,7 @@ API Changes
       {'name': 'empty result'}
       True
 
-  In previous versions, the second test would return `False`.
+  In previous versions, the second call to `bool()` would return `False`.
 
 - [Note added in pyparsing 3.0.4, reflecting a change in 3.0.0]
   The `ParseResults` class now uses `__slots__` to pre-define instance attributes. This
