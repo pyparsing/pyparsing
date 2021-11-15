@@ -4013,7 +4013,7 @@ class Or(ParseExpression):
                 warnings.warn(
                     "{}: setting results name {!r} on {} expression "
                     "will return a list of all parsed tokens in an And alternative, "
-                    "in prior versions only the first token was returned; enclose"
+                    "in prior versions only the first token was returned; enclose "
                     "contained argument in Group".format(
                         "warn_multiple_tokens_in_named_alternation",
                         name,
@@ -4122,7 +4122,7 @@ class MatchFirst(ParseExpression):
                 warnings.warn(
                     "{}: setting results name {!r} on {} expression "
                     "will return a list of all parsed tokens in an And alternative, "
-                    "in prior versions only the first token was returned; enclose"
+                    "in prior versions only the first token was returned; enclose "
                     "contained argument in Group".format(
                         "warn_multiple_tokens_in_named_alternation",
                         name,
