@@ -8177,27 +8177,38 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
                 "__diag__.{} not set to True".format(diag_name),
             )
 
-    def testWordInternalReRangesKnownSets(self):
-        self.assertEqual(
-            "[!-~]+",
-            pp.Word(pp.printables).reString,
-            "failed to generate correct internal re",
+    def testWordInternalReRangeWithConsecutiveChars(self):
+        self.assertParseAndCheckList(
+            pp.Word("ABCDEMNXYZ"),
+            "ABCDEMNXYZABCDEMNXYZABCDEMNXYZ",
+            ["ABCDEMNXYZABCDEMNXYZABCDEMNXYZ"]
         )
-        self.assertEqual(
-            "[0-9A-Za-z]+",
-            pp.Word(pp.alphanums).reString,
-            "failed to generate correct internal re",
-        )
-        self.assertEqual(
-            "[!-~¡-ÿ]+",
-            pp.Word(pp.pyparsing_unicode.Latin1.printables).reString,
-            "failed to generate correct internal re",
-        )
-        self.assertEqual(
-            "[À-ÖØ-öø-ÿ]+",
-            pp.Word(pp.alphas8bit).reString,
-            "failed to generate correct internal re",
-        )
+
+    def testWordInternalReRangesKnownSet(self):
+        tests = [
+            ("ABCDEMNXYZ", "[A-EMNX-Z]+"),
+            (pp.printables, "[!-~]+"),
+            (pp.alphanums, "[0-9A-Za-z]+"),
+            (pp.pyparsing_unicode.Latin1.printables, "[!-~¡-ÿ]+"),
+            (pp.pyparsing_unicode.Latin1.alphanums, "[0-9A-Za-zª²³µ¹ºÀ-ÖØ-öø-ÿ]+"),
+            (pp.alphas8bit, "[À-ÖØ-öø-ÿ]+"),
+        ]
+        failed = []
+        for word_string, expected_re in tests:
+            try:
+                msg = "failed to generate correct internal re for {!r}".format(word_string)
+                resultant_re = pp.Word(word_string).reString
+                self.assertEqual(
+                    expected_re,
+                    resultant_re,
+                    msg + "; expected {!r} got {!r}".format(expected_re, resultant_re)
+                )
+            except AssertionError:
+                failed.append(msg)
+
+        if failed:
+            print("Errors:\n{}".format("\n".join(failed)))
+            self.fail("failed to generate correct internal re's")
 
     def testWordInternalReRanges(self):
         import random

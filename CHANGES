@@ -38,6 +38,9 @@ Version 3.0.7 -
 
   In previous versions, the second call to `bool()` would return `False`.
 
+- Minor enhancement to Word generation of internal regular expression, to
+  emit consecutive characters in range, such as "ab", as "ab", not "a-b".
+
 
 Version 3.0.6 -
 ---------------
