@@ -84,34 +84,37 @@ TODO:
 from pyparsing import (
     Word,
     alphanums,
-    Keyword,
+    CaselessKeyword,
     Group,
     Forward,
     Suppress,
     OneOrMore,
-    oneOf,
+    one_of,
 )
 import re
 
 
+# Updated on 02 Dec 2021 according to ftp://ftp.unicode.org/Public/UNIDATA/Blocks.txt
 alphabet_ranges = [
-    ##CYRILIC: https://en.wikipedia.org/wiki/Cyrillic_(Unicode_block)
+    # CYRILIC: https://en.wikipedia.org/wiki/Cyrillic_(Unicode_block)
     [int("0400", 16), int("04FF", 16)],
-    ##THAI: https://en.wikipedia.org/wiki/Thai_(Unicode_block)
-    [int("0E00", 16), int("0E7F", 16)],
-    ##ARABIC: https://en.wikipedia.org/wiki/Arabic_(Unicode_block) (Arabic (0600–06FF)+ Syriac (0700–074F)+ Arabic Supplement (0750–077F) )
+    # ARABIC: https://en.wikipedia.org/wiki/Arabic_(Unicode_block) (Arabic (0600–06FF)+ Syriac (0700–074F)+ Arabic Supplement (0750–077F) )
     [int("0600", 16), int("07FF", 16)],
-    ##CHINESE: https://en.wikipedia.org/wiki/CJK_Unified_Ideographs_(Unicode_block)
-    [int("0400", 16), int("09FF", 16)],
-    # JAPANESE : https://en.wikipedia.org/wiki/Japanese_writing_system
+    # THAI: https://en.wikipedia.org/wiki/Thai_(Unicode_block)
+    [int("0E00", 16), int("0E7F", 16)],
+    # JAPANESE : https://en.wikipedia.org/wiki/Japanese_writing_system (Hiragana (3040–309F) + Katakana (30A0–30FF))
     [int("3040", 16), int("30FF", 16)],
+    # Enclosed CJK Letters and Months
+    [int("3200", 16), int("32FF", 16)],
+    # CHINESE: https://en.wikipedia.org/wiki/CJK_Unified_Ideographs_(Unicode_block)
+    [int("4E00", 16), int("9FFF", 16)],
     # KOREAN : https://en.wikipedia.org/wiki/Hangul
-    [int("AC00", 16), int("D7AF", 16)],
     [int("1100", 16), int("11FF", 16)],
     [int("3130", 16), int("318F", 16)],
-    [int("3200", 16), int("32FF", 16)],
     [int("A960", 16), int("A97F", 16)],
+    [int("AC00", 16), int("D7AF", 16)],
     [int("D7B0", 16), int("D7FF", 16)],
+    # Halfwidth and Fullwidth Forms
     [int("FF00", 16), int("FFEF", 16)],
 ]
 
@@ -152,8 +155,8 @@ class BooleanSearchParser:
         alphabet = alphanums
 
         # support for non-western alphabets
-        for r in alphabet_ranges:
-            alphabet += "".join(chr(c) for c in range(*r) if not chr(c).isspace())
+        for lo, hi in alphabet_ranges:
+            alphabet += "".join(chr(c) for c in range(lo, hi + 1) if not chr(c).isspace())
 
         operatorWord = Group(Word(alphabet + "*")).setResultsName("word*")
 
@@ -176,7 +179,7 @@ class BooleanSearchParser:
 
         operatorNot = Forward()
         operatorNot << (
-            Group(Suppress(Keyword("not", caseless=True)) + operatorNot).setResultsName(
+            Group(Suppress(CaselessKeyword("not")) + operatorNot).setResultsName(
                 "not"
             )
             | operatorParenthesis
@@ -185,17 +188,17 @@ class BooleanSearchParser:
         operatorAnd = Forward()
         operatorAnd << (
             Group(
-                operatorNot + Suppress(Keyword("and", caseless=True)) + operatorAnd
+                operatorNot + Suppress(CaselessKeyword("and")) + operatorAnd
             ).setResultsName("and")
             | Group(
-                operatorNot + OneOrMore(~oneOf("and or") + operatorAnd)
+                operatorNot + OneOrMore(~one_of("and or") + operatorAnd)
             ).setResultsName("and")
             | operatorNot
         )
 
         operatorOr << (
             Group(
-                operatorAnd + Suppress(Keyword("or", caseless=True)) + operatorOr
+                operatorAnd + Suppress(CaselessKeyword("or")) + operatorOr
             ).setResultsName("or")
             | operatorAnd
         )
@@ -217,7 +220,7 @@ class BooleanSearchParser:
     def evaluateQuotes(self, argument):
         """Evaluate quoted strings
 
-        First is does an 'and' on the indidual search terms, then it asks the
+        First is does an 'and' on the individual search terms, then it asks the
         function GetQuoted to only return the subset of ID's that contain the
         literal string.
         """
