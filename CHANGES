@@ -4,6 +4,9 @@ Change Log
 
 Version 3.0.7 -
 ---------------
+- Added optional "min" and "max" arguments to `delimited_list`. PR
+  submitted by Marius, thanks!
+
 - Added new API change note in `whats_new_in_pyparsing_3_0_0`, regarding
   a bug fix in the `bool()` behavior of `ParseResults`.
 
