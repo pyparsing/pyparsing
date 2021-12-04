@@ -14,6 +14,7 @@ from typing import (
     TextIO,
     Set,
     Dict as DictType,
+    Sequence,
 )
 from abc import ABC, abstractmethod
 from enum import Enum
@@ -114,7 +115,7 @@ class __diag__(__config_flags):
     _debug_names = [name for name in _all_names if name.startswith("enable_debug")]
 
     @classmethod
-    def enable_all_warnings(cls):
+    def enable_all_warnings(cls) -> None:
         for name in cls._warning_names:
             cls.enable(name)
 
@@ -152,21 +153,21 @@ class Diagnostics(Enum):
     enable_debug_on_named_expressions = 7
 
 
-def enable_diag(diag_enum):
+def enable_diag(diag_enum: Diagnostics) -> None:
     """
     Enable a global pyparsing diagnostic flag (see :class:`Diagnostics`).
     """
     __diag__.enable(diag_enum.name)
 
 
-def disable_diag(diag_enum):
+def disable_diag(diag_enum: Diagnostics) -> None:
     """
     Disable a global pyparsing diagnostic flag (see :class:`Diagnostics`).
     """
     __diag__.disable(diag_enum.name)
 
 
-def enable_all_warnings():
+def enable_all_warnings() -> None:
     """
     Enable all global pyparsing diagnostic warnings (see :class:`Diagnostics`).
     """
@@ -178,7 +179,7 @@ del __config_flags
 
 
 def _should_enable_warnings(
-    cmd_line_warn_options: List[str], warn_env_var: OptionalType[str]
+    cmd_line_warn_options: IterableType[str], warn_env_var: OptionalType[str]
 ) -> bool:
     enable = bool(warn_env_var)
     for warn_opt in cmd_line_warn_options:
@@ -311,7 +312,7 @@ def _trim_arity(func, maxargs=2):
 
 def condition_as_parse_action(
     fn: ParseCondition, message: str = None, fatal: bool = False
-):
+) -> ParseAction:
     """
     Function to convert a simple predicate function that returns ``True`` or ``False``
     into a parse action. Can be used in places when a parse action is required
@@ -395,7 +396,7 @@ class ParserElement(ABC):
     _literalStringClass: OptionalType[type] = None
 
     @staticmethod
-    def set_default_whitespace_chars(chars: str):
+    def set_default_whitespace_chars(chars: str) -> None:
         r"""
         Overrides the default whitespace chars
 
@@ -416,7 +417,7 @@ class ParserElement(ABC):
                 expr.whiteChars = set(chars)
 
     @staticmethod
-    def inline_literals_using(cls: type):
+    def inline_literals_using(cls: type) -> None:
         """
         Set class to be used for inclusion of string literals into a parser.
 
@@ -470,7 +471,7 @@ class ParserElement(ABC):
         self.callDuringTry = False
         self.suppress_warnings_ = []
 
-    def suppress_warning(self, warning_type: Diagnostics):
+    def suppress_warning(self, warning_type: Diagnostics) -> "ParserElement":
         """
         Suppress warnings emitted for a particular diagnostic on this expression.
 
@@ -582,9 +583,7 @@ class ParserElement(ABC):
                 self._parse = self._parse._originalParseMethod
         return self
 
-    def set_parse_action(
-        self, *fns: ParseAction, **kwargs
-    ) -> OptionalType["ParserElement"]:
+    def set_parse_action(self, *fns: ParseAction, **kwargs) -> "ParserElement":
         """
         Define one or more actions to perform when successfully matching parse element definition.
 
@@ -1768,7 +1767,7 @@ class ParserElement(ABC):
         self.debug = True
         return self
 
-    def set_debug(self, flag=True) -> "ParserElement":
+    def set_debug(self, flag: bool = True) -> "ParserElement":
         """
         Enable display of debugging messages while doing pattern matching.
         Set ``flag`` to ``True`` to enable, ``False`` to disable.
@@ -1856,7 +1855,7 @@ class ParserElement(ABC):
         self._defaultName = None
         return self
 
-    def recurse(self):
+    def recurse(self) -> Sequence["ParserElement"]:
         return []
 
     def _checkRecursion(self, parseElementList):
@@ -1864,7 +1863,7 @@ class ParserElement(ABC):
         for e in self.recurse():
             e._checkRecursion(subRecCheckList)
 
-    def validate(self, validateTrace=None):
+    def validate(self, validateTrace=None) -> None:
         """
         Check defined expressions for valid structure, check for infinite recursive definitions.
         """
@@ -1950,7 +1949,7 @@ class ParserElement(ABC):
         printResults: bool = True,
         failureTests: bool = False,
         postParse: Callable[[str, ParseResults], str] = None,
-    ):
+    ) -> Tuple[bool, List[Tuple[str, Union[ParseResults, Exception]]]]:
         """
         Execute the parse expression on a series of test strings, showing each
         test, the parsed results or where the parse failed. Quick and easy way to
@@ -2441,7 +2440,7 @@ class Keyword(Token):
         raise ParseException(instring, errloc, errmsg, self)
 
     @staticmethod
-    def set_default_keyword_chars(chars):
+    def set_default_keyword_chars(chars) -> None:
         """
         Overrides the default characters used by :class:`Keyword` expressions.
         """
@@ -2983,7 +2982,7 @@ class Regex(Token):
         ret = result
         return loc, ret
 
-    def sub(self, repl):
+    def sub(self, repl: str) -> ParserElement:
         r"""
         Return :class:`Regex` with an attached parse action to transform the parsed
         result as if called using `re.sub(expr, repl, string) <https://docs.python.org/3/library/re.html#re.sub>`_.
@@ -3595,15 +3594,15 @@ class ParseExpression(ParserElement):
                 self.exprs = [exprs]
         self.callPreparse = False
 
-    def recurse(self):
+    def recurse(self) -> Sequence[ParserElement]:
         return self.exprs[:]
 
-    def append(self, other):
+    def append(self, other) -> ParserElement:
         self.exprs.append(other)
         self._defaultName = None
         return self
 
-    def leave_whitespace(self, recursive=True):
+    def leave_whitespace(self, recursive: bool = True) -> ParserElement:
         """
         Extends ``leave_whitespace`` defined in base class, and also invokes ``leave_whitespace`` on
            all contained expressions.
@@ -3616,7 +3615,7 @@ class ParseExpression(ParserElement):
                 e.leave_whitespace(recursive)
         return self
 
-    def ignore_whitespace(self, recursive=True):
+    def ignore_whitespace(self, recursive: bool = True) -> ParserElement:
         """
         Extends ``ignore_whitespace`` defined in base class, and also invokes ``leave_whitespace`` on
            all contained expressions.
@@ -3628,7 +3627,7 @@ class ParseExpression(ParserElement):
                 e.ignore_whitespace(recursive)
         return self
 
-    def ignore(self, other):
+    def ignore(self, other) -> ParserElement:
         if isinstance(other, Suppress):
             if other not in self.ignoreExprs:
                 super().ignore(other)
@@ -3643,7 +3642,7 @@ class ParseExpression(ParserElement):
     def _generateDefaultName(self):
         return "{}:({})".format(self.__class__.__name__, str(self.exprs))
 
-    def streamline(self):
+    def streamline(self) -> ParserElement:
         if self.streamlined:
             return self
 
@@ -3684,13 +3683,13 @@ class ParseExpression(ParserElement):
 
         return self
 
-    def validate(self, validateTrace=None):
+    def validate(self, validateTrace=None) -> None:
         tmp = (validateTrace if validateTrace is not None else [])[:] + [self]
         for e in self.exprs:
             e.validate(tmp)
         self._checkRecursion([])
 
-    def copy(self):
+    def copy(self) -> ParserElement:
         ret = super().copy()
         ret.exprs = [e.copy() for e in self.exprs]
         return ret
@@ -4327,7 +4326,7 @@ class ParseElementEnhance(ParserElement):
             self.callPreparse = expr.callPreparse
             self.ignoreExprs.extend(expr.ignoreExprs)
 
-    def recurse(self):
+    def recurse(self) -> Sequence[ParserElement]:
         return [self.expr] if self.expr is not None else []
 
     def parseImpl(self, instring, loc, doActions=True):
@@ -4336,7 +4335,7 @@ class ParseElementEnhance(ParserElement):
         else:
             raise ParseException("", loc, self.errmsg, self)
 
-    def leave_whitespace(self, recursive=True):
+    def leave_whitespace(self, recursive: bool = True) -> ParserElement:
         super().leave_whitespace(recursive)
 
         if recursive:
@@ -4345,7 +4344,7 @@ class ParseElementEnhance(ParserElement):
                 self.expr.leave_whitespace(recursive)
         return self
 
-    def ignore_whitespace(self, recursive=True):
+    def ignore_whitespace(self, recursive: bool = True) -> ParserElement:
         super().ignore_whitespace(recursive)
 
         if recursive:
@@ -4354,7 +4353,7 @@ class ParseElementEnhance(ParserElement):
                 self.expr.ignore_whitespace(recursive)
         return self
 
-    def ignore(self, other):
+    def ignore(self, other) -> ParserElement:
         if isinstance(other, Suppress):
             if other not in self.ignoreExprs:
                 super().ignore(other)
@@ -4366,7 +4365,7 @@ class ParseElementEnhance(ParserElement):
                 self.expr.ignore(self.ignoreExprs[-1])
         return self
 
-    def streamline(self):
+    def streamline(self) -> ParserElement:
         super().streamline()
         if self.expr is not None:
             self.expr.streamline()
@@ -4379,7 +4378,7 @@ class ParseElementEnhance(ParserElement):
         if self.expr is not None:
             self.expr._checkRecursion(subRecCheckList)
 
-    def validate(self, validateTrace=None):
+    def validate(self, validateTrace=None) -> None:
         if validateTrace is None:
             validateTrace = []
         tmp = validateTrace[:] + [self]
@@ -4730,7 +4729,7 @@ class _MultipleMatch(ParseElementEnhance):
             ender = self._literalStringClass(ender)
         self.stopOn(ender)
 
-    def stopOn(self, ender):
+    def stopOn(self, ender) -> ParserElement:
         if isinstance(ender, str_type):
             ender = self._literalStringClass(ender)
         self.not_ender = ~ender if ender is not None else None
@@ -5252,22 +5251,22 @@ class Forward(ParseElementEnhance):
                                 raise
                         prev_loc, prev_peek = memo[peek_key] = new_loc, new_peek
 
-    def leave_whitespace(self, recursive=True):
+    def leave_whitespace(self, recursive: bool = True) -> ParserElement:
         self.skipWhitespace = False
         return self
 
-    def ignore_whitespace(self, recursive=True):
+    def ignore_whitespace(self, recursive: bool = True) -> ParserElement:
         self.skipWhitespace = True
         return self
 
-    def streamline(self):
+    def streamline(self) -> ParserElement:
         if not self.streamlined:
             self.streamlined = True
             if self.expr is not None:
                 self.expr.streamline()
         return self
 
-    def validate(self, validateTrace=None):
+    def validate(self, validateTrace=None) -> None:
         if validateTrace is None:
             validateTrace = []
 
@@ -5291,7 +5290,7 @@ class Forward(ParseElementEnhance):
         finally:
             return self.__class__.__name__ + ": " + retString
 
-    def copy(self):
+    def copy(self) -> ParserElement:
         if self.expr is not None:
             return super().copy()
         else:
@@ -5367,7 +5366,7 @@ class Combine(TokenConverter):
         self.joinString = joinString
         self.callPreparse = True
 
-    def ignore(self, other):
+    def ignore(self, other) -> ParserElement:
         if self.adjacent:
             ParserElement.ignore(self, other)
         else:
@@ -5562,11 +5561,11 @@ class Suppress(TokenConverter):
     def postParse(self, instring, loc, tokenlist):
         return []
 
-    def suppress(self):
+    def suppress(self) -> ParserElement:
         return self
 
 
-def trace_parse_action(f: ParseAction):
+def trace_parse_action(f: ParseAction) -> ParseAction:
     """Decorator for debugging parse actions.
 
     When the parse action is called, this decorator will print
@@ -5641,7 +5640,7 @@ _reBracketExpr = (
 )
 
 
-def srange(s):
+def srange(s: str) -> str:
     r"""Helper to easily define string ranges for use in :class:`Word`
     construction. Borrows syntax from regexp ``'[]'`` string range
     definitions::
@@ -5678,7 +5677,7 @@ def srange(s):
         return ""
 
 
-def token_map(func, *args):
+def token_map(func, *args) -> ParseAction:
     """Helper to define a parse action by mapping a function to all
     elements of a :class:`ParseResults` list. If any additional args are passed,
     they are forwarded to the given function as additional arguments
@@ -5724,7 +5723,7 @@ def token_map(func, *args):
     return pa
 
 
-def autoname_elements():
+def autoname_elements() -> None:
     """
     Utility to simplify mass-naming of parser elements, for
     generating railroad diagram with named subdiagrams.
