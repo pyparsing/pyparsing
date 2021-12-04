@@ -70,7 +70,7 @@ History
 
 See `CHANGES <https://github.com/pyparsing/pyparsing/blob/master/CHANGES>`__ file.
 
-.. |Build Status| image:: https://travis-ci.com/pyparsing/pyparsing.svg?branch=master
-   :target: https://travis-ci.com/pyparsing/pyparsing
+.. |Build Status| image:: https://github.com/pyparsing/pyparsing/actions/workflows/ci.yml/badge.svg
+   :target: https://github.com/pyparsing/pyparsing/actions/workflows/ci.yml
 .. |Coverage| image:: https://codecov.io/gh/pyparsing/pyparsing/branch/master/graph/badge.svg
   :target: https://codecov.io/gh/pyparsing/pyparsing
