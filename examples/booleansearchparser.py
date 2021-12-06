@@ -98,7 +98,7 @@ import re
 alphabet_ranges = [
     # CYRILIC: https://en.wikipedia.org/wiki/Cyrillic_(Unicode_block)
     [int("0400", 16), int("04FF", 16)],
-    # ARABIC: https://en.wikipedia.org/wiki/Arabic_(Unicode_block) (Arabic (0600–06FF)+ Syriac (0700–074F)+ Arabic Supplement (0750–077F) )
+    # ARABIC: https://en.wikipedia.org/wiki/Arabic_(Unicode_block) (Arabic (0600–06FF)+ Syriac (0700–074F)+ Arabic Supplement (0750–077F))
     [int("0600", 16), int("07FF", 16)],
     # THAI: https://en.wikipedia.org/wiki/Thai_(Unicode_block)
     [int("0E00", 16), int("0E7F", 16)],
@@ -158,20 +158,20 @@ class BooleanSearchParser:
         for lo, hi in alphabet_ranges:
             alphabet += "".join(chr(c) for c in range(lo, hi + 1) if not chr(c).isspace())
 
-        operatorWord = Group(Word(alphabet + "*")).setResultsName("word*")
+        operatorWord = Group(Word(alphabet + "*")).set_results_name("word*")
 
         operatorQuotesContent = Forward()
         operatorQuotesContent << ((operatorWord + operatorQuotesContent) | operatorWord)
 
         operatorQuotes = (
-            Group(Suppress('"') + operatorQuotesContent + Suppress('"')).setResultsName(
+            Group(Suppress('"') + operatorQuotesContent + Suppress('"')).set_results_name(
                 "quotes"
             )
             | operatorWord
         )
 
         operatorParenthesis = (
-            Group(Suppress("(") + operatorOr + Suppress(")")).setResultsName(
+            Group(Suppress("(") + operatorOr + Suppress(")")).set_results_name(
                 "parenthesis"
             )
             | operatorQuotes
@@ -179,7 +179,7 @@ class BooleanSearchParser:
 
         operatorNot = Forward()
         operatorNot << (
-            Group(Suppress(CaselessKeyword("not")) + operatorNot).setResultsName(
+            Group(Suppress(CaselessKeyword("not")) + operatorNot).set_results_name(
                 "not"
             )
             | operatorParenthesis
@@ -189,21 +189,21 @@ class BooleanSearchParser:
         operatorAnd << (
             Group(
                 operatorNot + Suppress(CaselessKeyword("and")) + operatorAnd
-            ).setResultsName("and")
+            ).set_results_name("and")
             | Group(
                 operatorNot + OneOrMore(~one_of("and or") + operatorAnd)
-            ).setResultsName("and")
+            ).set_results_name("and")
             | operatorNot
         )
 
         operatorOr << (
             Group(
                 operatorAnd + Suppress(CaselessKeyword("or")) + operatorOr
-            ).setResultsName("or")
+            ).set_results_name("or")
             | operatorAnd
         )
 
-        return operatorOr.parseString
+        return operatorOr.parse_string
 
     def evaluateAnd(self, argument):
         return all(self.evaluate(arg) for arg in argument)
@@ -455,6 +455,37 @@ class ParserTest(BooleanSearchParser):
         for text, matches in texts_matcheswith.items():
             _matches = []
             for _id, expr in exprs.items():
+                if self.match(text, expr):
+                    _matches.append(_id)
+
+            test_passed = sorted(matches) == sorted(_matches)
+            if not test_passed:
+                print("Failed", repr(text), "expected", matches, "matched", _matches)
+
+            all_ok = all_ok and test_passed
+
+        # Tests for non western characters, should fail with
+        # pyparsing.exceptions.ParseException under the previous
+        # configuration
+        non_western_exprs = {
+            "0": "*",
+            "1": "ヿ",  # Edge character
+            "2": "亀",  # Character in CJK block
+            "3": "ヿ or 亀",
+            "4": "ヿ and 亀",
+            "5": "not ヿ"
+        }
+
+        non_western_texts_matcheswith = {
+            "안녕하세요, 당신은 어떠세요?": ["0", "5"],
+            "ヿ": ["0", "1", "3"],
+            "亀": ["0", "2", "3", "5"],
+            "亀 ヿ": ["0", "1", "2", "3", "4"],
+        }
+
+        for text, matches in non_western_texts_matcheswith.items():
+            _matches = []
+            for _id, expr in non_western_exprs.items():
                 if self.match(text, expr):
                     _matches.append(_id)
 
