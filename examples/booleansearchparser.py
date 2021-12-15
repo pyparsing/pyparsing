@@ -84,34 +84,37 @@ TODO:
 from pyparsing import (
     Word,
     alphanums,
-    Keyword,
+    CaselessKeyword,
     Group,
     Forward,
     Suppress,
     OneOrMore,
-    oneOf,
+    one_of,
 )
 import re
 
 
+# Updated on 02 Dec 2021 according to ftp://ftp.unicode.org/Public/UNIDATA/Blocks.txt
 alphabet_ranges = [
-    ##CYRILIC: https://en.wikipedia.org/wiki/Cyrillic_(Unicode_block)
+    # CYRILIC: https://en.wikipedia.org/wiki/Cyrillic_(Unicode_block)
     [int("0400", 16), int("04FF", 16)],
-    ##THAI: https://en.wikipedia.org/wiki/Thai_(Unicode_block)
-    [int("0E00", 16), int("0E7F", 16)],
-    ##ARABIC: https://en.wikipedia.org/wiki/Arabic_(Unicode_block) (Arabic (0600–06FF)+ Syriac (0700–074F)+ Arabic Supplement (0750–077F) )
+    # ARABIC: https://en.wikipedia.org/wiki/Arabic_(Unicode_block) (Arabic (0600–06FF)+ Syriac (0700–074F)+ Arabic Supplement (0750–077F))
     [int("0600", 16), int("07FF", 16)],
-    ##CHINESE: https://en.wikipedia.org/wiki/CJK_Unified_Ideographs_(Unicode_block)
-    [int("0400", 16), int("09FF", 16)],
-    # JAPANESE : https://en.wikipedia.org/wiki/Japanese_writing_system
+    # THAI: https://en.wikipedia.org/wiki/Thai_(Unicode_block)
+    [int("0E00", 16), int("0E7F", 16)],
+    # JAPANESE : https://en.wikipedia.org/wiki/Japanese_writing_system (Hiragana (3040–309F) + Katakana (30A0–30FF))
     [int("3040", 16), int("30FF", 16)],
+    # Enclosed CJK Letters and Months
+    [int("3200", 16), int("32FF", 16)],
+    # CHINESE: https://en.wikipedia.org/wiki/CJK_Unified_Ideographs_(Unicode_block)
+    [int("4E00", 16), int("9FFF", 16)],
     # KOREAN : https://en.wikipedia.org/wiki/Hangul
-    [int("AC00", 16), int("D7AF", 16)],
     [int("1100", 16), int("11FF", 16)],
     [int("3130", 16), int("318F", 16)],
-    [int("3200", 16), int("32FF", 16)],
     [int("A960", 16), int("A97F", 16)],
+    [int("AC00", 16), int("D7AF", 16)],
     [int("D7B0", 16), int("D7FF", 16)],
+    # Halfwidth and Fullwidth Forms
     [int("FF00", 16), int("FFEF", 16)],
 ]
 
@@ -152,23 +155,23 @@ class BooleanSearchParser:
         alphabet = alphanums
 
         # support for non-western alphabets
-        for r in alphabet_ranges:
-            alphabet += "".join(chr(c) for c in range(*r) if not chr(c).isspace())
+        for lo, hi in alphabet_ranges:
+            alphabet += "".join(chr(c) for c in range(lo, hi + 1) if not chr(c).isspace())
 
-        operatorWord = Group(Word(alphabet + "*")).setResultsName("word*")
+        operatorWord = Group(Word(alphabet + "*")).set_results_name("word*")
 
         operatorQuotesContent = Forward()
         operatorQuotesContent << ((operatorWord + operatorQuotesContent) | operatorWord)
 
         operatorQuotes = (
-            Group(Suppress('"') + operatorQuotesContent + Suppress('"')).setResultsName(
+            Group(Suppress('"') + operatorQuotesContent + Suppress('"')).set_results_name(
                 "quotes"
             )
             | operatorWord
         )
 
         operatorParenthesis = (
-            Group(Suppress("(") + operatorOr + Suppress(")")).setResultsName(
+            Group(Suppress("(") + operatorOr + Suppress(")")).set_results_name(
                 "parenthesis"
             )
             | operatorQuotes
@@ -176,7 +179,7 @@ class BooleanSearchParser:
 
         operatorNot = Forward()
         operatorNot << (
-            Group(Suppress(Keyword("not", caseless=True)) + operatorNot).setResultsName(
+            Group(Suppress(CaselessKeyword("not")) + operatorNot).set_results_name(
                 "not"
             )
             | operatorParenthesis
@@ -185,22 +188,22 @@ class BooleanSearchParser:
         operatorAnd = Forward()
         operatorAnd << (
             Group(
-                operatorNot + Suppress(Keyword("and", caseless=True)) + operatorAnd
-            ).setResultsName("and")
+                operatorNot + Suppress(CaselessKeyword("and")) + operatorAnd
+            ).set_results_name("and")
             | Group(
-                operatorNot + OneOrMore(~oneOf("and or") + operatorAnd)
-            ).setResultsName("and")
+                operatorNot + OneOrMore(~one_of("and or") + operatorAnd)
+            ).set_results_name("and")
             | operatorNot
         )
 
         operatorOr << (
             Group(
-                operatorAnd + Suppress(Keyword("or", caseless=True)) + operatorOr
-            ).setResultsName("or")
+                operatorAnd + Suppress(CaselessKeyword("or")) + operatorOr
+            ).set_results_name("or")
             | operatorAnd
         )
 
-        return operatorOr.parseString
+        return operatorOr.parse_string
 
     def evaluateAnd(self, argument):
         return all(self.evaluate(arg) for arg in argument)
@@ -217,7 +220,7 @@ class BooleanSearchParser:
     def evaluateQuotes(self, argument):
         """Evaluate quoted strings
 
-        First is does an 'and' on the indidual search terms, then it asks the
+        First is does an 'and' on the individual search terms, then it asks the
         function GetQuoted to only return the subset of ID's that contain the
         literal string.
         """
@@ -452,6 +455,37 @@ class ParserTest(BooleanSearchParser):
         for text, matches in texts_matcheswith.items():
             _matches = []
             for _id, expr in exprs.items():
+                if self.match(text, expr):
+                    _matches.append(_id)
+
+            test_passed = sorted(matches) == sorted(_matches)
+            if not test_passed:
+                print("Failed", repr(text), "expected", matches, "matched", _matches)
+
+            all_ok = all_ok and test_passed
+
+        # Tests for non western characters, should fail with
+        # pyparsing.exceptions.ParseException under the previous
+        # configuration
+        non_western_exprs = {
+            "0": "*",
+            "1": "ヿ",  # Edge character
+            "2": "亀",  # Character in CJK block
+            "3": "ヿ or 亀",
+            "4": "ヿ and 亀",
+            "5": "not ヿ"
+        }
+
+        non_western_texts_matcheswith = {
+            "안녕하세요, 당신은 어떠세요?": ["0", "5"],
+            "ヿ": ["0", "1", "3"],
+            "亀": ["0", "2", "3", "5"],
+            "亀 ヿ": ["0", "1", "2", "3", "4"],
+        }
+
+        for text, matches in non_western_texts_matcheswith.items():
+            _matches = []
+            for _id, expr in non_western_exprs.items():
                 if self.match(text, expr):
                     _matches.append(_id)
 
