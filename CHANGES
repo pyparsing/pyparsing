@@ -47,6 +47,9 @@ Version 3.0.7 -
 - Minor enhancement to Word generation of internal regular expression, to
   emit consecutive characters in range, such as "ab", as "ab", not "a-b".
 
+- Fixed character ranges for search terms using non-Western characters
+  in booleansearchparser, PR submitted by tc-yu, nice work!
+
 - Additional type annotations on public methods.
 
 
