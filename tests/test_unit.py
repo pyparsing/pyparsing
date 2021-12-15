@@ -6721,6 +6721,43 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             "noop parse action changed ParseResults structure",
         )
 
+    def testParseActionWithDelimitedList(self):
+        class AnnotatedToken(object):
+            def __init__(self, kind, elements):
+                self.kind = kind
+                self.elements = elements
+
+            def __str__(self):
+                return 'AnnotatedToken(%r, %r)' % (self.kind, self.elements)
+
+            def __eq__(self, other):
+                return type(self) == type(other) and self.kind == other.kind and self.elements == other.elements
+
+            __repr__ = __str__
+
+        def annotate(name):
+            def _(t):
+                return AnnotatedToken(name, t.asList())
+            return _
+
+        identifier = pp.Word(pp.srange('[a-z0-9]'))
+        numeral = pp.Word(pp.nums)
+
+        named_number_value = pp.Suppress('(') + numeral + pp.Suppress(')')
+        named_number = identifier + named_number_value
+
+        named_number_list = (pp.Suppress('{') +
+                             pp.Group(pp.Optional(pp.delimitedList(named_number))) +
+                             pp.Suppress('}'))
+
+        # repro but in #345 - delimitedList silently changes contents of named_number
+        named_number_value.setParseAction(annotate("val"))
+
+        test_string = "{ x1(1), x2(2) }"
+        expected = [['x1', AnnotatedToken("val", ['1']), 'x2', AnnotatedToken("val", ['2'])]]
+
+        self.assertParseAndCheckList(named_number_list, test_string, expected)
+
     def testParseResultsNameBelowUngroupedName(self):
 
         rule_num = pp.Regex("[0-9]+")("LIT_NUM*")

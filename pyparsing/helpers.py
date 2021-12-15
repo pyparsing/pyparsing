@@ -40,7 +40,7 @@ def delimited_list(
         expr = ParserElement._literalStringClass(expr)
 
     dlName = "{expr} [{delim} {expr}]...{end}".format(
-        expr=str(expr.streamline()),
+        expr=str(expr.copy().streamline()),
         delim=str(delim),
         end=" [{}]".format(str(delim)) if allow_trailing_delim else "",
     )

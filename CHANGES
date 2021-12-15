@@ -4,6 +4,9 @@ Change Log
 
 Version 3.0.7 -
 ---------------
+- Fixed bug #345, in which delimitedList changed expressions in place
+  using expr.streamline(). Reported by Kim Gräsman, thanks!
+
 - Added optional "min" and "max" arguments to `delimited_list`. PR
   submitted by Marius, thanks!
 
