@@ -7,6 +7,10 @@ Version 3.0.7 -
 - Fixed bug #345, in which delimitedList changed expressions in place
   using expr.streamline(). Reported by Kim Gräsman, thanks!
 
+- Fixed bug #346, when a string of word characters was passed to WordStart
+  or WordEnd instead of just taking the default value. Originally posted
+  as a question by Parag on StackOverflow, good catch!
+
 - Added optional "min" and "max" arguments to `delimited_list`. PR
   submitted by Marius, thanks!
 

@@ -4913,6 +4913,24 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
                 ),
             )
 
+    def testWordBoundaryExpressions2(self):
+        from itertools import product
+        ws1 = pp.WordStart(pp.alphas)
+        ws2 = pp.WordStart(wordChars=pp.alphas)
+        ws3 = pp.WordStart(word_chars=pp.alphas)
+        we1 = pp.WordEnd(pp.alphas)
+        we2 = pp.WordEnd(wordChars=pp.alphas)
+        we3 = pp.WordEnd(word_chars=pp.alphas)
+
+        for i, (ws, we) in enumerate(product((ws1, ws2, ws3), (we1, we2, we3))):
+            try:
+                expr = ("(" + ws + pp.Word(pp.alphas) + we + ")")
+                expr.parseString("(abc)")
+            except pp.ParseException as pe:
+                self.fail(f"Test {i} failed: {pe}")
+            else:
+                pass
+
     def testRequiredEach(self):
 
         parser = pp.Keyword("bam") & pp.Keyword("boo")

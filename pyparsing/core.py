@@ -3521,7 +3521,7 @@ class WordStart(PositionToken):
     """
 
     def __init__(self, word_chars: str = printables, *, wordChars: str = printables):
-        wordChars = word_chars if wordChars != printables else wordChars
+        wordChars = word_chars if wordChars == printables else wordChars
         super().__init__()
         self.wordChars = set(wordChars)
         self.errmsg = "Not at the start of a word"
@@ -3546,7 +3546,7 @@ class WordEnd(PositionToken):
     """
 
     def __init__(self, word_chars: str = printables, *, wordChars: str = printables):
-        wordChars = word_chars if wordChars != printables else wordChars
+        wordChars = word_chars if wordChars == printables else wordChars
         super().__init__()
         self.wordChars = set(wordChars)
         self.skipWhitespace = False
