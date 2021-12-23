@@ -69,8 +69,8 @@ class BigQueryViewParser:
         QUOT, APOS, ACC, DOT = map(Suppress, "\"'`.")
         ungrouped_select_stmt = Forward().setName("select statement")
 
-        QUOTED_QUOT = QuotedString('"')
-        QUOTED_APOS = QuotedString("'")
+        QUOTED_QUOT = QuotedString('"', escChar='\\')
+        QUOTED_APOS = QuotedString("'", escChar='\\')
         QUOTED_ACC = QuotedString("`")
 
         # fmt: off
@@ -194,7 +194,7 @@ class BigQueryViewParser:
         integer = Regex(r"[+-]?\d+")
         numeric_literal = Regex(r"[+-]?\d*\.?\d+([eE][+-]?\d+)?")
         bool_literal = TRUE | FALSE
-        string_literal = QUOTED_APOS | QUOTED_QUOT | QUOTED_ACC
+        string_literal = QUOTED_APOS | QUOTED_QUOT
         regex_literal = "r" + string_literal
         blob_literal = Regex(r"[xX]'[0-9A-Fa-f]+'")
         date_or_time_literal = (DATE | TIME | DATETIME | TIMESTAMP) + string_literal
@@ -234,6 +234,7 @@ class BigQueryViewParser:
             | Optional(DISTINCT)
             + delimitedList(function_arg)
             + Optional((RESPECT | IGNORE) + NULLS)
+            + Optional(ORDER + BY + delimitedList(ordering_term) + Optional(ASC | DESC) + Optional(LIMIT + integer))
         )("function_args")
         function_call = (
             function_name("function_name")
@@ -398,6 +399,7 @@ class BigQueryViewParser:
             | explicit_struct("explicit_struct")
             | function_call("function_call")
             | qualified_column_name("column")
+            | if_expr
         ) + Optional(LBRACKET + (OFFSET | ORDINAL) + LPAR + expr + RPAR + RBRACKET)(
             "offset_ordinal"
         )
@@ -571,6 +573,7 @@ class BigQueryViewParser:
             | (LPAR + ungrouped_select_stmt + RPAR)
             | (LPAR + join_source + RPAR)
             | (UNNEST + LPAR + expr + RPAR)
+            | external_query
         ) + Optional(Optional(AS) + table_alias)
 
         join_source <<= single_source + (join_op + single_source + join_constraint)[...]
@@ -620,10 +623,13 @@ class BigQueryViewParser:
         window_select_clause = (
             WINDOW + identifier + AS + LPAR + window_specification + RPAR
         )
+        window_select_clause_expr = identifier + AS + LPAR + window_specification + RPAR
+        window_select_clause = WINDOW + delimitedList(window_select_clause_expr)
 
         with_stmt = Forward().setName("with statement")
         ungrouped_select_no_with = (
             SELECT
+            + Optional(AS + STRUCT)
             + Optional(DISTINCT | ALL)
             + Group(delimitedList(result_column))("columns")
             + Optional(FROM + join_source("from*"))
@@ -636,13 +642,19 @@ class BigQueryViewParser:
             + Optional(
                 ORDER + BY + Group(delimitedList(ordering_term))("order_by_terms")
             )
-            + Optional(delimitedList(window_select_clause))
+            + Optional(window_select_clause)
         )
         select_no_with = ungrouped_select_no_with | (
             LPAR + ungrouped_select_no_with + RPAR
         )
         select_core = Optional(with_stmt) + select_no_with
         grouped_select_core = select_core | (LPAR + select_core + RPAR)
+
+        agg_function_call = aggregate_function_name + LPAR + function_args + RPAR + Optional(AS + column_alias)
+        pivot_clause = (PIVOT + LPAR + delimitedList(agg_function_call) + FOR 
+            + column_name + IN + LPAR + delimitedList(string_literal) + RPAR 
+            + RPAR + Optional(AS + column_alias)
+        )
 
         ungrouped_select_stmt <<= (
             grouped_select_core
@@ -653,6 +665,7 @@ class BigQueryViewParser:
                     "limit"
                 )
             )
+            + Optional(pivot_clause)
         )("select")
         select_stmt = ungrouped_select_stmt | (LPAR + ungrouped_select_stmt + RPAR)
 
@@ -1571,11 +1584,121 @@ if __name__ == "__main__":
         ],
         [
             """
-            SELECT * FROM a.b.`c`
+            SELECT * FROM a.b.`c-2`
             """,
             [
-                ("a", "b", "c"),
+                ("a", "b", "c-2"),
             ],
+        ],
+        [
+            """
+            WITH dates AS (
+            SELECT
+                id,
+                ARRAY_AGG(end_date ORDER BY end_date ASC LIMIT 1) AS n_date
+                FROM r
+            GROUP BY 1)
+            SELECT * FROM r
+            """,
+            [
+                (None, None, "r"),
+            ]
+        ],
+        [
+            """
+            SELECT p.d.f(a) FROM r
+            """,
+            [
+                (None, None, "r"),
+            ]
+        ],
+        [
+            """
+            SELECT x
+            FROM EXTERNAL_QUERY(
+                "us.c",
+                "SELECT x FROM t"
+            )
+            """,
+            [
+                (None, "us.c", "t"),
+            ]
+        ],
+        [
+            """
+            SELECT * REPLACE(a AS b)
+            FROM r
+            """,
+            [
+                (None, None, "r"),
+            ]
+        ],
+        [
+            """
+            SELECT
+                x
+            FROM r
+            WINDOW 
+                a AS (PARTITION BY id ORDER BY d1),
+                b AS (PARTITION BY id ORDER BY d2 DESC)
+            ORDER BY id
+            """,
+            [
+                (None, None, "r"),
+            ]
+        ],
+        [
+            """
+            SELECT
+                EXTRACT(DAYOFWEEK FROM b)
+            FROM y.c
+            """,
+            [
+                (None, "y", "c")
+            ]
+        ],
+        [
+            """
+            WITH accounts AS (
+                SELECT *
+                FROM `r`
+                WHERE d IS NULL
+                QUALIFY ROW_NUMBER() OVER(PARTITION BY id ORDER BY create_date DESC) = 1
+            )
+            SELECT *
+            FROM accounts
+            """,
+            [
+                (None, None, "r"),
+            ]
+        ],
+        [
+            """
+            SELECT AS STRUCT p.* FROM r AS p
+            """,
+            [
+                (None, None, "r"),
+            ]
+        ],
+        [
+            """
+            SELECT *
+            FROM r
+            WHERE e IN UNNEST(os)
+            """,
+            [
+                (None, None, "r"),
+            ]
+        ],
+        [
+            """
+            SELECT *
+            FROM r
+            PIVOT(COUNT(*) AS count FOR a IN ('a', 'c'))
+            """,
+            [
+                (None, None, "r"),
+            ]
         ],
     ]
     # fmt: on
