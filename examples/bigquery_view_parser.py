@@ -10,7 +10,7 @@ import sys
 
 from pyparsing import ParserElement, Suppress, Forward, CaselessKeyword
 from pyparsing import MatchFirst, alphas, alphanums, Combine, Word
-from pyparsing import QuotedString, CharsNotIn, Optional, Group
+from pyparsing import QuotedString, CharsNotIn, Optional, Group, ZeroOrMore
 from pyparsing import oneOf, delimitedList, restOfLine, cStyleComment
 from pyparsing import infixNotation, opAssoc, Regex, nums
 
@@ -25,6 +25,7 @@ class BigQueryViewParser:
     _parser = None
     _table_identifiers = set()
     _with_aliases = set()
+    _external_query_name = None
 
     def get_table_names(self, sql_stmt):
         table_identifiers, with_aliases = self._parse(sql_stmt)
@@ -91,7 +92,12 @@ class BigQueryViewParser:
             STRING_AGG, SUM, CORR, COVAR_POP, COVAR_SAMP, STDDEV_POP, STDDEV_SAMP,
             STDDEV, VAR_POP, VAR_SAMP, VARIANCE, TIMESTAMP_ADD, TIMESTAMP_SUB,
             GENERATE_ARRAY, GENERATE_DATE_ARRAY, GENERATE_TIMESTAMP_ARRAY, FOR,
-            SYSTEMTIME, AS, OF, WINDOW, RESPECT, IGNORE, NULLS,
+            SYSTEMTIME, AS, OF, WINDOW, RESPECT, IGNORE, NULLS, ANY, ASSERT_ROWS_MODIFIED,
+            AT, BOOLEAN, CONTAINS, CREATE, CUBE, DEFAULT, DEFINE, ENUM, EXCLUDE,
+            EXTERNAL_QUERY, FALSE, FETCH, GROUPING, GROUPS, HASH, IF, INFORMATION_SCHEMA,
+            INTO, LATERAL, LOOKUP, MERGE, NEW, NO, PIVOT, PROTO, QUALIFY, RECURSIVE,
+            REPLACE, ROLLUP, SAFE_OFFSET, SAFE_ORDINAL, SET, SOME, TABLESAMPLE, TO, TREAT,
+            TRUE, WITHIN
         ) = map(
             CaselessKeyword,
             """
@@ -111,7 +117,12 @@ class BigQueryViewParser:
             STRING_AGG, SUM, CORR, COVAR_POP, COVAR_SAMP, STDDEV_POP, STDDEV_SAMP,
             STDDEV, VAR_POP, VAR_SAMP, VARIANCE, TIMESTAMP_ADD, TIMESTAMP_SUB,
             GENERATE_ARRAY, GENERATE_DATE_ARRAY, GENERATE_TIMESTAMP_ARRAY, FOR,
-            SYSTEMTIME, AS, OF, WINDOW, RESPECT, IGNORE, NULLS,
+            SYSTEMTIME, AS, OF, WINDOW, RESPECT, IGNORE, NULLS, ANY, ASSERT_ROWS_MODIFIED,
+            AT, BOOLEAN, CONTAINS, CREATE, CUBE, DEFAULT, DEFINE, ENUM, EXCLUDE,
+            EXTERNAL_QUERY, FALSE, FETCH, GROUPING, GROUPS, HASH, IF, INFORMATION_SCHEMA,
+            INTO, LATERAL, LOOKUP, MERGE, NEW, NO, PIVOT, PROTO, QUALIFY, RECURSIVE,
+            REPLACE, ROLLUP, SAFE_OFFSET, SAFE_ORDINAL, SET, SOME, TABLESAMPLE, TO, TREAT,
+            TRUE, WITHIN
             """.replace(",", "").split(),
         )
 
@@ -125,48 +136,64 @@ class BigQueryViewParser:
              )
         )
 
-        keyword = keyword_nonfunctions | MatchFirst(
-            (ESCAPE, CURRENT_TIME, CURRENT_DATE, CURRENT_TIMESTAMP, DATE_ADD,
-             DATE_SUB, ADDDATE, SUBDATE, INTERVAL, STRING_AGG, REGEXP_EXTRACT,
-             SPLIT, ORDINAL, UNNEST, SAFE_CAST, PARTITION, TIMESTAMP_ADD,
-             TIMESTAMP_SUB, ARRAY, GENERATE_ARRAY, GENERATE_DATE_ARRAY,
-             GENERATE_TIMESTAMP_ARRAY,
-             )
-        )
+        keyword = MatchFirst((
+            ALL, AND, ANY, ARRAY, AS, ASC, ASSERT_ROWS_MODIFIED, AT, BETWEEN, BY, CASE, CAST,
+            COLLATE, CONTAINS, CREATE, CROSS, CUBE, CURRENT, DEFAULT, DEFINE, DESC, DISTINCT,
+            ELSE, END, ENUM, ESCAPE, EXCEPT, EXCLUDE, EXISTS, EXTERNAL_QUERY, EXTRACT, FALSE,
+            FETCH, FOLLOWING, FOR, FROM, FULL, GROUP, GROUPING, GROUPS, HASH, HAVING, IF,
+            IGNORE, IN, INNER, INTERSECT, INTERVAL, INTO, IS, JOIN, LATERAL, LEFT, LIKE, LIMIT,
+            LOOKUP, MERGE, NATURAL, NEW, NO, NOT, NULL, NULLS, OF, ON, OR, ORDER, OUTER, OVER,
+            PARTITION, PIVOT, PRECEDING, PROTO, RANGE, RECURSIVE, RESPECT, RIGHT, ROLLUP, ROWS,
+            SELECT, SET, SOME, STRUCT, TABLESAMPLE, THEN, TO, TREAT, TRUE, UNBOUNDED, UNION,
+            UNNEST, USING, WHEN, WHERE, WINDOW, WITH, WITHIN))
+
+        # those are keywords that are function names
+        keyword_funcs = MatchFirst((
+            TREAT, WITHIN, TABLESAMPLE, SOME, SET, RIGHT, PROTO, MERGE,
+            LOOKUP, LEFT, LATERAL, FETCH, CURRENT
+        ))
         # fmt: on
 
         identifier_word = Word(alphas + "_@#", alphanums + "@$#_")
         identifier = ~keyword + identifier_word.copy()
         collation_name = identifier.copy()
-        # NOTE: Column names can be keywords.  Doc says they cannot, but in practice it seems to work.
-        column_name = identifier_word.copy()
-        qualified_column_name = Combine(
-            column_name + ("." + column_name)[..., 6], adjacent=False
-        )
+        # NOTE: Column names can't be keywords unless they are quoted
+        column_name = identifier.copy() | Suppress('`') + identifier_word + Suppress('`')
+        # first part of multi part column name can't be keyword, other parts can
+        qualified_column_name = Combine(column_name + (
+            ZeroOrMore(' ') + '.' + ZeroOrMore(' ') + identifier_word) * (0, 6))
+        qualified_column_name = qualified_column_name | Suppress('`') + qualified_column_name + Suppress('`')
         # NOTE: As with column names, column aliases can be keywords, e.g. functions like `current_time`.  Other
         # keywords, e.g. `from` make parsing pretty difficult (e.g. "SELECT a from from b" is confusing.)
-        column_alias = ~keyword_nonfunctions + column_name.copy()
+        # We will specifically exclude `from`, since we need to support trailing commas in the SELECT list, and
+        # SQL like `SELECT a, FROM b` becomes ambiguous if we support `from`.  In that SQL, is `FROM` a column name with
+        # alias `b`, or are we selecting a single column from table `b`?
+        column_alias = identifier.copy()
         table_name = identifier.copy()
         table_alias = identifier.copy()
         index_name = identifier.copy()
         function_name = identifier.copy()
         parameter_name = identifier.copy()
-        # NOTE: The expression in a CASE statement can be an integer.  E.g. this is valid SQL:
-        # select CASE 1 WHEN 1 THEN -1 ELSE -2 END from test_table
-        unquoted_case_identifier = ~keyword + Word(alphanums + "$_")
-        quoted_case_identifier = QUOTED_QUOT | QUOTED_ACC
-        case_identifier = quoted_case_identifier | unquoted_case_identifier
-        case_expr = (
-            Optional(case_identifier + DOT)
-            + Optional(case_identifier + DOT)
-            + case_identifier
-        )
+        standard_name_part = ~keyword + Word(alphanums + "_" + "-") | keyword_funcs
+        quoted_name_part = Suppress("`") + CharsNotIn("`") + Suppress("`")
+        # table names can't have dots
+        quoted_tablename_part = Suppress("`") + CharsNotIn("`.") + Suppress("`")
+
+        # function_name has optional project.dataset [[project_name.]dataset_name.]function_name
+        # https://cloud.google.com/bigquery/docs/reference/standard-sql/user-defined-functions#temporary-udf-syntax
+        function_name = (Optional((quoted_name_part | standard_name_part) + Suppress('.'))
+                         + Optional((quoted_name_part | standard_name_part) + Suppress('.'))
+                         + (quoted_name_part | standard_name_part)
+                         )
+        function_name = function_name | (Suppress("`") + CharsNotIn("`") + Suppress("`"))
+        parameter_name = identifier.copy()
 
         # expression
         expr = Forward().setName("expression")
 
         integer = Regex(r"[+-]?\d+")
         numeric_literal = Regex(r"[+-]?\d*\.?\d+([eE][+-]?\d+)?")
+        bool_literal = TRUE | FALSE
         string_literal = QUOTED_APOS | QUOTED_QUOT | QUOTED_ACC
         regex_literal = "r" + string_literal
         blob_literal = Regex(r"[xX]'[0-9A-Fa-f]+'")
@@ -174,6 +201,7 @@ class BigQueryViewParser:
         literal_value = (
             numeric_literal
             | string_literal
+            | bool_literal
             | regex_literal
             | blob_literal
             | date_or_time_literal
@@ -183,20 +211,12 @@ class BigQueryViewParser:
             | CURRENT_TIMESTAMP + Optional(LPAR + Optional(string_literal) + RPAR)
         )
         bind_parameter = Word("?", nums) | Combine(oneOf(": @ $") + parameter_name)
-        type_name = oneOf(
-            """TEXT REAL INTEGER BLOB NULL TIMESTAMP STRING DATE
-            INT64 NUMERIC FLOAT64 BOOL BYTES DATETIME GEOGRAPHY TIME ARRAY
-            STRUCT""",
-            caseless=True,
-        )
-        date_part = oneOf(
-            """DAY DAY_HOUR DAY_MICROSECOND DAY_MINUTE DAY_SECOND
-            HOUR HOUR_MICROSECOND HOUR_MINUTE HOUR_SECOND MICROSECOND MINUTE
-            MINUTE_MICROSECOND MINUTE_SECOND MONTH QUARTER SECOND
-            SECOND_MICROSECOND WEEK YEAR YEAR_MONTH""",
-            caseless=True,
-            as_keyword=True,
-        )
+        type_name = oneOf("""TEXT REAL INTEGER BLOB NULL TIMESTAMP STRING DATE
+            INT64 NUMERIC FLOAT64 BOOL BOOLEAN BYTES DATETIME GEOGRAPHY TIME ARRAY
+            STRUCT""", caseless=True)
+        date_part = oneOf("""MICROSECOND MILLISECOND SECOND MINUTE HOUR DAYOFWEEK
+            DAY DAYOFYEAR WEEK ISOWEEK MONTH QUARTER YEAR ISOYEAR DATE TIME
+            """, caseless=True)
         datetime_operators = (
             DATE_ADD | DATE_SUB | ADDDATE | SUBDATE | TIMESTAMP_ADD | TIMESTAMP_SUB
         )
@@ -216,7 +236,7 @@ class BigQueryViewParser:
             + Optional((RESPECT | IGNORE) + NULLS)
         )("function_args")
         function_call = (
-            (function_name | keyword)("function_name")
+            function_name("function_name")
             + LPAR
             + Group(function_args)("function_args_group")
             + RPAR
@@ -353,11 +373,11 @@ class BigQueryViewParser:
         case_else = ELSE + expr.copy()("else")
         case_stmt = (
             CASE
-            + Optional(case_expr.copy())
+            + Optional(expr.copy())
             + case_clauses("case_clauses")
-            + Optional(case_else)
-            + END
+            + Optional(case_else) + END
         )("case")
+        if_expr = IF + LPAR + expr + COMMA + expr + COMMA + expr + RPAR
 
         expr_term = (
             (analytic_function)("analytic_function")
@@ -397,7 +417,7 @@ class BigQueryViewParser:
                 (oneOf("= > < >= <= <> != !< !>"), BINARY, opAssoc.LEFT),
                 (
                     IS + Optional(NOT)
-                    | Optional(NOT) + IN
+                    | Optional(NOT) + IN + Optional(UNNEST)
                     | Optional(NOT) + LIKE
                     | GLOB
                     | MATCH
@@ -459,7 +479,7 @@ class BigQueryViewParser:
 
         join_source = Forward()
 
-        # We support three kinds of table identifiers.
+        # We support a few kinds of table identifiers.
         #
         # First, dot delimited info like project.dataset.table, where
         # each component follows the rules described in the BigQuery
@@ -476,44 +496,71 @@ class BigQueryViewParser:
         # We also support combinations, like:
         #  project.dataset.`name-with-dashes`
         #  `project`.`dataset.name-with-dashes`
-
-        def record_table_identifier(t):
-            identifier_list = t.asList()
-            padded_list = [None] * (3 - len(identifier_list)) + identifier_list
-            cls._table_identifiers.add(tuple(padded_list))
-
-        standard_table_part = ~keyword + Word(alphanums + "_")
-        quoted_project_part = QUOTED_QUOT | QUOTED_APOS | QUOTED_ACC
-        quoted_table_part = (
-            QUOT + CharsNotIn('".') + QUOT
-            | APOS + CharsNotIn("'.") + APOS
-            | ACC + CharsNotIn("`.") + ACC
-        )
-        quoted_table_parts_identifier = (
-            Optional(
-                (quoted_project_part("project") | standard_table_part("project")) + DOT
-            )
-            + Optional(
-                (quoted_table_part("dataset") | standard_table_part("dataset")) + DOT
-            )
-            + (quoted_table_part("table") | standard_table_part("table"))
-        ).setParseAction(record_table_identifier)
+        #
+        # In some cases, the identifier might include more than 3 dots.
+        # Metadata view names include dots, e.g.
+        # project.dataset.INFORMATION_SCHEMA.TABLES.
+        # In this case, the trailing information is a "table" we're selecting
+        # from.
 
         def record_quoted_table_identifier(t):
-            identifier_list = t[0].split(".")
-            *first, second, third = identifier_list
-            first = ".".join(first) or None
+            identifier_list = t.asList()[0].split('.')
+            # If the next to last item is "INFORMATION_SCHEMA", then combine
+            # it with the last item; they're essentially the view name.
+            if (len(identifier_list) > 1) and (identifier_list[-2].upper() == "INFORMATION_SCHEMA"):
+                identifier_list[-2] = identifier_list[-2] + "." + identifier_list[-1]
+                del identifier_list[-1]
+
+            first = ".".join(identifier_list[0:-2]) or None
+            second = identifier_list[-2]
+            third = identifier_list[-1]
             identifier_list = [first, second, third]
             padded_list = [None] * (3 - len(identifier_list)) + identifier_list
             cls._table_identifiers.add(tuple(padded_list))
 
-        quotable_table_parts_identifier = (
-            QUOTED_QUOT | QUOTED_APOS | QUOTED_ACC
-        ).setParseAction(record_quoted_table_identifier)
+        def record_unquoted_table_identifier(t):
+            identifier_list = t.asList()
+            if cls._external_query_name is not None:
+                if len(identifier_list) != 1:
+                    raise Exception(
+                        (f"_external_query_name is {cls._external_query_name} but identifier_list is not only " +
+                         f"table name: {identifier_list}"))
+                else:
+                    identifier_list.insert(0, cls._external_query_name)
+            padded_list = [None] * (3 - len(identifier_list)) + identifier_list
+            # If padded list has more than 3 elements, combine the "trailing"
+            # elements into a single identifier
+            if len(padded_list) > 3:
+                padded_list = [padded_list[0], padded_list[1], ".".join(padded_list[2:])]
+            cls._table_identifiers.add(tuple(padded_list))
 
-        table_identifier = (
-            quoted_table_parts_identifier | quotable_table_parts_identifier
-        )
+        quoted_table_parts_identifier = (
+            Optional((quoted_name_part.copy()("project") | standard_name_part.copy()("project")) + Suppress('.'))
+            + Optional((quoted_name_part.copy()("dataset") | standard_name_part.copy()("dataset")) + Suppress('.'))
+            + Optional(INFORMATION_SCHEMA + Suppress('.'))
+            + (quoted_tablename_part.copy()("table") | standard_name_part.copy()("table"))
+        ).setParseAction(lambda t: record_unquoted_table_identifier(t))
+
+        quotable_table_parts_identifier = (
+            Suppress("`") + CharsNotIn("`") + Suppress("`")
+        ).setParseAction(lambda t: record_quoted_table_identifier(t))
+
+        table_identifier = quoted_table_parts_identifier | quotable_table_parts_identifier
+
+        def unset_external_query_name(tokens):
+            cls._external_query_name = None
+
+        def set_external_query_name(tokens):
+            if cls._external_query_name is not None:
+                raise Exception(
+                    (f"external_query_name value is {cls._external_query_name} and trying to set it to {tokens[0]}." +
+                     " Nested external queries?"))
+            cls._external_query_name = tokens[0]
+
+        external_query = (EXTERNAL_QUERY + LPAR + QuotedString('"').setParseAction(set_external_query_name) + ","
+                          + Suppress('"') + ungrouped_select_stmt + Suppress('"')
+                          + RPAR).setParseAction(unset_external_query_name)
+
         single_source = (
             (
                 table_identifier
@@ -562,8 +609,12 @@ class BigQueryViewParser:
             + RPAR
         )("over")
 
+        replace_col_expr = expr + Optional(AS) + column_name
+
         result_column = Optional(table_name + ".") + "*" + Optional(
             EXCEPT + LPAR + delimitedList(column_name) + RPAR
+        ) + Optional(
+            REPLACE + LPAR + delimitedList(replace_col_expr) + RPAR
         ) | Group(quoted_expr + Optional(over) + Optional(Optional(AS) + column_alias))
 
         window_select_clause = (
@@ -577,6 +628,7 @@ class BigQueryViewParser:
             + Group(delimitedList(result_column))("columns")
             + Optional(FROM + join_source("from*"))
             + Optional(WHERE + expr)
+            + Optional(QUALIFY + expr)
             + Optional(
                 GROUP + BY + Group(delimitedList(grouping_term))("group_by_terms")
             )
@@ -1385,39 +1437,7 @@ if __name__ == "__main__":
         ],
         [
             """
-            SELECT * FROM "a"."b"."c"
-            """,
-            [
-                ("a", "b", "c"),
-            ],
-        ],
-        [
-            """
-            SELECT * FROM 'a'.'b'.'c'
-            """,
-            [
-                ("a", "b", "c"),
-            ],
-        ],
-        [
-            """
             SELECT * FROM `a`.`b`.`c`
-            """,
-            [
-                ("a", "b", "c"),
-            ],
-        ],
-        [
-            """
-            SELECT * FROM "a.b.c"
-            """,
-            [
-                ("a", "b", "c"),
-            ],
-        ],
-        [
-            """
-            SELECT * FROM 'a.b.c'
             """,
             [
                 ("a", "b", "c"),
@@ -1476,20 +1496,6 @@ if __name__ == "__main__":
                 (None, None, "d"),
                 (None, None, "f"),
                 (None, None, "h"),
-            ],
-        ],
-        [
-            """
-            select
-                a AS ESCAPE,
-                b AS CURRENT_TIME,
-                c AS CURRENT_DATE,
-                d AS CURRENT_TIMESTAMP,
-                e AS DATE_ADD
-            FROM x
-            """,
-            [
-                (None, None, "x"),
             ],
         ],
         [
@@ -1566,14 +1572,6 @@ if __name__ == "__main__":
         [
             """
             SELECT * FROM a.b.`c`
-            """,
-            [
-                ("a", "b", "c"),
-            ],
-        ],
-        [
-            """
-            SELECT * FROM 'a'.b.`c`
             """,
             [
                 ("a", "b", "c"),
