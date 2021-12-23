@@ -8,6 +8,7 @@ import sys
 import os
 import types
 import importlib
+import importlib.machinery
 from urllib.parse import urlparse
 
 
@@ -276,7 +277,7 @@ class SuffixImporter:
     Define a subclass that specifies a :attr:`suffix` attribute, and
     implements a :meth:`process_filedata` method. Then call the classmethod
     :meth:`register` on your class to actually install it in the appropriate
-    places in :mod:`sys`. """
+    places in :mod:`sys`."""
 
     scheme = "suffix"
     suffix = None

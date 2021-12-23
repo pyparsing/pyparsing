@@ -17,7 +17,7 @@ atomicWeight = {
 digits = "0123456789"
 
 # Version 1
-element = pp.Word(pp.alphas.upper(), pp.alphas.lower(), max=2)
+element = pp.Word(pp.alphas.upper(), pp.alphas.lower(), max=2).set_name("element")
 # for stricter matching, use this Regex instead
 # element = Regex("A[cglmrstu]|B[aehikr]?|C[adeflmorsu]?|D[bsy]|"
 #                 "E[rsu]|F[emr]?|G[ade]|H[efgos]?|I[nr]?|Kr?|L[airu]|"
@@ -26,7 +26,11 @@ element = pp.Word(pp.alphas.upper(), pp.alphas.lower(), max=2)
 elementRef = pp.Group(element + pp.Optional(pp.Word(digits), default="1"))
 formula = elementRef[...]
 
-fn = lambda elemList: sum(atomicWeight[elem] * int(qty) for elem, qty in elemList)
+
+def sum_atomic_weights(element_list):
+    return sum(atomicWeight[elem] * int(qty) for elem, qty in element_list)
+
+
 formula.runTests(
     """\
     H2O
@@ -34,7 +38,9 @@ formula.runTests(
     NaCl
     """,
     fullDump=False,
-    postParse=lambda _, tokens: "Molecular weight: {}".format(fn(tokens)),
+    postParse=lambda _, tokens: "Molecular weight: {}".format(
+        sum_atomic_weights(tokens)
+    ),
 )
 print()
 
@@ -44,9 +50,11 @@ elementRef = pp.Group(
 )
 formula = elementRef[...]
 
-fn = lambda elemList: sum(
-    atomicWeight[elem.symbol] * int(elem.qty) for elem in elemList
-)
+
+def sum_atomic_weights_by_results_name(element_list):
+    return sum(atomicWeight[elem.symbol] * int(elem.qty) for elem in element_list)
+
+
 formula.runTests(
     """\
     H2O
@@ -54,16 +62,22 @@ formula.runTests(
     NaCl
     """,
     fullDump=False,
-    postParse=lambda _, tokens: "Molecular weight: {}".format(fn(tokens)),
+    postParse=lambda _, tokens: "Molecular weight: {}".format(
+        sum_atomic_weights_by_results_name(tokens)
+    ),
 )
 print()
 
 # Version 3 - convert integers during parsing process
-integer = pp.Word(digits).setParseAction(lambda t: int(t[0]))
+integer = pp.Word(digits).setParseAction(lambda t: int(t[0])).setName("integer")
 elementRef = pp.Group(element("symbol") + pp.Optional(integer, default=1)("qty"))
-formula = elementRef[...]
+formula = elementRef[...].setName("chemical_formula")
 
-fn = lambda elemList: sum(atomicWeight[elem.symbol] * elem.qty for elem in elemList)
+
+def sum_atomic_weights_by_results_name_with_converted_ints(element_list):
+    return sum(atomicWeight[elem.symbol] * int(elem.qty) for elem in element_list)
+
+
 formula.runTests(
     """\
     H2O
@@ -71,7 +85,9 @@ formula.runTests(
     NaCl
     """,
     fullDump=False,
-    postParse=lambda _, tokens: "Molecular weight: {}".format(fn(tokens)),
+    postParse=lambda _, tokens: "Molecular weight: {}".format(
+        sum_atomic_weights_by_results_name_with_converted_ints(tokens)
+    ),
 )
 print()
 
@@ -87,10 +103,10 @@ def cvt_subscript_int(s):
     return ret
 
 
-subscript_int = pp.Word(subscript_digits).addParseAction(cvt_subscript_int)
+subscript_int = pp.Word(subscript_digits).addParseAction(cvt_subscript_int).set_name("subscript")
 
 elementRef = pp.Group(element("symbol") + pp.Optional(subscript_int, default=1)("qty"))
-formula = elementRef[...]
+formula = elementRef[1, ...].setName("chemical_formula")
 formula.runTests(
     """\
     H₂O
@@ -98,6 +114,8 @@ formula.runTests(
     NaCl
     """,
     fullDump=False,
-    postParse=lambda _, tokens: "Molecular weight: {}".format(fn(tokens)),
+    postParse=lambda _, tokens: "Molecular weight: {}".format(
+        sum_atomic_weights_by_results_name_with_converted_ints(tokens)
+    ),
 )
 print()

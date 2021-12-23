@@ -1,6 +1,6 @@
 # module pyparsing.py
 #
-# Copyright (c) 2003-2019  Paul T. McGuire
+# Copyright (c) 2003-2021  Paul T. McGuire
 #
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
@@ -36,7 +36,7 @@ grammar directly in Python.
 Here is a program to parse "Hello, World!" (or any greeting of the form
 ``"<salutation>, <addressee>!"``), built up using :class:`Word`,
 :class:`Literal`, and :class:`And` elements
-(the :class:`'+'<ParserElement.__add__>` operators create :class:`And` expressions,
+(the :meth:`'+'<ParserElement.__add__>` operators create :class:`And` expressions,
 and the strings are auto-converted to :class:`Literal` expressions)::
 
     from pyparsing import Word, alphas
@@ -45,14 +45,15 @@ and the strings are auto-converted to :class:`Literal` expressions)::
     greet = Word(alphas) + "," + Word(alphas) + "!"
 
     hello = "Hello, World!"
-    print(hello, "->", greet.parseString(hello))
+    print(hello, "->", greet.parse_string(hello))
 
 The program outputs the following::
 
     Hello, World! -> ['Hello', ',', 'World', '!']
 
 The Python representation of the grammar is quite readable, owing to the
-self-explanatory class names, and the use of '+', '|' and '^' operators.
+self-explanatory class names, and the use of :class:`'+'<And>`,
+:class:`'|'<MatchFirst>`, :class:`'^'<Or>` and :class:`'&'<Each>` operators.
 
 The :class:`ParseResults` object returned from
 :class:`ParserElement.parseString` can be
@@ -92,43 +93,81 @@ classes inherit from. Use the docstrings for examples of how to:
  - find more useful common expressions in the :class:`pyparsing_common`
    namespace class
 """
+from typing import NamedTuple
 
-__version__ = "3.0.0a1"
-__versionTime__ = "05 Jan 2020 02:35 UTC"
-__author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
-from pyparsing.util import *
-from pyparsing.exceptions import *
-from pyparsing.actions import *
-from pyparsing.core import __diag__, __compat__
-from pyparsing.results import *
-from pyparsing.core import *
-from pyparsing.core import _builtin_exprs as core_builtin_exprs
-from pyparsing.helpers import *
-from pyparsing.helpers import _builtin_exprs as helper_builtin_exprs
+class version_info(NamedTuple):
+    major: int
+    minor: int
+    micro: int
+    releaselevel: str
+    serial: int
 
-from pyparsing.unicode import unicode_set, pyparsing_unicode as unicode
-from pyparsing.testing import pyparsing_test as testing
-from pyparsing.common import (
+    @property
+    def __version__(self):
+        return "{}.{}.{}".format(self.major, self.minor, self.micro) + (
+            "{}{}{}".format(
+                "r" if self.releaselevel[0] == "c" else "",
+                self.releaselevel[0],
+                self.serial,
+            ),
+            "",
+        )[self.releaselevel == "final"]
+
+    def __str__(self):
+        return "{} {} / {}".format(__name__, self.__version__, __version_time__)
+
+    def __repr__(self):
+        return "{}.{}({})".format(
+            __name__,
+            type(self).__name__,
+            ", ".join("{}={!r}".format(*nv) for nv in zip(self._fields, self)),
+        )
+
+
+__version_info__ = version_info(3, 0, 7, "final", 0)
+__version_time__ = "18 Dec 2021 23:16 UTC"
+__version__ = __version_info__.__version__
+__versionTime__ = __version_time__
+__author__ = "Paul McGuire <ptmcg.gm+pyparsing@gmail.com>"
+
+from .util import *
+from .exceptions import *
+from .actions import *
+from .core import __diag__, __compat__
+from .results import *
+from .core import *
+from .core import _builtin_exprs as core_builtin_exprs
+from .helpers import *
+from .helpers import _builtin_exprs as helper_builtin_exprs
+
+from .unicode import unicode_set, UnicodeRangeList, pyparsing_unicode as unicode
+from .testing import pyparsing_test as testing
+from .common import (
     pyparsing_common as common,
     _builtin_exprs as common_builtin_exprs,
 )
 
 # define backward compat synonyms
-pyparsing_unicode = unicode
-pyparsing_common = common
-pyparsing_test = testing
+if "pyparsing_unicode" not in globals():
+    pyparsing_unicode = unicode
+if "pyparsing_common" not in globals():
+    pyparsing_common = common
+if "pyparsing_test" not in globals():
+    pyparsing_test = testing
 
 core_builtin_exprs += common_builtin_exprs + helper_builtin_exprs
 
 
 __all__ = [
     "__version__",
-    "__versionTime__",
+    "__version_time__",
     "__author__",
     "__compat__",
     "__diag__",
     "And",
+    "AtLineStart",
+    "AtStringStart",
     "CaselessKeyword",
     "CaselessLiteral",
     "CharsNotIn",
@@ -140,16 +179,20 @@ __all__ = [
     "Forward",
     "GoToColumn",
     "Group",
+    "IndentedBlock",
     "Keyword",
     "LineEnd",
     "LineStart",
     "Literal",
+    "Located",
     "PrecededBy",
     "MatchFirst",
     "NoMatch",
     "NotAny",
     "OneOrMore",
     "OnlyOnce",
+    "OpAssoc",
+    "Opt",
     "Optional",
     "Or",
     "ParseBaseException",
@@ -160,6 +203,7 @@ __all__ = [
     "ParseResults",
     "ParseSyntaxException",
     "ParserElement",
+    "PositionToken",
     "QuotedString",
     "RecursiveGrammarException",
     "Regex",
@@ -178,10 +222,69 @@ __all__ = [
     "alphanums",
     "alphas",
     "alphas8bit",
+    "any_close_tag",
+    "any_open_tag",
+    "c_style_comment",
+    "col",
+    "common_html_entity",
+    "counted_array",
+    "cpp_style_comment",
+    "dbl_quoted_string",
+    "dbl_slash_comment",
+    "delimited_list",
+    "dict_of",
+    "empty",
+    "hexnums",
+    "html_comment",
+    "identchars",
+    "identbodychars",
+    "java_style_comment",
+    "line",
+    "line_end",
+    "line_start",
+    "lineno",
+    "make_html_tags",
+    "make_xml_tags",
+    "match_only_at_col",
+    "match_previous_expr",
+    "match_previous_literal",
+    "nested_expr",
+    "null_debug_action",
+    "nums",
+    "one_of",
+    "printables",
+    "punc8bit",
+    "python_style_comment",
+    "quoted_string",
+    "remove_quotes",
+    "replace_with",
+    "replace_html_entity",
+    "rest_of_line",
+    "sgl_quoted_string",
+    "srange",
+    "string_end",
+    "string_start",
+    "trace_parse_action",
+    "unicode_string",
+    "with_attribute",
+    "indentedBlock",
+    "original_text_for",
+    "ungroup",
+    "infix_notation",
+    "locatedExpr",
+    "with_class",
+    "CloseMatch",
+    "token_map",
+    "pyparsing_common",
+    "pyparsing_unicode",
+    "unicode_set",
+    "condition_as_parse_action",
+    "pyparsing_test",
+    # pre-PEP8 compatibility names
+    "__versionTime__",
     "anyCloseTag",
     "anyOpenTag",
     "cStyleComment",
-    "col",
     "commonHTMLEntity",
     "countedArray",
     "cppStyleComment",
@@ -189,14 +292,10 @@ __all__ = [
     "dblSlashComment",
     "delimitedList",
     "dictOf",
-    "empty",
-    "hexnums",
     "htmlComment",
     "javaStyleComment",
-    "line",
     "lineEnd",
     "lineStart",
-    "lineno",
     "makeHTMLTags",
     "makeXMLTags",
     "matchOnlyAtCol",
@@ -204,11 +303,8 @@ __all__ = [
     "matchPreviousLiteral",
     "nestedExpr",
     "nullDebugAction",
-    "nums",
     "oneOf",
     "opAssoc",
-    "printables",
-    "punc8bit",
     "pythonStyleComment",
     "quotedString",
     "removeQuotes",
@@ -216,7 +312,6 @@ __all__ = [
     "replaceWith",
     "restOfLine",
     "sglQuotedString",
-    "srange",
     "stringEnd",
     "stringStart",
     "traceParseAction",
@@ -224,15 +319,10 @@ __all__ = [
     "withAttribute",
     "indentedBlock",
     "originalTextFor",
-    "ungroup",
     "infixNotation",
     "locatedExpr",
     "withClass",
-    "CloseMatch",
     "tokenMap",
-    "pyparsing_common",
-    "pyparsing_unicode",
-    "unicode_set",
     "conditionAsParseAction",
-    "pyparsing_test",
+    "autoname_elements",
 ]

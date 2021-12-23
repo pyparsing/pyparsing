@@ -6,12 +6,17 @@
 #
 # Michael Smedberg
 #
+import sys
 
 from pyparsing import ParserElement, Suppress, Forward, CaselessKeyword
 from pyparsing import MatchFirst, alphas, alphanums, Combine, Word
-from pyparsing import QuotedString, CharsNotIn, Optional, Group, ZeroOrMore
+from pyparsing import QuotedString, CharsNotIn, Optional, Group
 from pyparsing import oneOf, delimitedList, restOfLine, cStyleComment
-from pyparsing import infixNotation, opAssoc, OneOrMore, Regex, nums
+from pyparsing import infixNotation, opAssoc, Regex, nums
+
+sys.setrecursionlimit(3000)
+
+ParserElement.enablePackrat()
 
 
 class BigQueryViewParser:
@@ -42,7 +47,7 @@ class BigQueryViewParser:
         BigQueryViewParser._with_aliases.clear()
         BigQueryViewParser._get_parser().parseString(sql_stmt)
 
-        return (BigQueryViewParser._table_identifiers, BigQueryViewParser._with_aliases)
+        return BigQueryViewParser._table_identifiers, BigQueryViewParser._with_aliases
 
     @classmethod
     def lowercase_of_tuple(cls, tuple_to_lowercase):
@@ -60,264 +65,84 @@ class BigQueryViewParser:
         ParserElement.enablePackrat()
 
         LPAR, RPAR, COMMA, LBRACKET, RBRACKET, LT, GT = map(Suppress, "(),[]<>")
+        QUOT, APOS, ACC, DOT = map(Suppress, "\"'`.")
         ungrouped_select_stmt = Forward().setName("select statement")
 
+        QUOTED_QUOT = QuotedString('"')
+        QUOTED_APOS = QuotedString("'")
+        QUOTED_ACC = QuotedString("`")
+
+        # fmt: off
         # keywords
         (
-            UNION,
-            ALL,
-            AND,
-            INTERSECT,
-            EXCEPT,
-            COLLATE,
-            ASC,
-            DESC,
-            ON,
-            USING,
-            NATURAL,
-            INNER,
-            CROSS,
-            LEFT,
-            RIGHT,
-            OUTER,
-            FULL,
-            JOIN,
-            AS,
-            INDEXED,
-            NOT,
-            SELECT,
-            DISTINCT,
-            FROM,
-            WHERE,
-            GROUP,
-            BY,
-            HAVING,
-            ORDER,
-            BY,
-            LIMIT,
-            OFFSET,
-            OR,
-            CAST,
-            ISNULL,
-            NOTNULL,
-            NULL,
-            IS,
-            BETWEEN,
-            ELSE,
-            END,
-            CASE,
-            WHEN,
-            THEN,
-            EXISTS,
-            COLLATE,
-            IN,
-            LIKE,
-            GLOB,
-            REGEXP,
-            MATCH,
-            ESCAPE,
-            CURRENT_TIME,
-            CURRENT_DATE,
-            CURRENT_TIMESTAMP,
-            WITH,
-            EXTRACT,
-            PARTITION,
-            ROWS,
-            RANGE,
-            UNBOUNDED,
-            PRECEDING,
-            CURRENT,
-            ROW,
-            FOLLOWING,
-            OVER,
-            INTERVAL,
-            DATE_ADD,
-            DATE_SUB,
-            ADDDATE,
-            SUBDATE,
-            REGEXP_EXTRACT,
-            SPLIT,
-            ORDINAL,
-            FIRST_VALUE,
-            LAST_VALUE,
-            NTH_VALUE,
-            LEAD,
-            LAG,
-            PERCENTILE_CONT,
-            PRECENTILE_DISC,
-            RANK,
-            DENSE_RANK,
-            PERCENT_RANK,
-            CUME_DIST,
-            NTILE,
-            ROW_NUMBER,
-            DATE,
-            TIME,
-            DATETIME,
-            TIMESTAMP,
-            UNNEST,
-            INT64,
-            NUMERIC,
-            FLOAT64,
-            BOOL,
-            BYTES,
-            GEOGRAPHY,
-            ARRAY,
-            STRUCT,
-            SAFE_CAST,
-            ANY_VALUE,
-            ARRAY_AGG,
-            ARRAY_CONCAT_AGG,
-            AVG,
-            BIT_AND,
-            BIT_OR,
-            BIT_XOR,
-            COUNT,
-            COUNTIF,
-            LOGICAL_AND,
-            LOGICAL_OR,
-            MAX,
-            MIN,
-            STRING_AGG,
-            SUM,
-            CORR,
-            COVAR_POP,
-            COVAR_SAMP,
-            STDDEV_POP,
-            STDDEV_SAMP,
-            STDDEV,
-            VAR_POP,
-            VAR_SAMP,
-            VARIANCE,
-            TIMESTAMP_ADD,
-            TIMESTAMP_SUB,
-            GENERATE_ARRAY,
-            GENERATE_DATE_ARRAY,
-            GENERATE_TIMESTAMP_ARRAY,
-            FOR,
-            SYSTEMTIME,
-            AS,
-            OF,
-            WINDOW,
-            RESPECT,
-            IGNORE,
-            NULLS,
+            UNION, ALL, AND, INTERSECT, EXCEPT, COLLATE, ASC, DESC, ON, USING, NATURAL,
+            INNER, CROSS, LEFT, RIGHT, OUTER, FULL, JOIN, AS, INDEXED, NOT, SELECT,
+            DISTINCT, FROM, WHERE, GROUP, BY, HAVING, ORDER, BY, LIMIT, OFFSET, OR,
+            CAST, ISNULL, NOTNULL, NULL, IS, BETWEEN, ELSE, END, CASE, WHEN, THEN,
+            EXISTS, COLLATE, IN, LIKE, GLOB, REGEXP, MATCH, ESCAPE, CURRENT_TIME,
+            CURRENT_DATE, CURRENT_TIMESTAMP, WITH, EXTRACT, PARTITION, ROWS, RANGE,
+            UNBOUNDED, PRECEDING, CURRENT, ROW, FOLLOWING, OVER, INTERVAL, DATE_ADD,
+            DATE_SUB, ADDDATE, SUBDATE, REGEXP_EXTRACT, SPLIT, ORDINAL, FIRST_VALUE,
+            LAST_VALUE, NTH_VALUE, LEAD, LAG, PERCENTILE_CONT, PRECENTILE_DISC, RANK,
+            DENSE_RANK, PERCENT_RANK, CUME_DIST, NTILE, ROW_NUMBER, DATE, TIME, DATETIME,
+            TIMESTAMP, UNNEST, INT64, NUMERIC, FLOAT64, BOOL, BYTES, GEOGRAPHY, ARRAY,
+            STRUCT, SAFE_CAST, ANY_VALUE, ARRAY_AGG, ARRAY_CONCAT_AGG, AVG, BIT_AND,
+            BIT_OR, BIT_XOR, COUNT, COUNTIF, LOGICAL_AND, LOGICAL_OR, MAX, MIN,
+            STRING_AGG, SUM, CORR, COVAR_POP, COVAR_SAMP, STDDEV_POP, STDDEV_SAMP,
+            STDDEV, VAR_POP, VAR_SAMP, VARIANCE, TIMESTAMP_ADD, TIMESTAMP_SUB,
+            GENERATE_ARRAY, GENERATE_DATE_ARRAY, GENERATE_TIMESTAMP_ARRAY, FOR,
+            SYSTEMTIME, AS, OF, WINDOW, RESPECT, IGNORE, NULLS,
         ) = map(
             CaselessKeyword,
             """
-            UNION, ALL, AND, INTERSECT, EXCEPT, COLLATE, ASC, DESC, ON, USING,
-            NATURAL, INNER, CROSS, LEFT, RIGHT, OUTER, FULL, JOIN, AS, INDEXED,
-            NOT, SELECT, DISTINCT, FROM, WHERE, GROUP, BY, HAVING, ORDER, BY,
-            LIMIT, OFFSET, OR, CAST, ISNULL, NOTNULL, NULL, IS, BETWEEN, ELSE,
-            END, CASE, WHEN, THEN, EXISTS, COLLATE, IN, LIKE, GLOB, REGEXP,
-            MATCH, ESCAPE, CURRENT_TIME, CURRENT_DATE, CURRENT_TIMESTAMP, WITH,
-            EXTRACT, PARTITION, ROWS, RANGE, UNBOUNDED, PRECEDING, CURRENT,
-            ROW, FOLLOWING, OVER, INTERVAL, DATE_ADD, DATE_SUB, ADDDATE,
-            SUBDATE, REGEXP_EXTRACT, SPLIT, ORDINAL, FIRST_VALUE, LAST_VALUE,
-            NTH_VALUE, LEAD, LAG, PERCENTILE_CONT, PRECENTILE_DISC, RANK,
-            DENSE_RANK, PERCENT_RANK, CUME_DIST, NTILE, ROW_NUMBER, DATE, TIME,
-            DATETIME, TIMESTAMP, UNNEST, INT64, NUMERIC, FLOAT64, BOOL, BYTES,
-            GEOGRAPHY, ARRAY, STRUCT, SAFE_CAST, ANY_VALUE, ARRAY_AGG,
-            ARRAY_CONCAT_AGG, AVG, BIT_AND, BIT_OR, BIT_XOR, COUNT, COUNTIF,
-            LOGICAL_AND, LOGICAL_OR, MAX, MIN, STRING_AGG, SUM, CORR,
-            COVAR_POP, COVAR_SAMP, STDDEV_POP, STDDEV_SAMP, STDDEV, VAR_POP,
-            VAR_SAMP, VARIANCE, TIMESTAMP_ADD, TIMESTAMP_SUB, GENERATE_ARRAY,
-            GENERATE_DATE_ARRAY, GENERATE_TIMESTAMP_ARRAY, FOR, SYSTEMTIME, AS,
-            OF, WINDOW, RESPECT, IGNORE, NULLS
-                 """.replace(
-                ",", ""
-            ).split(),
+            UNION, ALL, AND, INTERSECT, EXCEPT, COLLATE, ASC, DESC, ON, USING, NATURAL,
+            INNER, CROSS, LEFT, RIGHT, OUTER, FULL, JOIN, AS, INDEXED, NOT, SELECT,
+            DISTINCT, FROM, WHERE, GROUP, BY, HAVING, ORDER, BY, LIMIT, OFFSET, OR,
+            CAST, ISNULL, NOTNULL, NULL, IS, BETWEEN, ELSE, END, CASE, WHEN, THEN,
+            EXISTS, COLLATE, IN, LIKE, GLOB, REGEXP, MATCH, ESCAPE, CURRENT_TIME,
+            CURRENT_DATE, CURRENT_TIMESTAMP, WITH, EXTRACT, PARTITION, ROWS, RANGE,
+            UNBOUNDED, PRECEDING, CURRENT, ROW, FOLLOWING, OVER, INTERVAL, DATE_ADD,
+            DATE_SUB, ADDDATE, SUBDATE, REGEXP_EXTRACT, SPLIT, ORDINAL, FIRST_VALUE,
+            LAST_VALUE, NTH_VALUE, LEAD, LAG, PERCENTILE_CONT, PRECENTILE_DISC, RANK,
+            DENSE_RANK, PERCENT_RANK, CUME_DIST, NTILE, ROW_NUMBER, DATE, TIME, DATETIME,
+            TIMESTAMP, UNNEST, INT64, NUMERIC, FLOAT64, BOOL, BYTES, GEOGRAPHY, ARRAY,
+            STRUCT, SAFE_CAST, ANY_VALUE, ARRAY_AGG, ARRAY_CONCAT_AGG, AVG, BIT_AND,
+            BIT_OR, BIT_XOR, COUNT, COUNTIF, LOGICAL_AND, LOGICAL_OR, MAX, MIN,
+            STRING_AGG, SUM, CORR, COVAR_POP, COVAR_SAMP, STDDEV_POP, STDDEV_SAMP,
+            STDDEV, VAR_POP, VAR_SAMP, VARIANCE, TIMESTAMP_ADD, TIMESTAMP_SUB,
+            GENERATE_ARRAY, GENERATE_DATE_ARRAY, GENERATE_TIMESTAMP_ARRAY, FOR,
+            SYSTEMTIME, AS, OF, WINDOW, RESPECT, IGNORE, NULLS,
+            """.replace(",", "").split(),
         )
 
         keyword_nonfunctions = MatchFirst(
-            (
-                UNION,
-                ALL,
-                INTERSECT,
-                EXCEPT,
-                COLLATE,
-                ASC,
-                DESC,
-                ON,
-                USING,
-                NATURAL,
-                INNER,
-                CROSS,
-                LEFT,
-                RIGHT,
-                OUTER,
-                FULL,
-                JOIN,
-                AS,
-                INDEXED,
-                NOT,
-                SELECT,
-                DISTINCT,
-                FROM,
-                WHERE,
-                GROUP,
-                BY,
-                HAVING,
-                ORDER,
-                BY,
-                LIMIT,
-                OFFSET,
-                CAST,
-                ISNULL,
-                NOTNULL,
-                NULL,
-                IS,
-                BETWEEN,
-                ELSE,
-                END,
-                CASE,
-                WHEN,
-                THEN,
-                EXISTS,
-                COLLATE,
-                IN,
-                LIKE,
-                GLOB,
-                REGEXP,
-                MATCH,
-                STRUCT,
-                WINDOW,
-            )
+            (UNION, ALL, INTERSECT, EXCEPT, COLLATE, ASC, DESC, ON, USING,
+             NATURAL, INNER, CROSS, LEFT, RIGHT, OUTER, FULL, JOIN, AS, INDEXED,
+             NOT, SELECT, DISTINCT, FROM, WHERE, GROUP, BY, HAVING, ORDER, BY,
+             LIMIT, OFFSET, CAST, ISNULL, NOTNULL, NULL, IS, BETWEEN, ELSE, END,
+             CASE, WHEN, THEN, EXISTS, COLLATE, IN, LIKE, GLOB, REGEXP, MATCH,
+             STRUCT, WINDOW,
+             )
         )
 
         keyword = keyword_nonfunctions | MatchFirst(
-            (
-                ESCAPE,
-                CURRENT_TIME,
-                CURRENT_DATE,
-                CURRENT_TIMESTAMP,
-                DATE_ADD,
-                DATE_SUB,
-                ADDDATE,
-                SUBDATE,
-                INTERVAL,
-                STRING_AGG,
-                REGEXP_EXTRACT,
-                SPLIT,
-                ORDINAL,
-                UNNEST,
-                SAFE_CAST,
-                PARTITION,
-                TIMESTAMP_ADD,
-                TIMESTAMP_SUB,
-                ARRAY,
-                GENERATE_ARRAY,
-                GENERATE_DATE_ARRAY,
-                GENERATE_TIMESTAMP_ARRAY,
-            )
+            (ESCAPE, CURRENT_TIME, CURRENT_DATE, CURRENT_TIMESTAMP, DATE_ADD,
+             DATE_SUB, ADDDATE, SUBDATE, INTERVAL, STRING_AGG, REGEXP_EXTRACT,
+             SPLIT, ORDINAL, UNNEST, SAFE_CAST, PARTITION, TIMESTAMP_ADD,
+             TIMESTAMP_SUB, ARRAY, GENERATE_ARRAY, GENERATE_DATE_ARRAY,
+             GENERATE_TIMESTAMP_ARRAY,
+             )
         )
+        # fmt: on
 
         identifier_word = Word(alphas + "_@#", alphanums + "@$#_")
         identifier = ~keyword + identifier_word.copy()
         collation_name = identifier.copy()
         # NOTE: Column names can be keywords.  Doc says they cannot, but in practice it seems to work.
         column_name = identifier_word.copy()
-        qualified_column_name = Combine(column_name + ("." + column_name) * (0, 6))
+        qualified_column_name = Combine(
+            column_name + ("." + column_name)[..., 6], adjacent=False
+        )
         # NOTE: As with column names, column aliases can be keywords, e.g. functions like `current_time`.  Other
         # keywords, e.g. `from` make parsing pretty difficult (e.g. "SELECT a from from b" is confusing.)
         column_alias = ~keyword_nonfunctions + column_name.copy()
@@ -329,13 +154,11 @@ class BigQueryViewParser:
         # NOTE: The expression in a CASE statement can be an integer.  E.g. this is valid SQL:
         # select CASE 1 WHEN 1 THEN -1 ELSE -2 END from test_table
         unquoted_case_identifier = ~keyword + Word(alphanums + "$_")
-        quoted_case_identifier = ~keyword + (
-            QuotedString('"') ^ Suppress("`") + CharsNotIn("`") + Suppress("`")
-        )
+        quoted_case_identifier = QUOTED_QUOT | QUOTED_ACC
         case_identifier = quoted_case_identifier | unquoted_case_identifier
         case_expr = (
-            Optional(case_identifier + Suppress("."))
-            + Optional(case_identifier + Suppress("."))
+            Optional(case_identifier + DOT)
+            + Optional(case_identifier + DOT)
             + case_identifier
         )
 
@@ -344,7 +167,7 @@ class BigQueryViewParser:
 
         integer = Regex(r"[+-]?\d+")
         numeric_literal = Regex(r"[+-]?\d*\.?\d+([eE][+-]?\d+)?")
-        string_literal = QuotedString("'") | QuotedString('"') | QuotedString("`")
+        string_literal = QUOTED_APOS | QUOTED_QUOT | QUOTED_ACC
         regex_literal = "r" + string_literal
         blob_literal = Regex(r"[xX]'[0-9A-Fa-f]+'")
         date_or_time_literal = (DATE | TIME | DATETIME | TIMESTAMP) + string_literal
@@ -372,6 +195,7 @@ class BigQueryViewParser:
             MINUTE_MICROSECOND MINUTE_SECOND MONTH QUARTER SECOND
             SECOND_MICROSECOND WEEK YEAR YEAR_MONTH""",
             caseless=True,
+            as_keyword=True,
         )
         datetime_operators = (
             DATE_ADD | DATE_SUB | ADDDATE | SUBDATE | TIMESTAMP_ADD | TIMESTAMP_SUB
@@ -525,7 +349,7 @@ class BigQueryViewParser:
 
         case_when = WHEN + expr.copy()("when")
         case_then = THEN + expr.copy()("then")
-        case_clauses = Group(ZeroOrMore(case_when + case_then))
+        case_clauses = Group((case_when + case_then)[...])
         case_else = ELSE + expr.copy()("else")
         case_stmt = (
             CASE
@@ -561,7 +385,7 @@ class BigQueryViewParser:
         struct_term = LPAR + delimitedList(expr_term) + RPAR
 
         UNARY, BINARY, TERNARY = 1, 2, 3
-        expr << infixNotation(
+        expr <<= infixNotation(
             (expr_term | struct_term),
             [
                 (oneOf("- + ~") | NOT, UNARY, opAssoc.RIGHT),
@@ -596,10 +420,7 @@ class BigQueryViewParser:
             ],
         )
         quoted_expr = (
-            expr
-            ^ Suppress('"') + expr + Suppress('"')
-            ^ Suppress("'") + expr + Suppress("'")
-            ^ Suppress("`") + expr + Suppress("`")
+            expr | QUOT + expr + QUOT | APOS + expr + APOS | ACC + expr + ACC
         )("quoted_expr")
 
         compound_operator = (
@@ -652,7 +473,7 @@ class BigQueryViewParser:
         # Third, a series of quoted strings, delimited by dots, e.g.:
         #  `project`.`dataset`.`name-with-dashes`
         #
-        # We won't attempt to support combinations, like:
+        # We also support combinations, like:
         #  project.dataset.`name-with-dashes`
         #  `project`.`dataset.name-with-dashes`
 
@@ -662,68 +483,50 @@ class BigQueryViewParser:
             cls._table_identifiers.add(tuple(padded_list))
 
         standard_table_part = ~keyword + Word(alphanums + "_")
-        standard_table_identifier = (
-            Optional(standard_table_part("project") + Suppress("."))
-            + Optional(standard_table_part("dataset") + Suppress("."))
-            + standard_table_part("table")
-        ).setParseAction(lambda t: record_table_identifier(t))
-
-        quoted_project_part = (
-            Suppress('"') + CharsNotIn('"') + Suppress('"')
-            | Suppress("'") + CharsNotIn("'") + Suppress("'")
-            | Suppress("`") + CharsNotIn("`") + Suppress("`")
-        )
+        quoted_project_part = QUOTED_QUOT | QUOTED_APOS | QUOTED_ACC
         quoted_table_part = (
-            Suppress('"') + CharsNotIn('".') + Suppress('"')
-            | Suppress("'") + CharsNotIn("'.") + Suppress("'")
-            | Suppress("`") + CharsNotIn("`.") + Suppress("`")
+            QUOT + CharsNotIn('".') + QUOT
+            | APOS + CharsNotIn("'.") + APOS
+            | ACC + CharsNotIn("`.") + ACC
         )
         quoted_table_parts_identifier = (
-            Optional(quoted_project_part("project") + Suppress("."))
-            + Optional(quoted_table_part("dataset") + Suppress("."))
-            + quoted_table_part("table")
-        ).setParseAction(lambda t: record_table_identifier(t))
+            Optional(
+                (quoted_project_part("project") | standard_table_part("project")) + DOT
+            )
+            + Optional(
+                (quoted_table_part("dataset") | standard_table_part("dataset")) + DOT
+            )
+            + (quoted_table_part("table") | standard_table_part("table"))
+        ).setParseAction(record_table_identifier)
 
         def record_quoted_table_identifier(t):
-            identifier_list = t.asList()[0].split(".")
-            first = ".".join(identifier_list[0:-2]) or None
-            second = identifier_list[-2]
-            third = identifier_list[-1]
+            identifier_list = t[0].split(".")
+            *first, second, third = identifier_list
+            first = ".".join(first) or None
             identifier_list = [first, second, third]
             padded_list = [None] * (3 - len(identifier_list)) + identifier_list
             cls._table_identifiers.add(tuple(padded_list))
 
         quotable_table_parts_identifier = (
-            Suppress('"') + CharsNotIn('"') + Suppress('"')
-            | Suppress("'") + CharsNotIn("'") + Suppress("'")
-            | Suppress("`") + CharsNotIn("`") + Suppress("`")
-        ).setParseAction(lambda t: record_quoted_table_identifier(t))
+            QUOTED_QUOT | QUOTED_APOS | QUOTED_ACC
+        ).setParseAction(record_quoted_table_identifier)
 
         table_identifier = (
-            standard_table_identifier
-            | quoted_table_parts_identifier
-            | quotable_table_parts_identifier
+            quoted_table_parts_identifier | quotable_table_parts_identifier
         )
-
         single_source = (
-            table_identifier
-            + Optional(Optional(AS) + table_alias("table_alias*"))
-            + Optional(FOR + SYSTEMTIME + AS + OF + string_literal)
-            + Optional(INDEXED + BY + index_name("name") | NOT + INDEXED)("index")
-            | (
-                LPAR
-                + ungrouped_select_stmt
-                + RPAR
-                + Optional(Optional(AS) + table_alias)
-            )
+            (
+                table_identifier
+                + Optional(Optional(AS) + table_alias("table_alias*"))
+                + Optional(FOR + SYSTEMTIME + AS + OF + string_literal)
+                + Optional(INDEXED + BY + index_name("name") | NOT + INDEXED)
+            )("index")
+            | (LPAR + ungrouped_select_stmt + RPAR)
             | (LPAR + join_source + RPAR)
-            | (UNNEST + LPAR + expr + RPAR) + Optional(Optional(AS) + column_alias)
-        )
+            | (UNNEST + LPAR + expr + RPAR)
+        ) + Optional(Optional(AS) + table_alias)
 
-        join_source << (
-            Group(single_source + OneOrMore(join_op + single_source + join_constraint))
-            | single_source
-        )
+        join_source <<= single_source + (join_op + single_source + join_constraint)[...]
 
         over_partition = (PARTITION + BY + delimitedList(partition_expression_list))(
             "over_partition"
@@ -767,7 +570,8 @@ class BigQueryViewParser:
             WINDOW + identifier + AS + LPAR + window_specification + RPAR
         )
 
-        select_core = (
+        with_stmt = Forward().setName("with statement")
+        ungrouped_select_no_with = (
             SELECT
             + Optional(DISTINCT | ALL)
             + Group(delimitedList(result_column))("columns")
@@ -782,11 +586,15 @@ class BigQueryViewParser:
             )
             + Optional(delimitedList(window_select_clause))
         )
+        select_no_with = ungrouped_select_no_with | (
+            LPAR + ungrouped_select_no_with + RPAR
+        )
+        select_core = Optional(with_stmt) + select_no_with
         grouped_select_core = select_core | (LPAR + select_core + RPAR)
 
-        ungrouped_select_stmt << (
+        ungrouped_select_stmt <<= (
             grouped_select_core
-            + ZeroOrMore(compound_operator + grouped_select_core)
+            + (compound_operator + grouped_select_core)[...]
             + Optional(
                 LIMIT
                 + (Group(expr + OFFSET + expr) | Group(expr + COMMA + expr) | expr)(
@@ -805,84 +613,123 @@ class BigQueryViewParser:
             padded_list = [None] * (3 - len(identifier_list)) + identifier_list
             cls._with_aliases.add(tuple(padded_list))
 
-        with_stmt = Forward().setName("with statement")
         with_clause = Group(
-            identifier.setParseAction(lambda t: record_with_alias(t))
+            identifier.setParseAction(record_with_alias)
             + AS
             + LPAR
-            + (select_stmt | with_stmt)
+            + select_stmt
             + RPAR
         )
-        with_core = WITH + delimitedList(with_clause)
-        with_stmt << (with_core + ungrouped_select_stmt)
+        with_stmt <<= WITH + delimitedList(with_clause)
         with_stmt.ignore(sql_comment)
 
-        select_or_with = select_stmt | with_stmt
-        select_or_with_parens = LPAR + select_or_with + RPAR
-
-        cls._parser = select_or_with | select_or_with_parens
+        cls._parser = select_stmt
         return cls._parser
 
+    def test(self, sql_stmt, expected_tables, verbose=False):
+        def print_(*args):
+            if verbose:
+                print(*args)
+
+        print_(sql_stmt.strip())
+        found_tables = self.get_table_names(sql_stmt)
+        print_(found_tables)
+        expected_tables_set = set(expected_tables)
+
+        if expected_tables_set != found_tables:
+            raise Exception(
+                f"Test {test_index} failed- expected {expected_tables_set} but got {found_tables}"
+            )
+        print_()
+
+
+if __name__ == "__main__":
+    # fmt: off
     TEST_CASES = [
         [
             """
             SELECT x FROM y.a, b
             """,
-            [(None, "y", "a"), (None, None, "b",),],
+            [
+                (None, "y", "a"),
+                (None, None, "b"),
+            ],
         ],
         [
             """
             SELECT x FROM y.a JOIN b
             """,
-            [(None, "y", "a"), (None, None, "b"),],
+            [
+                (None, "y", "a"),
+                (None, None, "b"),
+            ],
         ],
         [
             """
             select * from xyzzy where z > 100
             """,
-            [(None, None, "xyzzy"),],
+            [
+                (None, None, "xyzzy"),
+            ],
         ],
         [
             """
             select * from xyzzy where z > 100 order by zz
             """,
-            [(None, None, "xyzzy"),],
+            [
+                (None, None, "xyzzy"),
+            ],
         ],
         [
             """
             select * from xyzzy
             """,
-            [(None, None, "xyzzy",),],
+            [
+                (None, None, "xyzzy"),
+            ],
         ],
         [
             """
             select z.* from xyzzy
             """,
-            [(None, None, "xyzzy",),],
+            [
+                (None, None, "xyzzy"),
+            ],
         ],
         [
             """
             select a, b from test_table where 1=1 and b='yes'
             """,
-            [(None, None, "test_table"),],
+            [
+                (None, None, "test_table"),
+            ],
         ],
         [
             """
             select a, b from test_table where 1=1 and b in (select bb from foo)
             """,
-            [(None, None, "test_table"), (None, None, "foo"),],
+            [
+                (None, None, "test_table"),
+                (None, None, "foo"),
+            ],
         ],
         [
             """
             select z.a, b from test_table where 1=1 and b in (select bb from foo)
             """,
-            [(None, None, "test_table"), (None, None, "foo"),],
+            [
+                (None, None, "test_table"),
+                (None, None, "foo"),
+            ],
         ],
         [
             """
             select z.a, b from test_table where 1=1 and b in (select bb from foo) order by b,c desc,d
             """,
-            [(None, None, "test_table"), (None, None, "foo"),],
+            [
+                (None, None, "test_table"),
+                (None, None, "foo"),
+            ],
         ],
         [
             """
@@ -898,25 +745,35 @@ class BigQueryViewParser:
             """
             select a, db.table.b as BBB from db.table where 1=1 and BBB='yes'
             """,
-            [(None, "db", "table"),],
+            [
+                (None, "db", "table"),
+            ],
         ],
         [
             """
             select a, db.table.b as BBB from test_table,db.table where 1=1 and BBB='yes'
             """,
-            [(None, None, "test_table"), (None, "db", "table"),],
+            [
+                (None, None, "test_table"),
+                (None, "db", "table"),
+            ],
         ],
         [
             """
             select a, db.table.b as BBB from test_table,db.table where 1=1 and BBB='yes' limit 50
             """,
-            [(None, None, "test_table"), (None, "db", "table"),],
+            [
+                (None, None, "test_table"),
+                (None, "db", "table"),
+            ],
         ],
         [
             """
             select a, b from test_table where (1=1 or 2=3) and b='yes' group by zx having b=2 order by 1
             """,
-            [(None, None, "test_table"),],
+            [
+                (None, None, "test_table"),
+            ],
         ],
         [
             """
@@ -931,31 +788,44 @@ class BigQueryViewParser:
             #yup, a comment
             group by zx having b=2 order by 1
             """,
-            [(None, None, "test_table"),],
+            [
+                (None, None, "test_table"),
+            ],
         ],
         [
             """
             SELECT COUNT(DISTINCT foo) FROM bar JOIN baz ON bar.baz_id = baz.id
             """,
-            [(None, None, "bar"), (None, None, "baz"),],
+            [
+                (None, None, "bar"),
+                (None, None, "baz"),
+            ],
         ],
         [
             """
             SELECT COUNT(DISTINCT foo) FROM bar, baz WHERE bar.baz_id = baz.id
             """,
-            [(None, None, "bar"), (None, None, "baz"),],
+            [
+                (None, None, "bar"),
+                (None, None, "baz"),
+            ],
         ],
         [
             """
             WITH one AS (SELECT id FROM foo) SELECT one.id
             """,
-            [(None, None, "foo"),],
+            [
+                (None, None, "foo"),
+            ],
         ],
         [
             """
             WITH one AS (SELECT id FROM foo), two AS (select id FROM bar) SELECT one.id, two.id
             """,
-            [(None, None, "foo"), (None, None, "bar"),],
+            [
+                (None, None, "foo"),
+                (None, None, "bar"),
+            ],
         ],
         [
             """
@@ -965,7 +835,9 @@ class BigQueryViewParser:
               ROW_NUMBER() OVER (PARTITION BY x ORDER BY y) AS row_num
             FROM a
             """,
-            [(None, None, "a",),],
+            [
+                (None, None, "a"),
+            ],
         ],
         [
             """
@@ -973,7 +845,9 @@ class BigQueryViewParser:
               RANGE BETWEEN 2 PRECEDING AND 2 FOLLOWING ) AS count_x
             FROM T
             """,
-            [(None, None, "T",),],
+            [
+                (None, None, "T"),
+            ],
         ],
         [
             """
@@ -981,7 +855,9 @@ class BigQueryViewParser:
               RANK() OVER ( PARTITION BY department ORDER BY startdate ) AS rank
             FROM Employees
             """,
-            [(None, None, "Employees"),],
+            [
+                (None, None, "Employees"),
+            ],
         ],
         # A fragment from https://cloud.google.com/bigquery/docs/reference/standard-sql/navigation_functions
         [
@@ -1318,7 +1194,9 @@ class BigQueryViewParser:
             FROM
                 bar
             """,
-            [(None, None, "bar"),],
+            [
+                (None, None, "bar"),
+            ],
         ],
         [
             """
@@ -1371,7 +1249,9 @@ class BigQueryViewParser:
                 case when (a) then b else c end
             FROM d
             """,
-            [(None, None, "d",),],
+            [
+                (None, None, "d"),
+            ],
         ],
         [
             """
@@ -1380,7 +1260,9 @@ class BigQueryViewParser:
                 case when (f) then g else h end
             FROM i
             """,
-            [(None, None, "i",),],
+            [
+                (None, None, "i"),
+            ],
         ],
         [
             """
@@ -1388,7 +1270,9 @@ class BigQueryViewParser:
                 case when j then k else l end
             FROM m
             """,
-            [(None, None, "m",),],
+            [
+                (None, None, "m",),
+            ],
         ],
         [
             """
@@ -1397,7 +1281,9 @@ class BigQueryViewParser:
                 case when o then p else q end
             FROM r
             """,
-            [(None, None, "r",),],
+            [
+                (None, None, "r"),
+            ],
         ],
         [
             """
@@ -1405,7 +1291,9 @@ class BigQueryViewParser:
                 case s when (t) then u else v end
             FROM w
             """,
-            [(None, None, "w",),],
+            [
+                (None, None, "w"),
+            ],
         ],
         [
             """
@@ -1414,7 +1302,9 @@ class BigQueryViewParser:
                 case y when (z) then aa else ab end
             FROM ac
             """,
-            [(None, None, "ac",),],
+            [
+                (None, None, "ac"),
+            ],
         ],
         [
             """
@@ -1422,7 +1312,9 @@ class BigQueryViewParser:
                 case ad when ae then af else ag end
             FROM ah
             """,
-            [(None, None, "ah",),],
+            [
+                (None, None, "ah"),
+            ],
         ],
         [
             """
@@ -1431,7 +1323,9 @@ class BigQueryViewParser:
                 case aj when ak then al else am end
             FROM an
             """,
-            [(None, None, "an",),],
+            [
+                (None, None, "an"),
+            ],
         ],
         [
             """
@@ -1440,7 +1334,10 @@ class BigQueryViewParser:
                 TWO AS (select a FROM b)
             SELECT y FROM onE JOIN TWo
             """,
-            [(None, None, "y",), (None, None, "b",),],
+            [
+                (None, None, "y"),
+                (None, None, "b"),
+            ],
         ],
         [
             """
@@ -1449,67 +1346,90 @@ class BigQueryViewParser:
                 (SELECT b FROM oNE)
             FROM OnE
             """,
-            [(None, None, "oNE",), (None, None, "OnE",),],
+            [
+                (None, None, "oNE"),
+                (None, None, "OnE"),
+            ],
         ],
         [
             """
             SELECT * FROM `a.b.c`
             """,
-            [("a", "b", "c"),],
+            [
+                ("a", "b", "c"),
+            ],
         ],
         [
             """
             SELECT * FROM `b.c`
             """,
-            [(None, "b", "c"),],
+            [
+                (None, "b", "c"),
+            ],
         ],
         [
             """
             SELECT * FROM `c`
             """,
-            [(None, None, "c"),],
+            [
+                (None, None, "c"),
+            ],
         ],
         [
             """
             SELECT * FROM a.b.c
             """,
-            [("a", "b", "c"),],
+            [
+                ("a", "b", "c"),
+            ],
         ],
         [
             """
             SELECT * FROM "a"."b"."c"
             """,
-            [("a", "b", "c"),],
+            [
+                ("a", "b", "c"),
+            ],
         ],
         [
             """
             SELECT * FROM 'a'.'b'.'c'
             """,
-            [("a", "b", "c"),],
+            [
+                ("a", "b", "c"),
+            ],
         ],
         [
             """
             SELECT * FROM `a`.`b`.`c`
             """,
-            [("a", "b", "c"),],
+            [
+                ("a", "b", "c"),
+            ],
         ],
         [
             """
             SELECT * FROM "a.b.c"
             """,
-            [("a", "b", "c"),],
+            [
+                ("a", "b", "c"),
+            ],
         ],
         [
             """
             SELECT * FROM 'a.b.c'
             """,
-            [("a", "b", "c"),],
+            [
+                ("a", "b", "c"),
+            ],
         ],
         [
             """
             SELECT * FROM `a.b.c`
             """,
-            [("a", "b", "c"),],
+            [
+                ("a", "b", "c"),
+            ],
         ],
         [
             """
@@ -1518,14 +1438,21 @@ class BigQueryViewParser:
             WHERE t1.a IN (SELECT t2.a
                            FROM t2 ) FOR SYSTEM_TIME AS OF t1.timestamp_column)
             """,
-            [(None, None, "t1"), (None, None, "t2"),],
+            [
+                (None, None, "t1"),
+                (None, None, "t2"),
+            ],
         ],
         [
             """
             WITH a AS (SELECT b FROM c)
             SELECT d FROM A JOIN e ON f = g JOIN E ON h = i
             """,
-            [(None, None, "c"), (None, None, "e"), (None, None, "E"),],
+            [
+                (None, None, "c"),
+                (None, None, "e"),
+                (None, None, "E"),
+            ],
         ],
         [
             """
@@ -1545,7 +1472,11 @@ class BigQueryViewParser:
 
             select g from h
             """,
-            [(None, None, "d"), (None, None, "f"), (None, None, "h"),],
+            [
+                (None, None, "d"),
+                (None, None, "f"),
+                (None, None, "h"),
+            ],
         ],
         [
             """
@@ -1557,7 +1488,9 @@ class BigQueryViewParser:
                 e AS DATE_ADD
             FROM x
             """,
-            [(None, None, "x"),],
+            [
+                (None, None, "x"),
+            ],
         ],
         [
             """
@@ -1568,7 +1501,10 @@ class BigQueryViewParser:
             )
             SELECT y FROM z
             """,
-            [(None, None, "b"), (None, None, "z")],
+            [
+                (None, None, "b"),
+                (None, None, "z")
+            ],
         ],
         [
             """
@@ -1576,22 +1512,77 @@ class BigQueryViewParser:
                 FIRST_VALUE(x IGNORE NULLS) OVER (PARTITION BY y)
             FROM z
             """,
-            [(None, None, "z")],
+            [
+                (None, None, "z")
+            ],
+        ],
+        [
+            """
+            SELECT a . b .   c
+            FROM d
+            """,
+            [
+                (None, None, "d")
+            ],
+        ],
+        [
+            """
+            WITH a AS (
+                SELECT b FROM c
+                UNION ALL
+                (
+                    WITH d AS (
+                        SELECT e FROM f
+                    )
+                    SELECT g FROM d
+                )
+            )
+            SELECT h FROM a
+            """,
+            [
+                (None, None, "c"),
+                (None, None, "f")
+            ],
+        ],
+        [
+            """
+            WITH a AS (
+                SELECT b FROM c
+                UNION ALL
+                (
+                    WITH d AS (
+                        SELECT e FROM f
+                    )
+                    SELECT g FROM d
+                )
+            )
+            (SELECT h FROM a)
+            """,
+            [
+                (None, None, "c"),
+                (None, None, "f")
+            ],
+        ],
+        [
+            """
+            SELECT * FROM a.b.`c`
+            """,
+            [
+                ("a", "b", "c"),
+            ],
+        ],
+        [
+            """
+            SELECT * FROM 'a'.b.`c`
+            """,
+            [
+                ("a", "b", "c"),
+            ],
         ],
     ]
+    # fmt: on
 
-    def test(self):
-        for test_index, test_case in enumerate(BigQueryViewParser.TEST_CASES):
-            sql_stmt, expected_tables = test_case
-
-            found_tables = self.get_table_names(sql_stmt)
-            expected_tables_set = set(expected_tables)
-
-            if expected_tables_set != found_tables:
-                raise Exception(
-                    f"Test {test_index} failed- expected {expected_tables_set} but got {found_tables}"
-                )
-
-
-if __name__ == "__main__":
-    BigQueryViewParser().test()
+    parser = BigQueryViewParser()
+    for test_index, test_case in enumerate(TEST_CASES):
+        sql, expected = test_case
+        parser.test(sql_stmt=sql, expected_tables=expected, verbose=True)

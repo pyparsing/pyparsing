@@ -188,7 +188,7 @@ select_stmt << (
 select_stmt.ignore(comment)
 
 
-if __name__ == "__main__":
+def main():
     tests = """\
         select * from xyzzy where z > 100
         select * from xyzzy where z > 100 order by zz
@@ -233,4 +233,8 @@ if __name__ == "__main__":
 
     success, _ = select_stmt.runTests(tests)
     print("\n{}".format("OK" if success else "FAIL"))
-    sys.exit(0 if success else 1)
+    return 0 if success else 1
+
+
+if __name__ == "__main__":
+    main()

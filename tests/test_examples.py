@@ -7,7 +7,8 @@ import unittest
 
 class TestExamples(unittest.TestCase):
     def _run(self, name):
-        import_module("examples." + name)
+        mod = import_module("examples." + name)
+        getattr(mod, "main", lambda *args, **kwargs: None)()
 
     def test_numerics(self):
         self._run("numerics")

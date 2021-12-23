@@ -1,32 +1,34 @@
 # common.py
-from pyparsing.core import *
-from pyparsing.helpers import delimitedList, anyOpenTag, anyCloseTag
+from .core import *
+from .helpers import delimited_list, any_open_tag, any_close_tag
 from datetime import datetime
+
 
 # some other useful expressions - using lower-case class name since we are really using this as a namespace
 class pyparsing_common:
     """Here are some common low-level expressions that may be useful in
     jump-starting parser development:
 
-     - numeric forms (:class:`integers<integer>`, :class:`reals<real>`,
-       :class:`scientific notation<sci_real>`)
-     - common :class:`programming identifiers<identifier>`
-     - network addresses (:class:`MAC<mac_address>`,
-       :class:`IPv4<ipv4_address>`, :class:`IPv6<ipv6_address>`)
-     - ISO8601 :class:`dates<iso8601_date>` and
-       :class:`datetime<iso8601_datetime>`
-     - :class:`UUID<uuid>`
-     - :class:`comma-separated list<comma_separated_list>`
+    - numeric forms (:class:`integers<integer>`, :class:`reals<real>`,
+      :class:`scientific notation<sci_real>`)
+    - common :class:`programming identifiers<identifier>`
+    - network addresses (:class:`MAC<mac_address>`,
+      :class:`IPv4<ipv4_address>`, :class:`IPv6<ipv6_address>`)
+    - ISO8601 :class:`dates<iso8601_date>` and
+      :class:`datetime<iso8601_datetime>`
+    - :class:`UUID<uuid>`
+    - :class:`comma-separated list<comma_separated_list>`
+    - :class:`url`
 
     Parse actions:
 
-     - :class:`convertToInteger`
-     - :class:`convertToFloat`
-     - :class:`convertToDate`
-     - :class:`convertToDatetime`
-     - :class:`stripHTMLTags`
-     - :class:`upcaseTokens`
-     - :class:`downcaseTokens`
+    - :class:`convertToInteger`
+    - :class:`convertToFloat`
+    - :class:`convertToDate`
+    - :class:`convertToDatetime`
+    - :class:`stripHTMLTags`
+    - :class:`upcaseTokens`
+    - :class:`downcaseTokens`
 
     Example::
 
@@ -149,107 +151,111 @@ class pyparsing_common:
         [UUID('12345678-1234-5678-1234-567812345678')]
     """
 
-    convertToInteger = tokenMap(int)
+    convert_to_integer = token_map(int)
     """
     Parse action for converting parsed integers to Python int
     """
 
-    convertToFloat = tokenMap(float)
+    convert_to_float = token_map(float)
     """
     Parse action for converting parsed numbers to Python float
     """
 
-    integer = Word(nums).setName("integer").setParseAction(convertToInteger)
+    integer = Word(nums).set_name("integer").set_parse_action(convert_to_integer)
     """expression that parses an unsigned integer, returns an int"""
 
-    hex_integer = Word(hexnums).setName("hex integer").setParseAction(tokenMap(int, 16))
+    hex_integer = (
+        Word(hexnums).set_name("hex integer").set_parse_action(token_map(int, 16))
+    )
     """expression that parses a hexadecimal integer, returns an int"""
 
     signed_integer = (
-        Regex(r"[+-]?\d+").setName("signed integer").setParseAction(convertToInteger)
+        Regex(r"[+-]?\d+")
+        .set_name("signed integer")
+        .set_parse_action(convert_to_integer)
     )
     """expression that parses an integer with optional leading sign, returns an int"""
 
     fraction = (
-        signed_integer().setParseAction(convertToFloat)
+        signed_integer().set_parse_action(convert_to_float)
         + "/"
-        + signed_integer().setParseAction(convertToFloat)
-    ).setName("fraction")
+        + signed_integer().set_parse_action(convert_to_float)
+    ).set_name("fraction")
     """fractional expression of an integer divided by an integer, returns a float"""
-    fraction.addParseAction(lambda t: t[0] / t[-1])
+    fraction.add_parse_action(lambda tt: tt[0] / tt[-1])
 
     mixed_integer = (
-        fraction | signed_integer + Optional(Optional("-").suppress() + fraction)
-    ).setName("fraction or mixed integer-fraction")
+        fraction | signed_integer + Opt(Opt("-").suppress() + fraction)
+    ).set_name("fraction or mixed integer-fraction")
     """mixed integer of the form 'integer - fraction', with optional leading integer, returns float"""
-    mixed_integer.addParseAction(sum)
+    mixed_integer.add_parse_action(sum)
 
     real = (
-        Regex(r"[+-]?(:?\d+\.\d*|\.\d+)")
-        .setName("real number")
-        .setParseAction(convertToFloat)
+        Regex(r"[+-]?(?:\d+\.\d*|\.\d+)")
+        .set_name("real number")
+        .set_parse_action(convert_to_float)
     )
     """expression that parses a floating point number and returns a float"""
 
     sci_real = (
-        Regex(r"[+-]?(:?\d+(:?[eE][+-]?\d+)|(:?\d+\.\d*|\.\d+)(:?[eE][+-]?\d+)?)")
-        .setName("real number with scientific notation")
-        .setParseAction(convertToFloat)
+        Regex(r"[+-]?(?:\d+(?:[eE][+-]?\d+)|(?:\d+\.\d*|\.\d+)(?:[eE][+-]?\d+)?)")
+        .set_name("real number with scientific notation")
+        .set_parse_action(convert_to_float)
     )
     """expression that parses a floating point number with optional
     scientific notation and returns a float"""
 
     # streamlining this expression makes the docs nicer-looking
-    number = (sci_real | real | signed_integer).streamline()
+    number = (sci_real | real | signed_integer).setName("number").streamline()
     """any numeric expression, returns the corresponding Python type"""
 
     fnumber = (
         Regex(r"[+-]?\d+\.?\d*([eE][+-]?\d+)?")
-        .setName("fnumber")
-        .setParseAction(convertToFloat)
+        .set_name("fnumber")
+        .set_parse_action(convert_to_float)
     )
     """any int or real number, returned as float"""
 
-    identifier = Word(alphas + "_", alphanums + "_").setName("identifier")
+    identifier = Word(identchars, identbodychars).set_name("identifier")
     """typical code identifier (leading alpha or '_', followed by 0 or more alphas, nums, or '_')"""
 
     ipv4_address = Regex(
         r"(25[0-5]|2[0-4][0-9]|1?[0-9]{1,2})(\.(25[0-5]|2[0-4][0-9]|1?[0-9]{1,2})){3}"
-    ).setName("IPv4 address")
+    ).set_name("IPv4 address")
     "IPv4 address (``0.0.0.0 - 255.255.255.255``)"
 
-    _ipv6_part = Regex(r"[0-9a-fA-F]{1,4}").setName("hex_integer")
-    _full_ipv6_address = (_ipv6_part + (":" + _ipv6_part) * 7).setName(
+    _ipv6_part = Regex(r"[0-9a-fA-F]{1,4}").set_name("hex_integer")
+    _full_ipv6_address = (_ipv6_part + (":" + _ipv6_part) * 7).set_name(
         "full IPv6 address"
     )
     _short_ipv6_address = (
-        Optional(_ipv6_part + (":" + _ipv6_part) * (0, 6))
+        Opt(_ipv6_part + (":" + _ipv6_part) * (0, 6))
         + "::"
-        + Optional(_ipv6_part + (":" + _ipv6_part) * (0, 6))
-    ).setName("short IPv6 address")
-    _short_ipv6_address.addCondition(
+        + Opt(_ipv6_part + (":" + _ipv6_part) * (0, 6))
+    ).set_name("short IPv6 address")
+    _short_ipv6_address.add_condition(
         lambda t: sum(1 for tt in t if pyparsing_common._ipv6_part.matches(tt)) < 8
     )
-    _mixed_ipv6_address = ("::ffff:" + ipv4_address).setName("mixed IPv6 address")
+    _mixed_ipv6_address = ("::ffff:" + ipv4_address).set_name("mixed IPv6 address")
     ipv6_address = Combine(
-        (_full_ipv6_address | _mixed_ipv6_address | _short_ipv6_address).setName(
+        (_full_ipv6_address | _mixed_ipv6_address | _short_ipv6_address).set_name(
             "IPv6 address"
         )
-    ).setName("IPv6 address")
+    ).set_name("IPv6 address")
     "IPv6 address (long, short, or mixed form)"
 
     mac_address = Regex(
         r"[0-9a-fA-F]{2}([:.-])[0-9a-fA-F]{2}(?:\1[0-9a-fA-F]{2}){4}"
-    ).setName("MAC address")
+    ).set_name("MAC address")
     "MAC address xx:xx:xx:xx:xx (may also have '-' or '.' delimiters)"
 
     @staticmethod
-    def convertToDate(fmt="%Y-%m-%d"):
+    def convert_to_date(fmt: str = "%Y-%m-%d"):
         """
         Helper to create a parse action for converting parsed date string to Python datetime.date
 
         Params -
-         - fmt - format to be passed to datetime.strptime (default= ``"%Y-%m-%d"``)
+        - fmt - format to be passed to datetime.strptime (default= ``"%Y-%m-%d"``)
 
         Example::
 
@@ -262,21 +268,21 @@ class pyparsing_common:
             [datetime.date(1999, 12, 31)]
         """
 
-        def cvt_fn(s, l, t):
+        def cvt_fn(ss, ll, tt):
             try:
-                return datetime.strptime(t[0], fmt).date()
+                return datetime.strptime(tt[0], fmt).date()
             except ValueError as ve:
-                raise ParseException(s, l, str(ve))
+                raise ParseException(ss, ll, str(ve))
 
         return cvt_fn
 
     @staticmethod
-    def convertToDatetime(fmt="%Y-%m-%dT%H:%M:%S.%f"):
+    def convert_to_datetime(fmt: str = "%Y-%m-%dT%H:%M:%S.%f"):
         """Helper to create a parse action for converting parsed
         datetime string to Python datetime.datetime
 
         Params -
-         - fmt - format to be passed to datetime.strptime (default= ``"%Y-%m-%dT%H:%M:%S.%f"``)
+        - fmt - format to be passed to datetime.strptime (default= ``"%Y-%m-%dT%H:%M:%S.%f"``)
 
         Example::
 
@@ -299,21 +305,21 @@ class pyparsing_common:
 
     iso8601_date = Regex(
         r"(?P<year>\d{4})(?:-(?P<month>\d\d)(?:-(?P<day>\d\d))?)?"
-    ).setName("ISO8601 date")
+    ).set_name("ISO8601 date")
     "ISO8601 date (``yyyy-mm-dd``)"
 
     iso8601_datetime = Regex(
         r"(?P<year>\d{4})-(?P<month>\d\d)-(?P<day>\d\d)[T ](?P<hour>\d\d):(?P<minute>\d\d)(:(?P<second>\d\d(\.\d*)?)?)?(?P<tz>Z|[+-]\d\d:?\d\d)?"
-    ).setName("ISO8601 datetime")
+    ).set_name("ISO8601 datetime")
     "ISO8601 datetime (``yyyy-mm-ddThh:mm:ss.s(Z|+-00:00)``) - trailing seconds, milliseconds, and timezone optional; accepts separating ``'T'`` or ``' '``"
 
-    uuid = Regex(r"[0-9a-fA-F]{8}(-[0-9a-fA-F]{4}){3}-[0-9a-fA-F]{12}").setName("UUID")
+    uuid = Regex(r"[0-9a-fA-F]{8}(-[0-9a-fA-F]{4}){3}-[0-9a-fA-F]{12}").set_name("UUID")
     "UUID (``xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx``)"
 
-    _html_stripper = anyOpenTag.suppress() | anyCloseTag.suppress()
+    _html_stripper = any_open_tag.suppress() | any_close_tag.suppress()
 
     @staticmethod
-    def stripHTMLTags(s, l, tokens):
+    def strip_html_tags(s: str, l: int, tokens: ParseResults):
         """Parse action to remove HTML tags from web page HTML source
 
         Example::
@@ -328,30 +334,89 @@ class pyparsing_common:
 
             More info at the pyparsing wiki page
         """
-        return pyparsing_common._html_stripper.transformString(tokens[0])
+        return pyparsing_common._html_stripper.transform_string(tokens[0])
 
     _commasepitem = (
         Combine(
             OneOrMore(
                 ~Literal(",")
                 + ~LineEnd()
-                + Word(printables, excludeChars=",")
-                + Optional(White(" \t") + ~FollowedBy(LineEnd() | ","))
+                + Word(printables, exclude_chars=",")
+                + Opt(White(" \t") + ~FollowedBy(LineEnd() | ","))
             )
         )
         .streamline()
-        .setName("commaItem")
+        .set_name("commaItem")
     )
-    comma_separated_list = delimitedList(
-        Optional(quotedString.copy() | _commasepitem, default="")
-    ).setName("comma separated list")
-    """Predefined expression of 1 or more printable words or quoted strin gs, separated by commas."""
+    comma_separated_list = delimited_list(
+        Opt(quoted_string.copy() | _commasepitem, default="")
+    ).set_name("comma separated list")
+    """Predefined expression of 1 or more printable words or quoted strings, separated by commas."""
 
-    upcaseTokens = staticmethod(tokenMap(lambda t: t.upper()))
+    upcase_tokens = staticmethod(token_map(lambda t: t.upper()))
     """Parse action to convert tokens to upper case."""
 
-    downcaseTokens = staticmethod(tokenMap(lambda t: t.lower()))
+    downcase_tokens = staticmethod(token_map(lambda t: t.lower()))
     """Parse action to convert tokens to lower case."""
+
+    # fmt: off
+    url = Regex(
+        # https://mathiasbynens.be/demo/url-regex
+        # https://gist.github.com/dperini/729294
+        r"^" +
+        # protocol identifier (optional)
+        # short syntax // still required
+        r"(?:(?:(?P<scheme>https?|ftp):)?\/\/)" +
+        # user:pass BasicAuth (optional)
+        r"(?:(?P<auth>\S+(?::\S*)?)@)?" +
+        r"(?P<host>" +
+        # IP address exclusion
+        # private & local networks
+        r"(?!(?:10|127)(?:\.\d{1,3}){3})" +
+        r"(?!(?:169\.254|192\.168)(?:\.\d{1,3}){2})" +
+        r"(?!172\.(?:1[6-9]|2\d|3[0-1])(?:\.\d{1,3}){2})" +
+        # IP address dotted notation octets
+        # excludes loopback network 0.0.0.0
+        # excludes reserved space >= 224.0.0.0
+        # excludes network & broadcast addresses
+        # (first & last IP address of each class)
+        r"(?:[1-9]\d?|1\d\d|2[01]\d|22[0-3])" +
+        r"(?:\.(?:1?\d{1,2}|2[0-4]\d|25[0-5])){2}" +
+        r"(?:\.(?:[1-9]\d?|1\d\d|2[0-4]\d|25[0-4]))" +
+        r"|" +
+        # host & domain names, may end with dot
+        # can be replaced by a shortest alternative
+        # (?![-_])(?:[-\w\u00a1-\uffff]{0,63}[^-_]\.)+
+        r"(?:" +
+        r"(?:" +
+        r"[a-z0-9\u00a1-\uffff]" +
+        r"[a-z0-9\u00a1-\uffff_-]{0,62}" +
+        r")?" +
+        r"[a-z0-9\u00a1-\uffff]\." +
+        r")+" +
+        # TLD identifier name, may end with dot
+        r"(?:[a-z\u00a1-\uffff]{2,}\.?)" +
+        r")" +
+        # port number (optional)
+        r"(:(?P<port>\d{2,5}))?" +
+        # resource path (optional)
+        r"(?P<path>\/[^?# ]*)?" +
+        # query string (optional)
+        r"(\?(?P<query>[^#]*))?" +
+        # fragment (optional)
+        r"(#(?P<fragment>\S*))?" +
+        r"$"
+    ).set_name("url")
+    # fmt: on
+
+    # pre-PEP8 compatibility names
+    convertToInteger = convert_to_integer
+    convertToFloat = convert_to_float
+    convertToDate = convert_to_date
+    convertToDatetime = convert_to_datetime
+    stripHTMLTags = strip_html_tags
+    upcaseTokens = upcase_tokens
+    downcaseTokens = downcase_tokens
 
 
 _builtin_exprs = [

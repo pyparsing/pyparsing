@@ -50,7 +50,8 @@ design, and intended developer experience as an embedded DSL.
   New features have been encapsulated into namespace classes to try to hold back the name flooding when importing
   pyparsing.
 
-- New operator overloads will need to show broad applicability.
+- New operator overloads for ParserElement will need to show broad applicability, and should be related to 
+  parser construction.
 
 - Performance tuning should focus on parse time performance. Optimizing parser definition performance is secondary.
 
@@ -61,14 +62,17 @@ design, and intended developer experience as an embedded DSL.
 
 These coding styles are encouraged whether submitting code for core pyparsing or for submitting an example.
 
-- PEP8 - at this time, pyparsing is very non-compliant with many PEP8 guidelines, especially those regarding
+- PEP8 - pyparsing has historically been very non-compliant with many PEP8 guidelines, especially those regarding
   name casing. I had just finished several years of Java and Smalltalk development, and camel case seemed to be the
-  future trend in coding styles. There are plans to convert these names to PEP8-conformant snake case, but this will
-  be done over several releases to provide a migration path for current pyparsing-dependent applications. See more
-  information at the [PEP8 wiki page](https://github.com/pyparsing/pyparsing/wiki/PEP-8-planning).
+  future trend in coding styles. As of version 3.0.0, pyparsing is moving over to PEP8 naming, while maintaining
+  compatibility with existing parser code by defining synonyms using the legacy names. These names will be
+  retained until a future release (probably 4.0), to provide a migration path for current pyparsing-dependent 
+  applications - DO NOT MODIFY OR REMOVE THESE NAMES.
+  See more information at the [PEP8 wiki page](https://github.com/pyparsing/pyparsing/wiki/PEP-8-planning).
 
-  If you wish to submit a new example, please follow PEP8 name and coding guidelines. Example code must be available
-  for distribution with the rest of pyparsing under the MIT open source license.
+  If you wish to submit a new example, please follow PEP8 name and coding guidelines, and use the black formatter
+  to auto-format code. Example code must be available for distribution with the rest of pyparsing under the MIT 
+  open source license.
 
 - No backslashes for line continuations.
   Continuation lines for expressions in ()'s should start with the continuing operator:
@@ -77,9 +81,9 @@ These coding styles are encouraged whether submitting code for core pyparsing or
                           + some_other_long_thing
                           + even_another_long_thing)
 
-- Maximum line length is 120 characters.
+- Maximum line length is 120 characters. (Black will override this.)
 
-- Changes to core pyparsing must be compatible back to Py3.5 without conditionalizing. Later Py3 features may be
+- Changes to core pyparsing must be compatible back to Py3.6 without conditionalizing. Later Py3 features may be
   used in examples by way of illustration.
 
 - str.format() statements should use named format arguments (unless this proves to be a slowdown at parse time).
@@ -94,7 +98,7 @@ These coding styles are encouraged whether submitting code for core pyparsing or
       ppc = pp.pyparsing_common
       ppu = pp.pyparsing_unicode
 
-  Submitted examples *must* by Python 3 compatible.
+  Submitted examples *must* be Python 3 compatible.
 
 - Where possible use operators to create composite parse expressions:
 
@@ -111,7 +115,7 @@ These coding styles are encouraged whether submitting code for core pyparsing or
       any_keyword = pp.MatchFirst(pp.Keyword(kw)
                                   for kw in python_keywords))
 
-- Learn [The Classic Blunders](https://github.com/pyparsing/pyparsing/wiki/The-Classic-Blunders) and
+- Learn [Common Pitfalls When Writing Parsers](https://github.com/pyparsing/pyparsing/wiki/Common-Pitfalls-When-Writing-Parsers) and
   how to avoid them when developing new examples.
 
-- New features should be accompanied with updates to unitTests.py and a bullet in the CHANGES file.
+- New features should be accompanied by updates to unitTests.py and a bullet in the CHANGES file.

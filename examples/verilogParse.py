@@ -899,21 +899,12 @@ def test(strng):
     return tokens
 
 
-# ~ if __name__ == "__main__":
-if 0:
-    import pprint
-
-    toptest = """
-        module TOP( in, out );
-        input [7:0] in;
-        output [5:0] out;
-        COUNT_BITS8 count_bits( .IN( in ), .C( out ) );
-        endmodule"""
-    pprint.pprint(test(toptest).asList())
-
-else:
+if __name__ == "__main__":
 
     def main():
+        import sys
+
+        sys.setrecursionlimit(5000)
         print("Verilog parser test (V %s)" % __version__)
         print(" - using pyparsing version", pyparsing.__version__)
         print(" - using Python version", sys.version)
@@ -927,9 +918,8 @@ else:
         failCount = 0
         Verilog_BNF()
         numlines = 0
-        startTime = time.clock()
+        startTime = time.time()
         fileDir = "verilog"
-        # ~ fileDir = "verilog/new"
         # ~ fileDir = "verilog/new2"
         # ~ fileDir = "verilog/new3"
         allFiles = [f for f in os.listdir(fileDir) if f.endswith(".v")]
@@ -950,31 +940,26 @@ else:
             print(fnam, len(filelines), end=" ")
             numlines += len(filelines)
             teststr = "".join(filelines)
-            time1 = time.clock()
+            time1 = time.time()
             tokens = test(teststr)
-            time2 = time.clock()
+            time2 = time.time()
             elapsed = time2 - time1
             totalTime += elapsed
             if len(tokens):
                 print("OK", elapsed)
-                # ~ print "tokens="
-                # ~ pp.pprint( tokens.asList() )
-                # ~ print
 
                 ofnam = fileDir + "/parseOutput/" + vfile + ".parsed.txt"
-                outfile = open(ofnam, "w")
-                outfile.write(teststr)
-                outfile.write("\n")
-                outfile.write("\n")
-                outfile.write(pp.pformat(tokens.asList()))
-                outfile.write("\n")
-                outfile.close()
+                with open(ofnam, "w") as outfile:
+                    outfile.write(teststr)
+                    outfile.write("\n\n")
+                    outfile.write(pp.pformat(tokens.asList()))
+                    outfile.write("\n")
             else:
                 print("failed", elapsed)
                 failCount += 1
                 for i, line in enumerate(filelines, 1):
                     print("%4d: %s" % (i, line.rstrip()))
-        endTime = time.clock()
+        endTime = time.time()
         print("Total parse time:", totalTime)
         print("Total source lines:", numlines)
         print("Average lines/sec:", ("%.1f" % (float(numlines) / (totalTime + 0.05))))
@@ -985,16 +970,4 @@ else:
 
         return 0
 
-    # ~ from line_profiler import LineProfiler
-    # ~ from pyparsing import ParseResults
-    # ~ lp = LineProfiler(ParseResults.__init__)
-
     main()
-
-    # ~ lp.print_stats()
-    # ~ import hotshot
-    # ~ p = hotshot.Profile("vparse.prof",1,1)
-    # ~ p.start()
-    # ~ main()
-    # ~ p.stop()
-    # ~ p.close()

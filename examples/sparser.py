@@ -140,9 +140,11 @@ class ParseFileLineByLine:
     """
 
     def __init__(self, filename, mode="r"):
-        """Opens input file, and if available the definition file.  If the
+        """
+        Opens input file, and if available the definition file.  If the
         definition file is available __init__ will then create some pyparsing
-        helper variables.  """
+        helper variables.
+        """
         if mode not in ["r", "w", "a"]:
             raise OSError(0, "Illegal mode: " + repr(mode))
 

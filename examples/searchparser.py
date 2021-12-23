@@ -206,7 +206,7 @@ class SearchQueryParser:
 
 class ParserTest(SearchQueryParser):
     """Tests the parser with some search queries
-    tests containts a dictionary with tests and expected results.
+    tests contains a dictionary with tests and expected results.
     """
 
     tests = {

@@ -30,6 +30,8 @@ from pyparsing import (
     srange,
 )
 
+ParserElement.enablePackrat()
+
 
 class CharacterRangeEmitter:
     def __init__(self, chars):
@@ -235,10 +237,11 @@ def count(gen):
 
 
 def invert(regex):
-    r"""Call this routine as a generator to return all the strings that
-       match the input regular expression.
-           for s in invert(r"[A-Z]{3}\d{3}"):
-               print s
+    r"""
+    Call this routine as a generator to return all the strings that
+    match the input regular expression.
+        for s in invert(r"[A-Z]{3}\d{3}"):
+            print s
     """
     invReGenerator = GroupEmitter(parser().parseString(regex)).makeGenerator()
     return invReGenerator()
@@ -279,9 +282,7 @@ def main():
     [ABCDEFG](?:#|##|b|bb)?(?:maj|min|m|sus|aug|dim)?[0-9]?(?:/[ABCDEFG](?:#|##|b|bb)?)?
     (Fri|Mon|S(atur|un)|T(hur|ue)s|Wednes)day
     A(pril|ugust)|((Dec|Nov|Sept)em|Octo)ber|(Febr|Jan)uary|Ju(ly|ne)|Ma(rch|y)
-    """.split(
-        "\n"
-    )
+    """.splitlines()
 
     for t in tests:
         t = t.strip()

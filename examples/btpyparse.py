@@ -24,7 +24,7 @@ from pyparsing import (
 
 
 class Macro:
-    """ Class to encapsulate undefined macro references """
+    """Class to encapsulate undefined macro references"""
 
     def __init__(self, name):
         self.name = name
@@ -43,7 +43,7 @@ LCURLY, RCURLY, LPAREN, RPAREN, QUOTE, COMMA, AT, EQUALS, HASH = map(
 
 
 def bracketed(expr):
-    """ Return matcher for `expr` between curly brackets or parentheses """
+    """Return matcher for `expr` between curly brackets or parentheses"""
     return (LPAREN + expr + RPAREN) | (LCURLY + expr + RCURLY)
 
 

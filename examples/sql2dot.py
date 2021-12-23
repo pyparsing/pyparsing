@@ -8,7 +8,7 @@
 #  Adapted from a post at https://energyblog.blogspot.com/2006/04/blog-post_20.html.
 #
 sampleSQL = """
-create table student
+create table students
 (
 student_id integer primary key,
 firstname varchar(20),
