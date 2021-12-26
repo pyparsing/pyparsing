@@ -2067,7 +2067,7 @@ class ParserElement(ABC):
         BOM = "\ufeff"
         for t in tests:
             if comment is not None and comment.matches(t, False) or comments and not t:
-                comments.append(pyparsing_test.with_line_numbers(t))
+                comments.append(pyparsing_test.with_line_numbers(t) if with_line_numbers else t)
                 continue
             if not t:
                 continue
