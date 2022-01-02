@@ -5,6 +5,7 @@ import os
 from typing import (
     Optional as OptionalType,
     Iterable as IterableType,
+    NamedTuple,
     Union,
     Callable,
     Any,
@@ -243,7 +244,7 @@ identbodychars = pyparsing_unicode.Latin1.identbodychars
 nums = "0123456789"
 hexnums = nums + "ABCDEFabcdef"
 alphanums = alphas + nums
-printables = "".join(c for c in string.printable if c not in string.whitespace)
+printables = "".join([c for c in string.printable if c not in string.whitespace])
 
 _trim_arity_call_line = None
 
@@ -438,6 +439,11 @@ class ParserElement(ABC):
         """
         ParserElement._literalStringClass = cls
 
+    class DebugActions(NamedTuple):
+        debug_try: OptionalType[DebugStartAction]
+        debug_match: OptionalType[DebugSuccessAction]
+        debug_fail: OptionalType[DebugExceptionAction]
+
     def __init__(self, savelist: bool = False):
         self.parseAction: List[ParseAction] = list()
         self.failAction: OptionalType[ParseFailAction] = None
@@ -460,16 +466,12 @@ class ParserElement(ABC):
         # mark results names as modal (report only last) or cumulative (list all)
         self.modalResults = True
         # custom debug actions
-        self.debugActions: Tuple[
-            OptionalType[DebugStartAction],
-            OptionalType[DebugSuccessAction],
-            OptionalType[DebugExceptionAction],
-        ] = (None, None, None)
+        self.debugActions = self.DebugActions(None, None, None)
         self.re = None
         # avoid redundant calls to preParse
         self.callPreparse = True
         self.callDuringTry = False
-        self.suppress_warnings_ = []
+        self.suppress_warnings_: List[Diagnostics] = []
 
     def suppress_warning(self, warning_type: Diagnostics) -> "ParserElement":
         """
@@ -663,7 +665,7 @@ class ParserElement(ABC):
         else:
             if not all(callable(fn) for fn in fns):
                 raise TypeError("parse actions must be callable")
-            self.parseAction = list(map(_trim_arity, list(fns)))
+            self.parseAction = [_trim_arity(fn) for fn in fns]
             self.callDuringTry = kwargs.get(
                 "call_during_try", kwargs.get("callDuringTry", False)
             )
@@ -675,7 +677,7 @@ class ParserElement(ABC):
 
         See examples in :class:`copy`.
         """
-        self.parseAction += list(map(_trim_arity, list(fns)))
+        self.parseAction += [_trim_arity(fn) for fn in fns]
         self.callDuringTry = self.callDuringTry or kwargs.get(
             "call_during_try", kwargs.get("callDuringTry", False)
         )
@@ -779,8 +781,8 @@ class ParserElement(ABC):
                 else:
                     pre_loc = loc
                 tokens_start = pre_loc
-                if self.debugActions[TRY]:
-                    self.debugActions[TRY](instring, tokens_start, self)
+                if self.debugActions.debug_try:
+                    self.debugActions.debug_try(instring, tokens_start, self, False)
                 if self.mayIndexError or pre_loc >= len_instring:
                     try:
                         loc, tokens = self.parseImpl(instring, pre_loc, doActions)
@@ -790,8 +792,10 @@ class ParserElement(ABC):
                     loc, tokens = self.parseImpl(instring, pre_loc, doActions)
             except Exception as err:
                 # print("Exception raised:", err)
-                if self.debugActions[FAIL]:
-                    self.debugActions[FAIL](instring, tokens_start, self, err)
+                if self.debugActions.debug_fail:
+                    self.debugActions.debug_fail(
+                        instring, tokens_start, self, err, False
+                    )
                 if self.failAction:
                     self.failAction(instring, tokens_start, self, err)
                 raise
@@ -834,8 +838,10 @@ class ParserElement(ABC):
                             )
                 except Exception as err:
                     # print "Exception raised in user parse action:", err
-                    if self.debugActions[FAIL]:
-                        self.debugActions[FAIL](instring, tokens_start, self, err)
+                    if self.debugActions.debug_fail:
+                        self.debugActions.debug_fail(
+                            instring, tokens_start, self, err, False
+                        )
                     raise
             else:
                 for fn in self.parseAction:
@@ -855,8 +861,10 @@ class ParserElement(ABC):
                         )
         if debugging:
             # print("Matched", self, "->", ret_tokens.as_list())
-            if self.debugActions[MATCH]:
-                self.debugActions[MATCH](instring, tokens_start, loc, self, ret_tokens)
+            if self.debugActions.debug_match:
+                self.debugActions.debug_match(
+                    instring, tokens_start, loc, self, ret_tokens, False
+                )
 
         return loc, ret_tokens
 
@@ -913,15 +921,15 @@ class ParserElement(ABC):
                     return value
             else:
                 ParserElement.packrat_cache_stats[HIT] += 1
-                if self.debug and self.debugActions[TRY]:
+                if self.debug and self.debugActions.debug_try:
                     try:
-                        self.debugActions[TRY](instring, loc, self, cache_hit=True)
+                        self.debugActions.debug_try(instring, loc, self, cache_hit=True)
                     except TypeError:
                         pass
                 if isinstance(value, Exception):
-                    if self.debug and self.debugActions[FAIL]:
+                    if self.debug and self.debugActions.debug_fail:
                         try:
-                            self.debugActions[FAIL](
+                            self.debugActions.debug_fail(
                                 instring, loc, self, value, cache_hit=True
                             )
                         except TypeError:
@@ -929,9 +937,9 @@ class ParserElement(ABC):
                     raise value
 
                 loc_, result, endloc = value[0], value[1].copy(), value[2]
-                if self.debug and self.debugActions[MATCH]:
+                if self.debug and self.debugActions.debug_match:
                     try:
-                        self.debugActions[MATCH](
+                        self.debugActions.debug_match(
                             instring, loc_, endloc, self, result, cache_hit=True
                         )
                     except TypeError:
@@ -1236,7 +1244,7 @@ class ParserElement(ABC):
 
             Now Is The Winter Of Our Discontent Made Glorious Summer By This Sun Of York.
         """
-        out = []
+        out: List[str] = []
         lastE = 0
         # force preservation of <TAB>s, to minimize unwanted transformation of string, and to
         # keep string locs straight between transform_string and scan_string
@@ -1248,13 +1256,13 @@ class ParserElement(ABC):
                     if isinstance(t, ParseResults):
                         out += t.as_list()
                     elif isinstance(t, Iterable) and not isinstance(t, str_type):
-                        out += list(t)
+                        out.extend(t)
                     else:
                         out.append(t)
                 lastE = e
             out.append(instring[lastE:])
             out = [o for o in out if o]
-            return "".join(map(str, _flatten(out)))
+            return "".join([str(s) for s in _flatten(out)])
         except ParseBaseException as exc:
             if ParserElement.verbose_stacktrace:
                 raise
@@ -1759,7 +1767,7 @@ class ParserElement(ABC):
         - ``exception_action`` - method to be called when expression fails to parse;
           should have the signature ``fn(input_string: str, location: int, expression: ParserElement, exception: Exception, cache_hit: bool)``
         """
-        self.debugActions = (
+        self.debugActions = self.DebugActions(
             start_action or _default_start_debug_action,
             success_action or _default_success_debug_action,
             exception_action or _default_exception_debug_action,
@@ -2052,7 +2060,8 @@ class ParserElement(ABC):
         failureTests = failureTests or failure_tests
         postParse = postParse or post_parse
         if isinstance(tests, str_type):
-            tests = list(map(type(tests).strip, tests.rstrip().splitlines()))
+            line_strip = type(tests).strip
+            tests = [line_strip(test_line) for test_line in tests.rstrip().splitlines()]
         if isinstance(comment, str_type):
             comment = Literal(comment)
         if file is None:
@@ -2067,7 +2076,9 @@ class ParserElement(ABC):
         BOM = "\ufeff"
         for t in tests:
             if comment is not None and comment.matches(t, False) or comments and not t:
-                comments.append(pyparsing_test.with_line_numbers(t) if with_line_numbers else t)
+                comments.append(
+                    pyparsing_test.with_line_numbers(t) if with_line_numbers else t
+                )
                 continue
             if not t:
                 continue
@@ -4279,7 +4290,7 @@ class Each(ParseExpression):
             raise max_fatal
 
         if tmpReqd:
-            missing = ", ".join(str(e) for e in tmpReqd)
+            missing = ", ".join([str(e) for e in tmpReqd])
             raise ParseException(
                 instring,
                 loc,
