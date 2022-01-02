@@ -3339,7 +3339,7 @@ class White(Token):
         super().__init__()
         self.matchWhite = ws
         self.set_whitespace_chars(
-            "".join(c for c in self.whiteChars if c not in self.matchWhite),
+            "".join(c for c in self.whiteStrs if c not in self.matchWhite),
             copy_defaults=True,
         )
         # self.leave_whitespace()
@@ -3780,11 +3780,14 @@ class And(ParseExpression):
         super().__init__(exprs, savelist)
         if self.exprs:
             self.mayReturnEmpty = all(e.mayReturnEmpty for e in self.exprs)
-            self.set_whitespace_chars(
-                self.exprs[0].whiteChars,
-                copy_defaults=self.exprs[0].copyDefaultWhiteChars,
-            )
-            self.skipWhitespace = self.exprs[0].skipWhitespace
+            if not isinstance(self.exprs[0], White):
+                self.set_whitespace_chars(
+                    self.exprs[0].whiteChars,
+                    copy_defaults=self.exprs[0].copyDefaultWhiteChars,
+                )
+                self.skipWhitespace = self.exprs[0].skipWhitespace
+            else:
+                self.skipWhitespace = False
         else:
             self.mayReturnEmpty = True
         self.callPreparse = True
@@ -3913,7 +3916,9 @@ class Or(ParseExpression):
         if self.exprs:
             self.mayReturnEmpty = any(e.mayReturnEmpty for e in self.exprs)
             self.saveAsList = any(e.saveAsList for e in self.exprs)
-            self.skipWhitespace = all(e.skipWhitespace for e in self.exprs)
+            self.skipWhitespace = all(
+                e.skipWhitespace and not isinstance(e, White) for e in self.exprs
+            )
         else:
             self.saveAsList = False
         return self
@@ -4069,7 +4074,9 @@ class MatchFirst(ParseExpression):
         if self.exprs:
             self.saveAsList = any(e.saveAsList for e in self.exprs)
             self.mayReturnEmpty = any(e.mayReturnEmpty for e in self.exprs)
-            self.skipWhitespace = all(e.skipWhitespace for e in self.exprs)
+            self.skipWhitespace = all(
+                e.skipWhitespace and not isinstance(e, White) for e in self.exprs
+            )
         else:
             self.saveAsList = False
             self.mayReturnEmpty = True

@@ -11,8 +11,11 @@ Version 3.0.7 -
   or WordEnd instead of just taking the default value. Originally posted
   as a question by Parag on StackOverflow, good catch!
 
+- Fixed bug #350, in which White expressions could fail to match due to
+  unintended whitespace-skipping. Reported by Fu Hanxi, thank you!
+
 - Fixed bug in ParserElement.run_tests where comments would be displayed
-  using with_line_numbers, even if with_line_numbers was set to False.
+  using with_line_numbers.
 
 - Added optional "min" and "max" arguments to `delimited_list`. PR
   submitted by Marius, thanks!

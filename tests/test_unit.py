@@ -217,6 +217,20 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             msg="scanString with overlaps failed",
         )
 
+    def testCombineWithResultsNames(self):
+        # test case reproducing Issue #350
+        from pyparsing import White, alphas, Word
+
+        parser = White(' \t').set_results_name('indent') + Word(alphas).set_results_name('word')
+        result = parser.parse_string('    test')
+        print(result.dump())
+        self.assertParseResultsEquals(result, ['    ', 'test'], {'indent': '    ', 'word': 'test'})
+
+        parser = White(' \t') + Word(alphas).set_results_name('word')
+        result = parser.parse_string('    test')
+        print(result.dump())
+        self.assertParseResultsEquals(result, ['    ', 'test'], {'word': 'test'})
+
     def testTransformString(self):
         make_int_with_commas = ppc.integer().addParseAction(
             lambda t: "{:,}".format(t[0])
