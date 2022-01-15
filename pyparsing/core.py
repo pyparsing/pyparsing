@@ -3131,7 +3131,7 @@ class QuotedString(Token):
                 + "|".join(
                     "(?:{}(?!{}))".format(
                         re.escape(self.endQuoteChar[:i]),
-                        _escape_regex_range_chars(self.endQuoteChar[i:]),
+                        re.escape(self.endQuoteChar[i:]),
                     )
                     for i in range(len(self.endQuoteChar) - 1, 0, -1)
                 )

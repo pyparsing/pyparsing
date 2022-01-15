@@ -14,6 +14,10 @@ Version 3.0.7 -
 - Fixed bug #350, in which White expressions could fail to match due to
   unintended whitespace-skipping. Reported by Fu Hanxi, thank you!
 
+- Fixed bug #355, when a QuotedString is defined with characters in its
+  quoteChar string containing regex-significant characters such as ., *,
+  ?, [, ], etc.
+
 - Fixed bug in ParserElement.run_tests where comments would be displayed
   using with_line_numbers.
 

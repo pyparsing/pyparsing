@@ -1807,6 +1807,29 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
         with self.assertRaises(ValueError):
             pp.QuotedString("", "\\")
 
+    def testCustomQuotes2(self):
+
+        qs = pp.QuotedString(quote_char=".[", end_quote_char="].")
+        print(qs.reString)
+        self.assertParseAndCheckList(qs, ".[...].", ['...'])
+        self.assertParseAndCheckList(qs, ".[].", [''])
+        self.assertParseAndCheckList(qs, ".[]].", [']'])
+        self.assertParseAndCheckList(qs, ".[]]].", [']]'])
+
+        qs = pp.QuotedString(quote_char="+*", end_quote_char="*+")
+        print(qs.reString)
+        self.assertParseAndCheckList(qs, "+*...*+", ['...'])
+        self.assertParseAndCheckList(qs, "+**+", [''])
+        self.assertParseAndCheckList(qs, "+***+", ['*'])
+        self.assertParseAndCheckList(qs, "+****+", ['**'])
+
+        qs = pp.QuotedString(quote_char="*/", end_quote_char="/*")
+        print(qs.reString)
+        self.assertParseAndCheckList(qs, "*/.../*", ['...'])
+        self.assertParseAndCheckList(qs, "*//*", [''])
+        self.assertParseAndCheckList(qs, "*///*", ['/'])
+        self.assertParseAndCheckList(qs, "*////*", ['//'])
+
     def testRepeater(self):
         if ParserElement._packratEnabled or ParserElement._left_recursion_enabled:
             print("skipping this test, not compatible with memoization")
