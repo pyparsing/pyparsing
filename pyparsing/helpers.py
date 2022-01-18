@@ -185,7 +185,7 @@ def match_previous_expr(expr: ParserElement) -> ParserElement:
         def must_match_these_tokens(s, l, t):
             theseTokens = _flatten(t.as_list())
             if theseTokens != matchTokens:
-                raise ParseException("", 0, "")
+                raise ParseException(s, l, "Expected {}, found{}".format(matchTokens, theseTokens))
 
         rep.set_parse_action(must_match_these_tokens, callDuringTry=True)
 

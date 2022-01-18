@@ -636,13 +636,13 @@ class ParserElement(ABC):
                 return int(toks[0])
 
             # use a parse action to verify that the date is a valid date
-            def is_valid_date(toks):
+            def is_valid_date(instring, loc, toks):
                 from datetime import date
                 year, month, day = toks[::2]
                 try:
                     date(year, month, day)
                 except ValueError:
-                    raise ParseException("invalid date given")
+                    raise ParseException(instring, loc, "invalid date given")
 
             integer = Word(nums)
             date_str = integer + '/' + integer + '/' + integer
@@ -4351,7 +4351,7 @@ class ParseElementEnhance(ParserElement):
         if self.expr is not None:
             return self.expr._parse(instring, loc, doActions, callPreParse=False)
         else:
-            raise ParseException("", loc, self.errmsg, self)
+            raise ParseException(instring, loc, "No expression defined", self)
 
     def leave_whitespace(self, recursive: bool = True) -> ParserElement:
         super().leave_whitespace(recursive)
