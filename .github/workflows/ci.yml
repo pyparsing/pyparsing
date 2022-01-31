@@ -8,7 +8,7 @@ on:
     paths:
       - .github/workflows/cis.yml
       - pyparsing/*
-      - setup.py
+      - pyproject.toml
       - tox.ini
 
 jobs:
