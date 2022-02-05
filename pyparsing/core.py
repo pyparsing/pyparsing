@@ -76,6 +76,18 @@ str_type: Tuple[type, ...] = (str, bytes)
 #
 
 
+if sys.version_info >= (3, 8):
+    from functools import cached_property
+else:
+    class cached_property:
+        def __init__(self, func):
+            self._func = func
+
+        def __get__(self, instance, owner=None):
+            ret = instance.__dict__[self._func.__name__] = self._func(instance)
+            return ret
+
+
 class __compat__(__config_flags):
     """
     A cross-version compatibility configuration for pyparsing features that will be
@@ -467,7 +479,6 @@ class ParserElement(ABC):
         self.modalResults = True
         # custom debug actions
         self.debugActions = self.DebugActions(None, None, None)
-        self.re = None
         # avoid redundant calls to preParse
         self.callPreparse = True
         self.callDuringTry = False
@@ -2926,19 +2937,12 @@ class Regex(Token):
             if not pattern:
                 raise ValueError("null string passed to Regex; use Empty() instead")
 
-            self.pattern = pattern
+            self._re = None
+            self.reString = self.pattern = pattern
             self.flags = flags
 
-            try:
-                self.re = re.compile(self.pattern, self.flags)
-                self.reString = self.pattern
-            except sre_constants.error:
-                raise ValueError(
-                    "invalid pattern ({!r}) passed to Regex".format(pattern)
-                )
-
         elif hasattr(pattern, "pattern") and hasattr(pattern, "match"):
-            self.re = pattern
+            self._re = pattern
             self.pattern = self.reString = pattern.pattern
             self.flags = flags
 
@@ -2947,17 +2951,35 @@ class Regex(Token):
                 "Regex may only be constructed with a string or a compiled RE object"
             )
 
-        self.re_match = self.re.match
-
         self.errmsg = "Expected " + self.name
         self.mayIndexError = False
-        self.mayReturnEmpty = self.re_match("") is not None
         self.asGroupList = asGroupList
         self.asMatch = asMatch
         if self.asGroupList:
             self.parseImpl = self.parseImplAsGroupList
         if self.asMatch:
             self.parseImpl = self.parseImplAsMatch
+
+
+    @cached_property
+    def re(self):
+        if self._re:
+            return self._re
+        else:
+            try:
+                return re.compile(self.pattern, self.flags)
+            except sre_constants.error:
+                raise ValueError(
+                    "invalid pattern ({!r}) passed to Regex".format(pattern)
+                )
+
+    @cached_property
+    def re_match(self):
+        return self.re.match
+
+    @cached_property
+    def mayReturnEmpty(self):
+        return self.re_match("") is not None
 
     def _generateDefaultName(self):
         return "Re:({})".format(repr(self.pattern).replace("\\\\", "\\"))
