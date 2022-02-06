@@ -53,7 +53,7 @@ _MAX_INT = sys.maxsize
 str_type: Tuple[type, ...] = (str, bytes)
 
 #
-# Copyright (c) 2003-2021  Paul T. McGuire
+# Copyright (c) 2003-2022  Paul T. McGuire
 #
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
@@ -2960,7 +2960,6 @@ class Regex(Token):
         if self.asMatch:
             self.parseImpl = self.parseImplAsMatch
 
-
     @cached_property
     def re(self):
         if self._re:
@@ -2970,7 +2969,7 @@ class Regex(Token):
                 return re.compile(self.pattern, self.flags)
             except sre_constants.error:
                 raise ValueError(
-                    "invalid pattern ({!r}) passed to Regex".format(pattern)
+                    "invalid pattern ({!r}) passed to Regex".format(self.pattern)
                 )
 
     @cached_property

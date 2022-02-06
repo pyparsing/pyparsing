@@ -3487,7 +3487,7 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
         try:
             print("lets try an invalid RE")
             invRe = pp.Regex("(\"[^\"]*\")|('[^']*'").re
-        except Exception as e:
+        except ValueError as e:
             print("successfully rejected an invalid RE:", end=" ")
             print(e)
         else:
@@ -3496,7 +3496,7 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
         with self.assertRaises(
             ValueError, msg="failed to warn empty string passed to Regex"
         ):
-            invRe = pp.Regex("")
+            pp.Regex("").re
 
     def testRegexAsType(self):
 
