@@ -2,6 +2,12 @@
 Change Log
 ==========
 
+Version 3.0.8 - (under development)
+---------------
+- Improved pyparsing import time by deferring regex pattern compiles.
+  PR submitted by Anthony Sottile to fix issue #362, thanks!
+
+
 Version 3.0.7 -
 ---------------
 - Fixed bug #345, in which delimitedList changed expressions in place
