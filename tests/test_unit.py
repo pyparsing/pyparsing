@@ -3486,7 +3486,7 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
 
         try:
             print("lets try an invalid RE")
-            invRe = pp.Regex("(\"[^\"]*\")|('[^']*'")
+            invRe = pp.Regex("(\"[^\"]*\")|('[^']*'").re
         except Exception as e:
             print("successfully rejected an invalid RE:", end=" ")
             print(e)
