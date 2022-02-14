@@ -36,7 +36,10 @@ setup(  # Distribution meta-data
     extras_require={
         "diagrams": ["railroad-diagrams", "jinja2"],
     },
-    package_data={"pyparsing.diagram": ["*.jinja2"]},
+    package_data={
+        "pyparsing.diagram": ["*.jinja2"],
+        "pyparsing": ["py.typed"],
+    },
     classifiers=[
         "Development Status :: 5 - Production/Stable",
         "Intended Audience :: Developers",
@@ -53,5 +56,6 @@ setup(  # Distribution meta-data
         "Programming Language :: Python :: 3 :: Only",
         "Programming Language :: Python :: Implementation :: CPython",
         "Programming Language :: Python :: Implementation :: PyPy",
+        "Typing :: Typed",
     ],
 )
