@@ -8,7 +8,7 @@ Using the pyparsing module
 :revision: 3.0.0
 :date: October, 2021
 
-:copyright: Copyright |copy| 2003-2021 Paul McGuire.
+:copyright: Copyright |copy| 2003-2022 Paul McGuire.
 
 .. |copy| unicode:: 0xA9
 
@@ -396,6 +396,19 @@ methods for code to use are:
 
   If ``fn`` modifies the ``toks`` list in-place, it does not need to return
   and pyparsing will use the modified ``toks`` list.
+  
+  If ``set_parse_action`` is called with an argument of ``None``, then this clears all parse actions
+  attached to that expression.
+  
+  A nice short-cut for calling ``set_parse_action`` is to use it as a decorator::
+  
+    identifier = Word(alphas, alphanums+"_")
+    
+    @identifier.set_parse_action
+    def resolve_identifier(results: ParseResults):
+        return variable_values.get(results[0])
+  
+  (Posted by @MisterMiyagi in this SO answer: https://stackoverflow.com/a/63031959/165216)
 
 - ``add_parse_action`` - similar to ``set_parse_action``, but instead of replacing any
   previously defined parse actions, will append the given action or actions to the
