@@ -352,10 +352,10 @@ def dict_of(key: ParserElement, value: ParserElement) -> ParserElement:
     prints::
 
         [['shape', 'SQUARE'], ['posn', 'upper left'], ['color', 'light blue'], ['texture', 'burlap']]
-        - color: light blue
-        - posn: upper left
-        - shape: SQUARE
-        - texture: burlap
+        - color: 'light blue'
+        - posn: 'upper left'
+        - shape: 'SQUARE'
+        - texture: 'burlap'
         SQUARE
         SQUARE
         {'color': 'light blue', 'shape': 'SQUARE', 'posn': 'upper left', 'texture': 'burlap'}

@@ -5026,20 +5026,20 @@ class SkipTo(ParseElementEnhance):
     prints::
 
         ['101', 'Critical', 'Intermittent system crash', '6']
-        - days_open: 6
-        - desc: Intermittent system crash
-        - issue_num: 101
-        - sev: Critical
+        - days_open: '6'
+        - desc: 'Intermittent system crash'
+        - issue_num: '101'
+        - sev: 'Critical'
         ['94', 'Cosmetic', "Spelling error on Login ('log|n')", '14']
-        - days_open: 14
-        - desc: Spelling error on Login ('log|n')
-        - issue_num: 94
-        - sev: Cosmetic
+        - days_open: '14'
+        - desc: "Spelling error on Login ('log|n')"
+        - issue_num: '94'
+        - sev: 'Cosmetic'
         ['79', 'Minor', 'System slow when running too many reports', '47']
-        - days_open: 47
-        - desc: System slow when running too many reports
-        - issue_num: 79
-        - sev: Minor
+        - days_open: '47'
+        - desc: 'System slow when running too many reports'
+        - issue_num: '79'
+        - sev: 'Minor'
     """
 
     def __init__(
@@ -5497,10 +5497,10 @@ class Dict(TokenConverter):
 
         ['shape', 'SQUARE', 'posn', 'upper left', 'color', 'light blue', 'texture', 'burlap']
         [['shape', 'SQUARE'], ['posn', 'upper left'], ['color', 'light blue'], ['texture', 'burlap']]
-        - color: light blue
-        - posn: upper left
-        - shape: SQUARE
-        - texture: burlap
+        - color: 'light blue'
+        - posn: 'upper left'
+        - shape: 'SQUARE'
+        - texture: 'burlap'
         SQUARE
         {'color': 'light blue', 'posn': 'upper left', 'texture': 'burlap', 'shape': 'SQUARE'}
 
