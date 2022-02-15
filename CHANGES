@@ -7,6 +7,9 @@ Version 3.0.8 - (under development)
 - Improved pyparsing import time by deferring regex pattern compiles.
   PR submitted by Anthony Sottile to fix issue #362, thanks!
 
+- Updated build to use flit, PR by Michał Górny, added BUILDING.md
+  doc and removed old Windows build scripts - nice cleanup work!
+
 
 Version 3.0.7 -
 ---------------

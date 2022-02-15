@@ -159,3 +159,5 @@ venv.bak/
 
 # For developers on OSX
 .DS_Store
+
+examples/verilog/

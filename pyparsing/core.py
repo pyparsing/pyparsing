@@ -79,6 +79,7 @@ str_type: Tuple[type, ...] = (str, bytes)
 if sys.version_info >= (3, 8):
     from functools import cached_property
 else:
+
     class cached_property:
         def __init__(self, func):
             self._func = func
@@ -3847,7 +3848,9 @@ class And(ParseExpression):
                 seen.add(id(cur))
                 if isinstance(cur, IndentedBlock):
                     prev.add_parse_action(
-                        lambda s, l, t, cur_=cur: setattr(cur_, "parent_anchor", col(l, s))
+                        lambda s, l, t, cur_=cur: setattr(
+                            cur_, "parent_anchor", col(l, s)
+                        )
                     )
                     break
                 subs = cur.recurse()
