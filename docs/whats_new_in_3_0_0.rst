@@ -133,7 +133,7 @@ Instead of writing::
 
 you will be able to write::
 
-    identifier = pp.Word(pp.indentchars, pp.identbodychars)
+    identifier = pp.Word(pp.identchars, pp.identbodychars)
 
 Those constants have also been added to all the Unicode string classes::
 
