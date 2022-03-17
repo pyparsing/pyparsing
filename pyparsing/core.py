@@ -2231,7 +2231,7 @@ class _PendingSkip(ParserElement):
     def _generateDefaultName(self):
         return str(self.anchor + Empty()).replace("Empty", "...")
 
-    def __add__(self, other):
+    def __add__(self, other) -> "ParserElement":
         skipper = SkipTo(other).set_name("...")("_skipped*")
         if self.must_skip:
 
@@ -5588,13 +5588,13 @@ class Suppress(TokenConverter):
             expr = _PendingSkip(NoMatch())
         super().__init__(expr)
 
-    def __add__(self, other):
+    def __add__(self, other) -> "ParserElement":
         if isinstance(self.expr, _PendingSkip):
             return Suppress(SkipTo(other)) + other
         else:
             return super().__add__(other)
 
-    def __sub__(self, other):
+    def __sub__(self, other) -> "ParserElement":
         if isinstance(self.expr, _PendingSkip):
             return Suppress(SkipTo(other)) - other
         else:
