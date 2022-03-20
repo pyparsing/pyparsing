@@ -10,6 +10,9 @@ Version 3.0.8 - (under development)
 - Updated build to use flit, PR by Michał Górny, added BUILDING.md
   doc and removed old Windows build scripts - nice cleanup work!
 
+- More type-hinting added for all arithmetic and logical operator
+  methods in ParserElement. PR from Kazantcev Andrey, thank you.
+
 
 Version 3.0.7 -
 ---------------
