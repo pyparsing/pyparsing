@@ -1354,7 +1354,7 @@ class ParserElement(ABC):
             last = e
         yield instring[last:]
 
-    def __add__(self, other):
+    def __add__(self, other) -> "ParserElement":
         """
         Implementation of ``+`` operator - returns :class:`And`. Adding strings to a :class:`ParserElement`
         converts them to :class:`Literal`s by default.
@@ -1394,7 +1394,7 @@ class ParserElement(ABC):
             )
         return And([self, other])
 
-    def __radd__(self, other):
+    def __radd__(self, other) -> "ParserElement":
         """
         Implementation of ``+`` operator when left operand is not a :class:`ParserElement`
         """
@@ -1411,7 +1411,7 @@ class ParserElement(ABC):
             )
         return other + self
 
-    def __sub__(self, other):
+    def __sub__(self, other) -> "ParserElement":
         """
         Implementation of ``-`` operator, returns :class:`And` with error stop
         """
@@ -1425,7 +1425,7 @@ class ParserElement(ABC):
             )
         return self + And._ErrorStop() + other
 
-    def __rsub__(self, other):
+    def __rsub__(self, other) -> "ParserElement":
         """
         Implementation of ``-`` operator when left operand is not a :class:`ParserElement`
         """
@@ -1439,7 +1439,7 @@ class ParserElement(ABC):
             )
         return other - self
 
-    def __mul__(self, other):
+    def __mul__(self, other) -> "ParserElement":
         """
         Implementation of ``*`` operator, allows use of ``expr * 3`` in place of
         ``expr + expr + expr``.  Expressions may also be multiplied by a 2-integer
@@ -1525,10 +1525,10 @@ class ParserElement(ABC):
                 ret = And([self] * minElements)
         return ret
 
-    def __rmul__(self, other):
+    def __rmul__(self, other) -> "ParserElement":
         return self.__mul__(other)
 
-    def __or__(self, other):
+    def __or__(self, other) -> "ParserElement":
         """
         Implementation of ``|`` operator - returns :class:`MatchFirst`
         """
@@ -1545,7 +1545,7 @@ class ParserElement(ABC):
             )
         return MatchFirst([self, other])
 
-    def __ror__(self, other):
+    def __ror__(self, other) -> "ParserElement":
         """
         Implementation of ``|`` operator when left operand is not a :class:`ParserElement`
         """
@@ -1559,7 +1559,7 @@ class ParserElement(ABC):
             )
         return other | self
 
-    def __xor__(self, other):
+    def __xor__(self, other) -> "ParserElement":
         """
         Implementation of ``^`` operator - returns :class:`Or`
         """
@@ -1573,7 +1573,7 @@ class ParserElement(ABC):
             )
         return Or([self, other])
 
-    def __rxor__(self, other):
+    def __rxor__(self, other) -> "ParserElement":
         """
         Implementation of ``^`` operator when left operand is not a :class:`ParserElement`
         """
@@ -1587,7 +1587,7 @@ class ParserElement(ABC):
             )
         return other ^ self
 
-    def __and__(self, other):
+    def __and__(self, other) -> "ParserElement":
         """
         Implementation of ``&`` operator - returns :class:`Each`
         """
@@ -1601,7 +1601,7 @@ class ParserElement(ABC):
             )
         return Each([self, other])
 
-    def __rand__(self, other):
+    def __rand__(self, other) -> "ParserElement":
         """
         Implementation of ``&`` operator when left operand is not a :class:`ParserElement`
         """
@@ -1615,7 +1615,7 @@ class ParserElement(ABC):
             )
         return other & self
 
-    def __invert__(self):
+    def __invert__(self) -> "ParserElement":
         """
         Implementation of ``~`` operator - returns :class:`NotAny`
         """
@@ -1665,7 +1665,7 @@ class ParserElement(ABC):
         ret = self * tuple(key[:2])
         return ret
 
-    def __call__(self, name: str = None):
+    def __call__(self, name: str = None) -> "ParserElement":
         """
         Shortcut for :class:`set_results_name`, with ``list_all_matches=False``.
 
@@ -2231,7 +2231,7 @@ class _PendingSkip(ParserElement):
     def _generateDefaultName(self):
         return str(self.anchor + Empty()).replace("Empty", "...")
 
-    def __add__(self, other):
+    def __add__(self, other) -> "ParserElement":
         skipper = SkipTo(other).set_name("...")("_skipped*")
         if self.must_skip:
 
@@ -5588,13 +5588,13 @@ class Suppress(TokenConverter):
             expr = _PendingSkip(NoMatch())
         super().__init__(expr)
 
-    def __add__(self, other):
+    def __add__(self, other) -> "ParserElement":
         if isinstance(self.expr, _PendingSkip):
             return Suppress(SkipTo(other)) + other
         else:
             return super().__add__(other)
 
-    def __sub__(self, other):
+    def __sub__(self, other) -> "ParserElement":
         if isinstance(self.expr, _PendingSkip):
             return Suppress(SkipTo(other)) - other
         else:
