@@ -259,7 +259,7 @@ hexnums = nums + "ABCDEFabcdef"
 alphanums = alphas + nums
 printables = "".join([c for c in string.printable if c not in string.whitespace])
 
-_trim_arity_call_line = None
+_trim_arity_call_line: traceback.StackSummary = None
 
 
 def _trim_arity(func, maxargs=2):
@@ -280,16 +280,12 @@ def _trim_arity(func, maxargs=2):
     # synthesize what would be returned by traceback.extract_stack at the call to
     # user's parse action 'func', so that we don't incur call penalty at parse time
 
-    LINE_DIFF = 11
+    # fmt: off
+    LINE_DIFF = 7
     # IF ANY CODE CHANGES, EVEN JUST COMMENTS OR BLANK LINES, BETWEEN THE NEXT LINE AND
     # THE CALL TO FUNC INSIDE WRAPPER, LINE_DIFF MUST BE MODIFIED!!!!
-    _trim_arity_call_line = (
-        _trim_arity_call_line or traceback.extract_stack(limit=2)[-1]
-    )
-    pa_call_line_synth = (
-        _trim_arity_call_line[0],
-        _trim_arity_call_line[1] + LINE_DIFF,
-    )
+    _trim_arity_call_line = (_trim_arity_call_line or traceback.extract_stack(limit=2)[-1])
+    pa_call_line_synth = (_trim_arity_call_line[0], _trim_arity_call_line[1] + LINE_DIFF)
 
     def wrapper(*args):
         nonlocal found_arity, limit
@@ -315,6 +311,7 @@ def _trim_arity(func, maxargs=2):
                             continue
 
                     raise
+    # fmt: on
 
     # copy func name to wrapper for sensible debug output
     # (can't use functools.wraps, since that messes with function signature)
