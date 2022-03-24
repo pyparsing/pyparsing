@@ -13,6 +13,10 @@ Version 3.0.8 - (under development)
 - More type-hinting added for all arithmetic and logical operator
   methods in ParserElement. PR from Kazantcev Andrey, thank you.
 
+- Fixed `infix_notation`'s definitions of `lpar` and `rpar`, to accept
+  parse expressions such that they do not get suppressed in the parsed
+  results. PR submitted by Philippe Prados, nice work.
+
 
 Version 3.0.7 -
 ---------------

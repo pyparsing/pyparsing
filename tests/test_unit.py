@@ -2086,6 +2086,7 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
         plusop = pp.oneOf("+ -")
         factop = pp.Literal("!")
 
+        # fmt: off
         expr = pp.infixNotation(
             operand,
             [
@@ -2096,6 +2097,7 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
                 (plusop, 2, pp.opAssoc.LEFT),
             ],
         )
+        # fmt: on
 
         test = [
             "9 + 2 + 3",
@@ -2181,6 +2183,7 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
                 return not v
 
         boolOperand = pp.Word(pp.alphas, max=1, asKeyword=True) | pp.oneOf("True False")
+        # fmt: off
         boolExpr = pp.infixNotation(
             boolOperand,
             [
@@ -2189,6 +2192,7 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
                 ("or", 2, pp.opAssoc.LEFT, BoolOr),
             ],
         )
+        # fmt: on
         test = [
             "p and not q",
             "not not p",
@@ -2236,6 +2240,7 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
         plusop = pp.oneOf("+ -")
         factop = pp.Literal("!")
 
+        # fmt: off
         expr = pp.infixNotation(
             operand,
             [
@@ -2246,6 +2251,7 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
                 (plusop, 2, pp.opAssoc.LEFT),
             ],
         )
+        # fmt: on
 
         test = ["9"]
         for t in test:
@@ -2330,6 +2336,7 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             opn_map = {"+": operator.add, "-": operator.sub}
 
         operand = ppc.number().setParseAction(NumberNode)
+        # fmt: off
         expr = pp.infixNotation(
             operand,
             [
@@ -2339,6 +2346,7 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
                 (plusop, 2, pp.opAssoc.LEFT, AddOp),
             ],
         )
+        # fmt: on
 
         tests = """\
             2+7
@@ -2366,48 +2374,144 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
     def testInfixNotationExceptions(self):
         num = pp.Word(pp.nums)
 
+        # fmt: off
+
         # arity 3 with None opExpr - should raise ValueError
         with self.assertRaises(ValueError):
-            expr = pp.infixNotation(num, [(None, 3, pp.opAssoc.LEFT)])
+            expr = pp.infixNotation(
+                num,
+                [
+                    (None, 3, pp.opAssoc.LEFT),
+                ]
+            )
 
         # arity 3 with invalid tuple - should raise ValueError
         with self.assertRaises(ValueError):
-            expr = pp.infixNotation(num, [(("+", "-", "*"), 3, pp.opAssoc.LEFT)])
+            expr = pp.infixNotation(
+                num,
+                [
+                    (("+", "-", "*"), 3, pp.opAssoc.LEFT),
+                ]
+            )
 
         # left arity > 3 - should raise ValueError
         with self.assertRaises(ValueError):
-            expr = pp.infixNotation(num, [("*", 4, pp.opAssoc.LEFT)])
+            expr = pp.infixNotation(
+                num,
+                [
+                    ("*", 4, pp.opAssoc.LEFT),
+                ]
+            )
 
         # right arity > 3 - should raise ValueError
         with self.assertRaises(ValueError):
-            expr = pp.infixNotation(num, [("*", 4, pp.opAssoc.RIGHT)])
+            expr = pp.infixNotation(
+                num,
+                [
+                    ("*", 4, pp.opAssoc.RIGHT),
+                ]
+            )
 
         # assoc not from opAssoc - should raise ValueError
         with self.assertRaises(ValueError):
-            expr = pp.infixNotation(num, [("*", 2, "LEFT")])
+            expr = pp.infixNotation(
+                num,
+                [
+                    ("*", 2, "LEFT"),
+                ]
+            )
+        # fmt: on
 
     def testInfixNotationWithNonOperators(self):
         # left arity 2 with None expr
         # right arity 2 with None expr
         num = pp.Word(pp.nums).addParseAction(pp.tokenMap(int))
         ident = ppc.identifier()
+
+        # fmt: off
         for assoc in (pp.opAssoc.LEFT, pp.opAssoc.RIGHT):
             expr = pp.infixNotation(
-                num | ident, [(None, 2, assoc), ("+", 2, pp.opAssoc.LEFT)]
+                num | ident,
+                [
+                    (None, 2, assoc),
+                    ("+", 2, pp.opAssoc.LEFT),
+                ]
             )
             self.assertParseAndCheckList(expr, "3x+2", [[[3, "x"], "+", 2]])
+        # fmt: on
 
     def testInfixNotationTernaryOperator(self):
         # left arity 3
         # right arity 3
         num = pp.Word(pp.nums).addParseAction(pp.tokenMap(int))
+
+        # fmt: off
         for assoc in (pp.opAssoc.LEFT, pp.opAssoc.RIGHT):
             expr = pp.infixNotation(
-                num, [("+", 2, pp.opAssoc.LEFT), (("?", ":"), 3, assoc)]
+                num,
+                [
+                    ("+", 2, pp.opAssoc.LEFT),
+                    (("?", ":"), 3, assoc),
+                ]
             )
             self.assertParseAndCheckList(
                 expr, "3 + 2? 12: 13", [[[3, "+", 2], "?", 12, ":", 13]]
             )
+        # fmt: on
+
+    def testInfixNotationWithAlternateParenSymbols(self):
+        num = pp.Word(pp.nums).addParseAction(pp.tokenMap(int))
+
+        # fmt: off
+        expr = pp.infixNotation(
+            num,
+            [
+                ("+", 2, pp.opAssoc.LEFT),
+            ],
+            lpar="(",
+            rpar=")",
+        )
+        self.assertParseAndCheckList(
+            expr, "3 + (2 + 11)", [[3, '+', [2, '+', 11]]]
+        )
+
+        expr = pp.infixNotation(
+            num,
+            [
+                ("+", 2, pp.opAssoc.LEFT),
+            ],
+            lpar="<",
+            rpar=">",
+        )
+        self.assertParseAndCheckList(
+            expr, "3 + <2 + 11>", [[3, '+', [2, '+', 11]]]
+        )
+
+        expr = pp.infixNotation(
+            num,
+            [
+                ("+", 2, pp.opAssoc.LEFT),
+            ],
+            lpar=pp.Literal("<"),
+            rpar=pp.Literal(">"),
+        )
+        self.assertParseAndCheckList(
+            expr, "3 + <2 + 11>", [[3, '+', ['<', [2, '+', 11], '>']]]
+        )
+
+        expr = pp.infixNotation(
+            num,
+            [
+                ("+", 2, pp.opAssoc.LEFT),
+            ],
+            lpar=pp.Literal("<<"),
+            rpar=pp.Literal(">>"),
+        )
+        self.assertParseAndCheckList(
+            expr, "3 + <<2 + 11>>", [[3, '+', ['<<', [2, '+', 11], '>>']]]
+        )
+
+        # fmt: on
 
     def testParseResultsPickle(self):
         import pickle
@@ -5460,6 +5564,7 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
 
         a = pp.oneOf("a b c")
         b = pp.oneOf("d e f")
+        # fmt: off
         arith_expr = pp.infixNotation(
             pp.Word(pp.nums),
             [
@@ -5468,8 +5573,12 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             ],
         )
         arith_expr2 = pp.infixNotation(
-            pp.Word(pp.nums), [(("?", ":"), 3, pp.opAssoc.LEFT)]
+            pp.Word(pp.nums),
+            [
+                (("?", ":"), 3, pp.opAssoc.LEFT),
+            ]
         )
+        # fmt: on
         recursive = pp.Forward()
         recursive <<= a + (b + recursive)[...]
 
@@ -8540,19 +8649,27 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
         )
 
     def testChainedTernaryOperator(self):
+        # fmt: off
         TERNARY_INFIX = pp.infixNotation(
-            ppc.integer, [(("?", ":"), 3, pp.opAssoc.LEFT)]
+            ppc.integer,
+            [
+                (("?", ":"), 3, pp.opAssoc.LEFT),
+            ]
         )
         self.assertParseAndCheckList(
             TERNARY_INFIX, "1?1:0?1:0", [[1, "?", 1, ":", 0, "?", 1, ":", 0]]
         )
 
         TERNARY_INFIX = pp.infixNotation(
-            ppc.integer, [(("?", ":"), 3, pp.opAssoc.RIGHT)]
+            ppc.integer,
+            [
+                (("?", ":"), 3, pp.opAssoc.RIGHT),
+            ]
         )
         self.assertParseAndCheckList(
             TERNARY_INFIX, "1?1:0?1:0", [[1, "?", 1, ":", [0, "?", 1, ":", 0]]]
         )
+        # fmt: on
 
     def testOneOfWithDuplicateSymbols(self):
         # test making oneOf with duplicate symbols

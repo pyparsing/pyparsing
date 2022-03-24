@@ -1079,6 +1079,42 @@ Helper methods
       this expression to parse input strings, or incorporate it
       into a larger, more complex grammar.
 
+  ``infix_notation`` also supports optional arguments ``lpar`` and ``rpar``, to
+  parse groups with symbols other than "(" and ")". They may be passed as strings
+  (in which case they will be converted to ``Suppress`` objects, and suppressed from
+  the parsed results), or passed as pyparsing expressions, in which case they will
+  be kept as-is, and grouped with their contents.
+
+  For instance, to use "<" and ">" for grouping symbols, you could write::
+
+        expr = infix_notation(int_expr,
+            [
+                (one_of("+ -"), 2, opAssoc.LEFT),
+            ],
+            lpar="<",
+            rpar=">"
+            )
+        expr.parse_string("3 - <2 + 11>")
+
+  returning::
+
+        [3, '-', [2, '+', 11]]
+
+  If the grouping symbols are to be retained, then pass them as pyparsing ``Literals``::
+
+        expr = infix_notation(int_expr,
+            [
+                (one_of("+ -"), 2, opAssoc.LEFT),
+            ],
+            lpar=Literal("<"),
+            rpar=Literal(">")
+            )
+        expr.parse_string("3 - <2 + 11>")
+
+  returning::
+
+        [3, '-', ['<', [2, '+', 11], '>']]
+
 - ``match_previous_literal`` and ``match_previous_expr`` - function to define an
   expression that matches the same content
   as was parsed in a previous parse expression.  For instance::

@@ -262,7 +262,7 @@ printables = "".join([c for c in string.printable if c not in string.whitespace]
 _trim_arity_call_line: traceback.StackSummary = None
 
 
-def _trim_arity(func, maxargs=2):
+def _trim_arity(func, max_limit=3):
     """decorator to trim function calls to match the arity of the target"""
     global _trim_arity_call_line
 
@@ -306,7 +306,7 @@ def _trim_arity(func, maxargs=2):
                     del tb
 
                     if trim_arity_type_error:
-                        if limit <= maxargs:
+                        if limit < max_limit:
                             limit += 1
                             continue
 
@@ -317,6 +317,7 @@ def _trim_arity(func, maxargs=2):
     # (can't use functools.wraps, since that messes with function signature)
     func_name = getattr(func, "__name__", getattr(func, "__class__").__name__)
     wrapper.__name__ = func_name
+    wrapper.__doc__ = func.__doc__
 
     return wrapper
 

@@ -760,10 +760,14 @@ def infix_notation(
         a tuple or list of functions, this is equivalent to calling
         ``set_parse_action(*fn)``
         (:class:`ParserElement.set_parse_action`)
-    - ``lpar`` - expression for matching left-parentheses
-      (default= ``Suppress('(')``)
-    - ``rpar`` - expression for matching right-parentheses
-      (default= ``Suppress(')')``)
+    - ``lpar`` - expression for matching left-parentheses; if passed as a
+      str, then will be parsed as Suppress(lpar). If lpar is passed as
+      an expression (such as ``Literal('(')``), then it will be kept in
+      the parsed results, and grouped with them. (default= ``Suppress('(')``)
+    - ``rpar`` - expression for matching right-parentheses; if passed as a
+      str, then will be parsed as Suppress(rpar). If rpar is passed as
+      an expression (such as ``Literal(')')``), then it will be kept in
+      the parsed results, and grouped with them. (default= ``Suppress(')')``)
 
     Example::
 
@@ -809,7 +813,13 @@ def infix_notation(
         lpar = Suppress(lpar)
     if isinstance(rpar, str):
         rpar = Suppress(rpar)
-    lastExpr = base_expr | (lpar + ret + rpar)
+
+    # if lpar and rpar are not suppressed, wrap in group
+    if not (isinstance(rpar, Suppress) and isinstance(rpar, Suppress)):
+        lastExpr = base_expr | Group(lpar + ret + rpar)
+    else:
+        lastExpr = base_expr | (lpar + ret + rpar)
+
     for i, operDef in enumerate(op_list):
         opExpr, arity, rightLeftAssoc, pa = (operDef + (None,))[:4]
         if isinstance(opExpr, str_type):
