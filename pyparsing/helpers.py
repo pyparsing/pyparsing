@@ -805,8 +805,10 @@ def infix_notation(
     _FB.__name__ = "FollowedBy>"
 
     ret = Forward()
-    lpar = Suppress(lpar)
-    rpar = Suppress(rpar)
+    if isinstance(lpar, str):
+        lpar = Suppress(lpar)
+    if isinstance(rpar, str):
+        rpar = Suppress(rpar)
     lastExpr = base_expr | (lpar + ret + rpar)
     for i, operDef in enumerate(op_list):
         opExpr, arity, rightLeftAssoc, pa = (operDef + (None,))[:4]
