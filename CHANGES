@@ -17,6 +17,9 @@ Version 3.0.8 - (under development)
   parse expressions such that they do not get suppressed in the parsed
   results. PR submitted by Philippe Prados, nice work.
 
+- Fixed bug in railroad diagramming with expressions containing Combine
+  elements. Reported by Jeremy White, thanks!
+
 
 Version 3.0.7 -
 ---------------

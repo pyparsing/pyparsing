@@ -50,17 +50,25 @@ class TestRailroadDiagrams(unittest.TestCase):
     def test_bool_expr(self):
         railroad = self.generate_railroad(boolExpr, "boolExpr")
         assert len(railroad) == 5
+        railroad = self.generate_railroad(boolExpr, "boolExpr", show_results_names=True)
+        assert len(railroad) == 5
 
     def test_json(self):
         railroad = self.generate_railroad(jsonObject, "jsonObject")
+        assert len(railroad) == 9
+        railroad = self.generate_railroad(jsonObject, "jsonObject", show_results_names=True)
         assert len(railroad) == 9
 
     def test_sql(self):
         railroad = self.generate_railroad(simpleSQL, "simpleSQL")
         assert len(railroad) == 18
+        railroad = self.generate_railroad(simpleSQL, "simpleSQL", show_results_names=True)
+        assert len(railroad) == 18
 
     def test_calendars(self):
         railroad = self.generate_railroad(calendars, "calendars")
+        assert len(railroad) == 13
+        railroad = self.generate_railroad(calendars, "calendars", show_results_names=True)
         assert len(railroad) == 13
 
     def test_nested_forward_with_inner_and_outer_names(self):
@@ -70,6 +78,8 @@ class TestRailroadDiagrams(unittest.TestCase):
 
         railroad = self.generate_railroad(outer, "inner_outer_names")
         assert len(railroad) == 2
+        railroad = self.generate_railroad(outer, "inner_outer_names", show_results_names=True)
+        assert len(railroad) == 2
 
     def test_nested_forward_with_inner_name_only(self):
         outer = pp.Forward()
@@ -77,6 +87,8 @@ class TestRailroadDiagrams(unittest.TestCase):
         outer <<= inner
 
         railroad = self.generate_railroad(outer, "inner_only")
+        assert len(railroad) == 2
+        railroad = self.generate_railroad(outer, "inner_only", show_results_names=True)
         assert len(railroad) == 2
 
     def test_each_grammar(self):
@@ -90,6 +102,8 @@ class TestRailroadDiagrams(unittest.TestCase):
         ).setName("int-word-uuid in any order")
         railroad = self.generate_railroad(grammar, "each_expression")
         assert len(railroad) == 2
+        railroad = self.generate_railroad(grammar, "each_expression", show_results_names=True)
+        assert len(railroad) == 2
 
     def test_none_name(self):
         grammar = pp.Or(["foo", "bar"])
@@ -102,3 +116,15 @@ class TestRailroadDiagrams(unittest.TestCase):
         railroad = to_railroad(grammar)
         assert len(railroad) == 2
         assert railroad[0].name is not None
+        railroad = to_railroad(grammar, show_results_names=True)
+        assert len(railroad) == 2
+
+    def test_complete_combine_element(self):
+        ints = pp.Word(pp.nums)
+        grammar = pp.Combine(
+            ints('hours') + pp.Literal(":") + ints('minutes') + pp.Literal(":") + ints('seconds')
+        )
+        railroad = to_railroad(grammar)
+        assert len(railroad) == 1
+        railroad = to_railroad(grammar, show_results_names=True)
+        assert len(railroad) == 1
