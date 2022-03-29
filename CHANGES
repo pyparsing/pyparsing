@@ -4,6 +4,12 @@ Change Log
 
 Version 3.0.8 - (under development)
 ---------------
+- API CHANGE: modified pyproject.toml to require Python version
+  3.6.8 or later for pyparsing 3.x. Earlier minor versions of 3.6
+  fail in evaluating the `version_info` class (implemented using
+  typing.NamedTuple). If you are using an earlier version of Python
+  3.6, you will need to use pyparsing 2.4.7.
+
 - Improved pyparsing import time by deferring regex pattern compiles.
   PR submitted by Anthony Sottile to fix issue #362, thanks!
 
