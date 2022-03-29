@@ -20,6 +20,11 @@ Version 3.0.8 - (under development)
 - Fixed bug in railroad diagramming with expressions containing Combine
   elements. Reported by Jeremy White, thanks!
 
+- Added `unicode_denormalizer.py` to the examples as a demonstration
+  of how Python's interpreter will accept Unicode characters in
+  identifiers, but normalizes them back to ASCII so that identifiers
+  `print` and `𝕡𝓻ᵢ𝓃𝘁` and `𝖕𝒓𝗂𝑛ᵗ` are all equivalent.
+
 
 Version 3.0.7 -
 ---------------
