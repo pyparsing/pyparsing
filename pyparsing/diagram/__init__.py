@@ -54,7 +54,7 @@ class AnnotatedItem(railroad.Group):
     """
 
     def __init__(self, label: str, item):
-        super().__init__(item=item, label="[{}]".format(label))
+        super().__init__(item=item, label="[{}]".format(label) if label else label)
 
 
 class EditablePartial(Generic[T]):
@@ -437,7 +437,7 @@ def _to_diagram_element(
         if isinstance(
             element,
             (
-                pyparsing.TokenConverter,
+                # pyparsing.TokenConverter,
                 # pyparsing.Forward,
                 pyparsing.Located,
             ),
@@ -510,6 +510,10 @@ def _to_diagram_element(
         ret = EditablePartial.from_call(AnnotatedItem, label="LOOKAHEAD", item="")
     elif isinstance(element, pyparsing.PrecededBy):
         ret = EditablePartial.from_call(AnnotatedItem, label="LOOKBEHIND", item="")
+    elif isinstance(element, pyparsing.Group):
+        ret = EditablePartial.from_call(AnnotatedItem, label="", item="")
+    elif isinstance(element, pyparsing.TokenConverter):
+        ret = EditablePartial.from_call(AnnotatedItem, label=type(element).__name__.lower(), item="")
     elif isinstance(element, pyparsing.Opt):
         ret = EditablePartial.from_call(railroad.Optional, item="")
     elif isinstance(element, pyparsing.OneOrMore):
