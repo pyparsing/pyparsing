@@ -44,6 +44,9 @@ Development_](https://github.com/pyparsing/pyparsing/wiki/Zen)
 article on the pyparsing wiki, to get a general feel for the historical and future approaches to pyparsing's
 design, and intended developer experience as an embedded DSL.
 
+If you are using new Python features or changing usage of the Python stdlib, please check that they work as
+intended on prior versions of Python (currently back to Python 3.6.8).
+
 ## Some design points
 
 - Minimize additions to the module namespace. Over time, pyparsing's namespace has acquired a *lot* of names.
@@ -98,7 +101,7 @@ These coding styles are encouraged whether submitting code for core pyparsing or
       ppc = pp.pyparsing_common
       ppu = pp.pyparsing_unicode
 
-  Submitted examples *must* be Python 3 compatible.
+  Submitted examples *must* be Python 3.6.8 or later compatible.
 
 - Where possible use operators to create composite parse expressions:
 
@@ -119,3 +122,6 @@ These coding styles are encouraged whether submitting code for core pyparsing or
   how to avoid them when developing new examples.
 
 - New features should be accompanied by updates to unitTests.py and a bullet in the CHANGES file.
+
+- Do not modify pyparsing_archive.py. This file is kept as a reference artifact from when pyparsing was distributed
+  as a single source file.

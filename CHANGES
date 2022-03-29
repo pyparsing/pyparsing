@@ -7,7 +7,7 @@ Version 3.0.8 - (under development)
 - API CHANGE: modified pyproject.toml to require Python version
   3.6.8 or later for pyparsing 3.x. Earlier minor versions of 3.6
   fail in evaluating the `version_info` class (implemented using
-  typing.NamedTuple). If you are using an earlier version of Python
+  `typing.NamedTuple`). If you are using an earlier version of Python
   3.6, you will need to use pyparsing 2.4.7.
 
 - Improved pyparsing import time by deferring regex pattern compiles.
@@ -17,13 +17,13 @@ Version 3.0.8 - (under development)
   doc and removed old Windows build scripts - nice cleanup work!
 
 - More type-hinting added for all arithmetic and logical operator
-  methods in ParserElement. PR from Kazantcev Andrey, thank you.
+  methods in `ParserElement`. PR from Kazantcev Andrey, thank you.
 
 - Fixed `infix_notation`'s definitions of `lpar` and `rpar`, to accept
   parse expressions such that they do not get suppressed in the parsed
   results. PR submitted by Philippe Prados, nice work.
 
-- Fixed bug in railroad diagramming with expressions containing Combine
+- Fixed bug in railroad diagramming with expressions containing `Combine`
   elements. Reported by Jeremy White, thanks!
 
 - Added `unicode_denormalizer.py` to the examples as a demonstration
@@ -31,25 +31,29 @@ Version 3.0.8 - (under development)
   identifiers, but normalizes them back to ASCII so that identifiers
   `print` and `𝕡𝓻ᵢ𝓃𝘁` and `𝖕𝒓𝗂𝑛ᵗ` are all equivalent.
 
+- Removed imports of deprecated `sre_constants` module for catching
+  exceptions when compiling regular expressions. PR submitted by
+  Serhiy Storchaka, thank you.
+
 
 Version 3.0.7 -
 ---------------
 - Fixed bug #345, in which delimitedList changed expressions in place
-  using expr.streamline(). Reported by Kim Gräsman, thanks!
+  using `expr.streamline()`. Reported by Kim Gräsman, thanks!
 
 - Fixed bug #346, when a string of word characters was passed to WordStart
-  or WordEnd instead of just taking the default value. Originally posted
+  or `WordEnd` instead of just taking the default value. Originally posted
   as a question by Parag on StackOverflow, good catch!
 
-- Fixed bug #350, in which White expressions could fail to match due to
+- Fixed bug #350, in which `White` expressions could fail to match due to
   unintended whitespace-skipping. Reported by Fu Hanxi, thank you!
 
-- Fixed bug #355, when a QuotedString is defined with characters in its
+- Fixed bug #355, when a `QuotedString` is defined with characters in its
   quoteChar string containing regex-significant characters such as ., *,
   ?, [, ], etc.
 
-- Fixed bug in ParserElement.run_tests where comments would be displayed
-  using with_line_numbers.
+- Fixed bug in `ParserElement.run_tests` where comments would be displayed
+  using `with_line_numbers`.
 
 - Added optional "min" and "max" arguments to `delimited_list`. PR
   submitted by Marius, thanks!
