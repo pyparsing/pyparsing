@@ -312,7 +312,7 @@ def one_of(
 
             return ret
 
-        except sre_constants.error:
+        except re.error:
             warnings.warn(
                 "Exception creating Regex for one_of, building MatchFirst", stacklevel=2
             )
