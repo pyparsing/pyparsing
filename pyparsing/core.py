@@ -23,7 +23,6 @@ import string
 import copy
 import warnings
 import re
-import sre_constants
 import sys
 from collections.abc import Iterable
 import traceback
@@ -2783,7 +2782,7 @@ class Word(Token):
 
             try:
                 self.re = re.compile(self.reString)
-            except sre_constants.error:
+            except re.error:
                 self.re = None
             else:
                 self.re_match = self.re.match
@@ -2966,7 +2965,7 @@ class Regex(Token):
         else:
             try:
                 return re.compile(self.pattern, self.flags)
-            except sre_constants.error:
+            except re.error:
                 raise ValueError(
                     "invalid pattern ({!r}) passed to Regex".format(self.pattern)
                 )
@@ -3188,7 +3187,7 @@ class QuotedString(Token):
             self.re = re.compile(self.pattern, self.flags)
             self.reString = self.pattern
             self.re_match = self.re.match
-        except sre_constants.error:
+        except re.error:
             raise ValueError(
                 "invalid pattern {!r} passed to Regex".format(self.pattern)
             )
