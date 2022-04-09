@@ -2149,6 +2149,7 @@ class ParserElement(ABC):
         output_html: Union[TextIO, Path, str],
         vertical: int = 3,
         show_results_names: bool = False,
+        show_groups: bool = False,
         **kwargs,
     ) -> None:
         """
@@ -2161,7 +2162,7 @@ class ParserElement(ABC):
           instead of horizontally (default=3)
         - show_results_names - bool flag whether diagram should show annotations for
           defined results names
-
+        - show_groups - bool flag whether groups should be highlighted with an unlabeled surrounding box
         Additional diagram-formatting keyword arguments can also be included;
         see railroad.Diagram class.
         """
@@ -2179,6 +2180,7 @@ class ParserElement(ABC):
             self,
             vertical=vertical,
             show_results_names=show_results_names,
+            show_groups=show_groups,
             diagram_kwargs=kwargs,
         )
         if isinstance(output_html, (str, Path)):
