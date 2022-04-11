@@ -2,6 +2,17 @@
 Change Log
 ==========
 
+Version 3.0.9 - (in development)
+---------------
+- To address mypy confusion of pyparsing.Optional and typing.Optional
+  resulting in `error: "_SpecialForm" not callable` message
+  reported in issue #365, fixed the import in exceptions.py. Nice
+  sleuthing by Iwan Aucamp and Dominic Davis-Foster, thank you!
+  (Removed definitions of OptionalType, DictType, and IterableType
+  and replaced them with typing.Optional, typing.Dict, and
+  typing.Iterable throughout.)
+
+
 Version 3.0.8 -
 ---------------
 - API CHANGE: modified pyproject.toml to require Python version

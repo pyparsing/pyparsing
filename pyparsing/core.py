@@ -2,9 +2,8 @@
 # core.py
 #
 import os
+import typing
 from typing import (
-    Optional as OptionalType,
-    Iterable as IterableType,
     NamedTuple,
     Union,
     Callable,
@@ -14,7 +13,6 @@ from typing import (
     List,
     TextIO,
     Set,
-    Dict as DictType,
     Sequence,
 )
 from abc import ABC, abstractmethod
@@ -192,7 +190,7 @@ del __config_flags
 
 
 def _should_enable_warnings(
-    cmd_line_warn_options: IterableType[str], warn_env_var: OptionalType[str]
+    cmd_line_warn_options: typing.Iterable[str], warn_env_var: typing.Optional[str]
 ) -> bool:
     enable = bool(warn_env_var)
     for warn_opt in cmd_line_warn_options:
@@ -404,7 +402,7 @@ class ParserElement(ABC):
 
     DEFAULT_WHITE_CHARS: str = " \n\t\r"
     verbose_stacktrace: bool = False
-    _literalStringClass: OptionalType[type] = None
+    _literalStringClass: typing.Optional[type] = None
 
     @staticmethod
     def set_default_whitespace_chars(chars: str) -> None:
@@ -450,13 +448,13 @@ class ParserElement(ABC):
         ParserElement._literalStringClass = cls
 
     class DebugActions(NamedTuple):
-        debug_try: OptionalType[DebugStartAction]
-        debug_match: OptionalType[DebugSuccessAction]
-        debug_fail: OptionalType[DebugExceptionAction]
+        debug_try: typing.Optional[DebugStartAction]
+        debug_match: typing.Optional[DebugSuccessAction]
+        debug_fail: typing.Optional[DebugExceptionAction]
 
     def __init__(self, savelist: bool = False):
         self.parseAction: List[ParseAction] = list()
-        self.failAction: OptionalType[ParseFailAction] = None
+        self.failAction: typing.Optional[ParseFailAction] = None
         self.customName = None
         self._defaultName = None
         self.resultsName = None
@@ -895,7 +893,7 @@ class ParserElement(ABC):
 
     # cache for left-recursion in Forward references
     recursion_lock = RLock()
-    recursion_memos: DictType[
+    recursion_memos: typing.Dict[
         Tuple[int, "Forward", bool], Tuple[int, Union[ParseResults, Exception]]
     ] = {}
 
@@ -985,7 +983,7 @@ class ParserElement(ABC):
 
     @staticmethod
     def enable_left_recursion(
-        cache_size_limit: OptionalType[int] = None, *, force=False
+        cache_size_limit: typing.Optional[int] = None, *, force=False
     ) -> None:
         """
         Enables "bounded recursion" parsing, which allows for both direct and indirect
@@ -1953,12 +1951,12 @@ class ParserElement(ABC):
         self,
         tests: Union[str, List[str]],
         parse_all: bool = True,
-        comment: OptionalType[Union["ParserElement", str]] = "#",
+        comment: typing.Optional[Union["ParserElement", str]] = "#",
         full_dump: bool = True,
         print_results: bool = True,
         failure_tests: bool = False,
         post_parse: Callable[[str, ParseResults], str] = None,
-        file: OptionalType[TextIO] = None,
+        file: typing.Optional[TextIO] = None,
         with_line_numbers: bool = False,
         *,
         parseAll: bool = True,
@@ -2385,11 +2383,11 @@ class Keyword(Token):
     def __init__(
         self,
         match_string: str = "",
-        ident_chars: OptionalType[str] = None,
+        ident_chars: typing.Optional[str] = None,
         caseless: bool = False,
         *,
         matchString: str = "",
-        identChars: OptionalType[str] = None,
+        identChars: typing.Optional[str] = None,
     ):
         super().__init__()
         identChars = identChars or ident_chars
@@ -2513,10 +2511,10 @@ class CaselessKeyword(Keyword):
     def __init__(
         self,
         match_string: str = "",
-        ident_chars: OptionalType[str] = None,
+        ident_chars: typing.Optional[str] = None,
         *,
         matchString: str = "",
-        identChars: OptionalType[str] = None,
+        identChars: typing.Optional[str] = None,
     ):
         identChars = identChars or ident_chars
         match_string = matchString or match_string
@@ -2680,17 +2678,17 @@ class Word(Token):
     def __init__(
         self,
         init_chars: str = "",
-        body_chars: OptionalType[str] = None,
+        body_chars: typing.Optional[str] = None,
         min: int = 1,
         max: int = 0,
         exact: int = 0,
         as_keyword: bool = False,
-        exclude_chars: OptionalType[str] = None,
+        exclude_chars: typing.Optional[str] = None,
         *,
-        initChars: OptionalType[str] = None,
-        bodyChars: OptionalType[str] = None,
+        initChars: typing.Optional[str] = None,
+        bodyChars: typing.Optional[str] = None,
         asKeyword: bool = False,
-        excludeChars: OptionalType[str] = None,
+        excludeChars: typing.Optional[str] = None,
     ):
         initChars = initChars or init_chars
         bodyChars = bodyChars or body_chars
@@ -2872,10 +2870,10 @@ class Char(_WordRegex):
         self,
         charset: str,
         as_keyword: bool = False,
-        exclude_chars: OptionalType[str] = None,
+        exclude_chars: typing.Optional[str] = None,
         *,
         asKeyword: bool = False,
-        excludeChars: OptionalType[str] = None,
+        excludeChars: typing.Optional[str] = None,
     ):
         asKeyword = asKeyword or as_keyword
         excludeChars = excludeChars or exclude_chars
@@ -3088,18 +3086,18 @@ class QuotedString(Token):
     def __init__(
         self,
         quote_char: str = "",
-        esc_char: OptionalType[str] = None,
-        esc_quote: OptionalType[str] = None,
+        esc_char: typing.Optional[str] = None,
+        esc_quote: typing.Optional[str] = None,
         multiline: bool = False,
         unquote_results: bool = True,
-        end_quote_char: OptionalType[str] = None,
+        end_quote_char: typing.Optional[str] = None,
         convert_whitespace_escapes: bool = True,
         *,
         quoteChar: str = "",
-        escChar: OptionalType[str] = None,
-        escQuote: OptionalType[str] = None,
+        escChar: typing.Optional[str] = None,
+        escQuote: typing.Optional[str] = None,
         unquoteResults: bool = True,
-        endQuoteChar: OptionalType[str] = None,
+        endQuoteChar: typing.Optional[str] = None,
         convertWhitespaceEscapes: bool = True,
     ):
         super().__init__()
@@ -3600,7 +3598,7 @@ class ParseExpression(ParserElement):
     post-processing parsed tokens.
     """
 
-    def __init__(self, exprs: IterableType[ParserElement], savelist: bool = False):
+    def __init__(self, exprs: typing.Iterable[ParserElement], savelist: bool = False):
         super().__init__(savelist)
         self.exprs: List[ParserElement]
         if isinstance(exprs, _generatorType):
@@ -3782,7 +3780,9 @@ class And(ParseExpression):
         def _generateDefaultName(self):
             return "-"
 
-    def __init__(self, exprs_arg: IterableType[ParserElement], savelist: bool = True):
+    def __init__(
+        self, exprs_arg: typing.Iterable[ParserElement], savelist: bool = True
+    ):
         exprs: List[ParserElement] = list(exprs_arg)
         if exprs and Ellipsis in exprs:
             tmp = []
@@ -3926,7 +3926,7 @@ class Or(ParseExpression):
         [['123'], ['3.1416'], ['789']]
     """
 
-    def __init__(self, exprs: IterableType[ParserElement], savelist: bool = False):
+    def __init__(self, exprs: typing.Iterable[ParserElement], savelist: bool = False):
         super().__init__(exprs, savelist)
         if self.exprs:
             self.mayReturnEmpty = any(e.mayReturnEmpty for e in self.exprs)
@@ -4081,7 +4081,7 @@ class MatchFirst(ParseExpression):
         print(number.search_string("123 3.1416 789")) #  Better -> [['123'], ['3.1416'], ['789']]
     """
 
-    def __init__(self, exprs: IterableType[ParserElement], savelist: bool = False):
+    def __init__(self, exprs: typing.Iterable[ParserElement], savelist: bool = False):
         super().__init__(exprs, savelist)
         if self.exprs:
             self.mayReturnEmpty = any(e.mayReturnEmpty for e in self.exprs)
@@ -4232,7 +4232,7 @@ class Each(ParseExpression):
         - size: 20
     """
 
-    def __init__(self, exprs: IterableType[ParserElement], savelist: bool = True):
+    def __init__(self, exprs: typing.Iterable[ParserElement], savelist: bool = True):
         super().__init__(exprs, savelist)
         if self.exprs:
             self.mayReturnEmpty = all(e.mayReturnEmpty for e in self.exprs)
@@ -4619,7 +4619,7 @@ class PrecededBy(ParseElementEnhance):
     """
 
     def __init__(
-        self, expr: Union[ParserElement, str], retreat: OptionalType[int] = None
+        self, expr: Union[ParserElement, str], retreat: typing.Optional[int] = None
     ):
         super().__init__(expr)
         self.expr = self.expr().leave_whitespace()
@@ -4758,9 +4758,9 @@ class _MultipleMatch(ParseElementEnhance):
     def __init__(
         self,
         expr: ParserElement,
-        stop_on: OptionalType[Union[ParserElement, str]] = None,
+        stop_on: typing.Optional[Union[ParserElement, str]] = None,
         *,
-        stopOn: OptionalType[Union[ParserElement, str]] = None,
+        stopOn: typing.Optional[Union[ParserElement, str]] = None,
     ):
         super().__init__(expr)
         stopOn = stopOn or stop_on
@@ -4879,9 +4879,9 @@ class ZeroOrMore(_MultipleMatch):
     def __init__(
         self,
         expr: ParserElement,
-        stop_on: OptionalType[Union[ParserElement, str]] = None,
+        stop_on: typing.Optional[Union[ParserElement, str]] = None,
         *,
-        stopOn: OptionalType[Union[ParserElement, str]] = None,
+        stopOn: typing.Optional[Union[ParserElement, str]] = None,
     ):
         super().__init__(expr, stopOn=stopOn or stop_on)
         self.mayReturnEmpty = True
@@ -5046,7 +5046,7 @@ class SkipTo(ParseElementEnhance):
         other: Union[ParserElement, str],
         include: bool = False,
         ignore: bool = None,
-        fail_on: OptionalType[Union[ParserElement, str]] = None,
+        fail_on: typing.Optional[Union[ParserElement, str]] = None,
         *,
         failOn: Union[ParserElement, str] = None,
     ):
@@ -5143,7 +5143,7 @@ class Forward(ParseElementEnhance):
     parser created using ``Forward``.
     """
 
-    def __init__(self, other: OptionalType[Union[ParserElement, str]] = None):
+    def __init__(self, other: typing.Optional[Union[ParserElement, str]] = None):
         self.caller_frame = traceback.extract_stack(limit=2)[0]
         super().__init__(other, savelist=False)
         self.lshift_line = None
@@ -5395,7 +5395,7 @@ class Combine(TokenConverter):
         join_string: str = "",
         adjacent: bool = True,
         *,
-        joinString: OptionalType[str] = None,
+        joinString: typing.Optional[str] = None,
     ):
         super().__init__(expr)
         joinString = joinString if joinString is not None else join_string
@@ -5795,7 +5795,9 @@ punc8bit = srange(r"[\0xa1-\0xbf\0xd7\0xf7]")
 
 # build list of built-in expressions, for future reference if a global default value
 # gets updated
-_builtin_exprs = [v for v in vars().values() if isinstance(v, ParserElement)]
+_builtin_exprs: List[ParserElement] = [
+    v for v in vars().values() if isinstance(v, ParserElement)
+]
 
 # backward compatibility names
 tokenMap = token_map
