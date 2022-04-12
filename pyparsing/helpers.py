@@ -338,7 +338,7 @@ def dict_of(key: ParserElement, value: ParserElement) -> ParserElement:
 
         text = "shape: SQUARE posn: upper left color: light blue texture: burlap"
         attr_expr = (label + Suppress(':') + OneOrMore(data_word, stop_on=label).set_parse_action(' '.join))
-        print(OneOrMore(attr_expr).parse_string(text).dump())
+        print(attr_expr[1, ...].parse_string(text).dump())
 
         attr_label = label
         attr_value = Suppress(':') + OneOrMore(data_word, stop_on=label).set_parse_action(' '.join)
@@ -948,7 +948,7 @@ def indentedBlock(blockStatementExpr, indentStack, indent=True, backup_stacks=[]
         assignment = Group(identifier + "=" + rvalue)
         stmt << (funcDef | assignment | identifier)
 
-        module_body = OneOrMore(stmt)
+        module_body = stmt[1, ...]
 
         parseTree = module_body.parseString(data)
         parseTree.pprint()

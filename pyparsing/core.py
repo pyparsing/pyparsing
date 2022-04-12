@@ -412,11 +412,11 @@ class ParserElement(ABC):
         Example::
 
             # default whitespace chars are space, <TAB> and newline
-            OneOrMore(Word(alphas)).parse_string("abc def\nghi jkl")  # -> ['abc', 'def', 'ghi', 'jkl']
+            Word(alphas)[1, ...].parse_string("abc def\nghi jkl")  # -> ['abc', 'def', 'ghi', 'jkl']
 
             # change to just treat newline as significant
             ParserElement.set_default_whitespace_chars(" \t")
-            OneOrMore(Word(alphas)).parse_string("abc def\nghi jkl")  # -> ['abc', 'def']
+            Word(alphas)[1, ...].parse_string("abc def\nghi jkl")  # -> ['abc', 'def']
         """
         ParserElement.DEFAULT_WHITE_CHARS = chars
 
@@ -508,7 +508,7 @@ class ParserElement(ABC):
             integerK = integer.copy().add_parse_action(lambda toks: toks[0] * 1024) + Suppress("K")
             integerM = integer.copy().add_parse_action(lambda toks: toks[0] * 1024 * 1024) + Suppress("M")
 
-            print(OneOrMore(integerK | integerM | integer).parse_string("5K 100 640K 256M"))
+            print((integerK | integerM | integer)[1, ...].parse_string("5K 100 640K 256M"))
 
         prints::
 
@@ -1736,7 +1736,7 @@ class ParserElement(ABC):
 
         Example::
 
-            patt = OneOrMore(Word(alphas))
+            patt = Word(alphas)[1, ...]
             patt.parse_string('ablaj /* comment */ lskjd')
             # -> ['ablaj']
 
@@ -1796,7 +1796,7 @@ class ParserElement(ABC):
             # turn on debugging for wd
             wd.set_debug()
 
-            OneOrMore(term).parse_string("abc 123 xyz 890")
+            term[1, ...].parse_string("abc 123 xyz 890")
 
         prints::
 
@@ -2477,7 +2477,7 @@ class CaselessLiteral(Literal):
 
     Example::
 
-        OneOrMore(CaselessLiteral("CMD")).parse_string("cmd CMD Cmd10")
+        CaselessLiteral("CMD")[1, ...].parse_string("cmd CMD Cmd10")
         # -> ['CMD', 'CMD', 'CMD']
 
     (Contrast with example for :class:`CaselessKeyword`.)
@@ -2502,7 +2502,7 @@ class CaselessKeyword(Keyword):
 
     Example::
 
-        OneOrMore(CaselessKeyword("CMD")).parse_string("cmd CMD Cmd10")
+        CaselessKeyword("CMD")[1, ...].parse_string("cmd CMD Cmd10")
         # -> ['CMD', 'CMD']
 
     (Contrast with example for :class:`CaselessLiteral`.)
@@ -3765,7 +3765,7 @@ class And(ParseExpression):
     Example::
 
         integer = Word(nums)
-        name_expr = OneOrMore(Word(alphas))
+        name_expr = Word(alphas)[1, ...]
 
         expr = And([integer("id"), name_expr("name"), integer("age")])
         # more easily written as:
@@ -4568,7 +4568,7 @@ class FollowedBy(ParseElementEnhance):
         label = data_word + FollowedBy(':')
         attr_expr = Group(label + Suppress(':') + OneOrMore(data_word, stop_on=label).set_parse_action(' '.join))
 
-        OneOrMore(attr_expr).parse_string("shape: SQUARE color: BLACK posn: upper left").pprint()
+        attr_expr[1, ...].parse_string("shape: SQUARE color: BLACK posn: upper left").pprint()
 
     prints::
 
@@ -4730,7 +4730,7 @@ class NotAny(ParseElementEnhance):
 
         # very crude boolean expression - to support parenthesis groups and
         # operation hierarchy, use infix_notation
-        boolean_expr = boolean_term + ZeroOrMore((AND | OR) + boolean_term)
+        boolean_expr = boolean_term + ((AND | OR) + boolean_term)[...]
 
         # integers that are followed by "." are actually floats
         integer = Word(nums) + ~Char(".")
@@ -4849,7 +4849,7 @@ class OneOrMore(_MultipleMatch):
         attr_expr = Group(label + Suppress(':') + OneOrMore(data_word).set_parse_action(' '.join))
 
         text = "shape: SQUARE posn: upper left color: BLACK"
-        OneOrMore(attr_expr).parse_string(text).pprint()  # Fail! read 'color' as data instead of next label -> [['shape', 'SQUARE color']]
+        attr_expr[1, ...].parse_string(text).pprint()  # Fail! read 'color' as data instead of next label -> [['shape', 'SQUARE color']]
 
         # use stop_on attribute for OneOrMore to avoid reading label string as part of the data
         attr_expr = Group(label + Suppress(':') + OneOrMore(data_word, stop_on=label).set_parse_action(' '.join))
@@ -5482,10 +5482,10 @@ class Dict(TokenConverter):
         attr_expr = (label + Suppress(':') + OneOrMore(data_word, stop_on=label).set_parse_action(' '.join))
 
         # print attributes as plain groups
-        print(OneOrMore(attr_expr).parse_string(text).dump())
+        print(attr_expr[1, ...].parse_string(text).dump())
 
-        # instead of OneOrMore(expr), parse using Dict(OneOrMore(Group(expr))) - Dict will auto-assign names
-        result = Dict(OneOrMore(Group(attr_expr))).parse_string(text)
+        # instead of OneOrMore(expr), parse using Dict(Group(expr)[1, ...]) - Dict will auto-assign names
+        result = Dict(Group(attr_expr)[1, ...]).parse_string(text)
         print(result.dump())
 
         # access named fields as dict entries, or output as dict
@@ -5558,12 +5558,12 @@ class Suppress(TokenConverter):
 
         source = "a, b, c,d"
         wd = Word(alphas)
-        wd_list1 = wd + ZeroOrMore(',' + wd)
+        wd_list1 = wd + (',' + wd)[...]
         print(wd_list1.parse_string(source))
 
         # often, delimiters that are useful during parsing are just in the
         # way afterward - use Suppress to keep them out of the parsed output
-        wd_list2 = wd + ZeroOrMore(Suppress(',') + wd)
+        wd_list2 = wd + (Suppress(',') + wd)[...]
         print(wd_list2.parse_string(source))
 
         # Skipped text (using '...') can be suppressed as well
@@ -5622,7 +5622,7 @@ def trace_parse_action(f: ParseAction) -> ParseAction:
         def remove_duplicate_chars(tokens):
             return ''.join(sorted(set(''.join(tokens))))
 
-        wds = OneOrMore(wd).set_parse_action(remove_duplicate_chars)
+        wds = wd[1, ...].set_parse_action(remove_duplicate_chars)
         print(wds.parse_string("slkdjs sld sldd sdlf sdljf"))
 
     prints::
@@ -5728,18 +5728,18 @@ def token_map(func, *args) -> ParseAction:
 
     Example (compare the last to example in :class:`ParserElement.transform_string`::
 
-        hex_ints = OneOrMore(Word(hexnums)).set_parse_action(token_map(int, 16))
+        hex_ints = Word(hexnums)[1, ...].set_parse_action(token_map(int, 16))
         hex_ints.run_tests('''
             00 11 22 aa FF 0a 0d 1a
             ''')
 
         upperword = Word(alphas).set_parse_action(token_map(str.upper))
-        OneOrMore(upperword).run_tests('''
+        upperword[1, ...].run_tests('''
             my kingdom for a horse
             ''')
 
         wd = Word(alphas).set_parse_action(token_map(str.title))
-        OneOrMore(wd).set_parse_action(' '.join).run_tests('''
+        wd[1, ...].set_parse_action(' '.join).run_tests('''
             now is the winter of our discontent made glorious summer by this sun of york
             ''')
 
