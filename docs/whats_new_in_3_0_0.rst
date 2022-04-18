@@ -4,11 +4,11 @@ What's New in Pyparsing 3.0.0
 
 :author: Paul McGuire
 
-:date: October, 2021
+:date: April, 2022
 
 :abstract: This document summarizes the changes made
     in the 3.0.0 release of pyparsing.
-    (Updated to reflect changes up to 3.0.4)
+    (Updated to reflect changes up to 3.0.8)
 
 .. sectnum::    :depth: 4
 
@@ -166,8 +166,8 @@ just namespaces, to add some helpful behavior:
 
 - added support for calling ``enable_all_warnings()`` if warnings are enabled
   using the Python ``-W`` switch, or setting a non-empty value to the environment
-  variable ``PYPARSINGENABLEALLWARNINGS``. (If using `-Wd` for testing, but
-  wishing to disable pyparsing warnings, add `-Wi:::pyparsing`.)
+  variable ``PYPARSINGENABLEALLWARNINGS``. (If using ``-Wd`` for testing, but
+  wishing to disable pyparsing warnings, add ``-Wi:::pyparsing``.)
 
 - added new warning, ``warn_on_match_first_with_lshift_operator`` to
   warn when using ``'<<'`` with a ``'|'`` ``MatchFirst`` operator,
@@ -202,8 +202,8 @@ just namespaces, to add some helpful behavior:
 Support for yielding native Python ``list`` and ``dict`` types in place of ``ParseResults``
 -------------------------------------------------------------------------------
 To support parsers that are intended to generate native Python collection
-types such as lists and dicts, the ``Group`` and `Dict` classes now accept an
-additional boolean keyword argument ``aslist`` and `asdict` respectively. See
+types such as lists and dicts, the ``Group`` and ``Dict`` classes now accept an
+additional boolean keyword argument ``aslist`` and ``asdict`` respectively. See
 the ``jsonParser.py`` example in the ``pyparsing/examples`` source directory for
 how to return types as ``ParseResults`` and as Python collection types, and the
 distinctions in working with the different types.
@@ -270,7 +270,7 @@ classes have been added: ``AtLineStart`` and ``AtStringStart``.
 
 ``LineStart`` and ``StringStart`` can be treated as separate elements, including whitespace skipping.
 ``AtLineStart`` and ``AtStringStart`` enforce that an expression starts exactly at column 1, with no
-leading whitespace.
+leading whitespace.::
 
     (LineStart() + Word(alphas)).parseString("ABC")    # passes
     (LineStart() + Word(alphas)).parseString("  ABC")  # passes
@@ -405,7 +405,7 @@ Other new features
             b = pp.Literal("b").set_name("bbb")
             pp.autoname_elements()
 
-  `a` will get named "a", while `b` will keep its name "bbb".
+  ``a`` will get named "a", while ``b`` will keep its name "bbb".
 
 - Enhanced default strings created for ``Word`` expressions, now showing
   string ranges if possible. ``Word(alphas)`` would formerly
@@ -491,7 +491,7 @@ Other new features
   internally converts ranges of consecutive characters to regex
   character ranges (converting ``"0123456789"`` to ``"0-9"`` for instance).
 
-- Added a caseless parameter to the `CloseMatch` class to allow for casing to be
+- Added a caseless parameter to the ``CloseMatch`` class to allow for casing to be
   ignored when checking for close matches. Contributed by Adrian Edwards.
 
 
@@ -499,10 +499,10 @@ API Changes
 ===========
 
 - [Note added in pyparsing 3.0.7, reflecting a change in 3.0.0]
-  Fixed a bug in the `ParseResults` class implementation of `__bool__`, which
-  would formerly return `False` if the `ParseResults` item list was empty, even if it
-  contained named results. Now `ParseResults` will return `True` if either the item
-  list is not empty *or* if the named results list is not empty.
+  Fixed a bug in the ``ParseResults`` class implementation of ``__bool__``, which
+  would formerly return ``False`` if the ``ParseResults`` item list was empty, even if it
+  contained named results. Now ``ParseResults`` will return ``True`` if either the item
+  list is not empty *or* if the named results list is not empty::
 
       # generate an empty ParseResults by parsing a blank string with a ZeroOrMore
       result = Word(alphas)[...].parse_string("")
@@ -526,10 +526,10 @@ API Changes
       {'name': 'empty result'}
       True
 
-  In previous versions, the second call to `bool()` would return `False`.
+  In previous versions, the second call to ``bool()`` would return ``False``.
 
 - [Note added in pyparsing 3.0.4, reflecting a change in 3.0.0]
-  The `ParseResults` class now uses `__slots__` to pre-define instance attributes. This
+  The ``ParseResults`` class now uses ``__slots__`` to pre-define instance attributes. This
   means that code written like this (which was allowed in pyparsing 2.4.7)::
 
     result = Word(alphas).parseString("abc")
@@ -700,7 +700,7 @@ Discontinued Features
 Python 2.x no longer supported
 ------------------------------
 Removed Py2.x support and other deprecated features. Pyparsing
-now requires Python 3.6 or later. If you are using an earlier
+now requires Python 3.6.8 or later. If you are using an earlier
 version of Python, you must use a Pyparsing 2.4.x version.
 
 Other discontinued features

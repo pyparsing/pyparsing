@@ -134,10 +134,10 @@ Version 3.0.5 -
   when assigning a results name to an `original_text_for` expression.
   (Issue #110, would raise warning in packaging.)
 
-- Fixed internal bug where ParserElement.streamline() would not return self if
+- Fixed internal bug where `ParserElement.streamline()` would not return self if
   already streamlined.
 
-- Changed run_tests() output to default to not showing line and column numbers.
+- Changed `run_tests()` output to default to not showing line and column numbers.
   If line numbering is desired, call with `with_line_numbers=True`. Also fixed
   minor bug where separating line was not included after a test failure.
 
