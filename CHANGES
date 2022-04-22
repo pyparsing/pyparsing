@@ -12,6 +12,9 @@ Version 3.0.9 - (in development)
   and replaced them with typing.Optional, typing.Dict, and
   typing.Iterable throughout.)
 
+- Fixed typo in jinja2 template for railroad diagrams, thanks for the
+  catch Nioub (issue #388).
+
 
 Version 3.0.8 -
 ---------------
