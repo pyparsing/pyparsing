@@ -4,6 +4,11 @@ Change Log
 
 Version 3.0.9 - (in development)
 ---------------
+- Added Unicode set BMP representing the Basic Multilingual Plane
+  (Unicode characters up to code point 65535). Can be used to parse
+  most language characters, but omits emojis, wingdings, etc.
+  Raised in discussion with Dave Tapley (issue #392).
+
 - To address mypy confusion of pyparsing.Optional and typing.Optional
   resulting in `error: "_SpecialForm" not callable` message
   reported in issue #365, fixed the import in exceptions.py. Nice

@@ -318,9 +318,11 @@ class Hangul
 class Arabic
 class Devanagari
 class Hebrew
+class BMP
 unicode_set <|-- Latin1
 unicode_set <|--- LatinA
 unicode_set <|-- LatinB
+unicode_set <|-- BMP
 unicode_set <|-- Greek
 unicode_set <|--- Cyrillic
 unicode_set <|--- Chinese

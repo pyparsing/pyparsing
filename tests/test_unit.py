@@ -9,6 +9,7 @@
 
 import contextlib
 import datetime
+import random
 import re
 import sys
 import warnings
@@ -7126,6 +7127,34 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             expected_dict={"şehir": "İzmir", "ülke": "Türkiye", "nüfus": 4279677},
             msg="Failed to parse Turkish key-value pairs",
         )
+
+        # Basic Multilingual Plane only contains chars up to 65535
+        def filter_16_bit(s):
+            return "".join(c for c in s if ord(c) < 2**16)
+
+        bmp_printables = ppu.BMP.printables
+        sample = (
+            "".join(
+                random.choice(filter_16_bit(unicode_set.printables))
+                for unicode_set in (
+                    ppu.Japanese,
+                    Turkish_set,
+                    ppu.Greek,
+                    ppu.Hebrew,
+                    ppu.Devanagari,
+                    ppu.Hangul,
+                    ppu.Latin1,
+                    ppu.Chinese,
+                    ppu.Cyrillic,
+                    ppu.Arabic,
+                    ppu.Thai,
+                )
+                * 8
+            )
+            + "\N{REPLACEMENT CHARACTER}"
+        )
+        print(sample)
+        self.assertParseAndCheckList(pp.Word(bmp_printables), sample, [sample])
 
     # Make sure example in indentedBlock docstring actually works!
     def testIndentedBlockExample(self):
