@@ -1,6 +1,5 @@
 import railroad
 import pyparsing
-from pkg_resources import resource_filename
 import typing
 from typing import (
     List,
@@ -17,8 +16,36 @@ from io import StringIO
 import inspect
 
 
-with open(resource_filename(__name__, "template.jinja2"), encoding="utf-8") as fp:
-    template = Template(fp.read())
+jinja2_template_source = """\
+<!DOCTYPE html>
+<html>
+<head>
+    {% if not head %}
+        <style type="text/css">
+            .railroad-heading {
+                font-family: monospace;
+            }
+        </style>
+    {% else %}
+        {{ head | safe }}
+    {% endif %}
+</head>
+<body>
+{{ body | safe }}
+{% for diagram in diagrams %}
+    <div class="railroad-group">
+        <h1 class="railroad-heading">{{ diagram.title }}</h1>
+        <div class="railroad-description">{{ diagram.text }}</div>
+        <div class="railroad-svg">
+            {{ diagram.svg }}
+        </div>
+    </div>
+{% endfor %}
+</body>
+</html>
+"""
+
+template = Template(jinja2_template_source)
 
 # Note: ideally this would be a dataclass, but we're supporting Python 3.5+ so we can't do this yet
 NamedDiagram = NamedTuple(
