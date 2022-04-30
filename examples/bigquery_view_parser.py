@@ -1775,6 +1775,12 @@ if __name__ == "__main__":
                 (None, 'bigquery-public-data:samples', 'wikipedia'),
             ]
         ],
+        [
+            """\
+            with t as (select CASE when EXTRACT(dayofweek FROM CURRENT_DATETIME()) == 1 then "S" end) select * from t
+            """,
+            [],
+        ],
     ]
     # fmt: on
 
