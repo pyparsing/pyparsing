@@ -1711,6 +1711,30 @@ if __name__ == "__main__":
         [
             """\
             SELECT
+              /* Replace white spaces in the title with underscores. */
+              REGEXP_REPLACE(title, r'\s+', '_') AS regexp_title, revisions
+            FROM
+              (SELECT title, COUNT(revision_id) as revisions
+              FROM
+                [bigquery-public-data:samples.wikipedia]
+              WHERE
+                wp_namespace=0
+                /* Match titles that start with 'G', end with
+                 * 'e', and contain at least two 'o's.
+                 */
+                AND REGEXP_MATCH(title, r'^G.*o.*o.*e$')
+              GROUP BY
+                title
+              ORDER BY
+                revisions DESC
+              LIMIT 100);""",
+            [
+                (None, 'bigquery-public-data:samples', 'wikipedia'),
+            ],
+        ],
+        [
+            """\
+            SELECT
               page_title,
               /* Populate these columns as True or False, */
               /*  depending on the condition */
