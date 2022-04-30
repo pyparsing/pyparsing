@@ -14,12 +14,15 @@ Version 3.0.9 - (in development)
   resulting in `error: "_SpecialForm" not callable` message
   reported in issue #365, fixed the import in exceptions.py. Nice
   sleuthing by Iwan Aucamp and Dominic Davis-Foster, thank you!
-  (Removed definitions of OptionalType, DictType, and IterableType
-  and replaced them with typing.Optional, typing.Dict, and
-  typing.Iterable throughout.)
+  (Removed definitions of `OptionalType`, `DictType`, and `IterableType`
+  and replaced them with `typing.Optional`, `typing.Dict`, and
+  `typing.Iterable` throughout.)
 
 - Fixed typo in jinja2 template for railroad diagrams, thanks for the
   catch Nioub (issue #388).
+
+- Removed use of deprecated `pkg_resources` package in
+  railroad diagramming code (issue #391).
 
 - Updated bigquery_view_parser.py example to parse examples at
   https://cloud.google.com/bigquery/docs/reference/legacy-sql
