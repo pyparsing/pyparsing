@@ -20,6 +20,9 @@ Version 3.0.9 - (in development)
 - Fixed typo in jinja2 template for railroad diagrams, thanks for the
   catch Nioub (issue #388).
 
+- Updated bigquery_view_parser.py example to parse examples at
+  https://cloud.google.com/bigquery/docs/reference/legacy-sql
+
 
 Version 3.0.8 -
 ---------------

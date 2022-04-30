@@ -7,6 +7,7 @@
 # Michael Smedberg
 #
 import sys
+import textwrap
 
 from pyparsing import ParserElement, Suppress, Forward, CaselessKeyword
 from pyparsing import MatchFirst, alphas, alphanums, Combine, Word
@@ -20,7 +21,11 @@ ParserElement.enablePackrat()
 
 
 class BigQueryViewParser:
-    """Parser to extract table info from BigQuery view definitions"""
+    """Parser to extract table info from BigQuery view definitions
+
+    Based on the BNF and examples posted at
+    https://cloud.google.com/bigquery/docs/reference/legacy-sql
+    """
 
     _parser = None
     _table_identifiers = set()
@@ -45,7 +50,7 @@ class BigQueryViewParser:
     def _parse(self, sql_stmt):
         BigQueryViewParser._table_identifiers.clear()
         BigQueryViewParser._with_aliases.clear()
-        BigQueryViewParser._get_parser().parseString(sql_stmt)
+        BigQueryViewParser._get_parser().parseString(sql_stmt, parseAll=True)
 
         return BigQueryViewParser._table_identifiers, BigQueryViewParser._with_aliases
 
@@ -65,12 +70,13 @@ class BigQueryViewParser:
         ParserElement.enablePackrat()
 
         LPAR, RPAR, COMMA, LBRACKET, RBRACKET, LT, GT = map(Suppress, "(),[]<>")
-        QUOT, APOS, ACC, DOT = map(Suppress, "\"'`.")
+        QUOT, APOS, ACC, DOT, SEMI = map(Suppress, "\"'`.;")
         ungrouped_select_stmt = Forward().setName("select statement")
 
         QUOTED_QUOT = QuotedString('"')
         QUOTED_APOS = QuotedString("'")
         QUOTED_ACC = QuotedString("`")
+        QUOTED_BRACKETS = QuotedString("[", endQuoteChar="]")
 
         # fmt: off
         # keywords
@@ -91,7 +97,7 @@ class BigQueryViewParser:
             STRING_AGG, SUM, CORR, COVAR_POP, COVAR_SAMP, STDDEV_POP, STDDEV_SAMP,
             STDDEV, VAR_POP, VAR_SAMP, VARIANCE, TIMESTAMP_ADD, TIMESTAMP_SUB,
             GENERATE_ARRAY, GENERATE_DATE_ARRAY, GENERATE_TIMESTAMP_ARRAY, FOR,
-            SYSTEMTIME, AS, OF, WINDOW, RESPECT, IGNORE, NULLS,
+            SYSTEM_TIME, OF, WINDOW, RESPECT, IGNORE, NULLS, IF, CONTAINS,
         ) = map(
             CaselessKeyword,
             """
@@ -111,7 +117,7 @@ class BigQueryViewParser:
             STRING_AGG, SUM, CORR, COVAR_POP, COVAR_SAMP, STDDEV_POP, STDDEV_SAMP,
             STDDEV, VAR_POP, VAR_SAMP, VARIANCE, TIMESTAMP_ADD, TIMESTAMP_SUB,
             GENERATE_ARRAY, GENERATE_DATE_ARRAY, GENERATE_TIMESTAMP_ARRAY, FOR,
-            SYSTEMTIME, AS, OF, WINDOW, RESPECT, IGNORE, NULLS,
+            SYSTEM_TIME, OF, WINDOW, RESPECT, IGNORE, NULLS, IF, CONTAINS,
             """.replace(",", "").split(),
         )
 
@@ -121,7 +127,7 @@ class BigQueryViewParser:
              NOT, SELECT, DISTINCT, FROM, WHERE, GROUP, BY, HAVING, ORDER, BY,
              LIMIT, OFFSET, CAST, ISNULL, NOTNULL, NULL, IS, BETWEEN, ELSE, END,
              CASE, WHEN, THEN, EXISTS, COLLATE, IN, LIKE, GLOB, REGEXP, MATCH,
-             STRUCT, WINDOW,
+             STRUCT, WINDOW, SYSTEM_TIME, IF, FOR,
              )
         )
 
@@ -130,9 +136,10 @@ class BigQueryViewParser:
              DATE_SUB, ADDDATE, SUBDATE, INTERVAL, STRING_AGG, REGEXP_EXTRACT,
              SPLIT, ORDINAL, UNNEST, SAFE_CAST, PARTITION, TIMESTAMP_ADD,
              TIMESTAMP_SUB, ARRAY, GENERATE_ARRAY, GENERATE_DATE_ARRAY,
-             GENERATE_TIMESTAMP_ARRAY,
+             GENERATE_TIMESTAMP_ARRAY, SYSTEM_TIME, CONTAINS,
              )
         )
+
         # fmt: on
 
         identifier_word = Word(alphas + "_@#", alphanums + "@$#_")
@@ -394,14 +401,15 @@ class BigQueryViewParser:
                 (oneOf("* / %"), BINARY, opAssoc.LEFT),
                 (oneOf("+ -"), BINARY, opAssoc.LEFT),
                 (oneOf("<< >> & |"), BINARY, opAssoc.LEFT),
-                (oneOf("= > < >= <= <> != !< !>"), BINARY, opAssoc.LEFT),
+                (oneOf("= > < >= <= <> != !< !> =="), BINARY, opAssoc.LEFT),
                 (
                     IS + Optional(NOT)
                     | Optional(NOT) + IN
                     | Optional(NOT) + LIKE
                     | GLOB
                     | MATCH
-                    | REGEXP,
+                    | REGEXP
+                    | CONTAINS,
                     BINARY,
                     opAssoc.LEFT,
                 ),
@@ -508,17 +516,17 @@ class BigQueryViewParser:
             cls._table_identifiers.add(tuple(padded_list))
 
         quotable_table_parts_identifier = (
-            QUOTED_QUOT | QUOTED_APOS | QUOTED_ACC
+            QUOTED_QUOT | QUOTED_APOS | QUOTED_ACC | QUOTED_BRACKETS
         ).setParseAction(record_quoted_table_identifier)
 
         table_identifier = (
             quoted_table_parts_identifier | quotable_table_parts_identifier
-        )
+        ).setName("table_identifier")
         single_source = (
             (
                 table_identifier
                 + Optional(Optional(AS) + table_alias("table_alias*"))
-                + Optional(FOR + SYSTEMTIME + AS + OF + string_literal)
+                + Optional(FOR - SYSTEM_TIME + AS + OF + expr)
                 + Optional(INDEXED + BY + index_name("name") | NOT + INDEXED)
             )("index")
             | (LPAR + ungrouped_select_stmt + RPAR)
@@ -561,10 +569,11 @@ class BigQueryViewParser:
             + Optional(over_row_or_range)
             + RPAR
         )("over")
+        if_term = IF - LPAR + expr + COMMA + expr + COMMA + expr + RPAR
 
         result_column = Optional(table_name + ".") + "*" + Optional(
             EXCEPT + LPAR + delimitedList(column_name) + RPAR
-        ) | Group(quoted_expr + Optional(over) + Optional(Optional(AS) + column_alias))
+        ) | Group(quoted_expr + Optional(over))
 
         window_select_clause = (
             WINDOW + identifier + AS + LPAR + window_specification + RPAR
@@ -574,7 +583,13 @@ class BigQueryViewParser:
         ungrouped_select_no_with = (
             SELECT
             + Optional(DISTINCT | ALL)
-            + Group(delimitedList(result_column))("columns")
+            + Group(
+                delimitedList(
+                    (~FROM + ~IF + result_column | if_term)
+                    + Optional(Optional(AS) + column_alias),
+                    allow_trailing_delim=True,
+                )
+            )("columns")
             + Optional(FROM + join_source("from*"))
             + Optional(WHERE + expr)
             + Optional(
@@ -602,7 +617,9 @@ class BigQueryViewParser:
                 )
             )
         )("select")
-        select_stmt = ungrouped_select_stmt | (LPAR + ungrouped_select_stmt + RPAR)
+        select_stmt = (
+            ungrouped_select_stmt | (LPAR + ungrouped_select_stmt + RPAR)
+        ) + Optional(SEMI)
 
         # define comment format, and ignore them
         sql_comment = oneOf("-- #") + restOfLine | cStyleComment
@@ -631,7 +648,7 @@ class BigQueryViewParser:
             if verbose:
                 print(*args)
 
-        print_(sql_stmt.strip())
+        print_(textwrap.dedent(sql_stmt.strip()))
         found_tables = self.get_table_names(sql_stmt)
         print_(found_tables)
         expected_tables_set = set(expected_tables)
@@ -647,7 +664,7 @@ if __name__ == "__main__":
     # fmt: off
     TEST_CASES = [
         [
-            """
+            """\
             SELECT x FROM y.a, b
             """,
             [
@@ -656,7 +673,7 @@ if __name__ == "__main__":
             ],
         ],
         [
-            """
+            """\
             SELECT x FROM y.a JOIN b
             """,
             [
@@ -665,7 +682,7 @@ if __name__ == "__main__":
             ],
         ],
         [
-            """
+            """\
             select * from xyzzy where z > 100
             """,
             [
@@ -673,7 +690,7 @@ if __name__ == "__main__":
             ],
         ],
         [
-            """
+            """\
             select * from xyzzy where z > 100 order by zz
             """,
             [
@@ -681,7 +698,7 @@ if __name__ == "__main__":
             ],
         ],
         [
-            """
+            """\
             select * from xyzzy
             """,
             [
@@ -689,7 +706,7 @@ if __name__ == "__main__":
             ],
         ],
         [
-            """
+            """\
             select z.* from xyzzy
             """,
             [
@@ -697,7 +714,7 @@ if __name__ == "__main__":
             ],
         ],
         [
-            """
+            """\
             select a, b from test_table where 1=1 and b='yes'
             """,
             [
@@ -705,7 +722,7 @@ if __name__ == "__main__":
             ],
         ],
         [
-            """
+            """\
             select a, b from test_table where 1=1 and b in (select bb from foo)
             """,
             [
@@ -714,7 +731,7 @@ if __name__ == "__main__":
             ],
         ],
         [
-            """
+            """\
             select z.a, b from test_table where 1=1 and b in (select bb from foo)
             """,
             [
@@ -723,7 +740,7 @@ if __name__ == "__main__":
             ],
         ],
         [
-            """
+            """\
             select z.a, b from test_table where 1=1 and b in (select bb from foo) order by b,c desc,d
             """,
             [
@@ -732,7 +749,7 @@ if __name__ == "__main__":
             ],
         ],
         [
-            """
+            """\
             select z.a, b from test_table left join test2_table where 1=1 and b in (select bb from foo)
             """,
             [
@@ -742,7 +759,7 @@ if __name__ == "__main__":
             ],
         ],
         [
-            """
+            """\
             select a, db.table.b as BBB from db.table where 1=1 and BBB='yes'
             """,
             [
@@ -750,7 +767,7 @@ if __name__ == "__main__":
             ],
         ],
         [
-            """
+            """\
             select a, db.table.b as BBB from test_table,db.table where 1=1 and BBB='yes'
             """,
             [
@@ -759,7 +776,7 @@ if __name__ == "__main__":
             ],
         ],
         [
-            """
+            """\
             select a, db.table.b as BBB from test_table,db.table where 1=1 and BBB='yes' limit 50
             """,
             [
@@ -768,7 +785,7 @@ if __name__ == "__main__":
             ],
         ],
         [
-            """
+            """\
             select a, b from test_table where (1=1 or 2=3) and b='yes' group by zx having b=2 order by 1
             """,
             [
@@ -776,7 +793,7 @@ if __name__ == "__main__":
             ],
         ],
         [
-            """
+            """\
             select
                 a,
                 b
@@ -793,7 +810,7 @@ if __name__ == "__main__":
             ],
         ],
         [
-            """
+            """\
             SELECT COUNT(DISTINCT foo) FROM bar JOIN baz ON bar.baz_id = baz.id
             """,
             [
@@ -802,7 +819,7 @@ if __name__ == "__main__":
             ],
         ],
         [
-            """
+            """\
             SELECT COUNT(DISTINCT foo) FROM bar, baz WHERE bar.baz_id = baz.id
             """,
             [
@@ -811,7 +828,7 @@ if __name__ == "__main__":
             ],
         ],
         [
-            """
+            """\
             WITH one AS (SELECT id FROM foo) SELECT one.id
             """,
             [
@@ -819,7 +836,7 @@ if __name__ == "__main__":
             ],
         ],
         [
-            """
+            """\
             WITH one AS (SELECT id FROM foo), two AS (select id FROM bar) SELECT one.id, two.id
             """,
             [
@@ -828,7 +845,7 @@ if __name__ == "__main__":
             ],
         ],
         [
-            """
+            """\
             SELECT x,
               RANK() OVER (ORDER BY x ASC) AS rank,
               DENSE_RANK() OVER (ORDER BY x ASC) AS dense_rank,
@@ -840,7 +857,7 @@ if __name__ == "__main__":
             ],
         ],
         [
-            """
+            """\
             SELECT x, COUNT(*) OVER ( ORDER BY x
               RANGE BETWEEN 2 PRECEDING AND 2 FOLLOWING ) AS count_x
             FROM T
@@ -850,7 +867,7 @@ if __name__ == "__main__":
             ],
         ],
         [
-            """
+            """\
             SELECT firstname, department, startdate,
               RANK() OVER ( PARTITION BY department ORDER BY startdate ) AS rank
             FROM Employees
@@ -861,7 +878,7 @@ if __name__ == "__main__":
         ],
         # A fragment from https://cloud.google.com/bigquery/docs/reference/standard-sql/navigation_functions
         [
-            """
+            """\
             SELECT 'Sophia Liu' as name,
               TIMESTAMP '2016-10-18 2:51:45' as finish_time,
               'F30-34' as division
@@ -879,7 +896,7 @@ if __name__ == "__main__":
         ],
         # From https://cloud.google.com/bigquery/docs/reference/standard-sql/navigation_functions
         [
-            """
+            """\
             WITH finishers AS
              (SELECT 'Sophia Liu' as name,
               TIMESTAMP '2016-10-18 2:51:45' as finish_time,
@@ -911,7 +928,7 @@ if __name__ == "__main__":
         ],
         # From https://cloud.google.com/bigquery/docs/reference/standard-sql/navigation_functions
         [
-            """
+            """\
                 WITH finishers AS
                  (SELECT 'Sophia Liu' as name,
                   TIMESTAMP '2016-10-18 2:51:45' as finish_time,
@@ -943,7 +960,7 @@ if __name__ == "__main__":
         ],
         # From https://cloud.google.com/bigquery/docs/reference/standard-sql/navigation_functions
         [
-            """
+            """\
             WITH finishers AS
              (SELECT 'Sophia Liu' as name,
               TIMESTAMP '2016-10-18 2:51:45' as finish_time,
@@ -979,7 +996,7 @@ if __name__ == "__main__":
         ],
         # From https://cloud.google.com/bigquery/docs/reference/standard-sql/navigation_functions
         [
-            """
+            """\
             WITH finishers AS
              (SELECT 'Sophia Liu' as name,
               TIMESTAMP '2016-10-18 2:51:45' as finish_time,
@@ -1004,7 +1021,7 @@ if __name__ == "__main__":
         ],
         # From https://cloud.google.com/bigquery/docs/reference/standard-sql/navigation_functions
         [
-            """
+            """\
             WITH finishers AS
              (SELECT 'Sophia Liu' as name,
               TIMESTAMP '2016-10-18 2:51:45' as finish_time,
@@ -1029,7 +1046,7 @@ if __name__ == "__main__":
         ],
         # From https://cloud.google.com/bigquery/docs/reference/standard-sql/navigation_functions
         [
-            """
+            """\
             WITH finishers AS
              (SELECT 'Sophia Liu' as name,
               TIMESTAMP '2016-10-18 2:51:45' as finish_time,
@@ -1054,7 +1071,7 @@ if __name__ == "__main__":
         ],
         # From https://cloud.google.com/bigquery/docs/reference/standard-sql/navigation_functions
         [
-            """
+            """\
             SELECT
               PERCENTILE_CONT(x, 0) OVER() AS min,
               PERCENTILE_CONT(x, 0.01) OVER() AS percentile1,
@@ -1067,7 +1084,7 @@ if __name__ == "__main__":
         ],
         # From https://cloud.google.com/bigquery/docs/reference/standard-sql/navigation_functions
         [
-            """
+            """\
             SELECT
               x,
               PERCENTILE_DISC(x, 0) OVER() AS min,
@@ -1079,7 +1096,7 @@ if __name__ == "__main__":
         ],
         # From https://cloud.google.com/bigquery/docs/reference/standard-sql/timestamp_functions
         [
-            """
+            """\
             SELECT
               TIMESTAMP "2008-12-25 15:30:00 UTC" as original,
               TIMESTAMP_ADD(TIMESTAMP "2008-12-25 15:30:00 UTC", INTERVAL 10 MINUTE) AS later
@@ -1089,7 +1106,7 @@ if __name__ == "__main__":
         # Previously hosted on https://cloud.google.com/bigquery/docs/reference/standard-sql/timestamp_functions, but
         # appears to no longer be there
         [
-            """
+            """\
             WITH date_hour_slots AS (
              SELECT
                [
@@ -1177,7 +1194,7 @@ if __name__ == "__main__":
             ],
         ],
         [
-            """
+            """\
             SELECT
                 [foo],
                 ARRAY[foo],
@@ -1199,14 +1216,14 @@ if __name__ == "__main__":
             ],
         ],
         [
-            """
+            """\
             SELECT GENERATE_ARRAY(start, 5) AS example_array
             FROM UNNEST([3, 4, 5]) AS start
             """,
             [],
         ],
         [
-            """
+            """\
             WITH StartsAndEnds AS (
               SELECT DATE '2016-01-01' AS date_start, DATE '2016-01-31' AS date_end
               UNION ALL SELECT DATE "2016-04-01", DATE "2016-04-30"
@@ -1219,7 +1236,7 @@ if __name__ == "__main__":
             [],
         ],
         [
-            """
+            """\
             SELECT GENERATE_TIMESTAMP_ARRAY(start_timestamp, end_timestamp, INTERVAL 1 HOUR)
               AS timestamp_array
             FROM
@@ -1238,13 +1255,13 @@ if __name__ == "__main__":
             [],
         ],
         [
-            """
-            SELECT DATE_SUB(current_date("-08:00")), INTERVAL 2 DAY)
+            """\
+            SELECT DATE_SUB(current_date("-08:00"), INTERVAL 2 DAY)
             """,
             [],
         ],
         [
-            """
+            """\
             SELECT
                 case when (a) then b else c end
             FROM d
@@ -1254,7 +1271,7 @@ if __name__ == "__main__":
             ],
         ],
         [
-            """
+            """\
             SELECT
                 e,
                 case when (f) then g else h end
@@ -1265,7 +1282,7 @@ if __name__ == "__main__":
             ],
         ],
         [
-            """
+            """\
             SELECT
                 case when j then k else l end
             FROM m
@@ -1275,7 +1292,7 @@ if __name__ == "__main__":
             ],
         ],
         [
-            """
+            """\
             SELECT
                 n,
                 case when o then p else q end
@@ -1286,7 +1303,7 @@ if __name__ == "__main__":
             ],
         ],
         [
-            """
+            """\
             SELECT
                 case s when (t) then u else v end
             FROM w
@@ -1296,7 +1313,7 @@ if __name__ == "__main__":
             ],
         ],
         [
-            """
+            """\
             SELECT
                 x,
                 case y when (z) then aa else ab end
@@ -1307,7 +1324,7 @@ if __name__ == "__main__":
             ],
         ],
         [
-            """
+            """\
             SELECT
                 case ad when ae then af else ag end
             FROM ah
@@ -1317,7 +1334,7 @@ if __name__ == "__main__":
             ],
         ],
         [
-            """
+            """\
             SELECT
                 ai,
                 case aj when ak then al else am end
@@ -1328,7 +1345,7 @@ if __name__ == "__main__":
             ],
         ],
         [
-            """
+            """\
             WITH
                 ONE AS (SELECT x FROM y),
                 TWO AS (select a FROM b)
@@ -1340,7 +1357,7 @@ if __name__ == "__main__":
             ],
         ],
         [
-            """
+            """\
             SELECT
                 a,
                 (SELECT b FROM oNE)
@@ -1352,7 +1369,7 @@ if __name__ == "__main__":
             ],
         ],
         [
-            """
+            """\
             SELECT * FROM `a.b.c`
             """,
             [
@@ -1360,7 +1377,7 @@ if __name__ == "__main__":
             ],
         ],
         [
-            """
+            """\
             SELECT * FROM `b.c`
             """,
             [
@@ -1368,7 +1385,7 @@ if __name__ == "__main__":
             ],
         ],
         [
-            """
+            """\
             SELECT * FROM `c`
             """,
             [
@@ -1376,7 +1393,7 @@ if __name__ == "__main__":
             ],
         ],
         [
-            """
+            """\
             SELECT * FROM a.b.c
             """,
             [
@@ -1384,7 +1401,7 @@ if __name__ == "__main__":
             ],
         ],
         [
-            """
+            """\
             SELECT * FROM "a"."b"."c"
             """,
             [
@@ -1392,7 +1409,7 @@ if __name__ == "__main__":
             ],
         ],
         [
-            """
+            """\
             SELECT * FROM 'a'.'b'.'c'
             """,
             [
@@ -1400,7 +1417,7 @@ if __name__ == "__main__":
             ],
         ],
         [
-            """
+            """\
             SELECT * FROM `a`.`b`.`c`
             """,
             [
@@ -1408,7 +1425,7 @@ if __name__ == "__main__":
             ],
         ],
         [
-            """
+            """\
             SELECT * FROM "a.b.c"
             """,
             [
@@ -1416,7 +1433,7 @@ if __name__ == "__main__":
             ],
         ],
         [
-            """
+            """\
             SELECT * FROM 'a.b.c'
             """,
             [
@@ -1424,7 +1441,7 @@ if __name__ == "__main__":
             ],
         ],
         [
-            """
+            """\
             SELECT * FROM `a.b.c`
             """,
             [
@@ -1432,11 +1449,20 @@ if __name__ == "__main__":
             ],
         ],
         [
-            """
+            """\
+            SELECT t2.a
+                FROM t2 FOR SYSTEM_TIME AS OF t1.timestamp_column
+            """,
+            [
+                (None, None, "t2"),
+            ],
+        ],
+        [
+            """\
             SELECT *
             FROM t1
             WHERE t1.a IN (SELECT t2.a
-                           FROM t2 ) FOR SYSTEM_TIME AS OF t1.timestamp_column)
+                           FROM t2 FOR SYSTEM_TIME AS OF t1.timestamp_column)
             """,
             [
                 (None, None, "t1"),
@@ -1444,7 +1470,7 @@ if __name__ == "__main__":
             ],
         ],
         [
-            """
+            """\
             WITH a AS (SELECT b FROM c)
             SELECT d FROM A JOIN e ON f = g JOIN E ON h = i
             """,
@@ -1455,7 +1481,7 @@ if __name__ == "__main__":
             ],
         ],
         [
-            """
+            """\
             with
             a as (
                 (
@@ -1479,7 +1505,7 @@ if __name__ == "__main__":
             ],
         ],
         [
-            """
+            """\
             select
                 a AS ESCAPE,
                 b AS CURRENT_TIME,
@@ -1493,7 +1519,7 @@ if __name__ == "__main__":
             ],
         ],
         [
-            """
+            """\
             WITH x AS (
                 SELECT a
                 FROM b
@@ -1507,7 +1533,7 @@ if __name__ == "__main__":
             ],
         ],
         [
-            """
+            """\
             SELECT DISTINCT
                 FIRST_VALUE(x IGNORE NULLS) OVER (PARTITION BY y)
             FROM z
@@ -1517,7 +1543,7 @@ if __name__ == "__main__":
             ],
         ],
         [
-            """
+            """\
             SELECT a . b .   c
             FROM d
             """,
@@ -1526,7 +1552,7 @@ if __name__ == "__main__":
             ],
         ],
         [
-            """
+            """\
             WITH a AS (
                 SELECT b FROM c
                 UNION ALL
@@ -1545,7 +1571,7 @@ if __name__ == "__main__":
             ],
         ],
         [
-            """
+            """\
             WITH a AS (
                 SELECT b FROM c
                 UNION ALL
@@ -1564,7 +1590,7 @@ if __name__ == "__main__":
             ],
         ],
         [
-            """
+            """\
             SELECT * FROM a.b.`c`
             """,
             [
@@ -1572,12 +1598,158 @@ if __name__ == "__main__":
             ],
         ],
         [
-            """
+            """\
             SELECT * FROM 'a'.b.`c`
             """,
             [
                 ("a", "b", "c"),
             ],
+        ],
+        # from https://cloud.google.com/bigquery/docs/reference/legacy-sql
+        [
+            """\
+            SELECT
+                           word,
+                           word_count,
+                           RANK() OVER (PARTITION BY corpus ORDER BY word_count DESC) rank,
+                        FROM
+                           [bigquery-public-data:samples.shakespeare]
+                        WHERE
+                           corpus='othello' and length(word) > 10
+                        LIMIT 5
+            """,
+            [
+                (None, 'bigquery-public-data:samples', 'shakespeare'),
+            ],
+        ],
+        [
+            """\
+            SELECT
+               word,
+               word_count,
+               RATIO_TO_REPORT(word_count) OVER (PARTITION BY corpus ORDER BY word_count DESC) r_to_r,
+            FROM
+               [bigquery-public-data:samples.shakespeare]
+            WHERE
+               corpus='othello' and length(word) > 10
+            LIMIT 5
+            """,
+            [
+                (None, 'bigquery-public-data:samples', 'shakespeare'),
+            ],
+        ],
+        [
+            """\
+            SELECT
+               word,
+               word_count,
+               ROW_NUMBER() OVER (PARTITION BY corpus ORDER BY word_count DESC) row_num,
+            FROM
+               [bigquery-public-data:samples.shakespeare]
+            WHERE
+               corpus='othello' and length(word) > 10
+            LIMIT 5
+            """,
+            [
+                (None, 'bigquery-public-data:samples', 'shakespeare'),
+            ],
+        ],
+        [
+            """\
+            SELECT
+              TO_BASE64(SHA1(title))
+            FROM
+              [bigquery-public-data:samples.wikipedia]
+            LIMIT
+              100;
+            """,
+            [
+                (None, 'bigquery-public-data:samples', 'wikipedia'),
+            ],
+        ],
+        [
+            """\
+            SELECT
+              CASE
+                WHEN state IN ('WA', 'OR', 'CA', 'AK', 'HI', 'ID',
+                               'MT', 'WY', 'NV', 'UT', 'CO', 'AZ', 'NM')
+                  THEN 'West'
+                WHEN state IN ('OK', 'TX', 'AR', 'LA', 'TN', 'MS', 'AL',
+                               'KY', 'GA', 'FL', 'SC', 'NC', 'VA', 'WV',
+                               'MD', 'DC', 'DE')
+                  THEN 'South'
+                WHEN state IN ('ND', 'SD', 'NE', 'KS', 'MN', 'IA',
+                               'MO', 'WI', 'IL', 'IN', 'MI', 'OH')
+                  THEN 'Midwest'
+                WHEN state IN ('NY', 'PA', 'NJ', 'CT',
+                               'RI', 'MA', 'VT', 'NH', 'ME')
+                  THEN 'Northeast'
+                ELSE 'None'
+              END as region,
+              average_mother_age,
+              average_father_age,
+              state, year
+            FROM
+              (SELECT
+                 year, state,
+                 SUM(mother_age)/COUNT(mother_age) as average_mother_age,
+                 SUM(father_age)/COUNT(father_age) as average_father_age
+               FROM
+                 [bigquery-public-data:samples.natality]
+               WHERE
+                 father_age < 99
+               GROUP BY
+                 year, state)
+            ORDER BY
+              year
+            LIMIT 5;
+            """,
+            [
+                (None, 'bigquery-public-data:samples', 'natality'),
+            ],
+        ],
+        [
+            """\
+            SELECT
+              page_title,
+              /* Populate these columns as True or False, */
+              /*  depending on the condition */
+              IF (page_title CONTAINS 'search',
+                  INTEGER(total), 0) AS search,
+              IF (page_title CONTAINS 'Earth' OR
+                  page_title CONTAINS 'Maps', INTEGER(total), 0) AS geo,
+            FROM
+              /* Subselect to return top revised Wikipedia articles */
+              /* containing 'Google', followed by additional text. */
+              (SELECT
+                TOP (title, 5) as page_title,
+                COUNT (*) as total
+               FROM
+                 [bigquery-public-data:samples.wikipedia]
+               WHERE
+                 REGEXP_MATCH (title, r'^Google.+') AND wp_namespace = 0
+              );
+              """,
+            [
+                (None, 'bigquery-public-data:samples', 'wikipedia'),
+            ]
+        ],
+        [
+            """\
+            SELECT
+              title,
+              HASH(title) AS hash_value,
+              IF(ABS(HASH(title)) % 2 == 1, 'True', 'False')
+                AS included_in_sample
+            FROM
+              [bigquery-public-data:samples.wikipedia]
+            WHERE
+              wp_namespace = 0
+            LIMIT 5;
+            """,
+            [
+                (None, 'bigquery-public-data:samples', 'wikipedia'),
+            ]
         ],
     ]
     # fmt: on
