@@ -608,91 +608,91 @@ API Changes
   without change. The synonyms will be removed in a future release.
   New parser code should be written using the new PEP-8 snake case names.
 
-        ==============================  ================================
-        Name                            Previous name
-        ------------------------------  --------------------------------
-        ParserElement
-        - parse_string                  parseString
-        - scan_string                   scanString
-        - search_string                 searchString
-        - transform_string              transformString
-        - add_condition                 addCondition
-        - add_parse_action              addParseAction
-        - can_parse_next                canParseNext
-        - default_name                  defaultName
-        - enable_left_recursion         enableLeftRecursion
-        - enable_packrat                enablePackrat
-        - ignore_whitespace             ignoreWhitespace
-        - inline_literals_using         inlineLiteralsUsing
-        - parse_file                    parseFile
-        - leave_whitespace              leaveWhitespace
-        - parse_string                  parseString
-        - parse_with_tabs               parseWithTabs
-        - reset_cache                   resetCache
-        - run_tests                     runTests
-        - scan_string                   scanString
-        - search_string                 searchString
-        - set_break                     setBreak
-        - set_debug                     setDebug
-        - set_debug_actions             setDebugActions
-        - set_default_whitespace_chars  setDefaultWhitespaceChars
-        - set_fail_action               setFailAction
-        - set_name                      setName
-        - set_parse_action              setParseAction
-        - set_results_name              setResultsName
-        - set_whitespace_chars          setWhitespaceChars
-        - transform_string              transformString
-        - try_parse                     tryParse
+==============================  ================================
+Name                            Previous name
+------------------------------  --------------------------------
+ParserElement
+- parse_string                  parseString
+- scan_string                   scanString
+- search_string                 searchString
+- transform_string              transformString
+- add_condition                 addCondition
+- add_parse_action              addParseAction
+- can_parse_next                canParseNext
+- default_name                  defaultName
+- enable_left_recursion         enableLeftRecursion
+- enable_packrat                enablePackrat
+- ignore_whitespace             ignoreWhitespace
+- inline_literals_using         inlineLiteralsUsing
+- parse_file                    parseFile
+- leave_whitespace              leaveWhitespace
+- parse_string                  parseString
+- parse_with_tabs               parseWithTabs
+- reset_cache                   resetCache
+- run_tests                     runTests
+- scan_string                   scanString
+- search_string                 searchString
+- set_break                     setBreak
+- set_debug                     setDebug
+- set_debug_actions             setDebugActions
+- set_default_whitespace_chars  setDefaultWhitespaceChars
+- set_fail_action               setFailAction
+- set_name                      setName
+- set_parse_action              setParseAction
+- set_results_name              setResultsName
+- set_whitespace_chars          setWhitespaceChars
+- transform_string              transformString
+- try_parse                     tryParse
 
-        ParseResults
-        - as_list                       asList
-        - as_dict                       asDict
-        - get_name                      getName
+ParseResults
+- as_list                       asList
+- as_dict                       asDict
+- get_name                      getName
 
-        ParseBaseException
-        - parser_element                parserElement
+ParseBaseException
+- parser_element                parserElement
 
-        any_open_tag                    anyOpenTag
-        any_close_tag                   anyCloseTag
-        c_style_comment                 cStyleComment
-        common_html_entity              commonHTMLEntity
-        condition_as_parse_action       conditionAsParseAction
-        counted_array                   countedArray
-        cpp_style_comment               cppStyleComment
-        dbl_quoted_string               dblQuotedString
-        dbl_slash_comment               dblSlashComment
-        delimited_list                  delimitedList
-        dict_of                         dictOf
-        html_comment                    htmlComment
-        infix_notation                  infixNotation
-        java_style_comment              javaStyleComment
-        line_end                        lineEnd
-        line_start                      lineStart
-        make_html_tags                  makeHTMLTags
-        make_xml_tags                   makeXMLTags
-        match_only_at_col               matchOnlyAtCol
-        match_previous_expr             matchPreviousExpr
-        match_previous_literal          matchPreviousLiteral
-        nested_expr                     nestedExpr
-        null_debug_action               nullDebugAction
-        one_of                          oneOf
-        OpAssoc                         opAssoc
-        original_text_for               originalTextFor
-        python_style_comment            pythonStyleComment
-        quoted_string                   quotedString
-        remove_quotes                   removeQuotes
-        replace_html_entity             replaceHTMLEntity
-        replace_with                    replaceWith
-        rest_of_line                    restOfLine
-        sgl_quoted_string               sglQuotedString
-        string_end                      stringEnd
-        string_start                    stringStart
-        token_map                       tokenMap
-        trace_parse_action              traceParseAction
-        unicode_string                  unicodeString
-        with_attribute                  withAttribute
-        with_class                      withClass
-        ==============================  ================================
+any_open_tag                    anyOpenTag
+any_close_tag                   anyCloseTag
+c_style_comment                 cStyleComment
+common_html_entity              commonHTMLEntity
+condition_as_parse_action       conditionAsParseAction
+counted_array                   countedArray
+cpp_style_comment               cppStyleComment
+dbl_quoted_string               dblQuotedString
+dbl_slash_comment               dblSlashComment
+delimited_list                  delimitedList
+dict_of                         dictOf
+html_comment                    htmlComment
+infix_notation                  infixNotation
+java_style_comment              javaStyleComment
+line_end                        lineEnd
+line_start                      lineStart
+make_html_tags                  makeHTMLTags
+make_xml_tags                   makeXMLTags
+match_only_at_col               matchOnlyAtCol
+match_previous_expr             matchPreviousExpr
+match_previous_literal          matchPreviousLiteral
+nested_expr                     nestedExpr
+null_debug_action               nullDebugAction
+one_of                          oneOf
+OpAssoc                         opAssoc
+original_text_for               originalTextFor
+python_style_comment            pythonStyleComment
+quoted_string                   quotedString
+remove_quotes                   removeQuotes
+replace_html_entity             replaceHTMLEntity
+replace_with                    replaceWith
+rest_of_line                    restOfLine
+sgl_quoted_string               sglQuotedString
+string_end                      stringEnd
+string_start                    stringStart
+token_map                       tokenMap
+trace_parse_action              traceParseAction
+unicode_string                  unicodeString
+with_attribute                  withAttribute
+with_class                      withClass
+==============================  ================================
 
 Discontinued Features
 =====================

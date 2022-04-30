@@ -1340,7 +1340,7 @@ Unicode character sets for international parsing
 ------------------------------------------------
 Pyparsing includes the ``unicode`` namespace that contains definitions for ``alphas``, ``nums``, ``alphanums``,
 ``identchars``, ``identbodychars``, and ``printables`` for character ranges besides 7- or 8-bit ASCII. You can
-access them using code like the following:
+access them using code like the following::
 
     import pyparsing as pp
     ppu = pp.unicode
@@ -1348,29 +1348,29 @@ access them using code like the following:
     greek_word = pp.Word(ppu.Greek.alphas)
     greek_word[...].parse_string("Καλημέρα κόσμε")
 
-The following language ranges are defined:
+The following language ranges are defined.
 
-       ==========================    =================     ================================================
-        Unicode set                   Alternate names       Description
-       --------------------------    -----------------     ------------------------------------------------
-        Arabic                        العربية
-        Chinese                       中文
-        Cyrillic                      кириллица
-        Greek                         Ελληνικά
-        Hebrew                        עִברִית
-        Japanese                      日本語                 Union of Kanji, Katakana, and Hiragana sets
-        Japanese.Kanji                漢字
-        Japanese.Katakana             カタカナ
-        Japanese.Hiragana             ひらがな
-        Hangul                        Korean, 한국어
-        Latin1                                              All Unicode characters up to code point 255
-        LatinA
-        LatinB
-        Thai                          ไทย
-        Devanagari                    देवनागरी
-        BasicMultilingualPlane        BMP                   All Unicode characters up to code point 65535
-        CJK                                                 Union of Chinese, Japanese, and Korean sets
-       ==========================    =================     ================================================
+==========================    =================     ================================================
+Unicode set                   Alternate names       Description
+--------------------------    -----------------     ------------------------------------------------
+Arabic                        العربية
+Chinese                       中文
+Cyrillic                      кириллица
+Greek                         Ελληνικά
+Hebrew                        עִברִית
+Japanese                      日本語                 Union of Kanji, Katakana, and Hiragana sets
+Japanese.Kanji                漢字
+Japanese.Katakana             カタカナ
+Japanese.Hiragana             ひらがな
+Hangul                        Korean, 한국어
+Latin1                                              All Unicode characters up to code point 255
+LatinA
+LatinB
+Thai                          ไทย
+Devanagari                    देवनागरी
+BasicMultilingualPlane        BMP                   All Unicode characters up to code point 65535
+CJK                                                 Union of Chinese, Japanese, and Korean sets
+==========================    =================     ================================================
 
 The base ``unicode`` class also includes definitions based on all Unicode code points up to ``sys.maxunicode``. This
 set will include emojis, wingdings, and many other specialized and typographical variant characters.
@@ -1410,9 +1410,9 @@ Parser elements that are separately named will be broken out as their own sub-di
 to going through and adding ``.set_name()`` calls on all your sub-expressions, you can use ``autoname_elements()`` after
 defining your complete grammar. For example::
 
-            a = pp.Literal("a")
-            b = pp.Literal("b").set_name("bbb")
-            pp.autoname_elements()
+    a = pp.Literal("a")
+    b = pp.Literal("b").set_name("bbb")
+    pp.autoname_elements()
 
 `a` will get named "a", while `b` will keep its name "bbb".
 
