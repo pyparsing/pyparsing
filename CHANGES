@@ -4,8 +4,9 @@ Change Log
 
 Version 3.0.9 - (in development)
 ---------------
-- Added Unicode set BMP representing the Basic Multilingual Plane
-  (Unicode characters up to code point 65535). Can be used to parse
+- Added Unicode set `BasicMultilingualPlane` (may also be referenced
+  as `BMP`) representing the Basic Multilingual Plane (Unicode
+  characters up to code point 65535). Can be used to parse
   most language characters, but omits emojis, wingdings, etc.
   Raised in discussion with Dave Tapley (issue #392).
 

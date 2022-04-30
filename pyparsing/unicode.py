@@ -127,7 +127,7 @@ class pyparsing_unicode(unicode_set):
         (0x0020, sys.maxunicode),
     ]
 
-    class BMP(unicode_set):
+    class BasicMultilingualPlane(unicode_set):
         "Unicode set for the Basic Multilingual Plane"
         _ranges: UnicodeRangeList = [
             (0x0020, 0xFFFF),
@@ -334,6 +334,8 @@ pyparsing_unicode.Japanese._ranges = (
     + pyparsing_unicode.Japanese.Hiragana._ranges
     + pyparsing_unicode.Japanese.Katakana._ranges
 )
+
+pyparsing_unicode.BMP = pyparsing_unicode.BasicMultilingualPlane
 
 # add language identifiers using language Unicode
 pyparsing_unicode.العربية = pyparsing_unicode.Arabic
