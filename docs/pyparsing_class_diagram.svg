@@ -1,0 +1,836 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" contentStyleType="text/css" height="2241px" preserveAspectRatio="none" style="width:2013px;height:2241px;background:#FFFFFF;" version="1.1" viewBox="0 0 2013 2241" width="2013px" zoomAndPan="magnify"><defs/><g><!--MD5=[01435ace8273dc3cae88e7f376e4d373]
+cluster core--><g id="cluster_core"><path d="M8.5,6 L41.5,6 A3.75,3.75 0 0 1 44,8.5 L51,29.6094 L1161.5,29.6094 A2.5,2.5 0 0 1 1164,32.1094 L1164,2231.5 A2.5,2.5 0 0 1 1161.5,2234 L8.5,2234 A2.5,2.5 0 0 1 6,2231.5 L6,8.5 A2.5,2.5 0 0 1 8.5,6 " style="stroke:#000000;stroke-width:1.5;fill:none;"/><line style="stroke:#000000;stroke-width:1.5;fill:none;" x1="6" x2="51" y1="29.6094" y2="29.6094"/><text fill="#000000" font-family="sans-serif" font-size="14" font-weight="bold" lengthAdjust="spacing" textLength="32" x="10" y="22.5332">core</text></g><!--MD5=[b28fcb397abe995d6d4652e4c54b3002]
+cluster common--><g id="cluster_common"><path d="M1637.5,1602 L1697.5,1602 A3.75,3.75 0 0 1 1700,1604.5 L1707,1625.6094 L1853.5,1625.6094 A2.5,2.5 0 0 1 1856,1628.1094 L1856,2151.5 A2.5,2.5 0 0 1 1853.5,2154 L1637.5,2154 A2.5,2.5 0 0 1 1635,2151.5 L1635,1604.5 A2.5,2.5 0 0 1 1637.5,1602 " style="stroke:#000000;stroke-width:1.5;fill:none;"/><line style="stroke:#000000;stroke-width:1.5;fill:none;" x1="1635" x2="1707" y1="1625.6094" y2="1625.6094"/><text fill="#000000" font-family="sans-serif" font-size="14" font-weight="bold" lengthAdjust="spacing" textLength="59" x="1639" y="1618.5332">common</text></g><!--MD5=[a5925899d67267447050127c82474075]
+cluster unicode--><g id="cluster_unicode"><path d="M1246.5,836 L1304.5,836 A3.75,3.75 0 0 1 1307,838.5 L1314,859.6094 L2003.5,859.6094 A2.5,2.5 0 0 1 2006,862.1094 L2006,1479 A2.5,2.5 0 0 1 2003.5,1481.5 L1246.5,1481.5 A2.5,2.5 0 0 1 1244,1479 L1244,838.5 A2.5,2.5 0 0 1 1246.5,836 " style="stroke:#000000;stroke-width:1.5;fill:none;"/><line style="stroke:#000000;stroke-width:1.5;fill:none;" x1="1244" x2="1314" y1="859.6094" y2="859.6094"/><text fill="#000000" font-family="sans-serif" font-size="14" font-weight="bold" lengthAdjust="spacing" textLength="57" x="1248" y="852.5332">unicode</text></g><!--MD5=[19083d5a6bb735972cf852881aeacfba]
+class globals--><g id="elem_globals"><rect codeLine="20" fill="#F1F1F1" height="677.5469" id="globals" rx="2.5" ry="2.5" style="stroke:#181818;stroke-width:0.5;" width="192" x="381" y="88"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="45" x="454.5" y="107.5332">globals</text><line style="stroke:#181818;stroke-width:0.5;" x1="382" x2="572" y1="115.6094" y2="115.6094"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="87" x="387" y="134.1426">quoted_string</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="113" x="387" y="151.752">sgl_quoted_string</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="114" x="387" y="169.3613">dbl_quoted_string</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="129" x="387" y="186.9707">common_html_entity</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="93" x="387" y="204.5801">class OpAssoc</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="125" x="387" y="222.1895">class IndentedBlock</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="109" x="387" y="239.7988">c_style_comment</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="91" x="387" y="257.4082">html_comment</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="74" x="387" y="275.0176">rest_of_line</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="125" x="387" y="292.627">dbl_slash_comment</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="125" x="387" y="310.2363">cpp_style_comment</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="128" x="387" y="327.8457">java_style_comment</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="145" x="387" y="345.4551">python_style_comment</text><line style="stroke:#181818;stroke-width:0.5;" x1="382" x2="572" y1="352.5313" y2="352.5313"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="91" x="387" y="371.0645">delimited_list()</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="102" x="387" y="388.6738">counted_array()</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="152" x="387" y="406.2832">match_previous_literal()</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="145" x="387" y="423.8926">match_previous_expr()</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="54" x="387" y="441.502">one_of()</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="52" x="387" y="459.1113">dict_of()</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="111" x="387" y="476.7207">original_text_for()</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="63" x="387" y="494.3301">ungroup()</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="88" x="387" y="511.9395">nested_expr()</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="113" x="387" y="529.5488">make_html_tags()</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="107" x="387" y="547.1582">make_xml_tags()</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="133" x="387" y="564.7676">replace_html_entity()</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="93" x="387" y="582.377">infix_notation()</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="128" x="387" y="599.9863">match_only_at_col()</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="89" x="387" y="617.5957">replace_with()</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="108" x="387" y="635.2051">remove_quotes()</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="94" x="387" y="652.8145">with_attribute()</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="74" x="387" y="670.4238">with_class()</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="132" x="387" y="688.0332">trace_parse_action()</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="180" x="387" y="705.6426">condition_as_parse_action()</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="54" x="387" y="723.252">srange()</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="80" x="387" y="740.8613">token_map()</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="138" x="387" y="758.4707">autoname_elements()</text></g><!--MD5=[180f6f18da300b32758e7e9bbe5f6d52]
+class ParseResults--><g id="elem_ParseResults"><rect codeLine="59" fill="#F1F1F1" height="607.1094" id="ParseResults" rx="2.5" ry="2.5" style="stroke:#181818;stroke-width:0.5;" width="127" x="88.5" y="123.5"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="84" x="110" y="143.0332">ParseResults</text><line style="stroke:#181818;stroke-width:0.5;" x1="89.5" x2="214.5" y1="151.1094" y2="151.1094"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="58" x="94.5" y="169.6426">class List</text><line style="stroke:#181818;stroke-width:0.5;" x1="89.5" x2="214.5" y1="176.7188" y2="176.7188"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" text-decoration="underline" textLength="68" x="94.5" y="195.252">from_dict()</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="88" x="94.5" y="212.8613">__getitem__()</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="87" x="94.5" y="230.4707">__setitem__()</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="95" x="94.5" y="248.0801">__contains__()</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="61" x="94.5" y="265.6895">__len__()</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="69" x="94.5" y="283.2988">__bool__()</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="62" x="94.5" y="300.9082">__iter__()</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="98" x="94.5" y="318.5176">__reversed__()</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="83" x="94.5" y="336.127">__getattr__()</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="66" x="94.5" y="353.7363">__add__()</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="93" x="94.5" y="371.3457">__getstate__()</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="92" x="94.5" y="388.9551">__setstate__()</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="115" x="94.5" y="406.5645">__getnewargs__()</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="58" x="94.5" y="424.1738">__dir__()</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="55" x="94.5" y="441.7832">as_dict()</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="50" x="94.5" y="459.3926">as_list()</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="45" x="94.5" y="477.002">dump()</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="73" x="94.5" y="494.6113">get_name()</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="43" x="94.5" y="512.2207">items()</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="39" x="94.5" y="529.8301">keys()</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="51" x="94.5" y="547.4395">values()</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="62" x="94.5" y="565.0488">haskeys()</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="34" x="94.5" y="582.6582">pop()</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="30" x="94.5" y="600.2676">get()</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="45" x="94.5" y="617.877">insert()</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="58" x="94.5" y="635.4863">append()</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="52" x="94.5" y="653.0957">extend()</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="41" x="94.5" y="670.7051">clear()</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="40" x="94.5" y="688.3145">copy()</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="73" x="94.5" y="705.9238">get_name()</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="46" x="94.5" y="723.5332">pprint()</text></g><!--MD5=[723c79e0cd7fb599673d731b92288651]
+class ParseBaseException--><g id="elem_ParseBaseException"><rect codeLine="94" fill="#FFFFFF" height="166.875" id="ParseBaseException" rx="2.5" ry="2.5" style="stroke:#181818;stroke-width:0.5;" width="136" x="962" y="343.5"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="130" x="965" y="363.0332">ParseBaseException</text><line style="stroke:#181818;stroke-width:0.5;" x1="963" x2="1097" y1="371.1094" y2="371.1094"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="22" x="968" y="389.6426">line</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="38" x="968" y="407.252">lineno</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="45" x="968" y="424.8613">column</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="99" x="968" y="442.4707">parser_element</text><line style="stroke:#181818;stroke-width:0.5;" x1="963" x2="1097" y1="449.5469" y2="449.5469"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" text-decoration="underline" textLength="122" x="968" y="468.0801">explain_exception()</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="54" x="968" y="485.6895">explain()</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="110" x="968" y="503.2988">mark_input_line()</text></g><!--MD5=[52221cc32b96c3919957b075938e0d1c]
+class ParseException--><g id="elem_ParseException"><rect codeLine="103" fill="#F1F1F1" height="27.6094" id="ParseException" rx="2.5" ry="2.5" style="stroke:#181818;stroke-width:0.5;" width="104" x="1044" y="956.5"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="98" x="1047" y="976.0332">ParseException</text></g><!--MD5=[15046914273d3b770cb1420658979c74]
+class ParseFatalException--><g id="elem_ParseFatalException"><rect codeLine="104" fill="#F1F1F1" height="27.6094" id="ParseFatalException" rx="2.5" ry="2.5" style="stroke:#181818;stroke-width:0.5;" width="136" x="873" y="956.5"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="130" x="876" y="976.0332">ParseFatalException</text></g><!--MD5=[ac43b726db6dcc92ee6908b64ebc356a]
+class ParseSyntaxException--><g id="elem_ParseSyntaxException"><rect codeLine="105" fill="#F1F1F1" height="27.6094" id="ParseSyntaxException" rx="2.5" ry="2.5" style="stroke:#181818;stroke-width:0.5;" width="146" x="948" y="1141"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="140" x="951" y="1160.5332">ParseSyntaxException</text></g><!--MD5=[7bea567b19531461566d4cdc4cc8625b]
+class ParserElement--><g id="elem_ParserElement"><rect codeLine="111" fill="#F1F1F1" height="730.375" id="ParserElement" rx="2.5" ry="2.5" style="stroke:#181818;stroke-width:0.5;" width="213" x="693.5" y="62"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="93" x="753.5" y="81.5332">ParserElement</text><line style="stroke:#181818;stroke-width:0.5;" x1="694.5" x2="905.5" y1="89.6094" y2="89.6094"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="59" x="699.5" y="108.1426">name: str</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="109" x="699.5" y="125.752">results_name: str</text><line style="stroke:#181818;stroke-width:1.0;" x1="694.5" x2="905.5" y1="132.8281" y2="132.8281"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" text-decoration="underline" textLength="108" x="699.5" y="151.3613">enable_packrat()</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" text-decoration="underline" textLength="147" x="699.5" y="168.9707">enable_left_recursion()</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" text-decoration="underline" textLength="141" x="699.5" y="186.5801">disable_memoization()</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" text-decoration="underline" textLength="201" x="699.5" y="204.1895">set_default_whitespace_chars()</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" text-decoration="underline" textLength="134" x="699.5" y="221.7988">inline_literals_using()</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" text-decoration="underline" textLength="88" x="699.5" y="239.4082">reset_cache()</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="4" x="699.5" y="257.0176"> </text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" text-decoration="underline" textLength="124" x="699.5" y="274.627">verbose_stacktrace</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="4" x="699.5" y="292.2363"> </text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="126" x="699.5" y="309.8457">operator + () -&gt; And</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="188" x="699.5" y="327.4551">operator - () -&gt; And.ErrorStop</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="162" x="699.5" y="345.0645">operator | () -&gt; MatchFirst</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="114" x="699.5" y="362.6738">operator ^ () -&gt; Or</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="134" x="699.5" y="380.2832">operator &amp; () -&gt; Each</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="146" x="699.5" y="397.8926">operator ~ () -&gt; NotAny</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="195" x="699.5" y="415.502">operator [] () -&gt; _MultipleMatch</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="99" x="699.5" y="433.1113">add_condition()</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="124" x="699.5" y="450.7207">add_parse_action()</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="119" x="699.5" y="468.3301">set_parse_action()</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="40" x="699.5" y="485.9395">copy()</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="77" x="699.5" y="503.5488">ignore(expr)</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="122" x="699.5" y="521.1582">leave_whitespace()</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="113" x="699.5" y="538.7676">parse_with_tabs()</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="68" x="699.5" y="556.377">suppress()</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="73" x="699.5" y="573.9863">set_break()</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="77" x="699.5" y="591.5957">set_debug()</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="130" x="699.5" y="609.2051">set_debug_actions()</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="72" x="699.5" y="626.8145">set_name()</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="122" x="699.5" y="644.4238">set_results_name()</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="89" x="699.5" y="662.0332">parse_string()</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="83" x="699.5" y="679.6426">scan_string()</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="96" x="699.5" y="697.252">search_string()</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="113" x="699.5" y="714.8613">transform_string()</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="35" x="699.5" y="732.4707">split()</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="69" x="699.5" y="750.0801">run_tests()</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="58" x="699.5" y="767.6895">recurse()</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="109" x="699.5" y="785.2988">create_diagram()</text></g><polygon fill="none" points="707.2389,792.375,709.0997,813.4828,695.5306,810.0361" style="stroke:#181818;stroke-width:1.0;"/><line style="stroke:#181818;stroke-width:1.0;" x1="702.3151" x2="702" y1="811.7594" y2="813"/><line style="stroke:#181818;stroke-width:1.0;" x1="906.5" x2="931.89" y1="427.0361" y2="427"/><!--MD5=[d8c8cfd5ca149094f5b67f9f607a5ec7]
+class Token--><g id="elem_Token"><rect codeLine="153" fill="#FFFFFF" height="27.6094" id="Token" rx="2.5" ry="2.5" style="stroke:#181818;stroke-width:0.5;" width="46" x="373" y="956.5"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="40" x="376" y="976.0332">Token</text></g><polygon fill="none" points="394.4311,984.1094,399.1278,1004.7719,385.2174,1003.191" style="stroke:#181818;stroke-width:1.0;"/><line style="stroke:#181818;stroke-width:1.0;" x1="392.1726" x2="392" y1="1003.9814" y2="1005.5"/><line style="stroke:#181818;stroke-width:1.0;" x1="419" x2="439.19" y1="958.1126" y2="947.41"/><!--MD5=[b255c26fff7b37c7cbe735eb3c4484f7]
+class ParseExpression--><g id="elem_ParseExpression"><rect codeLine="154" fill="#FFFFFF" height="53.2188" id="ParseExpression" rx="2.5" ry="2.5" style="stroke:#181818;stroke-width:0.5;" width="172" x="456" y="1417"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="106" x="489" y="1436.5332">ParseExpression</text><line style="stroke:#181818;stroke-width:0.5;" x1="457" x2="627" y1="1444.6094" y2="1444.6094"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="160" x="462" y="1463.1426">exprs: list[ParserElement]</text></g><polygon fill="none" points="496.9941,1470.2188,483.3407,1486.4232,476.2155,1474.372" style="stroke:#181818;stroke-width:1.0;"/><line style="stroke:#181818;stroke-width:1.0;" x1="479.7781" x2="461" y1="1480.3976" y2="1491.5"/><line style="stroke:#181818;stroke-width:1.0;" x1="628" x2="648.29" y1="1429.0621" y2="1425.63"/><!--MD5=[bc3e9c41468fd79fc1bfaaffef704f27]
+class ParseElementEnhance--><g id="elem_ParseElementEnhance"><rect codeLine="157" fill="#FFFFFF" height="53.2188" id="ParseElementEnhance" rx="2.5" ry="2.5" style="stroke:#181818;stroke-width:0.5;" width="150" x="865" y="1417"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="144" x="868" y="1436.5332">ParseElementEnhance</text><line style="stroke:#181818;stroke-width:0.5;" x1="866" x2="1014" y1="1444.6094" y2="1444.6094"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="128" x="871" y="1463.1426">expr: ParserElement</text></g><polygon fill="none" points="926.1093,1470.2188,923.0594,1491.1877,910.6487,1484.709" style="stroke:#181818;stroke-width:1.0;"/><line style="stroke:#181818;stroke-width:1.0;" x1="916.854" x2="915" y1="1487.9484" y2="1491.5"/><line style="stroke:#181818;stroke-width:1.0;" x1="1013.8034" x2="1035.16" y1="1417" y2="1409.3"/><!--MD5=[9c9718faf159b6f4bd92d5a748cf34a9]
+class _PositionToken--><g id="elem__PositionToken"><rect codeLine="160" fill="#FFFFFF" height="27.6094" id="_PositionToken" rx="2.5" ry="2.5" style="stroke:#181818;stroke-width:0.5;" width="104" x="638" y="1141"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="98" x="641" y="1160.5332">_PositionToken</text></g><polygon fill="none" points="696.2757,1168.6094,710.9251,1183.9193,698.1802,1189.7132" style="stroke:#181818;stroke-width:1.0;"/><line style="stroke:#181818;stroke-width:1.0;" x1="704.5527" x2="706" y1="1186.8163" y2="1190"/><line style="stroke:#181818;stroke-width:1.0;" x1="662.9516" x2="623.49" y1="1141" y2="1120.86"/><!--MD5=[0998b14d5c1b63145203127255368895]
+class Char--><g id="elem_Char"><rect codeLine="161" fill="#F1F1F1" height="27.6094" id="Char" rx="2.5" ry="2.5" style="stroke:#181818;stroke-width:0.5;" width="37" x="22.5" y="1279"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="31" x="25.5" y="1298.5332">Char</text></g><!--MD5=[602b15352a41052f4d1a7dc34102cb35]
+class White--><g id="elem_White"><rect codeLine="162" fill="#F1F1F1" height="27.6094" id="White" rx="2.5" ry="2.5" style="stroke:#181818;stroke-width:0.5;" width="42" x="797" y="1141"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="36" x="800" y="1160.5332">White</text></g><!--MD5=[07513b2cfa2016c46090541be20532fe]
+class Word--><g id="elem_Word"><rect codeLine="163" fill="#F1F1F1" height="27.6094" id="Word" rx="2.5" ry="2.5" style="stroke:#181818;stroke-width:0.5;" width="40" x="22" y="1141"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="34" x="25" y="1160.5332">Word</text></g><!--MD5=[1ac27345a8a52a4a812e38456e107300]
+class Keyword--><g id="elem_Keyword"><rect codeLine="166" fill="#F1F1F1" height="53.2188" id="Keyword" rx="2.5" ry="2.5" style="stroke:#181818;stroke-width:0.5;" width="254" x="22" y="1417"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="54" x="122" y="1436.5332">Keyword</text><line style="stroke:#181818;stroke-width:0.5;" x1="23" x2="275" y1="1444.6094" y2="1444.6094"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" text-decoration="underline" textLength="242" x="28" y="1463.1426">set_default_keyword_chars(chars: str)</text></g><!--MD5=[61632f1cd917e3a15ed874bd9decfe9b]
+class CaselessKeyword--><g id="elem_CaselessKeyword"><rect codeLine="169" fill="#F1F1F1" height="27.6094" id="CaselessKeyword" rx="2.5" ry="2.5" style="stroke:#181818;stroke-width:0.5;" width="118" x="26" y="1550"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="112" x="29" y="1569.5332">CaselessKeyword</text></g><!--MD5=[302c72c1573bd1a597976f8c721380e9]
+class Empty--><g id="elem_Empty"><rect codeLine="170" fill="#F1F1F1" height="27.6094" id="Empty" rx="2.5" ry="2.5" style="stroke:#181818;stroke-width:0.5;" width="45" x="134.5" y="1141"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="39" x="137.5" y="1160.5332">Empty</text></g><!--MD5=[27bfdb9e128171e0e365013b6b91e809]
+class Literal--><g id="elem_Literal"><rect codeLine="171" fill="#F1F1F1" height="27.6094" id="Literal" rx="2.5" ry="2.5" style="stroke:#181818;stroke-width:0.5;" width="45" x="214.5" y="1141"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="39" x="217.5" y="1160.5332">Literal</text></g><!--MD5=[38918c0526e972db39f7d9b63d8cee47]
+class Regex--><g id="elem_Regex"><rect codeLine="172" fill="#F1F1F1" height="27.6094" id="Regex" rx="2.5" ry="2.5" style="stroke:#181818;stroke-width:0.5;" width="46" x="271" y="1279"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="40" x="274" y="1298.5332">Regex</text></g><!--MD5=[3326f42d4f6ea4ce7c55d723996288b8]
+class NoMatch--><g id="elem_NoMatch"><rect codeLine="173" fill="#F1F1F1" height="27.6094" id="NoMatch" rx="2.5" ry="2.5" style="stroke:#181818;stroke-width:0.5;" width="61" x="332.5" y="1141"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="55" x="335.5" y="1160.5332">NoMatch</text></g><!--MD5=[55e90a632a1b2d0e834174e62a329856]
+class CharsNotIn--><g id="elem_CharsNotIn"><rect codeLine="174" fill="#F1F1F1" height="27.6094" id="CharsNotIn" rx="2.5" ry="2.5" style="stroke:#181818;stroke-width:0.5;" width="76" x="352" y="1279"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="70" x="355" y="1298.5332">CharsNotIn</text></g><!--MD5=[6b13be996ba45247a7d0d0ead5bb82f8]
+class QuotedString--><g id="elem_QuotedString"><rect codeLine="175" fill="#F1F1F1" height="27.6094" id="QuotedString" rx="2.5" ry="2.5" style="stroke:#181818;stroke-width:0.5;" width="90" x="311" y="1429.5"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="84" x="314" y="1449.0332">QuotedString</text></g><!--MD5=[3be1097151cf8a36a9a9625c93fe8608]
+class And--><g id="elem_And"><rect codeLine="177" fill="#F1F1F1" height="27.6094" id="And" rx="2.5" ry="2.5" style="stroke:#181818;stroke-width:0.5;" width="31" x="179.5" y="1550"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="25" x="182.5" y="1569.5332">And</text></g><!--MD5=[23e6ed85c02a89921ce3312572b3f355]
+class Or--><g id="elem_Or"><rect codeLine="178" fill="#F1F1F1" height="27.6094" id="Or" rx="2.5" ry="2.5" style="stroke:#181818;stroke-width:0.5;" width="22" x="246" y="1550"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="16" x="249" y="1569.5332">Or</text></g><!--MD5=[9f34736b8dacc18590c7ca90f559e8e4]
+class MatchFirst--><g id="elem_MatchFirst"><rect codeLine="179" fill="#F1F1F1" height="27.6094" id="MatchFirst" rx="2.5" ry="2.5" style="stroke:#181818;stroke-width:0.5;" width="72" x="303" y="1550"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="66" x="306" y="1569.5332">MatchFirst</text></g><!--MD5=[f951bb149b8ea1767b85e58635e40de4]
+class Each--><g id="elem_Each"><rect codeLine="180" fill="#F1F1F1" height="27.6094" id="Each" rx="2.5" ry="2.5" style="stroke:#181818;stroke-width:0.5;" width="38" x="410" y="1550"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="32" x="413" y="1569.5332">Each</text></g><!--MD5=[2f77c566d7064ebfaa09e34fedd80162]
+class OneOrMore--><g id="elem_OneOrMore"><rect codeLine="182" fill="#F1F1F1" height="27.6094" id="OneOrMore" rx="2.5" ry="2.5" style="stroke:#181818;stroke-width:0.5;" width="81" x="738.5" y="2190"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="75" x="741.5" y="2209.5332">OneOrMore</text></g><!--MD5=[49676754219981c0678a51420e08d2a2]
+class ZeroOrMore--><g id="elem_ZeroOrMore"><rect codeLine="183" fill="#F1F1F1" height="27.6094" id="ZeroOrMore" rx="2.5" ry="2.5" style="stroke:#181818;stroke-width:0.5;" width="83" x="854.5" y="2190"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="77" x="857.5" y="2209.5332">ZeroOrMore</text></g><!--MD5=[101868b478aa457d10ab33bfe8475094]
+class SkipTo--><g id="elem_SkipTo"><rect codeLine="184" fill="#F1F1F1" height="27.6094" id="SkipTo" rx="2.5" ry="2.5" style="stroke:#181818;stroke-width:0.5;" width="50" x="946" y="1550"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="44" x="949" y="1569.5332">SkipTo</text></g><!--MD5=[41314a0efc36828092cff9ebad2fcafd]
+class Group--><g id="elem_Group"><rect codeLine="207" fill="#F1F1F1" height="27.6094" id="Group" rx="2.5" ry="2.5" style="stroke:#181818;stroke-width:0.5;" width="46" x="336" y="2190"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="40" x="339" y="2209.5332">Group</text></g><!--MD5=[822e2256e29bbb768da3e109c59973cc]
+class Forward--><g id="elem_Forward"><rect codeLine="186" fill="#F1F1F1" height="53.2188" id="Forward" rx="2.5" ry="2.5" style="stroke:#181818;stroke-width:0.5;" width="108" x="673" y="1861.5"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="52" x="701" y="1881.0332">Forward</text><line style="stroke:#181818;stroke-width:0.5;" x1="674" x2="780" y1="1889.1094" y2="1889.1094"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="96" x="679" y="1907.6426">operator &lt;&lt;= ()</text></g><!--MD5=[12f7dcec8fd0ca49b23dfbc1f17b28ba]
+class LineStart--><g id="elem_LineStart"><rect codeLine="190" fill="#F1F1F1" height="27.6094" id="LineStart" rx="2.5" ry="2.5" style="stroke:#181818;stroke-width:0.5;" width="63" x="917.5" y="1279"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="57" x="920.5" y="1298.5332">LineStart</text></g><!--MD5=[ad7138a06cc2c35fdca110207d202d3c]
+class LineEnd--><g id="elem_LineEnd"><rect codeLine="191" fill="#F1F1F1" height="27.6094" id="LineEnd" rx="2.5" ry="2.5" style="stroke:#181818;stroke-width:0.5;" width="58" x="1016" y="1279"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="52" x="1019" y="1298.5332">LineEnd</text></g><!--MD5=[958aefd161291e56e7bfa3ed872adb14]
+class StringStart--><g id="elem_StringStart"><rect codeLine="192" fill="#F1F1F1" height="27.6094" id="StringStart" rx="2.5" ry="2.5" style="stroke:#181818;stroke-width:0.5;" width="73" x="500.5" y="1279"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="67" x="503.5" y="1298.5332">StringStart</text></g><!--MD5=[0977e9987ba3d3ef3ec70c549bef38fc]
+class StringEnd--><g id="elem_StringEnd"><rect codeLine="193" fill="#F1F1F1" height="27.6094" id="StringEnd" rx="2.5" ry="2.5" style="stroke:#181818;stroke-width:0.5;" width="68" x="609" y="1279"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="62" x="612" y="1298.5332">StringEnd</text></g><!--MD5=[9060f80a0e3b13fac611f3f3a8769ad0]
+class WordStart--><g id="elem_WordStart"><rect codeLine="194" fill="#F1F1F1" height="27.6094" id="WordStart" rx="2.5" ry="2.5" style="stroke:#181818;stroke-width:0.5;" width="70" x="712" y="1279"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="64" x="715" y="1298.5332">WordStart</text></g><!--MD5=[0ec5d0aec47b4059072ded68e752b3c9]
+class WordEnd--><g id="elem_WordEnd"><rect codeLine="195" fill="#F1F1F1" height="27.6094" id="WordEnd" rx="2.5" ry="2.5" style="stroke:#181818;stroke-width:0.5;" width="65" x="817.5" y="1279"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="59" x="820.5" y="1298.5332">WordEnd</text></g><!--MD5=[2ea8aeebbb2955eb85303b3d7ecb33c7]
+class _MultipleMatch--><g id="elem__MultipleMatch"><rect codeLine="196" fill="#FFFFFF" height="27.6094" id="_MultipleMatch" rx="2.5" ry="2.5" style="stroke:#181818;stroke-width:0.5;" width="100" x="816" y="1874"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="94" x="819" y="1893.5332">_MultipleMatch</text></g><!--MD5=[88263a8f08cfd615d574b6c8267ab0c1]
+class FollowedBy--><g id="elem_FollowedBy"><rect codeLine="197" fill="#F1F1F1" height="27.6094" id="FollowedBy" rx="2.5" ry="2.5" style="stroke:#181818;stroke-width:0.5;" width="78" x="951" y="1874"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="72" x="954" y="1893.5332">FollowedBy</text></g><!--MD5=[fdaf116628447997b408c204a08844fa]
+class PrecededBy--><g id="elem_PrecededBy"><rect codeLine="198" fill="#F1F1F1" height="27.6094" id="PrecededBy" rx="2.5" ry="2.5" style="stroke:#181818;stroke-width:0.5;" width="83" x="1064.5" y="1874"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="77" x="1067.5" y="1893.5332">PrecededBy</text></g><!--MD5=[975db78e9320a7720d96a9cfb8d6640e]
+class AtLineStart--><g id="elem_AtLineStart"><rect codeLine="199" fill="#F1F1F1" height="27.6094" id="AtLineStart" rx="2.5" ry="2.5" style="stroke:#181818;stroke-width:0.5;" width="76" x="483" y="1550"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="70" x="486" y="1569.5332">AtLineStart</text></g><!--MD5=[a539b9fdffd95738bde432e455f834ff]
+class AtStringStart--><g id="elem_AtStringStart"><rect codeLine="200" fill="#F1F1F1" height="27.6094" id="AtStringStart" rx="2.5" ry="2.5" style="stroke:#181818;stroke-width:0.5;" width="86" x="594" y="1550"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="80" x="597" y="1569.5332">AtStringStart</text></g><!--MD5=[14eae01bae9d3b440d01fcb6557cc32f]
+class TokenConverter--><g id="elem_TokenConverter"><rect codeLine="202" fill="#FFFFFF" height="27.6094" id="TokenConverter" rx="2.5" ry="2.5" style="stroke:#181818;stroke-width:0.5;" width="109" x="422.5" y="1874"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="103" x="425.5" y="1893.5332">TokenConverter</text></g><polygon fill="none" points="477.3922,1901.6094,484.9574,1921.4025,470.9631,1921.8001" style="stroke:#181818;stroke-width:1.0;"/><line style="stroke:#181818;stroke-width:1.0;" x1="477.9603" x2="478" y1="1921.6013" y2="1923"/><line style="stroke:#181818;stroke-width:1.0;" x1="476.5675" x2="475.93" y1="1874" y2="1853.65"/><!--MD5=[14f57c92f5b333baa8c3421fcfa96b6a]
+class Located--><g id="elem_Located"><rect codeLine="203" fill="#F1F1F1" height="27.6094" id="Located" rx="2.5" ry="2.5" style="stroke:#181818;stroke-width:0.5;" width="57" x="752.5" y="1550"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="51" x="755.5" y="1569.5332">Located</text></g><!--MD5=[931802684211c579ce580bf8abd5b144]
+class Opt--><g id="elem_Opt"><rect codeLine="204" fill="#F1F1F1" height="27.6094" id="Opt" rx="2.5" ry="2.5" style="stroke:#181818;stroke-width:0.5;" width="29" x="844.5" y="1550"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="23" x="847.5" y="1569.5332">Opt</text></g><!--MD5=[d4a3502ad2fb33e02699de40d7a306b8]
+class Combine--><g id="elem_Combine"><rect codeLine="206" fill="#F1F1F1" height="27.6094" id="Combine" rx="2.5" ry="2.5" style="stroke:#181818;stroke-width:0.5;" width="62" x="417" y="2190"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="56" x="420" y="2209.5332">Combine</text></g><!--MD5=[63d0bc08ad8d8d3cdf7e4c9b28d69f29]
+class Dict--><g id="elem_Dict"><rect codeLine="208" fill="#F1F1F1" height="27.6094" id="Dict" rx="2.5" ry="2.5" style="stroke:#181818;stroke-width:0.5;" width="30" x="514" y="2190"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="24" x="517" y="2209.5332">Dict</text></g><!--MD5=[94c1c6bd3633c41139f5b88546c66409]
+class Suppress--><g id="elem_Suppress"><rect codeLine="209" fill="#F1F1F1" height="27.6094" id="Suppress" rx="2.5" ry="2.5" style="stroke:#181818;stroke-width:0.5;" width="66" x="579" y="2190"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="60" x="582" y="2209.5332">Suppress</text></g><!--MD5=[5371a1df897158f00e136c44292978ac]
+class CloseMatch--><g id="elem_CloseMatch"><rect fill="#F1F1F1" height="27.6094" id="CloseMatch" rx="2.5" ry="2.5" style="stroke:#181818;stroke-width:0.5;" width="80" x="503" y="1141"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="74" x="506" y="1160.5332">CloseMatch</text></g><!--MD5=[cf5993d9a13176bc253271690cd98b7d]
+class CaselessLiteral--><g id="elem_CaselessLiteral"><rect fill="#F1F1F1" height="27.6094" id="CaselessLiteral" rx="2.5" ry="2.5" style="stroke:#181818;stroke-width:0.5;" width="103" x="132.5" y="1279"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="97" x="135.5" y="1298.5332">CaselessLiteral</text></g><!--MD5=[5123650fd594360f4abb45e3c42b4873]
+class NotAny--><g id="elem_NotAny"><rect fill="#F1F1F1" height="27.6094" id="NotAny" rx="2.5" ry="2.5" style="stroke:#181818;stroke-width:0.5;" width="51" x="586.5" y="1874"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="45" x="589.5" y="1893.5332">NotAny</text></g><!--MD5=[d09bc2ac921aa162e943b902c7eabd35]
+class  --><g id="elem_ "><rect codeLine="267" fill="#F1F1F1" height="483.8438" id=" " rx="2.5" ry="2.5" style="stroke:#181818;stroke-width:0.5;" width="154" x="1678" y="1646"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="4" x="1753" y="1665.5332"> </text><line style="stroke:#181818;stroke-width:0.5;" x1="1679" x2="1831" y1="1673.6094" y2="1673.6094"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="142" x="1684" y="1692.1426">comma_separated_list</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="44" x="1684" y="1709.752">integer</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="74" x="1684" y="1727.3613">hex_integer</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="94" x="1684" y="1744.9707">signed_integer</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="47" x="1684" y="1762.5801">fraction</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="88" x="1684" y="1780.1895">mixed_integer</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="24" x="1684" y="1797.7988">real</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="49" x="1684" y="1815.4082">sci_real</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="48" x="1684" y="1833.0176">number</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="52" x="1684" y="1850.627">fnumber</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="54" x="1684" y="1868.2363">identifier</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="85" x="1684" y="1885.8457">ipv4_address</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="85" x="1684" y="1903.4551">ipv6_address</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="85" x="1684" y="1921.0645">mac_address</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="86" x="1684" y="1938.6738">iso8601_date</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="112" x="1684" y="1956.2832">iso8601_datetime</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="27" x="1684" y="1973.8926">uuid</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="16" x="1684" y="1991.502">url</text><line style="stroke:#181818;stroke-width:0.5;" x1="1679" x2="1831" y1="1998.5781" y2="1998.5781"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="129" x="1684" y="2017.1113">convert_to_integer()</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="112" x="1684" y="2034.7207">convert_to_float()</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="113" x="1684" y="2052.3301">convert_to_date()</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="139" x="1684" y="2069.9395">convert_to_datetime()</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="106" x="1684" y="2087.5488">strip_html_tags()</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="106" x="1684" y="2105.1582">upcase_tokens()</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="123" x="1684" y="2122.7676">downcase_tokens()</text></g><!--MD5=[d200d8cb730bd22912ac4470e893530b]
+class unicode_set--><g id="elem_unicode_set"><rect codeLine="297" fill="#F1F1F1" height="141.2656" id="unicode_set" rx="2.5" ry="2.5" style="stroke:#181818;stroke-width:0.5;" width="133" x="1552.5" y="900"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="77" x="1580.5" y="919.5332">unicode_set</text><line style="stroke:#181818;stroke-width:0.5;" x1="1553.5" x2="1684.5" y1="927.6094" y2="927.6094"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="86" x="1558.5" y="946.1426">printables: str</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="66" x="1558.5" y="963.752">alphas: str</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="58" x="1558.5" y="981.3613">nums: str</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="93" x="1558.5" y="998.9707">alphanums: str</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="90" x="1558.5" y="1016.5801">identchars: str</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="121" x="1558.5" y="1034.1895">identbodychars: str</text></g><polygon fill="none" points="1622.8443,1041.2656,1630.9209,1060.8556,1616.9416,1061.6165" style="stroke:#181818;stroke-width:1.0;"/><line style="stroke:#181818;stroke-width:1.0;" x1="1623.9312" x2="1624" y1="1061.2361" y2="1062.5"/><!--MD5=[ef2898df80e693d5ba83bd8f830f858f]
+class Latin1--><g id="elem_Latin1"><rect codeLine="305" fill="#F1F1F1" height="27.6094" id="Latin1" rx="2.5" ry="2.5" style="stroke:#181818;stroke-width:0.5;" width="45" x="1276.5" y="1141"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="39" x="1279.5" y="1160.5332">Latin1</text></g><!--MD5=[628303533f162d09a56a15bb6ba6ce93]
+class LatinA--><g id="elem_LatinA"><rect codeLine="306" fill="#F1F1F1" height="27.6094" id="LatinA" rx="2.5" ry="2.5" style="stroke:#181818;stroke-width:0.5;" width="46" x="1335" y="1279"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="40" x="1338" y="1298.5332">LatinA</text></g><!--MD5=[03394af6ffdc5484a1e1516f82224b08]
+class LatinB--><g id="elem_LatinB"><rect codeLine="307" fill="#F1F1F1" height="27.6094" id="LatinB" rx="2.5" ry="2.5" style="stroke:#181818;stroke-width:0.5;" width="46" x="1394" y="1141"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="40" x="1397" y="1160.5332">LatinB</text></g><!--MD5=[80956c276a83f00c345e22369669927b]
+class BasicMultilingualPlane--><g id="elem_BasicMultilingualPlane"><rect codeLine="308" fill="#F1F1F1" height="27.6094" id="BasicMultilingualPlane" rx="2.5" ry="2.5" style="stroke:#181818;stroke-width:0.5;" width="146" x="1387" y="1429.5"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="140" x="1390" y="1449.0332">BasicMultilingualPlane</text></g><!--MD5=[fd341c2ed67c430ca6b967321913e81f]
+class Chinese--><g id="elem_Chinese"><rect codeLine="309" fill="#F1F1F1" height="27.6094" id="Chinese" rx="2.5" ry="2.5" style="stroke:#181818;stroke-width:0.5;" width="58" x="1496" y="1279"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="52" x="1499" y="1298.5332">Chinese</text></g><!--MD5=[207353adb8625dd19f4e6d22c67d995b]
+class Thai--><g id="elem_Thai"><rect codeLine="310" fill="#F1F1F1" height="27.6094" id="Thai" rx="2.5" ry="2.5" style="stroke:#181818;stroke-width:0.5;" width="34" x="1549" y="1141"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="28" x="1552" y="1160.5332">Thai</text></g><!--MD5=[da6a799390bde3723d3e8e21c40ab89d]
+class Japanese--><g id="elem_Japanese"><rect codeLine="311" fill="#F1F1F1" height="88.4375" id="Japanese" rx="2.5" ry="2.5" style="stroke:#181818;stroke-width:0.5;" width="108" x="1589" y="1249"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="61" x="1612.5" y="1268.5332">Japanese</text><line style="stroke:#181818;stroke-width:0.5;" x1="1590" x2="1696" y1="1276.6094" y2="1276.6094"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="67" x="1595" y="1295.1426">class Kanji</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="93" x="1595" y="1312.752">class Hiragana</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="96" x="1595" y="1330.3613">class Katakana</text></g><!--MD5=[d33dd3e618e5fc1cb61bacd13cacede2]
+class Greek--><g id="elem_Greek"><rect codeLine="316" fill="#F1F1F1" height="27.6094" id="Greek" rx="2.5" ry="2.5" style="stroke:#181818;stroke-width:0.5;" width="45" x="1655.5" y="1141"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="39" x="1658.5" y="1160.5332">Greek</text></g><!--MD5=[173bd03727c17a00822f6d046a361b1b]
+class Hangul--><g id="elem_Hangul"><rect codeLine="317" fill="#F1F1F1" height="27.6094" id="Hangul" rx="2.5" ry="2.5" style="stroke:#181818;stroke-width:0.5;" width="50" x="1732" y="1279"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="44" x="1735" y="1298.5332">Hangul</text></g><!--MD5=[4a179edf2f5f0523822c3f25b4cc4830]
+class Arabic--><g id="elem_Arabic"><rect codeLine="318" fill="#F1F1F1" height="27.6094" id="Arabic" rx="2.5" ry="2.5" style="stroke:#181818;stroke-width:0.5;" width="46" x="1773" y="1141"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="40" x="1776" y="1160.5332">Arabic</text></g><!--MD5=[33b405d496865f6b02b1a2dd60f8c6e0]
+class Devanagari--><g id="elem_Devanagari"><rect codeLine="319" fill="#F1F1F1" height="27.6094" id="Devanagari" rx="2.5" ry="2.5" style="stroke:#181818;stroke-width:0.5;" width="79" x="1817.5" y="1279"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="73" x="1820.5" y="1298.5332">Devanagari</text></g><!--MD5=[4396f855228d4333f4aff37d12af6907]
+class Hebrew--><g id="elem_Hebrew"><rect codeLine="320" fill="#F1F1F1" height="27.6094" id="Hebrew" rx="2.5" ry="2.5" style="stroke:#181818;stroke-width:0.5;" width="53" x="1891.5" y="1141"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="47" x="1894.5" y="1160.5332">Hebrew</text></g><!--MD5=[c8c96f0d67aae633f110e477e5c9954c]
+class Cyrillic--><g id="elem_Cyrillic"><rect codeLine="321" fill="#F1F1F1" height="27.6094" id="Cyrillic" rx="2.5" ry="2.5" style="stroke:#181818;stroke-width:0.5;" width="47" x="1934.5" y="1279"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="41" x="1937.5" y="1298.5332">Cyrillic</text></g><!--MD5=[7f324af0e76b956ade43e4239d4ee655]
+class CJK--><g id="elem_CJK"><rect fill="#F1F1F1" height="27.6094" id="CJK" rx="2.5" ry="2.5" style="stroke:#181818;stroke-width:0.5;" width="31" x="1627.5" y="1429.5"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="25" x="1630.5" y="1449.0332">CJK</text></g><g id="elem_N1"><path d="M1180,387 L1180,466.6328 L1324,466.6328 L1324,397 L1314,387 L1180,387 " fill="#FEFFDD" style="stroke:#181818;stroke-width:0.5;"/><path d="M1314,387 L1314,397 L1324,397 L1314,387 " fill="#FEFFDD" style="stroke:#181818;stroke-width:1.0;"/><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacing" textLength="85" x="1186" y="405.4951">Class Diagram</text><line style="stroke:#181818;stroke-width:1.0;" x1="1181" x2="1323" y1="408.3516" y2="408.3516"/><text fill="#000000" font-family="sans-serif" font-size="18" lengthAdjust="spacing" textLength="123" x="1186" y="431.0371">pyparsing 3.0.9</text><text fill="#000000" font-family="sans-serif" font-size="18" lengthAdjust="spacing" textLength="84" x="1186" y="453.6777">May, 2022</text></g><!--MD5=[59c902028ccde7d4b1a37618277d70d3]
+reverse link N1 to unicode--><!--MD5=[c88a03d14893c4f1d947e93c16a3f66e]
+reverse link ParseBaseException to ParseException--><g id="link_ParseBaseException_ParseException"><path codeLine="107" d="M1042.48,530.41 C1059.16,667.22 1087.42,899.1 1094.4,956.4 " fill="none" id="ParseBaseException-backto-ParseException" style="stroke:#181818;stroke-width:1.0;"/><polygon fill="none" points="1035.53,531.24,1040.06,510.54,1049.43,529.54,1035.53,531.24" style="stroke:#181818;stroke-width:1.0;"/></g><!--MD5=[c11400d5f55bf5da849526114c984b5f]
+reverse link ParseBaseException to ParseFatalException--><g id="link_ParseBaseException_ParseFatalException"><path codeLine="108" d="M1013.17,530.41 C990.68,667.22 952.57,899.1 943.15,956.4 " fill="none" id="ParseBaseException-backto-ParseFatalException" style="stroke:#181818;stroke-width:1.0;"/><polygon fill="none" points="1006.28,529.14,1016.43,510.54,1020.1,531.41,1006.28,529.14" style="stroke:#181818;stroke-width:1.0;"/></g><!--MD5=[fbde7d68288e8dede7b623b0903c9e58]
+reverse link ParseFatalException to ParseSyntaxException--><g id="link_ParseFatalException_ParseSyntaxException"><path codeLine="109" d="M954.9,1003.2 C972.72,1043.86 1002.81,1112.5 1015.3,1140.99 " fill="none" id="ParseFatalException-backto-ParseSyntaxException" style="stroke:#181818;stroke-width:1.0;"/><polygon fill="none" points="948.37,1005.75,946.75,984.62,961.19,1000.13,948.37,1005.75" style="stroke:#181818;stroke-width:1.0;"/></g><!--MD5=[105d6745838d22719235af96f003b08f]
+reverse link ParserElement to Token--><g id="link_ParserElement_Token"><path codeLine="211" d="M702,813 C702,813 523.54,904.27 439.19,947.41 " fill="none" id="ParserElement-backto-Token" style="stroke:#181818;stroke-width:1.0;"/></g><!--MD5=[fd4f4a5d2991d36a4c98c0585f70072f]
+reverse link ParserElement to ParseExpression--><g id="link_ParserElement_ParseExpression"><path codeLine="212" d="M702,813 C702,813 742.71,959.19 805,1061 C823.27,1090.85 838.55,1090.66 856,1121 C871.98,1148.78 856.64,1167.05 880,1189 C951.05,1255.76 1032.24,1171.2 1091,1249 C1114.57,1280.21 1115.91,1306.85 1091,1337 C1076.9,1354.07 803.89,1400.42 648.29,1425.63 " fill="none" id="ParserElement-backto-ParseExpression" style="stroke:#181818;stroke-width:1.0;"/></g><!--MD5=[0bdc3c2f3bd127c6fe231825beea48e2]
+reverse link Token to _PositionToken--><g id="link_Token__PositionToken"><path codeLine="213" d="M392,1005.5 C392,1005.5 535.67,1077.09 623.49,1120.86 " fill="none" id="Token-backto-_PositionToken" style="stroke:#181818;stroke-width:1.0;"/></g><!--MD5=[fe8fdfd255e2b632c5dcd2c8e8a4113d]
+reverse link ParserElement to ParseElementEnhance--><g id="link_ParserElement_ParseElementEnhance"><path codeLine="214" d="M702,813 C702,813 800.07,812.11 809,820 C890.71,892.21 816.66,958.92 855,1061 C860.8,1076.43 917.12,1178.71 930,1189 C998.85,1244.01 1066.96,1177.88 1119,1249 C1142.1,1280.56 1138.4,1303.04 1119,1337 C1100.48,1369.42 1067.67,1392.87 1035.16,1409.3 " fill="none" id="ParserElement-backto-ParseElementEnhance" style="stroke:#181818;stroke-width:1.0;"/></g><!--MD5=[6daeea9dfba6f6baca8c942fc93eee78]
+reverse link Token to Empty--><g id="link_Token_Empty"><path codeLine="220" d="M392,1005.5 C392,1005.5 279.43,1063.11 197,1121 C188.31,1127.11 179.13,1134.59 171.76,1140.89 " fill="none" id="Token-backto-Empty" style="stroke:#181818;stroke-width:1.0;"/></g><!--MD5=[f4f669860e0562b3858ade4504b44c3f]
+reverse link Token to CloseMatch--><g id="link_Token_CloseMatch"><path codeLine="221" d="M392,1005.5 C392,1005.5 492.64,1104.48 529.6,1140.82 " fill="none" id="Token-backto-CloseMatch" style="stroke:#181818;stroke-width:1.0;"/></g><!--MD5=[503c678b51abe09dbad75c7dc6b32d49]
+reverse link Token to NoMatch--><g id="link_Token_NoMatch"><path codeLine="222" d="M392,1005.5 C392,1005.5 372.67,1104.48 365.57,1140.82 " fill="none" id="Token-backto-NoMatch" style="stroke:#181818;stroke-width:1.0;"/></g><!--MD5=[7546738b4b9645b1774def39c94d28cf]
+reverse link Token to Literal--><g id="link_Token_Literal"><path codeLine="223" d="M392,1005.5 C392,1005.5 288.69,1104.48 250.76,1140.82 " fill="none" id="Token-backto-Literal" style="stroke:#181818;stroke-width:1.0;"/></g><!--MD5=[e02ace90fc683929a6eb02405888365b]
+reverse link Token to Word--><g id="link_Token_Word"><path codeLine="224" d="M392,1005.5 C392,1005.5 216.28,1053.41 89,1121 C78.43,1126.61 67.45,1134.21 58.75,1140.71 " fill="none" id="Token-backto-Word" style="stroke:#181818;stroke-width:1.0;"/></g><!--MD5=[0dc9532c77b0f63b14909b24fb72145e]
+reverse link Token to Keyword--><g id="link_Token_Keyword"><path codeLine="225" d="M392,1005.5 C392,1005.5 191.24,1011.17 117,1121 C54.02,1214.17 109.32,1358.61 136.26,1416.86 " fill="none" id="Token-backto-Keyword" style="stroke:#181818;stroke-width:1.0;"/></g><!--MD5=[f6a2e74b1b9684fda181725e632c6db6]
+reverse link Token to Regex--><g id="link_Token_Regex"><path codeLine="226" d="M392,1005.5 C392,1005.5 336.45,1063.15 315,1121 C294.31,1176.81 293.09,1249.18 293.58,1278.64 " fill="none" id="Token-backto-Regex" style="stroke:#181818;stroke-width:1.0;"/></g><!--MD5=[39f317588f05ed0b8428ba8323789334]
+reverse link Token to CharsNotIn--><g id="link_Token_CharsNotIn"><path codeLine="227" d="M392,1005.5 C392,1005.5 419.23,1107.42 411,1189 C407.7,1221.68 398.66,1259.33 393.58,1278.8 " fill="none" id="Token-backto-CharsNotIn" style="stroke:#181818;stroke-width:1.0;"/></g><!--MD5=[5476271bf1b41050fca5e6ad83475a5c]
+reverse link Token to White--><g id="link_Token_White"><path codeLine="228" d="M392,1005.5 C392,1005.5 621.15,1035.55 779,1121 C788.67,1126.24 798.12,1134.14 805.3,1140.9 " fill="none" id="Token-backto-White" style="stroke:#181818;stroke-width:1.0;"/></g><!--MD5=[7ca512a0b5d8ff5b9aca00bc39057621]
+reverse link Token to QuotedString--><g id="link_Token_QuotedString"><path codeLine="229" d="M392,1005.5 C392,1005.5 496.22,1196.86 445,1337 C430.61,1376.39 394.3,1411.22 372.77,1429.33 " fill="none" id="Token-backto-QuotedString" style="stroke:#181818;stroke-width:1.0;"/></g><!--MD5=[d30a42eaad5861ea223a168a51f63316]
+reverse link Word to Char--><g id="link_Word_Char"><path codeLine="230" d="M41.76,1189.1 C41.54,1217.93 41.25,1258.24 41.1,1278.8 " fill="none" id="Word-backto-Char" style="stroke:#181818;stroke-width:1.0;"/><polygon fill="none" points="34.76,1188.99,41.9,1169.04,48.76,1189.09,34.76,1188.99" style="stroke:#181818;stroke-width:1.0;"/></g><!--MD5=[04ee252cbc534eb9e73965d5e1811787]
+reverse link Literal to CaselessLiteral--><g id="link_Literal_CaselessLiteral"><path codeLine="231" d="M224.6,1187.83 C213.33,1216.73 197.28,1257.93 189.14,1278.8 " fill="none" id="Literal-backto-CaselessLiteral" style="stroke:#181818;stroke-width:1.0;"/><polygon fill="none" points="218.13,1185.13,231.92,1169.04,231.18,1190.22,218.13,1185.13" style="stroke:#181818;stroke-width:1.0;"/></g><!--MD5=[2c26c4f88d0124d00328074cf9acdf92]
+reverse link Keyword to CaselessKeyword--><g id="link_Keyword_CaselessKeyword"><path codeLine="232" d="M125.52,1487.97 C113.69,1509.88 100.17,1534.9 92.13,1549.8 " fill="none" id="Keyword-backto-CaselessKeyword" style="stroke:#181818;stroke-width:1.0;"/><polygon fill="none" points="119.45,1484.48,135.11,1470.21,131.77,1491.14,119.45,1484.48" style="stroke:#181818;stroke-width:1.0;"/></g><!--MD5=[bb77c86a6a230caee87ba3cc445ffc47]
+reverse link ParseExpression to And--><g id="link_ParseExpression_And"><path codeLine="234" d="M461,1491.5 C461,1491.5 329.66,1517.36 228,1550 C222.25,1551.84 216.07,1554.18 210.63,1556.36 " fill="none" id="ParseExpression-backto-And" style="stroke:#181818;stroke-width:1.0;"/></g><!--MD5=[4a9d4d09b71d0b96af9b6721880dc0ff]
+reverse link ParseExpression to Or--><g id="link_ParseExpression_Or"><path codeLine="235" d="M461,1491.5 C461,1491.5 361.62,1519.59 285,1550 C279.32,1552.25 273.15,1555.08 268.05,1557.52 " fill="none" id="ParseExpression-backto-Or" style="stroke:#181818;stroke-width:1.0;"/></g><!--MD5=[00186785027f6979184317eab4d3e897]
+reverse link ParseExpression to MatchFirst--><g id="link_ParseExpression_MatchFirst"><path codeLine="236" d="M461,1491.5 C461,1491.5 396.6,1529.24 361.38,1549.89 " fill="none" id="ParseExpression-backto-MatchFirst" style="stroke:#181818;stroke-width:1.0;"/></g><!--MD5=[2f6ff7d648384197c9c84545bb8fc6da]
+reverse link ParseExpression to Each--><g id="link_ParseExpression_Each"><path codeLine="237" d="M461,1491.5 C461,1491.5 444.11,1529.24 434.87,1549.89 " fill="none" id="ParseExpression-backto-Each" style="stroke:#181818;stroke-width:1.0;"/></g><!--MD5=[9404e496dc963510a187527feccb74db]
+reverse link ParseElementEnhance to SkipTo--><g id="link_ParseElementEnhance_SkipTo"><path codeLine="239" d="M915,1491.5 C915,1491.5 944.56,1529.24 960.73,1549.89 " fill="none" id="ParseElementEnhance-backto-SkipTo" style="stroke:#181818;stroke-width:1.0;"/></g><!--MD5=[a4ae74ea7a555e569f3965d30caf2279]
+reverse link ParseElementEnhance to Forward--><g id="link_ParseElementEnhance_Forward"><path codeLine="240" d="M915,1491.5 C915,1491.5 1053.31,1536.16 1013,1578 C996.41,1595.22 816.46,1570.82 798,1586 C714.44,1654.71 718.43,1801.74 723.92,1861.23 " fill="none" id="ParseElementEnhance-backto-Forward" style="stroke:#181818;stroke-width:1.0;"/></g><!--MD5=[b7f1285f15e4e73a0eb2162a4670be04]
+reverse link ParseElementEnhance to Located--><g id="link_ParseElementEnhance_Located"><path codeLine="241" d="M915,1491.5 C915,1491.5 844.26,1529.24 805.58,1549.89 " fill="none" id="ParseElementEnhance-backto-Located" style="stroke:#181818;stroke-width:1.0;"/></g><!--MD5=[d2c6109e5f11bf4a13d31f05c22c854d]
+reverse link ParseElementEnhance to _MultipleMatch--><g id="link_ParseElementEnhance__MultipleMatch"><path codeLine="242" d="M915,1491.5 C915,1491.5 1087.22,1528.23 1041,1578 C1024.62,1595.63 951.21,1570.26 933,1586 C844.91,1662.15 858.14,1826.18 864.11,1873.79 " fill="none" id="ParseElementEnhance-backto-_MultipleMatch" style="stroke:#181818;stroke-width:1.0;"/></g><!--MD5=[e84f35da8a535b2bdb81a5b1885792e6]
+reverse link _MultipleMatch to OneOrMore--><g id="link__MultipleMatch_OneOrMore"><path codeLine="243" d="M861.17,1921.86 C852.64,1975.29 832.46,2083.71 798,2170 C795.25,2176.88 791.27,2184.05 787.67,2189.95 " fill="none" id="_MultipleMatch-backto-OneOrMore" style="stroke:#181818;stroke-width:1.0;"/><polygon fill="none" points="854.26,1920.72,864.2,1902,868.1,1922.83,854.26,1920.72" style="stroke:#181818;stroke-width:1.0;"/></g><!--MD5=[7e8e15ca5fe17f83c59228d167a09274]
+reverse link _MultipleMatch to ZeroOrMore--><g id="link__MultipleMatch_ZeroOrMore"><path codeLine="244" d="M869.19,1922.42 C875.73,1990.8 890.37,2144.08 894.74,2189.85 " fill="none" id="_MultipleMatch-backto-ZeroOrMore" style="stroke:#181818;stroke-width:1.0;"/><polygon fill="none" points="862.18,1922.67,867.25,1902.09,876.12,1921.34,862.18,1922.67" style="stroke:#181818;stroke-width:1.0;"/></g><!--MD5=[9902d9c56eba2d6824d658fc8baba83f]
+reverse link ParseElementEnhance to NotAny--><g id="link_ParseElementEnhance_NotAny"><path codeLine="245" d="M915,1491.5 C915,1491.5 922.35,1553.32 891,1578 C870.39,1594.23 674.53,1568.48 655,1586 C569.55,1662.68 598.26,1826.34 608.83,1873.83 " fill="none" id="ParseElementEnhance-backto-NotAny" style="stroke:#181818;stroke-width:1.0;"/></g><!--MD5=[91eeed69cec96d47079ffcf95d1cad29]
+reverse link ParseElementEnhance to FollowedBy--><g id="link_ParseElementEnhance_FollowedBy"><path codeLine="246" d="M915,1491.5 C915,1491.5 1033.71,1487.05 1078,1550 C1085.16,1560.18 1085.62,1568.16 1078,1578 C1069.29,1589.25 1056.73,1575.61 1047,1586 C968.28,1670.04 981.94,1827.21 988.03,1873.72 " fill="none" id="ParseElementEnhance-backto-FollowedBy" style="stroke:#181818;stroke-width:1.0;"/></g><!--MD5=[17b9f35a046d165e4b5e4c7274c6c450]
+reverse link ParseElementEnhance to PrecededBy--><g id="link_ParseElementEnhance_PrecededBy"><path codeLine="247" d="M915,1491.5 C915,1491.5 1040.51,1484.61 1090,1550 C1167.23,1652.05 1124.28,1825.4 1110.04,1873.99 " fill="none" id="ParseElementEnhance-backto-PrecededBy" style="stroke:#181818;stroke-width:1.0;"/></g><!--MD5=[22609342e231c1984f31d410bfb7f76b]
+reverse link ParseElementEnhance to Opt--><g id="link_ParseElementEnhance_Opt"><path codeLine="248" d="M915,1491.5 C915,1491.5 885.44,1529.24 869.27,1549.89 " fill="none" id="ParseElementEnhance-backto-Opt" style="stroke:#181818;stroke-width:1.0;"/></g><!--MD5=[9305c458aeec6e823feb99148ab9d6c8]
+reverse link ParseElementEnhance to TokenConverter--><g id="link_ParseElementEnhance_TokenConverter"><path codeLine="249" d="M915,1491.5 C915,1491.5 809.82,1511.56 735,1550 C716.34,1559.59 716.72,1570.83 697,1578 C670.22,1587.74 591.37,1568.34 569,1586 C486.01,1651.52 475.92,1789.96 475.93,1853.65 " fill="none" id="ParseElementEnhance-backto-TokenConverter" style="stroke:#181818;stroke-width:1.0;"/></g><!--MD5=[1ba77048788319fca432ae26e3f80d97]
+reverse link ParseElementEnhance to AtStringStart--><g id="link_ParseElementEnhance_AtStringStart"><path codeLine="250" d="M915,1491.5 C915,1491.5 758.22,1531.82 680.13,1551.91 " fill="none" id="ParseElementEnhance-backto-AtStringStart" style="stroke:#181818;stroke-width:1.0;"/></g><!--MD5=[70e58d396a4d72c485939ebe82e54ebb]
+reverse link ParseElementEnhance to AtLineStart--><g id="link_ParseElementEnhance_AtLineStart"><path codeLine="251" d="M915,1491.5 C915,1491.5 725.8,1519.4 576,1550 C570.52,1551.12 564.75,1552.38 559.1,1553.68 " fill="none" id="ParseElementEnhance-backto-AtLineStart" style="stroke:#181818;stroke-width:1.0;"/></g><!--MD5=[0dee534dbeee04c8df10eaafd754bcb2]
+reverse link TokenConverter to Group--><g id="link_TokenConverter_Group"><path codeLine="252" d="M478,1923 C478,1923 388.11,2134.51 364.58,2189.87 " fill="none" id="TokenConverter-backto-Group" style="stroke:#181818;stroke-width:1.0;"/></g><!--MD5=[550809875e2b342b08fea0154b682058]
+reverse link TokenConverter to Dict--><g id="link_TokenConverter_Dict"><path codeLine="253" d="M478,1923 C478,1923 516.53,2134.51 526.61,2189.87 " fill="none" id="TokenConverter-backto-Dict" style="stroke:#181818;stroke-width:1.0;"/></g><!--MD5=[bf51898c48461e5f3eb996a897a58159]
+reverse link TokenConverter to Suppress--><g id="link_TokenConverter_Suppress"><path codeLine="254" d="M478,1923 C478,1923 499.64,2075.79 569,2170 C574.69,2177.73 582.67,2184.54 590.22,2189.93 " fill="none" id="TokenConverter-backto-Suppress" style="stroke:#181818;stroke-width:1.0;"/></g><!--MD5=[747633e4d8b83239bbc783b06ee2e98c]
+reverse link TokenConverter to Combine--><g id="link_TokenConverter_Combine"><path codeLine="255" d="M478,1923 C478,1923 455.34,2134.51 449.41,2189.87 " fill="none" id="TokenConverter-backto-Combine" style="stroke:#181818;stroke-width:1.0;"/></g><!--MD5=[ed9d654676b5ce77ae9d1d2aeff10529]
+reverse link _PositionToken to LineStart--><g id="link__PositionToken_LineStart"><path codeLine="257" d="M706,1190 C706,1190 821.25,1205.18 900,1249 C914.04,1256.81 927.58,1269.19 936.86,1278.66 " fill="none" id="_PositionToken-backto-LineStart" style="stroke:#181818;stroke-width:1.0;"/></g><!--MD5=[4fd547a432806938e69d5b82f14851eb]
+reverse link _PositionToken to LineEnd--><g id="link__PositionToken_LineEnd"><path codeLine="258" d="M706,1190 C706,1190 879.97,1189.02 998,1249 C1012.2,1256.21 1025.29,1268.92 1034.04,1278.65 " fill="none" id="_PositionToken-backto-LineEnd" style="stroke:#181818;stroke-width:1.0;"/></g><!--MD5=[ee7b903f5633ce9e0b714cbe85ae6df0]
+reverse link _PositionToken to WordStart--><g id="link__PositionToken_WordStart"><path codeLine="259" d="M706,1190 C706,1190 730.53,1251.02 741.64,1278.67 " fill="none" id="_PositionToken-backto-WordStart" style="stroke:#181818;stroke-width:1.0;"/></g><!--MD5=[37f304d30410228b9ae51349caf101c7]
+reverse link _PositionToken to WordEnd--><g id="link__PositionToken_WordEnd"><path codeLine="260" d="M706,1190 C706,1190 759.53,1220.05 799,1249 C811.7,1258.32 825.3,1269.87 835.26,1278.65 " fill="none" id="_PositionToken-backto-WordEnd" style="stroke:#181818;stroke-width:1.0;"/></g><!--MD5=[e66a95fcf581878c1ad596c2f67e12f3]
+reverse link _PositionToken to StringStart--><g id="link__PositionToken_StringStart"><path codeLine="261" d="M706,1190 C706,1190 639.26,1217.84 591,1249 C577.11,1257.97 562.5,1269.76 551.99,1278.73 " fill="none" id="_PositionToken-backto-StringStart" style="stroke:#181818;stroke-width:1.0;"/></g><!--MD5=[7d9e13649d22ec36c0b0959bf4c6c33c]
+reverse link _PositionToken to StringEnd--><g id="link__PositionToken_StringEnd"><path codeLine="262" d="M706,1190 C706,1190 668.31,1251.02 651.24,1278.67 " fill="none" id="_PositionToken-backto-StringEnd" style="stroke:#181818;stroke-width:1.0;"/></g><!--MD5=[bf3f385e6e9eb328e6f464ba96c4c169]
+reverse link unicode_set to Latin1--><g id="link_unicode_set_Latin1"><path codeLine="323" d="M1624,1062.5 C1624,1062.5 1464.26,1072.74 1349,1121 C1337.1,1125.98 1325,1133.88 1315.68,1140.7 " fill="none" id="unicode_set-backto-Latin1" style="stroke:#181818;stroke-width:1.0;"/></g><!--MD5=[9d745414cfa4746ea2acf3b53d3b2f16]
+reverse link unicode_set to LatinA--><g id="link_unicode_set_LatinA"><path codeLine="324" d="M1624,1062.5 C1624,1062.5 1414.38,1078.76 1377,1121 C1336.81,1166.41 1348.41,1247.33 1354.94,1278.89 " fill="none" id="unicode_set-backto-LatinA" style="stroke:#181818;stroke-width:1.0;"/></g><!--MD5=[ba931fdd937b02e890dd74dd9c7a404c]
+reverse link unicode_set to LatinB--><g id="link_unicode_set_LatinB"><path codeLine="325" d="M1624,1062.5 C1624,1062.5 1533.39,1087.27 1467,1121 C1455.87,1126.65 1444.19,1134.26 1434.92,1140.74 " fill="none" id="unicode_set-backto-LatinB" style="stroke:#181818;stroke-width:1.0;"/></g><!--MD5=[484e41bbab8b0aab40a689cb0340c040]
+reverse link unicode_set to BasicMultilingualPlane--><g id="link_unicode_set_BasicMultilingualPlane"><path codeLine="326" d="M1624,1062.5 C1624,1062.5 1541,1074.34 1505,1121 C1430.12,1218.05 1449.99,1382.26 1457.67,1429.46 " fill="none" id="unicode_set-backto-BasicMultilingualPlane" style="stroke:#181818;stroke-width:1.0;"/></g><!--MD5=[7a45ceb60c7e43bcfc613fac847f6bd6]
+reverse link unicode_set to Greek--><g id="link_unicode_set_Greek"><path codeLine="327" d="M1624,1062.5 C1624,1062.5 1655.33,1115.59 1670.26,1140.89 " fill="none" id="unicode_set-backto-Greek" style="stroke:#181818;stroke-width:1.0;"/></g><!--MD5=[1e51b1a4dca67695caec548e04a021fd]
+reverse link unicode_set to Cyrillic--><g id="link_unicode_set_Cyrillic"><path codeLine="328" d="M1624,1062.5 C1624,1062.5 1912.91,1062.68 1962,1121 C2000.82,1167.12 1975.56,1247.62 1963.44,1278.98 " fill="none" id="unicode_set-backto-Cyrillic" style="stroke:#181818;stroke-width:1.0;"/></g><!--MD5=[ed5946c2707472e776e5b5daf269f1df]
+reverse link unicode_set to Chinese--><g id="link_unicode_set_Chinese"><path codeLine="329" d="M1624,1062.5 C1624,1062.5 1556.19,1079.01 1532,1121 C1502.19,1172.75 1514.87,1248.65 1521.7,1278.88 " fill="none" id="unicode_set-backto-Chinese" style="stroke:#181818;stroke-width:1.0;"/></g><!--MD5=[5d1286835cfc93c47c5e3e8a7e4a1fff]
+reverse link unicode_set to Japanese--><g id="link_unicode_set_Japanese"><path codeLine="330" d="M1624,1062.5 C1624,1062.5 1633.92,1182.35 1639.43,1248.83 " fill="none" id="unicode_set-backto-Japanese" style="stroke:#181818;stroke-width:1.0;"/></g><!--MD5=[74762083bc1f8d76bd07f7f57e589216]
+reverse link unicode_set to Hangul--><g id="link_unicode_set_Hangul"><path codeLine="331" d="M1624,1062.5 C1624,1062.5 1689.44,1080.93 1718,1121 C1753.52,1170.84 1757.31,1247.83 1757.29,1278.61 " fill="none" id="unicode_set-backto-Hangul" style="stroke:#181818;stroke-width:1.0;"/></g><!--MD5=[7b77b569bf84964dc7502b7fa797ce1c]
+reverse link Chinese to CJK--><g id="link_Chinese_CJK"><path codeLine="332" d="M1548.25,1323.26 C1573.74,1355.34 1613.51,1405.39 1632.38,1429.14 " fill="none" id="Chinese-backto-CJK" style="stroke:#181818;stroke-width:1.0;"/><polygon fill="none" points="1542.43,1327.19,1535.47,1307.18,1553.39,1318.48,1542.43,1327.19" style="stroke:#181818;stroke-width:1.0;"/></g><!--MD5=[141e2e88cabbc07844ceed5bbe797588]
+reverse link Japanese to CJK--><g id="link_Japanese_CJK"><path codeLine="333" d="M1643,1357.71 C1643,1384.51 1643,1413.18 1643,1429.37 " fill="none" id="Japanese-backto-CJK" style="stroke:#181818;stroke-width:1.0;"/><polygon fill="none" points="1636,1357.35,1643,1337.35,1650,1357.35,1636,1357.35" style="stroke:#181818;stroke-width:1.0;"/></g><!--MD5=[a4aee6430d37af13dc29de7485861372]
+reverse link Hangul to CJK--><g id="link_Hangul_CJK"><path codeLine="334" d="M1734.54,1323.26 C1709.91,1355.34 1671.49,1405.39 1653.26,1429.14 " fill="none" id="Hangul-backto-CJK" style="stroke:#181818;stroke-width:1.0;"/><polygon fill="none" points="1729.15,1318.78,1746.88,1307.18,1740.26,1327.31,1729.15,1318.78" style="stroke:#181818;stroke-width:1.0;"/></g><!--MD5=[82b8f30556168800af7fccbcb3b13112]
+reverse link unicode_set to Thai--><g id="link_unicode_set_Thai"><path codeLine="335" d="M1624,1062.5 C1624,1062.5 1590.35,1115.59 1574.31,1140.89 " fill="none" id="unicode_set-backto-Thai" style="stroke:#181818;stroke-width:1.0;"/></g><!--MD5=[23de8909cd43644de2cf028b47ea0b75]
+reverse link unicode_set to Arabic--><g id="link_unicode_set_Arabic"><path codeLine="336" d="M1624,1062.5 C1624,1062.5 1693.67,1091.37 1746,1121 C1756.68,1127.05 1768.14,1134.53 1777.39,1140.84 " fill="none" id="unicode_set-backto-Arabic" style="stroke:#181818;stroke-width:1.0;"/></g><!--MD5=[6ceede58ff358b70c39dfa9faeb26b73]
+reverse link unicode_set to Hebrew--><g id="link_unicode_set_Hebrew"><path codeLine="337" d="M1624,1062.5 C1624,1062.5 1762.61,1078.87 1864,1121 C1876.58,1126.23 1889.64,1134.13 1899.77,1140.9 " fill="none" id="unicode_set-backto-Hebrew" style="stroke:#181818;stroke-width:1.0;"/></g><!--MD5=[88d5f9e303f79ce9411a9632ffd51a40]
+reverse link unicode_set to Devanagari--><g id="link_unicode_set_Devanagari"><path codeLine="338" d="M1624,1062.5 C1624,1062.5 1773.04,1046.52 1837,1121 C1876.53,1167.03 1865.94,1247.58 1859.87,1278.97 " fill="none" id="unicode_set-backto-Devanagari" style="stroke:#181818;stroke-width:1.0;"/></g><!--MD5=[e5986adc862b63adaa5c58b5098a48fc]
+reverse link ParserElement to ParseBaseException--><!--MD5=[bd9eeba49ef7348230a3b472ef9a6d13]
+reverse link CJK to common--><!--MD5=[87c6951d60a05bcc1e3332f8694376fc]
+@startuml
+'https://plantuml.com/class-diagram
+
+top to bottom direction
+hide circle
+hide empty members
+'hide empty methods
+skinparam groupInheritance 3
+
+note as N1
+Class Diagram
+- - -
+<size 18>pyparsing 3.0.9
+<size 18>May, 2022
+end note
+
+N1 <-[hidden]- unicode
+
+package core {
+
+class globals {
+quoted_string
+sgl_quoted_string
+dbl_quoted_string
+delimited_list()
+counted_array()
+match_previous_literal()
+match_previous_expr()
+one_of()
+dict_of()
+original_text_for()
+ungroup()
+nested_expr()
+make_html_tags()
+make_xml_tags()
+common_html_entity
+replace_html_entity()
+class OpAssoc
+infix_notation()
+class IndentedBlock
+c_style_comment
+html_comment
+rest_of_line
+dbl_slash_comment
+cpp_style_comment
+java_style_comment
+python_style_comment
+match_only_at_col()
+replace_with()
+remove_quotes()
+with_attribute()
+with_class()
+trace_parse_action()
+condition_as_parse_action()
+srange()
+token_map()
+autoname_elements()
+}
+
+class ParseResults {
+class List
+{static}from_dict()
+__getitem__()
+__setitem__()
+__contains__()
+__len__()
+__bool__()
+__iter__()
+__reversed__()
+__getattr__()
+__add__()
+__getstate__()
+__setstate__()
+__getnewargs__()
+__dir__()
+as_dict()
+as_list()
+dump()
+get_name()
+items()
+keys()
+values()
+haskeys()
+pop()
+get()
+insert()
+append()
+extend()
+clear()
+copy()
+get_name()
+pprint()
+}
+
+class ParseBaseException #ffffff {
+{static} explain_exception()
+explain()
+mark_input_line()
+line
+lineno
+column
+parser_element
+}
+class ParseException
+class ParseFatalException
+class ParseSyntaxException
+
+ParseBaseException <|- - ParseException
+ParseBaseException <|- - ParseFatalException
+ParseFatalException <|- - ParseSyntaxException
+
+class ParserElement {
+name: str
+results_name: str
+- - -
+{classifier} enable_packrat()
+{classifier} enable_left_recursion()
+{classifier} disable_memoization()
+{classifier} set_default_whitespace_chars()
+{classifier} inline_literals_using()
+{classifier} reset_cache()
+
+{static} verbose_stacktrace
+
+operator + () -> And
+operator - () -> And.ErrorStop
+operator | () -> MatchFirst
+operator ^ () -> Or
+operator & () -> Each
+operator ~ () -> NotAny
+operator [] () -> _MultipleMatch
+add_condition()
+add_parse_action()
+set_parse_action()
+copy()
+ignore(expr)
+leave_whitespace()
+parse_with_tabs()
+suppress()
+set_break()
+set_debug()
+set_debug_actions()
+set_name()
+set_results_name()
+parse_string()
+scan_string()
+search_string()
+transform_string()
+split()
+run_tests()
+recurse()
+create_diagram()
+}
+class Token #ffffff
+class ParseExpression #ffffff {
+exprs: list[ParserElement]
+}
+class ParseElementEnhance #ffffff {
+expr: ParserElement
+}
+class _PositionToken  #ffffff
+class Char
+class White
+class Word {
+'Word(init_chars: str, body_chars: str, min: int, \nmax: int, exact: int, as_keyword: bool, exclude_chars: str)
+}
+class Keyword {
+{static} set_default_keyword_chars(chars: str)
+}
+class CaselessKeyword
+class Empty
+class Literal
+class Regex
+class NoMatch
+class CharsNotIn
+class QuotedString
+
+class And
+class Or
+class MatchFirst
+class Each
+
+class OneOrMore
+class ZeroOrMore
+class SkipTo
+class Group
+class Forward {
+operator <<= ()
+}
+
+class LineStart
+class LineEnd
+class StringStart
+class StringEnd
+class WordStart
+class WordEnd
+class _MultipleMatch #ffffff
+class FollowedBy
+class PrecededBy
+class AtLineStart
+class AtStringStart
+
+class TokenConverter #ffffff
+class Located
+class Opt
+
+class Combine
+class Group
+class Dict
+class Suppress
+
+ParserElement <|- - Token
+ParserElement <|- - - - - ParseExpression
+Token <|- - _PositionToken
+ParserElement <|- - - - - ParseElementEnhance
+
+'ParseElementEnhance - - -> ParserElement
+'ParseExpression - - -> "*" ParserElement
+
+
+Token <|- - Empty
+Token <|- - CloseMatch
+Token <|- - NoMatch
+Token <|- - Literal
+Token <|- - Word
+Token <|- - - - Keyword
+Token <|- - - Regex
+Token <|- - - CharsNotIn
+Token <|- - White
+Token <|- - - - QuotedString
+Word <|- - Char
+Literal <|- - CaselessLiteral
+Keyword <|- - CaselessKeyword
+
+ParseExpression <|- - And
+ParseExpression <|- - Or
+ParseExpression <|- - MatchFirst
+ParseExpression <|- - Each
+
+ParseElementEnhance <|- - SkipTo
+ParseElementEnhance <|- - - Forward
+ParseElementEnhance <|- - Located
+ParseElementEnhance <|- - - _MultipleMatch
+_MultipleMatch <|- - OneOrMore
+_MultipleMatch <|- - ZeroOrMore
+ParseElementEnhance <|- - - NotAny
+ParseElementEnhance <|- - - FollowedBy
+ParseElementEnhance <|- - - PrecededBy
+ParseElementEnhance <|- - Opt
+ParseElementEnhance <|- - - TokenConverter
+ParseElementEnhance <|- - AtStringStart
+ParseElementEnhance <|- - AtLineStart
+TokenConverter <|- - Group
+TokenConverter <|- - Dict
+TokenConverter <|- - Suppress
+TokenConverter <|- - Combine
+
+_PositionToken <|- - LineStart
+_PositionToken <|- - LineEnd
+_PositionToken <|- - WordStart
+_PositionToken <|- - WordEnd
+_PositionToken <|- - StringStart
+_PositionToken <|- - StringEnd
+
+}
+
+package common {
+class " " {
+comma_separated_list
+convert_to_integer()
+convert_to_float()
+integer
+hex_integer
+signed_integer
+fraction
+mixed_integer
+real
+sci_real
+number
+fnumber
+identifier
+ipv4_address
+ipv6_address
+mac_address
+convert_to_date()
+convert_to_datetime()
+iso8601_date
+iso8601_datetime
+uuid
+strip_html_tags()
+upcase_tokens()
+downcase_tokens()
+url
+}
+
+}
+package unicode {
+class unicode_set {
+printables: str
+alphas: str
+nums: str
+alphanums: str
+identchars: str
+identbodychars: str
+}
+class Latin1
+class LatinA
+class LatinB
+class BasicMultilingualPlane
+class Chinese
+class Thai
+class Japanese {
+class Kanji
+class Hiragana
+class Katakana
+}
+class Greek
+class Hangul
+class Arabic
+class Devanagari
+class Hebrew
+class Cyrillic
+
+unicode_set <|- - Latin1
+unicode_set <|- - - LatinA
+unicode_set <|- - LatinB
+unicode_set <|- - - - BasicMultilingualPlane
+unicode_set <|- - Greek
+unicode_set <|- - - Cyrillic
+unicode_set <|- - - Chinese
+unicode_set <|- - - Japanese
+unicode_set <|- - - Hangul
+Chinese <|- - CJK
+Japanese <|- - CJK
+Hangul <|- - CJK
+unicode_set <|- - Thai
+unicode_set <|- - Arabic
+unicode_set <|- - Hebrew
+unicode_set <|- - - Devanagari
+
+}
+
+ParserElement <-[hidden] ParseBaseException
+'ParseBaseException <-[hidden] globals
+'globals <-[hidden] ParserElement
+CJK <-[hidden]- - common
+
+@enduml
+
+@startuml
+
+top to bottom direction
+hide circle
+hide empty members
+skinparam groupInheritance 3
+
+note as N1
+Class Diagram
+- - -
+<size 18>pyparsing 3.0.9
+<size 18>May, 2022
+end note
+
+N1 <-[hidden]- unicode
+
+package core {
+
+class globals {
+quoted_string
+sgl_quoted_string
+dbl_quoted_string
+delimited_list()
+counted_array()
+match_previous_literal()
+match_previous_expr()
+one_of()
+dict_of()
+original_text_for()
+ungroup()
+nested_expr()
+make_html_tags()
+make_xml_tags()
+common_html_entity
+replace_html_entity()
+class OpAssoc
+infix_notation()
+class IndentedBlock
+c_style_comment
+html_comment
+rest_of_line
+dbl_slash_comment
+cpp_style_comment
+java_style_comment
+python_style_comment
+match_only_at_col()
+replace_with()
+remove_quotes()
+with_attribute()
+with_class()
+trace_parse_action()
+condition_as_parse_action()
+srange()
+token_map()
+autoname_elements()
+}
+
+class ParseResults {
+class List
+{static}from_dict()
+__getitem__()
+__setitem__()
+__contains__()
+__len__()
+__bool__()
+__iter__()
+__reversed__()
+__getattr__()
+__add__()
+__getstate__()
+__setstate__()
+__getnewargs__()
+__dir__()
+as_dict()
+as_list()
+dump()
+get_name()
+items()
+keys()
+values()
+haskeys()
+pop()
+get()
+insert()
+append()
+extend()
+clear()
+copy()
+get_name()
+pprint()
+}
+
+class ParseBaseException #ffffff {
+{static} explain_exception()
+explain()
+mark_input_line()
+line
+lineno
+column
+parser_element
+}
+class ParseException
+class ParseFatalException
+class ParseSyntaxException
+
+ParseBaseException <|- - ParseException
+ParseBaseException <|- - ParseFatalException
+ParseFatalException <|- - ParseSyntaxException
+
+class ParserElement {
+name: str
+results_name: str
+- - -
+{classifier} enable_packrat()
+{classifier} enable_left_recursion()
+{classifier} disable_memoization()
+{classifier} set_default_whitespace_chars()
+{classifier} inline_literals_using()
+{classifier} reset_cache()
+
+{static} verbose_stacktrace
+
+operator + () -> And
+operator - () -> And.ErrorStop
+operator | () -> MatchFirst
+operator ^ () -> Or
+operator & () -> Each
+operator ~ () -> NotAny
+operator [] () -> _MultipleMatch
+add_condition()
+add_parse_action()
+set_parse_action()
+copy()
+ignore(expr)
+leave_whitespace()
+parse_with_tabs()
+suppress()
+set_break()
+set_debug()
+set_debug_actions()
+set_name()
+set_results_name()
+parse_string()
+scan_string()
+search_string()
+transform_string()
+split()
+run_tests()
+recurse()
+create_diagram()
+}
+class Token #ffffff
+class ParseExpression #ffffff {
+exprs: list[ParserElement]
+}
+class ParseElementEnhance #ffffff {
+expr: ParserElement
+}
+class _PositionToken  #ffffff
+class Char
+class White
+class Word {
+}
+class Keyword {
+{static} set_default_keyword_chars(chars: str)
+}
+class CaselessKeyword
+class Empty
+class Literal
+class Regex
+class NoMatch
+class CharsNotIn
+class QuotedString
+
+class And
+class Or
+class MatchFirst
+class Each
+
+class OneOrMore
+class ZeroOrMore
+class SkipTo
+class Group
+class Forward {
+operator <<= ()
+}
+
+class LineStart
+class LineEnd
+class StringStart
+class StringEnd
+class WordStart
+class WordEnd
+class _MultipleMatch #ffffff
+class FollowedBy
+class PrecededBy
+class AtLineStart
+class AtStringStart
+
+class TokenConverter #ffffff
+class Located
+class Opt
+
+class Combine
+class Group
+class Dict
+class Suppress
+
+ParserElement <|- - Token
+ParserElement <|- - - - - ParseExpression
+Token <|- - _PositionToken
+ParserElement <|- - - - - ParseElementEnhance
+
+
+
+Token <|- - Empty
+Token <|- - CloseMatch
+Token <|- - NoMatch
+Token <|- - Literal
+Token <|- - Word
+Token <|- - - - Keyword
+Token <|- - - Regex
+Token <|- - - CharsNotIn
+Token <|- - White
+Token <|- - - - QuotedString
+Word <|- - Char
+Literal <|- - CaselessLiteral
+Keyword <|- - CaselessKeyword
+
+ParseExpression <|- - And
+ParseExpression <|- - Or
+ParseExpression <|- - MatchFirst
+ParseExpression <|- - Each
+
+ParseElementEnhance <|- - SkipTo
+ParseElementEnhance <|- - - Forward
+ParseElementEnhance <|- - Located
+ParseElementEnhance <|- - - _MultipleMatch
+_MultipleMatch <|- - OneOrMore
+_MultipleMatch <|- - ZeroOrMore
+ParseElementEnhance <|- - - NotAny
+ParseElementEnhance <|- - - FollowedBy
+ParseElementEnhance <|- - - PrecededBy
+ParseElementEnhance <|- - Opt
+ParseElementEnhance <|- - - TokenConverter
+ParseElementEnhance <|- - AtStringStart
+ParseElementEnhance <|- - AtLineStart
+TokenConverter <|- - Group
+TokenConverter <|- - Dict
+TokenConverter <|- - Suppress
+TokenConverter <|- - Combine
+
+_PositionToken <|- - LineStart
+_PositionToken <|- - LineEnd
+_PositionToken <|- - WordStart
+_PositionToken <|- - WordEnd
+_PositionToken <|- - StringStart
+_PositionToken <|- - StringEnd
+
+}
+
+package common {
+class " " {
+comma_separated_list
+convert_to_integer()
+convert_to_float()
+integer
+hex_integer
+signed_integer
+fraction
+mixed_integer
+real
+sci_real
+number
+fnumber
+identifier
+ipv4_address
+ipv6_address
+mac_address
+convert_to_date()
+convert_to_datetime()
+iso8601_date
+iso8601_datetime
+uuid
+strip_html_tags()
+upcase_tokens()
+downcase_tokens()
+url
+}
+
+}
+package unicode {
+class unicode_set {
+printables: str
+alphas: str
+nums: str
+alphanums: str
+identchars: str
+identbodychars: str
+}
+class Latin1
+class LatinA
+class LatinB
+class BasicMultilingualPlane
+class Chinese
+class Thai
+class Japanese {
+class Kanji
+class Hiragana
+class Katakana
+}
+class Greek
+class Hangul
+class Arabic
+class Devanagari
+class Hebrew
+class Cyrillic
+
+unicode_set <|- - Latin1
+unicode_set <|- - - LatinA
+unicode_set <|- - LatinB
+unicode_set <|- - - - BasicMultilingualPlane
+unicode_set <|- - Greek
+unicode_set <|- - - Cyrillic
+unicode_set <|- - - Chinese
+unicode_set <|- - - Japanese
+unicode_set <|- - - Hangul
+Chinese <|- - CJK
+Japanese <|- - CJK
+Hangul <|- - CJK
+unicode_set <|- - Thai
+unicode_set <|- - Arabic
+unicode_set <|- - Hebrew
+unicode_set <|- - - Devanagari
+
+}
+
+ParserElement <-[hidden] ParseBaseException
+CJK <-[hidden]- - common
+
+@enduml
+
+PlantUML version 1.2022.4(Sat Apr 09 08:29:17 CDT 2022)
+(GPL source distribution)
+Java Runtime: OpenJDK Runtime Environment
+JVM: OpenJDK 64-Bit Server VM
+Default Encoding: Cp1252
+Language: en
+Country: US
+--></g></svg>

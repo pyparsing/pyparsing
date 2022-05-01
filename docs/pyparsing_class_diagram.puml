@@ -10,8 +10,8 @@ skinparam groupInheritance 3
 note as N1
 Class Diagram
 ---
-<size 18>pyparsing 3.0.0
-<size 18>October, 2021
+<size 18>pyparsing 3.0.9
+<size 18>May, 2022
 end note
 
 N1 <-[hidden]- unicode
@@ -121,6 +121,7 @@ results_name: str
 {classifier} reset_cache()
 
 {static} verbose_stacktrace
+suppress_warning()
 
 operator + () -> And
 operator - () -> And.ErrorStop
@@ -129,6 +130,8 @@ operator ^ () -> Or
 operator & () -> Each
 operator ~ () -> NotAny
 operator [] () -> _MultipleMatch
+operator () () [set_results_name()]
+
 add_condition()
 add_parse_action()
 set_parse_action()
@@ -148,6 +151,7 @@ search_string()
 transform_string()
 split()
 run_tests()
+recurse()
 create_diagram()
 }
 class Token #ffffff
@@ -159,18 +163,18 @@ expr: ParserElement
 }
 class _PositionToken  #ffffff
 class Char
-class Empty
 class White
+class Word {
+'Word(init_chars: str, body_chars: str, min: int, \nmax: int, exact: int, as_keyword: bool, exclude_chars: str)
+}
 class Keyword {
 {static} set_default_keyword_chars(chars: str)
 }
 class CaselessKeyword
-class NoMatch
+class Empty
 class Literal
 class Regex
-class Word {
-'Word(init_chars: str, body_chars: str, min: int, \nmax: int, exact: int, as_keyword: bool, exclude_chars: str)
-}
+class NoMatch
 class CharsNotIn
 class QuotedString
 
@@ -193,15 +197,15 @@ class StringStart
 class StringEnd
 class WordStart
 class WordEnd
+class _MultipleMatch #ffffff
+class FollowedBy
+class PrecededBy
 class AtLineStart
 class AtStringStart
 
-class FollowedBy
-class _MultipleMatch #ffffff
-class PrecededBy
+class TokenConverter #ffffff
 class Located
 class Opt
-class TokenConverter #ffffff
 
 class Combine
 class Group
@@ -219,13 +223,13 @@ ParserElement <|----- ParseElementEnhance
 
 Token <|-- Empty
 Token <|-- CloseMatch
-Token <|--- NoMatch
-Token <|---- Literal
-Token <|---- Word
+Token <|-- NoMatch
+Token <|-- Literal
+Token <|-- Word
 Token <|---- Keyword
 Token <|--- Regex
 Token <|--- CharsNotIn
-Token <|--- White
+Token <|-- White
 Token <|---- QuotedString
 Word <|-- Char
 Literal <|-- CaselessLiteral
@@ -242,9 +246,9 @@ ParseElementEnhance <|-- Located
 ParseElementEnhance <|--- _MultipleMatch
 _MultipleMatch <|-- OneOrMore
 _MultipleMatch <|-- ZeroOrMore
-ParseElementEnhance <|-- NotAny
-ParseElementEnhance <|-- FollowedBy
-ParseElementEnhance <|-- PrecededBy
+ParseElementEnhance <|--- NotAny
+ParseElementEnhance <|--- FollowedBy
+ParseElementEnhance <|--- PrecededBy
 ParseElementEnhance <|-- Opt
 ParseElementEnhance <|--- TokenConverter
 ParseElementEnhance <|-- AtStringStart
@@ -305,7 +309,7 @@ identbodychars: str
 class Latin1
 class LatinA
 class LatinB
-class Cyrillic
+class BasicMultilingualPlane
 class Chinese
 class Thai
 class Japanese {
@@ -318,11 +322,12 @@ class Hangul
 class Arabic
 class Devanagari
 class Hebrew
-class BMP
+class Cyrillic
+
 unicode_set <|-- Latin1
 unicode_set <|--- LatinA
 unicode_set <|-- LatinB
-unicode_set <|-- BMP
+unicode_set <|---- BasicMultilingualPlane
 unicode_set <|-- Greek
 unicode_set <|--- Cyrillic
 unicode_set <|--- Chinese
