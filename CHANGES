@@ -10,8 +10,8 @@ Version 3.0.10 - (in development)
 - Fixed type annotation on SkipTo.
 
 
-Version 3.0.9 -
----------------
+Version 3.0.9 - May, 2022
+-------------------------
 - Added Unicode set `BasicMultilingualPlane` (may also be referenced
   as `BMP`) representing the Basic Multilingual Plane (Unicode
   characters up to code point 65535). Can be used to parse
@@ -36,8 +36,8 @@ Version 3.0.9 -
   https://cloud.google.com/bigquery/docs/reference/legacy-sql
 
 
-Version 3.0.8 -
----------------
+Version 3.0.8 - April, 2022
+---------------------------
 - API CHANGE: modified pyproject.toml to require Python version
   3.6.8 or later for pyparsing 3.x. Earlier minor versions of 3.6
   fail in evaluating the `version_info` class (implemented using
@@ -73,8 +73,8 @@ Version 3.0.8 -
   Serhiy Storchaka, thank you.
 
 
-Version 3.0.7 -
----------------
+Version 3.0.7 - January, 2022
+-----------------------------
 - Fixed bug #345, in which delimitedList changed expressions in place
   using `expr.streamline()`. Reported by Kim Gräsman, thanks!
 
@@ -138,8 +138,8 @@ Version 3.0.7 -
 - Additional type annotations on public methods.
 
 
-Version 3.0.6 -
----------------
+Version 3.0.6 - November, 2021
+------------------------------
 - Added `suppress_warning()` method to individually suppress a warning on a
   specific ParserElement. Used to refactor `original_text_for` to preserve
   internal results names, which, while undocumented, had been adopted by
@@ -149,8 +149,8 @@ Version 3.0.6 -
   parse expression.
 
 
-Version 3.0.5 -
----------------
+Version 3.0.5 - November, 2021
+------------------------------
 - Added return type annotations for `col`, `line`, and `lineno`.
 
 - Fixed bug when `warn_ungrouped_named_tokens_in_collection` warning was raised
@@ -165,8 +165,8 @@ Version 3.0.5 -
   minor bug where separating line was not included after a test failure.
 
 
-Version 3.0.4 -
----------------
+Version 3.0.4 - October, 2021
+-----------------------------
 - Fixed bug in which `Dict` classes did not correctly return tokens as nested
   `ParseResults`, reported by and fix identified by Bu Sun Kim, many thanks!!!
 
@@ -194,8 +194,8 @@ Version 3.0.4 -
   elements.
 
 
-Version 3.0.3 -
----------------
+Version 3.0.3 - October, 2021
+-----------------------------
 - Fixed regex typo in `one_of` fix for `as_keyword=True`.
 
 - Fixed a whitespace-skipping bug, Issue #319, introduced as part of the revert
@@ -206,8 +206,8 @@ Version 3.0.3 -
   are longer than others.
 
 
-Version 3.0.2 -
----------------
+Version 3.0.2 - October, 2021
+-----------------------------
 - Reverted change in behavior with `LineStart` and `StringStart`, which changed the
   interpretation of when and how `LineStart` and `StringStart` should match when
   a line starts with spaces. In 3.0.0, the `xxxStart` expressions were not
@@ -241,8 +241,8 @@ Version 3.0.2 -
   the `IndentedBlock` with `grouped=False`.
 
 
-Version 3.0.1 -
----------------
+Version 3.0.1 - October, 2021
+-----------------------------
 - Fixed bug where `Word(max=n)` did not match word groups less than length 'n'.
   Thanks to Joachim Metz for catching this!
 
@@ -253,15 +253,15 @@ Version 3.0.1 -
   even when not enabled.
 
 
-Version 3.0.0 -
----------------
+Version 3.0.0 - October, 2021
+-----------------------------
 - A consolidated list of all the changes in the 3.0.0 release can be found in
   `docs/whats_new_in_3_0_0.rst`.
   (https://github.com/pyparsing/pyparsing/blob/master/docs/whats_new_in_3_0_0.rst)
 
 
-Version 3.0.0.final -
----------------------
+Version 3.0.0.final - October, 2021
+-----------------------------------
 - Added support for python `-W` warning option to call `enable_all_warnings`() at startup.
   Also detects setting of `PYPARSINGENABLEALLWARNINGS` environment variable to any non-blank
   value. (If using `-Wd` for testing, but wishing to disable pyparsing warnings, add
@@ -298,8 +298,8 @@ Version 3.0.0.final -
   `a` will get named "a", while `b` will keep its name "bbb".
 
 
-Version 3.0.0rc2 -
-------------------
+Version 3.0.0rc2 - October, 2021
+--------------------------------
 - Added `url` expression to `pyparsing_common`. (Sample code posted by Wolfgang Fahl,
   very nice!)
 
