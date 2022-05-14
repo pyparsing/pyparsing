@@ -200,7 +200,7 @@ just namespaces, to add some helpful behavior:
   (**currently not working on PyPy**)
 
 Support for yielding native Python ``list`` and ``dict`` types in place of ``ParseResults``
--------------------------------------------------------------------------------
+-------------------------------------------------------------------------------------------
 To support parsers that are intended to generate native Python collection
 types such as lists and dicts, the ``Group`` and ``Dict`` classes now accept an
 additional boolean keyword argument ``aslist`` and ``asdict`` respectively. See
@@ -226,7 +226,7 @@ This is the mechanism used internally by the ``Group`` class when defined
 using ``aslist=True``.
 
 New Located class to replace ``locatedExpr`` helper method
-------------------------------------------------------
+----------------------------------------------------------
 The new ``Located`` class will replace the current ``locatedExpr`` method for
 marking parsed results with the start and end locations of the parsed data in
 the input string.  ``locatedExpr`` had several bugs, and returned its results
@@ -279,7 +279,7 @@ leading whitespace.::
 [This is a fix to behavior that was added in 3.0.0, but was actually a regression from 2.4.x.]
 
 New ``IndentedBlock`` class to replace ``indentedBlock`` helper method
---------------------------------------------------------------
+----------------------------------------------------------------------
 The new ``IndentedBlock`` class will replace the current ``indentedBlock`` method
 for defining indented blocks of text, similar to Python source code. Using
 ``IndentedBlock``, the expression instance itself keeps track of the indent stack,
