@@ -1455,6 +1455,7 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             r"[\0xa1-\0xbf\0xd7\0xf7]",
             r"[\0xc0-\0xd6\0xd8-\0xf6\0xf8-\0xff]",
             r"[\0xa1-\0xbf\0xd7\0xf7]",
+            r"[\\[\]\/\-\*\.\$\+\^\?()~ ]",
         )
         expectedResults = (
             "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
@@ -1482,6 +1483,7 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             "¡¢£¤¥¦§¨©ª«¬\xad®¯°±²³´µ¶·¸¹º»¼½¾¿×÷",
             pp.alphas8bit,
             pp.punc8bit,
+            r"\[]/-*.$+^?()~ ",
         )
         for test in zip(testCases, expectedResults):
             t, exp = test

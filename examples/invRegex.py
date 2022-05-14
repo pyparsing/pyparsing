@@ -28,6 +28,7 @@ from pyparsing import (
     Suppress,
     ParseResults,
     srange,
+    Char,
 )
 
 ParserElement.enablePackrat()
@@ -199,7 +200,7 @@ def parser():
         reMacro = Combine("\\" + oneOf(list("dws")))
         escapedChar = ~reMacro + Combine("\\" + oneOf(list(printables)))
         reLiteralChar = (
-            "".join(c for c in printables if c not in r"\[]{}().*?+|") + " \t"
+            "".join(c for c in printables if c not in r"\[]{}().*?+|^$") + " \t"
         )
 
         reRange = Combine(lbrack + SkipTo(rbrack, ignore=escapedChar) + rbrack)
@@ -227,6 +228,7 @@ def parser():
             ],
         )
         _parser = reExpr
+        _parser.ignore(Char("^$"))
 
     return _parser
 
@@ -282,6 +284,7 @@ def main():
     [ABCDEFG](?:#|##|b|bb)?(?:maj|min|m|sus|aug|dim)?[0-9]?(?:/[ABCDEFG](?:#|##|b|bb)?)?
     (Fri|Mon|S(atur|un)|T(hur|ue)s|Wednes)day
     A(pril|ugust)|((Dec|Nov|Sept)em|Octo)ber|(Febr|Jan)uary|Ju(ly|ne)|Ma(rch|y)
+    (^(((0[1-9]|1[0-9]|2[0-8])[\/](0[1-9]|1[012]))|((29|30|31)[\/](0[13578]|1[02]))|((29|30)[\/](0[4,6,9]|11)))[\/](19|[2-9][0-9])\d\d$)|(^29[\/]02[\/](19|[2-9][0-9])(00|04|08|12|16|20|24|28|32|36|40|44|48|52|56|60|64|68|72|76|80|84|88|92|96)$)
     """.splitlines()
 
     for t in tests:

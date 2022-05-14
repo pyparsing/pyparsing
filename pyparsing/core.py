@@ -5045,7 +5045,7 @@ class SkipTo(ParseElementEnhance):
         self,
         other: Union[ParserElement, str],
         include: bool = False,
-        ignore: bool = None,
+        ignore: typing.Optional[Union[ParserElement, str]] = None,
         fail_on: typing.Optional[Union[ParserElement, str]] = None,
         *,
         failOn: Union[ParserElement, str] = None,
@@ -5660,7 +5660,7 @@ line_end = LineEnd().set_name("line_end")
 string_start = StringStart().set_name("string_start")
 string_end = StringEnd().set_name("string_end")
 
-_escapedPunc = Word(_bslash, r"\[]-*.$+^?()~ ", exact=2).set_parse_action(
+_escapedPunc = Regex(r"\\[\\[\]\/\-\*\.\$\+\^\?()~ ]").set_parse_action(
     lambda s, l, t: t[0][1]
 )
 _escapedHexChar = Regex(r"\\0?[xX][0-9a-fA-F]+").set_parse_action(
@@ -5677,7 +5677,7 @@ _reBracketExpr = (
     Literal("[")
     + Opt("^").set_results_name("negate")
     + Group(OneOrMore(_charRange | _singleChar)).set_results_name("body")
-    + "]"
+    + Literal("]")
 )
 
 
@@ -5714,7 +5714,7 @@ def srange(s: str) -> str:
     )
     try:
         return "".join(_expanded(part) for part in _reBracketExpr.parse_string(s).body)
-    except Exception:
+    except Exception as e:
         return ""
 
 
