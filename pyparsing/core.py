@@ -1639,7 +1639,22 @@ class ParserElement(ABC):
         Note that ``expr[..., n]`` and ``expr[m, n]``do not raise an exception
         if more than ``n`` ``expr``s exist in the input stream.  If this behavior is
         desired, then write ``expr[..., n] + ~expr``.
+
+        For repetition with a stop_on expression, use slice notation:
+
+        - ``expr[...: end_expr]`` and ``expr[0, ...: end_expr]`` are equivalent to ``ZeroOrMore(expr, stop_on=end_expr)``
+        - ``expr[1, ...: end_expr]`` is equivalent to ``OneOrMore(expr, stop_on=end_expr)``
+
         """
+
+        stop_on_defined = False
+        stop_on = NoMatch()
+        if isinstance(key, slice):
+            key, stop_on = key.start, key.stop
+            stop_on_defined = True
+        elif isinstance(key, tuple) and isinstance(key[-1], slice):
+            key, stop_on = (key[0], key[1].start), key[1].stop
+            stop_on_defined = True
 
         # convert single arg keys to tuples
         try:
@@ -1658,6 +1673,11 @@ class ParserElement(ABC):
 
         # clip to 2 elements
         ret = self * tuple(key[:2])
+        ret = typing.cast(_MultipleMatch, ret)
+
+        if stop_on_defined:
+            ret.stopOn(stop_on)
+
         return ret
 
     def __call__(self, name: str = None) -> "ParserElement":

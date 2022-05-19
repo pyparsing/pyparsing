@@ -5728,10 +5728,14 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
                 expr, test, "Did not successfully stop on ending expression %r" % ender
             )
 
-            expr = BEGIN + body_word[...].stopOn(ender) + END
-            self.assertEqual(
-                expr, test, "Did not successfully stop on ending expression %r" % ender
-            )
+            expr = BEGIN + body_word[1, ...].stopOn(ender) + END
+            self.assertParseAndCheckList(expr, test, test.split(), "Did not successfully stop on ending expression %r" % ender)
+
+            expr = BEGIN + body_word[1, ...: ender] + END
+            self.assertParseAndCheckList(expr, test, test.split(), "Did not successfully stop on ending expression %r" % ender)
+
+            expr = BEGIN + body_word[(1, ...): ender] + END
+            self.assertParseAndCheckList(expr, test, test.split(), "Did not successfully stop on ending expression %r" % ender)
 
         number = pp.Word(pp.nums + ",.()").setName("number with optional commas")
         parser = pp.OneOrMore(pp.Word(pp.alphanums + "-/."), stopOn=number)(
@@ -5751,14 +5755,13 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
         body_word = pp.Word(pp.alphas).setName("word")
         for ender in (END, "END", pp.CaselessKeyword("END")):
             expr = BEGIN + pp.ZeroOrMore(body_word, stopOn=ender) + END
-            self.assertEqual(
-                expr, test, "Did not successfully stop on ending expression %r" % ender
-            )
+            self.assertParseAndCheckList(expr, test, test.split(), "Did not successfully stop on ending expression %r" % ender)
 
-            expr = BEGIN + body_word[0, ...].stopOn(ender) + END
-            self.assertEqual(
-                expr, test, "Did not successfully stop on ending expression %r" % ender
-            )
+            expr = BEGIN + body_word[...].stopOn(ender) + END
+            self.assertParseAndCheckList(expr, test, test.split(), "Did not successfully stop on ending expression %r" % ender)
+
+            expr = BEGIN + body_word[...: ender] + END
+            self.assertParseAndCheckList(expr, test, test.split(), "Did not successfully stop on ending expression %r" % ender)
 
     def testNestedAsDict(self):
 

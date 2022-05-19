@@ -4,6 +4,19 @@ Change Log
 
 Version 3.0.10 - (in development)
 ---------------------------------
+- Extended `expr[]` notation to accept a slice, indicating a `stop_on`
+  expression:
+
+      test = "BEGIN aaa bbb ccc END"
+      BEGIN, END = map(Keyword, "BEGIN END".split())
+      body_word = Word(alphas)
+      expr = BEGIN + Group(body_word[...: END]) + END
+      print(expr.parse_string(test).as_list())
+
+  Prints:
+
+      ['BEGIN', ['aaa', 'bbb', 'ccc'], 'END']
+
 - Fixed bug in srange, when parsing escaped '/' and '\' inside a
   range set.
 
