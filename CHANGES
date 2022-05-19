@@ -4,13 +4,14 @@ Change Log
 
 Version 3.0.10 - (in development)
 ---------------------------------
-- Extended `expr[]` notation to accept a slice, indicating a `stop_on`
+- Extended `expr[]` notation for repetition of expr to accept a
+  slice, where the slice's stop value indicates a `stop_on`
   expression:
 
       test = "BEGIN aaa bbb ccc END"
       BEGIN, END = map(Keyword, "BEGIN END".split())
       body_word = Word(alphas)
-      expr = BEGIN + Group(body_word[...: END]) + END
+      expr = BEGIN + Group(body_word[:END]) + END
       print(expr.parse_string(test).as_list())
 
   Prints:

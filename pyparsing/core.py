@@ -1651,15 +1651,17 @@ class ParserElement(ABC):
         stop_on = NoMatch()
         if isinstance(key, slice):
             key, stop_on = key.start, key.stop
+            if key is None:
+                key = ...
             stop_on_defined = True
         elif isinstance(key, tuple) and isinstance(key[-1], slice):
             key, stop_on = (key[0], key[1].start), key[1].stop
             stop_on_defined = True
 
         # convert single arg keys to tuples
+        if isinstance(key, str_type):
+            key = (key,)
         try:
-            if isinstance(key, str_type):
-                key = (key,)
             iter(key)
         except TypeError:
             key = (key, key)
