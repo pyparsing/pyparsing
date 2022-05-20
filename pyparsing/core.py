@@ -2186,6 +2186,11 @@ class ParserElement(ABC):
         - show_groups - bool flag whether groups should be highlighted with an unlabeled surrounding box
         - embed - bool flag whether generated HTML should omit <HEAD>, <BODY>, and <DOCTYPE> tags to embed
           the resulting HTML in an enclosing HTML source
+        - head - str containing additional HTML to insert into the <HEAD> section of the generated code;
+          can be used to insert custom CSS styling
+        - body - str containing additional HTML to insert at the beginning of the <BODY> section of the
+          generated code
+
         Additional diagram-formatting keyword arguments can also be included;
         see railroad.Diagram class.
         """

@@ -4,11 +4,11 @@ What's New in Pyparsing 3.0.0
 
 :author: Paul McGuire
 
-:date: April, 2022
+:date: May, 2022
 
 :abstract: This document summarizes the changes made
     in the 3.0.0 release of pyparsing.
-    (Updated to reflect changes up to 3.0.8)
+    (Updated to reflect changes up to 3.0.10)
 
 .. sectnum::    :depth: 4
 
@@ -61,6 +61,20 @@ generator for documenting pyparsing parsers.::
     # construct railroad track diagram for this parser and
     # save as HTML
     parser.create_diagram('parser_rr_diag.html')
+
+``create_diagram`` accepts these named arguments:
+
+- ``vertical`` (int) - threshold for formatting multiple alternatives vertically
+  instead of horizontally (default=3)
+- ``show_results_names`` - bool flag whether diagram should show annotations for
+  defined results names
+- ``show_groups`` - bool flag whether groups should be highlighted with an unlabeled surrounding box
+- ``embed`` - bool flag whether generated HTML should omit ``<HEAD>``, ``<BODY>``, and ``<DOCTYPE>`` tags to embed
+  the resulting HTML in an enclosing HTML source (new in 3.0.10)
+- ``head`` - str containing additional HTML to insert into the ``<HEAD>`` section of the
+  generated code; can be used to insert custom CSS styling
+- ``body`` - str containing additional HTML to insert at the beginning of the ``<BODY>`` section of the
+  generated code
 
 To use this new feature, install the supporting diagramming packages using::
 

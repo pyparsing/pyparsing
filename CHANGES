@@ -11,10 +11,12 @@ Version 3.0.10 - (in development)
       test = "BEGIN aaa bbb ccc END"
       BEGIN, END = map(Keyword, "BEGIN END".split())
       body_word = Word(alphas)
+
       expr = BEGIN + Group(body_word[:END]) + END
       # equivalent to
       # expr = BEGIN + Group(ZeroOrMore(body_word, stop_on=END)) + END
-      print(expr.parse_string(test).as_list())
+
+      print(expr.parse_string(test))
 
   Prints:
 
