@@ -1,4 +1,6 @@
 import unittest
+from io import StringIO
+from pathlib import Path
 from typing import List
 
 from examples.jsonParser import jsonObject
@@ -10,6 +12,9 @@ import pyparsing as pp
 import tempfile
 import os
 import sys
+
+
+curdir = Path(__file__).parent
 
 
 class TestRailroadDiagrams(unittest.TestCase):
@@ -142,3 +147,39 @@ class TestRailroadDiagrams(unittest.TestCase):
         assert len(railroad) == 1
         railroad = to_railroad(grammar, show_results_names=True)
         assert len(railroad) == 1
+
+    def test_create_diagram(self):
+        ints = pp.Word(pp.nums)
+        grammar = pp.Combine(
+            ints("hours")
+            + pp.Literal(":")
+            + ints("minutes")
+            + pp.Literal(":")
+            + ints("seconds")
+        )
+
+        diag_strio = StringIO()
+        grammar.create_diagram(output_html=diag_strio)
+        diag_str = diag_strio.getvalue()
+        expected = (curdir / "diag_no_embed.html").read_text()
+        assert diag_str == expected
+
+    def test_create_diagram_embed(self):
+        ints = pp.Word(pp.nums)
+        grammar = pp.Combine(
+            ints("hours")
+            + pp.Literal(":")
+            + ints("minutes")
+            + pp.Literal(":")
+            + ints("seconds")
+        )
+
+        diag_strio = StringIO()
+        grammar.create_diagram(output_html=diag_strio, embed=True)
+        diag_str = diag_strio.getvalue()
+        expected = (curdir / "diag_embed.html").read_text()
+        assert diag_str == expected
+
+
+if __name__ == "__main__":
+    unittest.main()

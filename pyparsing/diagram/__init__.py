@@ -17,11 +17,13 @@ import inspect
 
 
 jinja2_template_source = """\
+{% if not embed %}
 <!DOCTYPE html>
 <html>
 <head>
+{% endif %}
     {% if not head %}
-        <style type="text/css">
+        <style>
             .railroad-heading {
                 font-family: monospace;
             }
@@ -29,8 +31,10 @@ jinja2_template_source = """\
     {% else %}
         {{ head | safe }}
     {% endif %}
+{% if not embed %}
 </head>
 <body>
+{% endif %}
 {{ body | safe }}
 {% for diagram in diagrams %}
     <div class="railroad-group">
@@ -41,8 +45,10 @@ jinja2_template_source = """\
         </div>
     </div>
 {% endfor %}
+{% if not embed %}
 </body>
 </html>
+{% endif %}
 """
 
 template = Template(jinja2_template_source)
@@ -127,7 +133,7 @@ class EditablePartial(Generic[T]):
         return self.func(*args, **kwargs)
 
 
-def railroad_to_html(diagrams: List[NamedDiagram], **kwargs) -> str:
+def railroad_to_html(diagrams: List[NamedDiagram], embed=False, **kwargs) -> str:
     """
     Given a list of NamedDiagram, produce a single HTML string that visualises those diagrams
     :params kwargs: kwargs to be passed in to the template
@@ -143,7 +149,7 @@ def railroad_to_html(diagrams: List[NamedDiagram], **kwargs) -> str:
             title += " (root)"
         data.append({"title": title, "text": "", "svg": io.getvalue()})
 
-    return template.render(diagrams=data, **kwargs)
+    return template.render(diagrams=data, embed=embed, **kwargs)
 
 
 def resolve_partial(partial: "EditablePartial[T]") -> T:

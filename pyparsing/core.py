@@ -2170,6 +2170,7 @@ class ParserElement(ABC):
         vertical: int = 3,
         show_results_names: bool = False,
         show_groups: bool = False,
+        embed: bool = False,
         **kwargs,
     ) -> None:
         """
@@ -2183,6 +2184,8 @@ class ParserElement(ABC):
         - show_results_names - bool flag whether diagram should show annotations for
           defined results names
         - show_groups - bool flag whether groups should be highlighted with an unlabeled surrounding box
+        - embed - bool flag whether generated HTML should omit <HEAD>, <BODY>, and <DOCTYPE> tags to embed
+          the resulting HTML in an enclosing HTML source
         Additional diagram-formatting keyword arguments can also be included;
         see railroad.Diagram class.
         """
@@ -2205,10 +2208,10 @@ class ParserElement(ABC):
         )
         if isinstance(output_html, (str, Path)):
             with open(output_html, "w", encoding="utf-8") as diag_file:
-                diag_file.write(railroad_to_html(railroad))
+                diag_file.write(railroad_to_html(railroad, embed=embed))
         else:
             # we were passed a file-like object, just write to it
-            output_html.write(railroad_to_html(railroad))
+            output_html.write(railroad_to_html(railroad, embed=embed))
 
     setDefaultWhitespaceChars = set_default_whitespace_chars
     inlineLiteralsUsing = inline_literals_using
