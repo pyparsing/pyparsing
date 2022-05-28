@@ -5178,7 +5178,7 @@ class Forward(ParseElementEnhance):
         super().__init__(other, savelist=False)
         self.lshift_line = None
 
-    def __lshift__(self, other):
+    def __lshift__(self, other) -> "Forward":
         if hasattr(self, "caller_frame"):
             del self.caller_frame
         if isinstance(other, str_type):
@@ -5195,10 +5195,10 @@ class Forward(ParseElementEnhance):
         self.lshift_line = traceback.extract_stack(limit=2)[-2]
         return self
 
-    def __ilshift__(self, other):
+    def __ilshift__(self, other) -> "Forward":
         return self << other
 
-    def __or__(self, other):
+    def __or__(self, other) -> "ParserElement":
         caller_line = traceback.extract_stack(limit=2)[-2]
         if (
             __diag__.warn_on_match_first_with_lshift_operator
