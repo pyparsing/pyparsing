@@ -585,7 +585,7 @@ class ParserElement(ABC):
                 pdb.set_trace()
                 return _parseMethod(instring, loc, doActions, callPreParse)
 
-            breaker._originalParseMethod = _parseMethod
+            breaker._originalParseMethod = _parseMethod  # type: ignore [attr-defined]
             self._parse = breaker
         else:
             if hasattr(self._parse, "_originalParseMethod"):
@@ -3751,6 +3751,7 @@ class ParseExpression(ParserElement):
 
     def copy(self) -> ParserElement:
         ret = super().copy()
+        ret = typing.cast(ParseExpression, ret)
         ret.exprs = [e.copy() for e in self.exprs]
         return ret
 
@@ -3819,7 +3820,9 @@ class And(ParseExpression):
             for i, expr in enumerate(exprs):
                 if expr is Ellipsis:
                     if i < len(exprs) - 1:
-                        skipto_arg: ParserElement = (Empty() + exprs[i + 1]).exprs[-1]
+                        skipto_arg: ParserElement = typing.cast(
+                            ParseExpression, (Empty() + exprs[i + 1])
+                        ).exprs[-1]
                         tmp.append(SkipTo(skipto_arg)("_skipped*"))
                     else:
                         raise Exception(

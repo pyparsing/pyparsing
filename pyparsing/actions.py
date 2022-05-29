@@ -156,7 +156,7 @@ def with_attribute(*args, **attr_dict):
     return pa
 
 
-with_attribute.ANY_VALUE = object()
+with_attribute.ANY_VALUE = object()  # type: ignore [attr-defined]
 
 
 def with_class(classname, namespace=""):

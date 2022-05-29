@@ -189,9 +189,9 @@ def _collapse_string_to_ranges(
             is_consecutive.value = next(is_consecutive.counter)
         return is_consecutive.value
 
-    is_consecutive.prev = 0
-    is_consecutive.counter = itertools.count()
-    is_consecutive.value = -1
+    is_consecutive.prev = 0  # type: ignore [attr-defined]
+    is_consecutive.counter = itertools.count()  # type: ignore [attr-defined]
+    is_consecutive.value = -1  # type: ignore [attr-defined]
 
     def escape_re_range_char(c):
         return "\\" + c if c in r"\^-][" else c

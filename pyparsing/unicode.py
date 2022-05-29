@@ -335,18 +335,18 @@ pyparsing_unicode.Japanese._ranges = (
     + pyparsing_unicode.Japanese.Katakana._ranges
 )
 
-pyparsing_unicode.BMP = pyparsing_unicode.BasicMultilingualPlane
+pyparsing_unicode.BMP = pyparsing_unicode.BasicMultilingualPlane  # type: ignore [attr-defined]
 
 # add language identifiers using language Unicode
-pyparsing_unicode.العربية = pyparsing_unicode.Arabic
-pyparsing_unicode.中文 = pyparsing_unicode.Chinese
-pyparsing_unicode.кириллица = pyparsing_unicode.Cyrillic
-pyparsing_unicode.Ελληνικά = pyparsing_unicode.Greek
-pyparsing_unicode.עִברִית = pyparsing_unicode.Hebrew
-pyparsing_unicode.日本語 = pyparsing_unicode.Japanese
-pyparsing_unicode.Japanese.漢字 = pyparsing_unicode.Japanese.Kanji
-pyparsing_unicode.Japanese.カタカナ = pyparsing_unicode.Japanese.Katakana
-pyparsing_unicode.Japanese.ひらがな = pyparsing_unicode.Japanese.Hiragana
-pyparsing_unicode.한국어 = pyparsing_unicode.Korean
-pyparsing_unicode.ไทย = pyparsing_unicode.Thai
-pyparsing_unicode.देवनागरी = pyparsing_unicode.Devanagari
+pyparsing_unicode.العربية = pyparsing_unicode.Arabic  # type: ignore [attr-defined]
+pyparsing_unicode.中文 = pyparsing_unicode.Chinese  # type: ignore [attr-defined]
+pyparsing_unicode.кириллица = pyparsing_unicode.Cyrillic  # type: ignore [attr-defined]
+pyparsing_unicode.Ελληνικά = pyparsing_unicode.Greek  # type: ignore [attr-defined]
+pyparsing_unicode.עִברִית = pyparsing_unicode.Hebrew  # type: ignore [attr-defined]
+pyparsing_unicode.日本語 = pyparsing_unicode.Japanese  # type: ignore [attr-defined]
+pyparsing_unicode.Japanese.漢字 = pyparsing_unicode.Japanese.Kanji  # type: ignore [attr-defined]
+pyparsing_unicode.Japanese.カタカナ = pyparsing_unicode.Japanese.Katakana  # type: ignore [attr-defined]
+pyparsing_unicode.Japanese.ひらがな = pyparsing_unicode.Japanese.Hiragana  # type: ignore [attr-defined]
+pyparsing_unicode.한국어 = pyparsing_unicode.Korean  # type: ignore [attr-defined]
+pyparsing_unicode.ไทย = pyparsing_unicode.Thai  # type: ignore [attr-defined]
+pyparsing_unicode.देवनागरी = pyparsing_unicode.Devanagari  # type: ignore [attr-defined]
