@@ -8,3 +8,12 @@ After forking the pyparsing repo, and cloning your fork locally, install the lib
 Run the tests to ensure your environment is setup 
      
      python -m unittest discover tests
+
+### mypy ignore tests
+
+`tests/mypy-ignore-cases/` is populated with python files which are meant to be
+checked using `mypy --warn-unused-ignores`.
+
+To check these files, run
+
+    tox -e mypy-tests
