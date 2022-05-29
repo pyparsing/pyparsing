@@ -17,24 +17,15 @@ jobs:
     runs-on: ${{ matrix.os || 'ubuntu-latest' }}
     strategy:
       matrix:
+        os: ["ubuntu-latest"]
+        toxenv: [py, pyparsing_packaging]
+        python-version: ["3.6", "3.7", "3.8", "3.9", "3.10"]
         include:
-          - python-version: "3.6"
-            toxenv: py36
-          - python-version: "3.7"
-            toxenv: py37
-          - python-version: "3.8"
-            toxenv: py38
-          - python-version: "3.9"
-            toxenv: py39
           - python-version: "3.10"
-            toxenv: py310
-          - python-version: "3.10"
-            toxenv: py310
             os: macos-latest
           - python-version: "pypy-3.7"
-            toxenv: pypy3
     env:
-      TOXENV: ${{ matrix.toxenv }}
+      TOXENV: ${{ matrix.toxenv || 'py' }}
     steps:
       - uses: actions/checkout@v2
 
@@ -49,10 +40,10 @@ jobs:
           python -m pip install tox codecov railroad-diagrams Jinja2
 
       - name: Test
-        run: tox -e ALL
+        run: tox
 
       - name: Upload coverage to Codecov
-        if: ${{ matrix.os == 'ubuntu-latest' && matrix.python-version == '3.10' }}
+        if: ${{ matrix.os == 'ubuntu-latest' && matrix.python-version == '3.10' && matrix.toxenv == 'py' }}
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
         run: codecov
