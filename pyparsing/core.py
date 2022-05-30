@@ -4,16 +4,16 @@
 import os
 import typing
 from typing import (
-    NamedTuple,
-    Union,
-    Callable,
     Any,
+    Callable,
     Generator,
-    Tuple,
     List,
-    TextIO,
-    Set,
+    NamedTuple,
     Sequence,
+    Set,
+    TextIO,
+    Tuple,
+    Union,
 )
 from abc import ABC, abstractmethod
 from enum import Enum
@@ -228,6 +228,8 @@ _single_arg_builtins = {
 }
 
 _generatorType = types.GeneratorType
+ParseImplReturnType = Tuple[int, Any]
+PostParseReturnType = Union[ParseResults, Sequence[ParseResults]]
 ParseAction = Union[
     Callable[[], Any],
     Callable[[ParseResults], Any],
@@ -256,7 +258,7 @@ hexnums = nums + "ABCDEFabcdef"
 alphanums = alphas + nums
 printables = "".join([c for c in string.printable if c not in string.whitespace])
 
-_trim_arity_call_line: traceback.StackSummary = None
+_trim_arity_call_line: traceback.StackSummary = None  # type: ignore[assignment]
 
 
 def _trim_arity(func, max_limit=3):
@@ -402,7 +404,7 @@ class ParserElement(ABC):
 
     DEFAULT_WHITE_CHARS: str = " \n\t\r"
     verbose_stacktrace: bool = False
-    _literalStringClass: typing.Optional[type] = None
+    _literalStringClass: type = None  # type: ignore[assignment]
 
     @staticmethod
     def set_default_whitespace_chars(chars: str) -> None:
@@ -455,9 +457,9 @@ class ParserElement(ABC):
     def __init__(self, savelist: bool = False):
         self.parseAction: List[ParseAction] = list()
         self.failAction: typing.Optional[ParseFailAction] = None
-        self.customName = None
-        self._defaultName = None
-        self.resultsName = None
+        self.customName: str = None  # type: ignore[assignment]
+        self._defaultName: str = None  # type: ignore[assignment]
+        self.resultsName: str = None  # type: ignore[assignment]
         self.saveAsList = savelist
         self.skipWhitespace = True
         self.whiteChars = set(ParserElement.DEFAULT_WHITE_CHARS)
@@ -589,7 +591,7 @@ class ParserElement(ABC):
             self._parse = breaker
         else:
             if hasattr(self._parse, "_originalParseMethod"):
-                self._parse = self._parse._originalParseMethod
+                self._parse = self._parse._originalParseMethod  # type: ignore [attr-defined]
         return self
 
     def set_parse_action(self, *fns: ParseAction, **kwargs) -> "ParserElement":
@@ -741,7 +743,7 @@ class ParserElement(ABC):
         self.failAction = fn
         return self
 
-    def _skipIgnorables(self, instring, loc):
+    def _skipIgnorables(self, instring: str, loc: int) -> int:
         exprsFound = True
         while exprsFound:
             exprsFound = False
@@ -754,7 +756,7 @@ class ParserElement(ABC):
                     pass
         return loc
 
-    def preParse(self, instring, loc):
+    def preParse(self, instring: str, loc: int) -> int:
         if self.ignoreExprs:
             loc = self._skipIgnorables(instring, loc)
 
@@ -1858,7 +1860,7 @@ class ParserElement(ABC):
         return self._defaultName
 
     @abstractmethod
-    def _generateDefaultName(self):
+    def _generateDefaultName(self) -> str:
         """
         Child classes must define this method, which defines how the ``default_name`` is set.
         """
@@ -2098,8 +2100,8 @@ class ParserElement(ABC):
         print_ = file.write
 
         result: Union[ParseResults, Exception]
-        allResults = []
-        comments = []
+        allResults: List[Tuple[str, Union[ParseResults, Exception]]] = []
+        comments: List[str] = []
         success = True
         NL = Literal(r"\n").add_parse_action(replace_with("\n")).ignore(quoted_string)
         BOM = "\ufeff"
@@ -2255,7 +2257,7 @@ class _PendingSkip(ParserElement):
         self.anchor = expr
         self.must_skip = must_skip
 
-    def _generateDefaultName(self):
+    def _generateDefaultName(self) -> str:
         return str(self.anchor + Empty()).replace("Empty", "...")
 
     def __add__(self, other) -> "ParserElement":
@@ -2296,7 +2298,7 @@ class Token(ParserElement):
     def __init__(self):
         super().__init__(savelist=False)
 
-    def _generateDefaultName(self):
+    def _generateDefaultName(self) -> str:
         return type(self).__name__
 
 
@@ -2360,7 +2362,7 @@ class Literal(Token):
         if self.matchLen == 1 and type(self) is Literal:
             self.__class__ = _SingleCharLiteral
 
-    def _generateDefaultName(self):
+    def _generateDefaultName(self) -> str:
         return repr(self.match)
 
     def parseImpl(self, instring, loc, doActions=True):
@@ -2439,7 +2441,7 @@ class Keyword(Token):
             identChars = identChars.upper()
         self.identChars = set(identChars)
 
-    def _generateDefaultName(self):
+    def _generateDefaultName(self) -> str:
         return repr(self.match)
 
     def parseImpl(self, instring, loc, doActions=True):
@@ -2605,7 +2607,7 @@ class CloseMatch(Token):
         self.mayIndexError = False
         self.mayReturnEmpty = False
 
-    def _generateDefaultName(self):
+    def _generateDefaultName(self) -> str:
         return "{}:{!r}".format(type(self).__name__, self.match_string)
 
     def parseImpl(self, instring, loc, doActions=True):
@@ -2732,21 +2734,21 @@ class Word(Token):
                 )
             )
 
-        initChars = set(initChars)
-        self.initChars = initChars
+        initChars_set = set(initChars)
         if excludeChars:
-            excludeChars = set(excludeChars)
-            initChars -= excludeChars
+            excludeChars_set = set(excludeChars)
+            initChars_set -= excludeChars_set
             if bodyChars:
-                bodyChars = set(bodyChars) - excludeChars
-        self.initCharsOrig = "".join(sorted(initChars))
+                bodyChars = "".join(set(bodyChars) - excludeChars_set)
+        self.initChars = initChars_set
+        self.initCharsOrig = "".join(sorted(initChars_set))
 
         if bodyChars:
-            self.bodyCharsOrig = "".join(sorted(bodyChars))
             self.bodyChars = set(bodyChars)
+            self.bodyCharsOrig = "".join(sorted(bodyChars))
         else:
-            self.bodyCharsOrig = "".join(sorted(initChars))
-            self.bodyChars = set(initChars)
+            self.bodyChars = initChars_set
+            self.bodyCharsOrig = self.initCharsOrig
 
         self.maxSpecified = max > 0
 
@@ -2818,7 +2820,7 @@ class Word(Token):
                 self.re_match = self.re.match
                 self.__class__ = _WordRegex
 
-    def _generateDefaultName(self):
+    def _generateDefaultName(self) -> str:
         def charsAsStr(s):
             max_repr_len = 16
             s = _collapse_string_to_ranges(s, re_escape=False)
@@ -3008,7 +3010,7 @@ class Regex(Token):
     def mayReturnEmpty(self):
         return self.re_match("") is not None
 
-    def _generateDefaultName(self):
+    def _generateDefaultName(self) -> str:
         return "Re:({})".format(repr(self.pattern).replace("\\\\", "\\"))
 
     def parseImpl(self, instring, loc, doActions=True):
@@ -3226,7 +3228,7 @@ class QuotedString(Token):
         self.mayIndexError = False
         self.mayReturnEmpty = True
 
-    def _generateDefaultName(self):
+    def _generateDefaultName(self) -> str:
         if self.quoteChar == self.endQuoteChar and isinstance(self.quoteChar, str_type):
             return "string enclosed in {!r}".format(self.quoteChar)
 
@@ -3324,7 +3326,7 @@ class CharsNotIn(Token):
         self.mayReturnEmpty = self.minLen == 0
         self.mayIndexError = False
 
-    def _generateDefaultName(self):
+    def _generateDefaultName(self) -> str:
         not_chars_str = _collapse_string_to_ranges(self.notChars)
         if len(not_chars_str) > 16:
             return "!W:({}...)".format(self.notChars[: 16 - 3])
@@ -3406,7 +3408,7 @@ class White(Token):
             self.maxLen = exact
             self.minLen = exact
 
-    def _generateDefaultName(self):
+    def _generateDefaultName(self) -> str:
         return "".join(White.whiteStrs[c] for c in self.matchWhite)
 
     def parseImpl(self, instring, loc, doActions=True):
@@ -3441,7 +3443,7 @@ class GoToColumn(PositionToken):
         super().__init__()
         self.col = colno
 
-    def preParse(self, instring, loc):
+    def preParse(self, instring: str, loc: int) -> int:
         if col(loc, instring) != self.col:
             instrlen = len(instring)
             if self.ignoreExprs:
@@ -3494,7 +3496,7 @@ class LineStart(PositionToken):
         self.skipper = Empty().set_whitespace_chars(self.whiteChars)
         self.errmsg = "Expected start of line"
 
-    def preParse(self, instring, loc):
+    def preParse(self, instring: str, loc: int) -> int:
         if loc == 0:
             return loc
         else:
@@ -3699,7 +3701,7 @@ class ParseExpression(ParserElement):
                 e.ignore(self.ignoreExprs[-1])
         return self
 
-    def _generateDefaultName(self):
+    def _generateDefaultName(self) -> str:
         return "{}:({})".format(self.__class__.__name__, str(self.exprs))
 
     def streamline(self) -> ParserElement:
@@ -3808,7 +3810,7 @@ class And(ParseExpression):
             super().__init__(*args, **kwargs)
             self.leave_whitespace()
 
-        def _generateDefaultName(self):
+        def _generateDefaultName(self) -> str:
             return "-"
 
     def __init__(
@@ -3933,7 +3935,7 @@ class And(ParseExpression):
             if not e.mayReturnEmpty:
                 break
 
-    def _generateDefaultName(self):
+    def _generateDefaultName(self) -> str:
         inner = " ".join(str(e) for e in self.exprs)
         # strip off redundant inner {}'s
         while len(inner) > 1 and inner[0 :: len(inner) - 1] == "{}":
@@ -4066,7 +4068,7 @@ class Or(ParseExpression):
             other = self._literalStringClass(other)
         return self.append(other)  # Or([self, other])
 
-    def _generateDefaultName(self):
+    def _generateDefaultName(self) -> str:
         return "{" + " ^ ".join(str(e) for e in self.exprs) + "}"
 
     def _setResultsName(self, name, listAllMatches=False):
@@ -4177,7 +4179,7 @@ class MatchFirst(ParseExpression):
             other = self._literalStringClass(other)
         return self.append(other)  # MatchFirst([self, other])
 
-    def _generateDefaultName(self):
+    def _generateDefaultName(self) -> str:
         return "{" + " | ".join(str(e) for e in self.exprs) + "}"
 
     def _setResultsName(self, name, listAllMatches=False):
@@ -4370,7 +4372,7 @@ class Each(ParseExpression):
 
         return loc, total_results
 
-    def _generateDefaultName(self):
+    def _generateDefaultName(self) -> str:
         return "{" + " & ".join(str(e) for e in self.exprs) + "}"
 
 
@@ -4388,6 +4390,7 @@ class ParseElementEnhance(ParserElement):
                 expr = Literal(expr)
             else:
                 expr = self._literalStringClass(Literal(expr))
+        expr = typing.cast(ParserElement, expr)
         self.expr = expr
         if expr is not None:
             self.mayIndexError = expr.mayIndexError
@@ -4460,7 +4463,7 @@ class ParseElementEnhance(ParserElement):
             self.expr.validate(tmp)
         self._checkRecursion([])
 
-    def _generateDefaultName(self):
+    def _generateDefaultName(self) -> str:
         return "{}:({})".format(self.__class__.__name__, str(self.expr))
 
     ignoreWhitespace = ignore_whitespace
@@ -4783,7 +4786,7 @@ class NotAny(ParseElementEnhance):
             raise ParseException(instring, loc, self.errmsg, self)
         return loc, []
 
-    def _generateDefaultName(self):
+    def _generateDefaultName(self) -> str:
         return "~{" + str(self.expr) + "}"
 
 
@@ -4892,7 +4895,7 @@ class OneOrMore(_MultipleMatch):
         (attr_expr * (1,)).parse_string(text).pprint()
     """
 
-    def _generateDefaultName(self):
+    def _generateDefaultName(self) -> str:
         return "{" + str(self.expr) + "}..."
 
 
@@ -4925,7 +4928,7 @@ class ZeroOrMore(_MultipleMatch):
         except (ParseException, IndexError):
             return loc, ParseResults([], name=self.resultsName)
 
-    def _generateDefaultName(self):
+    def _generateDefaultName(self) -> str:
         return "[" + str(self.expr) + "]..."
 
 
@@ -5002,7 +5005,7 @@ class Opt(ParseElementEnhance):
                 tokens = []
         return loc, tokens
 
-    def _generateDefaultName(self):
+    def _generateDefaultName(self) -> str:
         inner = str(self.expr)
         # strip off redundant inner {}'s
         while len(inner) > 1 and inner[0 :: len(inner) - 1] == "{}":
@@ -5350,7 +5353,7 @@ class Forward(ParseElementEnhance):
                 self.expr.validate(tmp)
         self._checkRecursion([])
 
-    def _generateDefaultName(self):
+    def _generateDefaultName(self) -> str:
         # Avoid infinite recursion by setting a temporary _defaultName
         self._defaultName = ": ..."
 

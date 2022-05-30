@@ -265,6 +265,7 @@ class pyparsing_test:
         if expand_tabs:
             s = s.expandtabs()
         if mark_control is not None:
+            mark_control = typing.cast(str, mark_control)
             if mark_control == "unicode":
                 tbl = str.maketrans(
                     {c: u for c, u in zip(range(0, 33), range(0x2400, 0x2433))}

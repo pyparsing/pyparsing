@@ -39,6 +39,7 @@ def delimited_list(
     """
     if isinstance(expr, str_type):
         expr = ParserElement._literalStringClass(expr)
+    expr = typing.cast(ParserElement, expr)
 
     dlName = "{expr} [{delim} {expr}]...{end}".format(
         expr=str(expr.copy().streamline()),
@@ -57,7 +58,7 @@ def delimited_list(
         if min is not None and max <= min:
             raise ValueError("max must be greater than, or equal to min")
         max -= 1
-    delimited_list_expr = expr + (delim + expr)[min, max]
+    delimited_list_expr: ParserElement = expr + (delim + expr)[min, max]
 
     if allow_trailing_delim:
         delimited_list_expr += Opt(delim)
@@ -823,10 +824,16 @@ def infix_notation(
     else:
         lastExpr = base_expr | (lpar + ret + rpar)
 
+    arity: int
+    rightLeftAssoc: opAssoc
+    pa: typing.Optional[ParseAction]
+    opExpr1: ParserElement
+    opExpr2: ParserElement
     for i, operDef in enumerate(op_list):
-        opExpr, arity, rightLeftAssoc, pa = (operDef + (None,))[:4]
+        opExpr, arity, rightLeftAssoc, pa = (operDef + (None,))[:4]  # type: ignore[assignment]
         if isinstance(opExpr, str_type):
             opExpr = ParserElement._literalStringClass(opExpr)
+        opExpr = typing.cast(ParserElement, opExpr)
         if arity == 3:
             if not isinstance(opExpr, (tuple, list)) or len(opExpr) != 2:
                 raise ValueError(
@@ -843,7 +850,8 @@ def infix_notation(
         if rightLeftAssoc not in (OpAssoc.LEFT, OpAssoc.RIGHT):
             raise ValueError("operator must indicate right or left associativity")
 
-        thisExpr: Forward = Forward().set_name(term_name)
+        thisExpr: ParserElement = Forward().set_name(term_name)
+        thisExpr = typing.cast(Forward, thisExpr)
         if rightLeftAssoc is OpAssoc.LEFT:
             if arity == 1:
                 matchExpr = _FB(lastExpr + opExpr) + Group(lastExpr + opExpr[1, ...])

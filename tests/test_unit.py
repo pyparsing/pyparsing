@@ -4782,6 +4782,30 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             "failed WordExcludeTest",
         )
 
+    def testWordExclude2(self):
+        punc_chars = ".,:;-_!?"
+
+        all_but_punc = pp.Word(pp.printables, excludeChars=punc_chars)
+        all_and_punc = pp.Word(pp.printables)
+
+        assert set(punc_chars) & set(all_but_punc.initChars) == set()
+
+        expr = all_but_punc("no_punc*") | all_and_punc("with_punc*")
+
+        self.assertParseAndCheckDict(
+            expr[...],
+            "Mr. Ed,",
+            {"no_punc": ["Mr", "Ed"], "with_punc": [".", ","]},
+            "failed matching with excludeChars (1)",
+        )
+
+        self.assertParseAndCheckDict(
+            expr[...],
+            ":Mr. Ed,",
+            {"no_punc": ["Ed"], "with_punc": [":Mr.", ","]},
+            "failed matching with excludeChars (2)",
+        )
+
     def testWordMinOfZero(self):
         """test a Word with min=0"""
 

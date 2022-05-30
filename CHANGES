@@ -31,7 +31,8 @@ Version 3.0.10 - (in development)
 - Fixed bug in srange, when parsing escaped '/' and '\' inside a
   range set.
 
-- Fixed type annotation on SkipTo.
+- Multiple added and corrected type annotations. With much help from
+  Stephen Rosen, thanks!
 
 
 Version 3.0.9 - May, 2022
