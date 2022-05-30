@@ -47,9 +47,7 @@ class PyparsingExpressionTestCase(ppt.TestParseResultsAsserts, unittest.TestCase
             with self.subTest(test_spec=test_spec):
                 test_spec.expr.streamline()
                 print(
-                    "\n{} - {}({})".format(
-                        test_spec.desc, type(test_spec.expr).__name__, test_spec.expr
-                    )
+                    f"\n{test_spec.desc} - {type(test_spec.expr).__name__}({test_spec.expr})"
                 )
 
                 parsefn = getattr(test_spec.expr, test_spec.parse_fn)
@@ -506,7 +504,7 @@ class TestTransformStringUsingParseActions(PyparsingExpressionTestCase):
         htmltag = TestTransformStringUsingParseActions.markup_convert_map[
             t.markup_symbol
         ]
-        return "<{}>{}</{}>".format(htmltag, t.body, htmltag)
+        return f"<{htmltag}>{t.body}</{htmltag}>"
 
     tests = [
         PpTestSpec(
