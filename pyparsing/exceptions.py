@@ -64,7 +64,7 @@ class ParseBaseException(Exception):
         if isinstance(exc, ParseBaseException):
             ret.append(exc.line)
             ret.append(" " * (exc.column - 1) + "^")
-        ret.append("{}: {}".format(type(exc).__name__, exc))
+        ret.append(f"{type(exc).__name__}: {exc}")
 
         if depth > 0:
             callers = inspect.getinnerframes(exc.__traceback__, context=depth)
@@ -82,21 +82,19 @@ class ParseBaseException(Exception):
 
                     self_type = type(f_self)
                     ret.append(
-                        "{}.{} - {}".format(
-                            self_type.__module__, self_type.__name__, f_self
-                        )
+                        f"{self_type.__module__}.{self_type.__name__} - {f_self}"
                     )
 
                 elif f_self is not None:
                     self_type = type(f_self)
-                    ret.append("{}.{}".format(self_type.__module__, self_type.__name__))
+                    ret.append(f"{self_type.__module__}.{self_type.__name__}")
 
                 else:
                     code = frm.f_code
                     if code.co_name in ("wrapper", "<module>"):
                         continue
 
-                    ret.append("{}".format(code.co_name))
+                    ret.append(code.co_name)
 
                 depth -= 1
                 if not depth:
@@ -154,9 +152,7 @@ class ParseBaseException(Exception):
                 foundstr = (", found %r" % found).replace(r"\\", "\\")
         else:
             foundstr = ""
-        return "{}{}  (at char {}), (line:{}, col:{})".format(
-            self.msg, foundstr, self.loc, self.lineno, self.column
-        )
+        return f"{self.msg}{foundstr}  (at char {self.loc}), (line:{self.lineno}, col:{self.column})"
 
     def __repr__(self):
         return str(self)
@@ -264,4 +260,4 @@ class RecursiveGrammarException(Exception):
         self.parseElementTrace = parseElementList
 
     def __str__(self) -> str:
-        return "RecursiveGrammarException: {}".format(self.parseElementTrace)
+        return f"RecursiveGrammarException: {self.parseElementTrace}"

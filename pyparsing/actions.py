@@ -38,7 +38,7 @@ def match_only_at_col(n):
 
     def verify_col(strg, locn, toks):
         if col(locn, strg) != n:
-            raise ParseException(strg, locn, "matched token not at column {}".format(n))
+            raise ParseException(strg, locn, f"matched token not at column {n}")
 
     return verify_col
 
@@ -148,9 +148,7 @@ def with_attribute(*args, **attr_dict):
                 raise ParseException(
                     s,
                     l,
-                    "attribute {!r} has value {!r}, must be {!r}".format(
-                        attrName, tokens[attrName], attrValue
-                    ),
+                    f"attribute {attrName!r} has value {tokens[attrName]!r}, must be {attrValue!r}",
                 )
 
     return pa
@@ -195,7 +193,7 @@ def with_class(classname, namespace=""):
         1 4 0 1 0
         1,3 2,3 1,1
     """
-    classattr = "{}:class".format(namespace) if namespace else "class"
+    classattr = f"{namespace}:class" if namespace else "class"
     return with_attribute(**{classattr: classname})
 
 

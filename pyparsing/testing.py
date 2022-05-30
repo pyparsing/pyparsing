@@ -222,7 +222,7 @@ class pyparsing_test:
                             )
                         else:
                             # warning here maybe?
-                            print("no validation for {!r}".format(test_string))
+                            print(f"no validation for {test_string!r}")
 
             # do this last, in case some specific test results can be reported instead
             self.assertTrue(
@@ -304,7 +304,7 @@ class pyparsing_test:
             header0 = (
                 lead
                 + "".join(
-                    "{}{}".format(" " * 99, (i + 1) % 100)
+                    f"{' ' * 99}{(i + 1) % 100}"
                     for i in range(max(max_line_len // 100, 1))
                 )
                 + "\n"
@@ -314,10 +314,7 @@ class pyparsing_test:
         header1 = (
             header0
             + lead
-            + "".join(
-                "         {}".format((i + 1) % 10)
-                for i in range(-(-max_line_len // 10))
-            )
+            + "".join(f"         {(i + 1) % 10}" for i in range(-(-max_line_len // 10)))
             + "\n"
         )
         header2 = lead + "1234567890" * (-(-max_line_len // 10)) + "\n"
@@ -325,7 +322,7 @@ class pyparsing_test:
             header1
             + header2
             + "\n".join(
-                "{:{}d}:{}{}".format(i, lineno_width, line, eol_mark)
+                f"{i:{lineno_width}d}:{line}{eol_mark}"
                 for i, line in enumerate(s_lines, start=start_line)
             )
             + "\n"

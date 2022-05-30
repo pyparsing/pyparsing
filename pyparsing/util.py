@@ -20,18 +20,14 @@ class __config_flags:
     def _set(cls, dname, value):
         if dname in cls._fixed_names:
             warnings.warn(
-                "{}.{} {} is {} and cannot be overridden".format(
-                    cls.__name__,
-                    dname,
-                    cls._type_desc,
-                    str(getattr(cls, dname)).upper(),
-                )
+                f"{cls.__name__}.{dname} {cls._type_desc} is {str(getattr(cls, dname)).upper()}"
+                f" and cannot be overridden"
             )
             return
         if dname in cls._all_names:
             setattr(cls, dname, value)
         else:
-            raise ValueError("no such {} {!r}".format(cls._type_desc, dname))
+            raise ValueError(f"no such {cls._type_desc} {dname!r}")
 
     enable = classmethod(lambda cls, name: cls._set(name, True))
     disable = classmethod(lambda cls, name: cls._set(name, False))
@@ -215,9 +211,7 @@ def _collapse_string_to_ranges(
             else:
                 sep = "" if ord(last) == ord(first) + 1 else "-"
                 ret.append(
-                    "{}{}{}".format(
-                        escape_re_range_char(first), sep, escape_re_range_char(last)
-                    )
+                    f"{escape_re_range_char(first)}{sep}{escape_re_range_char(last)}"
                 )
     else:
         ret = [escape_re_range_char(c) for c in s]

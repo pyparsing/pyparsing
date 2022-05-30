@@ -47,7 +47,7 @@ class ParseResults:
         result = date_str.parse_string("1999/12/31")
 
         def test(s, fn=repr):
-            print("{} -> {}".format(s, fn(eval(s))))
+            print(f"{s} -> {fn(eval(s))}")
         test("list(result)")
         test("result[0]")
         test("result['month']")
@@ -127,8 +127,7 @@ class ParseResults:
 
             if not isinstance(contained, list):
                 raise TypeError(
-                    "{} may only be constructed with a list,"
-                    " not {}".format(cls.__name__, type(contained).__name__)
+                    f"{cls.__name__} may only be constructed with a list, not {type(contained).__name__}"
                 )
 
             return list.__new__(cls)
@@ -311,9 +310,7 @@ class ParseResults:
             if k == "default":
                 args = (args[0], v)
             else:
-                raise TypeError(
-                    "pop() got an unexpected keyword argument {!r}".format(k)
-                )
+                raise TypeError(f"pop() got an unexpected keyword argument {k!r}")
         if isinstance(args[0], int) or len(args) == 1 or args[0] in self:
             index = args[0]
             ret = self[index]
@@ -456,7 +453,7 @@ class ParseResults:
             return other + self
 
     def __repr__(self) -> str:
-        return "{}({!r}, {})".format(type(self).__name__, self._toklist, self.as_dict())
+        return f"{type(self).__name__}({self._toklist!r}, {self.as_dict()})"
 
     def __str__(self) -> str:
         return (
@@ -623,7 +620,7 @@ class ParseResults:
                 for k, v in items:
                     if out:
                         out.append(NL)
-                    out.append("{}{}- {}: ".format(indent, ("  " * _depth), k))
+                    out.append(f"{indent}{('  ' * _depth)}- {k}: ")
                     if isinstance(v, ParseResults):
                         if v:
                             out.append(

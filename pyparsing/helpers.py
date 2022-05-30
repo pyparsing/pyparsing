@@ -41,11 +41,8 @@ def delimited_list(
         expr = ParserElement._literalStringClass(expr)
     expr = typing.cast(ParserElement, expr)
 
-    dlName = "{expr} [{delim} {expr}]...{end}".format(
-        expr=str(expr.copy().streamline()),
-        delim=str(delim),
-        end=" [{}]".format(str(delim)) if allow_trailing_delim else "",
-    )
+    expr_copy = expr.copy().streamline()
+    dlName = f"{expr_copy} [{delim} {expr_copy}]...{f' [{delim}]' if allow_trailing_delim else ''}"
 
     if not combine:
         delim = Suppress(delim)
@@ -188,7 +185,7 @@ def match_previous_expr(expr: ParserElement) -> ParserElement:
             theseTokens = _flatten(t.as_list())
             if theseTokens != matchTokens:
                 raise ParseException(
-                    s, l, "Expected {}, found{}".format(matchTokens, theseTokens)
+                    s, l, f"Expected {matchTokens}, found{theseTokens}"
                 )
 
         rep.set_parse_action(must_match_these_tokens, callDuringTry=True)
@@ -294,15 +291,13 @@ def one_of(
         try:
             if all(len(sym) == 1 for sym in symbols):
                 # symbols are just single characters, create range regex pattern
-                patt = "[{}]".format(
-                    "".join(_escape_regex_range_chars(sym) for sym in symbols)
-                )
+                patt = f"[{''.join(_escape_regex_range_chars(sym) for sym in symbols)}]"
             else:
                 patt = "|".join(re.escape(sym) for sym in symbols)
 
             # wrap with \b word break markers if defining as keywords
             if asKeyword:
-                patt = r"\b(?:{})\b".format(patt)
+                patt = rf"\b(?:{patt})\b"
 
             ret = Regex(patt, flags=re_flags).set_name(" | ".join(symbols))
 
@@ -840,9 +835,9 @@ def infix_notation(
                     "if numterms=3, opExpr must be a tuple or list of two expressions"
                 )
             opExpr1, opExpr2 = opExpr
-            term_name = "{}{} term".format(opExpr1, opExpr2)
+            term_name = f"{opExpr1}{opExpr2} term"
         else:
-            term_name = "{} term".format(opExpr)
+            term_name = f"{opExpr} term"
 
         if not 1 <= arity <= 3:
             raise ValueError("operator must be unary (1), binary (2), or ternary (3)")
