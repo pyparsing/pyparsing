@@ -5,8 +5,8 @@ Using the pyparsing module
 :author: Paul McGuire
 :address: ptmcg.pm+pyparsing@gmail.com
 
-:revision: 3.0.0
-:date: October, 2021
+:revision: 3.0.10
+:date: May, 2022
 
 :copyright: Copyright |copy| 2003-2022 Paul McGuire.
 
@@ -192,6 +192,11 @@ Usage notes
   occurrences.  If this behavior is desired, then write
   ``expr[..., n] + ~expr``.
 
+- ``[]`` notation will also accept a stop expression using ':' slice
+  notation:
+
+  - ``expr[...:end_expr]`` is equivalent to ``ZeroOrMore(expr, stop_on=end_expr)``
+
 - MatchFirst_ expressions are matched left-to-right, and the first
   match found will skip all later expressions within, so be sure
   to define less-specific patterns after more-specific patterns.
@@ -264,8 +269,7 @@ Classes
 =======
 
 All the pyparsing classes can be found in this
-`UML class diagram <_static/pyparsingClassDiagram_3.0.9.jpg>`_ or this
-`SVG UML class diagram <pyparsing_class_diagram.svg>`_.
+`UML class diagram <_static/pyparsingClassDiagram_3.0.9.jpg>`_.
 
 Classes in the pyparsing module
 -------------------------------
