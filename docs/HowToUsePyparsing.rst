@@ -263,6 +263,10 @@ Usage notes
 Classes
 =======
 
+All the pyparsing classes can be found in this
+`UML class diagram <_static/pyparsingClassDiagram_3.0.9.jpg>`_ or this
+`SVG UML class diagram <pyparsing_class_diagram.svg>`_.
+
 Classes in the pyparsing module
 -------------------------------
 
@@ -495,7 +499,7 @@ Basic ParserElement subclasses
   defined keyword
 
 - ``CaselessKeyword`` - similar to Keyword_, but with caseless matching
-  behavior
+  behavior as described in CaselessLiteral_.
 
 .. _Word:
 
@@ -1275,6 +1279,17 @@ Common string and token constants
 
     ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝÞßàáâãäåæçèéêëìíîïðñòóôõöøùúûüýþ
 
+- ``identchars`` - a string containing characters that are valid as initial identifier characters::
+
+    ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyzª
+    µºÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝÞßàáâãäåæçèéêëìíîïðñòóôõöøùúûüýþÿ
+
+- ``identbodychars`` - a string containing characters that are valid as identifier body characters (those following a
+valid leading identifier character as given in identchars_)::
+
+    0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyzª
+    µ·ºÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝÞßàáâãäåæçèéêëìíîïðñòóôõöøùúûüýþÿ
+
 - ``printables`` - same as ``string.printable``, minus the space (``' '``) character
 
 - ``empty`` - a global ``Empty()``; will always match
@@ -1355,21 +1370,21 @@ Unicode set                   Alternate names       Description
 --------------------------    -----------------     ------------------------------------------------
 Arabic                        العربية
 Chinese                       中文
+CJK                                                 Union of Chinese, Japanese, and Korean sets
 Cyrillic                      кириллица
+Devanagari                    देवनागरी
 Greek                         Ελληνικά
+Hangul                        Korean, 한국어
 Hebrew                        עִברִית
 Japanese                      日本語                 Union of Kanji, Katakana, and Hiragana sets
+Japanese.Hiragana             ひらがな
 Japanese.Kanji                漢字
 Japanese.Katakana             カタカナ
-Japanese.Hiragana             ひらがな
-Hangul                        Korean, 한국어
 Latin1                                              All Unicode characters up to code point 255
 LatinA
 LatinB
 Thai                          ไทย
-Devanagari                    देवनागरी
 BasicMultilingualPlane        BMP                   All Unicode characters up to code point 65535
-CJK                                                 Union of Chinese, Japanese, and Korean sets
 ==========================    =================     ================================================
 
 The base ``unicode`` class also includes definitions based on all Unicode code points up to ``sys.maxunicode``. This
@@ -1396,13 +1411,31 @@ Create your parser as you normally would. Then call ``create_diagram()``, passin
 
 This will result in the railroad diagram being written to ``street_address_diagram.html``.
 
-Diagrams usually will vertically wrap expressions containing more than 3 terms. You can override this by
-passing the `vertical` argument to `create_diagram` with a larger value.
+`create_diagrams` takes the following arguments:
+
+- ``output_html`` (str or file-like object) - output target for generated diagram HTML
+
+- ``vertical`` (int) - threshold for formatting multiple alternatives vertically instead of horizontally (default=3)
+
+- ``show_results_names`` - bool flag whether diagram should show annotations for defined results names
+
+- ``show_groups`` - bool flag whether groups should be highlighted with an unlabeled surrounding box
+
+- ``embed`` - bool flag whether generated HTML should omit <HEAD>, <BODY>, and <DOCTYPE> tags to embed
+  the resulting HTML in an enclosing HTML source (such as PyScript HTML)
+
+- ``head`` - str containing additional HTML to insert into the <HEAD> section of the generated code;
+  can be used to insert custom CSS styling
+
+- ``body`` - str containing additional HTML to insert at the beginning of the <BODY> section of the
+  generated code
+
 
 Example
 -------
 You can view an example railroad diagram generated from `a pyparsing grammar for
-SQL SELECT statements <_static/sql_railroad.html>`_.
+SQL SELECT statements <_static/sql_railroad.html>`_ (generated from
+`examples/select_parser.py <../examples/select_parser.py>`_).
 
 Naming tip
 ----------
