@@ -134,6 +134,7 @@ class __diag__(__config_flags):
 class Diagnostics(Enum):
     """
     Diagnostic configuration (all default to disabled)
+
     - ``warn_multiple_tokens_in_named_alternation`` - flag to enable warnings when a results
       name is defined on a :class:`MatchFirst` or :class:`Or` expression with one or more :class:`And` subexpressions
     - ``warn_ungrouped_named_tokens_in_collection`` - flag to enable warnings when a results
@@ -1424,6 +1425,7 @@ class ParserElement(ABC):
         ``expr + expr + expr``.  Expressions may also be multiplied by a 2-integer
         tuple, similar to ``{min, max}`` multipliers in regular expressions.  Tuples
         may also include ``None`` as in:
+
         - ``expr*(n, None)`` or ``expr*(n, )`` is equivalent
              to ``expr*n + ZeroOrMore(expr)``
              (read as "at least n instances of ``expr``")
@@ -1920,6 +1922,7 @@ class ParserElement(ABC):
         inline microtests of sub expressions while building up larger parser.
 
         Parameters:
+
         - ``test_string`` - to test against this expression for a match
         - ``parse_all`` - (default= ``True``) - flag to pass to :class:`parse_string` when running tests
 
@@ -1959,6 +1962,7 @@ class ParserElement(ABC):
         run a parse expression against a list of sample strings.
 
         Parameters:
+
         - ``tests`` - a list of separate test strings, or a multiline string of test strings
         - ``parse_all`` - (default= ``True``) - flag to pass to :class:`parse_string` when running tests
         - ``comment`` - (default= ``'#'``) - expression for indicating embedded comments in the test
@@ -2141,6 +2145,7 @@ class ParserElement(ABC):
         Create a railroad diagram for the parser.
 
         Parameters:
+
         - output_html (str or file-like object) - output target for generated
           diagram HTML
         - vertical (int) - threshold for formatting multiple alternatives vertically
@@ -2604,7 +2609,9 @@ class CloseMatch(Token):
 
 class Word(Token):
     """Token for matching words composed of allowed character sets.
+
     Parameters:
+
     - ``init_chars`` - string of all characters that should be used to
       match as a word; "ABC" will match "AAA", "ABAB", "CBAC", etc.;
       if ``body_chars`` is also specified, then this is the string of
@@ -4815,6 +4822,7 @@ class OneOrMore(_MultipleMatch):
     Repetition of one or more of the given expression.
 
     Parameters:
+
     - expr - expression that must match one or more times
     - stop_on - (default= ``None``) - expression for a terminating sentinel
          (only required if the sentinel would ordinarily match the repetition
@@ -4846,6 +4854,7 @@ class ZeroOrMore(_MultipleMatch):
     Optional repetition of zero or more of the given expression.
 
     Parameters:
+
     - ``expr`` - expression that must match zero or more times
     - ``stop_on`` - expression for a terminating sentinel
       (only required if the sentinel would ordinarily match the repetition
@@ -4887,6 +4896,7 @@ class Opt(ParseElementEnhance):
     Optional matching of the given expression.
 
     Parameters:
+
     - ``expr`` - expression that must match zero or more times
     - ``default`` (optional) - value to be returned if the optional expression is not found.
 
@@ -4964,6 +4974,7 @@ class SkipTo(ParseElementEnhance):
     expression is found.
 
     Parameters:
+
     - ``expr`` - target expression marking the end of the data to be skipped
     - ``include`` - if ``True``, the target expression is also parsed
       (the skipped text and target expression are returned as a 2-element
