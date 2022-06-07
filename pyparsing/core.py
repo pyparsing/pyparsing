@@ -134,6 +134,7 @@ class __diag__(__config_flags):
 class Diagnostics(Enum):
     """
     Diagnostic configuration (all default to disabled)
+
     - ``warn_multiple_tokens_in_named_alternation`` - flag to enable warnings when a results
       name is defined on a :class:`MatchFirst` or :class:`Or` expression with one or more :class:`And` subexpressions
     - ``warn_ungrouped_named_tokens_in_collection`` - flag to enable warnings when a results
@@ -593,9 +594,9 @@ class ParserElement(ABC):
         Each parse action ``fn`` is a callable method with 0-3 arguments, called as
         ``fn(s, loc, toks)`` , ``fn(loc, toks)`` , ``fn(toks)`` , or just ``fn()`` , where:
 
-        - s   = the original string being parsed (see note below)
-        - loc = the location of the matching substring
-        - toks = a list of the matched tokens, packaged as a :class:`ParseResults` object
+        - ``s``    = the original string being parsed (see note below)
+        - ``loc``  = the location of the matching substring
+        - ``toks`` = a list of the matched tokens, packaged as a :class:`ParseResults` object
 
         The parsed tokens are passed to the parse action as ParseResults. They can be
         modified in place using list-style append, extend, and pop operations to update
@@ -613,7 +614,7 @@ class ParserElement(ABC):
 
         Optional keyword arguments:
 
-        - call_during_try = (default= ``False``) indicate if parse action should be run during
+        - ``call_during_try`` = (default= ``False``) indicate if parse action should be run during
           lookaheads and alternate testing. For parse actions that have side effects, it is
           important to only call the parse action once it is determined that it is being
           called as part of a successful parse. For parse actions that perform additional
@@ -689,10 +690,10 @@ class ParserElement(ABC):
 
         Optional keyword arguments:
 
-        - message = define a custom message to be used in the raised exception
-        - fatal = if True, will raise ParseFatalException to stop parsing immediately; otherwise will raise
+        - ``message`` = define a custom message to be used in the raised exception
+        - ``fatal`` = if True, will raise ParseFatalException to stop parsing immediately; otherwise will raise
           ParseException
-        - call_during_try = boolean to indicate if this method should be called during internal tryParse calls,
+        - ``call_during_try`` = boolean to indicate if this method should be called during internal tryParse calls,
           default=False
 
         Example::
@@ -723,10 +724,10 @@ class ParserElement(ABC):
         Fail acton fn is a callable function that takes the arguments
         ``fn(s, loc, expr, err)`` where:
 
-        - s = string being parsed
-        - loc = location where expression match was attempted and failed
-        - expr = the parse expression that failed
-        - err = the exception thrown
+        - ``s`` = string being parsed
+        - ``loc`` = location where expression match was attempted and failed
+        - ``expr`` = the parse expression that failed
+        - ``err`` = the exception thrown
 
         The function returns no value.  It may throw :class:`ParseFatalException`
         if it is desired to stop parsing immediately."""
@@ -1001,7 +1002,7 @@ class ParserElement(ABC):
 
         Parameters:
 
-        - cache_size_limit - (default=``None``) - memoize at most this many
+        - ``cache_size_limit`` - (default=``None``) - memoize at most this many
           ``Forward`` elements during matching; if ``None`` (the default),
           memoize all ``Forward`` elements.
 
@@ -1032,7 +1033,7 @@ class ParserElement(ABC):
 
         Parameters:
 
-        - cache_size_limit - (default= ``128``) - if an integer value is provided
+        - ``cache_size_limit`` - (default= ``128``) - if an integer value is provided
           will limit the size of the packrat cache; if None is passed, then
           the cache size will be unbounded; if 0 is passed, the cache will
           be effectively disabled.
@@ -1424,6 +1425,7 @@ class ParserElement(ABC):
         ``expr + expr + expr``.  Expressions may also be multiplied by a 2-integer
         tuple, similar to ``{min, max}`` multipliers in regular expressions.  Tuples
         may also include ``None`` as in:
+
         - ``expr*(n, None)`` or ``expr*(n, )`` is equivalent
              to ``expr*n + ZeroOrMore(expr)``
              (read as "at least n instances of ``expr``")
@@ -1920,6 +1922,7 @@ class ParserElement(ABC):
         inline microtests of sub expressions while building up larger parser.
 
         Parameters:
+
         - ``test_string`` - to test against this expression for a match
         - ``parse_all`` - (default= ``True``) - flag to pass to :class:`parse_string` when running tests
 
@@ -1959,6 +1962,7 @@ class ParserElement(ABC):
         run a parse expression against a list of sample strings.
 
         Parameters:
+
         - ``tests`` - a list of separate test strings, or a multiline string of test strings
         - ``parse_all`` - (default= ``True``) - flag to pass to :class:`parse_string` when running tests
         - ``comment`` - (default= ``'#'``) - expression for indicating embedded comments in the test
@@ -2141,18 +2145,19 @@ class ParserElement(ABC):
         Create a railroad diagram for the parser.
 
         Parameters:
-        - output_html (str or file-like object) - output target for generated
+
+        - ``output_html`` (str or file-like object) - output target for generated
           diagram HTML
-        - vertical (int) - threshold for formatting multiple alternatives vertically
+        - ``vertical`` (int) - threshold for formatting multiple alternatives vertically
           instead of horizontally (default=3)
-        - show_results_names - bool flag whether diagram should show annotations for
+        - ``show_results_names`` - bool flag whether diagram should show annotations for
           defined results names
-        - show_groups - bool flag whether groups should be highlighted with an unlabeled surrounding box
-        - embed - bool flag whether generated HTML should omit <HEAD>, <BODY>, and <DOCTYPE> tags to embed
+        - ``show_groups`` - bool flag whether groups should be highlighted with an unlabeled surrounding box
+        - ``embed`` - bool flag whether generated HTML should omit <HEAD>, <BODY>, and <DOCTYPE> tags to embed
           the resulting HTML in an enclosing HTML source
-        - head - str containing additional HTML to insert into the <HEAD> section of the generated code;
+        - ``head`` - str containing additional HTML to insert into the <HEAD> section of the generated code;
           can be used to insert custom CSS styling
-        - body - str containing additional HTML to insert at the beginning of the <BODY> section of the
+        - ``body`` - str containing additional HTML to insert at the beginning of the <BODY> section of the
           generated code
 
         Additional diagram-formatting keyword arguments can also be included;
@@ -2604,7 +2609,9 @@ class CloseMatch(Token):
 
 class Word(Token):
     """Token for matching words composed of allowed character sets.
+
     Parameters:
+
     - ``init_chars`` - string of all characters that should be used to
       match as a word; "ABC" will match "AAA", "ABAB", "CBAC", etc.;
       if ``body_chars`` is also specified, then this is the string of
@@ -4576,9 +4583,9 @@ class PrecededBy(ParseElementEnhance):
 
     Parameters:
 
-    - expr - expression that must match prior to the current parse
+    - ``expr`` - expression that must match prior to the current parse
       location
-    - retreat - (default= ``None``) - (int) maximum number of characters
+    - ``retreat`` - (default= ``None``) - (int) maximum number of characters
       to lookbehind prior to the current parse location
 
     If the lookbehind expression is a string, :class:`Literal`,
@@ -4815,10 +4822,11 @@ class OneOrMore(_MultipleMatch):
     Repetition of one or more of the given expression.
 
     Parameters:
-    - expr - expression that must match one or more times
-    - stop_on - (default= ``None``) - expression for a terminating sentinel
-         (only required if the sentinel would ordinarily match the repetition
-         expression)
+
+    - ``expr`` - expression that must match one or more times
+    - ``stop_on`` - (default= ``None``) - expression for a terminating sentinel
+      (only required if the sentinel would ordinarily match the repetition
+      expression)
 
     Example::
 
@@ -4846,6 +4854,7 @@ class ZeroOrMore(_MultipleMatch):
     Optional repetition of zero or more of the given expression.
 
     Parameters:
+
     - ``expr`` - expression that must match zero or more times
     - ``stop_on`` - expression for a terminating sentinel
       (only required if the sentinel would ordinarily match the repetition
@@ -4887,6 +4896,7 @@ class Opt(ParseElementEnhance):
     Optional matching of the given expression.
 
     Parameters:
+
     - ``expr`` - expression that must match zero or more times
     - ``default`` (optional) - value to be returned if the optional expression is not found.
 
@@ -4964,6 +4974,7 @@ class SkipTo(ParseElementEnhance):
     expression is found.
 
     Parameters:
+
     - ``expr`` - target expression marking the end of the data to be skipped
     - ``include`` - if ``True``, the target expression is also parsed
       (the skipped text and target expression are returned as a 2-element
