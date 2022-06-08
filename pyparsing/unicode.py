@@ -230,7 +230,6 @@ class pyparsing_unicode(unicode_set):
 
     class Japanese(unicode_set):
         "Unicode set for Japanese Unicode Character Range, combining Kanji, Hiragana, and Katakana ranges"
-        _ranges: UnicodeRangeList = []
 
         class Kanji(unicode_set):
             "Unicode set for Kanji Unicode Character Range"
@@ -264,6 +263,16 @@ class pyparsing_unicode(unicode_set):
                 (0x1F201, 0x1F202),
                 (0x1F213,),
             ]
+
+        漢字 = Kanji
+        カタカナ = Katakana
+        ひらがな = Hiragana
+
+        _ranges = (
+            Kanji._ranges
+            + Hiragana._ranges
+            + Katakana._ranges
+        )
 
     class Hangul(unicode_set):
         "Unicode set for Hangul (Korean) Unicode Character Range"
@@ -326,27 +335,17 @@ class pyparsing_unicode(unicode_set):
             (0xA8E0, 0xA8FF)
         ]
 
+    BMP = BasicMultilingualPlane
+
+    # add language identifiers using language Unicode
+    العربية = Arabic
+    中文 = Chinese
+    кириллица = Cyrillic
+    Ελληνικά = Greek
+    עִברִית = Hebrew
+    日本語 = Japanese
+    한국어 = Korean
+    ไทย = Thai
+    देवनागरी = Devanagari
+
     # fmt: on
-
-
-pyparsing_unicode.Japanese._ranges = (
-    pyparsing_unicode.Japanese.Kanji._ranges
-    + pyparsing_unicode.Japanese.Hiragana._ranges
-    + pyparsing_unicode.Japanese.Katakana._ranges
-)
-
-pyparsing_unicode.BMP = pyparsing_unicode.BasicMultilingualPlane  # type: ignore [attr-defined]
-
-# add language identifiers using language Unicode
-pyparsing_unicode.العربية = pyparsing_unicode.Arabic  # type: ignore [attr-defined]
-pyparsing_unicode.中文 = pyparsing_unicode.Chinese  # type: ignore [attr-defined]
-pyparsing_unicode.кириллица = pyparsing_unicode.Cyrillic  # type: ignore [attr-defined]
-pyparsing_unicode.Ελληνικά = pyparsing_unicode.Greek  # type: ignore [attr-defined]
-pyparsing_unicode.עִברִית = pyparsing_unicode.Hebrew  # type: ignore [attr-defined]
-pyparsing_unicode.日本語 = pyparsing_unicode.Japanese  # type: ignore [attr-defined]
-pyparsing_unicode.Japanese.漢字 = pyparsing_unicode.Japanese.Kanji  # type: ignore [attr-defined]
-pyparsing_unicode.Japanese.カタカナ = pyparsing_unicode.Japanese.Katakana  # type: ignore [attr-defined]
-pyparsing_unicode.Japanese.ひらがな = pyparsing_unicode.Japanese.Hiragana  # type: ignore [attr-defined]
-pyparsing_unicode.한국어 = pyparsing_unicode.Korean  # type: ignore [attr-defined]
-pyparsing_unicode.ไทย = pyparsing_unicode.Thai  # type: ignore [attr-defined]
-pyparsing_unicode.देवनागरी = pyparsing_unicode.Devanagari  # type: ignore [attr-defined]
