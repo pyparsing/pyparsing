@@ -2722,6 +2722,11 @@ class Word(Token):
                 "cannot specify a minimum length < 1; use Opt(Word()) if zero-length word is permitted"
             )
 
+        if self.maxSpecified and min > max:
+            raise ValueError(
+                f"invalid args, if min and max both specified min must be <= max (min={min}, max={max})"
+            )
+
         self.minLen = min
 
         if max > 0:
@@ -2730,6 +2735,7 @@ class Word(Token):
             self.maxLen = _MAX_INT
 
         if exact > 0:
+            min = max = exact
             self.maxLen = exact
             self.minLen = exact
 
@@ -2738,39 +2744,43 @@ class Word(Token):
         self.asKeyword = asKeyword
 
         # see if we can make a regex for this Word
-        if " " not in self.initChars | self.bodyChars and (min == 1 and exact == 0):
+        if " " not in (self.initChars | self.bodyChars):
+            if len(self.initChars) == 1:
+                re_leading_fragment = re.escape(self.initCharsOrig)
+            else:
+                re_leading_fragment = f"[{_collapse_string_to_ranges(self.initChars)}]"
+
             if self.bodyChars == self.initChars:
                 if max == 0:
                     repeat = "+"
                 elif max == 1:
                     repeat = ""
                 else:
-                    repeat = f"{{{self.minLen},{'' if self.maxLen == _MAX_INT else self.maxLen}}}"
-                self.reString = (
-                    f"[{_collapse_string_to_ranges(self.initChars)}]{repeat}"
-                )
-            elif len(self.initChars) == 1:
-                if max == 0:
-                    repeat = "*"
-                else:
-                    repeat = f"{{0,{max - 1}}}"
-                self.reString = (
-                    f"{re.escape(self.initCharsOrig)}"
-                    f"[{_collapse_string_to_ranges(self.bodyChars)}]"
-                    f"{repeat}"
-                )
+                    if self.minLen != self.maxLen:
+                        repeat = f"{{{self.minLen},{'' if self.maxLen == _MAX_INT else self.maxLen}}}"
+                    else:
+                        repeat = f"{{{self.minLen}}}"
+                self.reString = f"{re_leading_fragment}{repeat}"
             else:
-                if max == 0:
-                    repeat = "*"
-                elif max == 2:
+                if max == 1:
+                    re_body_fragment = ""
                     repeat = ""
                 else:
-                    repeat = f"{{0,{max - 1}}}"
+                    re_body_fragment = f"[{_collapse_string_to_ranges(self.bodyChars)}]"
+                    if max == 0:
+                        repeat = "*"
+                    elif max == 2:
+                        repeat = "?" if min <= 1 else ""
+                    else:
+                        if min != max:
+                            repeat = f"{{{min - 1 if min > 0 else 0},{max - 1}}}"
+                        else:
+                            repeat = f"{{{min - 1 if min > 0 else 0}}}"
+
                 self.reString = (
-                    f"[{_collapse_string_to_ranges(self.initChars)}]"
-                    f"[{_collapse_string_to_ranges(self.bodyChars)}]"
-                    f"{repeat}"
+                    f"{re_leading_fragment}" f"{re_body_fragment}" f"{repeat}"
                 )
+
             if self.asKeyword:
                 self.reString = rf"\b{self.reString}\b"
 

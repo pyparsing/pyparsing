@@ -4708,6 +4708,58 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
         if fails:
             self.fail(f"{','.join(str(f) for f in fails)} failed to match")
 
+    def testWordMinMaxExactArgs(self):
+        for minarg in range(1, 9):
+            for maxarg in range(minarg, 10):
+                with self.subTest(minarg=minarg, maxarg=maxarg):
+                    expr = pp.Word("AB", pp.nums, min=minarg, max=maxarg)
+                    print(minarg, maxarg, expr.reString, end=" ")
+                    trailing = expr.reString.rpartition("]")[-1]
+                    expected_special = {
+                        (1, 1): "",
+                        (1, 2): "?",
+                        (2, 2): "",
+                    }
+                    expected_default = (
+                        f"{{{minarg - 1}}}"
+                        if minarg == maxarg
+                        else f"{{{minarg - 1},{maxarg - 1}}}"
+                    )
+                    expected = expected_special.get((minarg, maxarg), expected_default)
+
+                    print(trailing == expected)
+
+                    self.assertEqual(trailing, expected)
+
+                    self.assertParseAndCheckList(
+                        expr + pp.restOfLine.suppress(),
+                        "A1234567890",
+                        ["A1234567890"[:maxarg]],
+                    )
+
+        for exarg in range(1, 9):
+            with self.subTest(exarg=exarg):
+                expr = pp.Word("AB", pp.nums, exact=exarg)
+                print(exarg, expr.reString, end=" ")
+                trailing = expr.reString.rpartition("]")[-1]
+                if exarg < 3:
+                    expected = ""
+                else:
+                    expected = f"{{{exarg - 1}}}"
+                print(trailing == expected)
+
+                self.assertEqual(trailing, expected)
+
+                self.assertParseAndCheckList(
+                    expr + pp.restOfLine.suppress(),
+                    "A1234567890",
+                    ["A1234567890"[:exarg]],
+                )
+
+    def testInvalidMinMaxArgs(self):
+        with self.assertRaises(ValueError):
+            wd = pp.Word(min=2, max=1)
+
     def testWordExclude(self):
 
         allButPunc = pp.Word(pp.printables, excludeChars=".,:;-_!?")

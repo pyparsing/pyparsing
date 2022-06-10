@@ -4,6 +4,13 @@ Change Log
 
 Version 3.0.10 - (in development)
 ---------------------------------
+- Fixed bug in `Word` when `max=2`. Also added performance enhancement
+  when specifying `exact` argument. Reported in issue #409 by
+  panda-34, nice catch!
+
+- `Word` arguments are now validated if `min` and `max` are both
+  given, that `min` <= `max`; raises `ValueError` if values are invalid.
+
 - Extended `expr[]` notation for repetition of expr to accept a
   slice, where the slice's stop value indicates a `stop_on`
   expression:
