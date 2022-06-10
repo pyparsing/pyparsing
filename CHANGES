@@ -41,6 +41,10 @@ Version 3.0.10 - (in development)
 - Multiple added and corrected type annotations. With much help from
   Stephen Rosen, thanks!
 
+- General docstring cleanup for Sphinx doc generation, PRs submitted
+  by Devin J. Pohly. A dirty job, but someone has to do it - much
+  appreciated!
+
 
 Version 3.0.9 - May, 2022
 -------------------------
