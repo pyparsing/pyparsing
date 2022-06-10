@@ -85,7 +85,7 @@ class ParseResults:
     class List(list):
         """
         Simple wrapper class to distinguish parsed list results that should be preserved
-        as actual Python lists, instead of being converted to :class:`ParseResults`:
+        as actual Python lists, instead of being converted to :class:`ParseResults`::
 
             LBRACK, RBRACK = map(pp.Suppress, "[]")
             element = pp.Forward()
@@ -107,7 +107,7 @@ class ParseResults:
                 (2,3,4)
                 ''', post_parse=lambda s, r: (r[0], type(r[0])))
 
-        prints:
+        prints::
 
             100
             (100, <class 'int'>)

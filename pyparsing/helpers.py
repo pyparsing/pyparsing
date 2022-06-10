@@ -467,6 +467,7 @@ def nested_expr(
     closing delimiters (``"("`` and ``")"`` are the default).
 
     Parameters:
+
     - ``opener`` - opening character for a nested list
       (default= ``"("``); can also be a pyparsing expression
     - ``closer`` - closing character for a nested list
@@ -738,6 +739,7 @@ def infix_notation(
     improve your parser performance.
 
     Parameters:
+
     - ``base_expr`` - expression representing the most basic operand to
       be used in the expression
     - ``op_list`` - list of tuples, one for each operator precedence level

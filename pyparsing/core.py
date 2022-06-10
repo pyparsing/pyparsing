@@ -1081,7 +1081,7 @@ class ParserElement(ABC):
           an object with attributes if the given parser includes results names.
 
         If the input string is required to match the entire grammar, ``parse_all`` flag must be set to ``True``. This
-        is also equivalent to ending the grammar with :class:`StringEnd`().
+        is also equivalent to ending the grammar with :class:`StringEnd`\ ().
 
         To report proper column numbers, ``parse_string`` operates on a copy of the input string where all tabs are
         converted to spaces (8 spaces per tab, as per the default in ``string.expandtabs``). If the input string
@@ -1345,7 +1345,7 @@ class ParserElement(ABC):
     def __add__(self, other) -> "ParserElement":
         """
         Implementation of ``+`` operator - returns :class:`And`. Adding strings to a :class:`ParserElement`
-        converts them to :class:`Literal`s by default.
+        converts them to :class:`Literal`\ s by default.
 
         Example::
 
@@ -1427,10 +1427,10 @@ class ParserElement(ABC):
         may also include ``None`` as in:
 
         - ``expr*(n, None)`` or ``expr*(n, )`` is equivalent
-             to ``expr*n + ZeroOrMore(expr)``
-             (read as "at least n instances of ``expr``")
+          to ``expr*n + ZeroOrMore(expr)``
+          (read as "at least n instances of ``expr``")
         - ``expr*(None, n)`` is equivalent to ``expr*(0, n)``
-             (read as "0 to n instances of ``expr``")
+          (read as "0 to n instances of ``expr``")
         - ``expr*(None, None)`` is equivalent to ``ZeroOrMore(expr)``
         - ``expr*(1, None)`` is equivalent to ``OneOrMore(expr)``
 
@@ -1657,7 +1657,7 @@ class ParserElement(ABC):
         If ``name`` is given with a trailing ``'*'`` character, then ``list_all_matches`` will be
         passed as ``True``.
 
-        If ``name` is omitted, same as calling :class:`copy`.
+        If ``name`` is omitted, same as calling :class:`copy`.
 
         Example::
 
@@ -1834,7 +1834,9 @@ class ParserElement(ABC):
     def set_name(self, name: str) -> "ParserElement":
         """
         Define name for this expression, makes debugging and exception messages clearer.
+
         Example::
+
             Word(nums).parse_string("ABC")  # -> Exception: Expected W:(0-9) (at char 0), (line:1, col:1)
             Word(nums).set_name("integer").parse_string("ABC")  # -> Exception: Expected integer (at char 0), (line:1, col:1)
         """
