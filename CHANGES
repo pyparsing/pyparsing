@@ -4,6 +4,22 @@ Change Log
 
 Version 3.0.10 - (in development)
 ---------------------------------
+- API ENHANCEMENT: `Optional(expr)` may now be written as `expr | ""`
+
+  This will make this code:
+
+      "{" + Optional(Literal("A") | Literal("a")) + "}"
+
+  writable as:
+
+      "{" + (Literal("A") | Literal("a") | "") + "}"
+
+  Some related changes implemented as part of this work:
+  - Literal("") now internally generates an Empty() (and no longer raises an exception)
+  - Empty is now a subclass of Literal
+
+  Suggested by Antony Lee (issue #412), PR (#413) by Devin J. Pohly.
+
 - Fixed bug in `Word` when `max=2`. Also added performance enhancement
   when specifying `exact` argument. Reported in issue #409 by
   panda-34, nice catch!
