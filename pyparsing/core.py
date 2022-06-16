@@ -2321,7 +2321,7 @@ class Literal(Token):
         match_string = matchString or match_string
         self.match = match_string
         self.matchLen = len(match_string)
-        self.firstMatchChar = match_string[0] if match_string else ''
+        self.firstMatchChar = match_string[:1]
         self.errmsg = "Expected " + self.name
         self.mayReturnEmpty = False
         self.mayIndexError = False
