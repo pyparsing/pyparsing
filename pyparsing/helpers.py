@@ -5,12 +5,18 @@ import typing
 
 from . import __diag__
 from .core import *
-from .util import _bslash, _flatten, _escape_regex_range_chars
+from .util import (
+    _bslash,
+    _flatten,
+    _escape_regex_range_chars,
+    replaces_prePEP8_function,
+)
 
 
 #
 # global helpers
 #
+@replaces_prePEP8_function("delimitedList")
 def delimited_list(
     expr: Union[str, ParserElement],
     delim: Union[str, ParserElement] = ",",
@@ -66,6 +72,7 @@ def delimited_list(
         return delimited_list_expr.set_name(dlName)
 
 
+@replaces_prePEP8_function("countedArray")
 def counted_array(
     expr: ParserElement,
     int_expr: typing.Optional[ParserElement] = None,
@@ -126,6 +133,7 @@ def counted_array(
     return (intExpr + array_expr).set_name("(len) " + str(expr) + "...")
 
 
+@replaces_prePEP8_function("matchPreviousLiteral")
 def match_previous_literal(expr: ParserElement) -> ParserElement:
     """Helper to define an expression that is indirectly defined from
     the tokens matched in a previous expression, that is, it looks for
@@ -159,6 +167,7 @@ def match_previous_literal(expr: ParserElement) -> ParserElement:
     return rep
 
 
+@replaces_prePEP8_function("matchPreviousExpr")
 def match_previous_expr(expr: ParserElement) -> ParserElement:
     """Helper to define an expression that is indirectly defined from
     the tokens matched in a previous expression, that is, it looks for
@@ -195,6 +204,7 @@ def match_previous_expr(expr: ParserElement) -> ParserElement:
     return rep
 
 
+@replaces_prePEP8_function("oneOf")
 def one_of(
     strs: Union[typing.Iterable[str], str],
     caseless: bool = False,
@@ -320,6 +330,7 @@ def one_of(
     )
 
 
+@replaces_prePEP8_function("dictOf")
 def dict_of(key: ParserElement, value: ParserElement) -> ParserElement:
     """Helper to easily and clearly define a dictionary by specifying
     the respective patterns for the key and value.  Takes care of
@@ -360,6 +371,7 @@ def dict_of(key: ParserElement, value: ParserElement) -> ParserElement:
     return Dict(OneOrMore(Group(key + value)))
 
 
+@replaces_prePEP8_function("originalTextFor")
 def original_text_for(
     expr: ParserElement, as_string: bool = True, *, asString: bool = True
 ) -> ParserElement:
@@ -455,6 +467,7 @@ def locatedExpr(expr: ParserElement) -> ParserElement:
     )
 
 
+@replaces_prePEP8_function("nestedExpr")
 def nested_expr(
     opener: Union[str, ParserElement] = "(",
     closer: Union[str, ParserElement] = ")",
@@ -642,6 +655,7 @@ def _makeTags(tagStr, xml, suppress_LT=Suppress("<"), suppress_GT=Suppress(">"))
     return openTag, closeTag
 
 
+@replaces_prePEP8_function("makeHTMLTags")
 def make_html_tags(
     tag_str: Union[str, ParserElement]
 ) -> Tuple[ParserElement, ParserElement]:
@@ -669,6 +683,7 @@ def make_html_tags(
     return _makeTags(tag_str, False)
 
 
+@replaces_prePEP8_function("makeXMLTags")
 def make_xml_tags(
     tag_str: Union[str, ParserElement]
 ) -> Tuple[ParserElement, ParserElement]:
@@ -692,12 +707,16 @@ common_html_entity = Regex("&(?P<entity>" + "|".join(_htmlEntityMap) + ");").set
 )
 
 
-def replace_html_entity(t):
+@replaces_prePEP8_function("replaceHTMLEntity")
+def replace_html_entity(s, l, t):
     """Helper parser action to replace common HTML entities with their special characters"""
     return _htmlEntityMap.get(t.entity)
 
 
 class OpAssoc(Enum):
+    """Enumeration of operator associativity
+    - used in constructing InfixNotationOperatorSpec for :class:`infix_notation`"""
+
     LEFT = 1
     RIGHT = 2
 
@@ -720,6 +739,7 @@ InfixNotationOperatorSpec = Union[
 ]
 
 
+@replaces_prePEP8_function("infixNotation")
 def infix_notation(
     base_expr: ParserElement,
     op_list: List[InfixNotationOperatorSpec],
@@ -1069,21 +1089,10 @@ _builtin_exprs: List[ParserElement] = [
 
 
 # pre-PEP8 compatible names
-delimitedList = delimited_list
-countedArray = counted_array
-matchPreviousLiteral = match_previous_literal
-matchPreviousExpr = match_previous_expr
-oneOf = one_of
-dictOf = dict_of
-originalTextFor = original_text_for
-nestedExpr = nested_expr
-makeHTMLTags = make_html_tags
-makeXMLTags = make_xml_tags
-anyOpenTag, anyCloseTag = any_open_tag, any_close_tag
-commonHTMLEntity = common_html_entity
-replaceHTMLEntity = replace_html_entity
 opAssoc = OpAssoc
-infixNotation = infix_notation
+anyOpenTag = any_open_tag
+anyCloseTag = any_close_tag
+commonHTMLEntity = common_html_entity
 cStyleComment = c_style_comment
 htmlComment = html_comment
 restOfLine = rest_of_line

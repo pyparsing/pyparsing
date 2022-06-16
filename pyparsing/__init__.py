@@ -85,11 +85,11 @@ classes inherit from. Use the docstrings for examples of how to:
    and :class:`'&'<Each>` operators to combine simple expressions into
    more complex ones
  - associate names with your parsed results using
-   :class:`ParserElement.setResultsName`
+   :class:`ParserElement.set_results_name`
  - access the parsed data, which is returned as a :class:`ParseResults`
    object
- - find some helpful expression short-cuts like :class:`delimitedList`
-   and :class:`oneOf`
+ - find some helpful expression short-cuts like :class:`delimited_list`
+   and :class:`one_of`
  - find more useful common expressions in the :class:`pyparsing_common`
    namespace class
 """
@@ -121,7 +121,7 @@ class version_info(NamedTuple):
 
 
 __version_info__ = version_info(3, 0, 10, "final", 0)
-__version_time__ = "10 Jun 2022 05:40 UTC"
+__version_time__ = "16 Jun 2022 07:11 UTC"
 __version__ = __version_info__.__version__
 __versionTime__ = __version_time__
 __author__ = "Paul McGuire <ptmcg.gm+pyparsing@gmail.com>"
@@ -166,6 +166,7 @@ __all__ = [
     "CaselessKeyword",
     "CaselessLiteral",
     "CharsNotIn",
+    "CloseMatch",
     "Combine",
     "Dict",
     "Each",
@@ -219,9 +220,11 @@ __all__ = [
     "alphas8bit",
     "any_close_tag",
     "any_open_tag",
+    "autoname_elements",
     "c_style_comment",
     "col",
     "common_html_entity",
+    "condition_as_parse_action",
     "counted_array",
     "cpp_style_comment",
     "dbl_quoted_string",
@@ -233,6 +236,7 @@ __all__ = [
     "html_comment",
     "identchars",
     "identbodychars",
+    "infix_notation",
     "java_style_comment",
     "line",
     "line_end",
@@ -247,8 +251,12 @@ __all__ = [
     "null_debug_action",
     "nums",
     "one_of",
+    "original_text_for",
     "printables",
     "punc8bit",
+    "pyparsing_common",
+    "pyparsing_test",
+    "pyparsing_unicode",
     "python_style_comment",
     "quoted_string",
     "remove_quotes",
@@ -259,28 +267,20 @@ __all__ = [
     "srange",
     "string_end",
     "string_start",
+    "token_map",
     "trace_parse_action",
+    "ungroup",
+    "unicode_set",
     "unicode_string",
     "with_attribute",
-    "indentedBlock",
-    "original_text_for",
-    "ungroup",
-    "infix_notation",
-    "locatedExpr",
     "with_class",
-    "CloseMatch",
-    "token_map",
-    "pyparsing_common",
-    "pyparsing_unicode",
-    "unicode_set",
-    "condition_as_parse_action",
-    "pyparsing_test",
     # pre-PEP8 compatibility names
     "__versionTime__",
     "anyCloseTag",
     "anyOpenTag",
     "cStyleComment",
     "commonHTMLEntity",
+    "conditionAsParseAction",
     "countedArray",
     "cppStyleComment",
     "dblQuotedString",
@@ -288,9 +288,12 @@ __all__ = [
     "delimitedList",
     "dictOf",
     "htmlComment",
+    "indentedBlock",
+    "infixNotation",
     "javaStyleComment",
     "lineEnd",
     "lineStart",
+    "locatedExpr",
     "makeHTMLTags",
     "makeXMLTags",
     "matchOnlyAtCol",
@@ -300,6 +303,7 @@ __all__ = [
     "nullDebugAction",
     "oneOf",
     "opAssoc",
+    "originalTextFor",
     "pythonStyleComment",
     "quotedString",
     "removeQuotes",
@@ -309,15 +313,9 @@ __all__ = [
     "sglQuotedString",
     "stringEnd",
     "stringStart",
+    "tokenMap",
     "traceParseAction",
     "unicodeString",
     "withAttribute",
-    "indentedBlock",
-    "originalTextFor",
-    "infixNotation",
-    "locatedExpr",
     "withClass",
-    "tokenMap",
-    "conditionAsParseAction",
-    "autoname_elements",
 ]

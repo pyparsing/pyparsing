@@ -749,8 +749,11 @@ class ParseResults:
         return ret
 
     asList = as_list
+    """Deprecated - use :class:`as_list`"""
     asDict = as_dict
+    """Deprecated - use :class:`as_dict`"""
     getName = get_name
+    """Deprecated - use :class:`get_name`"""
 
 
 MutableMapping.register(ParseResults)

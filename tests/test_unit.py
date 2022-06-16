@@ -7984,7 +7984,7 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
                 msg=f"raised {pp.Diagnostics.warn_ungrouped_named_tokens_in_collection}"
                 f" warning when warn on ungrouped named tokens was suppressed (original_text_for)"
             ):
-                pp.originalTextFor(pp.Word("ABC")[...])("words")
+                pp.original_text_for(pp.Word("ABC")[...])("words")
 
     def testWarnNameSetOnEmptyForward(self):
         """
@@ -8102,7 +8102,7 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
         with self.assertDoesNotWarn(
             msg=f"raised {pp.Diagnostics.warn_on_multiple_string_args_to_oneof} warning when not enabled"
         ):
-            a = pp.oneOf("A", "B")
+            a = pp.one_of("A", "B")
 
         with ppt.reset_pyparsing_context():
             pp.enable_diag(pp.Diagnostics.warn_on_multiple_string_args_to_oneof)

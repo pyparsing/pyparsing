@@ -45,6 +45,7 @@ from .exceptions import *
 from .actions import *
 from .results import ParseResults, _ParseResultsWithOffset
 from .unicode import pyparsing_unicode
+from .util import replaces_prePEP8_function
 
 _MAX_INT = sys.maxsize
 str_type: Tuple[type, ...] = (str, bytes)
@@ -322,6 +323,7 @@ def _trim_arity(func, max_limit=3):
     return wrapper
 
 
+@replaces_prePEP8_function("conditionAsParseAction")
 def condition_as_parse_action(
     fn: ParseCondition, message: str = None, fatal: bool = False
 ) -> ParseAction:
@@ -5717,6 +5719,7 @@ def srange(s: str) -> str:
         return ""
 
 
+@replaces_prePEP8_function("tokenMap")
 def token_map(func, *args) -> ParseAction:
     """Helper to define a parse action by mapping a function to all
     elements of a :class:`ParseResults` list. If any additional args are passed,
@@ -5799,8 +5802,6 @@ _builtin_exprs: List[ParserElement] = [
 ]
 
 # backward compatibility names
-tokenMap = token_map
-conditionAsParseAction = condition_as_parse_action
 nullDebugAction = null_debug_action
 sglQuotedString = sgl_quoted_string
 dblQuotedString = dbl_quoted_string

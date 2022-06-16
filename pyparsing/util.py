@@ -1,9 +1,10 @@
 # util.py
+import inspect
 import warnings
 import types
 import collections
 import itertools
-from functools import lru_cache
+from functools import lru_cache, wraps
 from typing import List, Union, Iterable
 
 _bslash = chr(92)
@@ -227,3 +228,25 @@ def _flatten(ll: list) -> list:
         else:
             ret.append(i)
     return ret
+
+
+def _deprecated_prePEP8(fn):
+    @wraps(fn)
+    def _inner(*args, **kwargs):
+        # warnings.warn(
+        #     f"Deprecated - use {fn.__name__}", DeprecationWarning, stacklevel=3
+        # )
+        return fn(*args, **kwargs)
+
+    _inner.__doc__ = f"""Deprecated - use :class:`{fn.__name__}`"""
+    return _inner
+
+
+def replaces_prePEP8_function(old_name):
+    ns = inspect.currentframe().f_back.f_locals
+
+    def _inner(fn):
+        ns[old_name] = _deprecated_prePEP8(fn)
+        return fn
+
+    return _inner
