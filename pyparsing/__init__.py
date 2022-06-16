@@ -56,7 +56,7 @@ self-explanatory class names, and the use of :class:`'+'<And>`,
 :class:`'|'<MatchFirst>`, :class:`'^'<Or>` and :class:`'&'<Each>` operators.
 
 The :class:`ParseResults` object returned from
-:class:`ParserElement.parseString` can be
+:class:`ParserElement.parse_string` can be
 accessed as a nested list, a dictionary, or an object with named
 attributes.
 
