@@ -14,6 +14,7 @@ from typing import (
     TextIO,
     Tuple,
     Union,
+    cast,
 )
 from abc import ABC, abstractmethod
 from enum import Enum
@@ -585,10 +586,10 @@ class ParserElement(ABC):
                 return _parseMethod(instring, loc, doActions, callPreParse)
 
             breaker._originalParseMethod = _parseMethod  # type: ignore [attr-defined]
-            self._parse = breaker
+            self._parse = breaker  # type: ignore [assignment]
         else:
             if hasattr(self._parse, "_originalParseMethod"):
-                self._parse = self._parse._originalParseMethod  # type: ignore [attr-defined]
+                self._parse = self._parse._originalParseMethod  # type: ignore [attr-defined, assignment]
         return self
 
     @replaces_prePEP8_function("setParseAction")
@@ -833,7 +834,7 @@ class ParserElement(ABC):
                 try:
                     for fn in self.parseAction:
                         try:
-                            tokens = fn(instring, tokens_start, ret_tokens)
+                            tokens = fn(instring, tokens_start, ret_tokens)  # type: ignore [call-arg, arg-type]
                         except IndexError as parse_action_exc:
                             exc = ParseException("exception raised in parse action")
                             raise exc from parse_action_exc
@@ -856,7 +857,7 @@ class ParserElement(ABC):
             else:
                 for fn in self.parseAction:
                     try:
-                        tokens = fn(instring, tokens_start, ret_tokens)
+                        tokens = fn(instring, tokens_start, ret_tokens)  # type: ignore [call-arg, arg-type]
                     except IndexError as parse_action_exc:
                         exc = ParseException("exception raised in parse action")
                         raise exc from parse_action_exc
@@ -933,24 +934,25 @@ class ParserElement(ABC):
                 ParserElement.packrat_cache_stats[HIT] += 1
                 if self.debug and self.debugActions.debug_try:
                     try:
-                        self.debugActions.debug_try(instring, loc, self, cache_hit=True)
+                        self.debugActions.debug_try(instring, loc, self, cache_hit=True)  # type: ignore [call-arg]
                     except TypeError:
                         pass
                 if isinstance(value, Exception):
                     if self.debug and self.debugActions.debug_fail:
                         try:
                             self.debugActions.debug_fail(
-                                instring, loc, self, value, cache_hit=True
+                                instring, loc, self, value, cache_hit=True  # type: ignore [call-arg]
                             )
                         except TypeError:
                             pass
                     raise value
 
+                value = cast(Tuple[int, ParseResults, int], value)
                 loc_, result, endloc = value[0], value[1].copy(), value[2]
                 if self.debug and self.debugActions.debug_match:
                     try:
                         self.debugActions.debug_match(
-                            instring, loc_, endloc, self, result, cache_hit=True
+                            instring, loc_, endloc, self, result, cache_hit=True  # type: ignore [call-arg]
                         )
                     except TypeError:
                         pass
@@ -2978,9 +2980,9 @@ class Regex(Token):
         self.asGroupList = asGroupList
         self.asMatch = asMatch
         if self.asGroupList:
-            self.parseImpl = self.parseImplAsGroupList
+            self.parseImpl = self.parseImplAsGroupList  # type: ignore [assignment]
         if self.asMatch:
-            self.parseImpl = self.parseImplAsMatch
+            self.parseImpl = self.parseImplAsMatch  # type: ignore [assignment]
 
     @cached_property
     def re(self):
@@ -3179,6 +3181,8 @@ class QuotedString(Token):
             )
             sep = "|"
 
+        self.flags = re.RegexFlag(0)
+
         if multiline:
             self.flags = re.MULTILINE | re.DOTALL
             inner_pattern += (
@@ -3186,7 +3190,6 @@ class QuotedString(Token):
                 rf"{(_escape_regex_range_chars(escChar) if escChar is not None else '')}])"
             )
         else:
-            self.flags = 0
             inner_pattern += (
                 rf"{sep}(?:[^{_escape_regex_range_chars(self.endQuoteChar[0])}\n\r"
                 rf"{(_escape_regex_range_chars(escChar) if escChar is not None else '')}])"
