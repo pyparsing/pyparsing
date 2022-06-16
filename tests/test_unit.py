@@ -6770,6 +6770,13 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
         b_keyword = a_keyword.copy()
         self.assertEqual(a_keyword.identChars, b_keyword.identChars)
 
+    def testCopyLiteralAttrs(self):
+        lit = pp.Literal("foo").leave_whitespace()
+        lit2 = lit.copy()
+        self.assertFalse(lit2.skipWhitespace)
+        lit3 = lit2.ignore_whitespace().copy()
+        self.assertTrue(lit3.skipWhitespace)
+
     def testLiteralVsKeyword(self):
 
         integer = ppc.integer
@@ -8907,11 +8914,9 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
 
     def testCreateLiteralWithEmptyString(self):
         # test creating Literal with empty string
-        print('verify non-fatal usage of Literal("")')
-        with self.assertRaises(
-            ValueError, msg="failed to warn use of empty string for Literal"
-        ):
-            e = pp.Literal("")
+        print('verify that Literal("") is optimized to Empty()')
+        e = pp.Literal("")
+        self.assertIsInstance(e, pp.Empty)
 
     def testLineMethodSpecialCaseAtStart(self):
         # test line() behavior when starting at 0 and the opening line is an \n

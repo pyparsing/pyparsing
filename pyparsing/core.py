@@ -2273,17 +2273,6 @@ class Token(ParserElement):
         return type(self).__name__
 
 
-class Empty(Token):
-    """
-    An empty token, will always match.
-    """
-
-    def __init__(self):
-        super().__init__()
-        self.mayReturnEmpty = True
-        self.mayIndexError = False
-
-
 class NoMatch(Token):
     """
     A token that will never match.
@@ -2315,23 +2304,35 @@ class Literal(Token):
     use :class:`Keyword` or :class:`CaselessKeyword`.
     """
 
+    def __new__(cls, match_string: str = "", *, matchString: str = ""):
+        # Performance tuning: select a subclass with optimized parseImpl
+        if cls is Literal:
+            match_string = matchString or match_string
+            if not match_string:
+                return super().__new__(Empty)
+            if len(match_string) == 1:
+                return super().__new__(_SingleCharLiteral)
+
+        # Default behavior
+        return super().__new__(cls)
+
     def __init__(self, match_string: str = "", *, matchString: str = ""):
         super().__init__()
         match_string = matchString or match_string
         self.match = match_string
         self.matchLen = len(match_string)
-        try:
-            self.firstMatchChar = match_string[0]
-        except IndexError:
-            raise ValueError("null string passed to Literal; use Empty() instead")
+        self.firstMatchChar = match_string[:1]
         self.errmsg = "Expected " + self.name
         self.mayReturnEmpty = False
         self.mayIndexError = False
 
-        # Performance tuning: modify __class__ to select
-        # a parseImpl optimized for single-character check
-        if self.matchLen == 1 and type(self) is Literal:
-            self.__class__ = _SingleCharLiteral
+    def __copy__(self) -> "Literal":
+        # Needed to assist copy.copy() (used in ParserElement.copy), which
+        # doesn't handle the factory __new__ well.
+        obj = Literal(self.match)
+        # Copy instance attributes
+        obj.__dict__.update(self.__dict__)
+        return obj
 
     def _generateDefaultName(self) -> str:
         return repr(self.match)
@@ -2342,6 +2343,23 @@ class Literal(Token):
         ):
             return loc + self.matchLen, self.match
         raise ParseException(instring, loc, self.errmsg, self)
+
+
+class Empty(Literal):
+    """
+    An empty token, will always match.
+    """
+
+    def __init__(self, match_string="", *, matchString=""):
+        super().__init__("")
+        self.mayReturnEmpty = True
+        self.mayIndexError = False
+
+    def _generateDefaultName(self) -> str:
+        return "Empty"
+
+    def parseImpl(self, instring, loc, doActions=True):
+        return super(Literal, self).parseImpl(instring, loc, doActions)
 
 
 class _SingleCharLiteral(Literal):
