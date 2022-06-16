@@ -2343,7 +2343,10 @@ class Literal(Token):
     def __copy__(self) -> "Literal":
         # Needed to assist copy.copy() (used in ParserElement.copy), which
         # doesn't handle the factory __new__ well.
-        return Literal(self.match)
+        obj = Literal(self.match)
+        # Copy instance attributes
+        obj.__dict__.update(self.__dict__)
+        return obj
 
     def _generateDefaultName(self) -> str:
         return repr(self.match)

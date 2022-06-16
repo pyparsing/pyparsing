@@ -6770,6 +6770,13 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
         b_keyword = a_keyword.copy()
         self.assertEqual(a_keyword.identChars, b_keyword.identChars)
 
+    def testCopyLiteralAttrs(self):
+        lit = pp.Literal("foo").leave_whitespace()
+        lit2 = lit.copy()
+        self.assertFalse(lit2.skipWhitespace)
+        lit3 = lit2.ignore_whitespace().copy()
+        self.assertTrue(lit3.skipWhitespace)
+
     def testLiteralVsKeyword(self):
 
         integer = ppc.integer
