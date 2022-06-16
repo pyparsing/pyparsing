@@ -226,7 +226,7 @@ def one_of(
     - ``caseless`` - treat all literals as caseless - (default= ``False``)
     - ``use_regex`` - as an optimization, will
       generate a :class:`Regex` object; otherwise, will generate
-      a :class:`MatchFirst` object (if ``caseless=True`` or ``asKeyword=True``, or if
+      a :class:`MatchFirst` object (if ``caseless=True`` or ``as_keyword=True``, or if
       creating a :class:`Regex` raises an exception) - (default= ``True``)
     - ``as_keyword`` - enforce :class:`Keyword`-style matching on the
       generated expressions - (default= ``False``)
@@ -445,12 +445,12 @@ def locatedExpr(expr: ParserElement) -> ParserElement:
     - ``value`` - the actual parsed results
 
     Be careful if the input text contains ``<TAB>`` characters, you
-    may want to call :class:`ParserElement.parseWithTabs`
+    may want to call :class:`ParserElement.parse_with_tabs`
 
     Example::
 
         wd = Word(alphas)
-        for match in locatedExpr(wd).searchString("ljsdf123lksdjjf123lkkjj1222"):
+        for match in locatedExpr(wd).search_string("ljsdf123lksdjjf123lkkjj1222"):
             print(match)
 
     prints::

@@ -260,8 +260,8 @@ class pyparsing_common:
         Example::
 
             date_expr = pyparsing_common.iso8601_date.copy()
-            date_expr.setParseAction(pyparsing_common.convertToDate())
-            print(date_expr.parseString("1999-12-31"))
+            date_expr.set_parse_action(pyparsing_common.convert_to_date())
+            print(date_expr.parse_string("1999-12-31"))
 
         prints::
 
@@ -287,8 +287,8 @@ class pyparsing_common:
         Example::
 
             dt_expr = pyparsing_common.iso8601_datetime.copy()
-            dt_expr.setParseAction(pyparsing_common.convertToDatetime())
-            print(dt_expr.parseString("1999-12-31T23:59:59.999"))
+            dt_expr.set_parse_action(pyparsing_common.convert_to_datetime())
+            print(dt_expr.parse_string("1999-12-31T23:59:59.999"))
 
         prints::
 
@@ -326,9 +326,9 @@ class pyparsing_common:
 
             # strip HTML links from normal text
             text = '<td>More info at the <a href="https://github.com/pyparsing/pyparsing/wiki">pyparsing</a> wiki page</td>'
-            td, td_end = makeHTMLTags("TD")
-            table_text = td + SkipTo(td_end).setParseAction(pyparsing_common.stripHTMLTags)("body") + td_end
-            print(table_text.parseString(text).body)
+            td, td_end = make_html_tags("TD")
+            table_text = td + SkipTo(td_end).set_parse_action(pyparsing_common.strip_html_tags)("body") + td_end
+            print(table_text.parse_string(text).body)
 
         Prints::
 

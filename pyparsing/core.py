@@ -485,7 +485,7 @@ class ParserElement(ABC):
             base.suppress_warning(Diagnostics.warn_on_parse_using_empty_Forward)
 
             # statement would normally raise a warning, but is now suppressed
-            print(base.parseString("x"))
+            print(base.parse_string("x"))
 
         """
         self.suppress_warnings_.append(warning_type)
@@ -2368,7 +2368,7 @@ class Keyword(Token):
     Accepts two optional constructor arguments in addition to the
     keyword string:
 
-    - ``identChars`` is a string of characters that would be valid
+    - ``ident_chars`` is a string of characters that would be valid
       identifier characters, defaulting to all alphanumerics + "_" and
       "$"
     - ``caseless`` allows case-insensitive matching, default is ``False``.
@@ -3028,10 +3028,10 @@ class Regex(Token):
             # prints "<h1>main title</h1>"
         """
         if self.asGroupList:
-            raise TypeError("cannot use sub() with Regex(asGroupList=True)")
+            raise TypeError("cannot use sub() with Regex(as_group_list=True)")
 
         if self.asMatch and callable(repl):
-            raise TypeError("cannot use sub() with a callable with Regex(asMatch=True)")
+            raise TypeError("cannot use sub() with a callable with Regex(as_match=True)")
 
         if self.asMatch:
 
@@ -3124,7 +3124,7 @@ class QuotedString(Token):
         else:
             endQuoteChar = endQuoteChar.strip()
             if not endQuoteChar:
-                raise ValueError("endQuoteChar cannot be the empty string")
+                raise ValueError("end_quote_char cannot be the empty string")
 
         self.quoteChar = quote_char
         self.quoteCharLen = len(quote_char)
@@ -3441,7 +3441,7 @@ class LineStart(PositionToken):
         B AAA and definitely not this one
         '''
 
-        for t in (LineStart() + 'AAA' + restOfLine).search_string(test):
+        for t in (LineStart() + 'AAA' + rest_of_line).search_string(test):
             print(t)
 
     prints::
@@ -4531,7 +4531,7 @@ class AtLineStart(ParseElementEnhance):
         B AAA and definitely not this one
         '''
 
-        for t in (AtLineStart('AAA') + restOfLine).search_string(test):
+        for t in (AtLineStart('AAA') + rest_of_line).search_string(test):
             print(t)
 
     prints::
@@ -5787,7 +5787,7 @@ sgl_quoted_string = Combine(
 quoted_string = Combine(
     Regex(r'"(?:[^"\n\r\\]|(?:"")|(?:\\(?:[^x]|x[0-9a-fA-F]+)))*') + '"'
     | Regex(r"'(?:[^'\n\r\\]|(?:'')|(?:\\(?:[^x]|x[0-9a-fA-F]+)))*") + "'"
-).set_name("quotedString using single or double quotes")
+).set_name("quoted string using single or double quotes")
 
 unicode_string = Combine("u" + quoted_string.copy()).set_name("unicode string literal")
 
