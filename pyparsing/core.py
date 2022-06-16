@@ -2273,17 +2273,6 @@ class Token(ParserElement):
         return type(self).__name__
 
 
-class Empty(Token):
-    """
-    An empty token, will always match.
-    """
-
-    def __init__(self):
-        super().__init__()
-        self.mayReturnEmpty = True
-        self.mayIndexError = False
-
-
 class NoMatch(Token):
     """
     A token that will never match.
@@ -2320,9 +2309,8 @@ class Literal(Token):
         if cls is Literal:
             match_string = matchString or match_string
             if not match_string:
-                return Empty()
+                return super().__new__(Empty)
             if len(match_string) == 1:
-                # Subclass of Literal, so __init__ will be called automatically
                 return super().__new__(_SingleCharLiteral)
 
         # Default behavior
@@ -2331,11 +2319,9 @@ class Literal(Token):
     def __init__(self, match_string: str = "", *, matchString: str = ""):
         super().__init__()
         match_string = matchString or match_string
-        if not match_string:
-            raise ValueError("Empty string should not reach Literal.__init__()")
         self.match = match_string
         self.matchLen = len(match_string)
-        self.firstMatchChar = match_string[0]
+        self.firstMatchChar = match_string[0] if match_string else ''
         self.errmsg = "Expected " + self.name
         self.mayReturnEmpty = False
         self.mayIndexError = False
@@ -2357,6 +2343,23 @@ class Literal(Token):
         ):
             return loc + self.matchLen, self.match
         raise ParseException(instring, loc, self.errmsg, self)
+
+
+class Empty(Literal):
+    """
+    An empty token, will always match.
+    """
+
+    def __init__(self, match_string="", *, matchString=""):
+        super().__init__("")
+        self.mayReturnEmpty = True
+        self.mayIndexError = False
+
+    def _generateDefaultName(self) -> str:
+        return "Empty"
+
+    def parseImpl(self, instring, loc, doActions=True):
+        return super(Literal, self).parseImpl(instring, loc, doActions)
 
 
 class _SingleCharLiteral(Literal):
