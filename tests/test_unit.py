@@ -8907,11 +8907,9 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
 
     def testCreateLiteralWithEmptyString(self):
         # test creating Literal with empty string
-        print('verify non-fatal usage of Literal("")')
-        with self.assertRaises(
-            ValueError, msg="failed to warn use of empty string for Literal"
-        ):
-            e = pp.Literal("")
+        print('verify that Literal("") is optimized to Empty()')
+        e = pp.Literal("")
+        self.assertIsInstance(e, pp.Empty)
 
     def testLineMethodSpecialCaseAtStart(self):
         # test line() behavior when starting at 0 and the opening line is an \n

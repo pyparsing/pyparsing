@@ -2315,23 +2315,35 @@ class Literal(Token):
     use :class:`Keyword` or :class:`CaselessKeyword`.
     """
 
+    def __new__(cls, match_string: str = "", *, matchString: str = ""):
+        # Performance tuning: select a subclass with optimized parseImpl
+        if cls is Literal:
+            match_string = matchString or match_string
+            if not match_string:
+                return Empty()
+            if len(match_string) == 1:
+                # Subclass of Literal, so __init__ will be called automatically
+                return super().__new__(_SingleCharLiteral)
+
+        # Default behavior
+        return super().__new__(cls)
+
     def __init__(self, match_string: str = "", *, matchString: str = ""):
         super().__init__()
         match_string = matchString or match_string
+        if not match_string:
+            raise ValueError("Empty string should not reach Literal.__init__()")
         self.match = match_string
         self.matchLen = len(match_string)
-        try:
-            self.firstMatchChar = match_string[0]
-        except IndexError:
-            raise ValueError("null string passed to Literal; use Empty() instead")
+        self.firstMatchChar = match_string[0]
         self.errmsg = "Expected " + self.name
         self.mayReturnEmpty = False
         self.mayIndexError = False
 
-        # Performance tuning: modify __class__ to select
-        # a parseImpl optimized for single-character check
-        if self.matchLen == 1 and type(self) is Literal:
-            self.__class__ = _SingleCharLiteral
+    def __copy__(self) -> "Literal":
+        # Needed to assist copy.copy() (used in ParserElement.copy), which
+        # doesn't handle the factory __new__ well.
+        return Literal(self.match)
 
     def _generateDefaultName(self) -> str:
         return repr(self.match)
