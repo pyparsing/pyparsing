@@ -4,7 +4,13 @@ import re
 import sys
 import typing
 
-from .util import col, line, lineno, _collapse_string_to_ranges, replaces_prePEP8_function
+from .util import (
+    col,
+    line,
+    lineno,
+    _collapse_string_to_ranges,
+    replaces_prePEP8_function,
+)
 from .unicode import pyparsing_unicode as ppu
 
 
