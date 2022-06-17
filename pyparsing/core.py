@@ -879,6 +879,7 @@ class ParserElement(ABC):
 
         return loc, ret_tokens
 
+    @replaces_prePEP8_function("tryParse")
     def try_parse(self, instring: str, loc: int, raise_fatal: bool = False) -> int:
         try:
             return self._parse(instring, loc, doActions=False)[0]
@@ -1080,6 +1081,7 @@ class ParserElement(ABC):
                 ParserElement.packrat_cache = _FifoCache(cache_size_limit)
             ParserElement._parse = ParserElement._parseCache
 
+    @replaces_prePEP8_function("parseString")
     def parse_string(
         self, instring: str, parse_all: bool = False, *, parseAll: bool = False
     ) -> ParseResults:
@@ -1149,6 +1151,7 @@ class ParserElement(ABC):
         else:
             return tokens
 
+    @replaces_prePEP8_function("scanString")
     def scan_string(
         self,
         instring: str,
@@ -1238,6 +1241,7 @@ class ParserElement(ABC):
                 # catch and re-raise exception from here, clears out pyparsing internal stack trace
                 raise exc.with_traceback(None)
 
+    @replaces_prePEP8_function("transformString")
     def transform_string(self, instring: str, *, debug: bool = False) -> str:
         """
         Extension to :class:`scan_string`, to modify matching text with modified tokens that may
@@ -1284,6 +1288,7 @@ class ParserElement(ABC):
                 # catch and re-raise exception from here, clears out pyparsing internal stack trace
                 raise exc.with_traceback(None)
 
+    @replaces_prePEP8_function("searchString")
     def search_string(
         self,
         instring: str,
@@ -2212,13 +2217,8 @@ class ParserElement(ABC):
             # we were passed a file-like object, just write to it
             output_html.write(railroad_to_html(railroad, embed=embed))
 
-    tryParse = try_parse
     canParseNext = can_parse_next
     resetCache = reset_cache
-    parseString = parse_string
-    scanString = scan_string
-    searchString = search_string
-    transformString = transform_string
     defaultName = default_name
 
 
@@ -4801,7 +4801,7 @@ class _MultipleMatch(ParseElementEnhance):
         self_skip_ignorables = self._skipIgnorables
         check_ender = self.not_ender is not None
         if check_ender:
-            try_not_ender = self.not_ender.tryParse
+            try_not_ender = self.not_ender.try_parse
 
         # must be at least one (but first see if we are the stopOn sentinel;
         # if so, fail)
