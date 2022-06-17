@@ -3833,7 +3833,6 @@ class ParseExpression(ParserElement):
     # fmt: on
 
 
-
 class And(ParseExpression):
     """
     Requires all given :class:`ParseExpression` s to be found in the given order.
@@ -4521,7 +4520,6 @@ class ParseElementEnhance(ParserElement):
     @replaced_by_pep8(ignore_whitespace)
     def ignoreWhitespace(self): ...
     # fmt: on
-
 
 
 class IndentedBlock(ParseElementEnhance):
@@ -5458,7 +5456,6 @@ class Forward(ParseElementEnhance):
     @replaced_by_pep8(ignore_whitespace)
     def ignoreWhitespace(self): ...
     # fmt: on
-
 
 
 class TokenConverter(ParseElementEnhance):

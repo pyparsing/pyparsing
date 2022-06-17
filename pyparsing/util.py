@@ -230,6 +230,7 @@ def _flatten(ll: list) -> list:
             ret.append(i)
     return ret
 
+
 def _make_synonym_function(compat_name: str, fn: C) -> C:
     # In a future version, uncomment the code in the internal _inner() functions
     # to begin emitting DeprecationWarnings.
