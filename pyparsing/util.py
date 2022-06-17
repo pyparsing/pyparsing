@@ -42,7 +42,7 @@ def col(loc: int, strg: str) -> int:
 
     Note: the default parsing behavior is to expand tabs in the input string
     before starting the parsing process.  See
-    :class:`ParserElement.parseString` for more
+    :class:`ParserElement.parse_string` for more
     information on parsing strings containing ``<TAB>`` s, and suggested
     methods to maintain a consistent view of the parsed string, the parse
     location, and line and column positions within the parsed string.
@@ -57,7 +57,7 @@ def lineno(loc: int, strg: str) -> int:
     The first line is number 1.
 
     Note - the default parsing behavior is to expand tabs in the input string
-    before starting the parsing process.  See :class:`ParserElement.parseString`
+    before starting the parsing process.  See :class:`ParserElement.parse_string`
     for more information on parsing strings containing ``<TAB>`` s, and
     suggested methods to maintain a consistent view of the parsed string, the
     parse location, and line and column positions within the parsed string.
