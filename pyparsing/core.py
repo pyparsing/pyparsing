@@ -41,12 +41,12 @@ from .util import (
     _flatten,
     LRUMemo as _LRUMemo,
     UnboundedMemo as _UnboundedMemo,
+    replaced_by_pep8,
 )
 from .exceptions import *
 from .actions import *
 from .results import ParseResults, _ParseResultsWithOffset
 from .unicode import pyparsing_unicode
-from .util import replaces_prePEP8_function
 
 _MAX_INT = sys.maxsize
 str_type: Tuple[type, ...] = (str, bytes)
@@ -324,7 +324,6 @@ def _trim_arity(func, max_limit=3):
     return wrapper
 
 
-@replaces_prePEP8_function("conditionAsParseAction")
 def condition_as_parse_action(
     fn: ParseCondition, message: str = None, fatal: bool = False
 ) -> ParseAction:
@@ -401,7 +400,6 @@ class ParserElement(ABC):
     _literalStringClass: type = None  # type: ignore[assignment]
 
     @staticmethod
-    @replaces_prePEP8_function("setDefaultWhitespaceChars")
     def set_default_whitespace_chars(chars: str) -> None:
         r"""
         Overrides the default whitespace chars
@@ -423,7 +421,6 @@ class ParserElement(ABC):
                 expr.whiteChars = set(chars)
 
     @staticmethod
-    @replaces_prePEP8_function("inlineLiteralsUsing")
     def inline_literals_using(cls: type) -> None:
         """
         Set class to be used for inclusion of string literals into a parser.
@@ -523,7 +520,6 @@ class ParserElement(ABC):
             cpy.whiteChars = set(ParserElement.DEFAULT_WHITE_CHARS)
         return cpy
 
-    @replaces_prePEP8_function("setResultsName")
     def set_results_name(
         self, name: str, list_all_matches: bool = False, *, listAllMatches: bool = False
     ) -> "ParserElement":
@@ -568,7 +564,6 @@ class ParserElement(ABC):
         newself.modalResults = not listAllMatches
         return newself
 
-    @replaces_prePEP8_function("setBreak")
     def set_break(self, break_flag: bool = True) -> "ParserElement":
         """
         Method to invoke the Python pdb debugger when this element is
@@ -592,7 +587,6 @@ class ParserElement(ABC):
                 self._parse = self._parse._originalParseMethod  # type: ignore [attr-defined, assignment]
         return self
 
-    @replaces_prePEP8_function("setParseAction")
     def set_parse_action(self, *fns: ParseAction, **kwargs) -> "ParserElement":
         """
         Define one or more actions to perform when successfully matching parse element definition.
@@ -679,7 +673,6 @@ class ParserElement(ABC):
             )
         return self
 
-    @replaces_prePEP8_function("addParseAction")
     def add_parse_action(self, *fns: ParseAction, **kwargs) -> "ParserElement":
         """
         Add one or more parse actions to expression's list of parse actions. See :class:`set_parse_action`.
@@ -692,7 +685,6 @@ class ParserElement(ABC):
         )
         return self
 
-    @replaces_prePEP8_function("addCondition")
     def add_condition(self, *fns: ParseCondition, **kwargs) -> "ParserElement":
         """Add a boolean predicate function to expression's list of parse actions. See
         :class:`set_parse_action` for function call signatures. Unlike ``set_parse_action``,
@@ -728,7 +720,6 @@ class ParserElement(ABC):
         )
         return self
 
-    @replaces_prePEP8_function("setFailAction")
     def set_fail_action(self, fn: ParseFailAction) -> "ParserElement":
         """
         Define action to perform if parsing fails at this expression.
@@ -879,7 +870,6 @@ class ParserElement(ABC):
 
         return loc, ret_tokens
 
-    @replaces_prePEP8_function("tryParse")
     def try_parse(self, instring: str, loc: int, raise_fatal: bool = False) -> int:
         try:
             return self._parse(instring, loc, doActions=False)[0]
@@ -988,7 +978,6 @@ class ParserElement(ABC):
         ParserElement._parse = ParserElement._parseNoCache
 
     @staticmethod
-    @replaces_prePEP8_function("enableLeftRecursion")
     def enable_left_recursion(
         cache_size_limit: typing.Optional[int] = None, *, force=False
     ) -> None:
@@ -1037,7 +1026,6 @@ class ParserElement(ABC):
         ParserElement._left_recursion_enabled = True
 
     @staticmethod
-    @replaces_prePEP8_function("enablePackrat")
     def enable_packrat(cache_size_limit: int = 128, *, force: bool = False) -> None:
         """
         Enables "packrat" parsing, which adds memoizing to the parsing logic.
@@ -1081,7 +1069,6 @@ class ParserElement(ABC):
                 ParserElement.packrat_cache = _FifoCache(cache_size_limit)
             ParserElement._parse = ParserElement._parseCache
 
-    @replaces_prePEP8_function("parseString")
     def parse_string(
         self, instring: str, parse_all: bool = False, *, parseAll: bool = False
     ) -> ParseResults:
@@ -1151,7 +1138,6 @@ class ParserElement(ABC):
         else:
             return tokens
 
-    @replaces_prePEP8_function("scanString")
     def scan_string(
         self,
         instring: str,
@@ -1241,7 +1227,6 @@ class ParserElement(ABC):
                 # catch and re-raise exception from here, clears out pyparsing internal stack trace
                 raise exc.with_traceback(None)
 
-    @replaces_prePEP8_function("transformString")
     def transform_string(self, instring: str, *, debug: bool = False) -> str:
         """
         Extension to :class:`scan_string`, to modify matching text with modified tokens that may
@@ -1288,7 +1273,6 @@ class ParserElement(ABC):
                 # catch and re-raise exception from here, clears out pyparsing internal stack trace
                 raise exc.with_traceback(None)
 
-    @replaces_prePEP8_function("searchString")
     def search_string(
         self,
         instring: str,
@@ -1696,7 +1680,6 @@ class ParserElement(ABC):
         """
         return Suppress(self)
 
-    @replaces_prePEP8_function("ignoreWhitespace")
     def ignore_whitespace(self, recursive: bool = True) -> "ParserElement":
         """
         Enables the skipping of whitespace before matching the characters in the
@@ -1707,7 +1690,6 @@ class ParserElement(ABC):
         self.skipWhitespace = True
         return self
 
-    @replaces_prePEP8_function("leaveWhitespace")
     def leave_whitespace(self, recursive: bool = True) -> "ParserElement":
         """
         Disables the skipping of whitespace before matching the characters in the
@@ -1719,7 +1701,6 @@ class ParserElement(ABC):
         self.skipWhitespace = False
         return self
 
-    @replaces_prePEP8_function("setWhitespaceChars")
     def set_whitespace_chars(
         self, chars: Union[Set[str], str], copy_defaults: bool = False
     ) -> "ParserElement":
@@ -1731,7 +1712,6 @@ class ParserElement(ABC):
         self.copyDefaultWhiteChars = copy_defaults
         return self
 
-    @replaces_prePEP8_function("parseWithTabs")
     def parse_with_tabs(self) -> "ParserElement":
         """
         Overrides default behavior to expand ``<TAB>`` s to spaces before parsing the input string.
@@ -1769,7 +1749,6 @@ class ParserElement(ABC):
             self.ignoreExprs.append(Suppress(other.copy()))
         return self
 
-    @replaces_prePEP8_function("setDebugActions")
     def set_debug_actions(
         self,
         start_action: DebugStartAction,
@@ -1796,7 +1775,6 @@ class ParserElement(ABC):
         self.debug = True
         return self
 
-    @replaces_prePEP8_function("setDebug")
     def set_debug(self, flag: bool = True) -> "ParserElement":
         """
         Enable display of debugging messages while doing pattern matching.
@@ -1856,7 +1834,6 @@ class ParserElement(ABC):
         Child classes must define this method, which defines how the ``default_name`` is set.
         """
 
-    @replaces_prePEP8_function("setName")
     def set_name(self, name: str) -> "ParserElement":
         """
         Define name for this expression, makes debugging and exception messages clearer.
@@ -1902,7 +1879,6 @@ class ParserElement(ABC):
         """
         self._checkRecursion([])
 
-    @replaces_prePEP8_function("parseFile")
     def parse_file(
         self,
         file_or_filename: Union[str, Path, TextIO],
@@ -1967,7 +1943,6 @@ class ParserElement(ABC):
         except ParseBaseException:
             return False
 
-    @replaces_prePEP8_function("runTests")
     def run_tests(
         self,
         tests: Union[str, List[str]],
@@ -2217,9 +2192,88 @@ class ParserElement(ABC):
             # we were passed a file-like object, just write to it
             output_html.write(railroad_to_html(railroad, embed=embed))
 
+    # Compatibility synonyms
+    # fmt: off
+    @staticmethod
+    @replaced_by_pep8(inline_literals_using)
+    def inlineLiteralsUsing(): ...
+
+    @staticmethod
+    @replaced_by_pep8(set_default_whitespace_chars)
+    def setDefaultWhitespaceChars(): ...
+
+    @replaced_by_pep8(set_results_name)
+    def setResultsName(self): ...
+
+    @replaced_by_pep8(set_break)
+    def setBreak(self): ...
+
+    @replaced_by_pep8(set_parse_action)
+    def setParseAction(self): ...
+
+    @replaced_by_pep8(add_parse_action)
+    def addParseAction(self): ...
+
+    @replaced_by_pep8(add_condition)
+    def addCondition(self): ...
+
+    @replaced_by_pep8(set_fail_action)
+    def setFailAction(self): ...
+
+    @replaced_by_pep8(try_parse)
+    def tryParse(self): ...
+
+    @staticmethod
+    @replaced_by_pep8(enable_left_recursion)
+    def enableLeftRecursion(): ...
+
+    @staticmethod
+    @replaced_by_pep8(enable_packrat)
+    def enablePackrat(): ...
+
+    @replaced_by_pep8(parse_string)
+    def parseString(self): ...
+
+    @replaced_by_pep8(scan_string)
+    def scanString(self): ...
+
+    @replaced_by_pep8(transform_string)
+    def transformString(self): ...
+
+    @replaced_by_pep8(search_string)
+    def searchString(self): ...
+
+    @replaced_by_pep8(ignore_whitespace)
+    def ignoreWhitespace(self): ...
+
+    @replaced_by_pep8(leave_whitespace)
+    def leaveWhitespace(self): ...
+
+    @replaced_by_pep8(set_whitespace_chars)
+    def setWhitespaceChars(self): ...
+
+    @replaced_by_pep8(parse_with_tabs)
+    def parseWithTabs(self): ...
+
+    @replaced_by_pep8(set_debug_actions)
+    def setDebugActions(self): ...
+
+    @replaced_by_pep8(set_debug)
+    def setDebug(self): ...
+
+    @replaced_by_pep8(set_name)
+    def setName(self): ...
+
+    @replaced_by_pep8(parse_file)
+    def parseFile(self): ...
+
+    @replaced_by_pep8(run_tests)
+    def runTests(self): ...
+
     canParseNext = can_parse_next
     resetCache = reset_cache
     defaultName = default_name
+    # fmt: on
 
 
 class _PendingSkip(ParserElement):
@@ -3650,7 +3704,6 @@ class ParseExpression(ParserElement):
         self._defaultName = None
         return self
 
-    @replaces_prePEP8_function("leaveWhitespace")
     def leave_whitespace(self, recursive: bool = True) -> ParserElement:
         """
         Extends ``leave_whitespace`` defined in base class, and also invokes ``leave_whitespace`` on
@@ -3664,7 +3717,6 @@ class ParseExpression(ParserElement):
                 e.leave_whitespace(recursive)
         return self
 
-    @replaces_prePEP8_function("ignoreWhitespace")
     def ignore_whitespace(self, recursive: bool = True) -> ParserElement:
         """
         Extends ``ignore_whitespace`` defined in base class, and also invokes ``leave_whitespace`` on
@@ -3770,6 +3822,16 @@ class ParseExpression(ParserElement):
                     )
 
         return super()._setResultsName(name, listAllMatches)
+
+    # Compatibility synonyms
+    # fmt: off
+    @replaced_by_pep8(leave_whitespace)
+    def leaveWhitespace(self): ...
+
+    @replaced_by_pep8(ignore_whitespace)
+    def ignoreWhitespace(self): ...
+    # fmt: on
+
 
 
 class And(ParseExpression):
@@ -4397,7 +4459,6 @@ class ParseElementEnhance(ParserElement):
         else:
             raise ParseException(instring, loc, "No expression defined", self)
 
-    @replaces_prePEP8_function("leaveWhitespace")
     def leave_whitespace(self, recursive: bool = True) -> ParserElement:
         super().leave_whitespace(recursive)
 
@@ -4407,7 +4468,6 @@ class ParseElementEnhance(ParserElement):
                 self.expr.leave_whitespace(recursive)
         return self
 
-    @replaces_prePEP8_function("ignoreWhitespace")
     def ignore_whitespace(self, recursive: bool = True) -> ParserElement:
         super().ignore_whitespace(recursive)
 
@@ -4452,6 +4512,16 @@ class ParseElementEnhance(ParserElement):
 
     def _generateDefaultName(self) -> str:
         return f"{self.__class__.__name__}:({str(self.expr)})"
+
+    # Compatibility synonyms
+    # fmt: off
+    @replaced_by_pep8(leave_whitespace)
+    def leaveWhitespace(self): ...
+
+    @replaced_by_pep8(ignore_whitespace)
+    def ignoreWhitespace(self): ...
+    # fmt: on
+
 
 
 class IndentedBlock(ParseElementEnhance):
@@ -5316,12 +5386,10 @@ class Forward(ParseElementEnhance):
                                 raise
                         prev_loc, prev_peek = memo[peek_key] = new_loc, new_peek
 
-    @replaces_prePEP8_function("leaveWhitespace")
     def leave_whitespace(self, recursive: bool = True) -> ParserElement:
         self.skipWhitespace = False
         return self
 
-    @replaces_prePEP8_function("ignoreWhitespace")
     def ignore_whitespace(self, recursive: bool = True) -> ParserElement:
         self.skipWhitespace = True
         return self
@@ -5381,6 +5449,16 @@ class Forward(ParseElementEnhance):
                 )
 
         return super()._setResultsName(name, list_all_matches)
+
+    # Compatibility synonyms
+    # fmt: off
+    @replaced_by_pep8(leave_whitespace)
+    def leaveWhitespace(self): ...
+
+    @replaced_by_pep8(ignore_whitespace)
+    def ignoreWhitespace(self): ...
+    # fmt: on
+
 
 
 class TokenConverter(ParseElementEnhance):
@@ -5739,7 +5817,6 @@ def srange(s: str) -> str:
         return ""
 
 
-@replaces_prePEP8_function("tokenMap")
 def token_map(func, *args) -> ParseAction:
     """Helper to define a parse action by mapping a function to all
     elements of a :class:`ParseResults` list. If any additional args are passed,
@@ -5822,7 +5899,7 @@ _builtin_exprs: List[ParserElement] = [
 ]
 
 # backward compatibility names
-nullDebugAction = null_debug_action
+# fmt: off
 sglQuotedString = sgl_quoted_string
 dblQuotedString = dbl_quoted_string
 quotedString = quoted_string
@@ -5831,4 +5908,16 @@ lineStart = line_start
 lineEnd = line_end
 stringStart = string_start
 stringEnd = string_end
-traceParseAction = trace_parse_action
+
+@replaced_by_pep8(null_debug_action)
+def nullDebugAction(): ...
+
+@replaced_by_pep8(trace_parse_action)
+def traceParseAction(): ...
+
+@replaced_by_pep8(condition_as_parse_action)
+def conditionAsParseAction(): ...
+
+@replaced_by_pep8(token_map)
+def tokenMap(): ...
+# fmt: on

@@ -5,9 +5,10 @@ import types
 import collections
 import itertools
 from functools import lru_cache, wraps
-from typing import List, Union, Iterable
+from typing import Callable, List, Union, Iterable, TypeVar, cast
 
 _bslash = chr(92)
+C = TypeVar("C", bound=Callable)
 
 
 class __config_flags:
@@ -229,50 +230,43 @@ def _flatten(ll: list) -> list:
             ret.append(i)
     return ret
 
+def _make_synonym_function(compat_name: str, fn: C) -> C:
+    # In a future version, uncomment the code in the internal _inner() functions
+    # to begin emitting DeprecationWarnings.
 
-def replaces_prePEP8_function(old_name):
+    # Unwrap staticmethod/classmethod
+    fn = getattr(fn, "__func__", fn)
+
+    # (Presence of 'self' arg in signature is used by explain_exception() methods, so we take
+    # some extra steps to add it if present in decorated function.)
+    if "self" == list(inspect.signature(fn).parameters)[0]:
+
+        @wraps(fn)
+        def _inner(self, *args, **kwargs):
+            # warnings.warn(
+            #     f"Deprecated - use {fn.__name__}", DeprecationWarning, stacklevel=3
+            # )
+            return fn(self, *args, **kwargs)
+
+    else:
+
+        @wraps(fn)
+        def _inner(*args, **kwargs):
+            # warnings.warn(
+            #     f"Deprecated - use {fn.__name__}", DeprecationWarning, stacklevel=3
+            # )
+            return fn(*args, **kwargs)
+
+    _inner.__doc__ = f"""Deprecated - use :class:`{fn.__name__}`"""
+    _inner.__name__ = compat_name
+    _inner.__annotations__ = fn.__annotations__
+    _inner.__kwdefaults__ = fn.__kwdefaults__
+    _inner.__qualname__ = fn.__qualname__
+    return cast(C, _inner)
+
+
+def replaced_by_pep8(fn: C) -> Callable[[Callable], C]:
     """
-    Decorator for new PEP8 functions, to define compatibility synonym using given old name.
-
-    In a future version, uncomment the code in the internal _inner() functions to begin
-    emitting DeprecationWarnings.
-
-    (Presence of 'self' arg in signature is used by explain_exception() methods, so we take
-    some extra steps to add it if present in decorated function.)
+    Decorator for pre-PEP8 compatibility synonyms, to link them to the new function.
     """
-
-    def make_synonym_function(compat_name, fn):
-        if "self" == list(inspect.signature(fn).parameters)[0]:
-
-            @wraps(fn)
-            def _inner(self, *args, **kwargs):
-                # warnings.warn(
-                #     f"Deprecated - use {fn.__name__}", DeprecationWarning, stacklevel=3
-                # )
-                return fn(self, *args, **kwargs)
-
-        else:
-
-            @wraps(fn)
-            def _inner(*args, **kwargs):
-                # warnings.warn(
-                #     f"Deprecated - use {fn.__name__}", DeprecationWarning, stacklevel=3
-                # )
-                return fn(*args, **kwargs)
-
-        _inner.__doc__ = f"""Deprecated - use :class:`{fn.__name__}`"""
-        _inner.__name__ = compat_name
-        _inner.__annotations__ = fn.__annotations__
-        _inner.__kwdefaults__ = fn.__kwdefaults__
-        _inner.__qualname__ = fn.__qualname__
-        return _inner
-
-    ns = inspect.currentframe().f_back.f_locals
-
-    def _inner(fn):
-        # define synonym and add to containing namespace
-        ns[old_name] = make_synonym_function(old_name, fn)
-
-        return fn
-
-    return _inner
+    return lambda other: _make_synonym_function(other.__name__, fn)

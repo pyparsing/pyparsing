@@ -9,7 +9,7 @@ from .util import (
     line,
     lineno,
     _collapse_string_to_ranges,
-    replaces_prePEP8_function,
+    replaced_by_pep8,
 )
 from .unicode import pyparsing_unicode as ppu
 
@@ -163,7 +163,6 @@ class ParseBaseException(Exception):
     def __repr__(self):
         return str(self)
 
-    @replaces_prePEP8_function("markInputline")
     def mark_input_line(self, marker_string: str = None, *, markerString=">!<") -> str:
         """
         Extracts the exception line from the input string, and marks
@@ -216,6 +215,11 @@ class ParseBaseException(Exception):
         of parser expressions, you may have to set ``ParserElement.verbose_stacktrace = True``
         """
         return self.explain_exception(self, depth)
+
+    # fmt: off
+    @replaced_by_pep8(mark_input_line)
+    def markInputline(self): ...
+    # fmt: on
 
 
 class ParseException(ParseBaseException):
