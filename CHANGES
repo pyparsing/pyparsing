@@ -4,6 +4,14 @@ Change Log
 
 Version 3.0.10 - (in development)
 ---------------------------------
+NOTE: In the future release 3.1.0, use of many of the pre-PEP8 methods (such as
+`ParserElement.parseString`) will start to raise `DeprecationWarnings`. 3.1.0 should
+get released some time in August or September, 2022. I currently plan to completely
+drop the pre-PEP8 methods in pyparsing 4.0, though we won't see that release until
+at least late 2023. So there is plenty of time to convert existing parsers to
+the new function names before the old functions are completely removed. (Big
+help from Devin J. Pohly in structuring the code to enable this peaceful transition.)
+
 - API ENHANCEMENT: `Optional(expr)` may now be written as `expr | ""`
 
   This will make this code:
