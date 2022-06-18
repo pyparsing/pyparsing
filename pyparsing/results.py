@@ -1,4 +1,9 @@
 # results.py
+"""
+pyparsing.results
+-----------------
+"""
+
 from collections.abc import MutableMapping, Mapping, MutableSequence, Iterator
 import pprint
 from weakref import ref as wkref

@@ -1,4 +1,8 @@
 # actions.py
+"""
+pyparsing.actions
+-----------------
+"""
 
 from .exceptions import ParseException
 from .util import col
@@ -199,7 +203,12 @@ def with_class(classname, namespace=""):
 
 # pre-PEP8 compatibility symbols
 replaceWith = replace_with
+"""Deprecated - use :class:`replace_with`"""
 removeQuotes = remove_quotes
+"""Deprecated - use :class:`remove_quotes`"""
 withAttribute = with_attribute
+"""Deprecated - use :class:`with_attribute`"""
 withClass = with_class
+"""Deprecated - use :class:`with_class`"""
 matchOnlyAtCol = match_only_at_col
+"""Deprecated - use :class:`match_only_at_col`"""

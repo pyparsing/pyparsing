@@ -34,10 +34,10 @@ module provides a library of classes that you use to construct the
 grammar directly in Python.
 
 Here is a program to parse "Hello, World!" (or any greeting of the form
-``"<salutation>, <addressee>!"``), built up using :class:`Word`,
-:class:`Literal`, and :class:`And` elements
-(the :meth:`'+'<ParserElement.__add__>` operators create :class:`And` expressions,
-and the strings are auto-converted to :class:`Literal` expressions)::
+``"<salutation>, <addressee>!"``), built up using :class:`.Word`,
+:class:`.Literal`, and :class:`.And` elements
+(the :meth:`'+'<ParserElement.__add__>` operators create :class:`.And` expressions,
+and the strings are auto-converted to :class:`.Literal` expressions)::
 
     from pyparsing import Word, alphas
 
@@ -52,12 +52,13 @@ The program outputs the following::
     Hello, World! -> ['Hello', ',', 'World', '!']
 
 The Python representation of the grammar is quite readable, owing to the
-self-explanatory class names, and the use of :class:`'+'<And>`,
-:class:`'|'<MatchFirst>`, :class:`'^'<Or>` and :class:`'&'<Each>` operators.
+self-explanatory class names, and the use of :class:`'+'<pyparsing.core.And>`,
+:class:`'|'<pyparsing.core.MatchFirst>`, :class:`'^'<pyparsing.core.Or>` and
+:class:`'&'<pyparsing.core.Each>` operators.
 
-The :class:`ParseResults` object returned from
-:class:`ParserElement.parse_string` can be
-accessed as a nested list, a dictionary, or an object with named
+The :class:`.ParseResults` object returned from
+:class:`ParserElement.parse_string<pyparsing.core.ParserElement.parse_string>`
+can be accessed as a nested list, a dictionary, or an object with named
 attributes.
 
 The pyparsing module handles some of the problems that are typically
@@ -71,26 +72,26 @@ vexing when writing text parsers:
 
 Getting Started -
 -----------------
-Visit the classes :class:`ParserElement` and :class:`ParseResults` to
+Visit the classes :class:`.ParserElement` and :class:`.ParseResults` to
 see the base classes that most other pyparsing
 classes inherit from. Use the docstrings for examples of how to:
 
- - construct literal match expressions from :class:`Literal` and
-   :class:`CaselessLiteral` classes
- - construct character word-group expressions using the :class:`Word`
+ - construct literal match expressions from :class:`.Literal` and
+   :class:`.CaselessLiteral` classes
+ - construct character word-group expressions using the :class:`.Word`
    class
- - see how to create repetitive expressions using :class:`ZeroOrMore`
-   and :class:`OneOrMore` classes
- - use :class:`'+'<And>`, :class:`'|'<MatchFirst>`, :class:`'^'<Or>`,
-   and :class:`'&'<Each>` operators to combine simple expressions into
+ - see how to create repetitive expressions using :class:`.ZeroOrMore`
+   and :class:`.OneOrMore` classes
+ - use :class:`'+'<pyparsing.core.And>`, :class:`'|'<pyparsing.core.MatchFirst>`, :class:`'^'<pyparsing.core.Or>`,
+   and :class:`'&'<pyparsing.core.Each>` operators to combine simple expressions into
    more complex ones
  - associate names with your parsed results using
-   :class:`ParserElement.set_results_name`
- - access the parsed data, which is returned as a :class:`ParseResults`
+   :class:`ParserElement.set_results_name<pyparsing.core.ParserElement.set_results_name>`
+ - access the parsed data, which is returned as a :class:`.ParseResults`
    object
- - find some helpful expression short-cuts like :class:`delimited_list`
-   and :class:`one_of`
- - find more useful common expressions in the :class:`pyparsing_common`
+ - find some helpful expression short-cuts like :class:`~pyparsing.helpers.delimited_list`
+   and :class:`~pyparsing.helpers.one_of`
+ - find more useful common expressions in the :class:`.pyparsing_common`
    namespace class
 """
 from typing import NamedTuple

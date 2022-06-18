@@ -1,4 +1,9 @@
 # common.py
+"""
+pyparsing.common
+----------------
+"""
+
 from .core import *
 from .helpers import delimited_list, any_open_tag, any_close_tag
 from datetime import datetime
@@ -407,6 +412,7 @@ class pyparsing_common:
         r"(#(?P<fragment>\S*))?" +
         r"$"
     ).set_name("url")
+    """Predefined expression for parsing a URL."""
     # fmt: on
 
     # pre-PEP8 compatibility names
