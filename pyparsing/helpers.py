@@ -906,7 +906,7 @@ def infix_notation(
 
 def indentedBlock(blockStatementExpr, indentStack, indent=True, backup_stacks=[]):
     """
-    (DEPRECATED - use IndentedBlock class instead)
+    (DEPRECATED - use ``IndentedBlock`` class instead)
     Helper method for defining space-delimited indentation blocks,
     such as those used to define block statements in Python source code.
 

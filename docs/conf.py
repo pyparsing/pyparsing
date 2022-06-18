@@ -21,7 +21,7 @@ from pyparsing import __version__ as pyparsing_version
 # -- Project information -----------------------------------------------------
 
 project = "PyParsing"
-copyright = "2018-2021, Paul T. McGuire"
+copyright = "2018-2022, Paul T. McGuire"
 author = "Paul T. McGuire"
 
 # The short X.Y version

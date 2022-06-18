@@ -1,7 +1,7 @@
 # actions.py
 
 from .exceptions import ParseException
-from .util import col
+from .util import col, replaced_by_pep8
 
 
 class OnlyOnce:
@@ -198,8 +198,20 @@ def with_class(classname, namespace=""):
 
 
 # pre-PEP8 compatibility symbols
-replaceWith = replace_with
-removeQuotes = remove_quotes
-withAttribute = with_attribute
-withClass = with_class
-matchOnlyAtCol = match_only_at_col
+# fmt: off
+@replaced_by_pep8(replace_with)
+def replaceWith(): ...
+
+@replaced_by_pep8(remove_quotes)
+def removeQuotes(): ...
+
+@replaced_by_pep8(with_attribute)
+def withAttribute(): ...
+
+@replaced_by_pep8(with_class)
+def withClass(): ...
+
+@replaced_by_pep8(match_only_at_col)
+def matchOnlyAtCol(): ...
+
+# fmt: on

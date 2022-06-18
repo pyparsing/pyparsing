@@ -1360,11 +1360,11 @@ class ParserElement(ABC):
 
             Hello, World! -> ['Hello', ',', 'World', '!']
 
-        ``...`` may be used as a parse expression as a short form of :class:`SkipTo`.
+        ``...`` may be used as a parse expression as a short form of :class:`SkipTo`::
 
             Literal('start') + ... + Literal('end')
 
-        is equivalent to:
+        is equivalent to::
 
             Literal('start') + SkipTo('end')("_skipped*") + Literal('end')
 
