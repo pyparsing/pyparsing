@@ -1,4 +1,8 @@
 # unicode.py
+"""
+pyparsing.unicode
+-----------------
+"""
 
 import sys
 from itertools import filterfalse

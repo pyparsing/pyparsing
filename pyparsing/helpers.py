@@ -1,4 +1,9 @@
 # helpers.py
+"""
+pyparsing.helpers
+-----------------
+"""
+
 import html.entities
 import re
 import typing
@@ -9,7 +14,6 @@ from .util import (
     _bslash,
     _flatten,
     _escape_regex_range_chars,
-    replaced_by_pep8,
 )
 
 
@@ -686,7 +690,9 @@ def make_xml_tags(
 
 
 any_open_tag: ParserElement
+"""Convenience parser for HTML opening tags"""
 any_close_tag: ParserElement
+"""Convenience parser for HTML closing tags"""
 any_open_tag, any_close_tag = make_html_tags(
     Word(alphas, alphanums + "_:").set_name("any tag")
 )
@@ -695,6 +701,7 @@ _htmlEntityMap = {k.rstrip(";"): v for k, v in html.entities.html5.items()}
 common_html_entity = Regex("&(?P<entity>" + "|".join(_htmlEntityMap) + ");").set_name(
     "common HTML entity"
 )
+"""Convenience parser for common HTML entities"""
 
 
 def replace_html_entity(s, l, t):
@@ -1048,25 +1055,25 @@ def indentedBlock(blockStatementExpr, indentStack, indent=True, backup_stacks=[]
 c_style_comment = Combine(Regex(r"/\*(?:[^*]|\*(?!/))*") + "*/").set_name(
     "C style comment"
 )
-"Comment of the form ``/* ... */``"
+"""Comment of the form ``/* ... */``"""
 
 html_comment = Regex(r"<!--[\s\S]*?-->").set_name("HTML comment")
-"Comment of the form ``<!-- ... -->``"
+"""Comment of the form ``<!-- ... -->``"""
 
 rest_of_line = Regex(r".*").leave_whitespace().set_name("rest of line")
 dbl_slash_comment = Regex(r"//(?:\\\n|[^\n])*").set_name("// comment")
-"Comment of the form ``// ... (to end of line)``"
+"""Comment of the form ``// ... (to end of line)``"""
 
 cpp_style_comment = Combine(
     Regex(r"/\*(?:[^*]|\*(?!/))*") + "*/" | dbl_slash_comment
 ).set_name("C++ style comment")
-"Comment of either form :class:`c_style_comment` or :class:`dbl_slash_comment`"
+"""Comment of either form :class:`c_style_comment` or :class:`dbl_slash_comment`"""
 
 java_style_comment = cpp_style_comment
-"Same as :class:`cpp_style_comment`"
+"""Same as :class:`cpp_style_comment`"""
 
 python_style_comment = Regex(r"#.*").set_name("Python style comment")
-"Comment of the form ``# ... (to end of line)``"
+"""Comment of the form ``# ... (to end of line)``"""
 
 
 # build list of built-in expressions, for future reference if a global default value
@@ -1079,50 +1086,48 @@ _builtin_exprs: List[ParserElement] = [
 # pre-PEP8 compatible names
 # fmt: off
 opAssoc = OpAssoc
+"""Deprecated - use :class:`OpAssoc`"""
 anyOpenTag = any_open_tag
+"""Deprecated - use :class:`any_open_tag`"""
 anyCloseTag = any_close_tag
+"""Deprecated - use :class:`any_close_tag`"""
 commonHTMLEntity = common_html_entity
+"""Deprecated - use :class:`common_html_entity`"""
 cStyleComment = c_style_comment
+"""Deprecated - use :class:`c_style_comment`"""
 htmlComment = html_comment
+"""Deprecated - use :class:`html_comment`"""
 restOfLine = rest_of_line
+"""Deprecated - use :class:`rest_of_line`"""
 dblSlashComment = dbl_slash_comment
+"""Deprecated - use :class:`dbl_slash_comment`"""
 cppStyleComment = cpp_style_comment
+"""Deprecated - use :class:`cpp_style_comment`"""
 javaStyleComment = java_style_comment
+"""Deprecated - use :class:`java_style_comment`"""
 pythonStyleComment = python_style_comment
-
-@replaced_by_pep8(delimited_list)
-def delimitedList(): ...
-
-@replaced_by_pep8(counted_array)
-def countedArray(): ...
-
-@replaced_by_pep8(match_previous_literal)
-def matchPreviousLiteral(): ...
-
-@replaced_by_pep8(match_previous_expr)
-def matchPreviousExpr(): ...
-
-@replaced_by_pep8(one_of)
-def oneOf(): ...
-
-@replaced_by_pep8(dict_of)
-def dictOf(): ...
-
-@replaced_by_pep8(original_text_for)
-def originalTextFor(): ...
-
-@replaced_by_pep8(nested_expr)
-def nestedExpr(): ...
-
-@replaced_by_pep8(make_html_tags)
-def makeHTMLTags(): ...
-
-@replaced_by_pep8(make_xml_tags)
-def makeXMLTags(): ...
-
-@replaced_by_pep8(replace_html_entity)
-def replaceHTMLEntity(): ...
-
-@replaced_by_pep8(infix_notation)
-def infixNotation(): ...
-# fmt: on
+"""Deprecated - use :class:`python_style_comment`"""
+delimitedList = delimited_list
+"""Deprecated: use :class:`delimited_list`"""
+countedArray = counted_array
+"""Deprecated: use :class:`counted_array`"""
+matchPreviousLiteral = match_previous_literal
+"""Deprecated: use :class:`match_previous_literal`"""
+matchPreviousExpr = match_previous_expr
+"""Deprecated: use :class:`match_previous_expr`"""
+oneOf = one_of
+"""Deprecated: use :class:`one_of`"""
+dictOf = dict_of
+"""Deprecated: use :class:`dict_of`"""
+originalTextFor = original_text_for
+"""Deprecated: use :class:`original_text_for`"""
+nestedExpr = nested_expr
+"""Deprecated: use :class:`nested_expr`"""
+makeHTMLTags = make_html_tags
+"""Deprecated: use :class:`make_html_tags`"""
+makeXMLTags = make_xml_tags
+"""Deprecated: use :class:`make_xml_tags`"""
+replaceHTMLEntity = replace_html_entity
+"""Deprecated: use :class:`replace_html_entity`"""
+infixNotation = infix_notation
+"""Deprecated: use :class:`infix_notation`"""# fmt: on

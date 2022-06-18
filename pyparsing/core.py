@@ -1,6 +1,13 @@
 #
 # core.py
 #
+"""
+pyparsing.core
+--------------
+"""
+
+from __future__ import annotations
+
 import os
 import typing
 from typing import (
@@ -41,7 +48,6 @@ from .util import (
     _flatten,
     LRUMemo as _LRUMemo,
     UnboundedMemo as _UnboundedMemo,
-    replaced_by_pep8,
 )
 from .exceptions import *
 from .actions import *
@@ -239,12 +245,14 @@ ParseAction = Union[
     Callable[[int, ParseResults], Any],
     Callable[[str, int, ParseResults], Any],
 ]
+"""Type alias for functions which perform a parsing action"""
 ParseCondition = Union[
     Callable[[], bool],
     Callable[[ParseResults], bool],
     Callable[[int, ParseResults], bool],
     Callable[[str, int, ParseResults], bool],
 ]
+"""Type alias for functions which check a parsing condition"""
 ParseFailAction = Callable[[str, int, "ParserElement", Exception], None]
 DebugStartAction = Callable[[str, int, "ParserElement", bool], None]
 DebugSuccessAction = Callable[
@@ -2193,87 +2201,60 @@ class ParserElement(ABC):
             output_html.write(railroad_to_html(railroad, embed=embed))
 
     # Compatibility synonyms
-    # fmt: off
-    @staticmethod
-    @replaced_by_pep8(inline_literals_using)
-    def inlineLiteralsUsing(): ...
-
-    @staticmethod
-    @replaced_by_pep8(set_default_whitespace_chars)
-    def setDefaultWhitespaceChars(): ...
-
-    @replaced_by_pep8(set_results_name)
-    def setResultsName(self): ...
-
-    @replaced_by_pep8(set_break)
-    def setBreak(self): ...
-
-    @replaced_by_pep8(set_parse_action)
-    def setParseAction(self): ...
-
-    @replaced_by_pep8(add_parse_action)
-    def addParseAction(self): ...
-
-    @replaced_by_pep8(add_condition)
-    def addCondition(self): ...
-
-    @replaced_by_pep8(set_fail_action)
-    def setFailAction(self): ...
-
-    @replaced_by_pep8(try_parse)
-    def tryParse(self): ...
-
-    @staticmethod
-    @replaced_by_pep8(enable_left_recursion)
-    def enableLeftRecursion(): ...
-
-    @staticmethod
-    @replaced_by_pep8(enable_packrat)
-    def enablePackrat(): ...
-
-    @replaced_by_pep8(parse_string)
-    def parseString(self): ...
-
-    @replaced_by_pep8(scan_string)
-    def scanString(self): ...
-
-    @replaced_by_pep8(transform_string)
-    def transformString(self): ...
-
-    @replaced_by_pep8(search_string)
-    def searchString(self): ...
-
-    @replaced_by_pep8(ignore_whitespace)
-    def ignoreWhitespace(self): ...
-
-    @replaced_by_pep8(leave_whitespace)
-    def leaveWhitespace(self): ...
-
-    @replaced_by_pep8(set_whitespace_chars)
-    def setWhitespaceChars(self): ...
-
-    @replaced_by_pep8(parse_with_tabs)
-    def parseWithTabs(self): ...
-
-    @replaced_by_pep8(set_debug_actions)
-    def setDebugActions(self): ...
-
-    @replaced_by_pep8(set_debug)
-    def setDebug(self): ...
-
-    @replaced_by_pep8(set_name)
-    def setName(self): ...
-
-    @replaced_by_pep8(parse_file)
-    def parseFile(self): ...
-
-    @replaced_by_pep8(run_tests)
-    def runTests(self): ...
-
+    inlineLiteralsUsing = inline_literals_using
+    """Deprecated - use :class:`inline_literals_using`"""
+    setDefaultWhitespaceChars = set_default_whitespace_chars
+    """Deprecated - use :class:`set_default_whitespace_chars`"""
+    setResultsName = set_results_name
+    """Deprecated - use :class:`set_results_name`"""
+    setBreak = set_break
+    """Deprecated - use :class:`set_break`"""
+    setParseAction = set_parse_action
+    """Deprecated - use :class:`set_parse_action`"""
+    addParseAction = add_parse_action
+    """Deprecated - use :class:`add_parse_action`"""
+    addCondition = add_condition
+    """Deprecated - use :class:`add_condition`"""
+    setFailAction = set_fail_action
+    """Deprecated - use :class:`set_fail_action`"""
+    tryParse = try_parse
+    """Deprecated - use :class:`try_parse`"""
+    enableLeftRecursion = enable_left_recursion
+    """Deprecated - use :class:`enable_left_recursion`"""
+    enablePackrat = enable_packrat
+    """Deprecated - use :class:`enable_packrat`"""
+    parseString = parse_string
+    """Deprecated - use :class:`parse_string`"""
+    scanString = scan_string
+    """Deprecated - use :class:`scan_string` instead"""
+    transformString = transform_string
+    """Deprecated - use :class:`transform_string`"""
+    searchString = search_string
+    """Deprecated - use :class:`search_string`"""
+    ignoreWhitespace = ignore_whitespace
+    """Deprecated - use :class:`ignore_whitespace`"""
+    leaveWhitespace = leave_whitespace
+    """Deprecated - use :class:`leave_whitespace`"""
+    setWhitespaceChars = set_whitespace_chars
+    """Deprecated - use :class:`set_whitespace_chars`"""
+    parseWithTabs = parse_with_tabs
+    """Deprecated - use :class:`parse_with_tabs`"""
+    setDebugActions = set_debug_actions
+    """Deprecated - use :class:`set_debug_actions`"""
+    setDebug = set_debug
+    """Deprecated - use :class:`set_debug`"""
+    setName = set_name
+    """Deprecated - use :class:`set_name`"""
+    parseFile = parse_file
+    """Deprecated - use :class:`parse_file`"""
+    runTests = run_tests
+    """Deprecated - use :class:`run_tests`"""
     canParseNext = can_parse_next
+    """Deprecated - use :class:`can_parse_next`"""
     resetCache = reset_cache
+    """Deprecated - use :class:`reset_cache`"""
     defaultName = default_name
-    # fmt: on
+    """Deprecated - use :class:`default_name`"""
 
 
 class _PendingSkip(ParserElement):
@@ -3823,14 +3804,10 @@ class ParseExpression(ParserElement):
 
         return super()._setResultsName(name, listAllMatches)
 
-    # Compatibility synonyms
-    # fmt: off
-    @replaced_by_pep8(leave_whitespace)
-    def leaveWhitespace(self): ...
-
-    @replaced_by_pep8(ignore_whitespace)
-    def ignoreWhitespace(self): ...
-    # fmt: on
+    leaveWhitespace = leave_whitespace
+    """Deprecated - use :class:`leave_whitespace`"""
+    ignoreWhitespace = ignore_whitespace
+    """Deprecated - use :class:`ignore_whitespace`"""
 
 
 class And(ParseExpression):
@@ -4512,14 +4489,10 @@ class ParseElementEnhance(ParserElement):
     def _generateDefaultName(self) -> str:
         return f"{self.__class__.__name__}:({str(self.expr)})"
 
-    # Compatibility synonyms
-    # fmt: off
-    @replaced_by_pep8(leave_whitespace)
-    def leaveWhitespace(self): ...
-
-    @replaced_by_pep8(ignore_whitespace)
-    def ignoreWhitespace(self): ...
-    # fmt: on
+    leaveWhitespace = leave_whitespace
+    """Deprecated - use :class:`leave_whitespace`"""
+    ignoreWhitespace = ignore_whitespace
+    """Deprecated - use :class:`ignore_whitespace`"""
 
 
 class IndentedBlock(ParseElementEnhance):
@@ -5448,14 +5421,10 @@ class Forward(ParseElementEnhance):
 
         return super()._setResultsName(name, list_all_matches)
 
-    # Compatibility synonyms
-    # fmt: off
-    @replaced_by_pep8(leave_whitespace)
-    def leaveWhitespace(self): ...
-
-    @replaced_by_pep8(ignore_whitespace)
-    def ignoreWhitespace(self): ...
-    # fmt: on
+    leaveWhitespace = leave_whitespace
+    """Deprecated - use :class:`leave_whitespace`"""
+    ignoreWhitespace = ignore_whitespace
+    """Deprecated - use :class:`ignore_whitespace`"""
 
 
 class TokenConverter(ParseElementEnhance):
@@ -5751,10 +5720,15 @@ def trace_parse_action(f: ParseAction) -> ParseAction:
 
 # convenience constants for positional expressions
 empty = Empty().set_name("empty")
+"""Convenience constant for an instance of :class:`Empty`"""
 line_start = LineStart().set_name("line_start")
+"""Convenience constant for an instance of :class:`LineStart`"""
 line_end = LineEnd().set_name("line_end")
+"""Convenience constant for an instance of :class:`LineEnd`"""
 string_start = StringStart().set_name("string_start")
+"""Convenience constant for an instance of :class:`StringStart`"""
 string_end = StringEnd().set_name("string_end")
+"""Convenience constant for an instance of :class:`StringEnd`"""
 
 _escapedPunc = Regex(r"\\[\\[\]\/\-\*\.\$\+\^\?()~ ]").set_parse_action(
     lambda s, l, t: t[0][1]
@@ -5873,21 +5847,26 @@ def autoname_elements() -> None:
 dbl_quoted_string = Combine(
     Regex(r'"(?:[^"\n\r\\]|(?:"")|(?:\\(?:[^x]|x[0-9a-fA-F]+)))*') + '"'
 ).set_name("string enclosed in double quotes")
+"""Convenience parser for a string enclosed in double quotes"""
 
 sgl_quoted_string = Combine(
     Regex(r"'(?:[^'\n\r\\]|(?:'')|(?:\\(?:[^x]|x[0-9a-fA-F]+)))*") + "'"
 ).set_name("string enclosed in single quotes")
+"""Convenience parser for a string enclosed in single quotes"""
 
 quoted_string = Combine(
     Regex(r'"(?:[^"\n\r\\]|(?:"")|(?:\\(?:[^x]|x[0-9a-fA-F]+)))*') + '"'
     | Regex(r"'(?:[^'\n\r\\]|(?:'')|(?:\\(?:[^x]|x[0-9a-fA-F]+)))*") + "'"
 ).set_name("quoted string using single or double quotes")
+"""Convenience parser for a string enclosed in single or double quotes"""
 
-unicode_string = Combine("u" + quoted_string.copy()).set_name("unicode string literal")
-
+unicode_string: ParserElement = Combine("u" + quoted_string.copy()).set_name("unicode string literal")
+"""Convenience parser for a Unicode string literal"""
 
 alphas8bit = srange(r"[\0xc0-\0xd6\0xd8-\0xf6\0xf8-\0xff]")
+"""alphabetic characters in ASCII range 128-255 - accented, tilded, umlauted, etc."""
 punc8bit = srange(r"[\0xa1-\0xbf\0xd7\0xf7]")
+"""non-alphabetic characters in ASCII range 128-255 - currency, symbols, superscripts, diacritics, etc."""
 
 # build list of built-in expressions, for future reference if a global default value
 # gets updated
@@ -5896,25 +5875,27 @@ _builtin_exprs: List[ParserElement] = [
 ]
 
 # backward compatibility names
-# fmt: off
 sglQuotedString = sgl_quoted_string
+"""Deprecated - use :class:`sgl_quoted_string`"""
 dblQuotedString = dbl_quoted_string
+"""Deprecated - use :class:`dbl_quoted_string`"""
 quotedString = quoted_string
+"""Deprecated - use :class:`quoted_string`"""
 unicodeString = unicode_string
+"""Deprecated - use :class:`unicode_string`"""
 lineStart = line_start
+"""Deprecated - use :class:`line_start`"""
 lineEnd = line_end
+"""Deprecated - use :class:`line_end`"""
 stringStart = string_start
+"""Deprecated - use :class:`string_start`"""
 stringEnd = string_end
-
-@replaced_by_pep8(null_debug_action)
-def nullDebugAction(): ...
-
-@replaced_by_pep8(trace_parse_action)
-def traceParseAction(): ...
-
-@replaced_by_pep8(condition_as_parse_action)
-def conditionAsParseAction(): ...
-
-@replaced_by_pep8(token_map)
-def tokenMap(): ...
-# fmt: on
+"""Deprecated - use :class:`string_end`"""
+nullDebugAction = null_debug_action
+"""Deprecated - use :class:`null_debug_action`"""
+traceParseAction = trace_parse_action
+"""Deprecated - use :class:`trace_parse_action`"""
+conditionAsParseAction = condition_as_parse_action
+"""Deprecated - use :class:`condition_as_parse_action`"""
+tokenMap = token_map
+"""Deprecated - use :class:`token_map`"""
