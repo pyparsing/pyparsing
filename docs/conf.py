@@ -184,7 +184,3 @@ epub_exclude_files = ["search.html"]
 
 
 # -- Extension configuration -------------------------------------------------
-autodoc_type_aliases = {
-    "ParseAction": "ParseAction",
-    "ParseCondition": "ParseCondition",
-}
