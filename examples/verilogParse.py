@@ -94,13 +94,13 @@ from pyparsing import (
 )
 import pyparsing
 
-usePackrat = False
+usePackrat = True
 
 packratOn = False
 
 if usePackrat:
     try:
-        ParserElement.enablePackrat()
+        ParserElement.enable_packrat()
     except Exception:
         pass
     else:
