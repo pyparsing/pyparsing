@@ -372,7 +372,7 @@ def original_text_for(
     expression.  Useful to restore the parsed fields of an HTML start
     tag into the raw tag text itself, or to revert separate tokens with
     intervening whitespace back to the original matching input text. By
-    default, returns astring containing the original parsed text.
+    default, returns a string containing the original parsed text.
 
     If the optional ``as_string`` argument is passed as
     ``False``, then the return value is
@@ -391,7 +391,7 @@ def original_text_for(
         src = "this is test <b> bold <i>text</i> </b> normal text "
         for tag in ("b", "i"):
             opener, closer = make_html_tags(tag)
-            patt = original_text_for(opener + SkipTo(closer) + closer)
+            patt = original_text_for(opener + ... + closer)
             print(patt.search_string(src)[0])
 
     prints::
@@ -770,11 +770,11 @@ def infix_notation(
         ``set_parse_action(*fn)``
         (:class:`ParserElement.set_parse_action`)
     - ``lpar`` - expression for matching left-parentheses; if passed as a
-      str, then will be parsed as Suppress(lpar). If lpar is passed as
+      str, then will be parsed as ``Suppress(lpar)``. If lpar is passed as
       an expression (such as ``Literal('(')``), then it will be kept in
       the parsed results, and grouped with them. (default= ``Suppress('(')``)
     - ``rpar`` - expression for matching right-parentheses; if passed as a
-      str, then will be parsed as Suppress(rpar). If rpar is passed as
+      str, then will be parsed as ``Suppress(rpar)``. If rpar is passed as
       an expression (such as ``Literal(')')``), then it will be kept in
       the parsed results, and grouped with them. (default= ``Suppress(')')``)
 
@@ -805,6 +805,9 @@ def infix_notation(
 
         (5+3)*6
         [[[5, '+', 3], '*', 6]]
+
+        (5+x)*y
+        [[[5, '+', 'x'], '*', 'y']]
 
         -2--11
         [[['-', 2], '-', ['-', 11]]]
