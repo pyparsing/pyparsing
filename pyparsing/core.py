@@ -3965,7 +3965,7 @@ class And(ParseExpression):
                     )
             else:
                 loc, exprtokens = e._parse(instring, loc, doActions)
-            if exprtokens or exprtokens.haskeys():
+            if exprtokens and exprtokens.haskeys():
                 resultlist += exprtokens
         return loc, resultlist
 
