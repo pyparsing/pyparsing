@@ -3965,8 +3965,7 @@ class And(ParseExpression):
                     )
             else:
                 loc, exprtokens = e._parse(instring, loc, doActions)
-            if exprtokens or exprtokens.haskeys():
-                resultlist += exprtokens
+            resultlist += exprtokens
         return loc, resultlist
 
     def __iadd__(self, other):
@@ -4886,8 +4885,7 @@ class _MultipleMatch(ParseElementEnhance):
                 else:
                     preloc = loc
                 loc, tmptokens = self_expr_parse(instring, preloc, doActions)
-                if tmptokens or tmptokens.haskeys():
-                    tokens += tmptokens
+                tokens += tmptokens
         except (ParseException, IndexError):
             pass
 

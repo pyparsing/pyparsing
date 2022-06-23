@@ -262,7 +262,7 @@ class ParseResults:
         """
         Since ``keys()`` returns an iterator, this method is helpful in bypassing
         code that looks for the existence of any defined results names."""
-        return bool(self._tokdict)
+        return not not self._tokdict
 
     def pop(self, *args, **kwargs):
         """
@@ -426,6 +426,9 @@ class ParseResults:
         return ret
 
     def __iadd__(self, other) -> "ParseResults":
+        if not other:
+            return self
+
         if other._tokdict:
             offset = len(self._toklist)
             addoffset = lambda a: offset if a < 0 else a + offset
