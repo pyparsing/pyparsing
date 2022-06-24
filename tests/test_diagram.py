@@ -13,6 +13,8 @@ import tempfile
 import os
 import sys
 
+print(f"Running {__file__}")
+print(sys.version_info)
 
 curdir = Path(__file__).parent
 
