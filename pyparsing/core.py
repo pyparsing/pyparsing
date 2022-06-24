@@ -2868,7 +2868,7 @@ class Word(Token):
                 self.re = None
             else:
                 self.re_match = self.re.match
-                self.__class__ = _WordRegex
+                self.parseImpl = self.parseImpl_regex
 
     def _generateDefaultName(self) -> str:
         def charsAsStr(s):
@@ -2929,9 +2929,7 @@ class Word(Token):
 
         return loc, instring[start:loc]
 
-
-class _WordRegex(Word):
-    def parseImpl(self, instring, loc, doActions=True):
+    def parseImpl_regex(self, instring, loc, doActions=True):
         result = self.re_match(instring, loc)
         if not result:
             raise ParseException(instring, loc, self.errmsg, self)
@@ -2940,7 +2938,7 @@ class _WordRegex(Word):
         return loc, result.group()
 
 
-class Char(_WordRegex):
+class Char(Word):
     """A short-cut class for defining :class:`Word` ``(characters, exact=1)``,
     when defining a match of any single character in a string of
     characters.
@@ -2958,13 +2956,8 @@ class Char(_WordRegex):
         asKeyword = asKeyword or as_keyword
         excludeChars = excludeChars or exclude_chars
         super().__init__(
-            charset, exact=1, asKeyword=asKeyword, excludeChars=excludeChars
+            charset, exact=1, as_keyword=asKeyword, exclude_chars=excludeChars
         )
-        self.reString = f"[{_collapse_string_to_ranges(self.initChars)}]"
-        if asKeyword:
-            self.reString = rf"\b{self.reString}\b"
-        self.re = re.compile(self.reString)
-        self.re_match = self.re.match
 
 
 class Regex(Token):

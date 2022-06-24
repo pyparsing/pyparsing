@@ -4860,6 +4860,10 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             result2, expected2, msg="issue with Char asKeyword=True parsing 2 chars"
         )
 
+    def testCharRe(self):
+        expr = pp.Char("ABCDEFG")
+        self.assertEqual("[A-G]", expr.reString)
+
     def testCharsNotIn(self):
         """test CharsNotIn initialized with various arguments"""
 
@@ -9229,7 +9233,7 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
 
             expected = [
                 self_testcase_name,
-                "pyparsing.core._WordRegex - integer",
+                "pyparsing.core.Word - integer",
                 "tests.test_unit.Modifier",
                 "pyparsing.results.ParseResults",
             ]
@@ -9274,8 +9278,12 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             depth_0_explain_str = pe.explain(depth=0)
             depth_1_explain_str = pe.explain(depth=1)
             print(depth_none_explain_str)
+            print()
+            print(depth_0_explain_str)
+            print()
+            print(depth_1_explain_str)
 
-            expr_name = "pyparsing.core._WordRegex - W:(0-9)"
+            expr_name = "pyparsing.core.Word - W:(0-9)"
             for expected_function in [self_testcase_name, expr_name]:
                 self.assertTrue(
                     expected_function in depth_none_explain_str,
