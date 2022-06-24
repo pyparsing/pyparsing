@@ -918,7 +918,6 @@ if __name__ == "__main__":
         failCount = 0
         Verilog_BNF()
         numlines = 0
-        startTime = time.time()
         fileDir = "verilog"
         # ~ fileDir = "verilog/new2"
         # ~ fileDir = "verilog/new3"
@@ -940,9 +939,9 @@ if __name__ == "__main__":
             print(fnam, len(filelines), end=" ")
             numlines += len(filelines)
             teststr = "".join(filelines)
-            time1 = time.time()
+            time1 = time.perf_counter()
             tokens = test(teststr)
-            time2 = time.time()
+            time2 = time.perf_counter()
             elapsed = time2 - time1
             totalTime += elapsed
             if len(tokens):
@@ -959,7 +958,7 @@ if __name__ == "__main__":
                 failCount += 1
                 for i, line in enumerate(filelines, 1):
                     print("%4d: %s" % (i, line.rstrip()))
-        endTime = time.time()
+
         print("Total parse time:", totalTime)
         print("Total source lines:", numlines)
         print("Average lines/sec:", ("%.1f" % (float(numlines) / (totalTime + 0.05))))
