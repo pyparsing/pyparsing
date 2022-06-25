@@ -162,9 +162,9 @@ class TestRailroadDiagrams(unittest.TestCase):
 
         diag_strio = StringIO()
         grammar.create_diagram(output_html=diag_strio)
-        diag_str = diag_strio.getvalue()
-        expected = (curdir / "diag_no_embed.html").read_text()
-        assert diag_str == expected
+        diag_str = diag_strio.getvalue().lower()
+        tags = "<html> </html> <head> </head> <body> </body>".split()
+        assert all(tag in diag_str for tag in tags)
 
     def test_create_diagram_embed(self):
         ints = pp.Word(pp.nums)
@@ -178,9 +178,9 @@ class TestRailroadDiagrams(unittest.TestCase):
 
         diag_strio = StringIO()
         grammar.create_diagram(output_html=diag_strio, embed=True)
-        diag_str = diag_strio.getvalue()
-        expected = (curdir / "diag_embed.html").read_text()
-        assert diag_str == expected
+        diag_str = diag_strio.getvalue().lower()
+        tags = "<html> </html> <head> </head> <body> </body>".split()
+        assert not any(tag in diag_str for tag in tags)
 
 
 if __name__ == "__main__":
