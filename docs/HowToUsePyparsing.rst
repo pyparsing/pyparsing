@@ -6,7 +6,7 @@ Using the pyparsing module
 :address: ptmcg.pm+pyparsing@gmail.com
 
 :revision: 3.0.10
-:date: May, 2022
+:date: July, 2022
 
 :copyright: Copyright |copy| 2003-2022 Paul McGuire.
 
@@ -1307,6 +1307,8 @@ Common string and token constants
   include whitespace, but not newlines
 
 - ``quoted_string`` - ``sgl_quoted_string | dbl_quoted_string``
+
+- ``python_quoted_string`` - ``quoted_string | multiline quoted string``
 
 - ``c_style_comment`` - a comment block delimited by ``'/*'`` and ``'*/'`` sequences; can span
   multiple lines, but does not support nesting of comments

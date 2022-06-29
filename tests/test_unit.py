@@ -1082,117 +1082,131 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             """
         print(testData)
 
-        sglStrings = [
-            (t[0], b, e) for (t, b, e) in pp.sglQuotedString.scanString(testData)
-        ]
-        print(sglStrings)
-        self.assertTrue(
-            len(sglStrings) == 1
-            and (sglStrings[0][1] == 17 and sglStrings[0][2] == 47),
-            "single quoted string failure",
-        )
+        with self.subTest():
+            sglStrings = [
+                (t[0], b, e) for (t, b, e) in pp.sglQuotedString.scanString(testData)
+            ]
+            print(sglStrings)
+            self.assertTrue(
+                len(sglStrings) == 1
+                and (sglStrings[0][1] == 17 and sglStrings[0][2] == 47),
+                "single quoted string failure",
+            )
 
-        dblStrings = [
-            (t[0], b, e) for (t, b, e) in pp.dblQuotedString.scanString(testData)
-        ]
-        print(dblStrings)
-        self.assertTrue(
-            len(dblStrings) == 1
-            and (dblStrings[0][1] == 154 and dblStrings[0][2] == 184),
-            "double quoted string failure",
-        )
+        with self.subTest():
+            dblStrings = [
+                (t[0], b, e) for (t, b, e) in pp.dblQuotedString.scanString(testData)
+            ]
+            print(dblStrings)
+            self.assertTrue(
+                len(dblStrings) == 1
+                and (dblStrings[0][1] == 154 and dblStrings[0][2] == 184),
+                "double quoted string failure",
+            )
 
-        allStrings = [
-            (t[0], b, e) for (t, b, e) in pp.quotedString.scanString(testData)
-        ]
-        print(allStrings)
-        self.assertTrue(
-            len(allStrings) == 2
-            and (allStrings[0][1] == 17 and allStrings[0][2] == 47)
-            and (allStrings[1][1] == 154 and allStrings[1][2] == 184),
-            "quoted string failure",
-        )
+        with self.subTest():
+            allStrings = [
+                (t[0], b, e) for (t, b, e) in pp.quotedString.scanString(testData)
+            ]
+            print(allStrings)
+            self.assertTrue(
+                len(allStrings) == 2
+                and (allStrings[0][1] == 17 and allStrings[0][2] == 47)
+                and (allStrings[1][1] == 154 and allStrings[1][2] == 184),
+                "quoted string failure",
+            )
 
         escapedQuoteTest = r"""
                 'This string has an escaped (\') quote character'
                 "This string has an escaped (\") quote character"
             """
 
-        sglStrings = [
-            (t[0], b, e)
-            for (t, b, e) in pp.sglQuotedString.scanString(escapedQuoteTest)
-        ]
-        print(sglStrings)
-        self.assertTrue(
-            len(sglStrings) == 1
-            and (sglStrings[0][1] == 17 and sglStrings[0][2] == 66),
-            "single quoted string escaped quote failure (%s)" % str(sglStrings[0]),
-        )
+        with self.subTest():
+            sglStrings = [
+                (t[0], b, e)
+                for (t, b, e) in pp.sglQuotedString.scanString(escapedQuoteTest)
+            ]
+            print(sglStrings)
+            self.assertTrue(
+                len(sglStrings) == 1
+                and (sglStrings[0][1] == 17 and sglStrings[0][2] == 66),
+                "single quoted string escaped quote failure (%s)" % str(sglStrings[0]),
+            )
 
-        dblStrings = [
-            (t[0], b, e)
-            for (t, b, e) in pp.dblQuotedString.scanString(escapedQuoteTest)
-        ]
-        print(dblStrings)
-        self.assertTrue(
-            len(dblStrings) == 1
-            and (dblStrings[0][1] == 83 and dblStrings[0][2] == 132),
-            "double quoted string escaped quote failure (%s)" % str(dblStrings[0]),
-        )
+        with self.subTest():
+            dblStrings = [
+                (t[0], b, e)
+                for (t, b, e) in pp.dblQuotedString.scanString(escapedQuoteTest)
+            ]
+            print(dblStrings)
+            self.assertTrue(
+                len(dblStrings) == 1
+                and (dblStrings[0][1] == 83 and dblStrings[0][2] == 132),
+                "double quoted string escaped quote failure (%s)" % str(dblStrings[0]),
+            )
 
-        allStrings = [
-            (t[0], b, e) for (t, b, e) in pp.quotedString.scanString(escapedQuoteTest)
-        ]
-        print(allStrings)
-        self.assertTrue(
-            len(allStrings) == 2
-            and (
-                allStrings[0][1] == 17
-                and allStrings[0][2] == 66
-                and allStrings[1][1] == 83
-                and allStrings[1][2] == 132
-            ),
-            "quoted string escaped quote failure (%s)"
-            % ([str(s[0]) for s in allStrings]),
-        )
+        with self.subTest():
+            allStrings = [
+                (t[0], b, e)
+                for (t, b, e) in pp.quotedString.scanString(escapedQuoteTest)
+            ]
+            print(allStrings)
+            self.assertTrue(
+                len(allStrings) == 2
+                and (
+                    allStrings[0][1] == 17
+                    and allStrings[0][2] == 66
+                    and allStrings[1][1] == 83
+                    and allStrings[1][2] == 132
+                ),
+                "quoted string escaped quote failure (%s)"
+                % ([str(s[0]) for s in allStrings]),
+            )
 
         dblQuoteTest = r"""
                 'This string has an doubled ('') quote character'
                 "This string has an doubled ("") quote character"
             """
-        sglStrings = [
-            (t[0], b, e) for (t, b, e) in pp.sglQuotedString.scanString(dblQuoteTest)
-        ]
-        print(sglStrings)
-        self.assertTrue(
-            len(sglStrings) == 1
-            and (sglStrings[0][1] == 17 and sglStrings[0][2] == 66),
-            "single quoted string escaped quote failure (%s)" % str(sglStrings[0]),
-        )
-        dblStrings = [
-            (t[0], b, e) for (t, b, e) in pp.dblQuotedString.scanString(dblQuoteTest)
-        ]
-        print(dblStrings)
-        self.assertTrue(
-            len(dblStrings) == 1
-            and (dblStrings[0][1] == 83 and dblStrings[0][2] == 132),
-            "double quoted string escaped quote failure (%s)" % str(dblStrings[0]),
-        )
-        allStrings = [
-            (t[0], b, e) for (t, b, e) in pp.quotedString.scanString(dblQuoteTest)
-        ]
-        print(allStrings)
-        self.assertTrue(
-            len(allStrings) == 2
-            and (
-                allStrings[0][1] == 17
-                and allStrings[0][2] == 66
-                and allStrings[1][1] == 83
-                and allStrings[1][2] == 132
-            ),
-            "quoted string escaped quote failure (%s)"
-            % ([str(s[0]) for s in allStrings]),
-        )
+        with self.subTest():
+            sglStrings = [
+                (t[0], b, e)
+                for (t, b, e) in pp.sglQuotedString.scanString(dblQuoteTest)
+            ]
+            print(sglStrings)
+            self.assertTrue(
+                len(sglStrings) == 1
+                and (sglStrings[0][1] == 17 and sglStrings[0][2] == 66),
+                "single quoted string escaped quote failure (%s)" % str(sglStrings[0]),
+            )
+
+        with self.subTest():
+            dblStrings = [
+                (t[0], b, e)
+                for (t, b, e) in pp.dblQuotedString.scanString(dblQuoteTest)
+            ]
+            print(dblStrings)
+            self.assertTrue(
+                len(dblStrings) == 1
+                and (dblStrings[0][1] == 83 and dblStrings[0][2] == 132),
+                "double quoted string escaped quote failure (%s)" % str(dblStrings[0]),
+            )
+
+        with self.subTest():
+            allStrings = [
+                (t[0], b, e) for (t, b, e) in pp.quotedString.scanString(dblQuoteTest)
+            ]
+            print(allStrings)
+            self.assertTrue(
+                len(allStrings) == 2
+                and (
+                    allStrings[0][1] == 17
+                    and allStrings[0][2] == 66
+                    and allStrings[1][1] == 83
+                    and allStrings[1][2] == 132
+                ),
+                "quoted string escaped quote failure (%s)"
+                % ([str(s[0]) for s in allStrings]),
+            )
 
         print(
             "testing catastrophic RE backtracking in implementation of dblQuotedString"
@@ -1205,17 +1219,37 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             (pp.QuotedString('"'), '"' + "\\xff" * 500),
             (pp.QuotedString("'"), "'" + "\\xff" * 500),
         ]:
-            expr.parseString(test_string + test_string[0], parseAll=True)
-            try:
-                expr.parseString(test_string, parseAll=True)
-            except Exception:
-                continue
+            with self.subTest(expr=expr, test_string=test_string):
+                expr.parseString(test_string + test_string[0], parseAll=True)
+                try:
+                    expr.parseString(test_string, parseAll=True)
+                except Exception:
+                    continue
 
         # test invalid endQuoteChar
-        with self.assertRaises(
-            ValueError, msg="issue raising error for invalid endQuoteChar"
-        ):
-            expr = pp.QuotedString('"', endQuoteChar=" ")
+        with self.subTest():
+            with self.assertRaises(
+                ValueError, msg="issue raising error for invalid endQuoteChar"
+            ):
+                expr = pp.QuotedString('"', endQuoteChar=" ")
+
+        with self.subTest():
+            source = """
+                '''
+                multiline quote with comment # this is a comment
+                '''
+                \"\"\"
+                multiline quote with comment # this is a comment
+                \"\"\"
+                "single line quote with comment # this is a comment"
+                'single line quote with comment # this is a comment'
+            """
+            stripped = (
+                pp.python_style_comment.ignore(pp.python_quoted_string)
+                .suppress()
+                .transform_string(source)
+            )
+            self.assertEqual(source, stripped)
 
     def testCaselessOneOf(self):
         caseless1 = pp.oneOf("d a b c aA B A C", caseless=True)
@@ -2032,6 +2066,17 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
         print(testVal)
 
         self.assertParseResultsEquals(testVal, expected_list=expected)
+
+    def testCombineSetName(self):
+        ab = pp.Combine(
+            pp.Literal("a").set_name("AAA") | pp.Literal("b").set_name("BBB")
+        ).set_name("AB")
+        self.assertEqual("AB", ab.name)
+        self.assertEqual("AB", str(ab))
+        try:
+            ab.parse_string("C")
+        except ParseException as pe:
+            self.assertTrue(str(pe).startswith("Expected AB"))
 
     def testHTMLEntities(self):
         html_source = dedent(

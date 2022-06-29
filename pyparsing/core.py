@@ -4446,7 +4446,11 @@ class ParseElementEnhance(ParserElement):
 
     def parseImpl(self, instring, loc, doActions=True):
         if self.expr is not None:
-            return self.expr._parse(instring, loc, doActions, callPreParse=False)
+            try:
+                return self.expr._parse(instring, loc, doActions, callPreParse=False)
+            except ParseBaseException as pbe:
+                pbe.msg = self.errmsg
+                raise
         else:
             raise ParseException(instring, loc, "No expression defined", self)
 
@@ -5870,9 +5874,28 @@ sgl_quoted_string = Combine(
 ).set_name("string enclosed in single quotes")
 
 quoted_string = Combine(
-    Regex(r'"(?:[^"\n\r\\]|(?:"")|(?:\\(?:[^x]|x[0-9a-fA-F]+)))*') + '"'
-    | Regex(r"'(?:[^'\n\r\\]|(?:'')|(?:\\(?:[^x]|x[0-9a-fA-F]+)))*") + "'"
+    (Regex(r'"(?:[^"\n\r\\]|(?:"")|(?:\\(?:[^x]|x[0-9a-fA-F]+)))*') + '"').set_name(
+        "double quoted string"
+    )
+    | (Regex(r"'(?:[^'\n\r\\]|(?:'')|(?:\\(?:[^x]|x[0-9a-fA-F]+)))*") + "'").set_name(
+        "single quoted string"
+    )
 ).set_name("quoted string using single or double quotes")
+
+python_quoted_string = Combine(
+    (Regex(r'"([^"]|""?(?!"))*', flags=re.MULTILINE) + '"""').set_name(
+        "multiline double quoted string"
+    )
+    | (Regex(r"'([^']|''?(?!'))*", flags=re.MULTILINE) + "'''").set_name(
+        "multiline single quoted string"
+    )
+    | (Regex(r'"(?:[^"\n\r\\]|(?:"")|(?:\\(?:[^x]|x[0-9a-fA-F]+)))*') + '"').set_name(
+        "double quoted string"
+    )
+    | (Regex(r"'(?:[^'\n\r\\]|(?:'')|(?:\\(?:[^x]|x[0-9a-fA-F]+)))*") + "'").set_name(
+        "single quoted string"
+    )
+).set_name("Python quoted string")
 
 unicode_string = Combine("u" + quoted_string.copy()).set_name("unicode string literal")
 

@@ -70,11 +70,11 @@ class TestRailroadDiagrams(unittest.TestCase):
 
     def test_sql(self):
         railroad = self.generate_railroad(simpleSQL, "simpleSQL")
-        assert len(railroad) == 18
+        assert len(railroad) == 20
         railroad = self.generate_railroad(
             simpleSQL, "simpleSQL", show_results_names=True
         )
-        assert len(railroad) == 18
+        assert len(railroad) == 20
 
     def test_calendars(self):
         railroad = self.generate_railroad(calendars, "calendars")

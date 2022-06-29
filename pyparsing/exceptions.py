@@ -80,7 +80,9 @@ class ParseBaseException(Exception):
 
                 f_self = frm.f_locals.get("self", None)
                 if isinstance(f_self, ParserElement):
-                    if not frm.f_code.co_name.startswith(("parseImpl", "_parseNoCache")):
+                    if not frm.f_code.co_name.startswith(
+                        ("parseImpl", "_parseNoCache")
+                    ):
                         continue
                     if id(f_self) in seen:
                         continue

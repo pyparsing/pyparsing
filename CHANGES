@@ -28,6 +28,10 @@ help from Devin J. Pohly in structuring the code to enable this peaceful transit
 
   Suggested by Antony Lee (issue #412), PR (#413) by Devin J. Pohly.
 
+- Added new builtin `python_quoted_string`, which will match any form
+  of single-line or multiline quoted strings defined in Python. (Inspired
+  by discussion with Andreas Schörgenhumer in Issue #421.)
+
 - Fixed bug in `Word` when `max=2`. Also added performance enhancement
   when specifying `exact` argument. Reported in issue #409 by
   panda-34, nice catch!
@@ -35,7 +39,7 @@ help from Devin J. Pohly in structuring the code to enable this peaceful transit
 - `Word` arguments are now validated if `min` and `max` are both
   given, that `min` <= `max`; raises `ValueError` if values are invalid.
 
-- Extended `expr[]` notation for repetition of expr to accept a
+- Extended `expr[]` notation for repetition of `expr` to accept a
   slice, where the slice's stop value indicates a `stop_on`
   expression:
 
@@ -61,6 +65,9 @@ help from Devin J. Pohly in structuring the code to enable this peaceful transit
 
 - Fixed bug in srange, when parsing escaped '/' and '\' inside a
   range set.
+
+- Fixed exception messages for some ParserElements with custom names,
+  which instead showed their contained expression names.
 
 - Multiple added and corrected type annotations. With much help from
   Stephen Rosen, thanks!
