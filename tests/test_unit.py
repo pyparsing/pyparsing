@@ -5647,6 +5647,8 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
         recursive = pp.Forward()
         recursive <<= a + (b + recursive)[...]
 
+        zOpenTag, zCloseTag = pp.makeHTMLTags("Z")
+
         tests = [
             a,
             b,
@@ -5659,8 +5661,10 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             pp.delimitedList(pp.Word(pp.nums).setName("int")),
             pp.countedArray(pp.Word(pp.nums).setName("int")),
             pp.nestedExpr(),
-            pp.makeHTMLTags("Z"),
-            (pp.anyOpenTag, pp.anyCloseTag),
+            zOpenTag,
+            zCloseTag,
+            pp.anyOpenTag,
+            pp.anyCloseTag,
             pp.commonHTMLEntity,
             pp.commonHTMLEntity.setParseAction(pp.replaceHTMLEntity).transformString(
                 "lsdjkf &lt;lsdjkf&gt;&amp;&apos;&quot;&xyzzy;"
@@ -5681,8 +5685,10 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             int [, int]...
             (len) int...
             nested () expression
-            (<Z>, </Z>)
-            (<any tag>, </any tag>)
+            <Z>
+            </Z>
+            <any tag>
+            </any tag>
             common HTML entity
             lsdjkf <lsdjkf>&'"&xyzzy;""".splitlines(),
         )
@@ -9348,30 +9354,30 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
                 f"{expected_function!r} not found in ParseException.explain()",
             )
 
-    def testExpressionDefaultStrings(self):
+    def testWordCharDefaultStrings(self):
         expr = pp.Word(pp.nums)
         print(expr)
-        self.assertEqual("W:(0-9)", repr(expr))
+        self.assertEqual("W:(0-9)", str(expr))
 
         expr = pp.Word(pp.nums, exact=3)
         print(expr)
-        self.assertEqual("W:(0-9){3}", repr(expr))
+        self.assertEqual("W:(0-9){3}", str(expr))
 
         expr = pp.Word(pp.nums, min=2)
         print(expr)
-        self.assertEqual("W:(0-9){2,...}", repr(expr))
+        self.assertEqual("W:(0-9){2,...}", str(expr))
 
         expr = pp.Word(pp.nums, max=3)
         print(expr)
-        self.assertEqual("W:(0-9){1,3}", repr(expr))
+        self.assertEqual("W:(0-9){1,3}", str(expr))
 
         expr = pp.Word(pp.nums, min=2, max=3)
         print(expr)
-        self.assertEqual("W:(0-9){2,3}", repr(expr))
+        self.assertEqual("W:(0-9){2,3}", str(expr))
 
         expr = pp.Char(pp.nums)
         print(expr)
-        self.assertEqual("(0-9)", repr(expr))
+        self.assertEqual("(0-9)", str(expr))
 
     def testEmptyExpressionsAreHandledProperly(self):
         from pyparsing.diagram import to_railroad
