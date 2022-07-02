@@ -1412,7 +1412,8 @@ class ParserElement(ABC):
             raise TypeError(
                 f"Cannot combine element of type {type(other).__name__} with ParserElement"
             )
-        return self + And._ErrorStop() + other
+        # Construct And directly to ensure that an _ErrorStop is never the last element
+        return And([self, And._ErrorStop(), other])
 
     def __rsub__(self, other) -> "ParserElement":
         """
@@ -3748,10 +3749,11 @@ class ParseExpression(ParserElement):
         self.callPreparse = False
 
     def __repr__(self):
+        if not self.exprs:
+            return f"{type(self).__name__}()"
+        if len(self.exprs) == 1:
+            return f"{type(self).__name__}([{self.exprs[0]!r}])"
         op = f" {type(self).OPERATOR} "
-        if len(self.exprs) < 2:
-            elements = ", ".join(map(repr, self.exprs))
-            return f"{type(self).__name__}([{elements}])"
         return "(" + op.join(map(repr, self.exprs)) + ")"
 
     def recurse(self) -> Sequence[ParserElement]:
@@ -3953,6 +3955,23 @@ class And(ParseExpression):
         else:
             self.mayReturnEmpty = True
         self.callPreparse = True
+
+    def __repr__(self):
+        if not self.exprs:
+            return f"{type(self).__name__}()"
+        if len(self.exprs) == 1:
+            return f"{type(self).__name__}([{self.exprs[0]!r}])"
+
+        builder = [repr(self.exprs[0])]
+        nextOp = "+"
+        for expr in self.exprs[1:]:
+            if isinstance(expr, And._ErrorStop):
+                nextOp = "-"
+                continue
+            builder.append(nextOp)
+            builder.append(repr(expr))
+            nextOp = "+"
+        return " ".join(builder)
 
     def streamline(self) -> ParserElement:
         # collapse any _PendingSkip's
