@@ -3971,6 +3971,8 @@ class And(ParseExpression):
             builder.append(nextOp)
             builder.append(repr(expr))
             nextOp = "+"
+        if nextOp == "-":
+            builder.append("+ _ErrorStop()")
         return "(" + " ".join(builder) + ")"
 
     def streamline(self) -> ParserElement:
