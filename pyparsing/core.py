@@ -3971,7 +3971,7 @@ class And(ParseExpression):
             builder.append(nextOp)
             builder.append(repr(expr))
             nextOp = "+"
-        return " ".join(builder)
+        return "(" + " ".join(builder) + ")"
 
     def streamline(self) -> ParserElement:
         # collapse any _PendingSkip's
