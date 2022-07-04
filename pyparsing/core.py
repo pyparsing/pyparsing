@@ -1378,9 +1378,7 @@ class ParserElement(ABC):
         if isinstance(other, str_type):
             other = self._literalStringClass(other)
         if not isinstance(other, ParserElement):
-            raise TypeError(
-                f"Cannot combine element of type {type(other).__name__} with ParserElement"
-            )
+            return NotImplemented
         return And([self, other])
 
     def __radd__(self, other) -> "ParserElement":
@@ -1393,9 +1391,7 @@ class ParserElement(ABC):
         if isinstance(other, str_type):
             other = self._literalStringClass(other)
         if not isinstance(other, ParserElement):
-            raise TypeError(
-                f"Cannot combine element of type {type(other).__name__} with ParserElement"
-            )
+            return NotImplemented
         return other + self
 
     def __sub__(self, other) -> "ParserElement":
@@ -1405,9 +1401,7 @@ class ParserElement(ABC):
         if isinstance(other, str_type):
             other = self._literalStringClass(other)
         if not isinstance(other, ParserElement):
-            raise TypeError(
-                f"Cannot combine element of type {type(other).__name__} with ParserElement"
-            )
+            return NotImplemented
         return self + And._ErrorStop() + other
 
     def __rsub__(self, other) -> "ParserElement":
@@ -1417,9 +1411,7 @@ class ParserElement(ABC):
         if isinstance(other, str_type):
             other = self._literalStringClass(other)
         if not isinstance(other, ParserElement):
-            raise TypeError(
-                f"Cannot combine element of type {type(other).__name__} with ParserElement"
-            )
+            return NotImplemented
         return other - self
 
     def __mul__(self, other) -> "ParserElement":
@@ -1466,13 +1458,9 @@ class ParserElement(ABC):
                 minElements, optElements = other
                 optElements -= minElements
             else:
-                raise TypeError(
-                    f"cannot multiply ParserElement and ({','.join(type(item).__name__ for item in other)}) objects"
-                )
+                return NotImplemented
         else:
-            raise TypeError(
-                f"cannot multiply ParserElement and {type(other).__name__} objects"
-            )
+            return NotImplemented
 
         if minElements < 0:
             raise ValueError("cannot multiply ParserElement by negative value")
@@ -1518,9 +1506,7 @@ class ParserElement(ABC):
         if isinstance(other, str_type):
             other = self._literalStringClass(other)
         if not isinstance(other, ParserElement):
-            raise TypeError(
-                f"Cannot combine element of type {type(other).__name__} with ParserElement"
-            )
+            return NotImplemented
         return MatchFirst([self, other])
 
     def __ror__(self, other) -> "ParserElement":
@@ -1530,9 +1516,7 @@ class ParserElement(ABC):
         if isinstance(other, str_type):
             other = self._literalStringClass(other)
         if not isinstance(other, ParserElement):
-            raise TypeError(
-                f"Cannot combine element of type {type(other).__name__} with ParserElement"
-            )
+            return NotImplemented
         return other | self
 
     def __xor__(self, other) -> "ParserElement":
@@ -1542,9 +1526,7 @@ class ParserElement(ABC):
         if isinstance(other, str_type):
             other = self._literalStringClass(other)
         if not isinstance(other, ParserElement):
-            raise TypeError(
-                f"Cannot combine element of type {type(other).__name__} with ParserElement"
-            )
+            return NotImplemented
         return Or([self, other])
 
     def __rxor__(self, other) -> "ParserElement":
@@ -1554,9 +1536,7 @@ class ParserElement(ABC):
         if isinstance(other, str_type):
             other = self._literalStringClass(other)
         if not isinstance(other, ParserElement):
-            raise TypeError(
-                f"Cannot combine element of type {type(other).__name__} with ParserElement"
-            )
+            return NotImplemented
         return other ^ self
 
     def __and__(self, other) -> "ParserElement":
@@ -1566,9 +1546,7 @@ class ParserElement(ABC):
         if isinstance(other, str_type):
             other = self._literalStringClass(other)
         if not isinstance(other, ParserElement):
-            raise TypeError(
-                f"Cannot combine element of type {type(other).__name__} with ParserElement"
-            )
+            return NotImplemented
         return Each([self, other])
 
     def __rand__(self, other) -> "ParserElement":
@@ -1578,9 +1556,7 @@ class ParserElement(ABC):
         if isinstance(other, str_type):
             other = self._literalStringClass(other)
         if not isinstance(other, ParserElement):
-            raise TypeError(
-                f"Cannot combine element of type {type(other).__name__} with ParserElement"
-            )
+            return NotImplemented
         return other & self
 
     def __invert__(self) -> "ParserElement":
