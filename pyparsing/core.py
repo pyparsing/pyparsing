@@ -3749,10 +3749,8 @@ class ParseExpression(ParserElement):
         self.callPreparse = False
 
     def __repr__(self):
-        if not self.exprs:
-            return f"{type(self).__name__}()"
-        if len(self.exprs) == 1:
-            return f"{type(self).__name__}([{self.exprs[0]!r}])"
+        if len(self.exprs) < 2:
+            return f"{type(self).__name__}({self.exprs!r})"
         op = f" {type(self).OPERATOR} "
         return "(" + op.join(map(repr, self.exprs)) + ")"
 
@@ -3957,10 +3955,8 @@ class And(ParseExpression):
         self.callPreparse = True
 
     def __repr__(self):
-        if not self.exprs:
-            return f"{type(self).__name__}()"
-        if len(self.exprs) == 1:
-            return f"{type(self).__name__}([{self.exprs[0]!r}])"
+        if len(self.exprs) < 2:
+            return f"{type(self).__name__}({self.exprs!r})"
 
         builder = [repr(self.exprs[0])]
         nextOp = "+"
