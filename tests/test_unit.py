@@ -183,6 +183,930 @@ class Test01b_PyparsingUnitTestUtilitiesTests(TestCase):
                     except ParseException as pe:
                         pass
 
+class Test01c_ParseExpressionFormatting(TestCase):
+    def setUp(self):
+        # Make sure the inline class is reset to default
+        pp.ParserElement.inline_literals_using(pp.Literal)
+
+    def check_both(self, p, good_str, good_repr):
+        self.assertEqual(str(p), good_str)
+        self.assertEqual(repr(p), good_repr)
+
+    def testNoMatch(self):
+        p = pp.NoMatch()
+        self.check_both(p, "NoMatch", "NoMatch()")
+
+    def testLiteral(self):
+        p = pp.Literal("Hello")
+        self.check_both(p, "'Hello'", "Literal('Hello')")
+
+        p = pp.Literal("")
+        self.check_both(p, "Empty", "Empty()")
+
+        p = pp.Literal("Z")
+        self.check_both(p, "'Z'", "Literal('Z')")
+
+    def testEmpty(self):
+        p = pp.Empty()
+        self.check_both(p, "Empty", "Empty()")
+
+    def testKeyword(self):
+        p = pp.Keyword("Hello")
+        self.check_both(p, "'Hello'", "Keyword('Hello')")
+
+    @unittest.expectedFailure
+    def testCaselessLiteral(self):
+        p = pp.CaselessLiteral("Hello")
+        self.check_both(p, "'Hello'", "CaselessLiteral('Hello')")
+
+    def testCaselessKeyword(self):
+        p = pp.CaselessKeyword("Hello")
+        self.check_both(p, "'Hello'", "CaselessKeyword('Hello')")
+
+    def testCloseMatch(self):
+        p = pp.CloseMatch("Hello")
+        self.check_both(p, "CloseMatch:'Hello'", "CloseMatch('Hello')")
+
+        # Default for maxMismatches is 1
+        p = pp.CloseMatch("Hello", 1)
+        self.check_both(p, "CloseMatch:'Hello'", "CloseMatch('Hello')")
+
+        p = pp.CloseMatch("Hello", 3)
+        self.check_both(p, "CloseMatch:'Hello'", "CloseMatch('Hello', 3)")
+
+    def testWord(self):
+        p = pp.Word("ABC")
+        self.check_both(p, "W:(ABC)", "Word('ABC')")
+
+        p = pp.Word("ABC", "cba")
+        self.check_both(p, "W:(ABC, abc)", "Word('ABC', 'abc')")
+
+        p = pp.Word("ABC", exact=5)
+        self.check_both(p, "W:(ABC){5}", "Word('ABC', exact=5)")
+
+        p = pp.Word("ABC", min=3, max=3)
+        self.check_both(p, "W:(ABC){3}", "Word('ABC', exact=3)")
+
+        p = pp.Word("ABC", min=3, max=5)
+        self.check_both(p, "W:(ABC){3,5}", "Word('ABC', min=3, max=5)")
+
+        p = pp.Word("ABC", min=3)
+        self.check_both(p, "W:(ABC){3,...}", "Word('ABC', min=3)")
+
+        p = pp.Word("ABCDEFG", "#b", max=2)
+        self.check_both(p, "W:(A-G, #b){1,2}", "Word('ABCDEFG', '#b', max=2)")
+
+        p = pp.Word("ABC", exact=1)
+        self.check_both(p, "(ABC)", "Char('ABC')")
+
+        p = pp.Char("beadgcf")
+        self.check_both(p, "(a-g)", "Char('abcdefg')")
+
+    def testRegex(self):
+        p = pp.Regex(r"(?:[A-Za-z0-9+/]{4})*[A-Za-z0-9+/=]{4}")
+        self.check_both(
+            p,
+            r"Re:('(?:[A-Za-z0-9+/]{4})*[A-Za-z0-9+/=]{4}')",
+            r"Regex('(?:[A-Za-z0-9+/]{4})*[A-Za-z0-9+/=]{4}')",
+        )
+
+        p = pp.Regex(r"\([^)]*\)")
+        self.check_both(
+            p,
+            r"Re:('\([^)]*\)')",
+            r"Regex('\\([^)]*\\)')",
+        )
+
+    def testQuotedString(self):
+        p = pp.QuotedString("/")
+        self.check_both(p, "string enclosed in '/'", "QuotedString('/')")
+
+        p = pp.QuotedString("@{", end_quote_char="}")
+        self.check_both(
+            p,
+            "quoted string, starting with @{ ending with }",
+            "QuotedString('@{', end_quote_char='}')",
+        )
+
+    def testCharsNotIn(self):
+        p = pp.CharsNotIn("aeiou")
+        self.check_both(p, "!W:(aeiou)", "CharsNotIn('aeiou')")
+
+        p = pp.CharsNotIn("ACEGIKMOQSacegikmoqs")
+        self.check_both(p, "!W:(ACEGIKMOQSace...)", "CharsNotIn('ACEGIKMOQSacegikmoqs')")
+
+    def testWhitespace(self):
+        p = pp.White()
+        self.check_both(p, "<TAB><LF><CR><SP>", "White()")
+
+        p = pp.White("\t \u00a0\u202F")
+        self.check_both(
+            p,
+            "<TAB><SP><NBSP><NNBSP>",
+            r"White('\t \xa0\u202f')",
+        )
+
+    def testGoToColumn(self):
+        p = pp.GoToColumn(80)
+        self.check_both(p, "GoToColumn", "GoToColumn(80)")
+
+    def testAnchors(self):
+        p = pp.LineStart()
+        self.check_both(p, "LineStart", "LineStart()")
+
+        p = pp.LineEnd()
+        self.check_both(p, "LineEnd", "LineEnd()")
+
+        p = pp.StringStart()
+        self.check_both(p, "StringStart", "StringStart()")
+
+        p = pp.StringEnd()
+        self.check_both(p, "StringEnd", "StringEnd()")
+
+    def testWordStartEnd(self):
+        p = pp.WordStart()
+        self.check_both(p, "WordStart", "WordStart()")
+
+        p = pp.WordStart("0123457689")
+        self.check_both(p, "WordStart", "WordStart('0123456789')")
+
+        p = pp.WordEnd()
+        self.check_both(p, "WordEnd", "WordEnd()")
+
+        p = pp.WordEnd("0123457689")
+        self.check_both(p, "WordEnd", "WordEnd('0123456789')")
+
+    def testAnd(self):
+        p = pp.And([])
+        self.check_both(
+            p,
+            "{}",
+            "And([])",
+        )
+
+        p = pp.And(["Hello"])
+        self.check_both(
+            p,
+            "{'Hello'}",
+            "And(['Hello'])",
+        )
+
+        p = pp.And([pp.Word("aeiou")])
+        self.check_both(
+            p,
+            "{W:(aeiou)}",
+            "And([Word('aeiou')])",
+        )
+
+        p = pp.And(["Hello", "world"])
+        self.check_both(
+            p,
+            "{'Hello' 'world'}",
+            "Literal('Hello') + 'world'",
+        )
+
+        p = pp.And(["Hello", pp.Word("aeiou")])
+        self.check_both(
+            p,
+            "{'Hello' W:(aeiou)}",
+            "'Hello' + Word('aeiou')",
+        )
+
+        p = pp.And([pp.Word("aeiou"), "Hello"])
+        self.check_both(
+            p,
+            "{W:(aeiou) 'Hello'}",
+            "Word('aeiou') + 'Hello'",
+        )
+
+        p = pp.And([pp.Word("aeiou"), pp.Word("AEIOU")])
+        self.check_both(
+            p,
+            "{W:(aeiou) W:(AEIOU)}",
+            "Word('aeiou') + Word('AEIOU')",
+        )
+
+        p = pp.And([pp.MatchFirst(["Hello", "there"]), "Hi"])
+        self.check_both(
+            p,
+            "{{'Hello' | 'there'} 'Hi'}",
+            "(Literal('Hello') | 'there') + 'Hi'",
+        )
+
+        p = pp.And(["Hello", pp.MatchFirst(["Hi", "there"])])
+        self.check_both(
+            p,
+            "{'Hello' {'Hi' | 'there'}}",
+            "'Hello' + (Literal('Hi') | 'there')",
+        )
+
+        p = pp.And(["Hello", "Hi", "Greetings"])
+        self.check_both(
+            p,
+            "{'Hello' 'Hi' 'Greetings'}",
+            "Literal('Hello') + 'Hi' + 'Greetings'",
+        )
+
+        p = pp.And(["Hello", pp.MatchFirst(["Hi", "there"]), pp.Word("aeiou")])
+        self.check_both(
+            p,
+            "{'Hello' {'Hi' | 'there'} W:(aeiou)}",
+            "'Hello' + (Literal('Hi') | 'there') + Word('aeiou')",
+        )
+
+        p = pp.And(["Hello", pp.Word("aeiou"), pp.MatchFirst(["Hi", "there"])])
+        self.check_both(
+            p,
+            "{'Hello' W:(aeiou) {'Hi' | 'there'}}",
+            "'Hello' + Word('aeiou') + (Literal('Hi') | 'there')",
+        )
+
+    def testErrorStop(self):
+        p = pp.Literal("Hello") - "world"
+        self.check_both(
+            p,
+            "{'Hello' - 'world'}",
+            "Literal('Hello') - 'world'",
+        )
+
+        p = pp.Literal("Hello") - pp.Word("aeiou")
+        self.check_both(
+            p,
+            "{'Hello' - W:(aeiou)}",
+            "Literal('Hello') - Word('aeiou')",
+            # Maybe in future:
+            #"'Hello' - Word('aeiou')",
+        )
+
+        p = pp.And(["Hello", pp.MatchFirst(["Hi", "there"]), pp.And._ErrorStop(), pp.Word("aeiou")])
+        self.check_both(
+            p,
+            "{'Hello' {'Hi' | 'there'} - W:(aeiou)}",
+            "'Hello' + (Literal('Hi') | 'there') - Word('aeiou')",
+        )
+
+    def testOr(self):
+        p = pp.Or([])
+        self.check_both(
+            p,
+            "{}",
+            "Or([])",
+        )
+
+        p = pp.Or(["Hello"])
+        self.check_both(
+            p,
+            "{'Hello'}",
+            "Or(['Hello'])",
+        )
+
+        p = pp.Or([pp.Word("aeiou")])
+        self.check_both(
+            p,
+            "{W:(aeiou)}",
+            "Or([Word('aeiou')])",
+        )
+
+        p = pp.Or(["Hello", "world"])
+        self.check_both(
+            p,
+            "{'Hello' ^ 'world'}",
+            "Literal('Hello') ^ 'world'",
+        )
+
+        p = pp.Or(["Hello", pp.Word("aeiou")])
+        self.check_both(
+            p,
+            "{'Hello' ^ W:(aeiou)}",
+            "'Hello' ^ Word('aeiou')",
+        )
+
+        p = pp.Or([pp.Word("aeiou"), "Hello"])
+        self.check_both(
+            p,
+            "{W:(aeiou) ^ 'Hello'}",
+            "Word('aeiou') ^ 'Hello'",
+        )
+
+        p = pp.Or([pp.Word("aeiou"), pp.Word("AEIOU")])
+        self.check_both(
+            p,
+            "{W:(aeiou) ^ W:(AEIOU)}",
+            "Word('aeiou') ^ Word('AEIOU')",
+        )
+
+        p = pp.Or([pp.And(["Hello", "there"]), "Hi"])
+        self.check_both(
+            p,
+            "{{'Hello' 'there'} ^ 'Hi'}",
+            "(Literal('Hello') + 'there') ^ 'Hi'",
+        )
+
+        p = pp.Or(["Hello", pp.And(["Hi", "there"])])
+        self.check_both(
+            p,
+            "{'Hello' ^ {'Hi' 'there'}}",
+            "'Hello' ^ (Literal('Hi') + 'there')",
+        )
+
+        p = pp.Or(["Hello", "Hi", "Greetings"])
+        self.check_both(
+            p,
+            "{'Hello' ^ 'Hi' ^ 'Greetings'}",
+            "Literal('Hello') ^ 'Hi' ^ 'Greetings'",
+        )
+
+        p = pp.Or(["Hello", pp.And(["Hi", "there"]), pp.Word("aeiou")])
+        self.check_both(
+            p,
+            "{'Hello' ^ {'Hi' 'there'} ^ W:(aeiou)}",
+            "'Hello' ^ (Literal('Hi') + 'there') ^ Word('aeiou')",
+        )
+
+        p = pp.Or(["Hello", pp.Word("aeiou"), pp.And(["Hi", "there"])])
+        self.check_both(
+            p,
+            "{'Hello' ^ W:(aeiou) ^ {'Hi' 'there'}}",
+            "'Hello' ^ Word('aeiou') ^ (Literal('Hi') + 'there')",
+        )
+
+    def testMatchFirst(self):
+        p = pp.MatchFirst([])
+        self.check_both(
+            p,
+            "{}",
+            "MatchFirst([])",
+        )
+
+        p = pp.MatchFirst(["Hello"])
+        self.check_both(
+            p,
+            "{'Hello'}",
+            "MatchFirst(['Hello'])",
+        )
+
+        p = pp.MatchFirst([pp.Word("aeiou")])
+        self.check_both(
+            p,
+            "{W:(aeiou)}",
+            "MatchFirst([Word('aeiou')])",
+        )
+
+        p = pp.MatchFirst(["Hello", "world"])
+        self.check_both(
+            p,
+            "{'Hello' | 'world'}",
+            "Literal('Hello') | 'world'",
+        )
+
+        p = pp.MatchFirst(["Hello", pp.Word("aeiou")])
+        self.check_both(
+            p,
+            "{'Hello' | W:(aeiou)}",
+            "'Hello' | Word('aeiou')",
+        )
+
+        p = pp.MatchFirst([pp.Word("aeiou"), "Hello"])
+        self.check_both(
+            p,
+            "{W:(aeiou) | 'Hello'}",
+            "Word('aeiou') | 'Hello'",
+        )
+
+        p = pp.MatchFirst([pp.Word("aeiou"), pp.Word("AEIOU")])
+        self.check_both(
+            p,
+            "{W:(aeiou) | W:(AEIOU)}",
+            "Word('aeiou') | Word('AEIOU')",
+        )
+
+        p = pp.MatchFirst([pp.And(["Hello", "there"]), "Hi"])
+        self.check_both(
+            p,
+            "{{'Hello' 'there'} | 'Hi'}",
+            "(Literal('Hello') + 'there') | 'Hi'",
+        )
+
+        p = pp.MatchFirst(["Hello", pp.And(["Hi", "there"])])
+        self.check_both(
+            p,
+            "{'Hello' | {'Hi' 'there'}}",
+            "'Hello' | (Literal('Hi') + 'there')",
+        )
+
+        p = pp.MatchFirst(["Hello", "Hi", "Greetings"])
+        self.check_both(
+            p,
+            "{'Hello' | 'Hi' | 'Greetings'}",
+            "Literal('Hello') | 'Hi' | 'Greetings'",
+        )
+
+        p = pp.MatchFirst(["Hello", pp.And(["Hi", "there"]), pp.Word("aeiou")])
+        self.check_both(
+            p,
+            "{'Hello' | {'Hi' 'there'} | W:(aeiou)}",
+            "'Hello' | (Literal('Hi') + 'there') | Word('aeiou')",
+        )
+
+        p = pp.MatchFirst(["Hello", pp.Word("aeiou"), pp.And(["Hi", "there"])])
+        self.check_both(
+            p,
+            "{'Hello' | W:(aeiou) | {'Hi' 'there'}}",
+            "'Hello' | Word('aeiou') | (Literal('Hi') + 'there')",
+        )
+
+    def testEach(self):
+        p = pp.Each([])
+        self.check_both(
+            p,
+            "{}",
+            "Each([])",
+        )
+
+        p = pp.Each(["Hello"])
+        self.check_both(
+            p,
+            "{'Hello'}",
+            "Each(['Hello'])",
+        )
+
+        p = pp.Each([pp.Word("aeiou")])
+        self.check_both(
+            p,
+            "{W:(aeiou)}",
+            "Each([Word('aeiou')])",
+        )
+
+        p = pp.Each(["Hello", "world"])
+        self.check_both(
+            p,
+            "{'Hello' & 'world'}",
+            "Literal('Hello') & 'world'",
+        )
+
+        p = pp.Each(["Hello", pp.Word("aeiou")])
+        self.check_both(
+            p,
+            "{'Hello' & W:(aeiou)}",
+            "'Hello' & Word('aeiou')",
+        )
+
+        p = pp.Each([pp.Word("aeiou"), "Hello"])
+        self.check_both(
+            p,
+            "{W:(aeiou) & 'Hello'}",
+            "Word('aeiou') & 'Hello'",
+        )
+
+        p = pp.Each([pp.Word("aeiou"), pp.Word("AEIOU")])
+        self.check_both(
+            p,
+            "{W:(aeiou) & W:(AEIOU)}",
+            "Word('aeiou') & Word('AEIOU')",
+        )
+
+        p = pp.Each([pp.And(["Hello", "there"]), "Hi"])
+        self.check_both(
+            p,
+            "{{'Hello' 'there'} & 'Hi'}",
+            "(Literal('Hello') + 'there') & 'Hi'",
+        )
+
+        p = pp.Each(["Hello", pp.And(["Hi", "there"])])
+        self.check_both(
+            p,
+            "{'Hello' & {'Hi' 'there'}}",
+            "'Hello' & (Literal('Hi') + 'there')",
+        )
+
+        p = pp.Each(["Hello", "Hi", "Greetings"])
+        self.check_both(
+            p,
+            "{'Hello' & 'Hi' & 'Greetings'}",
+            "Literal('Hello') & 'Hi' & 'Greetings'",
+        )
+
+        p = pp.Each(["Hello", pp.And(["Hi", "there"]), pp.Word("aeiou")])
+        self.check_both(
+            p,
+            "{'Hello' & {'Hi' 'there'} & W:(aeiou)}",
+            "'Hello' & (Literal('Hi') + 'there') & Word('aeiou')",
+        )
+
+        p = pp.Each(["Hello", pp.Word("aeiou"), pp.And(["Hi", "there"])])
+        self.check_both(
+            p,
+            "{'Hello' & W:(aeiou) & {'Hi' 'there'}}",
+            "'Hello' & Word('aeiou') & (Literal('Hi') + 'there')",
+        )
+
+    def testIndentedBlock(self):
+        p = pp.IndentedBlock("Hello")
+        self.check_both(
+            p,
+            "IndentedBlock:('Hello')",
+            "IndentedBlock('Hello')",
+        )
+
+        p = pp.IndentedBlock(pp.Word("aeiou"))
+        self.check_both(
+            p,
+            "IndentedBlock:(W:(aeiou))",
+            "IndentedBlock(Word('aeiou'))",
+        )
+
+    def testAtStringStart(self):
+        p = pp.AtStringStart("Hello")
+        self.check_both(
+            p,
+            "AtStringStart:('Hello')",
+            "AtStringStart('Hello')",
+        )
+
+        p = pp.AtStringStart(pp.Word("aeiou"))
+        self.check_both(
+            p,
+            "AtStringStart:(W:(aeiou))",
+            "AtStringStart(Word('aeiou'))",
+        )
+
+    def testAtLineStart(self):
+        p = pp.AtLineStart("Hello")
+        self.check_both(
+            p,
+            "AtLineStart:('Hello')",
+            "AtLineStart('Hello')",
+        )
+
+        p = pp.AtLineStart(pp.Word("aeiou"))
+        self.check_both(
+            p,
+            "AtLineStart:(W:(aeiou))",
+            "AtLineStart(Word('aeiou'))",
+        )
+
+
+    def testFollowedBy(self):
+        p = pp.FollowedBy("Hello")
+        self.check_both(
+            p,
+            "FollowedBy:('Hello')",
+            "FollowedBy('Hello')",
+        )
+
+        p = pp.FollowedBy(pp.Word("aeiou"))
+        self.check_both(
+            p,
+            "FollowedBy:(W:(aeiou))",
+            "FollowedBy(Word('aeiou'))",
+        )
+
+    def testPrecededBy(self):
+        p = pp.PrecededBy("Hello")
+        self.check_both(
+            p,
+            "PrecededBy:('Hello')",
+            "PrecededBy('Hello')",
+        )
+
+        p = pp.PrecededBy(pp.Word("aeiou"))
+        self.check_both(
+            p,
+            "PrecededBy:(W:(aeiou))",
+            "PrecededBy(Word('aeiou'))",
+        )
+
+    def testLocated(self):
+        p = pp.Located("Hello")
+        self.check_both(
+            p,
+            "Located:('Hello')",
+            "Located('Hello')",
+        )
+
+        p = pp.Located(pp.Word("aeiou"))
+        self.check_both(
+            p,
+            "Located:(W:(aeiou))",
+            "Located(Word('aeiou'))",
+        )
+
+    def testNotAny(self):
+        p = pp.NotAny("Hello")
+        self.check_both(
+            p,
+            "~{'Hello'}",
+            "~Literal('Hello')",
+        )
+
+        p = pp.NotAny(pp.Word("aeiou"))
+        self.check_both(
+            p,
+            "~{W:(aeiou)}",
+            "~Word('aeiou')",
+        )
+
+        p = pp.NotAny(pp.Word("aeiou") | "hello")
+        self.check_both(
+            p,
+            "~{{W:(aeiou) | 'hello'}}",
+            "~(Word('aeiou') | 'hello')",
+        )
+
+
+    def testZeroOrMore(self):
+        p = pp.ZeroOrMore("Hello")
+        self.check_both(
+            p,
+            "['Hello']...",
+            "Literal('Hello')[...]",
+        )
+
+        p = pp.ZeroOrMore(pp.Word("aeiou"))
+        self.check_both(
+            p,
+            "[W:(aeiou)]...",
+            "Word('aeiou')[...]",
+        )
+
+        p = pp.ZeroOrMore(pp.Word("aeiou") | "hello")
+        self.check_both(
+            p,
+            "[{W:(aeiou) | 'hello'}]...",
+            "(Word('aeiou') | 'hello')[...]",
+        )
+
+        p = pp.ZeroOrMore("Hello", stop_on="bye")
+        self.check_both(
+            p,
+            "['Hello']...",
+            "Literal('Hello')[...: 'bye']",
+        )
+
+        p = pp.ZeroOrMore("Hello", stop_on=pp.Word("xyz"))
+        self.check_both(
+            p,
+            "['Hello']...",
+            "Literal('Hello')[...: Word('xyz')]",
+        )
+
+        p = pp.ZeroOrMore("Hello", stop_on=(pp.Word("xyz") | "bye"))
+        self.check_both(
+            p,
+            "['Hello']...",
+            "Literal('Hello')[...: Word('xyz') | 'bye']",
+        )
+
+    def testOneOrMore(self):
+        p = pp.OneOrMore("Hello")
+        self.check_both(
+            p,
+            "{'Hello'}...",
+            "Literal('Hello')[1, ...]",
+        )
+
+        p = pp.OneOrMore(pp.Word("aeiou"))
+        self.check_both(
+            p,
+            "{W:(aeiou)}...",
+            "Word('aeiou')[1, ...]",
+        )
+
+        p = pp.OneOrMore(pp.Word("aeiou") | "hello")
+        self.check_both(
+            p,
+            "{{W:(aeiou) | 'hello'}}...",
+            "(Word('aeiou') | 'hello')[1, ...]",
+        )
+
+        p = pp.OneOrMore("Hello", stop_on="bye")
+        self.check_both(
+            p,
+            "{'Hello'}...",
+            "Literal('Hello')[1, ...: 'bye']",
+        )
+
+        p = pp.OneOrMore("Hello", stop_on=pp.Word("xyz"))
+        self.check_both(
+            p,
+            "{'Hello'}...",
+            "Literal('Hello')[1, ...: Word('xyz')]",
+        )
+
+        p = pp.OneOrMore("Hello", stop_on=(pp.Word("xyz") | "bye"))
+        self.check_both(
+            p,
+            "{'Hello'}...",
+            "Literal('Hello')[1, ...: Word('xyz') | 'bye']",
+        )
+
+    def testOpt(self):
+        p = pp.Opt("Hello")
+        self.check_both(
+            p,
+            "['Hello']",
+            "Opt('Hello')",
+        )
+
+        p = pp.Opt(pp.Word("aeiou"))
+        self.check_both(
+            p,
+            "[W:(aeiou)]",
+            "Opt(Word('aeiou'))",
+        )
+
+        p = pp.Opt(pp.Word("aeiou") | "hello")
+        self.check_both(
+            p,
+            "[W:(aeiou) | 'hello']",
+            "Opt(Word('aeiou') | 'hello')",
+        )
+
+    def testSkipTo(self):
+        p = pp.SkipTo("Hello")
+        self.check_both(
+            p,
+            "SkipTo:('Hello')",
+            "SkipTo('Hello')",
+        )
+
+        p = pp.SkipTo(pp.Word("aeiou"))
+        self.check_both(
+            p,
+            "SkipTo:(W:(aeiou))",
+            "SkipTo(Word('aeiou'))",
+        )
+
+        p = pp.SkipTo(pp.Word("aeiou") | "hello")
+        self.check_both(
+            p,
+            "SkipTo:({W:(aeiou) | 'hello'})",
+            "SkipTo(Word('aeiou') | 'hello')",
+        )
+
+    def testForward(self):
+        p = pp.Forward()
+        p <<= ppc.integer() | pp.And(["(", p, pp.Char("+*"), ppc.integer(), ")"])
+        self.check_both(
+            p,
+            "Forward: {integer | {'(' : ... (*+) integer ')'}}",
+            "Forward(...)",
+            # Perhaps in future:
+            # "Forward(Word('0123456789') | (Literal('(') + Forward(...) + Char('*+') + Word('0123456789') + ')'))",
+        )
+
+    @unittest.expectedFailure
+    def testForwardIndirect(self):
+        f = pp.Forward()
+        g = pp.Forward()
+        f <<= g
+        g <<= f
+
+        # f and g are identical, but str() doesn't yield identical results
+        self.check_both(
+            f,
+            "Forward: Forward: : ...",
+            "Forward(Forward(Forward(...)))",
+        )
+        self.check_both(
+            g,
+            "Forward: Forward: : ...",
+            "Forward(Forward(Forward(...)))",
+        )
+
+    def testCombine(self):
+        p = pp.Combine("Hello")
+        self.check_both(
+            p,
+            "Combine:('Hello')",
+            "Combine('Hello')",
+        )
+
+        p = pp.Combine(pp.Word("aeiou"))
+        self.check_both(
+            p,
+            "Combine:(W:(aeiou))",
+            "Combine(Word('aeiou'))",
+        )
+
+    def testGroup(self):
+        p = pp.Group("Hello")
+        self.check_both(
+            p,
+            "Group:('Hello')",
+            "Group('Hello')",
+        )
+
+        p = pp.Group(pp.Word("aeiou"))
+        self.check_both(
+            p,
+            "Group:(W:(aeiou))",
+            "Group(Word('aeiou'))",
+        )
+
+    def testDict(self):
+        p = pp.Dict("Hello")
+        self.check_both(
+            p,
+            "Dict:('Hello')",
+            "Dict('Hello')",
+        )
+
+        p = pp.Dict(pp.Word("aeiou"))
+        self.check_both(
+            p,
+            "Dict:(W:(aeiou))",
+            "Dict(Word('aeiou'))",
+        )
+
+    def testSuppress(self):
+        p = pp.Suppress("Hello")
+        self.check_both(
+            p,
+            "Suppress:('Hello')",
+            "Suppress('Hello')",
+        )
+
+        p = pp.Suppress(pp.Word("aeiou"))
+        self.check_both(
+            p,
+            "Suppress:(W:(aeiou))",
+            "Suppress(Word('aeiou'))",
+        )
+
+        p = pp.Suppress(pp.Word("aeiou") | "hello")
+        self.check_both(
+            p,
+            "Suppress:({W:(aeiou) | 'hello'})",
+            "Suppress(Word('aeiou') | 'hello')",
+        )
+
+    def testInlineLiterals(self):
+        lit = pp.Opt(pp.Literal("Hello"))
+        key = pp.Opt(pp.Keyword("Hello"))
+        ck = pp.Opt(pp.CaselessKeyword("Hello"))
+        sup = pp.Opt(pp.Suppress("Hello"))
+
+        self.check_both(
+            lit,
+            "['Hello']",
+            "Opt('Hello')",
+        )
+        self.check_both(
+            key,
+            "['Hello']",
+            "Opt(Keyword('Hello'))",
+        )
+        self.check_both(
+            ck,
+            "['Hello']",
+            "Opt(CaselessKeyword('Hello'))",
+        )
+        self.check_both(
+            sup,
+            "[Suppress:('Hello')]",
+            "Opt(Suppress('Hello'))",
+        )
+
+        pp.ParserElement.inline_literals_using(pp.Keyword)
+
+        self.check_both(
+            lit,
+            "['Hello']",
+            "Opt(Literal('Hello'))",
+        )
+        self.check_both(
+            key,
+            "['Hello']",
+            "Opt('Hello')",
+        )
+
+        pp.ParserElement.inline_literals_using(pp.CaselessKeyword)
+
+        self.check_both(
+            key,
+            "['Hello']",
+            "Opt(Keyword('Hello'))",
+        )
+        self.check_both(
+            ck,
+            "['Hello']",
+            "Opt('Hello')",
+        )
+
+        pp.ParserElement.inline_literals_using(pp.Suppress)
+
+        self.check_both(
+            ck,
+            "['Hello']",
+            "Opt(CaselessKeyword('Hello'))",
+        )
+        self.check_both(
+            sup,
+            "[Suppress:('Hello')]",
+            "Opt('Hello')",
+        )
+
 
 class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
     suite_context = None

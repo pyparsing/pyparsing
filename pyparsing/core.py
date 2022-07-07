@@ -476,7 +476,50 @@ class ParserElement(ABC):
         self.callDuringTry = False
         self.suppress_warnings_: List[Diagnostics] = []
 
-    def __repr__(self):
+    def __repr__(self) -> str:
+        """Returns a canonical string representation of this element.  This is
+        often, but not always, an expression that would produce a similar
+        element if evaluated.
+
+        Instances of the literal wrapper class (set by
+        :meth:`inline_literals_using`) are written as literals when possible.
+        """
+        return self._make_repr()
+
+    def __format__(self, spec: str) -> str:
+        """Formats an element for printing or f-string interpolation.
+
+        Supported conversion specifiers are:
+
+        - ``s`` or none: as given by :meth:`__str__`
+        - ``r``: as given by :meth:`__repr__`
+        - Other specifiers are used internally and may change.
+
+        Example::
+
+            parser = OneOrMore("Hello") + "world"
+            print(f"{parser}\\n{parser:r})
+
+        results in::
+
+            {{'Hello'}... 'world'}
+            Literal('Hello')[1, ...] + 'world'
+        """
+        if not spec or spec == "s":
+            return str(self)
+
+        # Specifiers "+r", "lr", and "+lr" are used internally for _make_repr()
+        # variants.  The "+" modifier means that this element is a term in a
+        # larger expression and may need parentheses.  The "l" modifier means
+        # that an instance of _literalStringClass may be written as a string
+        # literal in this context.
+        if spec in ("r", "lr", "+r", "+lr"):
+            as_literal = "l" in spec and isinstance(self, ParserElement._literalStringClass)
+            is_term = "+" in spec
+            return self._make_repr(as_literal=as_literal, is_term=is_term)
+        raise ValueError(f"Invalid format specifier: {spec!r}")
+
+    def _make_repr(self, as_literal=False, is_term=False):
         return f"{type(self).__name__}()"
 
     def suppress_warning(self, warning_type: Diagnostics) -> "ParserElement":
@@ -2389,7 +2432,9 @@ class Literal(Token):
         obj.__dict__.update(self.__dict__)
         return obj
 
-    def __repr__(self):
+    def _make_repr(self, as_literal=False, is_term=False):
+        if as_literal:
+            return repr(self.match)
         return f"{type(self).__name__}({self.match!r})"
 
     def _generateDefaultName(self) -> str:
@@ -2413,8 +2458,10 @@ class Empty(Literal):
         self.mayReturnEmpty = True
         self.mayIndexError = False
 
-    def __repr__(self):
-        return "Empty()"
+    def _make_repr(self, as_literal=False, is_term=False):
+        if as_literal:
+            return repr("")
+        return f"{type(self).__name__}()"
 
     def _generateDefaultName(self) -> str:
         return "Empty"
@@ -2424,7 +2471,9 @@ class Empty(Literal):
 
 
 class _SingleCharLiteral(Literal):
-    def __repr__(self):
+    def _make_repr(self, as_literal=False, is_term=False):
+        if as_literal:
+            return repr(self.match)
         return f"Literal({self.match!r})"
 
     def parseImpl(self, instring, loc, doActions=True):
@@ -2494,8 +2543,10 @@ class Keyword(Token):
             identChars = identChars.upper()
         self.identChars = set(identChars)
 
-    def __repr__(self) -> str:
-        return f"Keyword({self.match!r})"
+    def _make_repr(self, as_literal=False, is_term=False):
+        if as_literal:
+            return repr(self.match)
+        return f"{type(self).__name__}({self.match!r})"
 
     def _generateDefaultName(self) -> str:
         return repr(self.match)
@@ -2578,7 +2629,9 @@ class CaselessLiteral(Literal):
         self.returnString = match_string
         self.errmsg = "Expected " + self.name
 
-    def __repr__(self) -> str:
+    def _make_repr(self, as_literal=False, is_term=False):
+        if as_literal:
+            return repr(self.returnString)
         return f"CaselessLiteral({self.returnString!r})"
 
     def parseImpl(self, instring, loc, doActions=True):
@@ -2664,7 +2717,11 @@ class CloseMatch(Token):
         self.mayIndexError = False
         self.mayReturnEmpty = False
 
-    def __repr__(self) -> str:
+    def _make_repr(self, as_literal=False, is_term=False):
+        if as_literal:
+            return repr(self.match_string)
+        if self.maxMismatches == 1:
+            return f"{type(self).__name__}({self.match_string!r})"
         return f"{type(self).__name__}({self.match_string!r}, {self.maxMismatches})"
 
     def _generateDefaultName(self) -> str:
@@ -2887,13 +2944,24 @@ class Word(Token):
                 self.re_match = self.re.match
                 self.parseImpl = self.parseImpl_regex
 
-    def __repr__(self) -> str:
+    def _make_repr(self, as_literal=False, is_term=False):
         init = "".join(sorted(self.initChars))
-        args = f"{init!r}"
+        if self.maxLen == 1:
+            return f"Char({init!r})"
+        args = [repr(init)]
         if self.initChars != self.bodyChars:
             body = "".join(sorted(self.bodyChars))
-            args += f", {body!r}"
-        return f"{type(self).__name__}({args})"
+            args.append(repr(body))
+        if self.minLen == self.maxLen:
+            args.append(f"exact={self.minLen}")
+        else:
+            if self.minLen > 1:
+                args.append(f"min={self.minLen}")
+            if self.maxLen < _MAX_INT:
+                args.append(f"max={self.maxLen}")
+
+        arg_str = ", ".join(args)
+        return f"{type(self).__name__}({arg_str})"
 
     def _generateDefaultName(self) -> str:
         def charsAsStr(s):
@@ -3056,7 +3124,9 @@ class Regex(Token):
         if self.asMatch:
             self.parseImpl = self.parseImplAsMatch  # type: ignore [assignment]
 
-    def __repr__(self) -> str:
+    def _make_repr(self, as_literal=False, is_term=False):
+        if as_literal:
+            return repr(self.pattern)
         return f"Regex({self.pattern!r})"
 
     @cached_property
@@ -3291,7 +3361,7 @@ class QuotedString(Token):
         self.mayIndexError = False
         self.mayReturnEmpty = True
 
-    def __repr__(self) -> str:
+    def _make_repr(self, as_literal=False, is_term=False):
         if self.quoteChar == self.endQuoteChar and isinstance(self.quoteChar, str_type):
             return f"QuotedString({self.quoteChar!r})"
         return f"QuotedString({self.quoteChar!r}, end_quote_char={self.endQuoteChar!r})"
@@ -3392,9 +3462,9 @@ class CharsNotIn(Token):
         self.mayReturnEmpty = self.minLen == 0
         self.mayIndexError = False
 
-    def __repr__(self) -> str:
+    def _make_repr(self, as_literal=False, is_term=False):
         not_chars = "".join(sorted(self.notCharsSet))
-        return f"NotChars({not_chars!r})"
+        return f"CharsNotIn({not_chars!r})"
 
     def _generateDefaultName(self) -> str:
         not_chars_str = _collapse_string_to_ranges(self.notChars)
@@ -3478,13 +3548,14 @@ class White(Token):
             self.maxLen = exact
             self.minLen = exact
 
-    def __repr__(self) -> str:
+    def _make_repr(self, as_literal=False, is_term=False):
         if set(self.matchWhite) == set(" \t\r\n"):
             return f"{type(self).__name__}()"
-        return f"{type(self).__name__}({self.matchWhite!r})"
+        ws_str = "".join(sorted(set(self.matchWhite)))
+        return f"{type(self).__name__}({ws_str!r})"
 
     def _generateDefaultName(self) -> str:
-        return "".join(White.whiteStrs[c] for c in self.matchWhite)
+        return "".join(White.whiteStrs[c] for c in sorted(set(self.matchWhite)))
 
     def parseImpl(self, instring, loc, doActions=True):
         if instring[loc] not in self.matchWhite:
@@ -3518,7 +3589,7 @@ class GoToColumn(PositionToken):
         super().__init__()
         self.col = colno
 
-    def __repr__(self):
+    def _make_repr(self, as_literal=False, is_term=False):
         return f"{type(self).__name__}({self.col!r})"
 
     def preParse(self, instring: str, loc: int) -> int:
@@ -3666,7 +3737,7 @@ class WordStart(PositionToken):
         self.wordChars = set(wordChars)
         self.errmsg = "Not at the start of a word"
 
-    def __repr__(self):
+    def _make_repr(self, as_literal=False, is_term=False):
         if self.wordChars == set(printables):
             return f"{type(self).__name__}()"
         chars = "".join(sorted(self.wordChars))
@@ -3698,7 +3769,7 @@ class WordEnd(PositionToken):
         self.skipWhitespace = False
         self.errmsg = "Not at the end of a word"
 
-    def __repr__(self):
+    def _make_repr(self, as_literal=False, is_term=False):
         if self.wordChars == set(printables):
             return f"{type(self).__name__}()"
         chars = "".join(sorted(self.wordChars))
@@ -3748,11 +3819,28 @@ class ParseExpression(ParserElement):
                 self.exprs = [exprs]
         self.callPreparse = False
 
-    def __repr__(self):
-        if len(self.exprs) < 2:
-            return f"{type(self).__name__}({self.exprs!r})"
+    def _make_repr(self, as_literal=False, is_term=False):
+        if not self.exprs:
+            return f"{type(self).__name__}([])"
+        if len(self.exprs) == 1:
+            return f"{type(self).__name__}([{self.exprs[0]:lr}])"
+
         op = f" {type(self).OPERATOR} "
-        return "(" + op.join(map(repr, self.exprs)) + ")"
+        # Allow the first term to be a literal string if the second is not
+        if isinstance(self.exprs[1], ParserElement._literalStringClass):
+            first = f"{self.exprs[0]:+r}"
+        else:
+            first = f"{self.exprs[0]:+lr}"
+        # Any term after the first may be a literal string
+        result = op.join([
+            first,
+            *(f"{expr:+lr}" for expr in self.exprs[1:]),
+        ])
+        return f"({result})" if is_term else result
+
+    def _generateDefaultName(self) -> str:
+        op = f" {type(self).OPERATOR} "
+        return "{" + op.join(map(str, self.exprs)) + "}"
 
     def recurse(self) -> Sequence[ParserElement]:
         return self.exprs[:]
@@ -3798,9 +3886,6 @@ class ParseExpression(ParserElement):
             for e in self.exprs:
                 e.ignore(self.ignoreExprs[-1])
         return self
-
-    def _generateDefaultName(self) -> str:
-        return f"{self.__class__.__name__}:({str(self.exprs)})"
 
     def streamline(self) -> ParserElement:
         if self.streamlined:
@@ -3954,22 +4039,29 @@ class And(ParseExpression):
             self.mayReturnEmpty = True
         self.callPreparse = True
 
-    def __repr__(self):
-        if len(self.exprs) < 2:
-            return f"{type(self).__name__}({self.exprs!r})"
+    def _make_repr(self, as_literal=False, is_term=False):
+        if not self.exprs:
+            return f"{type(self).__name__}([])"
+        if len(self.exprs) == 1:
+            return f"{type(self).__name__}([{self.exprs[0]:lr}])"
 
-        builder = [repr(self.exprs[0])]
+        # Allow the first term to be a literal string if the second is not
+        if isinstance(self.exprs[1], (And._ErrorStop, ParserElement._literalStringClass)):
+            builder = [f"{self.exprs[0]:+r}"]
+        else:
+            builder = [f"{self.exprs[0]:+lr}"]
         nextOp = "+"
         for expr in self.exprs[1:]:
             if isinstance(expr, And._ErrorStop):
                 nextOp = "-"
                 continue
             builder.append(nextOp)
-            builder.append(repr(expr))
+            builder.append(f"{expr:+lr}")
             nextOp = "+"
         if nextOp == "-":
             builder.append("+ _ErrorStop()")
-        return "(" + " ".join(builder) + ")"
+        result = " ".join(builder)
+        return f"({result})" if is_term else result
 
     def streamline(self) -> ParserElement:
         # collapse any _PendingSkip's
@@ -4192,9 +4284,6 @@ class Or(ParseExpression):
             other = self._literalStringClass(other)
         return self.append(other)  # Or([self, other])
 
-    def _generateDefaultName(self) -> str:
-        return "{" + " ^ ".join(str(e) for e in self.exprs) + "}"
-
     def _setResultsName(self, name, listAllMatches=False):
         if (
             __diag__.warn_multiple_tokens_in_named_alternation
@@ -4304,9 +4393,6 @@ class MatchFirst(ParseExpression):
         if isinstance(other, str_type):
             other = self._literalStringClass(other)
         return self.append(other)  # MatchFirst([self, other])
-
-    def _generateDefaultName(self) -> str:
-        return "{" + " | ".join(str(e) for e in self.exprs) + "}"
 
     def _setResultsName(self, name, listAllMatches=False):
         if (
@@ -4500,9 +4586,6 @@ class Each(ParseExpression):
 
         return loc, total_results
 
-    def _generateDefaultName(self) -> str:
-        return "{" + " & ".join(str(e) for e in self.exprs) + "}"
-
 
 class ParseElementEnhance(ParserElement):
     """Abstract subclass of :class:`ParserElement`, for combining and
@@ -4531,8 +4614,10 @@ class ParseElementEnhance(ParserElement):
             self.callPreparse = expr.callPreparse
             self.ignoreExprs.extend(expr.ignoreExprs)
 
-    def __repr__(self):
-        return f"{type(self).__name__}({self.expr!r})"
+    def _make_repr(self, as_literal=False, is_term=False):
+        if as_literal and type(self.expr) is Literal:
+            return repr(self.expr.match)
+        return f"{type(self).__name__}({self.expr:lr})"
 
     def recurse(self) -> Sequence[ParserElement]:
         return [self.expr] if self.expr is not None else []
@@ -4922,8 +5007,8 @@ class NotAny(ParseElementEnhance):
         self.mayReturnEmpty = True
         self.errmsg = "Found unwanted token, " + str(self.expr)
 
-    def __repr__(self):
-        return f"~{self.expr!r}"
+    def _make_repr(self, as_literal=False, is_term=False):
+        return f"~{self.expr:+r}"
 
     def parseImpl(self, instring, loc, doActions=True):
         if self.expr.can_parse_next(instring, loc):
@@ -5039,8 +5124,11 @@ class OneOrMore(_MultipleMatch):
         (attr_expr * (1,)).parse_string(text).pprint()
     """
 
-    def __repr__(self):
-        return f"{self.expr!r}[1,...]"
+    def _make_repr(self, as_literal=False, is_term=False):
+        if self.not_ender is not None:
+            ender = self.not_ender.expr
+            return f"{self.expr:+r}[1, ...: {ender:lr}]"
+        return f"{self.expr:+r}[1, ...]"
 
     def _generateDefaultName(self) -> str:
         return "{" + str(self.expr) + "}..."
@@ -5070,8 +5158,11 @@ class ZeroOrMore(_MultipleMatch):
         super().__init__(expr, stopOn=stopOn or stop_on)
         self.mayReturnEmpty = True
 
-    def __repr__(self):
-        return f"{self.expr!r}[...]"
+    def _make_repr(self, as_literal=False, is_term=False):
+        if self.not_ender is not None:
+            ender = self.not_ender.expr
+            return f"{self.expr:+r}[...: {ender:lr}]"
+        return f"{self.expr:+r}[...]"
 
     def parseImpl(self, instring, loc, doActions=True):
         try:
@@ -5386,7 +5477,7 @@ class Forward(ParseElementEnhance):
                 lineno=self.caller_frame.lineno,
             )
 
-    def __repr__(self):
+    def _make_repr(self, as_literal=False, is_term=False):
         if self.expr is None:
             return f"{type(self).__name__}()"
         return f"{type(self).__name__}(...)"
