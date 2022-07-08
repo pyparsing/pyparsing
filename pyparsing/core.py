@@ -7,7 +7,7 @@ from typing import (
     Any,
     Callable,
     ClassVar,
-    Generator,
+    Iterator,
     List,
     NamedTuple,
     Sequence,
@@ -1193,7 +1193,7 @@ class ParserElement(ABC):
         *,
         debug: bool = False,
         maxMatches: int = _MAX_INT,
-    ) -> Generator[Tuple[ParseResults, int, int], None, None]:
+    ) -> Iterator[Tuple[ParseResults, int, int]]:
         """
         Scan the input string for expression matches.  Each match will return the
         matching tokens, start location, and end location.  May be called with optional
@@ -1367,7 +1367,7 @@ class ParserElement(ABC):
         include_separators: bool = False,
         *,
         includeSeparators=False,
-    ) -> Generator[str, None, None]:
+    ) -> Iterator[str]:
         """
         Generator method to split a string using the given expression as a separator.
         May be called with optional ``maxsplit`` argument, to limit the number of splits;
