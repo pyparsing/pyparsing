@@ -7,6 +7,7 @@ from typing import (
     Any,
     Callable,
     ClassVar,
+    Iterable,
     Iterator,
     List,
     NamedTuple,
@@ -24,7 +25,6 @@ import copy
 import warnings
 import re
 import sys
-from collections.abc import Iterable
 import traceback
 import types
 from operator import itemgetter
@@ -6010,7 +6010,7 @@ def _srange_escape(char: str) -> str:
         return char
     return "\\" + hex(c)
 
-def _gen_srange(chars: list[str]) -> Iterator[str]:
+def _gen_srange(chars: Sequence[str]) -> Iterator[str]:
     # Precondition: s is sorted
     if len(chars) <= 2:
         yield from map(_srange_escape, chars)
