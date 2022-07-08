@@ -2921,13 +2921,12 @@ class Word(Token):
                 self.parseImpl = self.parseImpl_regex
 
     def _make_repr(self, as_literal=False, is_term=False):
-        init = "".join(sorted(self.initChars))
+        init_repr = abbrev_charset(self.initChars)
         if self.maxLen == 1:
-            return f"Char({init!r})"
-        args = [repr(init)]
+            return f"Char({init_repr})"
+        args = [init_repr]
         if self.initChars != self.bodyChars:
-            body = "".join(sorted(self.bodyChars))
-            args.append(repr(body))
+            args.append(abbrev_charset(self.bodyChars))
         if self.minLen == self.maxLen:
             args.append(f"exact={self.minLen}")
         else:
@@ -3439,8 +3438,8 @@ class CharsNotIn(Token):
         self.mayIndexError = False
 
     def _make_repr(self, as_literal=False, is_term=False):
-        not_chars = "".join(sorted(self.notCharsSet))
-        return f"CharsNotIn({not_chars!r})"
+        not_chars_repr = abbrev_charset(self.notCharsSet)
+        return f"CharsNotIn({not_chars_repr})"
 
     def _generateDefaultName(self) -> str:
         not_chars_str = _collapse_string_to_ranges(self.notChars)
@@ -3527,8 +3526,8 @@ class White(Token):
     def _make_repr(self, as_literal=False, is_term=False):
         if set(self.matchWhite) == set(" \t\r\n"):
             return f"{type(self).__name__}()"
-        ws_str = "".join(sorted(set(self.matchWhite)))
-        return f"{type(self).__name__}({ws_str!r})"
+        ws_repr = abbrev_charset(self.matchWhite)
+        return f"{type(self).__name__}({ws_repr})"
 
     def _generateDefaultName(self) -> str:
         return "".join(White.whiteStrs[c] for c in sorted(set(self.matchWhite)))
@@ -3716,8 +3715,8 @@ class WordStart(PositionToken):
     def _make_repr(self, as_literal=False, is_term=False):
         if self.wordChars == set(printables):
             return f"{type(self).__name__}()"
-        chars = "".join(sorted(self.wordChars))
-        return f"{type(self).__name__}({chars!r})"
+        chars_repr = abbrev_charset(self.wordChars)
+        return f"{type(self).__name__}({chars_repr})"
 
     def parseImpl(self, instring, loc, doActions=True):
         if loc != 0:
@@ -3748,8 +3747,8 @@ class WordEnd(PositionToken):
     def _make_repr(self, as_literal=False, is_term=False):
         if self.wordChars == set(printables):
             return f"{type(self).__name__}()"
-        chars = "".join(sorted(self.wordChars))
-        return f"{type(self).__name__}({chars!r})"
+        chars_repr = abbrev_charset(self.wordChars)
+        return f"{type(self).__name__}({chars_repr})"
 
     def parseImpl(self, instring, loc, doActions=True):
         instrlen = len(instring)
@@ -6001,6 +6000,40 @@ def srange(s: str) -> str:
         return "".join(_expanded(part) for part in _reBracketExpr.parse_string(s).body)
     except Exception as e:
         return ""
+
+def _srange_escape(char: str) -> str:
+    # Characters that need to be escaped
+    if char in " -\\]":
+        return "\\" + char
+    c = ord(char)
+    if 0x20 <= c <= 0x7f:
+        return char
+    return "\\" + hex(c)
+
+def _gen_srange(chars: list[str]) -> Iterator[str]:
+    # Precondition: s is sorted
+    if len(chars) <= 2:
+        yield from map(_srange_escape, chars)
+        return
+    first = last = chars[0]
+    for i, char in enumerate(chars[1:], 1):
+        if chr(ord(first) + i) != char:
+            break
+        last = char
+    else:
+        i += 1
+    if i <= 3:
+        yield from map(_srange_escape, chars[:i])
+    else:
+        yield f"{_srange_escape(first)}-{_srange_escape(last)}"
+    yield from _gen_srange(chars[i:])
+
+def abbrev_charset(chars: Iterable[str]) -> str:
+    charset = sorted(set(chars))
+    orig = repr("".join(charset))
+    sr_arg = "[" + "".join(_gen_srange(charset)) + "]"
+    sr = f"srange({sr_arg!r})"
+    return min((orig, sr), key=len)
 
 
 def token_map(func, *args) -> ParseAction:
