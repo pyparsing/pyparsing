@@ -8262,7 +8262,27 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
         print(bool_constant)
         print(bool_constant.streamline())
         print(bool_list2)
-        self.assertEqual("bool [, bool]...", str(bool_list2))
+        with self.subTest():
+            self.assertEqual("bool [, bool]...", str(bool_list2))
+
+        with self.subTest():
+            street_address = pp.common.integer.set_name("integer") + pp.Word(pp.alphas)[1, ...].set_name("street_name")
+            self.assertEqual(
+                "{integer street_name} [, {integer street_name}]...",
+                str(pp.delimitedList(street_address))
+            )
+
+        with self.subTest():
+            operand = pp.Char(pp.alphas).set_name("var")
+            math = pp.infixNotation(operand,
+                                    [
+                                        (pp.one_of("+ -"), 2, pp.opAssoc.LEFT),
+                                    ])
+            self.assertEqual(
+                "Forward: + | - term [, Forward: + | - term]...",
+                str(pp.delimitedList(math))
+            )
+
 
     def testDelimitedListOfStrLiterals(self):
         expr = pp.delimitedList("ABC")
