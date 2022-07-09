@@ -90,9 +90,34 @@ from pyparsing import (
     Suppress,
     OneOrMore,
     one_of,
-    pyparsing_unicode as ppu,
 )
 import re
+
+
+# Updated on 02 Dec 2021 according to ftp://ftp.unicode.org/Public/UNIDATA/Blocks.txt
+# (includes characters not found in the BasicMultilingualPlane)
+alphabet_ranges = [
+    # CYRILIC: https://en.wikipedia.org/wiki/Cyrillic_(Unicode_block)
+    [int("0400", 16), int("04FF", 16)],
+    # ARABIC: https://en.wikipedia.org/wiki/Arabic_(Unicode_block) (Arabic (0600–06FF)+ Syriac (0700–074F)+ Arabic Supplement (0750–077F))
+    [int("0600", 16), int("07FF", 16)],
+    # THAI: https://en.wikipedia.org/wiki/Thai_(Unicode_block)
+    [int("0E00", 16), int("0E7F", 16)],
+    # JAPANESE : https://en.wikipedia.org/wiki/Japanese_writing_system (Hiragana (3040–309F) + Katakana (30A0–30FF))
+    [int("3040", 16), int("30FF", 16)],
+    # Enclosed CJK Letters and Months
+    [int("3200", 16), int("32FF", 16)],
+    # CHINESE: https://en.wikipedia.org/wiki/CJK_Unified_Ideographs_(Unicode_block)
+    [int("4E00", 16), int("9FFF", 16)],
+    # KOREAN : https://en.wikipedia.org/wiki/Hangul
+    [int("1100", 16), int("11FF", 16)],
+    [int("3130", 16), int("318F", 16)],
+    [int("A960", 16), int("A97F", 16)],
+    [int("AC00", 16), int("D7AF", 16)],
+    [int("D7B0", 16), int("D7FF", 16)],
+    # Halfwidth and Fullwidth Forms
+    [int("FF00", 16), int("FFEF", 16)],
+]
 
 
 class BooleanSearchParser:
@@ -128,8 +153,11 @@ class BooleanSearchParser:
         """
         operatorOr = Forward()
 
+        alphabet = alphanums
+
         # support for non-western alphabets
-        alphabet = ppu.BasicMultilingualPlane.alphanums
+        for lo, hi in alphabet_ranges:
+            alphabet += "".join(chr(c) for c in range(lo, hi + 1) if not chr(c).isspace())
 
         operatorWord = Group(Word(alphabet + "*")).set_results_name("word*")
 
@@ -297,58 +325,66 @@ class ParserTest(BooleanSearchParser):
     def Test(self):
         # fmt: off
         exprs = {
-            0: "help",
-            1: "help or hulp",
-            2: "help and hulp",
-            3: "help hulp",
-            4: "help and hulp or hilp",
-            5: "help or hulp and hilp",
-            6: "help or hulp or hilp or halp",
-            7: "(help or hulp) and (hilp or halp)",
-            8: "help and (hilp or halp)",
-            9: "(help and (hilp or halp)) or hulp",
-            10: "not help",
-            11: "not hulp and halp",
-            12: "not (help and halp)",
-            13: '"help me please"',
-            14: '"help me please" or hulp',
-            15: '"help me please" or (hulp and halp)',
-            16: "help*",
-            17: "help or hulp*",
-            18: "help* and hulp",
-            19: "help and hulp* or hilp",
-            20: "help* or hulp or hilp or halp",
-            21: "(help or hulp*) and (hilp* or halp)",
-            22: "help* and (hilp* or halp*)",
-            23: "(help and (hilp* or halp)) or hulp*",
-            24: "not help* and halp",
-            25: "not (help* and helpe*)",
-            26: '"help* me please"',
-            27: '"help* me* please" or hulp*',
-            28: '"help me please*" or (hulp and halp)',
-            29: '"help me please" not (hulp and halp)',
-            30: '"help me please" hulp',
-            31: "help and hilp and not holp",
-            32: "help hilp not holp",
-            33: "help hilp and not holp",
-            34: "*lp and halp",
-            35: "*신은 and 어떠세요",
-            36: "not 당신은",
-            37: "당신 or 당",
-            38: "亀",
+            "0": "help",
+            "1": "help or hulp",
+            "2": "help and hulp",
+            "3": "help hulp",
+            "4": "help and hulp or hilp",
+            "5": "help or hulp and hilp",
+            "6": "help or hulp or hilp or halp",
+            "7": "(help or hulp) and (hilp or halp)",
+            "8": "help and (hilp or halp)",
+            "9": "(help and (hilp or halp)) or hulp",
+            "10": "not help",
+            "11": "not hulp and halp",
+            "12": "not (help and halp)",
+            "13": '"help me please"',
+            "14": '"help me please" or hulp',
+            "15": '"help me please" or (hulp and halp)',
+            "16": "help*",
+            "17": "help or hulp*",
+            "18": "help* and hulp",
+            "19": "help and hulp* or hilp",
+            "20": "help* or hulp or hilp or halp",
+            "21": "(help or hulp*) and (hilp* or halp)",
+            "22": "help* and (hilp* or halp*)",
+            "23": "(help and (hilp* or halp)) or hulp*",
+            "24": "not help* and halp",
+            "25": "not (help* and helpe*)",
+            "26": '"help* me please"',
+            "27": '"help* me* please" or hulp*',
+            "28": '"help me please*" or (hulp and halp)',
+            "29": '"help me please" not (hulp and halp)',
+            "30": '"help me please" hulp',
+            "31": "help and hilp and not holp",
+            "32": "help hilp not holp",
+            "33": "help hilp and not holp",
+            "34": "*lp and halp",
+            "35": "*신은 and 어떠세요",
         }
 
         texts_matcheswith = {
-            "halp thinks he needs help": [0, 1, 5, 6, 7, 8, 9, 11, 16, 17, 20, 21, 22, 23, 25, 34, 36],
-            "he needs halp": [6, 10, 11, 12, 20, 24, 25, 34, 36],
-            "help": [0, 1, 5, 6, 12, 16, 17, 20, 25, 36],
-            "help hilp": [0, 1, 4, 5, 6, 7, 8, 9, 12, 16, 17, 19, 20, 21, 22, 23, 25, 31, 32, 33, 36],
-            "help me please hulp": [0, 1, 2, 3, 4, 5, 6, 9, 12, 13, 14, 15, 16, 17, 18, 19, 20, 23, 25, 27, 29, 30, 36],
-            "helper": [10, 12, 16, 20, 36],
-            "hulp hilp": [1, 4, 5, 6, 7, 9, 10, 12, 14, 17, 19, 20, 21, 23, 25, 27, 36],
-            "nothing": [10, 12, 25, 36],
-            "안녕하세요, 당신은 어떠세요?": [10, 12, 25, 35],
-            "亀": [10, 12, 25, 36, 38],
+            "halp thinks he needs help": [
+                "25", "22", "20", "21", "11", "17", "16", "23", "34", "1",
+                "0", "5", "7", "6", "9", "8",
+            ],
+            "he needs halp": ["24", "25", "20", "11", "10", "12", "34", "6"],
+            "help": ["25", "20", "12", "17", "16", "1", "0", "5", "6"],
+            "help hilp": [
+                "25", "22", "20", "32", "21", "12", "17", "16", "19", "31",
+                "23", "1", "0", "5", "4", "7", "6", "9", "8", "33",
+            ],
+            "help me please hulp": [
+                "30", "25", "27", "20", "13", "12", "15", "14", "17", "16",
+                "19", "18", "23", "29", "1", "0", "3", "2", "5", "4", "6", "9",
+            ],
+            "helper": ["20", "10", "12", "16"],
+            "hulp hilp": [
+                "25", "27", "20", "21", "10", "12", "14", "17", "19", "23",
+                "1", "5", "4", "7", "6", "9",
+            ],
+            "nothing": ["25", "10", "12"],
+            "안녕하세요, 당신은 어떠세요?": ["10", "12", "25", "35"],
         }
         # fmt: on
 
@@ -360,7 +396,9 @@ class ParserTest(BooleanSearchParser):
                     _matches.append(_id)
 
             test_passed = sorted(matches) == sorted(_matches)
-            if not test_passed:
+            if test_passed:
+                print("Passed", repr(text))
+            else:
                 print("Failed", repr(text), "expected", matches, "matched", _matches)
 
             all_ok = all_ok and test_passed
@@ -391,7 +429,9 @@ class ParserTest(BooleanSearchParser):
                     _matches.append(_id)
 
             test_passed = sorted(matches) == sorted(_matches)
-            if not test_passed:
+            if test_passed:
+                print("Passed", repr(text))
+            else:
                 print("Failed", repr(text), "expected", matches, "matched", _matches)
 
             all_ok = all_ok and test_passed
@@ -402,10 +442,9 @@ class ParserTest(BooleanSearchParser):
 def main():
     if ParserTest().Test():
         print("All tests OK")
-        exit(0)
     else:
         print("One or more tests FAILED")
-        exit(1)
+        raise Exception("One or more tests FAILED")
 
 
 if __name__ == "__main__":

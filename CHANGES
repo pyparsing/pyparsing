@@ -23,8 +23,8 @@ help from Devin J. Pohly in structuring the code to enable this peaceful transit
       "{" + (Literal("A") | Literal("a") | "") + "}"
 
   Some related changes implemented as part of this work:
-  - Literal("") now internally generates an Empty() (and no longer raises an exception)
-  - Empty is now a subclass of Literal
+  - `Literal("")` now internally generates an `Empty()` (and no longer raises an exception)
+  - `Empty` is now a subclass of `Literal`
 
   Suggested by Antony Lee (issue #412), PR (#413) by Devin J. Pohly.
 
@@ -70,7 +70,7 @@ help from Devin J. Pohly in structuring the code to enable this peaceful transit
 - Fixed bug in srange, when parsing escaped '/' and '\' inside a
   range set.
 
-- Fixed exception messages for some ParserElements with custom names,
+- Fixed exception messages for some `ParserElements` with custom names,
   which instead showed their contained expression names.
 
 - Multiple added and corrected type annotations. With much help from

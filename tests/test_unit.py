@@ -8313,6 +8313,93 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
                 expr, source, [s.strip() for s in source.split(",")]
             )
 
+    def testDelimitedListParseActions1(self):
+        # from issue #408
+        keyword = pp.Keyword('foobar')
+        untyped_identifier = ~keyword + pp.Word(pp.alphas)
+        dotted_vars = pp.delimited_list(untyped_identifier, delim='.')
+        lvalue = pp.Opt(dotted_vars)
+
+        # uncomment this line to see the problem
+        stmt = pp.delimited_list(pp.Opt(dotted_vars))
+        # stmt = delimited_list(dotted_vars)
+        # stmt = pp.Opt(dotted_vars)
+
+        def parse_identifier(toks):
+            print('YAY!', toks)
+
+        untyped_identifier.set_parse_action(parse_identifier)
+
+        save_stdout = StringIO()
+        with contextlib.redirect_stdout(save_stdout):
+            dotted_vars.parse_string('B.C')
+
+        self.assertEqual(
+            dedent("""\
+                YAY! ['B']
+                YAY! ['C']
+                """),
+            save_stdout.getvalue()
+        )
+
+    def testDelimitedListParseActions2(self):
+        # from issue #408
+        keyword = pp.Keyword('foobar')
+        untyped_identifier = ~keyword + pp.Word(pp.alphas)
+        dotted_vars = pp.delimited_list(untyped_identifier, delim='.')
+        lvalue = pp.Opt(dotted_vars)
+
+        # uncomment this line to see the problem
+        # stmt = delimited_list(Opt(dotted_vars))
+        stmt = pp.delimited_list(dotted_vars)
+        # stmt = pp.Opt(dotted_vars)
+
+        def parse_identifier(toks):
+            print('YAY!', toks)
+
+        untyped_identifier.set_parse_action(parse_identifier)
+
+        save_stdout = StringIO()
+        with contextlib.redirect_stdout(save_stdout):
+            dotted_vars.parse_string('B.C')
+
+        self.assertEqual(
+            dedent("""\
+                YAY! ['B']
+                YAY! ['C']
+                """),
+            save_stdout.getvalue()
+        )
+
+    def testDelimitedListParseActions3(self):
+        # from issue #408
+        keyword = pp.Keyword('foobar')
+        untyped_identifier = ~keyword + pp.Word(pp.alphas)
+        dotted_vars = pp.delimited_list(untyped_identifier, delim='.')
+        lvalue = pp.Opt(dotted_vars)
+
+        # uncomment this line to see the problem
+        # stmt = delimited_list(Opt(dotted_vars))
+        # stmt = delimited_list(dotted_vars)
+        stmt = pp.Opt(dotted_vars)
+
+        def parse_identifier(toks):
+            print('YAY!', toks)
+
+        untyped_identifier.set_parse_action(parse_identifier)
+
+        save_stdout = StringIO()
+        with contextlib.redirect_stdout(save_stdout):
+            dotted_vars.parse_string('B.C')
+
+        self.assertEqual(
+            dedent("""\
+                YAY! ['B']
+                YAY! ['C']
+                """),
+            save_stdout.getvalue()
+        )
+
     def testEnableDebugOnNamedExpressions(self):
         """
         - enable_debug_on_named_expressions - flag to auto-enable debug on all subsequent
