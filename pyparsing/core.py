@@ -274,11 +274,6 @@ def _trim_arity(func, max_limit=3):
     limit = 0
     found_arity = False
 
-    def extract_tb(tb, limit=0):
-        frames = traceback.extract_tb(tb, limit=limit)
-        frame_summary = frames[-1]
-        return [frame_summary[:2]]
-
     # synthesize what would be returned by traceback.extract_stack at the call to
     # user's parse action 'func', so that we don't incur call penalty at parse time
 
@@ -302,8 +297,10 @@ def _trim_arity(func, max_limit=3):
                     raise
                 else:
                     tb = te.__traceback__
+                    frames = traceback.extract_tb(tb, limit=2)
+                    frame_summary = frames[-1]
                     trim_arity_type_error = (
-                        extract_tb(tb, limit=2)[-1][:2] == pa_call_line_synth
+                        [frame_summary[:2]][-1][:2] == pa_call_line_synth
                     )
                     del tb
 
@@ -737,13 +734,16 @@ class ParserElement(ABC):
         return self
 
     def _skipIgnorables(self, instring: str, loc: int) -> int:
+        if not self.ignoreExprs:
+            return loc
         exprsFound = True
+        ignore_expr_fns = [e._parse for e in self.ignoreExprs]
         while exprsFound:
             exprsFound = False
-            for e in self.ignoreExprs:
+            for ignore_fn in ignore_expr_fns:
                 try:
                     while 1:
-                        loc, dummy = e._parse(instring, loc)
+                        loc, dummy = ignore_fn(instring, loc)
                         exprsFound = True
                 except ParseException:
                     pass
@@ -4005,7 +4005,7 @@ class Or(ParseExpression):
                 loc2 = e.try_parse(instring, loc, raise_fatal=True)
             except ParseFatalException as pfe:
                 pfe.__traceback__ = None
-                pfe.parserElement = e
+                pfe.parser_element = e
                 fatals.append(pfe)
                 maxException = None
                 maxExcLoc = -1
@@ -4063,7 +4063,7 @@ class Or(ParseExpression):
             if len(fatals) > 1:
                 fatals.sort(key=lambda e: -e.loc)
                 if fatals[0].loc == fatals[1].loc:
-                    fatals.sort(key=lambda e: (-e.loc, -len(str(e.parserElement))))
+                    fatals.sort(key=lambda e: (-e.loc, -len(str(e.parser_element))))
             max_fatal = fatals[0]
             raise max_fatal
 
@@ -4167,7 +4167,7 @@ class MatchFirst(ParseExpression):
                 )
             except ParseFatalException as pfe:
                 pfe.__traceback__ = None
-                pfe.parserElement = e
+                pfe.parser_element = e
                 raise
             except ParseException as err:
                 if err.loc > maxExcLoc:
@@ -4354,7 +4354,7 @@ class Each(ParseExpression):
                     tmpLoc = e.try_parse(instring, tmpLoc, raise_fatal=True)
                 except ParseFatalException as pfe:
                     pfe.__traceback__ = None
-                    pfe.parserElement = e
+                    pfe.parser_element = e
                     fatals.append(pfe)
                     failed.append(e)
                 except ParseException:
@@ -4373,7 +4373,7 @@ class Each(ParseExpression):
             if len(fatals) > 1:
                 fatals.sort(key=lambda e: -e.loc)
                 if fatals[0].loc == fatals[1].loc:
-                    fatals.sort(key=lambda e: (-e.loc, -len(str(e.parserElement))))
+                    fatals.sort(key=lambda e: (-e.loc, -len(str(e.parser_element))))
             max_fatal = fatals[0]
             raise max_fatal
 
@@ -5284,12 +5284,12 @@ class Forward(ParseElementEnhance):
             not in self.suppress_warnings_
         ):
             # walk stack until parse_string, scan_string, search_string, or transform_string is found
-            parse_fns = [
+            parse_fns = (
                 "parse_string",
                 "scan_string",
                 "search_string",
                 "transform_string",
-            ]
+            )
             tb = traceback.extract_stack(limit=200)
             for i, frm in enumerate(reversed(tb), start=1):
                 if frm.name in parse_fns:

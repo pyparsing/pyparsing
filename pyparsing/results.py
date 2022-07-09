@@ -72,7 +72,7 @@ class ParseResults:
 
     _null_values: Tuple[Any, ...] = (None, [], "", ())
 
-    __slots__ = [
+    __slots__ = (
         "_name",
         "_parent",
         "_all_names",
@@ -80,7 +80,7 @@ class ParseResults:
         "_toklist",
         "_tokdict",
         "__weakref__",
-    ]
+    )
 
     class List(list):
         """
@@ -738,6 +738,7 @@ class ParseResults:
                 iter(obj)
             except Exception:
                 return False
+            # str's are iterable, but in pyparsing, we don't want to iterate over them
             else:
                 return not isinstance(obj, str_type)
 
