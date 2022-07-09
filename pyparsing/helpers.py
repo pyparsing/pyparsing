@@ -1,6 +1,7 @@
 # helpers.py
 import html.entities
 import re
+import sys
 import typing
 
 from . import __diag__
@@ -46,7 +47,34 @@ def delimited_list(
         expr = ParserElement._literalStringClass(expr)
     expr = typing.cast(ParserElement, expr)
 
-    expr_copy = expr.copy().streamline()
+    def make_deep_name_copy(expr):
+        from collections import deque
+        MAX_EXPRS = sys.getrecursionlimit()
+        seen = set()
+        to_visit = deque([(None, expr)])
+        cpy = None
+        num_exprs = 0
+        while to_visit and num_exprs < MAX_EXPRS:
+            parent, cur = to_visit.pop()
+            num_exprs += 1
+            if cur in seen:
+                continue
+            seen.add(cur)
+            cur = cur.copy()
+            if parent is None:
+                cpy = cur
+            else:
+                if hasattr(parent, "expr"):
+                    parent.expr = cur
+                elif hasattr(parent, "exprs"):
+                    parent.exprs.append(cur)
+
+            to_visit.extend((cur, sub) for sub in cur.recurse()[::-1])
+            getattr(cur, "exprs", []).clear()
+
+        return cpy
+
+    expr_copy = make_deep_name_copy(expr).streamline()
     dlName = f"{expr_copy} [{delim} {expr_copy}]...{f' [{delim}]' if allow_trailing_delim else ''}"
 
     if not combine:

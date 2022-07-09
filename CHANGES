@@ -23,21 +23,10 @@ help from Devin J. Pohly in structuring the code to enable this peaceful transit
       "{" + (Literal("A") | Literal("a") | "") + "}"
 
   Some related changes implemented as part of this work:
-  - Literal("") now internally generates an Empty() (and no longer raises an exception)
-  - Empty is now a subclass of Literal
+  - `Literal("")` now internally generates an `Empty()` (and no longer raises an exception)
+  - `Empty` is now a subclass of `Literal`
 
   Suggested by Antony Lee (issue #412), PR (#413) by Devin J. Pohly.
-
-- Added new builtin `python_quoted_string`, which will match any form
-  of single-line or multiline quoted strings defined in Python. (Inspired
-  by discussion with Andreas Schörgenhumer in Issue #421.)
-
-- Fixed bug in `Word` when `max=2`. Also added performance enhancement
-  when specifying `exact` argument. Reported in issue #409 by
-  panda-34, nice catch!
-
-- `Word` arguments are now validated if `min` and `max` are both
-  given, that `min` <= `max`; raises `ValueError` if values are invalid.
 
 - Extended `expr[]` notation for repetition of `expr` to accept a
   slice, where the slice's stop value indicates a `stop_on`
@@ -57,16 +46,31 @@ help from Devin J. Pohly in structuring the code to enable this peaceful transit
 
       ['BEGIN', ['aaa', 'bbb', 'ccc'], 'END']
 
+- Added new builtin `python_quoted_string`, which will match any form
+  of single-line or multiline quoted strings defined in Python. (Inspired
+  by discussion with Andreas Schörgenhumer in Issue #421.)
+
 - Added bool `embed` argument to `ParserElement.create_diagram()`.
   When passed as True, the resulting diagram will omit the `<DOCTYPE>`,
   `<HEAD>`, and `<BODY>` tags so that it can be embedded in other
   HTML source. (Useful when embedding a call to `create_diagram()` in
   a PyScript HTML page.)
 
+- Fixed bug in `Word` when `max=2`. Also added performance enhancement
+  when specifying `exact` argument. Reported in issue #409 by
+  panda-34, nice catch!
+
+- `Word` arguments are now validated if `min` and `max` are both
+  given, that `min` <= `max`; raises `ValueError` if values are invalid.
+
+- Fixed bug in `delimited_list`, where sub-expressions within the given
+  expr might not get assigned names or parse actions. Raised in Issue
+  #408 by Mostafa Razi, nice catch, thanks!
+
 - Fixed bug in srange, when parsing escaped '/' and '\' inside a
   range set.
 
-- Fixed exception messages for some ParserElements with custom names,
+- Fixed exception messages for some `ParserElements` with custom names,
   which instead showed their contained expression names.
 
 - Multiple added and corrected type annotations. With much help from

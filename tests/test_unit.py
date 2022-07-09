@@ -8262,7 +8262,26 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
         print(bool_constant)
         print(bool_constant.streamline())
         print(bool_list2)
-        self.assertEqual("bool [, bool]...", str(bool_list2))
+        with self.subTest():
+            self.assertEqual("bool [, bool]...", str(bool_list2))
+
+        with self.subTest():
+            street_address = pp.common.integer.set_name("integer") + pp.Word(pp.alphas)[1, ...].set_name("street_name")
+            self.assertEqual(
+                "{integer street_name} [, {integer street_name}]...",
+                str(pp.delimitedList(street_address))
+            )
+
+        with self.subTest():
+            operand = pp.Char(pp.alphas).set_name("var")
+            math = pp.infixNotation(operand,
+                                    [
+                                        (pp.one_of("+ -"), 2, pp.opAssoc.LEFT),
+                                    ])
+            self.assertEqual(
+                "Forward: + | - term [, Forward: + | - term]...",
+                str(pp.delimitedList(math))
+            )
 
     def testDelimitedListOfStrLiterals(self):
         expr = pp.delimitedList("ABC")
@@ -8292,6 +8311,93 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             self.assertParseAndCheckList(
                 expr, source, [s.strip() for s in source.split(",")]
             )
+
+    def testDelimitedListParseActions1(self):
+        # from issue #408
+        keyword = pp.Keyword('foobar')
+        untyped_identifier = ~keyword + pp.Word(pp.alphas)
+        dotted_vars = pp.delimited_list(untyped_identifier, delim='.')
+        lvalue = pp.Opt(dotted_vars)
+
+        # uncomment this line to see the problem
+        stmt = pp.delimited_list(pp.Opt(dotted_vars))
+        # stmt = delimited_list(dotted_vars)
+        # stmt = pp.Opt(dotted_vars)
+
+        def parse_identifier(toks):
+            print('YAY!', toks)
+
+        untyped_identifier.set_parse_action(parse_identifier)
+
+        save_stdout = StringIO()
+        with contextlib.redirect_stdout(save_stdout):
+            dotted_vars.parse_string('B.C')
+
+        self.assertEqual(
+            dedent("""\
+                YAY! ['B']
+                YAY! ['C']
+                """),
+            save_stdout.getvalue()
+        )
+
+    def testDelimitedListParseActions2(self):
+        # from issue #408
+        keyword = pp.Keyword('foobar')
+        untyped_identifier = ~keyword + pp.Word(pp.alphas)
+        dotted_vars = pp.delimited_list(untyped_identifier, delim='.')
+        lvalue = pp.Opt(dotted_vars)
+
+        # uncomment this line to see the problem
+        # stmt = delimited_list(Opt(dotted_vars))
+        stmt = pp.delimited_list(dotted_vars)
+        # stmt = pp.Opt(dotted_vars)
+
+        def parse_identifier(toks):
+            print('YAY!', toks)
+
+        untyped_identifier.set_parse_action(parse_identifier)
+
+        save_stdout = StringIO()
+        with contextlib.redirect_stdout(save_stdout):
+            dotted_vars.parse_string('B.C')
+
+        self.assertEqual(
+            dedent("""\
+                YAY! ['B']
+                YAY! ['C']
+                """),
+            save_stdout.getvalue()
+        )
+
+    def testDelimitedListParseActions3(self):
+        # from issue #408
+        keyword = pp.Keyword('foobar')
+        untyped_identifier = ~keyword + pp.Word(pp.alphas)
+        dotted_vars = pp.delimited_list(untyped_identifier, delim='.')
+        lvalue = pp.Opt(dotted_vars)
+
+        # uncomment this line to see the problem
+        # stmt = delimited_list(Opt(dotted_vars))
+        # stmt = delimited_list(dotted_vars)
+        stmt = pp.Opt(dotted_vars)
+
+        def parse_identifier(toks):
+            print('YAY!', toks)
+
+        untyped_identifier.set_parse_action(parse_identifier)
+
+        save_stdout = StringIO()
+        with contextlib.redirect_stdout(save_stdout):
+            dotted_vars.parse_string('B.C')
+
+        self.assertEqual(
+            dedent("""\
+                YAY! ['B']
+                YAY! ['C']
+                """),
+            save_stdout.getvalue()
+        )
 
     def testEnableDebugOnNamedExpressions(self):
         """
