@@ -91,7 +91,7 @@ Version 3.0.9 - May, 2022
 
 - To address mypy confusion of `pyparsing.Optional` and `typing.Optional`
   resulting in `error: "_SpecialForm" not callable` message
-  reported in issue #365, fixed the import in exceptions.py. Nice
+  reported in issue #365, fixed the import in `exceptions.py`. Nice
   sleuthing by Iwan Aucamp and Dominic Davis-Foster, thank you!
   (Removed definitions of `OptionalType`, `DictType`, and `IterableType`
   and replaced them with `typing.Optional`, `typing.Dict`, and
@@ -109,7 +109,7 @@ Version 3.0.9 - May, 2022
 
 Version 3.0.8 - April, 2022
 ---------------------------
-- API CHANGE: modified pyproject.toml to require Python version
+- API CHANGE: modified `pyproject.toml` to require Python version
   3.6.8 or later for pyparsing 3.x. Earlier minor versions of 3.6
   fail in evaluating the `version_info` class (implemented using
   `typing.NamedTuple`). If you are using an earlier version of Python
@@ -118,7 +118,7 @@ Version 3.0.8 - April, 2022
 - Improved pyparsing import time by deferring regex pattern compiles.
   PR submitted by Anthony Sottile to fix issue #362, thanks!
 
-- Updated build to use flit, PR by Michał Górny, added BUILDING.md
+- Updated build to use flit, PR by Michał Górny, added `BUILDING.md`
   doc and removed old Windows build scripts - nice cleanup work!
 
 - More type-hinting added for all arithmetic and logical operator
@@ -983,8 +983,8 @@ Version 3.0.0a1 - April, 2020
   a few.
 
 
-Version 2.4.7 - March, 2020 (April, actually)
----------------------------------------------
+Version 2.4.7 - April, 2020
+---------------------------
 - Backport of selected fixes from 3.0.0 work:
   . Each bug with Regex expressions
   . And expressions not properly constructing with generator
