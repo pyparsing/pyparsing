@@ -41,7 +41,7 @@ class ParseBaseException(Exception):
         else:
             self.msg = msg
             self.pstr = pstr
-        self.parser_element = self.parserElement = elem
+        self.parser_element = elem
         self.args = (pstr, loc, msg)
 
     @staticmethod
@@ -116,7 +116,7 @@ class ParseBaseException(Exception):
         internal factory method to simplify creating one type of ParseException
         from another - avoids having __init__ signature conflicts among subclasses
         """
-        return cls(pe.pstr, pe.loc, pe.msg, pe.parserElement)
+        return cls(pe.pstr, pe.loc, pe.msg, pe.parser_element)
 
     @property
     def line(self) -> str:
@@ -145,6 +145,15 @@ class ParseBaseException(Exception):
         Return the 1-based column on the line of text where the exception occurred.
         """
         return col(self.loc, self.pstr)
+
+    # pre-PEP8 compatibility
+    @property
+    def parserElement(self):
+        return self.parser_element
+
+    @parserElement.setter
+    def parserElement(self, elem):
+        self.parser_element = elem
 
     def __str__(self) -> str:
         if self.pstr:
