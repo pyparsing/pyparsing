@@ -95,6 +95,7 @@ import re
 
 
 # Updated on 02 Dec 2021 according to ftp://ftp.unicode.org/Public/UNIDATA/Blocks.txt
+# (includes characters not found in the BasicMultilingualPlane)
 alphabet_ranges = [
     # CYRILIC: https://en.wikipedia.org/wiki/Cyrillic_(Unicode_block)
     [int("0400", 16), int("04FF", 16)],
@@ -322,6 +323,7 @@ class ParserTest(BooleanSearchParser):
     """
 
     def Test(self):
+        # fmt: off
         exprs = {
             "0": "help",
             "1": "help or hulp",
@@ -363,93 +365,28 @@ class ParserTest(BooleanSearchParser):
 
         texts_matcheswith = {
             "halp thinks he needs help": [
-                "25",
-                "22",
-                "20",
-                "21",
-                "11",
-                "17",
-                "16",
-                "23",
-                "34",
-                "1",
-                "0",
-                "5",
-                "7",
-                "6",
-                "9",
-                "8",
+                "25", "22", "20", "21", "11", "17", "16", "23", "34", "1",
+                "0", "5", "7", "6", "9", "8",
             ],
             "he needs halp": ["24", "25", "20", "11", "10", "12", "34", "6"],
             "help": ["25", "20", "12", "17", "16", "1", "0", "5", "6"],
             "help hilp": [
-                "25",
-                "22",
-                "20",
-                "32",
-                "21",
-                "12",
-                "17",
-                "16",
-                "19",
-                "31",
-                "23",
-                "1",
-                "0",
-                "5",
-                "4",
-                "7",
-                "6",
-                "9",
-                "8",
-                "33",
+                "25", "22", "20", "32", "21", "12", "17", "16", "19", "31",
+                "23", "1", "0", "5", "4", "7", "6", "9", "8", "33",
             ],
             "help me please hulp": [
-                "30",
-                "25",
-                "27",
-                "20",
-                "13",
-                "12",
-                "15",
-                "14",
-                "17",
-                "16",
-                "19",
-                "18",
-                "23",
-                "29",
-                "1",
-                "0",
-                "3",
-                "2",
-                "5",
-                "4",
-                "6",
-                "9",
+                "30", "25", "27", "20", "13", "12", "15", "14", "17", "16",
+                "19", "18", "23", "29", "1", "0", "3", "2", "5", "4", "6", "9",
             ],
             "helper": ["20", "10", "12", "16"],
             "hulp hilp": [
-                "25",
-                "27",
-                "20",
-                "21",
-                "10",
-                "12",
-                "14",
-                "17",
-                "19",
-                "23",
-                "1",
-                "5",
-                "4",
-                "7",
-                "6",
-                "9",
+                "25", "27", "20", "21", "10", "12", "14", "17", "19", "23",
+                "1", "5", "4", "7", "6", "9",
             ],
             "nothing": ["25", "10", "12"],
             "안녕하세요, 당신은 어떠세요?": ["10", "12", "25", "35"],
         }
+        # fmt: on
 
         all_ok = True
         for text, matches in texts_matcheswith.items():
@@ -459,7 +396,9 @@ class ParserTest(BooleanSearchParser):
                     _matches.append(_id)
 
             test_passed = sorted(matches) == sorted(_matches)
-            if not test_passed:
+            if test_passed:
+                print("Passed", repr(text))
+            else:
                 print("Failed", repr(text), "expected", matches, "matched", _matches)
 
             all_ok = all_ok and test_passed
@@ -490,7 +429,9 @@ class ParserTest(BooleanSearchParser):
                     _matches.append(_id)
 
             test_passed = sorted(matches) == sorted(_matches)
-            if not test_passed:
+            if test_passed:
+                print("Passed", repr(text))
+            else:
                 print("Failed", repr(text), "expected", matches, "matched", _matches)
 
             all_ok = all_ok and test_passed
@@ -498,10 +439,13 @@ class ParserTest(BooleanSearchParser):
         return all_ok
 
 
-if __name__ == "__main__":
+def main():
     if ParserTest().Test():
         print("All tests OK")
-        exit(0)
     else:
         print("One or more tests FAILED")
-        exit(1)
+        raise Exception("One or more tests FAILED")
+
+
+if __name__ == "__main__":
+    main()

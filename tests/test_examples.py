@@ -33,3 +33,6 @@ class TestExamples(unittest.TestCase):
 
     def test_select_parser(self):
         self._run("select_parser")
+
+    def test_booleansearchparser(self):
+        self._run("booleansearchparser")
