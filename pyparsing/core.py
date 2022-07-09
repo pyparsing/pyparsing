@@ -2348,6 +2348,10 @@ class Literal(Token):
         # Default behavior
         return super().__new__(cls)
 
+    # Needed to make copy.copy() work correctly if we customize __new__
+    def __getnewargs__(self):
+        return (self.match,)
+
     def __init__(self, match_string: str = "", *, matchString: str = ""):
         super().__init__()
         match_string = matchString or match_string
@@ -2357,14 +2361,6 @@ class Literal(Token):
         self.errmsg = "Expected " + self.name
         self.mayReturnEmpty = False
         self.mayIndexError = False
-
-    def __copy__(self) -> "Literal":
-        # Needed to assist copy.copy() (used in ParserElement.copy), which
-        # doesn't handle the factory __new__ well.
-        obj = Literal(self.match)
-        # Copy instance attributes
-        obj.__dict__.update(self.__dict__)
-        return obj
 
     def _generateDefaultName(self) -> str:
         return repr(self.match)
