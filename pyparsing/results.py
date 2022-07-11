@@ -1,8 +1,7 @@
 # results.py
 from collections.abc import MutableMapping, Mapping, MutableSequence, Iterator
 import pprint
-from weakref import ref as wkref
-from typing import Tuple, Any
+from typing import Tuple, Any, Dict
 
 str_type: Tuple[type, ...] = (str, bytes)
 _generator_type = type((_ for _ in ()))
@@ -11,8 +10,8 @@ _generator_type = type((_ for _ in ()))
 class _ParseResultsWithOffset:
     __slots__ = ["tup"]
 
-    def __init__(self, p1, p2):
-        self.tup = (p1, p2)
+    def __init__(self, p1: "ParseResults", p2: int):
+        self.tup: Tuple[ParseResults, int] = (p1, p2)
 
     def __getitem__(self, i):
         return self.tup[i]
@@ -79,7 +78,6 @@ class ParseResults:
         "_modal",
         "_toklist",
         "_tokdict",
-        "__weakref__",
     )
 
     class List(list):
@@ -158,6 +156,7 @@ class ParseResults:
     def __init__(
         self, toklist=None, name=None, asList=True, modal=True, isinstance=isinstance
     ):
+        self._tokdict: Dict[str, _ParseResultsWithOffset]
         self._modal = modal
         if name is not None and name != "":
             if isinstance(name, int):
@@ -209,7 +208,7 @@ class ParseResults:
             ]
             sub = v
         if isinstance(sub, ParseResults):
-            sub._parent = wkref(self)
+            sub._parent = self
 
     def __delitem__(self, i):
         if isinstance(i, (int, slice)):
@@ -425,7 +424,7 @@ class ParseResults:
         ret += other
         return ret
 
-    def __iadd__(self, other) -> "ParseResults":
+    def __iadd__(self, other: "ParseResults") -> "ParseResults":
         if not other:
             return self
 
@@ -441,7 +440,7 @@ class ParseResults:
             for k, v in otherdictitems:
                 self[k] = v
                 if isinstance(v[0], ParseResults):
-                    v[0]._parent = wkref(self)
+                    v[0]._parent = self
 
         self._toklist += other._toklist
         self._all_names |= other._all_names
@@ -569,7 +568,7 @@ class ParseResults:
         if self._name:
             return self._name
         elif self._parent:
-            par = self._parent()
+            par: "ParseResults" = self._parent
 
             def find_in_parent(sub):
                 return next(
@@ -705,7 +704,7 @@ class ParseResults:
             self._toklist,
             (
                 self._tokdict.copy(),
-                self._parent is not None and self._parent() or None,
+                self._parent,
                 self._all_names,
                 self._name,
             ),
@@ -715,7 +714,7 @@ class ParseResults:
         self._toklist, (self._tokdict, par, inAccumNames, self._name) = state
         self._all_names = set(inAccumNames)
         if par is not None:
-            self._parent = wkref(par)
+            self._parent = par
         else:
             self._parent = None
 
