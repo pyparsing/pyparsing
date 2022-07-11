@@ -1,6 +1,7 @@
 #
 # core.py
 #
+from collections import deque
 import os
 import typing
 from typing import (
@@ -487,6 +488,23 @@ class ParserElement(ABC):
         """
         self.suppress_warnings_.append(warning_type)
         return self
+
+    def visit_all(self):
+        """General-purpose method to yield all expressions and sub-expressions
+        in a grammar. Typically just for internal use.
+        """
+        to_visit = deque([self])
+        seen = set()
+        while to_visit:
+            cur = to_visit.popleft()
+
+            # guard against looping forever through recursive grammars
+            if cur in seen:
+                continue
+            seen.add(cur)
+
+            to_visit.extend(cur.recurse())
+            yield cur
 
     def copy(self) -> "ParserElement":
         """
@@ -1751,10 +1769,11 @@ class ParserElement(ABC):
         self.debug = True
         return self
 
-    def set_debug(self, flag: bool = True) -> "ParserElement":
+    def set_debug(self, flag: bool = True, recurse: bool = False) -> "ParserElement":
         """
         Enable display of debugging messages while doing pattern matching.
         Set ``flag`` to ``True`` to enable, ``False`` to disable.
+        Set ``recurse`` to ``True`` to set the debug flag on this expression and all sub-expressions.
 
         Example::
 
@@ -1788,6 +1807,11 @@ class ParserElement(ABC):
         which makes debugging and exception messages easier to understand - for instance, the default
         name created for the :class:`Word` expression without calling ``set_name`` is ``"W:(A-Za-z)"``.
         """
+        if recurse:
+            for expr in self.visit_all():
+                expr.set_debug(flag, recurse=False)
+            return self
+
         if flag:
             self.set_debug_actions(
                 _default_start_debug_action,

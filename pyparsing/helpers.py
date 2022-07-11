@@ -49,6 +49,7 @@ def delimited_list(
 
     def make_deep_name_copy(expr):
         from collections import deque
+
         MAX_EXPRS = sys.getrecursionlimit()
         seen = set()
         to_visit = deque([(None, expr)])

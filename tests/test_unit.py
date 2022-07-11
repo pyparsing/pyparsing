@@ -8627,6 +8627,50 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             ),
         )
 
+    def testSetDebugRecursively(self):
+        expr = pp.Word(pp.alphas)
+        contained = expr + pp.Empty().set_name("innermost")
+        depth = 4
+        for _ in range(depth):
+            contained = pp.Group(contained + pp.Empty())
+        contained.set_debug(recurse=True)
+        self.assertTrue(expr.debug)
+        # contained.parse_string("ABC")
+        test_stdout = StringIO()
+        with resetting(sys, "stdout", "stderr"):
+            sys.stdout = test_stdout
+            sys.stderr = test_stdout
+            contained.parseString("aba", parseAll=True)
+
+        output = test_stdout.getvalue()
+        print(output)
+        self.assertEqual(depth, output.count("Matched Empty -> []"))
+        self.assertEqual(1, output.count("Matched innermost -> []"))
+
+    def testSetDebugRecursivelyWithForward(self):
+        expr = pp.Word(pp.alphas).set_name("innermost")
+        contained = pp.infix_notation(expr, [
+            ('NOT', 1, pp.opAssoc.RIGHT),
+            ('AND', 2, pp.opAssoc.LEFT),
+            ('OR', 2, pp.opAssoc.LEFT),
+        ])
+
+        contained.set_debug(recurse=True)
+        self.assertTrue(expr.debug)
+
+        # contained.parse_string("ABC")
+        test_stdout = StringIO()
+        with resetting(sys, "stdout", "stderr"):
+            sys.stdout = test_stdout
+            sys.stderr = test_stdout
+            contained.parseString("aba", parseAll=True)
+
+        output = test_stdout.getvalue()
+        print(output)
+        # count of matches varies with packrat state, can't match exact count, but at least test if contains
+        # self.assertEqual(4, output.count("Matched innermost -> ['aba']"))
+        self.assertTrue("Matched innermost -> ['aba']" in output)
+
     def testUndesirableButCommonPractices(self):
         # While these are valid constructs, and they are not encouraged
         # there is apparently a lot of code out there using these

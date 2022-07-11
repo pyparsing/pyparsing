@@ -56,6 +56,10 @@ help from Devin J. Pohly in structuring the code to enable this peaceful transit
   HTML source. (Useful when embedding a call to `create_diagram()` in
   a PyScript HTML page.)
 
+- Added `recurse` argument to `ParserElement.set_debug` to set the
+  debug flag on an expression and all of its sub-expressions. Requested
+  by multimeric in Issue #399.
+
 - Fixed bug in `Word` when `max=2`. Also added performance enhancement
   when specifying `exact` argument. Reported in issue #409 by
   panda-34, nice catch!
