@@ -569,19 +569,16 @@ class ParseResults:
             return self._name
         elif self._parent:
             par: "ParseResults" = self._parent
-
-            def find_in_parent(sub):
-                return next(
-                    (
-                        k
-                        for k, vlist in par._tokdict.items()
-                        for v, loc in vlist
-                        if sub is v
-                    ),
-                    None,
-                )
-
-            return find_in_parent(self) if par else None
+            parent_tokdict_items = par._tokdict.items()
+            return next(
+                (
+                    k
+                    for k, vlist in parent_tokdict_items
+                    for v, loc in vlist
+                    if v is self
+                ),
+                None,
+            )
         elif (
             len(self) == 1
             and len(self._tokdict) == 1
@@ -704,7 +701,7 @@ class ParseResults:
             self._toklist,
             (
                 self._tokdict.copy(),
-                self._parent,
+                None,
                 self._all_names,
                 self._name,
             ),
@@ -713,10 +710,7 @@ class ParseResults:
     def __setstate__(self, state):
         self._toklist, (self._tokdict, par, inAccumNames, self._name) = state
         self._all_names = set(inAccumNames)
-        if par is not None:
-            self._parent = par
-        else:
-            self._parent = None
+        self._parent = None
 
     def __getnewargs__(self):
         return self._toklist, self._name
