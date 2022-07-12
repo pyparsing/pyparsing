@@ -380,11 +380,11 @@ def main():
         10000 seconds ago
     """
 
-    time_of_day = timedelta(
-        hours=current_time.hour,
-        minutes=current_time.minute,
-        seconds=current_time.second,
-    )
+    # fmt: on
+    time_of_day = timedelta(hours=current_time.hour,
+                            minutes=current_time.minute,
+                            seconds=current_time.second,
+                            )
     expected = {
         "now": timedelta(0),
         "10 seconds ago": timedelta(seconds=-10),
@@ -415,9 +415,7 @@ def main():
         "the day after tomorrow": timedelta(days=2) - time_of_day,
         "tomorrow": timedelta(days=1) - time_of_day,
         "the day before yesterday": timedelta(days=-2) - time_of_day,
-        "8am the day after tomorrow": timedelta(days=+2)
-        - time_of_day
-        + timedelta(hours=8),
+        "8am the day after tomorrow": timedelta(days=+2) - time_of_day + timedelta(hours=8),
         "yesterday": timedelta(days=-1) - time_of_day,
         "today": -time_of_day,
         "midnight": -time_of_day,
@@ -430,14 +428,13 @@ def main():
         "12:15 AM today": -time_of_day + timedelta(minutes=15),
         "3pm 2 days from today": timedelta(days=2) - time_of_day + timedelta(hours=15),
         "ten seconds before noon tomorrow": timedelta(days=1)
-        - time_of_day
-        + timedelta(hours=12)
-        + timedelta(seconds=-10),
-        "20 seconds before noon": -time_of_day
-        + timedelta(hours=12)
-        + timedelta(seconds=-20),
+                                            - time_of_day
+                                            + timedelta(hours=12)
+                                            + timedelta(seconds=-10),
+        "20 seconds before noon": -time_of_day + timedelta(hours=12) + timedelta(seconds=-20),
         "in 3 days at 5pm": timedelta(days=3) - time_of_day + timedelta(hours=17),
     }
+    # fmt: on
 
     def verify_offset(instring, parsed):
         time_epsilon = timedelta(seconds=1)
@@ -449,7 +446,19 @@ def main():
                 parsed["verify_offset"] = "FAIL"
 
     print("(relative to %s)" % datetime.now())
-    time_expression.runTests(tests, postParse=verify_offset)
+    success, report = time_expression.runTests(tests, postParse=verify_offset)
+    assert success
+
+    fails = []
+    for test, rpt in report:
+        if rpt.get("verify_offset", "PASS") != "PASS":
+            fails.append((test, rpt))
+
+    if fails:
+        print("\nFAILED")
+        print("\n".join("- " + test for test, rpt in fails))
+
+    assert not fails
 
 
 if __name__ == "__main__":

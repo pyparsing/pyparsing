@@ -36,3 +36,12 @@ class TestExamples(unittest.TestCase):
 
     def test_booleansearchparser(self):
         self._run("booleansearchparser")
+
+    def test_rosettacode(self):
+        self._run("rosettacode")
+
+    def test_excelExpr(self):
+        self._run("excelExpr")
+
+    def test_delta_time(self):
+        self._run("delta_time")

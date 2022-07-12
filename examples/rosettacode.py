@@ -50,46 +50,20 @@ integer = pp.pyparsing_common.integer
 string = pp.QuotedString('"', convertWhitespaceEscapes=False).setName("quoted string")
 char = pp.Regex(r"'\\?.'")
 
+# fmt: off
 expr = pp.infixNotation(
     identifier | integer | char,
     [
-        (
-            pp.oneOf("+ - !"),
-            1,
-            pp.opAssoc.RIGHT,
-        ),
-        (
-            pp.oneOf("* / %"),
-            2,
-            pp.opAssoc.LEFT,
-        ),
-        (
-            pp.oneOf("+ -"),
-            2,
-            pp.opAssoc.LEFT,
-        ),
-        (
-            pp.oneOf("< <= > >="),
-            2,
-            pp.opAssoc.LEFT,
-        ),
-        (
-            pp.oneOf("== !="),
-            2,
-            pp.opAssoc.LEFT,
-        ),
-        (
-            pp.oneOf("&&"),
-            2,
-            pp.opAssoc.LEFT,
-        ),
-        (
-            pp.oneOf("||"),
-            2,
-            pp.opAssoc.LEFT,
-        ),
+        (pp.oneOf("+ - !"), 1, pp.opAssoc.RIGHT,),
+        (pp.oneOf("* / %"), 2, pp.opAssoc.LEFT, ),
+        (pp.oneOf("+ -"), 2, pp.opAssoc.LEFT, ),
+        (pp.oneOf("< <= > >="), 2, pp.opAssoc.LEFT, ),
+        (pp.oneOf("== !="), 2, pp.opAssoc.LEFT, ),
+        (pp.oneOf("&&"), 2, pp.opAssoc.LEFT, ),
+        (pp.oneOf("||"), 2, pp.opAssoc.LEFT, ),
     ],
 )
+# fmt: on
 
 prt_list = pp.Group(pp.delimitedList(string | expr))
 paren_expr = pp.Group(LPAR + expr + RPAR)
@@ -300,15 +274,14 @@ tests = [
     """,
 ]
 
-import sys
 
-sys.setrecursionlimit(2000)
+def main():
+    import sys
+    sys.setrecursionlimit(2000)
 
-for test in tests:
-    try:
-        results = code.parseString(test)
-    except pp.ParseException as pe:
-        pp.ParseException.explain(pe)
-    else:
-        results.pprint()
-    print()
+    success, report = code.run_tests(tests)
+    assert success
+
+
+if __name__ == '__main__':
+    main()
