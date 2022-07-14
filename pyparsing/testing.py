@@ -267,14 +267,16 @@ class pyparsing_test:
         if mark_control is not None:
             mark_control = typing.cast(str, mark_control)
             if mark_control == "unicode":
-                tbl = str.maketrans(
-                    {c: u for c, u in zip(range(0, 33), range(0x2400, 0x2433))}
-                    | {127: 0x2421}
-                )
+                transtable_map = {
+                    c: u for c, u in zip(range(0, 33), range(0x2400, 0x2433))
+                }
+                transtable_map[127] = 0x2421
+                tbl = str.maketrans(transtable_map)
                 eol_mark = ""
             else:
+                ord_mark_control = ord(mark_control)
                 tbl = str.maketrans(
-                    {c: mark_control for c in list(range(0, 32)) + [127]}
+                    {c: ord_mark_control for c in list(range(0, 32)) + [127]}
                 )
             s = s.translate(tbl)
         if mark_spaces is not None and mark_spaces != " ":

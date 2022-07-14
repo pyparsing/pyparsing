@@ -1,13 +1,14 @@
 # results.py
 from collections.abc import MutableMapping, Mapping, MutableSequence, Iterator
 import pprint
-from typing import Tuple, Any, Dict
+from typing import Tuple, Any, Dict, Set, List
 
 str_type: Tuple[type, ...] = (str, bytes)
 _generator_type = type((_ for _ in ()))
 
 
 class _ParseResultsWithOffset:
+    tup: Tuple["ParseResults", int]
     __slots__ = ["tup"]
 
     def __init__(self, p1: "ParseResults", p2: int):
@@ -70,6 +71,13 @@ class ParseResults:
     """
 
     _null_values: Tuple[Any, ...] = (None, [], "", ())
+
+    _name: str
+    _parent: "ParseResults"
+    _all_names: Set[str]
+    _modal: bool
+    _toklist: List[Any]
+    _tokdict: Dict[str, Any]
 
     __slots__ = (
         "_name",
@@ -419,7 +427,7 @@ class ParseResults:
                 raise AttributeError(name)
             return ""
 
-    def __add__(self, other) -> "ParseResults":
+    def __add__(self, other: "ParseResults") -> "ParseResults":
         ret = self.copy()
         ret += other
         return ret

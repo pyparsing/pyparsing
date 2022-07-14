@@ -294,6 +294,7 @@ def one_of(
 
     symbols: List[str] = []
     if isinstance(strs, str_type):
+        strs = typing.cast(str, strs)
         symbols = strs.split()
     elif isinstance(strs, Iterable):
         symbols = list(strs)
@@ -570,6 +571,8 @@ def nested_expr(
         raise ValueError("opening and closing strings cannot be the same")
     if content is None:
         if isinstance(opener, str_type) and isinstance(closer, str_type):
+            opener = typing.cast(str, opener)
+            closer = typing.cast(str, closer)
             if len(opener) == 1 and len(closer) == 1:
                 if ignoreExpr is not None:
                     content = Combine(

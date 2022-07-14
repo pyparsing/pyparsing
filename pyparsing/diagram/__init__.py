@@ -1,3 +1,4 @@
+# mypy: ignore-errors
 import railroad
 import pyparsing
 import typing

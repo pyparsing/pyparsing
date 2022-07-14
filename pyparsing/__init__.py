@@ -105,10 +105,13 @@ class version_info(NamedTuple):
 
     @property
     def __version__(self):
-        return f"{self.major}.{self.minor}.{self.micro}" + (
-            f"{'r' if self.releaselevel[0] == 'c' else ''}{self.releaselevel[0]}{self.serial}",
-            "",
-        )[self.releaselevel == "final"]
+        return (
+            f"{self.major}.{self.minor}.{self.micro}"
+            + (
+                f"{'r' if self.releaselevel[0] == 'c' else ''}{self.releaselevel[0]}{self.serial}",
+                "",
+            )[self.releaselevel == "final"]
+        )
 
     def __str__(self):
         return f"{__name__} {self.__version__} / {__version_time__}"
@@ -118,7 +121,7 @@ class version_info(NamedTuple):
 
 
 __version_info__ = version_info(3, 0, 10, "final", 0)
-__version_time__ = "12 Jul 2022 01:22 UTC"
+__version_time__ = "14 Jul 2022 07:55 UTC"
 __version__ = __version_info__.__version__
 __versionTime__ = __version_time__
 __author__ = "Paul McGuire <ptmcg.gm+pyparsing@gmail.com>"
@@ -128,9 +131,9 @@ from .exceptions import *
 from .actions import *
 from .core import __diag__, __compat__
 from .results import *
-from .core import *
+from .core import *  # type: ignore[misc]
 from .core import _builtin_exprs as core_builtin_exprs
-from .helpers import *
+from .helpers import *  # type: ignore[misc]
 from .helpers import _builtin_exprs as helper_builtin_exprs
 
 from .unicode import unicode_set, UnicodeRangeList, pyparsing_unicode as unicode
@@ -142,11 +145,11 @@ from .common import (
 
 # define backward compat synonyms
 if "pyparsing_unicode" not in globals():
-    pyparsing_unicode = unicode
+    pyparsing_unicode = unicode  # type: ignore[misc]
 if "pyparsing_common" not in globals():
-    pyparsing_common = common
+    pyparsing_common = common  # type: ignore[misc]
 if "pyparsing_test" not in globals():
-    pyparsing_test = testing
+    pyparsing_test = testing  # type: ignore[misc]
 
 core_builtin_exprs += common_builtin_exprs + helper_builtin_exprs
 

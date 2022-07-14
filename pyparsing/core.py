@@ -449,7 +449,7 @@ class ParserElement(ABC):
         self.parseAction: List[ParseAction] = list()
         self.failAction: typing.Optional[ParseFailAction] = None
         self.customName: str = None  # type: ignore[assignment]
-        self._defaultName: str = None  # type: ignore[assignment]
+        self._defaultName: typing.Optional[str] = None
         self.resultsName: str = None  # type: ignore[assignment]
         self.saveAsList = savelist
         self.skipWhitespace = True
@@ -910,10 +910,23 @@ class ParserElement(ABC):
         Tuple[int, "Forward", bool], Tuple[int, Union[ParseResults, Exception]]
     ] = {}
 
+    class _CacheType(dict):
+        """
+        class to help type checking
+        """
+
+        not_in_cache: bool
+
+        def get(self, *args):
+            ...
+
+        def set(self, *args):
+            ...
+
     # argument cache for optimizing repeated calls when backtracking through recursive expressions
     packrat_cache = (
-        {}
-    )  # this is set later by enabled_packrat(); this is here so that reset_cache() doesn't fail
+        _CacheType()
+    )  # set later by enable_packrat(); this is here so that reset_cache() doesn't fail
     packrat_cache_lock = RLock()
     packrat_cache_stats = [0, 0]
 
@@ -1036,9 +1049,9 @@ class ParserElement(ABC):
         elif ParserElement._packratEnabled:
             raise RuntimeError("Packrat and Bounded Recursion are not compatible")
         if cache_size_limit is None:
-            ParserElement.recursion_memos = _UnboundedMemo()
+            ParserElement.recursion_memos = _UnboundedMemo()  # type: ignore[assignment]
         elif cache_size_limit > 0:
-            ParserElement.recursion_memos = _LRUMemo(capacity=cache_size_limit)
+            ParserElement.recursion_memos = _LRUMemo(capacity=cache_size_limit)  # type: ignore[assignment]
         else:
             raise NotImplementedError("Memo size of %s" % cache_size_limit)
         ParserElement._left_recursion_enabled = True
@@ -1084,7 +1097,7 @@ class ParserElement(ABC):
             if cache_size_limit is None:
                 ParserElement.packrat_cache = _UnboundedCache()
             else:
-                ParserElement.packrat_cache = _FifoCache(cache_size_limit)
+                ParserElement.packrat_cache = _FifoCache(cache_size_limit)  # type: ignore[assignment]
             ParserElement._parse = ParserElement._parseCache
 
     def parse_string(
@@ -1212,7 +1225,9 @@ class ParserElement(ABC):
         try:
             while loc <= instrlen and matches < maxMatches:
                 try:
-                    preloc = preparseFn(instring, loc)
+                    preloc: int = preparseFn(instring, loc)
+                    nextLoc: int
+                    tokens: ParseResults
                     nextLoc, tokens = parseFn(instring, preloc, callPreParse=False)
                 except ParseException:
                     loc = preloc + 1
@@ -1894,8 +1909,10 @@ class ParserElement(ABC):
         """
         parseAll = parseAll or parse_all
         try:
+            file_or_filename = typing.cast(TextIO, file_or_filename)
             file_contents = file_or_filename.read()
         except AttributeError:
+            file_or_filename = typing.cast(str, file_or_filename)
             with open(file_or_filename, "r", encoding=encoding) as f:
                 file_contents = f.read()
         try:
@@ -2064,10 +2081,15 @@ class ParserElement(ABC):
         failureTests = failureTests or failure_tests
         postParse = postParse or post_parse
         if isinstance(tests, str_type):
+            tests = typing.cast(str, tests)
             line_strip = type(tests).strip
             tests = [line_strip(test_line) for test_line in tests.rstrip().splitlines()]
-        if isinstance(comment, str_type):
-            comment = Literal(comment)
+        comment_specified = comment is not None
+        if comment_specified:
+            if isinstance(comment, str_type):
+                comment = typing.cast(str, comment)
+                comment = Literal(comment)
+        comment = typing.cast(ParserElement, comment)
         if file is None:
             file = sys.stdout
         print_ = file.write
@@ -2079,7 +2101,7 @@ class ParserElement(ABC):
         NL = Literal(r"\n").add_parse_action(replace_with("\n")).ignore(quoted_string)
         BOM = "\ufeff"
         for t in tests:
-            if comment is not None and comment.matches(t, False) or comments and not t:
+            if comment_specified and comment.matches(t, False) or comments and not t:
                 comments.append(
                     pyparsing_test.with_line_numbers(t) if with_line_numbers else t
                 )
@@ -2861,10 +2883,10 @@ class Word(Token):
             try:
                 self.re = re.compile(self.reString)
             except re.error:
-                self.re = None
+                self.re = None  # type: ignore[assignment]
             else:
                 self.re_match = self.re.match
-                self.parseImpl = self.parseImpl_regex
+                self.parseImpl = self.parseImpl_regex  # type: ignore[assignment]
 
     def _generateDefaultName(self) -> str:
         def charsAsStr(s):
@@ -3191,15 +3213,15 @@ class QuotedString(Token):
             if not endQuoteChar:
                 raise ValueError("end_quote_char cannot be the empty string")
 
-        self.quoteChar = quote_char
-        self.quoteCharLen = len(quote_char)
-        self.firstQuoteChar = quote_char[0]
-        self.endQuoteChar = endQuoteChar
-        self.endQuoteCharLen = len(endQuoteChar)
-        self.escChar = escChar
-        self.escQuote = escQuote
-        self.unquoteResults = unquoteResults
-        self.convertWhitespaceEscapes = convertWhitespaceEscapes
+        self.quoteChar: str = quote_char
+        self.quoteCharLen: int = len(quote_char)
+        self.firstQuoteChar: str = quote_char[0]
+        self.endQuoteChar: str = endQuoteChar
+        self.endQuoteCharLen: int = len(endQuoteChar)
+        self.escChar: str = escChar or ""
+        self.escQuote: str = escQuote or ""
+        self.unquoteResults: bool = unquoteResults
+        self.convertWhitespaceEscapes: bool = convertWhitespaceEscapes
 
         sep = ""
         inner_pattern = ""
@@ -3211,7 +3233,7 @@ class QuotedString(Token):
         if escChar:
             inner_pattern += rf"{sep}(?:{re.escape(escChar)}.)"
             sep = "|"
-            self.escCharReplacePattern = re.escape(self.escChar) + "(.)"
+            self.escCharReplacePattern = re.escape(escChar) + "(.)"
 
         if len(self.endQuoteChar) > 1:
             inner_pattern += (
@@ -3892,8 +3914,9 @@ class And(ParseExpression):
                 and isinstance(e.exprs[-1], _PendingSkip)
                 for e in self.exprs[:-1]
             ):
+                deleted_expr_marker = NoMatch()
                 for i, e in enumerate(self.exprs[:-1]):
-                    if e is None:
+                    if e is deleted_expr_marker:
                         continue
                     if (
                         isinstance(e, ParseExpression)
@@ -3901,17 +3924,19 @@ class And(ParseExpression):
                         and isinstance(e.exprs[-1], _PendingSkip)
                     ):
                         e.exprs[-1] = e.exprs[-1] + self.exprs[i + 1]
-                        self.exprs[i + 1] = None
-                self.exprs = [e for e in self.exprs if e is not None]
+                        self.exprs[i + 1] = deleted_expr_marker
+                self.exprs = [e for e in self.exprs if e is not deleted_expr_marker]
 
         super().streamline()
 
         # link any IndentedBlocks to the prior expression
+        prev: ParserElement
+        cur: ParserElement
         for prev, cur in zip(self.exprs, self.exprs[1:]):
             # traverse cur or any first embedded expr of cur looking for an IndentedBlock
             # (but watch out for recursive grammar)
             seen = set()
-            while cur:
+            while True:
                 if id(cur) in seen:
                     break
                 seen.add(id(cur))
@@ -3923,7 +3948,10 @@ class And(ParseExpression):
                     )
                     break
                 subs = cur.recurse()
-                cur = next(iter(subs), None)
+                next_first = next(iter(subs), None)
+                if next_first is None:
+                    break
+                cur = typing.cast(ParserElement, next_first)
 
         self.mayReturnEmpty = all(e.mayReturnEmpty for e in self.exprs)
         return self
@@ -4431,12 +4459,13 @@ class ParseElementEnhance(ParserElement):
     def __init__(self, expr: Union[ParserElement, str], savelist: bool = False):
         super().__init__(savelist)
         if isinstance(expr, str_type):
+            expr_str = typing.cast(str, expr)
             if issubclass(self._literalStringClass, Token):
-                expr = self._literalStringClass(expr)
+                expr = self._literalStringClass(expr_str)  # type: ignore[call-arg]
             elif issubclass(type(self), self._literalStringClass):
-                expr = Literal(expr)
+                expr = Literal(expr_str)
             else:
-                expr = self._literalStringClass(Literal(expr))
+                expr = self._literalStringClass(Literal(expr_str))  # type: ignore[assignment, call-arg]
         expr = typing.cast(ParserElement, expr)
         self.expr = expr
         if expr is not None:
@@ -4720,6 +4749,7 @@ class PrecededBy(ParseElementEnhance):
         self.mayIndexError = False
         self.exact = False
         if isinstance(expr, str_type):
+            expr = typing.cast(str, expr)
             retreat = len(expr)
             self.exact = True
         elif isinstance(expr, (Literal, Keyword)):
@@ -5241,7 +5271,7 @@ class Forward(ParseElementEnhance):
 
     def __init__(self, other: typing.Optional[Union[ParserElement, str]] = None):
         self.caller_frame = traceback.extract_stack(limit=2)[0]
-        super().__init__(other, savelist=False)
+        super().__init__(other, savelist=False)  # type: ignore[arg-type]
         self.lshift_line = None
 
     def __lshift__(self, other) -> "Forward":
@@ -5262,7 +5292,7 @@ class Forward(ParseElementEnhance):
         self.skipWhitespace = self.expr.skipWhitespace
         self.saveAsList = self.expr.saveAsList
         self.ignoreExprs.extend(self.expr.ignoreExprs)
-        self.lshift_line = traceback.extract_stack(limit=2)[-2]
+        self.lshift_line = traceback.extract_stack(limit=2)[-2]  # type: ignore[assignment]
         return self
 
     def __ilshift__(self, other) -> "Forward":
@@ -5876,7 +5906,11 @@ def autoname_elements() -> None:
     Utility to simplify mass-naming of parser elements, for
     generating railroad diagram with named subdiagrams.
     """
-    for name, var in sys._getframe().f_back.f_locals.items():
+    calling_frame = sys._getframe().f_back
+    if calling_frame is None:
+        return
+    calling_frame = typing.cast(types.FrameType, calling_frame)
+    for name, var in calling_frame.f_locals.items():
         if isinstance(var, ParserElement) and not var.customName:
             var.set_name(name)
 

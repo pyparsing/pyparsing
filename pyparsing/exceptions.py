@@ -25,6 +25,12 @@ _exception_word_extractor = re.compile("([" + _extract_alphanums + "]{1,16})|.")
 class ParseBaseException(Exception):
     """base exception class for all parsing runtime exceptions"""
 
+    loc: int
+    msg: str
+    pstr: str
+    parser_element: typing.Any  # "ParserElement"
+    args: typing.Tuple[str, int, typing.Optional[str]]
+
     __slots__ = (
         "loc",
         "msg",
