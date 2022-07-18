@@ -543,16 +543,21 @@ Basic ParserElement subclasses
 
   - ``max`` - indicating a maximum length of matching characters
 
-  - ``exact`` - indicating an exact length of matching characters
+  - ``exact`` - indicating an exact length of matching characters;
+    if ``exact`` is specified, it will override any values for ``min`` or ``max``
 
-  If ``exact`` is specified, it will override any values for ``min`` or ``max``.
+  - ``as_keyword`` - indicating that preceding and following characters must
+    be whitespace or non-keyword characters
 
-  Sometimes you want to define a word using all
-  characters in a range except for one or two of them; you can do this
-  with the new ``exclude_chars`` argument. This is helpful if you want to define
-  a word with all ``printables`` except for a single delimiter character, such
-  as '.'. Previously, you would have to create a custom string to pass to Word.
-  With this change, you can just create ``Word(printables, exclude_chars='.')``.
+  - ``exclude_chars`` - a string of characters that should be excluded from
+    init_chars and body_chars
+
+    Sometimes you want to define a word using all
+    characters in a range except for one or two of them; you can do this
+    with the ``exclude_chars`` argument. This is helpful if you want to define
+    a word with all ``printables`` except for a single delimiter character, such
+    as '.'. Previously, you would have to create a custom string to pass to Word.
+    With this change, you can just create ``Word(printables, exclude_chars='.')``.
 
 - ``Char`` - a convenience form of ``Word`` that will match just a single character from
   a string of matching characters::

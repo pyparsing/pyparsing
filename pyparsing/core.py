@@ -2449,8 +2449,8 @@ ParserElement._literalStringClass = Literal
 class Keyword(Token):
     """
     Token to exactly match a specified string as a keyword, that is,
-    it must be immediately followed by a non-keyword character.  Compare
-    with :class:`Literal`:
+    it must be immediately preceded and followed by whitespace or
+    non-keyword characters. Compare with :class:`Literal`:
 
     - ``Literal("if")`` will match the leading ``'if'`` in
       ``'ifAndOnlyIf'``.
@@ -2838,6 +2838,8 @@ class Word(Token):
         self.errmsg = "Expected " + self.name
         self.mayIndexError = False
         self.asKeyword = asKeyword
+        if self.asKeyword:
+            self.errmsg += " as a keyword"
 
         # see if we can make a regex for this Word
         if " " not in (self.initChars | self.bodyChars):

@@ -80,6 +80,9 @@ help from Devin J. Pohly in structuring the code to enable this peaceful transit
 - Multiple added and corrected type annotations. With much help from
   Stephen Rosen, thanks!
 
+- Some documentation and error message clarifications on pyparsing's
+  keyword logic, cited by Basil Peace.
+
 - General docstring cleanup for Sphinx doc generation, PRs submitted
   by Devin J. Pohly. A dirty job, but someone has to do it - much
   appreciated!
