@@ -459,7 +459,7 @@ methods for code to use are:
   repeatedly to specify multiple expressions; useful to specify
   patterns of comment syntax, for example
 
-- ``set_debug(debug_flag=True)`` - function to enable/disable tracing output
+- ``set_debug(flag=True)`` - function to enable/disable tracing output
   when trying to match this element
 
 - ``validate()`` - function to verify that the defined grammar does not
