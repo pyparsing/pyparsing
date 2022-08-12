@@ -4517,11 +4517,11 @@ class ParseElementEnhance(ParserElement):
             if other not in self.ignoreExprs:
                 super().ignore(other)
                 if self.expr is not None:
-                    self.expr.ignore(self.ignoreExprs[-1])
+                    self.expr = self.expr.copy().ignore(self.ignoreExprs[-1])
         else:
             super().ignore(other)
             if self.expr is not None:
-                self.expr.ignore(self.ignoreExprs[-1])
+                self.expr = self.expr.copy().ignore(self.ignoreExprs[-1])
         return self
 
     def streamline(self) -> ParserElement:
