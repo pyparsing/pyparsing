@@ -87,6 +87,11 @@ help from Devin J. Pohly in structuring the code to enable this peaceful transit
   by Devin J. Pohly. A dirty job, but someone has to do it - much
   appreciated!
 
+- Removed examples sparser.py and pymicko.py, since each included its
+  own GPL license in the header. Since this conflicts with pyparsing's
+  MIT license, they were removed from the distribution to avoid
+  confusion among those making use of them in their own projects.
+
 
 Version 3.0.9 - May, 2022
 -------------------------
