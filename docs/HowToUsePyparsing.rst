@@ -1268,9 +1268,9 @@ Helper parse actions
   ``ParseException`` if matching at a different column number; useful when parsing
   tabular data
 
-- ``common.convert_to_integer()`` - converts all matched tokens to uppercase
+- ``common.convert_to_integer()`` - converts all matched tokens to int
 
-- ``common.convert_to_float()`` - converts all matched tokens to uppercase
+- ``common.convert_to_float()`` - converts all matched tokens to float
 
 - ``common.convert_to_date()`` - converts matched token to a datetime.date
 
