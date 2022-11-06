@@ -440,6 +440,18 @@ class ParserElement(ABC):
         """
         ParserElement._literalStringClass = cls
 
+    @classmethod
+    def using_each(cls, seq, **class_kwargs):
+        """
+        Yields a sequence of class(obj, **class_kwargs) for obj in seq.
+
+        Example::
+
+            LPAR, RPAR, LBRACE, RBRACE, SEMI = Suppress.using_each("(){};")
+
+        """
+        yield from (cls(obj, **class_kwargs) for obj in seq)
+
     class DebugActions(NamedTuple):
         debug_try: typing.Optional[DebugStartAction]
         debug_match: typing.Optional[DebugSuccessAction]
