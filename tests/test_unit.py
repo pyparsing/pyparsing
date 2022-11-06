@@ -101,10 +101,26 @@ class TestCase(unittest.TestCase):
 
         if getattr(ar, "exception", None) is not None:
             print(
-                f"Raised expected exception: {type(ar.exception).__name__}: {str(ar.exception)}"
+                f"Raised expected exception: {type(ar.exception).__name__}: {ar.exception}"
             )
         else:
             print(f"Expected {expected_exception_type.__name__} exception not raised")
+        return ar
+
+    @contextlib.contextmanager
+    def assertWarns(self, expected_warning_type: Any, msg: Any = None):
+        """
+        Simple wrapper to print out the warnings raised after assertWarns
+        """
+        with super().assertWarns(expected_warning_type, msg=msg) as ar:
+            yield
+
+        if getattr(ar, "warning", None) is not None:
+            print(
+                f"Raised expected warning: {type(ar.warning).__name__}: {ar.warning}"
+            )
+        else:
+            print(f"Expected {expected_warning_type.__name__} warning not raised")
         return ar
 
     @contextlib.contextmanager

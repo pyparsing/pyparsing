@@ -23,7 +23,8 @@ class __config_flags:
         if dname in cls._fixed_names:
             warnings.warn(
                 f"{cls.__name__}.{dname} {cls._type_desc} is {str(getattr(cls, dname)).upper()}"
-                f" and cannot be overridden"
+                f" and cannot be overridden",
+                stacklevel=3,
             )
             return
         if dname in cls._all_names:
