@@ -9111,7 +9111,8 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
         def testValidation(grmr, gnam, isValid):
             try:
                 grmr.streamline()
-                grmr.validate()
+                with self.assertWarns(DeprecationWarning, msg="failed to warn validate() is deprecated"):
+                    grmr.validate()
                 self.assertTrue(isValid, "validate() accepted invalid grammar " + gnam)
             except pp.RecursiveGrammarException as rge:
                 print(grmr)

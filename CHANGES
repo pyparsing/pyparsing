@@ -46,6 +46,13 @@ help from Devin J. Pohly in structuring the code to enable this peaceful transit
 
       ['BEGIN', ['aaa', 'bbb', 'ccc'], 'END']
 
+- `ParserElement.validate()` is deprecated. It predates the support for left-recursive
+  parsers, and was prone to false positives (warning that a grammar was invalid when
+  it was in fact valid).  It will be removed in a future pyparsing release. In its
+  place, developers should use debugging and analytical tools, such as `ParserElement.set_debug()`
+  and `ParserElement.create_diagram()`.
+  (Raised in Issue #444, thanks Andrea Micheli!)
+
 - Added new builtin `python_quoted_string`, which will match any form
   of single-line or multiline quoted strings defined in Python. (Inspired
   by discussion with Andreas Schörgenhumer in Issue #421.)
