@@ -182,7 +182,7 @@ Usage notes
   - ``expr[... ,n]`` is equivalent to ``expr*(0, n)``
     (read as "0 to n instances of expr")
 
-  - ``expr[...]`` and ``expr[0, ...]`` are equivalent to ``ZeroOrMore(expr)``
+  - ``expr[...]``, ``expr[0, ...]`` and ``expr * ...`` are equivalent to ``ZeroOrMore(expr)``
 
   - ``expr[1, ...]`` is equivalent to ``OneOrMore(expr)``
 

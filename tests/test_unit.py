@@ -1701,6 +1701,7 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
 
         exprs = [
             word[...] + num,
+            word * ... + num,
             word[0, ...] + num,
             word[1, ...] + num,
             word[2, ...] + num,
@@ -1709,6 +1710,7 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
         ]
 
         expected_res = [
+            r"([abcd]+ )*\d+",
             r"([abcd]+ )*\d+",
             r"([abcd]+ )*\d+",
             r"([abcd]+ )+\d+",
