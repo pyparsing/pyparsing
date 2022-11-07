@@ -463,7 +463,9 @@ methods for code to use are:
   when trying to match this element
 
 - ``validate()`` - function to verify that the defined grammar does not
-  contain infinitely recursive constructs
+  contain infinitely recursive constructs (``validate()`` is deprecated, and
+  will be removed in a future pyparsing release. Pyparsing now supports
+  left-recursive parsers, which this function attempted to catch.)
 
 .. _parse_with_tabs:
 
