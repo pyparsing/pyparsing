@@ -100,7 +100,8 @@ help from Devin J. Pohly in structuring the code to enable this peaceful transit
 
 - Fixed bug in `delimited_list`, where sub-expressions within the given
   expr might not get assigned names or parse actions. Raised in Issue
-  #408 by Mostafa Razi, nice catch, thanks!
+  #408 by Mostafa Razi, nice catch, thanks! And related Issue #447,
+  with premature streamlining in Forward() expressions.
 
 - Fixed bug in srange, when parsing escaped '/' and '\' inside a
   range set.
