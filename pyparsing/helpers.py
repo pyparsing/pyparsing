@@ -58,9 +58,9 @@ def delimited_list(
         while to_visit and num_exprs < MAX_EXPRS:
             parent, cur = to_visit.pop()
             num_exprs += 1
-            if cur in seen:
+            if id(cur) in seen:
                 continue
-            seen.add(cur)
+            seen.add(id(cur))
             cur = cur.copy()
             if parent is None:
                 cpy = cur

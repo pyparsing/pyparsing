@@ -1892,7 +1892,7 @@ class ParserElement(ABC):
         self._defaultName = None
         return self
 
-    def recurse(self) -> Sequence["ParserElement"]:
+    def recurse(self) -> List["ParserElement"]:
         return []
 
     def _checkRecursion(self, parseElementList):
@@ -3726,7 +3726,7 @@ class ParseExpression(ParserElement):
                 self.exprs = [exprs]
         self.callPreparse = False
 
-    def recurse(self) -> Sequence[ParserElement]:
+    def recurse(self) -> List[ParserElement]:
         return self.exprs[:]
 
     def append(self, other) -> ParserElement:
@@ -4503,7 +4503,7 @@ class ParseElementEnhance(ParserElement):
             self.callPreparse = expr.callPreparse
             self.ignoreExprs.extend(expr.ignoreExprs)
 
-    def recurse(self) -> Sequence[ParserElement]:
+    def recurse(self) -> List[ParserElement]:
         return [self.expr] if self.expr is not None else []
 
     def parseImpl(self, instring, loc, doActions=True):
@@ -5313,6 +5313,7 @@ class Forward(ParseElementEnhance):
             return NotImplemented
 
         self.expr = other
+        self.streamlined = other.streamlined
         self.mayIndexError = self.expr.mayIndexError
         self.mayReturnEmpty = self.expr.mayReturnEmpty
         self.set_whitespace_chars(
