@@ -19,13 +19,13 @@ jobs:
       matrix:
         os: ["ubuntu-latest"]
         toxenv: [py, pyparsing_packaging]
-        python-version: ["3.6", "3.7", "3.8", "3.9", "3.10"]
+        python-version: ["3.7", "3.8", "3.9", "3.10", "3.11"]
         include:
-          - python-version: "3.10"
+          - python-version: "3.11"
             os: macos-latest
-          - python-version: "3.10"
+          - python-version: "3.11"
             toxenv: mypy-test
-          - python-version: "pypy-3.7"
+          - python-version: "pypy-3.9"
     env:
       TOXENV: ${{ matrix.toxenv || 'py' }}
     steps:
