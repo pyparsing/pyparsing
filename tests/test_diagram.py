@@ -65,7 +65,10 @@ class TestRailroadDiagrams(unittest.TestCase):
             with self.subTest(f"{label}: test rr diag without results names"):
                 railroad = self.generate_railroad(example_expr, example_expr)
                 if len(railroad) != expected_rr_len:
-                    print(railroad_to_html(railroad))
+                    diag_html = railroad_to_html(railroad)
+                    for line in diag_html.splitlines():
+                        if 'h1 class="railroad-heading"' in line:
+                            print(line)
                 assert len(railroad) == expected_rr_len, f"expected {expected_rr_len}, got {len(railroad)}"
 
             with self.subTest(f"{label}: test rr diag with results names"):
