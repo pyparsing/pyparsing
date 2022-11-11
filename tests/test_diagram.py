@@ -47,42 +47,28 @@ class TestRailroadDiagrams(unittest.TestCase):
         """
         with self.get_temp() as temp:
             railroad = to_railroad(expr, show_results_names=show_results_names)
-            temp.write(railroad_to_html(railroad))
+            # temp.write(railroad_to_html(railroad))
 
         if self.railroad_debug():
             print(f"{label}: {temp.name}")
 
         return railroad
 
-    def test_bool_expr(self):
-        railroad = self.generate_railroad(boolExpr, "boolExpr")
-        assert len(railroad) == 5
-        railroad = self.generate_railroad(boolExpr, "boolExpr", show_results_names=True)
-        assert len(railroad) == 5
+    def test_example_rr_diags(self):
+        subtests = [
+            (boolExpr, "boolExpr", 5),
+            (jsonObject, "jsonObject", 8),
+            (simpleSQL, "simpleSQL", 20),
+            (calendars, "calendars", 13),
+        ]
+        for example_expr, label, expected_rr_len in subtests:
+            with self.subTest(f"{label}: test rr diag without results names"):
+                railroad = self.generate_railroad(example_expr, example_expr)
+                assert len(railroad) == expected_rr_len, f"expected {expected_rr_len}, got {len(railroad)}"
 
-    def test_json(self):
-        railroad = self.generate_railroad(jsonObject, "jsonObject")
-        assert len(railroad) == 9
-        railroad = self.generate_railroad(
-            jsonObject, "jsonObject", show_results_names=True
-        )
-        assert len(railroad) == 9
-
-    def test_sql(self):
-        railroad = self.generate_railroad(simpleSQL, "simpleSQL")
-        assert len(railroad) == 20
-        railroad = self.generate_railroad(
-            simpleSQL, "simpleSQL", show_results_names=True
-        )
-        assert len(railroad) == 20
-
-    def test_calendars(self):
-        railroad = self.generate_railroad(calendars, "calendars")
-        assert len(railroad) == 13
-        railroad = self.generate_railroad(
-            calendars, "calendars", show_results_names=True
-        )
-        assert len(railroad) == 13
+            with self.subTest(f"{label}: test rr diag with results names"):
+                railroad = self.generate_railroad(example_expr, example_expr, show_results_names=True)
+                assert len(railroad) == expected_rr_len, f"expected {expected_rr_len}, got {len(railroad)}"
 
     def test_nested_forward_with_inner_and_outer_names(self):
         outer = pp.Forward().setName("outer")
