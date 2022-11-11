@@ -49,25 +49,29 @@ class TestRailroadDiagrams(unittest.TestCase):
             railroad = to_railroad(expr, show_results_names=show_results_names)
             # temp.write(railroad_to_html(railroad))
 
-        if self.railroad_debug():
+        if self.railroad_debug() or True:
             print(f"{label}: {temp.name}")
 
         return railroad
 
     def test_example_rr_diags(self):
         subtests = [
-            (boolExpr, "boolExpr", 5),
             (jsonObject, "jsonObject", 8),
+            (boolExpr, "boolExpr", 5),
             (simpleSQL, "simpleSQL", 20),
             (calendars, "calendars", 13),
         ]
         for example_expr, label, expected_rr_len in subtests:
             with self.subTest(f"{label}: test rr diag without results names"):
                 railroad = self.generate_railroad(example_expr, example_expr)
+                if len(railroad) != expected_rr_len:
+                    print(railroad_to_html(railroad))
                 assert len(railroad) == expected_rr_len, f"expected {expected_rr_len}, got {len(railroad)}"
 
             with self.subTest(f"{label}: test rr diag with results names"):
                 railroad = self.generate_railroad(example_expr, example_expr, show_results_names=True)
+                if len(railroad) != expected_rr_len:
+                    print(railroad_to_html(railroad))
                 assert len(railroad) == expected_rr_len, f"expected {expected_rr_len}, got {len(railroad)}"
 
     def test_nested_forward_with_inner_and_outer_names(self):
