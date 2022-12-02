@@ -15,7 +15,6 @@ pp.ParserElement.enablePackrat()
 COLON, LBRACK, RBRACK, LBRACE, RBRACE, TILDE, CARAT = map(pp.Literal, ":[]{}~^")
 LPAR, RPAR = map(pp.Suppress, "()")
 and_, or_, not_, to_ = map(pp.CaselessKeyword, "AND OR NOT TO".split())
-keyword = and_ | or_ | not_ | to_
 
 expression = pp.Forward()
 
