@@ -578,10 +578,12 @@ def _to_diagram_element(
     elif isinstance(element, pyparsing.Empty) and not element.customName:
         # Skip unnamed "Empty" elements
         ret = None
-    elif len(exprs) > 1:
+    elif isinstance(element, pyparsing.ParseElementEnhance):
         ret = EditablePartial.from_call(railroad.Sequence, items=[])
     elif len(exprs) > 0 and not element_results_name:
         ret = EditablePartial.from_call(railroad.Group, item="", label=name)
+    elif len(exprs) > 0:
+        ret = EditablePartial.from_call(railroad.Sequence, items=[])
     else:
         terminal = EditablePartial.from_call(railroad.Terminal, element.defaultName)
         ret = terminal
