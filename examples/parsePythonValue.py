@@ -19,9 +19,9 @@ lparen, rparen, lbrack, rbrack, lbrace, rbrace, colon, comma = map(
 
 integer = pp.Regex(r"[+-]?\d+").setName("integer").setParseAction(cvtInt)
 real = pp.Regex(r"[+-]?\d+\.\d*([Ee][+-]?\d+)?").setName("real").setParseAction(cvtReal)
-tupleStr = pp.Forward()
-listStr = pp.Forward()
-dictStr = pp.Forward()
+tupleStr = pp.Forward().set_name("tuple_expr")
+listStr = pp.Forward().set_name("list_expr")
+dictStr = pp.Forward().set_name("dict_expr")
 
 unistr = pp.unicodeString().setParseAction(lambda t: t[0][2:-1])
 quoted_str = pp.quotedString().setParseAction(lambda t: t[0][1:-1])
@@ -38,21 +38,21 @@ listItem = (
     | pp.Group(listStr)
     | tupleStr
     | dictStr
-)
+).set_name("list_item")
 
 tupleStr <<= (
-    lparen + pp.Optional(pp.delimitedList(listItem)) + pp.Optional(comma) + rparen
+    lparen + pp.Optional(pp.delimitedList(listItem, allow_trailing_delim=True)) + rparen
 )
 tupleStr.setParseAction(cvtTuple)
 
 listStr <<= (
-    lbrack + pp.Optional(pp.delimitedList(listItem) + pp.Optional(comma)) + rbrack
+    lbrack + pp.Optional(pp.delimitedList(listItem, allow_trailing_delim=True)) + rbrack
 )
 listStr.setParseAction(cvtList, lambda t: t[0])
 
-dictEntry = pp.Group(listItem + colon + listItem)
+dictEntry = pp.Group(listItem + colon + listItem).set_name("dict_entry")
 dictStr <<= (
-    lbrace + pp.Optional(pp.delimitedList(dictEntry) + pp.Optional(comma)) + rbrace
+    lbrace + pp.Optional(pp.delimitedList(dictEntry, allow_trailing_delim=True)) + rbrace
 )
 dictStr.setParseAction(cvtDict)
 
