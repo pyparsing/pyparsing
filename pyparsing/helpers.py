@@ -17,89 +17,6 @@ from .util import (
 #
 # global helpers
 #
-def delimited_list(
-    expr: Union[str, ParserElement],
-    delim: Union[str, ParserElement] = ",",
-    combine: bool = False,
-    min: typing.Optional[int] = None,
-    max: typing.Optional[int] = None,
-    *,
-    allow_trailing_delim: bool = False,
-) -> ParserElement:
-    """Helper to define a delimited list of expressions - the delimiter
-    defaults to ','. By default, the list elements and delimiters can
-    have intervening whitespace, and comments, but this can be
-    overridden by passing ``combine=True`` in the constructor. If
-    ``combine`` is set to ``True``, the matching tokens are
-    returned as a single token string, with the delimiters included;
-    otherwise, the matching tokens are returned as a list of tokens,
-    with the delimiters suppressed.
-
-    If ``allow_trailing_delim`` is set to True, then the list may end with
-    a delimiter.
-
-    Example::
-
-        delimited_list(Word(alphas)).parse_string("aa,bb,cc") # -> ['aa', 'bb', 'cc']
-        delimited_list(Word(hexnums), delim=':', combine=True).parse_string("AA:BB:CC:DD:EE") # -> ['AA:BB:CC:DD:EE']
-    """
-    if isinstance(expr, str_type):
-        expr = ParserElement._literalStringClass(expr)
-    expr = typing.cast(ParserElement, expr)
-
-    def make_deep_name_copy(expr):
-        from collections import deque
-
-        MAX_EXPRS = sys.getrecursionlimit()
-        seen = set()
-        to_visit = deque([(None, expr)])
-        cpy = None
-        num_exprs = 0
-        while to_visit and num_exprs < MAX_EXPRS:
-            parent, cur = to_visit.pop()
-            num_exprs += 1
-            if id(cur) in seen:
-                continue
-            seen.add(id(cur))
-            cur = cur.copy()
-            if parent is None:
-                cpy = cur
-            else:
-                if hasattr(parent, "expr"):
-                    parent.expr = cur
-                elif hasattr(parent, "exprs"):
-                    parent.exprs.append(cur)
-
-            to_visit.extend((cur, sub) for sub in cur.recurse()[::-1])
-            getattr(cur, "exprs", []).clear()
-
-        return cpy
-
-    expr_copy = make_deep_name_copy(expr).streamline()
-    dlName = f"{expr_copy} [{delim} {expr_copy}]...{f' [{delim}]' if allow_trailing_delim else ''}"
-
-    if not combine:
-        delim = Suppress(delim)
-
-    if min is not None:
-        if min < 1:
-            raise ValueError("min must be greater than 0")
-        min -= 1
-    if max is not None:
-        if min is not None and max <= min:
-            raise ValueError("max must be greater than, or equal to min")
-        max -= 1
-    delimited_list_expr: ParserElement = expr + (delim + expr)[min, max]
-
-    if allow_trailing_delim:
-        delimited_list_expr += Opt(delim)
-
-    if combine:
-        return Combine(delimited_list_expr).set_name(dlName)
-    else:
-        return delimited_list_expr.set_name(dlName)
-
-
 def counted_array(
     expr: ParserElement,
     int_expr: typing.Optional[ParserElement] = None,
@@ -1109,6 +1026,38 @@ python_style_comment = Regex(r"#.*").set_name("Python style comment")
 _builtin_exprs: List[ParserElement] = [
     v for v in vars().values() if isinstance(v, ParserElement)
 ]
+
+
+# compatibility function, superseded by DelimitedList class
+def delimited_list(
+    expr: Union[str, ParserElement],
+    delim: Union[str, ParserElement] = ",",
+    combine: bool = False,
+    min: typing.Optional[int] = None,
+    max: typing.Optional[int] = None,
+    *,
+    allow_trailing_delim: bool = False,
+) -> ParserElement:
+    """Helper to define a delimited list of expressions - the delimiter
+    defaults to ','. By default, the list elements and delimiters can
+    have intervening whitespace, and comments, but this can be
+    overridden by passing ``combine=True`` in the constructor. If
+    ``combine`` is set to ``True``, the matching tokens are
+    returned as a single token string, with the delimiters included;
+    otherwise, the matching tokens are returned as a list of tokens,
+    with the delimiters suppressed.
+
+    If ``allow_trailing_delim`` is set to True, then the list may end with
+    a delimiter.
+
+    Example::
+
+        delimited_list(Word(alphas)).parse_string("aa,bb,cc") # -> ['aa', 'bb', 'cc']
+        delimited_list(Word(hexnums), delim=':', combine=True).parse_string("AA:BB:CC:DD:EE") # -> ['AA:BB:CC:DD:EE']
+    """
+    return DelimitedList(
+        expr, delim, combine, min, max, allow_trailing_delim=allow_trailing_delim
+    )
 
 
 # pre-PEP8 compatible names
