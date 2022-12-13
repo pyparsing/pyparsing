@@ -45,7 +45,8 @@ boost = CARAT - number("boost")
 string_expr = pp.Group(string + proximity_modifier) | string
 word_expr = pp.Group(valid_word + fuzzy_modifier) | valid_word
 term << (
-    pp.Optional(field_name("field") + COLON)
+    ~keyword
+    + pp.Optional(field_name("field") + COLON)
     + (word_expr | string_expr | range_search | pp.Group(LPAR + expression + RPAR))
     + pp.Optional(boost)
 )
