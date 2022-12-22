@@ -121,7 +121,7 @@ class version_info(NamedTuple):
 
 
 __version_info__ = version_info(3, 0, 10, "final", 0)
-__version_time__ = "11 Dec 2022 16:48 UTC"
+__version_time__ = "22 Dec 2022 08:16 UTC"
 __version__ = __version_info__.__version__
 __versionTime__ = __version_time__
 __author__ = "Paul McGuire <ptmcg.gm+pyparsing@gmail.com>"
@@ -131,9 +131,9 @@ from .exceptions import *
 from .actions import *
 from .core import __diag__, __compat__
 from .results import *
-from .core import *  # type: ignore[misc]
+from .core import *  # type: ignore[misc, assignment]
 from .core import _builtin_exprs as core_builtin_exprs
-from .helpers import *  # type: ignore[misc]
+from .helpers import *  # type: ignore[misc, assignment]
 from .helpers import _builtin_exprs as helper_builtin_exprs
 
 from .unicode import unicode_set, UnicodeRangeList, pyparsing_unicode as unicode

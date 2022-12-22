@@ -1,6 +1,8 @@
 #
 # core.py
 #
+from __future__ import annotations
+
 from collections import deque
 import os
 import typing
@@ -323,7 +325,7 @@ def _trim_arity(func, max_limit=3):
 
 
 def condition_as_parse_action(
-    fn: ParseCondition, message: str = None, fatal: bool = False
+    fn: ParseCondition, message: typing.Optional[str] = None, fatal: bool = False
 ) -> ParseAction:
     """
     Function to convert a simple predicate function that returns ``True`` or ``False``
@@ -738,7 +740,9 @@ class ParserElement(ABC):
         for fn in fns:
             self.parseAction.append(
                 condition_as_parse_action(
-                    fn, message=kwargs.get("message"), fatal=kwargs.get("fatal", False)
+                    fn,
+                    message=str(kwargs.get("message")),
+                    fatal=bool(kwargs.get("fatal", False)),
                 )
             )
 
@@ -1674,7 +1678,7 @@ class ParserElement(ABC):
 
         return ret
 
-    def __call__(self, name: str = None) -> "ParserElement":
+    def __call__(self, name: typing.Optional[str] = None) -> "ParserElement":
         """
         Shortcut for :class:`set_results_name`, with ``list_all_matches=False``.
 
@@ -1789,9 +1793,9 @@ class ParserElement(ABC):
           should have the signature ``fn(input_string: str, location: int, expression: ParserElement, exception: Exception, cache_hit: bool)``
         """
         self.debugActions = self.DebugActions(
-            start_action or _default_start_debug_action,
-            success_action or _default_success_debug_action,
-            exception_action or _default_exception_debug_action,
+            start_action or _default_start_debug_action,  # type: ignore[truthy-function]
+            success_action or _default_success_debug_action,  # type: ignore[truthy-function]
+            exception_action or _default_exception_debug_action,  # type: ignore[truthy-function]
         )
         self.debug = True
         return self
@@ -1985,7 +1989,7 @@ class ParserElement(ABC):
         full_dump: bool = True,
         print_results: bool = True,
         failure_tests: bool = False,
-        post_parse: Callable[[str, ParseResults], str] = None,
+        post_parse: typing.Optional[Callable[[str, ParseResults], str]] = None,
         file: typing.Optional[TextIO] = None,
         with_line_numbers: bool = False,
         *,
@@ -1993,7 +1997,7 @@ class ParserElement(ABC):
         fullDump: bool = True,
         printResults: bool = True,
         failureTests: bool = False,
-        postParse: Callable[[str, ParseResults], str] = None,
+        postParse: typing.Optional[Callable[[str, ParseResults], str]] = None,
     ) -> Tuple[bool, List[Tuple[str, Union[ParseResults, Exception]]]]:
         """
         Execute the parse expression on a series of test strings, showing each
@@ -2671,7 +2675,7 @@ class CloseMatch(Token):
     def __init__(
         self,
         match_string: str,
-        max_mismatches: int = None,
+        max_mismatches: typing.Optional[int] = None,
         *,
         maxMismatches: int = 1,
         caseless=False,
@@ -4909,7 +4913,7 @@ class NotAny(ParseElementEnhance):
 class _MultipleMatch(ParseElementEnhance):
     def __init__(
         self,
-        expr: ParserElement,
+        expr: Union[str, ParserElement],
         stop_on: typing.Optional[Union[ParserElement, str]] = None,
         *,
         stopOn: typing.Optional[Union[ParserElement, str]] = None,
@@ -5031,7 +5035,7 @@ class ZeroOrMore(_MultipleMatch):
 
     def __init__(
         self,
-        expr: ParserElement,
+        expr: Union[str, ParserElement],
         stop_on: typing.Optional[Union[ParserElement, str]] = None,
         *,
         stopOn: typing.Optional[Union[ParserElement, str]] = None,
@@ -5268,7 +5272,7 @@ class SkipTo(ParseElementEnhance):
         ignore: typing.Optional[Union[ParserElement, str]] = None,
         fail_on: typing.Optional[Union[ParserElement, str]] = None,
         *,
-        failOn: Union[ParserElement, str] = None,
+        failOn: typing.Optional[Union[ParserElement, str]] = None,
     ):
         super().__init__(other)
         failOn = failOn or fail_on

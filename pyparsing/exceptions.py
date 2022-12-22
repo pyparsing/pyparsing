@@ -188,7 +188,9 @@ class ParseBaseException(Exception):
     def __repr__(self):
         return str(self)
 
-    def mark_input_line(self, marker_string: str = None, *, markerString=">!<") -> str:
+    def mark_input_line(
+        self, marker_string: typing.Optional[str] = None, *, markerString: str = ">!<"
+    ) -> str:
         """
         Extracts the exception line from the input string, and marks
         the location of the exception with a special symbol.
