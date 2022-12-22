@@ -28,12 +28,44 @@ help from Devin J. Pohly in structuring the code to enable this peaceful transit
 
   Suggested by Antony Lee (issue #412), PR (#413) by Devin J. Pohly.
 
+- Reworked `delimited_list` function into the new `DelimitedList` class.
+  `DelimitedList` has the same constructor interface as `delimited_list`, and
+  in this release, `delimited_list` changes from a function to a synonym for
+  `DelimitedList`. `delimited_list` and the older `delimitedList` method will be
+  deprecated in a future release, in favor of `DelimitedList`.
+
+- Added new class method `ParserElement.using_each`, to simplify code
+  that creates a sequence of `Literals`, `Keywords`, or other `ParserElement`
+  subclasses.
+
+  For instance, to define suppressable punctuation, you would previously
+  write:
+
+      LPAR, RPAR, LBRACE, RBRACE, SEMI = map(Suppress, "(){};")
+
+  You can now write:
+
+      LPAR, RPAR, LBRACE, RBRACE, SEMI = Suppress.using_each("(){};")
+
+  `using_each` will also accept optional keyword args, which it will
+  pass through to the class initializer. Here is an expression for
+  single-letter variable names that might be used in an algebraic
+  expression:
+
+      algebra_var = MatchFirst(
+          Char.using_each(string.ascii_lowercase, as_keyword=True)
+      )
+
+- Added new builtin `python_quoted_string`, which will match any form
+  of single-line or multiline quoted strings defined in Python. (Inspired
+  by discussion with Andreas Schörgenhumer in Issue #421.)
+
 - Extended `expr[]` notation for repetition of `expr` to accept a
   slice, where the slice's stop value indicates a `stop_on`
   expression:
 
       test = "BEGIN aaa bbb ccc END"
-      BEGIN, END = map(Keyword, "BEGIN END".split())
+      BEGIN, END = Keyword.using_each("BEGIN END".split())
       body_word = Word(alphas)
 
       expr = BEGIN + Group(body_word[:END]) + END
@@ -53,32 +85,6 @@ help from Devin J. Pohly in structuring the code to enable this peaceful transit
   and `ParserElement.create_diagram()`.
   (Raised in Issue #444, thanks Andrea Micheli!)
 
-- Added new builtin `python_quoted_string`, which will match any form
-  of single-line or multiline quoted strings defined in Python. (Inspired
-  by discussion with Andreas Schörgenhumer in Issue #421.)
-
-- Added new class method `ParserElement.using_each`, to simplify code
-  that creates a sequence of `Literals`, `Keywords`, or other `ParserElement`
-  subclasses.
-
-  For instance, to define suppressable punctuation, one would previously
-  write:
-
-      LPAR, RPAR, LBRACE, RBRACE, SEMI = map(Suppress, "(){};")
-
-  You can now write:
-
-      LPAR, RPAR, LBRACE, RBRACE, SEMI = Suppress.using_each("(){};")
-
-  `using_each` will also accept optional keyword args, which it will
-  pass through to the class initializer. Here is an expression for
-  single-letter variable names that might be used in an algebraic
-  expression:
-
-      algebra_var = MatchFirst(
-          Char.using_each(string.ascii_lowercase, as_keyword=True)
-      )
-
 - Added bool `embed` argument to `ParserElement.create_diagram()`.
   When passed as True, the resulting diagram will omit the `<DOCTYPE>`,
   `<HEAD>`, and `<BODY>` tags so that it can be embedded in other
@@ -97,11 +103,6 @@ help from Devin J. Pohly in structuring the code to enable this peaceful transit
 
 - `Word` arguments are now validated if `min` and `max` are both
   given, that `min` <= `max`; raises `ValueError` if values are invalid.
-
-- Fixed bug in `delimited_list`, where sub-expressions within the given
-  expr might not get assigned names or parse actions. Raised in Issue
-  #408 by Mostafa Razi, nice catch, thanks! And related Issue #447,
-  with premature streamlining in Forward() expressions.
 
 - Fixed bug in srange, when parsing escaped '/' and '\' inside a
   range set.
