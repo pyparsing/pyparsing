@@ -116,9 +116,7 @@ class TestCase(unittest.TestCase):
             yield
 
         if getattr(ar, "warning", None) is not None:
-            print(
-                f"Raised expected warning: {type(ar.warning).__name__}: {ar.warning}"
-            )
+            print(f"Raised expected warning: {type(ar.warning).__name__}: {ar.warning}")
         else:
             print(f"Expected {expected_warning_type.__name__} warning not raised")
         return ar
@@ -2931,7 +2929,10 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             with self.assertRaises(
                 TypeError, msg="ParserElement * (str, str) should raise error"
             ):
-                expr = pp.Word(pp.alphas)("first") + pp.Word(pp.nums)("second") * ("2", "3")
+                expr = pp.Word(pp.alphas)("first") + pp.Word(pp.nums)("second") * (
+                    "2",
+                    "3",
+                )
 
     def testParserElementMulByZero(self):
         alpwd = pp.Word(pp.alphas)
@@ -2956,12 +2957,16 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
 
         # ParserElement * str
         with self.subTest():
-            with self.assertRaises(TypeError, msg="ParserElement * str should raise error"):
+            with self.assertRaises(
+                TypeError, msg="ParserElement * str should raise error"
+            ):
                 expr = pp.Word(pp.alphas)("first") + pp.Word(pp.nums)("second") * "3"
 
         # str * ParserElement
         with self.subTest():
-            with self.assertRaises(TypeError, msg="str * ParserElement should raise error"):
+            with self.assertRaises(
+                TypeError, msg="str * ParserElement should raise error"
+            ):
                 expr = pp.Word(pp.alphas)("first") + "3" * pp.Word(pp.nums)("second")
 
         # ParserElement * int
@@ -8284,23 +8289,26 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             self.assertEqual("bool [, bool]...", str(bool_list2))
 
         with self.subTest():
-            street_address = pp.common.integer.set_name("integer") + pp.Word(pp.alphas)[1, ...].set_name("street_name")
+            street_address = pp.common.integer.set_name("integer") + pp.Word(pp.alphas)[
+                1, ...
+            ].set_name("street_name")
             self.assertEqual(
                 "{integer street_name} [, {integer street_name}]...",
-                str(pp.delimitedList(street_address))
+                str(pp.delimitedList(street_address)),
             )
 
         with self.subTest():
             operand = pp.Char(pp.alphas).set_name("var")
-            math = pp.infixNotation(operand,
-                                    [
-                                        (pp.one_of("+ -"), 2, pp.opAssoc.LEFT),
-                                    ])
+            math = pp.infixNotation(
+                operand,
+                [
+                    (pp.one_of("+ -"), 2, pp.opAssoc.LEFT),
+                ],
+            )
             self.assertEqual(
                 "Forward: + | - term [, Forward: + | - term]...",
-                str(pp.delimitedList(math))
+                str(pp.delimitedList(math)),
             )
-
 
     def testDelimitedListOfStrLiterals(self):
         expr = pp.delimitedList("ABC")
@@ -8333,9 +8341,9 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
 
     def testDelimitedListParseActions1(self):
         # from issue #408
-        keyword = pp.Keyword('foobar')
+        keyword = pp.Keyword("foobar")
         untyped_identifier = ~keyword + pp.Word(pp.alphas)
-        dotted_vars = pp.delimited_list(untyped_identifier, delim='.')
+        dotted_vars = pp.delimited_list(untyped_identifier, delim=".")
         lvalue = pp.Opt(dotted_vars)
 
         # uncomment this line to see the problem
@@ -8344,27 +8352,29 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
         # stmt = pp.Opt(dotted_vars)
 
         def parse_identifier(toks):
-            print('YAY!', toks)
+            print("YAY!", toks)
 
         untyped_identifier.set_parse_action(parse_identifier)
 
         save_stdout = StringIO()
         with contextlib.redirect_stdout(save_stdout):
-            dotted_vars.parse_string('B.C')
+            dotted_vars.parse_string("B.C")
 
         self.assertEqual(
-            dedent("""\
+            dedent(
+                """\
                 YAY! ['B']
                 YAY! ['C']
-                """),
-            save_stdout.getvalue()
+                """
+            ),
+            save_stdout.getvalue(),
         )
 
     def testDelimitedListParseActions2(self):
         # from issue #408
-        keyword = pp.Keyword('foobar')
+        keyword = pp.Keyword("foobar")
         untyped_identifier = ~keyword + pp.Word(pp.alphas)
-        dotted_vars = pp.delimited_list(untyped_identifier, delim='.')
+        dotted_vars = pp.delimited_list(untyped_identifier, delim=".")
         lvalue = pp.Opt(dotted_vars)
 
         # uncomment this line to see the problem
@@ -8373,27 +8383,29 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
         # stmt = pp.Opt(dotted_vars)
 
         def parse_identifier(toks):
-            print('YAY!', toks)
+            print("YAY!", toks)
 
         untyped_identifier.set_parse_action(parse_identifier)
 
         save_stdout = StringIO()
         with contextlib.redirect_stdout(save_stdout):
-            dotted_vars.parse_string('B.C')
+            dotted_vars.parse_string("B.C")
 
         self.assertEqual(
-            dedent("""\
+            dedent(
+                """\
                 YAY! ['B']
                 YAY! ['C']
-                """),
-            save_stdout.getvalue()
+                """
+            ),
+            save_stdout.getvalue(),
         )
 
     def testDelimitedListParseActions3(self):
         # from issue #408
-        keyword = pp.Keyword('foobar')
+        keyword = pp.Keyword("foobar")
         untyped_identifier = ~keyword + pp.Word(pp.alphas)
-        dotted_vars = pp.delimited_list(untyped_identifier, delim='.')
+        dotted_vars = pp.delimited_list(untyped_identifier, delim=".")
         lvalue = pp.Opt(dotted_vars)
 
         # uncomment this line to see the problem
@@ -8402,20 +8414,22 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
         stmt = pp.Opt(dotted_vars)
 
         def parse_identifier(toks):
-            print('YAY!', toks)
+            print("YAY!", toks)
 
         untyped_identifier.set_parse_action(parse_identifier)
 
         save_stdout = StringIO()
         with contextlib.redirect_stdout(save_stdout):
-            dotted_vars.parse_string('B.C')
+            dotted_vars.parse_string("B.C")
 
         self.assertEqual(
-            dedent("""\
+            dedent(
+                """\
                 YAY! ['B']
                 YAY! ['C']
-                """),
-            save_stdout.getvalue()
+                """
+            ),
+            save_stdout.getvalue(),
         )
 
     def testEnableDebugOnNamedExpressions(self):
@@ -8667,11 +8681,14 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
 
     def testSetDebugRecursivelyWithForward(self):
         expr = pp.Word(pp.alphas).set_name("innermost")
-        contained = pp.infix_notation(expr, [
-            ('NOT', 1, pp.opAssoc.RIGHT),
-            ('AND', 2, pp.opAssoc.LEFT),
-            ('OR', 2, pp.opAssoc.LEFT),
-        ])
+        contained = pp.infix_notation(
+            expr,
+            [
+                ("NOT", 1, pp.opAssoc.RIGHT),
+                ("AND", 2, pp.opAssoc.LEFT),
+                ("OR", 2, pp.opAssoc.LEFT),
+            ],
+        )
 
         contained.set_debug(recurse=True)
         self.assertTrue(expr.debug)
@@ -8925,17 +8942,11 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
         ppu = pp.pyparsing_unicode
 
         latin_identifier = pp.Word(pp.identchars, pp.identbodychars)("latin*")
-        japanese_identifier = pp.Word(
-            ppu.Japanese.identchars, ppu.Japanese.identbodychars
-        )("japanese*")
-        cjk_identifier = pp.Word(ppu.CJK.identchars, ppu.CJK.identbodychars)("cjk*")
-        greek_identifier = pp.Word(ppu.Greek.identchars, ppu.Greek.identbodychars)(
-            "greek*"
-        )
-        cyrillic_identifier = pp.Word(
-            ppu.Cyrillic.identchars, ppu.Cyrillic.identbodychars
-        )("cyrillic*")
-        thai_identifier = pp.Word(ppu.Thai.identchars, ppu.Thai.identbodychars)("thai*")
+        japanese_identifier = ppu.Japanese.identifier("japanese*")
+        cjk_identifier = ppu.CJK.identifier("cjk*")
+        greek_identifier = ppu.Greek.identifier("greek*")
+        cyrillic_identifier = ppu.Cyrillic.identifier("cyrillic*")
+        thai_identifier = ppu.Thai.identifier("thai*")
         idents = (
             latin_identifier
             | japanese_identifier
@@ -9113,7 +9124,9 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
         def testValidation(grmr, gnam, isValid):
             try:
                 grmr.streamline()
-                with self.assertWarns(DeprecationWarning, msg="failed to warn validate() is deprecated"):
+                with self.assertWarns(
+                    DeprecationWarning, msg="failed to warn validate() is deprecated"
+                ):
                     grmr.validate()
                 self.assertTrue(isValid, "validate() accepted invalid grammar " + gnam)
             except pp.RecursiveGrammarException as rge:

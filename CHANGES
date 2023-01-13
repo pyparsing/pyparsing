@@ -28,6 +28,19 @@ help from Devin J. Pohly in structuring the code to enable this peaceful transit
 
   Suggested by Antony Lee (issue #412), PR (#413) by Devin J. Pohly.
 
+- Added new class property `identifier` to all Unicode set classes in `pyparsing.unicode`,
+  using the class's values for `cls.identchars` and `cls.identbodychars`. Now Unicode-aware
+  parsers that formerly wrote:
+
+      ppu = pyparsing.unicode
+      ident = Word(ppu.Greek.identchars, ppu.Greek.identbodychars)
+
+  can now write:
+
+      ident = ppu.Greek.identifier
+      # or
+      # ident = ppu.Ελληνικά.identifier
+
 - Reworked `delimited_list` function into the new `DelimitedList` class.
   `DelimitedList` has the same constructor interface as `delimited_list`, and
   in this release, `delimited_list` changes from a function to a synonym for
