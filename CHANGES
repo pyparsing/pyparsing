@@ -123,6 +123,9 @@ help from Devin J. Pohly in structuring the code to enable this peaceful transit
 - Fixed exception messages for some `ParserElements` with custom names,
   which instead showed their contained expression names.
 
+- Fixed bug in pyparsing.common.url, when input URL is not alone
+  on an input line. Fixes Issue #459, reported by David Kennedy.
+
 - Multiple added and corrected type annotations. With much help from
   Stephen Rosen, thanks!
 

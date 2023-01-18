@@ -363,7 +363,6 @@ class pyparsing_common:
     url = Regex(
         # https://mathiasbynens.be/demo/url-regex
         # https://gist.github.com/dperini/729294
-        r"^" +
         # protocol identifier (optional)
         # short syntax // still required
         r"(?:(?:(?P<scheme>https?|ftp):)?\/\/)" +
@@ -404,9 +403,9 @@ class pyparsing_common:
         # query string (optional)
         r"(\?(?P<query>[^#]*))?" +
         # fragment (optional)
-        r"(#(?P<fragment>\S*))?" +
-        r"$"
+        r"(#(?P<fragment>\S*))?"
     ).set_name("url")
+    """URL (http/https/ftp scheme)"""
     # fmt: on
 
     # pre-PEP8 compatibility names
