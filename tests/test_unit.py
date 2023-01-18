@@ -6405,21 +6405,19 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
         self.assertParseAndCheckDict(ppc.url, sample_url, expected, verbose=True)
 
     def testCommonUrlExprs(self):
-        def extract_parts(s, split=' '):
+        def extract_parts(s, split=" "):
             return [[_.strip(split)] for _ in s.strip(split).split(split)]
 
         test_string = "http://example.com https://blah.org "
         self.assertParseAndCheckList(
-            pp.Group(ppc.url)[...],
-            test_string,
-            extract_parts(test_string)
+            pp.Group(ppc.url)[...], test_string, extract_parts(test_string)
         )
 
         test_string = test_string.replace(" ", " , ")
         self.assertParseAndCheckList(
             pp.delimited_list(pp.Group(ppc.url), allow_trailing_delim=True),
             test_string,
-            extract_parts(test_string, " , ")
+            extract_parts(test_string, " , "),
         )
 
     def testNumericExpressions(self):
