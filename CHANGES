@@ -136,6 +136,9 @@ help from Devin J. Pohly in structuring the code to enable this peaceful transit
   by Devin J. Pohly. A dirty job, but someone has to do it - much
   appreciated!
 
+- invRegex.py example renamed to inv_regex.py and updated to PEP-8
+  variable and method naming. PR submitted by Ross J. Duff, thanks!
+
 - Removed examples sparser.py and pymicko.py, since each included its
   own GPL license in the header. Since this conflicts with pyparsing's
   MIT license, they were removed from the distribution to avoid
