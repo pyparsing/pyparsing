@@ -1,7 +1,6 @@
 #
 # core.py
 #
-from __future__ import annotations
 
 from collections import deque
 import os
@@ -4524,8 +4523,8 @@ class ParseElementEnhance(ParserElement):
         super().leave_whitespace(recursive)
 
         if recursive:
-            self.expr = self.expr.copy()
             if self.expr is not None:
+                self.expr = self.expr.copy()
                 self.expr.leave_whitespace(recursive)
         return self
 
@@ -4533,8 +4532,8 @@ class ParseElementEnhance(ParserElement):
         super().ignore_whitespace(recursive)
 
         if recursive:
-            self.expr = self.expr.copy()
             if self.expr is not None:
+                self.expr = self.expr.copy()
                 self.expr.ignore_whitespace(recursive)
         return self
 
