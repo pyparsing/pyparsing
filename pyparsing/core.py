@@ -4147,7 +4147,7 @@ class Or(ParseExpression):
             raise max_fatal
 
         if maxException is not None:
-            maxException.msg = self.errmsg
+            # maxException.msg = self.errmsg
             raise maxException
         else:
             raise ParseException(
@@ -4260,7 +4260,8 @@ class MatchFirst(ParseExpression):
                     maxExcLoc = len(instring)
 
         if maxException is not None:
-            maxException.msg = self.errmsg
+            if maxException.msg == self.exprs[0].errmsg:
+                maxException.msg = self.errmsg
             raise maxException
         else:
             raise ParseException(

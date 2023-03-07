@@ -41,6 +41,14 @@ help from Devin J. Pohly in structuring the code to enable this peaceful transit
       # or
       # ident = ppu.Ελληνικά.identifier
 
+- `ParseResults` now has a new method `deepcopy()`, in addition to the current
+  `copy()` method. `copy()` only makes a shallow copy - any contained `ParseResults`
+  are copied as references - changes in the copy will be seen as changes in the original.
+  In many cases, a shallow copy is sufficient, but some applications require a deep copy.
+  `deepcopy()` makes a deeper copy: any contained `ParseResults` or other mappings or
+  containers are built with copies from the original, and do not get changed if the
+  original is later changed. Addresses issue #463, reported by Bryn Pickering.
+
 - Reworked `delimited_list` function into the new `DelimitedList` class.
   `DelimitedList` has the same constructor interface as `delimited_list`, and
   in this release, `delimited_list` changes from a function to a synonym for

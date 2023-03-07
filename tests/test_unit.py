@@ -3438,6 +3438,120 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             "ParseResults with empty list but containing a results name evaluated as False",
         )
 
+    def testParseResultsCopy(self):
+        expr = pp.Word(pp.nums) + pp.Group(pp.Word(pp.alphas)("key") + '=' + pp.Word(pp.nums)("value"))[...]
+        result = expr.parse_string("1 a=100 b=200 c=300")
+        print(result.dump())
+
+        r2 = result.copy()
+        print(r2.dump())
+
+        # check copy is different, but contained results is the same as in original
+        self.assertFalse(r2 is result, "copy failed")
+        self.assertTrue(r2[1] is result[1], "shallow copy failed")
+
+        # update result sub-element in place
+        result[1][0] = 'z'
+        self.assertParseResultsEquals(
+            result,
+            expected_list=['1', ['z', '=', '100'], ['b', '=', '200'], ['c', '=', '300']]
+        )
+
+        # update contained results, verify list and dict contents are updated as expected
+        result[1][0] = result[1]["key"] = 'q'
+        result[1]["xyz"] = 1000
+        print(result.dump())
+        self.assertParseResultsEquals(
+            result,
+            expected_list=['1', ['q', '=', '100'], ['b', '=', '200'], ['c', '=', '300']],
+        )
+        self.assertParseResultsEquals(
+            result[1],
+            expected_dict = {'key': 'q', 'value': '100', 'xyz': 1000}
+        )
+
+        # verify that list and dict contents are the same in copy
+        self.assertParseResultsEquals(
+            r2,
+            expected_list=['1', ['q', '=', '100'], ['b', '=', '200'], ['c', '=', '300']],
+        )
+        self.assertParseResultsEquals(
+            r2[1],
+            expected_dict = {'key': 'q', 'value': '100', 'xyz': 1000}
+        )
+
+    def testParseResultsDeepcopy(self):
+        expr = pp.Word(pp.nums) + pp.Group(pp.Word(pp.alphas)("key") + '=' + pp.Word(pp.nums)("value"))[...]
+        result = expr.parse_string("1 a=100 b=200 c=300")
+
+        r2 = result.deepcopy()
+        print(r2.dump())
+
+        # check copy and contained results are different from original
+        self.assertFalse(r2 is result, "copy failed")
+        self.assertFalse(r2[1] is result[1], "deep copy failed")
+
+        # update contained results
+        result[1][0] = result[1]["key"] = 'q'
+        result[1]["xyz"] = 1000
+        print(result.dump())
+
+        # verify that list and dict contents are unchanged in the copy
+        self.assertParseResultsEquals(
+            r2,
+            expected_list=['1', ['a', '=', '100'], ['b', '=', '200'], ['c', '=', '300']],
+        )
+        self.assertParseResultsEquals(
+            r2[1],
+            expected_dict = {'key': 'a', 'value': '100'}
+        )
+
+    def testParseResultsDeepcopy2(self):
+        expr = pp.Word(pp.nums) + pp.Group(pp.Word(pp.alphas)("key") + '=' + pp.Word(pp.nums)("value"), aslist=True)[...]
+        result = expr.parse_string("1 a=100 b=200 c=300")
+
+        r2 = result.deepcopy()
+        print(r2.dump())
+
+        # check copy and contained results are different from original
+        self.assertFalse(r2 is result, "copy failed")
+        self.assertFalse(r2[1] is result[1], "deep copy failed")
+
+        # update contained results
+        result[1][0] = 'q'
+        print(result.dump())
+
+        # verify that list and dict contents are unchanged in the copy
+        self.assertParseResultsEquals(
+            r2,
+            expected_list=['1', ['a', '=', '100'], ['b', '=', '200'], ['c', '=', '300']],
+        )
+
+    def testParseResultsDeepcopy3(self):
+        expr = pp.Word(pp.nums) + pp.Group(
+            (pp.Word(pp.alphas)("key") + '=' + pp.Word(pp.nums)("value")).add_parse_action(
+                lambda t: tuple(t)
+            )
+        )[...]
+        result = expr.parse_string("1 a=100 b=200 c=300")
+
+        r2 = result.deepcopy()
+        print(r2.dump())
+
+        # check copy and contained results are different from original
+        self.assertFalse(r2 is result, "copy failed")
+        self.assertFalse(r2[1] is result[1], "deep copy failed")
+
+        # update contained results
+        result[1][0] = 'q'
+        print(result.dump())
+
+        # verify that list and dict contents are unchanged in the copy
+        self.assertParseResultsEquals(
+            r2,
+            expected_list=['1', [('a', '=', '100')], [('b', '=', '200')], [('c', '=', '300')]],
+        )
+
     def testIgnoreString(self):
         """test ParserElement.ignore() passed a string arg"""
 

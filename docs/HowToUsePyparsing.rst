@@ -5,10 +5,10 @@ Using the pyparsing module
 :author: Paul McGuire
 :address: ptmcg.pm+pyparsing@gmail.com
 
-:revision: 3.0.10
-:date: July, 2022
+:revision: 3.1.0
+:date: March, 2023
 
-:copyright: Copyright |copy| 2003-2022 Paul McGuire.
+:copyright: Copyright |copy| 2003-2023 Paul McGuire.
 
 .. |copy| unicode:: 0xA9
 

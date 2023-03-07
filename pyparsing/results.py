@@ -1,5 +1,5 @@
 # results.py
-from collections.abc import MutableMapping, Mapping, MutableSequence, Iterator
+from collections.abc import MutableMapping, Mapping, MutableSequence, Iterator, Sequence, Container
 import pprint
 from typing import Tuple, Any, Dict, Set, List
 
@@ -539,13 +539,38 @@ class ParseResults:
 
     def copy(self) -> "ParseResults":
         """
-        Returns a new copy of a :class:`ParseResults` object.
+        Returns a new shallow copy of a :class:`ParseResults` object. `ParseResults`
+        items contained within the source are shared with the copy. Use
+        :class:`ParseResults.deepcopy()` to create a copy with its own separate
+        content values.
         """
         ret = ParseResults(self._toklist)
         ret._tokdict = self._tokdict.copy()
         ret._parent = self._parent
         ret._all_names |= self._all_names
         ret._name = self._name
+        return ret
+
+    def deepcopy(self) -> "ParseResults":
+        """
+        Returns a new deep copy of a :class:`ParseResults` object.
+        """
+        ret = self.copy()
+        # replace values with copies if they are of known mutable types
+        for i, obj in enumerate(self._toklist):
+            if isinstance(obj, ParseResults):
+                self._toklist[i] = obj.deepcopy()
+            elif isinstance(obj, (str, bytes)):
+                pass
+            elif isinstance(obj, MutableMapping):
+                self._toklist[i] = dest = type(obj)()
+                for k, v in obj.items():
+                    dest[k] = v.deepcopy() if isinstance(v, ParseResults) else v
+            elif isinstance(obj, Container):
+                self._toklist[i] = type(obj)(
+                    v.deepcopy() if isinstance(v, ParseResults) else v
+                    for v in obj
+                )
         return ret
 
     def get_name(self):
