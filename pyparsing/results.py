@@ -1,5 +1,12 @@
 # results.py
-from collections.abc import MutableMapping, Mapping, MutableSequence, Iterator, Sequence, Container
+from collections.abc import (
+    MutableMapping,
+    Mapping,
+    MutableSequence,
+    Iterator,
+    Sequence,
+    Container,
+)
 import pprint
 from typing import Tuple, Any, Dict, Set, List
 
@@ -568,8 +575,7 @@ class ParseResults:
                     dest[k] = v.deepcopy() if isinstance(v, ParseResults) else v
             elif isinstance(obj, Container):
                 self._toklist[i] = type(obj)(
-                    v.deepcopy() if isinstance(v, ParseResults) else v
-                    for v in obj
+                    v.deepcopy() if isinstance(v, ParseResults) else v for v in obj
                 )
         return ret
 
