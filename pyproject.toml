@@ -52,6 +52,10 @@ include = [
     "tox.ini",
 ]
 exclude = [
+    ".github",
     "docs/_build",
     "tests/__pycache__",
+    "pyparsing_archive.py",
+    "tests/.mypy_cache",
+    "update_pyparsing_timestamp.py",
 ]
