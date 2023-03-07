@@ -78,7 +78,7 @@ class TestRailroadDiagrams(unittest.TestCase):
             railroad = to_railroad(expr, show_results_names=show_results_names)
             temp.write(railroad_to_html(railroad))
 
-        if self.railroad_debug() or True:
+        if running_in_debug():
             print(f"{label}: {temp.name}")
 
         return railroad
