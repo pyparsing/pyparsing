@@ -19,21 +19,50 @@ print(sys.version_info)
 curdir = Path(__file__).parent
 
 
-class TestRailroadDiagrams(unittest.TestCase):
-    def railroad_debug(self) -> bool:
-        """
-        Returns True if we're in debug mode (determined by either setting
-        environment var, or running in a debugger which sets sys.settrace)
-        """
-        return os.environ.get("RAILROAD_DEBUG", False) or sys.gettrace()
+def is_run_with_coverage():
+    """Check whether test is run with coverage.
+    From https://stackoverflow.com/a/69812849/165216
+    """
+    gettrace = getattr(sys, "gettrace", None)
 
+    if gettrace is None:
+        return False
+    else:
+        gettrace_result = gettrace()
+
+    try:
+        from coverage.pytracer import PyTracer
+        from coverage.tracer import CTracer
+
+        if isinstance(gettrace_result, (CTracer, PyTracer)):
+            return True
+    except ImportError:
+        pass
+
+    return False
+
+
+def running_in_debug() -> bool:
+    """
+    Returns True if we're in debug mode (determined by either setting
+    environment var, or running in a debugger which sets sys.settrace)
+    """
+    return (
+        os.environ.get("RAILROAD_DEBUG", False)
+        or sys.gettrace()
+        and not is_run_with_coverage()
+    )
+
+
+class TestRailroadDiagrams(unittest.TestCase):
     def get_temp(self):
         """
         Returns an appropriate temporary file for writing a railroad diagram
         """
+        delete_on_close = not running_in_debug()
         return tempfile.NamedTemporaryFile(
             dir=".",
-            delete=not self.railroad_debug(),
+            delete=delete_on_close,
             mode="w",
             encoding="utf-8",
             suffix=".html",
@@ -47,7 +76,7 @@ class TestRailroadDiagrams(unittest.TestCase):
         """
         with self.get_temp() as temp:
             railroad = to_railroad(expr, show_results_names=show_results_names)
-            # temp.write(railroad_to_html(railroad))
+            temp.write(railroad_to_html(railroad))
 
         if self.railroad_debug() or True:
             print(f"{label}: {temp.name}")
@@ -69,13 +98,19 @@ class TestRailroadDiagrams(unittest.TestCase):
                     for line in diag_html.splitlines():
                         if 'h1 class="railroad-heading"' in line:
                             print(line)
-                assert len(railroad) == expected_rr_len, f"expected {expected_rr_len}, got {len(railroad)}"
+                assert (
+                    len(railroad) == expected_rr_len
+                ), f"expected {expected_rr_len}, got {len(railroad)}"
 
             with self.subTest(f"{label}: test rr diag with results names"):
-                railroad = self.generate_railroad(example_expr, example_expr, show_results_names=True)
+                railroad = self.generate_railroad(
+                    example_expr, example_expr, show_results_names=True
+                )
                 if len(railroad) != expected_rr_len:
                     print(railroad_to_html(railroad))
-                assert len(railroad) == expected_rr_len, f"expected {expected_rr_len}, got {len(railroad)}"
+                assert (
+                    len(railroad) == expected_rr_len
+                ), f"expected {expected_rr_len}, got {len(railroad)}"
 
     def test_nested_forward_with_inner_and_outer_names(self):
         outer = pp.Forward().setName("outer")
