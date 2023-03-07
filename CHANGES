@@ -55,6 +55,10 @@ help from Devin J. Pohly in structuring the code to enable this peaceful transit
   `DelimitedList`. `delimited_list` and the older `delimitedList` method will be
   deprecated in a future release, in favor of `DelimitedList`.
 
+- Error messages from `MatchFirst` and `Or` expressions will try to give more details
+  if one of the alternatives matches better than the others, but still fails.
+  Question raised in Issue #464 by msdemlei, thanks!
+
 - Added new class method `ParserElement.using_each`, to simplify code
   that creates a sequence of `Literals`, `Keywords`, or other `ParserElement`
   subclasses.
