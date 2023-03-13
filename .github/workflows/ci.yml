@@ -11,6 +11,9 @@ on:
       - pyproject.toml
       - tox.ini
 
+permissions:
+  contents: read
+
 jobs:
   tests:
     name: Unit tests
