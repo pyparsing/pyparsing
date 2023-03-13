@@ -4,7 +4,8 @@ Change Log
 
 Version 3.1.0a2 - (in development)
 ----------------------------------
-(the next release may be A2 or B1, depending on the responses to A1)
+Updated ci.yml permissions to limit default access to source - submitted by Joyce
+Brum of Google. Thanks so much!
 
 
 Version 3.1.0a1 - March, 2023
