@@ -2,6 +2,11 @@
 Change Log
 ==========
 
+Version 3.1.0a2 - (in development)
+----------------------------------
+(the next release may be A2 or B1, depending on the responses to A1)
+
+
 Version 3.1.0a1 - March, 2023
 -----------------------------
 NOTE: In the future release 3.2.0, use of many of the pre-PEP8 methods (such as
