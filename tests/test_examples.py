@@ -43,5 +43,5 @@ class TestExamples(unittest.TestCase):
     def test_excelExpr(self):
         self._run("excelExpr")
 
-    def test_delta_time(self):
-        self._run("delta_time")
+    def test_lucene_grammar(self):
+        self._run("lucene_grammar")

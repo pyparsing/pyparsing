@@ -2,9 +2,10 @@
 # lucene_grammar.py
 #
 # Copyright 2011, Paul McGuire
+# Updated 2023
 #
 # implementation of Lucene grammar, as described
-# at http://svn.apache.org/viewvc/lucene/dev/trunk/lucene/docs/queryparsersyntax.html
+# at https://lucene.apache.org/core/2_9_4/queryparsersyntax.html
 #
 
 import pyparsing as pp
@@ -12,17 +13,18 @@ from pyparsing import pyparsing_common as ppc
 
 pp.ParserElement.enablePackrat()
 
-COLON, LBRACK, RBRACK, LBRACE, RBRACE, TILDE, CARAT = map(pp.Literal, ":[]{}~^")
-LPAR, RPAR = map(pp.Suppress, "()")
-and_, or_, not_, to_ = map(pp.CaselessKeyword, "AND OR NOT TO".split())
+COLON, LBRACK, RBRACK, LBRACE, RBRACE, TILDE, CARAT = pp.Literal.using_each(":[]{}~^")
+LPAR, RPAR = pp.Suppress.using_each("()")
+and_, or_, not_, to_ = pp.CaselessKeyword.using_each("AND OR NOT TO".split())
 keyword = and_ | or_ | not_ | to_
 
 expression = pp.Forward()
 
 valid_word = pp.Regex(
-    r'([a-zA-Z0-9*_+.-]|\\\\|\\([+\-!(){}\[\]^"~*?:]|\|\||&&))+'
+    r'([a-zA-Z0-9_.-]|\\\\|\\([+\-!(){}\[\]^"~*?:]|\|\||&&))'
+    r'([a-zA-Z0-9*_+.-]|\\\\|\\([+\-!(){}\[\]^"~*?:]|\|\||&&)|\*|\?)*'
 ).setName("word")
-valid_word.setParseAction(
+valid_word.set_parse_action(
     lambda t: t[0].replace("\\\\", chr(127)).replace("\\", "").replace(chr(127), "\\")
 )
 
@@ -35,8 +37,8 @@ proximity_modifier = pp.Group(TILDE + integer("proximity"))
 number = ppc.fnumber()
 fuzzy_modifier = TILDE + pp.Optional(number, default=0.5)("fuzzy")
 
-term = pp.Forward().setName("field")
-field_name = valid_word().setName("fieldname")
+term = pp.Forward().set_name("field")
+field_name = valid_word().set_name("fieldname")
 incl_range_search = pp.Group(LBRACK - term("lower") + to_ + term("upper") + RBRACK)
 excl_range_search = pp.Group(LBRACE - term("lower") + to_ + term("upper") + RBRACE)
 range_search = incl_range_search("incl_range") | excl_range_search("excl_range")
@@ -44,27 +46,28 @@ boost = CARAT - number("boost")
 
 string_expr = pp.Group(string + proximity_modifier) | string
 word_expr = pp.Group(valid_word + fuzzy_modifier) | valid_word
-term << (
+term <<= (
     ~keyword
     + pp.Optional(field_name("field") + COLON)
     + (word_expr | string_expr | range_search | pp.Group(LPAR + expression + RPAR))
     + pp.Optional(boost)
 )
-term.setParseAction(lambda t: [t] if "field" in t or "boost" in t else None)
+term.set_parse_action(lambda t: [t] if "field" in t or "boost" in t else None)
 
-expression << pp.infixNotation(
+expression <<= pp.infixNotation(
     term,
     [
         (required_modifier | prohibit_modifier, 1, pp.opAssoc.RIGHT),
-        ((not_ | "!").setParseAction(lambda: "NOT"), 1, pp.opAssoc.RIGHT),
-        ((and_ | "&&").setParseAction(lambda: "AND"), 2, pp.opAssoc.LEFT),
+        ((not_ | "!").set_parse_action(lambda: "NOT"), 1, pp.opAssoc.RIGHT),
+        ((and_ | "&&").set_parse_action(lambda: "AND"), 2, pp.opAssoc.LEFT),
         (
-            pp.Optional(or_ | "||").setName("or").setParseAction(lambda: "OR"),
+            pp.Optional(or_ | "||").setName("or").set_parse_action(lambda: "OR"),
             2,
             pp.opAssoc.LEFT,
         ),
     ],
-)
+).set_name("query expression")
+
 
 if __name__ == "__main__":
 
@@ -84,6 +87,9 @@ if __name__ == "__main__":
         title:"The Right Way" AND text:go
         title:"Do it right" AND right
         title:Do it right
+        te?t
+        test*
+        te*t
         roam~
         roam~0.8
         "jakarta apache"~10
@@ -99,6 +105,7 @@ if __name__ == "__main__":
         "jakarta apache" NOT "Apache Lucene"
         "jakarta apache" -"Apache Lucene"
         (jakarta OR apache) AND website
+        title:(+return +"pink panther")
         \(1+1\)\:2
         c\:\\windows
         (fieldX:xxxxx OR fieldy:xxxxxxxx)^2 AND (fieldx:the OR fieldy:foo)
@@ -163,7 +170,6 @@ if __name__ == "__main__":
         term~1.1
         [A TO C]
         t*erm*
-        *term*
         term term^3.0 term
         term stop^3.0 term
         term +stop term
@@ -202,11 +208,6 @@ if __name__ == "__main__":
         bar blar {a TO z}
         gack ( bar blar { a TO z})
         gack (bar blar {a TO z})
-        [* TO Z]
-        [* TO z]
-        [A TO *]
-        [a TO *]
-        [* TO *]
         [\* TO \*]
         \!blah
         \:blah
@@ -237,7 +238,8 @@ if __name__ == "__main__":
         XYZ
         (item:\\ item:ABCD\\)
         \*
-        *
+        blah*blah
+        blah?blah
         \\
         \||
         \&&
@@ -270,15 +272,9 @@ if __name__ == "__main__":
         foo:zoo*
         foo:zoo*^2
         zoo
-        foo:*
-        foo:*^2
-        *:foo
         a:the OR a:foo
         a:woo OR a:the
-        *:*
-        (*:*)
-        +*:* -*:*
-        the wizard of ozzy
+        "the wizard of ozzy"
         """
 
     failtests = r"""
@@ -289,10 +285,33 @@ if __name__ == "__main__":
 
         # multiple '^'s in term
         (sub query)^5.0^2.0 plus more
+        
+        # cannot start with * or ?
+        *term1 AND term2 
+        ?term3 OR term4
+        *
+
+        # unbounded '*' range terms
+        [* TO Z]
+        [* TO z]
+        [A TO *]
+        [a TO *]
+        [* TO *]
+
+        # unbounded field values
+        foo:*
+        foo:*^2
+        *:foo
+        *:*
+        (*:*)
+        +*:* -*:*        
+
         a:b:c
         a:b:c~
         a:b:c*
         a:b:c~2.0
+        """
+    z = """
         \+blah
         \-blah
         foo \|| bar
@@ -337,7 +356,10 @@ if __name__ == "__main__":
     success1, _ = expression.runTests(tests)
     success2, _ = expression.runTests(failtests, failureTests=True)
 
-    print("All tests:", ("FAIL", "OK")[success1 and success2])
+    print("\n")
+    print(f"Success tests: {'OK' if success1 else 'FAIL'}")
+    print(f"Fail tests:    {'OK' if success2 else 'FAIL'}")
+    print(f"All tests:     {'OK' if (success1 and success2) else 'FAIL'}")
 
     if not (success1 and success2):
         import sys

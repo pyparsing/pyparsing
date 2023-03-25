@@ -7,6 +7,9 @@ Version 3.1.0a2 - (in development)
 Updated ci.yml permissions to limit default access to source - submitted by Joyce
 Brum of Google. Thanks so much!
 
+Updated the lucene_grammar.py example (better support for '*' and '?' wildcards)
+and corrected the test cases - brought to my attention by Elijah Nicol, good catch!
+
 
 Version 3.1.0a1 - March, 2023
 -----------------------------
