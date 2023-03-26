@@ -4,6 +4,10 @@ Change Log
 
 Version 3.1.0a2 - (in development)
 ----------------------------------
+Fixed bug in `SkipTo` where ignore expressions were not properly handled while
+scanning for the target expression. Issue #475, reported by elkniwt, thanks
+(this bug has been there for a looooong time!).
+
 Updated ci.yml permissions to limit default access to source - submitted by Joyce
 Brum of Google. Thanks so much!
 

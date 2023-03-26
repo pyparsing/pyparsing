@@ -1692,6 +1692,23 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             {"_skipped": ["red ", "456 "]},
         )
 
+    def testSkipToPreParseIgnoreExprs(self):
+        # added to verify fix to Issue #475
+        from pyparsing import Word, alphanums, python_style_comment
+
+        some_grammar = Word(alphanums) + ":=" + ... + ';'
+        some_grammar.ignore(python_style_comment)
+        try:
+            result = some_grammar.parse_string("""\
+                var1 := 2 # 3; <== this semi-colon will match!
+                      + 1;
+                """, parse_all=True)
+        except ParseException as pe:
+            print(pe.explain())
+            raise
+        else:
+            print(result.dump())
+
     def testEllipsisRepetition(self):
 
         word = pp.Word(pp.alphas).setName("word")
