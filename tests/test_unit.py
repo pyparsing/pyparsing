@@ -2754,6 +2754,65 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
         with self.assertRaises(AttributeError):
             result.__xyz__
 
+    def testParseResultsNamedResultWithEmptyString(self):
+        # from Issue #470
+
+        # Check which values can be returned from a parse action
+        for test_value, expected_in_result_by_name in [
+            ("x", True),
+            ("", True),
+            (True, True),
+            (False, True),
+            (1, True),
+            (0, True),
+            (None, True),
+            (b"", True),
+            (b"a", True),
+            ([], False),
+            ((), False),
+        ]:
+            msg = (f"value = {test_value!r},"
+                   f" expected X {'not ' if not expected_in_result_by_name else ''}in result")
+            with self.subTest(msg):
+                print(msg)
+                grammar = ((pp.Suppress("a") + pp.ZeroOrMore("x"))
+                           .add_parse_action(lambda p: test_value)
+                           .set_results_name("X"))
+                result = grammar.parse_string("a")
+                print(result.dump())
+                if expected_in_result_by_name:
+                    self.assertIn("X", result, f"Expected X not found for parse action value {test_value!r}")
+                    print(repr(result["X"]))
+                else:
+                    self.assertNotIn("X", result, f"Unexpected X found for parse action value {test_value!r}")
+                    with self.assertRaises(KeyError):
+                        print(repr(result["X"]))
+                print()
+
+        # Do not add a parse result.
+        msg = "value = <no parse action defined>, expected X in result"
+        with self.subTest(msg):
+            print(msg)
+            grammar = (pp.Suppress("a") + pp.ZeroOrMore("x")).set_results_name("X")
+            result = grammar.parse_string("a")
+            print(result.dump())
+            self.assertIn("X", result, f"Expected X not found with no parse action")
+            print()
+
+        # Test by directly creating a ParseResults
+        print("Create empty string value directly")
+        result = pp.ParseResults("", name="X")
+        print(result.dump())
+        self.assertIn("X", result, "failed to construct ParseResults with named value using empty string")
+        print(repr(result["X"]))
+        print()
+
+        print("Create empty string value from a dict")
+        result = pp.ParseResults.from_dict({"X": ""})
+        print(result.dump())
+        self.assertIn("X", result, "failed to construct ParseResults with named value using from_dict")
+        print(repr(result["X"]))
+
     def testMatchOnlyAtCol(self):
         """successfully use matchOnlyAtCol helper function"""
 

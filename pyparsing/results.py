@@ -77,7 +77,7 @@ class ParseResults:
         - year: '1999'
     """
 
-    _null_values: Tuple[Any, ...] = (None, [], "", ())
+    _null_values: Tuple[Any, ...] = (None, [], ())
 
     _name: str
     _parent: "ParseResults"
