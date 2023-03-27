@@ -6590,6 +6590,7 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             "path": parts.path,
             "query": parts.query,
             "fragment": parts.fragment,
+            "url": sample_url,
         }
 
         self.assertParseAndCheckDict(ppc.url, sample_url, expected, verbose=True)
