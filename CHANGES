@@ -2,8 +2,31 @@
 Change Log
 ==========
 
+NOTE: In the future release 3.2.0, use of many of the pre-PEP8 methods (such as
+`ParserElement.parseString`) will start to raise `DeprecationWarnings`. 3.2.0 should
+get released some time later in 2023. I currently plan to completely
+drop the pre-PEP8 methods in pyparsing 4.0, though we won't see that release until
+at least late 2023 if not 2024. So there is plenty of time to convert existing parsers to
+the new function names before the old functions are completely removed. (Big
+help from Devin J. Pohly in structuring the code to enable this peaceful transition.)
+
+Version 3.2.0 will also discontinue support for Python versions 3.6 and 3.7.
+
+
 Version 3.1.0a2 - (in development)
 ----------------------------------
+- API CHANGE: A slight change has been implemented when unquoting a quoted string
+  parsed using the QuotedString class. Formerly, when unquoting and processing
+  whitespace markers such as \t and \n, these substitutions would occur first, and
+  then any additional '\' escaping would be done on the resulting string. This would
+  parse "\\n" as "\<newline>". Now escapes and whitespace markers are all processed
+  in a single pass working left to right, so the quoted string "\\n" would get unquoted
+  to "\n" (a backslash followed by "n"). Fixes issue #474 raised by jakeanq,
+  thanks!
+
+- Added named field "url" to pyparsing.common.url, returning the entire
+  parsed URL string.
+
 - Fixed bug when parse actions returned an empty string for an expression that
   had a results name, that the results name was not saved. That is:
 
@@ -27,16 +50,6 @@ Version 3.1.0a2 - (in development)
 
 Version 3.1.0a1 - March, 2023
 -----------------------------
-NOTE: In the future release 3.2.0, use of many of the pre-PEP8 methods (such as
-`ParserElement.parseString`) will start to raise `DeprecationWarnings`. 3.2.0 should
-get released some time later in 2023. I currently plan to completely
-drop the pre-PEP8 methods in pyparsing 4.0, though we won't see that release until
-at least late 2023 if not 2024. So there is plenty of time to convert existing parsers to
-the new function names before the old functions are completely removed. (Big
-help from Devin J. Pohly in structuring the code to enable this peaceful transition.)
-
-Version 3.2.0 will also discontinue support for Python versions 3.6 and 3.7.
-
 - API ENHANCEMENT: `Optional(expr)` may now be written as `expr | ""`
 
   This will make this code:

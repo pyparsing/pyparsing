@@ -1265,6 +1265,63 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             )
             self.assertEqual(source, stripped)
 
+    def testQuotedStringUnquotesAndConvertWhitespaceEscapes(self):
+        # test for Issue #474
+        #fmt: off
+        backslash = chr(92)  # a single backslash
+        tab = "\t"
+        newline = "\n"
+        test_string_0 = f'"{backslash}{backslash}n"'              # r"\\n"
+        test_string_1 = f'"{backslash}t{backslash}{backslash}n"'  # r"\t\\n"
+        test_string_2 = f'"a{backslash}tb"'                       # r"a\tb"
+        test_string_3 = f'"{backslash}{backslash}{backslash}n"'   # r"\\\n"
+        T, F = True, False  # these make the test cases format nicely
+        for test_parameters in (
+                # Parameters are the arguments to creating a QuotedString
+                # and the expected parsed list of characters):
+                # - unquote_results
+                # - convert_whitespace_escapes
+                # - test string
+                # - expected parsed characters (broken out as separate
+                #   list items (all those doubled backslashes make it
+                #   difficult to interpret the output)
+                (T, T, test_string_0, [backslash, "n"]),
+                (T, F, test_string_0, [backslash, "n"]),
+                (F, F, test_string_0, ['"', backslash, backslash, "n", '"']),
+                (T, T, test_string_1, [tab, backslash, "n"]),
+                (T, F, test_string_1, ["t", backslash, "n"]),
+                (F, F, test_string_1, ['"', backslash, "t", backslash, backslash, "n", '"']),
+                (T, T, test_string_2, ["a", tab, "b"]),
+                (T, F, test_string_2, ["a", "t", "b"]),
+                (F, F, test_string_2, ['"', "a", backslash, "t", "b", '"']),
+                (T, T, test_string_3, [backslash, newline]),
+                (T, F, test_string_3, [backslash, "n"]),
+                (F, F, test_string_3, ['"', backslash, backslash, backslash, "n", '"']),
+        ):
+            unquote_results, convert_ws_escapes, test_string, expected_list = test_parameters
+            test_description = f"Testing with parameters {test_parameters}"
+            with self.subTest(msg=test_description):
+                print(test_description)
+                print(f"unquote_results: {unquote_results}"
+                      f"\nconvert_whitespace_escapes: {convert_ws_escapes}")
+                qs_expr = pp.QuotedString(
+                        quoteChar='"',
+                        escChar='\\',
+                        unquote_results=unquote_results,
+                        convert_whitespace_escapes=convert_ws_escapes
+                    )
+                result = qs_expr.parse_string(test_string)
+
+                # do this instead of assertParserAndCheckList to explicitly
+                # check and display the separate items in the list
+                print("Results:")
+                control_chars = {newline: "<NEWLINE>", backslash: "<BACKSLASH>", tab: "<TAB>"}
+                print(f"[{', '.join(control_chars.get(c, repr(c)) for c in result[0])}]")
+                self.assertEqual(expected_list, list(result[0]))
+
+                print()
+        #fmt: on
+
     def testCaselessOneOf(self):
         caseless1 = pp.oneOf("d a b c aA B A C", caseless=True)
         caseless1str = str(caseless1)
