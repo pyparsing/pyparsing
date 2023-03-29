@@ -1552,6 +1552,9 @@ class ParserElement(ABC):
             return _PendingSkip(self, must_skip=True)
 
         if isinstance(other, str_type):
+            # `expr | ""` is equivalent to `Opt(expr)`
+            if other == "":
+                return Opt(self)
             other = self._literalStringClass(other)
         if not isinstance(other, ParserElement):
             return NotImplemented
