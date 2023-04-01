@@ -168,6 +168,7 @@ __all__ = [
     "CharsNotIn",
     "CloseMatch",
     "Combine",
+    "DelimitedList",
     "Dict",
     "Each",
     "Empty",
