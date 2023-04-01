@@ -11,14 +11,14 @@ from pyparsing import (
     alphas,
     alphanums,
     nums,
-    Optional,
+    Opt,
     Group,
-    oneOf,
+    one_of,
     Forward,
-    infixNotation,
-    opAssoc,
+    infix_notation,
+    OpAssoc,
     dblQuotedString,
-    delimitedList,
+    DelimitedList,
     Combine,
     Literal,
     QuotedString,
@@ -28,13 +28,13 @@ from pyparsing import (
 
 ParserElement.enablePackrat()
 
-EQ, LPAR, RPAR, COLON, COMMA = map(Suppress, "=():,")
-EXCL, DOLLAR = map(Literal, "!$")
+EQ, LPAR, RPAR, COLON, COMMA = Suppress.using_each("=():,")
+EXCL, DOLLAR = Literal.using_each("!$")
 sheetRef = Word(alphas, alphanums) | QuotedString("'", escQuote="''")
-colRef = Optional(DOLLAR) + Word(alphas, max=2)
-rowRef = Optional(DOLLAR) + Word(nums)
+colRef = Opt(DOLLAR) + Word(alphas, max=2)
+rowRef = Opt(DOLLAR) + Word(nums)
 cellRef = Combine(
-    Group(Optional(sheetRef + EXCL)("sheet") + colRef("col") + rowRef("row"))
+    Group(Opt(sheetRef + EXCL)("sheet") + colRef("col") + rowRef("row"))
 )
 
 cellRange = (
@@ -45,7 +45,7 @@ cellRange = (
 
 expr = Forward()
 
-COMPARISON_OP = oneOf("< = > >= <= != <>")
+COMPARISON_OP = one_of("< = > >= <= != <>")
 condExpr = expr + COMPARISON_OP + expr
 
 ifFunc = (
@@ -61,7 +61,7 @@ ifFunc = (
 
 
 def stat_function(name):
-    return Group(CaselessKeyword(name) + Group(LPAR + delimitedList(expr) + RPAR))
+    return Group(CaselessKeyword(name) + Group(LPAR + DelimitedList(expr) + RPAR))
 
 
 sumFunc = stat_function("sum")
@@ -70,23 +70,23 @@ maxFunc = stat_function("max")
 aveFunc = stat_function("ave")
 funcCall = ifFunc | sumFunc | minFunc | maxFunc | aveFunc
 
-multOp = oneOf("* /")
-addOp = oneOf("+ -")
+multOp = one_of("* /")
+addOp = one_of("+ -")
 numericLiteral = ppc.number
 operand = numericLiteral | funcCall | cellRange | cellRef
-arithExpr = infixNotation(
+arithExpr = infix_notation(
     operand,
     [
-        (multOp, 2, opAssoc.LEFT),
-        (addOp, 2, opAssoc.LEFT),
+        (multOp, 2, OpAssoc.LEFT),
+        (addOp, 2, OpAssoc.LEFT),
     ],
 )
 
 textOperand = dblQuotedString | cellRef
-textExpr = infixNotation(
+textExpr = infix_notation(
     textOperand,
     [
-        ("&", 2, opAssoc.LEFT),
+        ("&", 2, OpAssoc.LEFT),
     ],
 )
 
@@ -94,7 +94,7 @@ expr <<= arithExpr | textExpr
 
 
 def main():
-    success, report = (EQ + expr).runTests(
+    success, report = (EQ + expr).run_tests(
         """\
         =3*A7+5
         =3*Sheet1!$A$7+5

@@ -11,7 +11,7 @@
 import pyparsing as pp
 from pyparsing import pyparsing_common as ppc
 
-pp.ParserElement.enablePackrat()
+pp.ParserElement.enable_packrat()
 
 COLON, LBRACK, RBRACK, LBRACE, RBRACE, TILDE, CARAT = pp.Literal.using_each(":[]{}~^")
 LPAR, RPAR = pp.Suppress.using_each("()")
@@ -35,7 +35,7 @@ prohibit_modifier = pp.Literal("-")("prohibit")
 integer = ppc.integer()
 proximity_modifier = pp.Group(TILDE + integer("proximity"))
 number = ppc.fnumber()
-fuzzy_modifier = TILDE + pp.Optional(number, default=0.5)("fuzzy")
+fuzzy_modifier = TILDE + pp.Opt(number, default=0.5)("fuzzy")
 
 term = pp.Forward().set_name("field")
 field_name = valid_word().set_name("fieldname")
@@ -48,22 +48,22 @@ string_expr = pp.Group(string + proximity_modifier) | string
 word_expr = pp.Group(valid_word + fuzzy_modifier) | valid_word
 term <<= (
     ~keyword
-    + pp.Optional(field_name("field") + COLON)
+    + pp.Opt(field_name("field") + COLON)
     + (word_expr | string_expr | range_search | pp.Group(LPAR + expression + RPAR))
-    + pp.Optional(boost)
+    + pp.Opt(boost)
 )
 term.set_parse_action(lambda t: [t] if "field" in t or "boost" in t else None)
 
 expression <<= pp.infixNotation(
     term,
     [
-        (required_modifier | prohibit_modifier, 1, pp.opAssoc.RIGHT),
-        ((not_ | "!").set_parse_action(lambda: "NOT"), 1, pp.opAssoc.RIGHT),
-        ((and_ | "&&").set_parse_action(lambda: "AND"), 2, pp.opAssoc.LEFT),
+        (required_modifier | prohibit_modifier, 1, pp.OpAssoc.RIGHT),
+        ((not_ | "!").set_parse_action(lambda: "NOT"), 1, pp.OpAssoc.RIGHT),
+        ((and_ | "&&").set_parse_action(lambda: "AND"), 2, pp.OpAssoc.LEFT),
         (
-            pp.Optional(or_ | "||").setName("or").set_parse_action(lambda: "OR"),
+            pp.Opt(or_ | "||").setName("or").set_parse_action(lambda: "OR"),
             2,
-            pp.opAssoc.LEFT,
+            pp.OpAssoc.LEFT,
         ),
     ],
 ).set_name("query expression")

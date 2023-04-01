@@ -49,18 +49,18 @@ tests = """\
 from pyparsing import Regex
 
 comma_decimal = Regex(r"\d{1,2}(([ .])\d\d\d(\2\d\d\d)*)?,\d*")
-comma_decimal.setParseAction(
+comma_decimal.add_parse_action(
     lambda t: float(t[0].replace(" ", "").replace(".", "").replace(",", "."))
 )
 
 dot_decimal = Regex(r"\d{1,2}(([ ,])\d\d\d(\2\d\d\d)*)?\.\d*")
-dot_decimal.setParseAction(lambda t: float(t[0].replace(" ", "").replace(",", "")))
+dot_decimal.add_parse_action(lambda t: float(t[0].replace(" ", "").replace(",", "")))
 
 decimal = comma_decimal ^ dot_decimal
-decimal.runTests(tests, parseAll=True)
+decimal.run_tests(tests, parse_all=True)
 
 grouped_integer = Regex(r"\d{1,2}(([ .,])\d\d\d(\2\d\d\d)*)?")
-grouped_integer.setParseAction(
+grouped_integer.add_parse_action(
     lambda t: int(t[0].replace(" ", "").replace(",", "").replace(".", ""))
 )
-grouped_integer.runTests(tests, parseAll=False)
+grouped_integer.run_tests(tests, parse_all=False)

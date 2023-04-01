@@ -8,16 +8,16 @@
 import pyparsing as pp
 
 # define grammar
-greet = pp.Word(pp.alphas) + "," + pp.Word(pp.alphas) + pp.oneOf("! ? .")
+greet = pp.Word(pp.alphas) + "," + pp.Word(pp.alphas) + pp.one_of("! ? .")
 
 # input string
 hello = "Hello, World!"
 
 # parse input string
-print(hello, "->", greet.parseString(hello))
+print(hello, "->", greet.parse_string(hello))
 
 # parse a bunch of input strings
-greet.runTests(
+greet.run_tests(
     """\
     Hello, World!
     Ahoy, Matey!

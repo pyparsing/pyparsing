@@ -13,20 +13,19 @@ from pyparsing import (
     Suppress,
     Forward,
     Group,
-    oneOf,
-    ZeroOrMore,
-    Optional,
-    delimitedList,
-    restOfLine,
+    one_of,
+    Opt,
+    DelimitedList,
+    rest_of_line,
     quotedString,
     Dict,
     Keyword,
 )
 
-ident = Word(alphas + "_", alphanums + "_").setName("identifier")
+ident = Word(alphas + "_", alphanums + "_").set_name("identifier")
 integer = Regex(r"[+-]?\d+")
 
-LBRACE, RBRACE, LBRACK, RBRACK, LPAR, RPAR, EQ, SEMI = map(Suppress, "{}[]()=;")
+LBRACE, RBRACE, LBRACK, RBRACK, LPAR, RPAR, EQ, SEMI = Suppress.using_each("{}[]()=;")
 
 kwds = """message required optional repeated enum extensions extends extend
           to package service rpc returns true false option import syntax"""
@@ -38,9 +37,9 @@ messageBody = Forward()
 messageDefn = MESSAGE_ - ident("messageId") + LBRACE + messageBody("body") + RBRACE
 
 typespec = (
-    oneOf(
-        """double float int32 int64 uint32 uint64 sint32 sint64
-                    fixed32 fixed64 sfixed32 sfixed64 bool string bytes"""
+    one_of(
+        "double float int32 int64 uint32 uint64 sint32 sint64"
+        " fixed32 fixed64 sfixed32 sfixed64 bool string bytes"
     )
     | ident
 )
@@ -48,12 +47,12 @@ rvalue = integer | TRUE_ | FALSE_ | ident
 fieldDirective = LBRACK + Group(ident + EQ + rvalue) + RBRACK
 fieldDefnPrefix = REQUIRED_ | OPTIONAL_ | REPEATED_
 fieldDefn = (
-    Optional(fieldDefnPrefix)
+    Opt(fieldDefnPrefix)
     + typespec("typespec")
     + ident("ident")
     + EQ
     + integer("fieldint")
-    + ZeroOrMore(fieldDirective)
+    + fieldDirective[...]
     + SEMI
 )
 
@@ -62,7 +61,7 @@ enumDefn = (
     ENUM_("typespec")
     - ident("name")
     + LBRACE
-    + Dict(ZeroOrMore(Group(ident + EQ + integer + SEMI)))("values")
+    + Dict((Group(ident + EQ + integer + SEMI))[...])("values")
     + RBRACE
 )
 
@@ -73,10 +72,10 @@ extensionsDefn = EXTENSIONS_ - integer + TO_ + integer + SEMI
 messageExtension = EXTEND_ - ident + LBRACE + messageBody + RBRACE
 
 # messageBody ::= { fieldDefn | enumDefn | messageDefn | extensionsDefn | messageExtension }*
-messageBody << Group(
-    ZeroOrMore(
-        Group(fieldDefn | enumDefn | messageDefn | extensionsDefn | messageExtension)
-    )
+messageBody <<= Group(
+    Group(
+        fieldDefn | enumDefn | messageDefn | extensionsDefn | messageExtension
+    )[...]
 )
 
 # methodDefn ::= 'rpc' ident '(' [ ident ] ')' 'returns' '(' [ ident ] ')' ';'
@@ -84,25 +83,25 @@ methodDefn = (
     RPC_
     - ident("methodName")
     + LPAR
-    + Optional(ident("methodParam"))
+    + Opt(ident("methodParam"))
     + RPAR
     + RETURNS_
     + LPAR
-    + Optional(ident("methodReturn"))
+    + Opt(ident("methodReturn"))
     + RPAR
 )
 
 # serviceDefn ::= 'service' ident '{' methodDefn* '}'
 serviceDefn = (
-    SERVICE_ - ident("serviceName") + LBRACE + ZeroOrMore(Group(methodDefn)) + RBRACE
+    SERVICE_ - ident("serviceName") + LBRACE + Group(methodDefn)[...] + RBRACE
 )
 
 syntaxDefn = SYNTAX_ + EQ - quotedString("syntaxString") + SEMI
 
 # packageDirective ::= 'package' ident [ '.' ident]* ';'
-packageDirective = Group(PACKAGE_ - delimitedList(ident, ".", combine=True) + SEMI)
+packageDirective = Group(PACKAGE_ - DelimitedList(ident, ".", combine=True) + SEMI)
 
-comment = "//" + restOfLine
+comment = "//" + rest_of_line
 
 importDirective = IMPORT_ - quotedString("importFileSpec") + SEMI
 
@@ -120,9 +119,10 @@ topLevelStatement = Group(
     | syntaxDefn
 )
 
-parser = Optional(packageDirective) + ZeroOrMore(topLevelStatement)
+parser = Opt(packageDirective) + topLevelStatement[...]
 
 parser.ignore(comment)
+
 
 if __name__ == "__main__":
 
@@ -168,4 +168,4 @@ if __name__ == "__main__":
     }
     """
 
-    parser.runTests([test1, test2, test3])
+    parser.run_tests([test1, test2, test3])

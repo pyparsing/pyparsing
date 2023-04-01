@@ -15,11 +15,9 @@ from pyparsing import (
     Forward,
     Group,
     Literal,
-    oneOf,
-    OneOrMore,
-    Optional,
+    one_of,
+    Opt,
     Suppress,
-    ZeroOrMore,
     Word,
 )
 from pyparsing import ParseException
@@ -28,19 +26,19 @@ from pyparsing import ParseException
 # define pgn grammar
 #
 
-tag = Suppress("[") + Word(alphanums) + Combine(quotedString) + Suppress("]")
+tag = Suppress("[") + Word(alphanums) + quotedString + Suppress("]")
 comment = Suppress("{") + Word(alphanums + " ") + Suppress("}")
 
 dot = Literal(".")
-piece = oneOf("K Q B N R")
-file_coord = oneOf("a b c d e f g h")
-rank_coord = oneOf("1 2 3 4 5 6 7 8")
-capture = oneOf("x :")
+piece = one_of("K Q B N R")
+file_coord = one_of("a b c d e f g h")
+rank_coord = one_of("1 2 3 4 5 6 7 8")
+capture = one_of("x :")
 promote = Literal("=")
-castle_queenside = oneOf("O-O-O 0-0-0 o-o-o")
-castle_kingside = oneOf("O-O 0-0 o-o")
+castle_queenside = one_of("O-O-O 0-0-0 o-o-o")
+castle_kingside = one_of("O-O 0-0 o-o")
 
-move_number = Optional(comment) + Word(nums) + dot
+move_number = Opt(comment) + Word(nums) + dot
 m1 = file_coord + rank_coord  # pawn move e.g. d4
 m2 = file_coord + capture + file_coord + rank_coord  # pawn capture move e.g. dxe5
 m3 = file_coord + "8" + promote + piece  # pawn promotion e.g. e8=Q
@@ -50,7 +48,7 @@ m6 = piece + rank_coord + file_coord + rank_coord  # piece move e.g. R4a7
 m7 = piece + capture + file_coord + rank_coord  # piece capture move e.g. Bxh7
 m8 = castle_queenside | castle_kingside  # castling e.g. o-o
 
-check = oneOf("+ ++")
+check = one_of("+ ++")
 mate = Literal("#")
 annotation = Word("!?", max=2)
 nag = " $" + Word(nums)
@@ -58,30 +56,28 @@ decoration = check | mate | annotation | nag
 
 variant = Forward()
 half_move = (
-    Combine((m3 | m1 | m2 | m4 | m5 | m6 | m7 | m8) + Optional(decoration))
-    + Optional(comment)
-    + Optional(variant)
+    Combine((m3 | m1 | m2 | m4 | m5 | m6 | m7 | m8) + Opt(decoration))
+    + Opt(comment)
+    + Opt(variant)
 )
-move = Suppress(move_number) + half_move + Optional(half_move)
-variant << "(" + OneOrMore(move) + ")"
+move = Suppress(move_number) + half_move + Opt(half_move)
+variant << "(" + move[1, ...] + ")"
 # grouping the plies (half-moves) for each move: useful to group annotations, variants...
 # suggested by Paul McGuire :)
-move = Group(Suppress(move_number) + half_move + Optional(half_move))
-variant << Group("(" + OneOrMore(move) + ")")
-game_terminator = oneOf("1-0 0-1 1/2-1/2 *")
+move = Group(Suppress(move_number) + half_move + Opt(half_move))
+variant << Group("(" + move[1, ...] + ")")
+game_terminator = one_of("1-0 0-1 1/2-1/2 *")
 
 pgnGrammar = (
-    Suppress(ZeroOrMore(tag)) + ZeroOrMore(move) + Optional(Suppress(game_terminator))
+    Suppress(tag[...]) + move[...] + Opt(Suppress(game_terminator))
 )
 
 
 def parsePGN(pgn, bnf=pgnGrammar, fn=None):
     try:
-        return bnf.parseString(pgn)
+        return bnf.parse_string(pgn, parse_all=True)
     except ParseException as err:
-        print(err.line)
-        print(" " * (err.column - 1) + "^")
-        print(err)
+        print(err.explain())
 
 
 if __name__ == "__main__":

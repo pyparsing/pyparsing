@@ -13,8 +13,8 @@ from urllib.request import urlopen
 
 integer = pp.Word(pp.nums)
 ipAddress = ppc.ipv4_address()
-hostname = pp.delimitedList(pp.Word(pp.alphas, pp.alphanums + "-_"), ".", combine=True)
-tdStart, tdEnd = pp.makeHTMLTags("td")
+hostname = pp.DelimitedList(pp.Word(pp.alphas, pp.alphanums + "-_"), ".", combine=True)
+tdStart, tdEnd = pp.make_html_tags("td")
 timeServerPattern = (
     tdStart
     + hostname("hostname")
@@ -33,6 +33,6 @@ with urlopen(nistTimeServerURL) as serverListPage:
     serverListHTML = serverListPage.read().decode("UTF-8")
 
 addrs = {}
-for srvr, startloc, endloc in timeServerPattern.scanString(serverListHTML):
-    print("{} ({}) - {}".format(srvr.ipAddr, srvr.hostname.strip(), srvr.loc.strip()))
+for srvr, startloc, endloc in timeServerPattern.scan_string(serverListHTML):
+    print(f"{srvr.ipAddr} ({srvr.hostname.strip()}) - {srvr.loc.strip()}")
     addrs[srvr.ipAddr] = srvr.loc

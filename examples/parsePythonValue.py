@@ -8,25 +8,23 @@ import pyparsing as pp
 cvtBool = lambda t: t[0] == "True"
 cvtInt = lambda toks: int(toks[0])
 cvtReal = lambda toks: float(toks[0])
-cvtTuple = lambda toks: tuple(toks.asList())
-cvtDict = lambda toks: dict(toks.asList())
-cvtList = lambda toks: [toks.asList()]
+cvtTuple = lambda toks: tuple(toks.as_list())
+cvtDict = lambda toks: dict(toks.as_list())
+cvtList = lambda toks: [toks.as_list()]
 
 # define punctuation as suppressed literals
-lparen, rparen, lbrack, rbrack, lbrace, rbrace, colon, comma = map(
-    pp.Suppress, "()[]{}:,"
-)
+lparen, rparen, lbrack, rbrack, lbrace, rbrace, colon, comma = pp.Suppress.using_each("()[]{}:,")
 
-integer = pp.Regex(r"[+-]?\d+").setName("integer").setParseAction(cvtInt)
-real = pp.Regex(r"[+-]?\d+\.\d*([Ee][+-]?\d+)?").setName("real").setParseAction(cvtReal)
+integer = pp.Regex(r"[+-]?\d+").set_name("integer").add_parse_action(cvtInt)
+real = pp.Regex(r"[+-]?\d+\.\d*([Ee][+-]?\d+)?").set_name("real").add_parse_action(cvtReal)
 tupleStr = pp.Forward().set_name("tuple_expr")
 listStr = pp.Forward().set_name("list_expr")
 dictStr = pp.Forward().set_name("dict_expr")
 
-unistr = pp.unicodeString().setParseAction(lambda t: t[0][2:-1])
-quoted_str = pp.quotedString().setParseAction(lambda t: t[0][1:-1])
-boolLiteral = pp.oneOf("True False", asKeyword=True).setParseAction(cvtBool)
-noneLiteral = pp.Keyword("None").setParseAction(pp.replaceWith(None))
+unistr = pp.unicodeString().add_parse_action(lambda t: t[0][2:-1])
+quoted_str = pp.quotedString().add_parse_action(lambda t: t[0][1:-1])
+boolLiteral = pp.oneOf("True False", as_keyword=True).add_parse_action(cvtBool)
+noneLiteral = pp.Keyword("None").add_parse_action(pp.replace_with(None))
 
 listItem = (
     real
@@ -41,20 +39,20 @@ listItem = (
 ).set_name("list_item")
 
 tupleStr <<= (
-    lparen + pp.Optional(pp.delimitedList(listItem, allow_trailing_delim=True)) + rparen
+    lparen + pp.Opt(pp.DelimitedList(listItem, allow_trailing_delim=True)) + rparen
 )
-tupleStr.setParseAction(cvtTuple)
+tupleStr.add_parse_action(cvtTuple)
 
 listStr <<= (
-    lbrack + pp.Optional(pp.delimitedList(listItem, allow_trailing_delim=True)) + rbrack
+    lbrack + pp.Opt(pp.DelimitedList(listItem, allow_trailing_delim=True)) + rbrack
 )
-listStr.setParseAction(cvtList, lambda t: t[0])
+listStr.add_parse_action(cvtList, lambda t: t[0])
 
 dictEntry = pp.Group(listItem + colon + listItem).set_name("dict_entry")
 dictStr <<= (
-    lbrace + pp.Optional(pp.delimitedList(dictEntry, allow_trailing_delim=True)) + rbrace
+    lbrace + pp.Opt(pp.DelimitedList(dictEntry, allow_trailing_delim=True)) + rbrace
 )
-dictStr.setParseAction(cvtDict)
+dictStr.add_parse_action(cvtDict)
 
 if __name__ == "__main__":
 

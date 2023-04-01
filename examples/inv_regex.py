@@ -192,12 +192,12 @@ _parser = None
 def parser():
     global _parser
     if _parser is None:
-        ParserElement.setDefaultWhitespaceChars("")
-        lbrack, rbrack, lbrace, rbrace, lparen, rparen, colon, qmark = map(
-            Literal, "[]{}():?"
+        ParserElement.set_default_whitespace_chars("")
+        lbrack, rbrack, lbrace, rbrace, lparen, rparen, colon, qmark = Literal.using_each(
+            "[]{}():?"
         )
 
-        re_macro = Combine("\\" + one_of(list("dws")))
+        re_macro = Combine("\\" + one_of("d w s"))
         escaped_char = ~re_macro + Combine("\\" + one_of(list(printables)))
         re_literal_char = (
             "".join(c for c in printables if c not in r"\[]{}().*?+|") + " \t"
@@ -213,10 +213,10 @@ def parser():
             | one_of(list("*+?"))
         )
 
-        re_range.setParseAction(handle_range)
-        re_literal.setParseAction(handle_literal)
-        re_macro.setParseAction(handle_macro)
-        re_dot.setParseAction(handle_dot)
+        re_range.add_parse_action(handle_range)
+        re_literal.add_parse_action(handle_literal)
+        re_macro.add_parse_action(handle_macro)
+        re_dot.add_parse_action(handle_dot)
 
         re_term = re_literal | re_range | re_macro | re_dot | re_non_capture_group
         re_expr = infix_notation(

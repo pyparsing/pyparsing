@@ -52,9 +52,9 @@ def define_numeric_word_range(
     )
 
     if len(names) == 1:
-        ret.setName(names[0])
+        ret.set_name(names[0])
     else:
-        ret.setName("{}-{}".format(names[0], names[-1]))
+        ret.set_name(f"{names[0]}-{names[-1]}")
 
     return ret
 
@@ -66,8 +66,8 @@ def multiply(t):
     return mul(*t)
 
 
-opt_dash = pp.Optional(pp.Suppress("-")).setName("'-'")
-opt_and = pp.Optional((pp.CaselessKeyword("and") | "-").suppress()).setName("'and/-'")
+opt_dash = pp.Opt(pp.Suppress("-")).set_name("'-'")
+opt_and = pp.Opt((pp.CaselessKeyword("and") | "-").suppress()).set_name("'and/-'")
 
 units = define_numeric_word_range("one two three four five six seven eight nine", 1, 9)
 teens_only = define_numeric_word_range(
@@ -81,38 +81,38 @@ teens = ten | teens_only
 tens = define_numeric_word_range(
     "twenty thirty forty fifty sixty seventy eighty ninety", 20, 90, 10
 )
-one_to_99 = (units | teens | (tens + pp.Optional(opt_dash + units))).setName("1-99")
-one_to_99.addParseAction(sum)
+one_to_99 = (units | teens | (tens + pp.Opt(opt_dash + units))).set_name("1-99")
+one_to_99.add_parse_action(sum)
 
 hundred = define_numeric_word_range("hundred", 100)
 thousand = define_numeric_word_range("thousand", 1000)
 
 hundreds = (units | teens_only | (tens + opt_dash + units)) + hundred
-hundreds.setName("100s")
+hundreds.set_name("100s")
 
 one_to_999 = (
-    (pp.Optional(hundreds + opt_and) + one_to_99 | hundreds).addParseAction(sum)
-).setName("1-999")
+    (pp.Opt(hundreds + opt_and) + one_to_99 | hundreds).add_parse_action(sum)
+).set_name("1-999")
 
 thousands = one_to_999 + thousand
-thousands.setName("1000s")
+thousands.set_name("1000s")
 
 # for hundreds and thousands, must scale up (multiply) accordingly
-hundreds.addParseAction(multiply)
-thousands.addParseAction(multiply)
+hundreds.add_parse_action(multiply)
+thousands.add_parse_action(multiply)
 
 numeric_expression = (
-    pp.Optional(thousands + opt_and) + pp.Optional(hundreds + opt_and) + one_to_99
-    | pp.Optional(thousands + opt_and) + hundreds
+    pp.Opt(thousands + opt_and) + pp.Opt(hundreds + opt_and) + one_to_99
+    | pp.Opt(thousands + opt_and) + hundreds
     | thousands
-).setName("numeric_words")
+).set_name("numeric_words")
 
 # sum all sub-results into total
-numeric_expression.addParseAction(sum)
+numeric_expression.add_parse_action(sum)
 
 
 if __name__ == "__main__":
-    numeric_expression.runTests(
+    numeric_expression.run_tests(
         """
         one
         seven

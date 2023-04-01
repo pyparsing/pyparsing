@@ -13,9 +13,9 @@ from pyparsing import (
     nums,
     alphas,
     Combine,
-    oneOf,
-    opAssoc,
-    infixNotation,
+    one_of,
+    OpAssoc,
+    infix_notation,
     Literal,
     ParserElement,
 )
@@ -143,28 +143,28 @@ real = Combine(Word(nums) + "." + Word(nums))
 variable = Word(alphas, exact=1)
 operand = real | integer | variable
 
-signop = oneOf("+ -")
-multop = oneOf("* /")
-plusop = oneOf("+ -")
+signop = one_of("+ -")
+multop = one_of("* /")
+plusop = one_of("+ -")
 expop = Literal("**")
 
 # use parse actions to attach EvalXXX constructors to sub-expressions
 operand.setParseAction(EvalConstant)
-arith_expr = infixNotation(
+arith_expr = infix_notation(
     operand,
     [
-        (signop, 1, opAssoc.RIGHT, EvalSignOp),
-        (expop, 2, opAssoc.LEFT, EvalPowerOp),
-        (multop, 2, opAssoc.LEFT, EvalMultOp),
-        (plusop, 2, opAssoc.LEFT, EvalAddOp),
+        (signop, 1, OpAssoc.RIGHT, EvalSignOp),
+        (expop, 2, OpAssoc.LEFT, EvalPowerOp),
+        (multop, 2, OpAssoc.LEFT, EvalMultOp),
+        (plusop, 2, OpAssoc.LEFT, EvalAddOp),
     ],
 )
 
-comparisonop = oneOf("< <= > >= != = <> LT GT LE GE EQ NE")
-comp_expr = infixNotation(
+comparisonop = one_of("< <= > >= != = <> LT GT LE GE EQ NE")
+comp_expr = infix_notation(
     arith_expr,
     [
-        (comparisonop, 2, opAssoc.LEFT, EvalComparisonOp),
+        (comparisonop, 2, OpAssoc.LEFT, EvalComparisonOp),
     ],
 )
 

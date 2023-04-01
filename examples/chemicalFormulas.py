@@ -23,7 +23,7 @@ element = pp.Word(pp.alphas.upper(), pp.alphas.lower(), max=2).set_name("element
 #                 "E[rsu]|F[emr]?|G[ade]|H[efgos]?|I[nr]?|Kr?|L[airu]|"
 #                 "M[dgnot]|N[abdeiop]?|Os?|P[abdmortu]?|R[abefghnu]|"
 #                 "S[bcegimnr]?|T[abcehilm]|U(u[bhopqst])?|V|W|Xe|Yb?|Z[nr]")
-elementRef = pp.Group(element + pp.Optional(pp.Word(digits), default="1"))
+elementRef = pp.Group(element + pp.Opt(pp.Word(digits), default="1"))
 formula = elementRef[...]
 
 
@@ -46,7 +46,7 @@ print()
 
 # Version 2 - access parsed items by results name
 elementRef = pp.Group(
-    element("symbol") + pp.Optional(pp.Word(digits), default="1")("qty")
+    element("symbol") + pp.Opt(pp.Word(digits), default="1")("qty")
 )
 formula = elementRef[...]
 
@@ -69,9 +69,9 @@ formula.runTests(
 print()
 
 # Version 3 - convert integers during parsing process
-integer = pp.Word(digits).setParseAction(lambda t: int(t[0])).setName("integer")
-elementRef = pp.Group(element("symbol") + pp.Optional(integer, default=1)("qty"))
-formula = elementRef[...].setName("chemical_formula")
+integer = pp.Word(digits).add_parse_action(lambda t: int(t[0])).set_name("integer")
+elementRef = pp.Group(element("symbol") + pp.Opt(integer, default=1)("qty"))
+formula = elementRef[...].set_name("chemical_formula")
 
 
 def sum_atomic_weights_by_results_name_with_converted_ints(element_list):
@@ -103,10 +103,10 @@ def cvt_subscript_int(s):
     return ret
 
 
-subscript_int = pp.Word(subscript_digits).addParseAction(cvt_subscript_int).set_name("subscript")
+subscript_int = pp.Word(subscript_digits).add_parse_action(cvt_subscript_int).set_name("subscript")
 
-elementRef = pp.Group(element("symbol") + pp.Optional(subscript_int, default=1)("qty"))
-formula = elementRef[1, ...].setName("chemical_formula")
+elementRef = pp.Group(element("symbol") + pp.Opt(subscript_int, default=1)("qty"))
+formula = elementRef[1, ...].set_name("chemical_formula")
 formula.runTests(
     """\
     H₂O
