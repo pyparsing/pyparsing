@@ -761,6 +761,7 @@ def infix_notation(
         -2--11
         [[['-', 2], '-', ['-', 11]]]
     """
+
     # captive version of FollowedBy that does not do parse actions or capture results names
     class _FB(FollowedBy):
         def parseImpl(self, instring, loc, doActions=True):

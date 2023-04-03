@@ -405,7 +405,6 @@ def _apply_diagram_item_enhancements(fn):
         show_results_names: bool = False,
         show_groups: bool = False,
     ) -> typing.Optional[EditablePartial]:
-
         ret = fn(
             element,
             parent,
