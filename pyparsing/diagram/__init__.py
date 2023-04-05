@@ -561,9 +561,11 @@ def _to_diagram_element(
         else:
             ret = EditablePartial.from_call(railroad.Group, label="", item="")
     elif isinstance(element, pyparsing.TokenConverter):
-        ret = EditablePartial.from_call(
-            AnnotatedItem, label=type(element).__name__.lower(), item=""
-        )
+        label = type(element).__name__.lower()
+        if label == "tokenconverter":
+            ret = EditablePartial.from_call(railroad.Sequence, items=[])
+        else:
+            ret = EditablePartial.from_call(AnnotatedItem, label=label, item="")
     elif isinstance(element, pyparsing.Opt):
         ret = EditablePartial.from_call(railroad.Optional, item="")
     elif isinstance(element, pyparsing.OneOrMore):
