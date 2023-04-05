@@ -2,41 +2,44 @@
 # Copyright 2005-2006, Paul McGuire
 #
 # Updated 2012 - latest pyparsing API
+# Updated 2023 - using PEP8 API names
 #
 
-from pyparsing import *
+import pyparsing as pp
 import random
 import string
 
 
-def aOrAn(item):
-    if item.desc[0] in "aeiou":
+def a_or_an(item):
+    if item.desc.startswith(tuple("aeiou")):
         return "an " + item.desc
     else:
         return "a " + item.desc
 
-def capitalize(s):
-    return s[0].upper() + s[1:]
-
-def enumerateItems(l):
-    if len(l) == 0:
+def enumerate_items(items_list):
+    if not items_list:
         return "nothing"
+    *all_but_last, last = items_list
     out = []
-    if len(l) > 1:
-        out.append(", ".join(aOrAn(item) for item in l[:-1]))
+    if all_but_last:
+        out.append(", ".join(a_or_an(item) for item in all_but_last))
+        if len(all_but_last) > 1:
+            out[-1] += ','
         out.append("and")
-    out.append(aOrAn(l[-1]))
+    out.append(a_or_an(last))
     return " ".join(out)
 
-
-def enumerateDoors(l):
-    if len(l) == 0:
+def enumerate_doors(doors_list):
+    if not doors_list:
         return ""
+    *all_but_last, last = doors_list
     out = []
-    if len(l) > 1:
-        out.append(", ".join(l[:-1]))
+    if all_but_last:
+        out.append(", ".join(all_but_last))
+        if len(all_but_last) > 1:
+            out[-1] += ','
         out.append("and")
-    out.append(l[-1])
+    out.append(last)
     return " ".join(out)
 
 
@@ -59,10 +62,10 @@ class Room:
         if self.gameOver:
             player.gameOver = True
 
-    def addItem(self, it):
+    def add_item(self, it):
         self.inv.append(it)
 
-    def removeItem(self, it):
+    def remove_item(self, it):
         self.inv.remove(it)
 
     def describe(self):
@@ -73,9 +76,9 @@ class Room:
                 is_form = "are"
             else:
                 is_form = "is"
-            print("There {} {} here.".format(is_form, enumerateItems(visibleItems)))
+            print("There {} {} here.".format(is_form, enumerate_items(visibleItems)))
         else:
-            print("You see %s." % (enumerateItems(visibleItems)))
+            print("You see %s." % (enumerate_items(visibleItems)))
 
 
 class Exit(Room):
@@ -137,16 +140,16 @@ class OpenableItem(Item):
         else:
             self.contents = []
 
-    def openItem(self, player):
+    def open_item(self, player):
         if not self.isOpened:
             self.isOpened = not self.isOpened
             if self.contents is not None:
                 for item in self.contents:
-                    player.room.addItem(item)
+                    player.room.add_item(item)
                 self.contents = []
             self.desc = "open " + self.desc
 
-    def closeItem(self, player):
+    def close_item(self, player):
         if self.isOpened:
             self.isOpened = not self.isOpened
             if self.desc.startswith("open "):
@@ -161,15 +164,15 @@ class Command:
         self.verbProg = verbProg
 
     @staticmethod
-    def helpDescription():
+    def help_description():
         return ""
 
-    def _doCommand(self, player):
+    def _do_command(self, player):
         pass
 
     def __call__(self, player):
         print(self.verbProg.capitalize() + "...")
-        self._doCommand(player)
+        self._do_command(player)
 
 
 class MoveCommand(Command):
@@ -178,11 +181,11 @@ class MoveCommand(Command):
         self.direction = quals.direction[0]
 
     @staticmethod
-    def helpDescription():
+    def help_description():
         return """MOVE or GO - go NORTH, SOUTH, EAST, or WEST
           (can abbreviate as 'GO N' and 'GO W', or even just 'E' and 'S')"""
 
-    def _doCommand(self, player):
+    def _do_command(self, player):
         rm = player.room
         nextRoom = rm.doors[
             {
@@ -204,15 +207,15 @@ class TakeCommand(Command):
         self.subject = quals.item
 
     @staticmethod
-    def helpDescription():
+    def help_description():
         return "TAKE or PICKUP or PICK UP - pick up an object (but some are deadly)"
 
-    def _doCommand(self, player):
+    def _do_command(self, player):
         rm = player.room
         subj = Item.items[self.subject]
         if subj in rm.inv and subj.isVisible:
             if subj.isTakeable:
-                rm.removeItem(subj)
+                rm.remove_item(subj)
                 player.take(subj)
             else:
                 print(subj.cantTakeMessage)
@@ -226,17 +229,17 @@ class DropCommand(Command):
         self.subject = quals.item
 
     @staticmethod
-    def helpDescription():
+    def help_description():
         return "DROP or LEAVE - drop an object (but fragile items may break)"
 
-    def _doCommand(self, player):
+    def _do_command(self, player):
         rm = player.room
         subj = Item.items[self.subject]
         if subj in player.inv:
-            rm.addItem(subj)
+            rm.add_item(subj)
             player.drop(subj)
         else:
-            print("You don't have %s." % (aOrAn(subj)))
+            print("You don't have %s." % (a_or_an(subj)))
 
 
 class InventoryCommand(Command):
@@ -244,11 +247,11 @@ class InventoryCommand(Command):
         super().__init__("INV", "taking inventory")
 
     @staticmethod
-    def helpDescription():
+    def help_description():
         return "INVENTORY or INV or I - lists what items you have"
 
-    def _doCommand(self, player):
-        print("You have %s." % enumerateItems(player.inv))
+    def _do_command(self, player):
+        print("You have %s." % enumerate_items(player.inv))
 
 
 class LookCommand(Command):
@@ -256,10 +259,10 @@ class LookCommand(Command):
         super().__init__("LOOK", "looking")
 
     @staticmethod
-    def helpDescription():
+    def help_description():
         return "LOOK or L - describes the current room and any objects in it"
 
-    def _doCommand(self, player):
+    def _do_command(self, player):
         player.room.describe()
 
 
@@ -269,10 +272,10 @@ class ExamineCommand(Command):
         self.subject = Item.items[quals.item]
 
     @staticmethod
-    def helpDescription():
+    def help_description():
         return "EXAMINE or EX or X - look closely at an object"
 
-    def _doCommand(self, player):
+    def _do_command(self, player):
         msg = random.choice(
             [
                 "It's {}.",
@@ -284,7 +287,7 @@ class ExamineCommand(Command):
                 "{0}, just {0}."
             ]
         )
-        print(capitalize(msg.format(aOrAn(self.subject), self.subject)))
+        print(msg.format(a_or_an(self.subject), self.subject).capitalize())
 
 
 class DoorsCommand(Command):
@@ -292,12 +295,12 @@ class DoorsCommand(Command):
         super().__init__("DOORS", "looking for doors")
 
     @staticmethod
-    def helpDescription():
+    def help_description():
         return "DOORS - display what doors are visible from this room"
 
-    def _doCommand(self, player):
+    def _do_command(self, player):
         rm = player.room
-        numDoors = sum([1 for r in rm.doors if r is not None])
+        numDoors = sum(1 for r in rm.doors if r is not None)
         if numDoors == 0:
             reply = "There are no doors in any direction."
         else:
@@ -310,8 +313,7 @@ class DoorsCommand(Command):
                 for i, d in enumerate(rm.doors)
                 if d is not None
             ]
-            # ~ print doorNames
-            reply += enumerateDoors(doorNames)
+            reply += enumerate_doors(doorNames)
             reply += "."
             print(reply)
 
@@ -326,10 +328,10 @@ class UseCommand(Command):
             self.target = None
 
     @staticmethod
-    def helpDescription():
+    def help_description():
         return "USE or U - use an object, optionally IN or ON another object"
 
-    def _doCommand(self, player):
+    def _do_command(self, player):
         rm = player.room
         availItems = rm.inv + player.inv
         if self.subject in availItems:
@@ -347,16 +349,16 @@ class OpenCommand(Command):
         self.subject = Item.items[quals.item]
 
     @staticmethod
-    def helpDescription():
+    def help_description():
         return "OPEN or O - open an object"
 
-    def _doCommand(self, player):
+    def _do_command(self, player):
         rm = player.room
         availItems = rm.inv + player.inv
         if self.subject in availItems:
             if self.subject.isOpenable:
                 if not self.subject.isOpened:
-                    self.subject.openItem(player)
+                    self.subject.open_item(player)
                 else:
                     print("It's already open.")
             else:
@@ -371,16 +373,16 @@ class CloseCommand(Command):
         self.subject = Item.items[quals.item]
 
     @staticmethod
-    def helpDescription():
+    def help_description():
         return "CLOSE or CL - close an object"
 
-    def _doCommand(self, player):
+    def _do_command(self, player):
         rm = player.room
         availItems = rm.inv + player.inv
         if self.subject in availItems:
             if self.subject.isOpenable:
                 if self.subject.isOpened:
-                    self.subject.closeItem(player)
+                    self.subject.close_item(player)
                 else:
                     print("You can't close that, it's not open.")
             else:
@@ -394,10 +396,10 @@ class QuitCommand(Command):
         super().__init__("QUIT", "quitting")
 
     @staticmethod
-    def helpDescription():
+    def help_description():
         return "QUIT or Q - ends the game"
 
-    def _doCommand(self, player):
+    def _do_command(self, player):
         print("Ok....")
         player.gameOver = True
 
@@ -407,10 +409,10 @@ class HelpCommand(Command):
         super().__init__("HELP", "helping")
 
     @staticmethod
-    def helpDescription():
+    def help_description():
         return "HELP or H or ? - displays this help message"
 
-    def _doCommand(self, player):
+    def _do_command(self, player):
         print("Enter any of the following commands (not case sensitive):")
         for cmd in [
             InventoryCommand,
@@ -426,38 +428,38 @@ class HelpCommand(Command):
             QuitCommand,
             HelpCommand,
         ]:
-            print("  - %s" % cmd.helpDescription())
+            print("  - %s" % cmd.help_description())
         print()
 
 
-class AppParseException(ParseException):
+class AppParseException(pp.ParseException):
     pass
 
 
 class Parser:
     def __init__(self):
-        self.bnf = self.makeBNF()
+        self.bnf = self.make_bnf()
 
-    def makeBNF(self):
-        invVerb = oneOf("INV INVENTORY I", caseless=True)
-        dropVerb = oneOf("DROP LEAVE", caseless=True)
-        takeVerb = oneOf("TAKE PICKUP", caseless=True) | (
-            CaselessLiteral("PICK") + CaselessLiteral("UP")
+    def make_bnf(self):
+        invVerb = pp.one_of("INV INVENTORY I", caseless=True)
+        dropVerb = pp.one_of("DROP LEAVE", caseless=True)
+        takeVerb = pp.one_of("TAKE PICKUP", caseless=True) | (
+            pp.CaselessLiteral("PICK") + pp.CaselessLiteral("UP")
         )
-        moveVerb = oneOf("MOVE GO", caseless=True)
-        useVerb = oneOf("USE U", caseless=True)
-        openVerb = oneOf("OPEN O", caseless=True)
-        closeVerb = oneOf("CLOSE CL", caseless=True)
-        quitVerb = oneOf("QUIT Q", caseless=True)
-        lookVerb = oneOf("LOOK L", caseless=True)
-        doorsVerb = CaselessLiteral("DOORS")
-        helpVerb = oneOf("H HELP ?", caseless=True)
+        moveVerb = pp.one_of("MOVE GO", caseless=True) | pp.Empty()
+        useVerb = pp.one_of("USE U", caseless=True)
+        openVerb = pp.one_of("OPEN O", caseless=True)
+        closeVerb = pp.one_of("CLOSE CL", caseless=True)
+        quitVerb = pp.one_of("QUIT Q", caseless=True)
+        lookVerb = pp.one_of("LOOK L", caseless=True)
+        doorsVerb = pp.CaselessLiteral("DOORS")
+        helpVerb = pp.one_of("H HELP ?", caseless=True)
 
-        itemRef = OneOrMore(Word(alphas)).setParseAction(self.validateItemName).setName("item_ref")
-        nDir = oneOf("N NORTH", caseless=True).setParseAction(replaceWith("N"))
-        sDir = oneOf("S SOUTH", caseless=True).setParseAction(replaceWith("S"))
-        eDir = oneOf("E EAST", caseless=True).setParseAction(replaceWith("E"))
-        wDir = oneOf("W WEST", caseless=True).setParseAction(replaceWith("W"))
+        itemRef = pp.OneOrMore(pp.Word(pp.alphas)).set_parse_action(self.validate_item_name).setName("item_ref")
+        nDir = pp.one_of("N NORTH", caseless=True).set_parse_action(pp.replace_with("N"))
+        sDir = pp.one_of("S SOUTH", caseless=True).set_parse_action(pp.replace_with("S"))
+        eDir = pp.one_of("E EAST", caseless=True).set_parse_action(pp.replace_with("E"))
+        wDir = pp.one_of("W WEST", caseless=True).set_parse_action(pp.replace_with("W"))
         moveDirection = nDir | sDir | eDir | wDir
 
         invCommand = invVerb
@@ -466,34 +468,34 @@ class Parser:
         useCommand = (
             useVerb
             + itemRef("usedObj")
-            + Optional(oneOf("IN ON", caseless=True))
-            + Optional(itemRef, default=None)("targetObj")
+            + pp.Opt(pp.one_of("IN ON", caseless=True))
+            + pp.Opt(itemRef, default=None)("targetObj")
         )
         openCommand = openVerb + itemRef("item")
         closeCommand = closeVerb + itemRef("item")
         moveCommand = (moveVerb | "") + moveDirection("direction")
         quitCommand = quitVerb
         lookCommand = lookVerb
-        examineCommand = oneOf("EXAMINE EX X", caseless=True) + itemRef("item")
+        examineCommand = pp.one_of("EXAMINE EX X", caseless=True) + itemRef("item")
         doorsCommand = doorsVerb.setName("DOORS")
         helpCommand = helpVerb
 
         # attach command classes to expressions
-        invCommand.setParseAction(InventoryCommand)
-        dropCommand.setParseAction(DropCommand)
-        takeCommand.setParseAction(TakeCommand)
-        useCommand.setParseAction(UseCommand)
-        openCommand.setParseAction(OpenCommand)
-        closeCommand.setParseAction(CloseCommand)
-        moveCommand.setParseAction(MoveCommand)
-        quitCommand.setParseAction(QuitCommand)
-        lookCommand.setParseAction(LookCommand)
-        examineCommand.setParseAction(ExamineCommand)
-        doorsCommand.setParseAction(DoorsCommand)
-        helpCommand.setParseAction(HelpCommand)
+        invCommand.set_parse_action(InventoryCommand)
+        dropCommand.set_parse_action(DropCommand)
+        takeCommand.set_parse_action(TakeCommand)
+        useCommand.set_parse_action(UseCommand)
+        openCommand.set_parse_action(OpenCommand)
+        closeCommand.set_parse_action(CloseCommand)
+        moveCommand.set_parse_action(MoveCommand)
+        quitCommand.set_parse_action(QuitCommand)
+        lookCommand.set_parse_action(LookCommand)
+        examineCommand.set_parse_action(ExamineCommand)
+        doorsCommand.set_parse_action(DoorsCommand)
+        helpCommand.set_parse_action(HelpCommand)
 
         # define parser using all command expressions
-        parser = ungroup(
+        parser = pp.ungroup(
             invCommand
             | useCommand
             | openCommand
@@ -508,22 +510,21 @@ class Parser:
             | quitCommand
         )("command")
 
-        parser.create_diagram("adventure_game_diagram.html", show_results_names=True)
         return parser
 
-    def validateItemName(self, s, l, t):
+    def validate_item_name(self, s, l, t):
         iname = " ".join(t)
         if iname not in Item.items:
             raise AppParseException(s, l, "No such item '%s'." % iname)
         return iname
 
-    def parseCmd(self, cmdstr):
+    def parse_cmd(self, cmdstr):
         try:
-            ret = self.bnf.parseString(cmdstr)
+            ret = self.bnf.parse_string(cmdstr)
             return ret
         except AppParseException as pe:
             print(pe.msg)
-        except ParseException as pe:
+        except pp.ParseException as pe:
             print(
                 random.choice(
                     [
@@ -628,7 +629,7 @@ def createRooms(rm):
 def putItemInRoom(i, r):
     if isinstance(r, str):
         r = rooms[r]
-    r.addItem(Item.items[i])
+    r.add_item(Item.items[i])
 
 
 def playGame(p, startRoom):
@@ -637,14 +638,13 @@ def playGame(p, startRoom):
     p.moveTo(startRoom)
     while not p.gameOver:
         cmdstr = input(">> ")
-        cmd = parser.parseCmd(cmdstr)
-        # print(cmd.dump())
+        cmd = parser.parse_cmd(cmdstr)
         if cmd is not None:
             cmd.command(p)
     print()
     print("You ended the game with:")
     for i in p.inv:
-        print(" -", aOrAn(i))
+        print(" -", a_or_an(i))
 
 
 # ====================
@@ -690,22 +690,22 @@ Item.items["coin"].isVisible = False
 Item.items["shovel"].usableConditionTest = lambda p, t: p.room is garden
 
 
-def useShovel(p, subj, target):
+def use_shovel(p, subj, target):
     coin = Item.items["coin"]
     if not coin.isVisible and coin in p.room.inv:
         coin.isVisible = True
 
 
-Item.items["shovel"].useAction = useShovel
+Item.items["shovel"].useAction = use_shovel
 
 Item.items["telescope"].isTakeable = False
 
 
-def useTelescope(p, subj, target):
+def use_telescope(p, subj, target):
     print("You don't see anything.")
 
 
-Item.items["telescope"].useAction = useTelescope
+Item.items["telescope"].useAction = use_telescope
 
 OpenableItem("treasure chest", Item.items["gold bar"])
 Item.items["chest"] = Item.items["treasure chest"]
