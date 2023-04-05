@@ -13,7 +13,7 @@ help from Devin J. Pohly in structuring the code to enable this peaceful transit
 Version 3.2.0 will also discontinue support for Python versions 3.6 and 3.7.
 
 
-Version 3.1.0a2 - (in development)
+Version 3.1.0b1 - (in development)
 ----------------------------------
 - API CHANGE: A slight change has been implemented when unquoting a quoted string
   parsed using the QuotedString class. Formerly, when unquoting and processing
