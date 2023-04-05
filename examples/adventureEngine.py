@@ -15,6 +15,8 @@ def aOrAn(item):
     else:
         return "a " + item.desc
 
+def capitalize(s):
+    return s[0].upper() + s[1:]
 
 def enumerateItems(l):
     if len(l) == 0:
@@ -261,6 +263,30 @@ class LookCommand(Command):
         player.room.describe()
 
 
+class ExamineCommand(Command):
+    def __init__(self, quals):
+        super().__init__("EXAMINE", "examining")
+        self.subject = Item.items[quals.item]
+
+    @staticmethod
+    def helpDescription():
+        return "EXAMINE or EX or X - look closely at an object"
+
+    def _doCommand(self, player):
+        msg = random.choice(
+            [
+                "It's {}.",
+                "It's just {}.",
+                "It's a beautiful {1}.",
+                "It's a rare and beautiful {1}.",
+                "It's a rare {1}.",
+                "Just {}, nothing special...",
+                "{0}, just {0}."
+            ]
+        )
+        print(capitalize(msg.format(aOrAn(self.subject), self.subject)))
+
+
 class DoorsCommand(Command):
     def __init__(self, quals):
         super().__init__("DOORS", "looking for doors")
@@ -395,6 +421,7 @@ class HelpCommand(Command):
             CloseCommand,
             MoveCommand,
             LookCommand,
+            ExamineCommand,
             DoorsCommand,
             QuitCommand,
             HelpCommand,
@@ -417,7 +444,7 @@ class Parser:
         takeVerb = oneOf("TAKE PICKUP", caseless=True) | (
             CaselessLiteral("PICK") + CaselessLiteral("UP")
         )
-        moveVerb = oneOf("MOVE GO", caseless=True) | empty
+        moveVerb = oneOf("MOVE GO", caseless=True)
         useVerb = oneOf("USE U", caseless=True)
         openVerb = oneOf("OPEN O", caseless=True)
         closeVerb = oneOf("CLOSE CL", caseless=True)
@@ -426,7 +453,7 @@ class Parser:
         doorsVerb = CaselessLiteral("DOORS")
         helpVerb = oneOf("H HELP ?", caseless=True)
 
-        itemRef = OneOrMore(Word(alphas)).setParseAction(self.validateItemName)
+        itemRef = OneOrMore(Word(alphas)).setParseAction(self.validateItemName).setName("item_ref")
         nDir = oneOf("N NORTH", caseless=True).setParseAction(replaceWith("N"))
         sDir = oneOf("S SOUTH", caseless=True).setParseAction(replaceWith("S"))
         eDir = oneOf("E EAST", caseless=True).setParseAction(replaceWith("E"))
@@ -444,10 +471,11 @@ class Parser:
         )
         openCommand = openVerb + itemRef("item")
         closeCommand = closeVerb + itemRef("item")
-        moveCommand = moveVerb + moveDirection("direction")
+        moveCommand = (moveVerb | "") + moveDirection("direction")
         quitCommand = quitVerb
         lookCommand = lookVerb
-        doorsCommand = doorsVerb
+        examineCommand = oneOf("EXAMINE EX X", caseless=True) + itemRef("item")
+        doorsCommand = doorsVerb.setName("DOORS")
         helpCommand = helpVerb
 
         # attach command classes to expressions
@@ -460,11 +488,12 @@ class Parser:
         moveCommand.setParseAction(MoveCommand)
         quitCommand.setParseAction(QuitCommand)
         lookCommand.setParseAction(LookCommand)
+        examineCommand.setParseAction(ExamineCommand)
         doorsCommand.setParseAction(DoorsCommand)
         helpCommand.setParseAction(HelpCommand)
 
         # define parser using all command expressions
-        return (
+        parser = ungroup(
             invCommand
             | useCommand
             | openCommand
@@ -473,10 +502,14 @@ class Parser:
             | takeCommand
             | moveCommand
             | lookCommand
+            | examineCommand
             | doorsCommand
             | helpCommand
             | quitCommand
-        )("command") + LineEnd()
+        )("command")
+
+        parser.create_diagram("adventure_game_diagram.html", show_results_names=True)
+        return parser
 
     def validateItemName(self, s, l, t):
         iname = " ".join(t)
@@ -605,6 +638,7 @@ def playGame(p, startRoom):
     while not p.gameOver:
         cmdstr = input(">> ")
         cmd = parser.parseCmd(cmdstr)
+        # print(cmd.dump())
         if cmd is not None:
             cmd.command(p)
     print()
