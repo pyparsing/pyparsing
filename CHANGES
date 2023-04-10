@@ -133,7 +133,7 @@ Version 3.1.0a1 - March, 2023
       BEGIN, END = Keyword.using_each("BEGIN END".split())
       body_word = Word(alphas)
 
-      expr = BEGIN + Group(body_word[:END]) + END
+      expr = BEGIN + Group(body_word[...:END]) + END
       # equivalent to
       # expr = BEGIN + Group(ZeroOrMore(body_word, stop_on=END)) + END
 
