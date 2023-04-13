@@ -144,7 +144,10 @@ def railroad_to_html(diagrams: List[NamedDiagram], embed=False, **kwargs) -> str
         if diagram.diagram is None:
             continue
         io = StringIO()
-        diagram.diagram.writeSvg(io.write)
+        try:
+            diagram.diagram.writeStandalone(io.write)
+        except AttributeError:
+            diagram.diagram.writeSvg(io.write)
         title = diagram.name
         if diagram.index == 0:
             title += " (root)"

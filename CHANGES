@@ -13,6 +13,13 @@ help from Devin J. Pohly in structuring the code to enable this peaceful transit
 Version 3.2.0 will also discontinue support for Python versions 3.6 and 3.7.
 
 
+Version 3.1.0b2 - (in development)
+----------------------------------
+- Updated create_diagram() code to be compatible with railroad-diagrams package
+  version 3.0. Fixes Issue #477 (railroad diagrams generated with black bars),
+  reported by Sam Morley-Short.
+
+
 Version 3.1.0b1 - April, 2023
 -----------------------------
 - Added support for Python 3.12.
