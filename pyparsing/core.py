@@ -2232,10 +2232,10 @@ class ParserElement(ABC):
         )
         if isinstance(output_html, (str, Path)):
             with open(output_html, "w", encoding="utf-8") as diag_file:
-                diag_file.write(railroad_to_html(railroad, embed=embed))
+                diag_file.write(railroad_to_html(railroad, embed=embed, **kwargs))
         else:
             # we were passed a file-like object, just write to it
-            output_html.write(railroad_to_html(railroad, embed=embed))
+            output_html.write(railroad_to_html(railroad, embed=embed, **kwargs))
 
     # Compatibility synonyms
     # fmt: off
