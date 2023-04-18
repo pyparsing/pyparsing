@@ -24,14 +24,23 @@ import unicodedata
 import pyparsing as pp
 ppu = pp.pyparsing_unicode
 
-ident_chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz_0123456789·"
+_· = "_·"
+ident_chars = (
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+    "abcdefghijklmnopqrstuvwxyz"
+    "0123456789" + _·
+)
 
+# build map of each ASCII character to a list of
+# all the characters in the Basic Multilingual Plane
+# that NFKC normalize back to that ASCII character
 ident_char_map = {}.fromkeys(ident_chars, "")
-for ch in ppu.identbodychars:
+for ch in ppu.BMP.identbodychars:
     normal = unicodedata.normalize("NFKC", ch)
     if normal in ident_char_map:
         ident_char_map[normal] += ch
 
+# ligatures will also normalize back to ASCII
 ligature_map = {
     'ffl': 'ﬄ ﬄ ﬀl fﬂ ffl',
     'ffi': 'ﬃ ﬃ ﬀi fﬁ ffi',
@@ -60,13 +69,13 @@ def make_mixed_font(t):
     return ''.join(ret)
 
 
+# define a pyparsing expression to match any identifier
 identifier = pp.pyparsing_common.identifier
 identifier.add_parse_action(make_mixed_font)
 
+# match quoted strings (which may be f-strings)
 python_quoted_string = pp.Opt(pp.Char("fF")("f_string_prefix")) + (
-        pp.quotedString
-        | pp.QuotedString('"""', multiline=True, unquoteResults=False)
-        | pp.QuotedString("'''", multiline=True, unquoteResults=False)
+        pp.python_quoted_string
 )("quoted_string_body")
 
 
@@ -81,7 +90,12 @@ def mix_fstring_expressions(t):
 
 python_quoted_string.add_parse_action(mix_fstring_expressions)
 
-any_keyword = pp.MatchFirst(map(pp.Keyword, list(keyword.kwlist) + getattr(keyword, "softkwlist", [])))
+# match keywords separately from identifiers - keywords must be kept in their
+# original ASCII
+any_keyword = pp.one_of(
+    keyword.kwlist + getattr(keyword, "softkwlist", []),
+    as_keyword=True
+)
 
 # quoted strings and keywords will be parsed, but left untransformed
 transformer = python_quoted_string | any_keyword | identifier
