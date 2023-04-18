@@ -31,9 +31,9 @@ ident_chars = (
     "0123456789" + _·
 )
 
-# build map of each ASCII character to a list of
+# build map of each ASCII character to a string of
 # all the characters in the Basic Multilingual Plane
-# that NFKC normalize back to that ASCII character
+# that NFKC normalizes back to that ASCII character
 ident_char_map = {}.fromkeys(ident_chars, "")
 for ch in ppu.BMP.identbodychars:
     normal = unicodedata.normalize("NFKC", ch)
@@ -58,18 +58,23 @@ ligature_map = {
     'ix': 'ix ⅸ',
     'xi': 'xi ⅺ',
 }
-ligature_transformer = pp.oneOf(ligature_map).add_parse_action(lambda t: random.choice(ligature_map[t[0]].split()))
+ligature_transformer = pp.oneOf(ligature_map).add_parse_action(
+    lambda t: random.choice(ligature_map[t[0]].split())
+)
 
 
 def make_mixed_font(t):
-    t_0 = t[0][0]
-    ret = ['_' if t_0 == '_' else random.choice(ident_char_map.get(t_0, t_0))]
-    t_rest = ligature_transformer.transform_string(t[0][1:])
+    t_0 = t[0]
+    # a leading '_' must be written using the ASCII character '_'
+    ret = ['_' if t_0[0] == '_'
+           else random.choice(ident_char_map.get(t_0[0], t_0[0]))]
+    t_rest = ligature_transformer.transform_string(t_0[1:])
     ret.extend(random.choice(ident_char_map.get(c, c)) for c in t_rest)
     return ''.join(ret)
 
 
-# define a pyparsing expression to match any identifier
+# define a pyparsing expression to match any identifier; add a parse
+# action to convert to mixed Unicode characters
 identifier = pp.pyparsing_common.identifier
 identifier.add_parse_action(make_mixed_font)
 
@@ -87,13 +92,13 @@ def mix_fstring_expressions(t):
     ret = t.f_string_prefix + fstring_arg.transform_string(t.quoted_string_body)
     return ret
 
-
+# add parse action to transform identifiers in f-strings
 python_quoted_string.add_parse_action(mix_fstring_expressions)
 
 # match keywords separately from identifiers - keywords must be kept in their
 # original ASCII
 any_keyword = pp.one_of(
-    keyword.kwlist + getattr(keyword, "softkwlist", []),
+    list(keyword.kwlist) + getattr(keyword, "softkwlist", []),
     as_keyword=True
 )
 
@@ -115,13 +120,13 @@ def demo():
     if __name__ == "__main__":
         hello()
     """)
-    source = hello_source
 
-    transformed = transformer.transform_string(source)
+    # use transformer to generate code with denormalized identifiers
+    transformed = transformer.transform_string(hello_source)
     print(transformed)
 
-    # does it really work?
-    code = compile(transformed, source, mode="exec")
+    # does it really work? compile the transformed code and run it!
+    code = compile(transformed, "inline source", mode="exec")
     exec(code)
 
     if 0:
