@@ -210,6 +210,102 @@ class TestRailroadDiagrams(unittest.TestCase):
         tags = "<html> </html> <head> </head> <body> </body>".split()
         assert not any(tag in diag_str for tag in tags)
 
+    def test_kwargs_pass_thru_create_diagram(self):
+        from io import StringIO
+        # Creates a simple diagram with a blue body and
+        # various other railroad features colored with
+        # a complete disregard for taste
+
+        # Very simple grammar for demo purposes
+        salutation = pp.Word(pp.alphas).set_name("salutation")
+        subject = pp.rest_of_line.set_name("subject")
+        parse_grammar = salutation + subject
+
+        # This is used to turn off the railroads
+        # definition of DEFAULT_STYLE.
+        # If this is set to 'None' the default style
+        # will be written as part of each diagram
+        # and will you will not be able to set the
+        # css style globally and the string 'expStyle'
+        # will have no effect.
+        # There is probably a PR to railroad_diagram to
+        # remove some cruft left in the SVG.
+        DEFAULT_STYLE = ""
+
+        # CSS Code to be placed into head of the html file
+        expStyle = """
+        <style type="text/css">
+
+        body {
+            background-color: blue;
+        }
+
+        .railroad-heading {
+            font-family: monospace;
+            color: bisque;
+        }
+
+        svg.railroad-diagram {
+            background-color: hsl(264,45%,85%);
+        }
+        svg.railroad-diagram path {
+            stroke-width: 3;
+            stroke: green;
+            fill: rgba(0,0,0,0);
+        }
+        svg.railroad-diagram text {
+            font: bold 14px monospace;
+            text-anchor: middle;
+            white-space: pre;
+        }
+        svg.railroad-diagram text.diagram-text {
+            font-size: 12px;
+        }
+        svg.railroad-diagram text.diagram-arrow {
+            font-size: 16px;
+        }
+        svg.railroad-diagram text.label {
+            text-anchor: start;
+        }
+        svg.railroad-diagram text.comment {
+            font: italic 12px monospace;
+        }
+        svg.railroad-diagram g.non-terminal text {
+            /*font-style: italic;*/
+        }
+        svg.railroad-diagram rect {
+            stroke-width: 3;
+            stroke: black;
+            fill: hsl(55, 72%, 69%);
+        }
+        svg.railroad-diagram rect.group-box {
+            stroke: rgb(33, 8, 225);
+            stroke-dasharray: 10 5;
+            fill: none;
+        }
+        svg.railroad-diagram path.diagram-text {
+            stroke-width: 3;
+            stroke: black;
+            fill: white;
+            cursor: help;
+        }
+        svg.railroad-diagram g.diagram-text:hover path.diagram-text {
+            fill: #eee;
+        }
+        </style>
+        """
+
+        # the 'css=DEFAULT_STYLE' or 'css=""' is needed to turn off railroad_diagrams styling
+        diag_html_capture = StringIO()
+        parse_grammar.create_diagram(
+            diag_html_capture,
+            vertical=6,
+            show_results_names=True,
+            css=DEFAULT_STYLE,
+            head=expStyle
+        )
+
+        self.assertIn(expStyle, diag_html_capture.getvalue())
 
 if __name__ == "__main__":
     unittest.main()
