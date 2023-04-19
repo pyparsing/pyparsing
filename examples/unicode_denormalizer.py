@@ -26,49 +26,60 @@ ppu = pp.pyparsing_unicode
 
 _· = "_·"
 ident_chars = (
-    "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-    "abcdefghijklmnopqrstuvwxyz"
-    "0123456789" + _·
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
+    + "0123456789" + _·
 )
 
 # build map of each ASCII character to a string of
 # all the characters in the Basic Multilingual Plane
 # that NFKC normalizes back to that ASCII character
-ident_char_map = {}.fromkeys(ident_chars, "")
+ident_char_map = {c: [] for c in ident_chars}
 for ch in ppu.BMP.identbodychars:
     normal = unicodedata.normalize("NFKC", ch)
     if normal in ident_char_map:
-        ident_char_map[normal] += ch
+        ident_char_map[normal].append(ch)
 
 # ligatures will also normalize back to ASCII
+# (doubled elements have higher chance of being chosen by random.choice)
 ligature_map = {
-    'ffl': 'ﬄ ﬄ ﬀl fﬂ ffl',
-    'ffi': 'ﬃ ﬃ ﬀi fﬁ ffi',
-    'ff': 'ﬀ ff',
-    'fi': 'ﬁ fi',
-    'fl': 'ﬂ fl',
-
-    'ij': 'ij ĳ',
-    'lj': 'lj ǉ',
-    'nj': 'nj ǌ',
-    'dz': 'dz ǳ',
-    'ii': 'ii ⅱ',
-    'iv': 'iv ⅳ',
-    'vi': 'vi ⅵ',
-    'ix': 'ix ⅸ',
-    'xi': 'xi ⅺ',
+    'IJ': ('Ĳ', 'Ĳ', 'IJ'),
+    'LJ': ('Ǉ', 'Ǉ', 'LJ'),
+    'NJ': ('Ǌ', 'Ǌ', 'NJ'),
+    'DZ': ('Ǳ', 'Ǳ', 'DZ'),
+    'II': ('Ⅱ', 'Ⅱ', 'II'),
+    'IV': ('Ⅳ', 'Ⅳ', 'IV'),
+    'VI': ('Ⅵ', 'Ⅵ', 'VI'),
+    'IX': ('Ⅸ', 'Ⅸ', 'IX'),
+    'XI': ('Ⅺ', 'Ⅺ', 'XI'),
+    'ffl': ('ﬄ', 'ﬄ', 'ﬀl', 'fﬂ', 'ffl'),
+    'ffi': ('ﬃ', 'ﬃ', 'ﬀi', 'fﬁ', 'ffi'),
+    'ff': ('ﬀ', 'ﬀ', 'ff'),
+    'fi': ('ﬁ', 'ﬁ', 'fi'),
+    'fl': ('ﬂ', 'ﬂ', 'fl'),
+    'ij': ('ĳ', 'ĳ', 'ij'),
+    'lj': ('ǉ', 'ǉ', 'lj'),
+    'nj': ('ǌ', 'ǌ', 'nj'),
+    'dz': ('ǳ', 'ǳ', 'dz'),
+    'ii': ('ⅱ', 'ⅱ', 'ii'),
+    'iv': ('ⅳ', 'ⅳ', 'iv'),
+    'vi': ('ⅵ', 'ⅵ', 'vi'),
+    'ix': ('ⅸ', 'ⅸ', 'ix'),
+    'xi': ('ⅺ', 'ⅺ', 'xi'),
 }
-ligature_transformer = pp.oneOf(ligature_map).add_parse_action(
-    lambda t: random.choice(ligature_map[t[0]].split())
+
+ligature_transformer = pp.one_of(ligature_map).add_parse_action(
+    lambda t: random.choice(ligature_map[t[0]])
 )
 
 
 def make_mixed_font(t):
-    t_0 = t[0]
+    # extract leading character and remainder to process separately
+    t_first, t_rest = t[0][0], t[0][1:]
+
     # a leading '_' must be written using the ASCII character '_'
-    ret = ['_' if t_0[0] == '_'
-           else random.choice(ident_char_map.get(t_0[0], t_0[0]))]
-    t_rest = ligature_transformer.transform_string(t_0[1:])
+    ret = ['_' if t_first == '_'
+           else random.choice(ident_char_map.get(t_first, t_first))]
+    t_rest = ligature_transformer.transform_string(t_rest)
     ret.extend(random.choice(ident_char_map.get(c, c)) for c in t_rest)
     return ''.join(ret)
 
@@ -87,10 +98,18 @@ python_quoted_string = pp.Opt(pp.Char("fF")("f_string_prefix")) + (
 def mix_fstring_expressions(t):
     if not t.f_string_prefix:
         return
+
+    # define an expression and transformer to handle embedded
+    # f-string field expressions
     fstring_arg = pp.QuotedString("{", end_quote_char="}")
-    fstring_arg.add_parse_action(lambda tt: "{" + transformer.transform_string(tt[0]) + "}")
-    ret = t.f_string_prefix + fstring_arg.transform_string(t.quoted_string_body)
-    return ret
+    fstring_arg.add_parse_action(
+        lambda tt: "{" + transformer.transform_string(tt[0]) + "}"
+    )
+
+    return (
+        t.f_string_prefix
+        + fstring_arg.transform_string(t.quoted_string_body)
+    )
 
 # add parse action to transform identifiers in f-strings
 python_quoted_string.add_parse_action(mix_fstring_expressions)
@@ -129,7 +148,7 @@ def demo():
     code = compile(transformed, "inline source", mode="exec")
     exec(code)
 
-    if 0:
+    if 1:
         # pick some code from the stdlib
         import unittest.util as lib_module
         import inspect
