@@ -267,7 +267,12 @@ def _make_synonym_function(compat_name: str, fn: C) -> C:
     _inner.__doc__ = f"""Deprecated - use :class:`{fn.__name__}`"""
     _inner.__name__ = compat_name
     _inner.__annotations__ = fn.__annotations__
-    _inner.__kwdefaults__ = fn.__kwdefaults__
+    if isinstance(fn, types.FunctionType):
+        _inner.__kwdefaults__ = fn.__kwdefaults__
+    elif isinstance(fn, type) and hasattr(fn, "__init__"):
+        _inner.__kwdefaults__ = fn.__init__.__kwdefaults__
+    else:
+        _inner.__kwdefaults__ = None
     _inner.__qualname__ = fn.__qualname__
     return cast(C, _inner)
 

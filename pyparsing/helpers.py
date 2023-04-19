@@ -374,7 +374,7 @@ def ungroup(expr: ParserElement) -> ParserElement:
 
 def locatedExpr(expr: ParserElement) -> ParserElement:
     """
-    (DEPRECATED - future code should use the Located class)
+    (DEPRECATED - future code should use the :class:`Located` class)
     Helper to decorate a returned token with its starting and ending
     locations in the input string.
 
@@ -456,7 +456,7 @@ def nested_expr(
 
         c_function = (decl_data_type("type")
                       + ident("name")
-                      + LPAR + Opt(delimited_list(arg), [])("args") + RPAR
+                      + LPAR + Opt(DelimitedList(arg), [])("args") + RPAR
                       + code_body("body"))
         c_function.ignore(c_style_comment)
 
@@ -856,7 +856,7 @@ def infix_notation(
 
 def indentedBlock(blockStatementExpr, indentStack, indent=True, backup_stacks=[]):
     """
-    (DEPRECATED - use ``IndentedBlock`` class instead)
+    (DEPRECATED - use :class:`IndentedBlock` class instead)
     Helper method for defining space-delimited indentation blocks,
     such as those used to define block statements in Python source code.
 
@@ -1039,23 +1039,7 @@ def delimited_list(
     *,
     allow_trailing_delim: bool = False,
 ) -> ParserElement:
-    """Helper to define a delimited list of expressions - the delimiter
-    defaults to ','. By default, the list elements and delimiters can
-    have intervening whitespace, and comments, but this can be
-    overridden by passing ``combine=True`` in the constructor. If
-    ``combine`` is set to ``True``, the matching tokens are
-    returned as a single token string, with the delimiters included;
-    otherwise, the matching tokens are returned as a list of tokens,
-    with the delimiters suppressed.
-
-    If ``allow_trailing_delim`` is set to True, then the list may end with
-    a delimiter.
-
-    Example::
-
-        delimited_list(Word(alphas)).parse_string("aa,bb,cc") # -> ['aa', 'bb', 'cc']
-        delimited_list(Word(hexnums), delim=':', combine=True).parse_string("AA:BB:CC:DD:EE") # -> ['AA:BB:CC:DD:EE']
-    """
+    """(DEPRECATED - use :class:`DelimitedList` class)"""
     return DelimitedList(
         expr, delim, combine, min, max, allow_trailing_delim=allow_trailing_delim
     )
@@ -1075,8 +1059,11 @@ cppStyleComment = cpp_style_comment
 javaStyleComment = java_style_comment
 pythonStyleComment = python_style_comment
 
-@replaced_by_pep8(delimited_list)
+@replaced_by_pep8(DelimitedList)
 def delimitedList(): ...
+
+@replaced_by_pep8(DelimitedList)
+def delimited_list(): ...
 
 @replaced_by_pep8(counted_array)
 def countedArray(): ...

@@ -22,7 +22,6 @@ class globals {
 quoted_string
 sgl_quoted_string
 dbl_quoted_string
-delimited_list()
 counted_array()
 match_previous_literal()
 match_previous_expr()
@@ -185,6 +184,7 @@ class Each
 
 class OneOrMore
 class ZeroOrMore
+class DelimitedList
 class SkipTo
 class Group
 class Forward {
@@ -246,6 +246,7 @@ ParseElementEnhance <|-- Located
 ParseElementEnhance <|--- _MultipleMatch
 _MultipleMatch <|-- OneOrMore
 _MultipleMatch <|-- ZeroOrMore
+ParseElementEnhance <|-- DelimitedList
 ParseElementEnhance <|--- NotAny
 ParseElementEnhance <|--- FollowedBy
 ParseElementEnhance <|--- PrecededBy

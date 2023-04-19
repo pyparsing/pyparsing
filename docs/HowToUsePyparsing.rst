@@ -6,7 +6,7 @@ Using the pyparsing module
 :address: ptmcg.pm+pyparsing@gmail.com
 
 :revision: 3.1.0
-:date: March, 2023
+:date: April, 2023
 
 :copyright: Copyright |copy| 2003-2023 Paul McGuire.
 
@@ -36,7 +36,7 @@ directory of the pyparsing GitHub repo.
 **Note**: *In pyparsing 3.0, many method and function names which were
 originally written using camelCase have been converted to PEP8-compatible
 snake_case. So ``parseString()`` is being renamed to ``parse_string()``,
-``delimitedList`` to ``delimited_list``, and so on. You may see the old
+``delimitedList`` to DelimitedList_, and so on. You may see the old
 names in legacy parsers, and they will be supported for a time with
 synonyms, but the synonyms will be removed in a future release.*
 
@@ -234,7 +234,7 @@ Usage notes
 - Punctuation may be significant for matching, but is rarely of
   much interest in the parsed results.  Use the ``suppress()`` method
   to keep these tokens from cluttering up your returned lists of
-  tokens.  For example, ``delimited_list()`` matches a succession of
+  tokens.  For example, DelimitedList_ matches a succession of
   one or more expressions, separated by delimiters (commas by
   default), but only returns a list of the actual expressions -
   the delimiters are used for parsing, but are suppressed from the
@@ -361,7 +361,7 @@ methods for code to use are:
 - ``set_results_name(string, list_all_matches=False)`` - name to be given
   to tokens matching
   the element; if multiple tokens within
-  a repetition group (such as ``ZeroOrMore`` or ``delimited_list``) the
+  a repetition group (such as ZeroOrMore_ or DelimitedList_) the
   default is to return only the last matching token - if ``list_all_matches``
   is set to True, then a list of all the matching tokens is returned.
 
@@ -697,11 +697,29 @@ Expression subclasses
   been renamed to ``Opt``. A compatibility synonym ``Optional`` is defined,
   but will be removed in a future release.)
 
+.. _ZeroOrMore:
+
 - ``ZeroOrMore`` - similar to ``Opt``, but can be repeated; ``ZeroOrMore(expr)``
   can also be written as ``expr[...]``.
 
-- ``OneOrMore`` - similar to ``ZeroOrMore``, but at least one match must
+.. _OneOrMore:
+
+- ``OneOrMore`` - similar to ZeroOrMore_, but at least one match must
   be present; ``OneOrMore(expr)`` can also be written as ``expr[1, ...]``.
+
+.. _DelimitedList:
+
+- ``DelimitedList`` - used for
+  matching one or more occurrences of ``expr``, separated by ``delim``.
+  By default, the delimiters are suppressed, so the returned results contain
+  only the separate list elements.  Can optionally specify ``combine=True``,
+  indicating that the expressions and delimiters should be returned as one
+  combined value (useful for scoped variables, such as ``"a.b.c"``, or
+  ``"a::b::c"``, or paths such as ``"a/b/c"``). Can also optionally specify ``min` and ``max``
+  restrictions on the length of the list, and
+  ``allow_trailing_delim`` to accept a trailing delimiter at the end of the list.
+
+.. _FollowedBy:
 
 - ``FollowedBy`` - a lookahead expression, requires matching of the given
   expressions, but does not advance the parsing position within the input string
@@ -786,7 +804,7 @@ Special subclasses
 ------------------
 
 - ``Group`` - causes the matched tokens to be enclosed in a list;
-  useful in repeated elements like ``ZeroOrMore`` and ``OneOrMore`` to
+  useful in repeated elements like ZeroOrMore_ and OneOrMore_ to
   break up matched tokens into groups for each repeated pattern
 
 - ``Dict`` - like ``Group``, but also constructs a dictionary, using the
@@ -1031,15 +1049,6 @@ Miscellaneous attributes and methods
 
 Helper methods
 --------------
-
-- ``delimited_list(expr, delim=',')`` - convenience function for
-  matching one or more occurrences of expr, separated by delim.
-  By default, the delimiters are suppressed, so the returned results contain
-  only the separate list elements.  Can optionally specify ``combine=True``,
-  indicating that the expressions and delimiters should be returned as one
-  combined value (useful for scoped variables, such as ``"a.b.c"``, or
-  ``"a::b::c"``, or paths such as ``"a/b/c"``). Can also optionally specify
-  ``allow_trailing_delim`` to accept a trailing delimiter at the end of the list.
 
 - ``counted_array(expr)`` - convenience function for a pattern where an list of
   instances of the given expression are preceded by an integer giving the count of
@@ -1331,7 +1340,7 @@ Common string and token constants
 - ``html_comment`` - a comment block delimited by ``'<!--'`` and ``'-->'`` sequences; can span
   multiple lines, but does not support nesting of comments
 
-- ``comma_separated_list`` - similar to ``delimited_list``, except that the
+- ``comma_separated_list`` - similar to DelimitedList_, except that the
   list expressions can be any text value, or a quoted string; quoted strings can
   safely include commas without incorrectly breaking the string into two tokens
 

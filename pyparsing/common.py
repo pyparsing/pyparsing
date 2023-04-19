@@ -1,6 +1,6 @@
 # common.py
 from .core import *
-from .helpers import delimited_list, any_open_tag, any_close_tag
+from .helpers import DelimitedList, any_open_tag, any_close_tag
 from datetime import datetime
 
 
@@ -348,7 +348,7 @@ class pyparsing_common:
         .streamline()
         .set_name("commaItem")
     )
-    comma_separated_list = delimited_list(
+    comma_separated_list = DelimitedList(
         Opt(quoted_string.copy() | _commasepitem, default="")
     ).set_name("comma separated list")
     """Predefined expression of 1 or more printable words or quoted strings, separated by commas."""

@@ -406,7 +406,7 @@ Other new features
   common fields in URLs. See the updated ``urlExtractorNew.py`` file in the
   ``examples`` directory. Submitted by Wolfgang Fahl.
 
-- ``delimited_list`` now supports an additional flag ``allow_trailing_delim``,
+- ``DelimitedList`` now supports an additional flag ``allow_trailing_delim``,
   to optionally parse an additional delimiter at the end of the list.
   Submitted by Kazantcev Andrey.
 
@@ -675,7 +675,8 @@ counted_array                   countedArray
 cpp_style_comment               cppStyleComment
 dbl_quoted_string               dblQuotedString
 dbl_slash_comment               dblSlashComment
-delimited_list                  delimitedList
+DelimitedList                   delimitedList
+DelimitedList                   delimited_list
 dict_of                         dictOf
 html_comment                    htmlComment
 infix_notation                  infixNotation

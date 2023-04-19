@@ -3377,7 +3377,7 @@ class CharsNotIn(Token):
 
         # define a comma-separated-value as anything that is not a ','
         csv_value = CharsNotIn(',')
-        print(delimited_list(csv_value).parse_string("dkls,lsdkjf,s12 34,@!#,213"))
+        print(DelimitedList(csv_value).parse_string("dkls,lsdkjf,s12 34,@!#,213"))
 
     prints::
 
@@ -5702,11 +5702,11 @@ class Group(TokenConverter):
         ident = Word(alphas)
         num = Word(nums)
         term = ident | num
-        func = ident + Opt(delimited_list(term))
+        func = ident + Opt(DelimitedList(term))
         print(func.parse_string("fn a, b, 100"))
         # -> ['fn', 'a', 'b', '100']
 
-        func = ident + Group(Opt(delimited_list(term)))
+        func = ident + Group(Opt(DelimitedList(term)))
         print(func.parse_string("fn a, b, 100"))
         # -> ['fn', ['a', 'b', '100']]
     """
@@ -5842,7 +5842,7 @@ class Suppress(TokenConverter):
         ['a', 'b', 'c', 'd']
         ['START', 'relevant text ', 'END']
 
-    (See also :class:`delimited_list`.)
+    (See also :class:`DelimitedList`.)
     """
 
     def __init__(self, expr: Union[ParserElement, str], savelist: bool = False):

@@ -88,7 +88,7 @@ classes inherit from. Use the docstrings for examples of how to:
    :class:`ParserElement.set_results_name`
  - access the parsed data, which is returned as a :class:`ParseResults`
    object
- - find some helpful expression short-cuts like :class:`delimited_list`
+ - find some helpful expression short-cuts like :class:`DelimitedList`
    and :class:`one_of`
  - find more useful common expressions in the :class:`pyparsing_common`
    namespace class

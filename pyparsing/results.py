@@ -103,7 +103,7 @@ class ParseResults:
             LBRACK, RBRACK = map(pp.Suppress, "[]")
             element = pp.Forward()
             item = ppc.integer
-            element_list = LBRACK + pp.delimited_list(element) + RBRACK
+            element_list = LBRACK + pp.DelimitedList(element) + RBRACK
 
             # add parse actions to convert from ParseResults to actual Python collection types
             def as_python_list(t):
@@ -720,7 +720,7 @@ class ParseResults:
             num = Word(nums)
             func = Forward()
             term = ident | num | Group('(' + func + ')')
-            func <<= ident + Group(Optional(delimited_list(term)))
+            func <<= ident + Group(Optional(DelimitedList(term)))
             result = func.parse_string("fna a,b,(fnb c,d,200),100")
             result.pprint(width=40)
 
