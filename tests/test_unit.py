@@ -1321,6 +1321,40 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
                 print()
         # fmt: on
 
+    def testPythonQuotedStrings(self):
+        success1, _ = pp.python_quoted_string.run_tests([
+            '"""xyz"""',
+            '''"""xyz
+            """''',
+            '"""xyz "" """',
+            '''"""xyz ""
+            """''',
+            '"""xyz " """',
+            '''"""xyz "
+            """''',
+            r'''"""xyz \"""
+
+            """''',
+            "'''xyz'''",
+            """'''xyz
+            '''""",
+            "'''xyz '' '''",
+            """'''xyz ''
+            '''""",
+            "'''xyz ' '''",
+            """'''xyz '
+            '''""",
+            r"""'''xyz \'''
+            '''""",
+        ])
+
+        print("\n\nFailure tests")
+        success2, _ = pp.python_quoted_string.run_tests([
+            '"xyz"""',
+        ], failure_tests=True)
+
+        self.assertTrue(success1 and success2, "Python quoted string matching failure")
+
     def testCaselessOneOf(self):
         caseless1 = pp.oneOf("d a b c aA B A C", caseless=True)
         caseless1str = str(caseless1)

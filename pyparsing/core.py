@@ -6057,16 +6057,16 @@ quoted_string = Combine(
 ).set_name("quoted string using single or double quotes")
 
 python_quoted_string = Combine(
-    (Regex(r'"([^"]|""?(?!"))*', flags=re.MULTILINE) + '"""').set_name(
+    (Regex(r'"""(?:[^"\\]|""(?!")|"(?!"")|\\.)*', flags=re.MULTILINE) + '"""').set_name(
         "multiline double quoted string"
     )
-    | (Regex(r"'([^']|''?(?!'))*", flags=re.MULTILINE) + "'''").set_name(
+    ^ (Regex(r"'''(?:[^'\\]|''(?!')|'(?!'')|\\.)*", flags=re.MULTILINE) + "'''").set_name(
         "multiline single quoted string"
     )
-    | (Regex(r'"(?:[^"\n\r\\]|(?:"")|(?:\\(?:[^x]|x[0-9a-fA-F]+)))*') + '"').set_name(
+    ^ (Regex(r'"(?:[^"\n\r\\]|(?:\\")|(?:\\(?:[^x]|x[0-9a-fA-F]+)))*') + '"').set_name(
         "double quoted string"
     )
-    | (Regex(r"'(?:[^'\n\r\\]|(?:'')|(?:\\(?:[^x]|x[0-9a-fA-F]+)))*") + "'").set_name(
+    ^ (Regex(r"'(?:[^'\n\r\\]|(?:\\')|(?:\\(?:[^x]|x[0-9a-fA-F]+)))*") + "'").set_name(
         "single quoted string"
     )
 ).set_name("Python quoted string")
