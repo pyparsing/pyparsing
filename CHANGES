@@ -15,9 +15,15 @@ Version 3.2.0 will also discontinue support for Python versions 3.6 and 3.7.
 
 Version 3.1.0b2 - (in development)
 ----------------------------------
-- Updated create_diagram() code to be compatible with railroad-diagrams package
+- Updated `create_diagram()` code to be compatible with railroad-diagrams package
   version 3.0. Fixes Issue #477 (railroad diagrams generated with black bars),
   reported by Sam Morley-Short.
+
+- Fixed `create_diagram()` to accept keyword args, to be passed through to the
+  `template.render()` method to generate the output HTML (PR submitted by Aussie Schnore,
+  good catch!)
+
+- Fixed bug in `python_quoted_string` regex.
 
 
 Version 3.1.0b1 - April, 2023
@@ -25,7 +31,7 @@ Version 3.1.0b1 - April, 2023
 - Added support for Python 3.12.
 
 - API CHANGE: A slight change has been implemented when unquoting a quoted string
-  parsed using the QuotedString class. Formerly, when unquoting and processing
+  parsed using the `QuotedString` class. Formerly, when unquoting and processing
   whitespace markers such as \t and \n, these substitutions would occur first, and
   then any additional '\' escaping would be done on the resulting string. This would
   parse "\\n" as "\<newline>". Now escapes and whitespace markers are all processed
@@ -33,7 +39,7 @@ Version 3.1.0b1 - April, 2023
   to "\n" (a backslash followed by "n"). Fixes issue #474 raised by jakeanq,
   thanks!
 
-- Added named field "url" to pyparsing.common.url, returning the entire
+- Added named field "url" to `pyparsing.common.url`, returning the entire
   parsed URL string.
 
 - Fixed bug when parse actions returned an empty string for an expression that
@@ -50,10 +56,10 @@ Version 3.1.0b1 - April, 2023
   scanning for the target expression. Issue #475, reported by elkniwt, thanks
   (this bug has been there for a looooong time!).
 
-- Updated ci.yml permissions to limit default access to source - submitted by Joyce
+- Updated `ci.yml` permissions to limit default access to source - submitted by Joyce
   Brum of Google. Thanks so much!
 
-- Updated the lucene_grammar.py example (better support for '*' and '?' wildcards)
+- Updated the `lucene_grammar.py` example (better support for '*' and '?' wildcards)
   and corrected the test cases - brought to my attention by Elijah Nicol, good catch!
 
 
@@ -195,10 +201,10 @@ Version 3.1.0a1 - March, 2023
   by Devin J. Pohly. A dirty job, but someone has to do it - much
   appreciated!
 
-- invRegex.py example renamed to inv_regex.py and updated to PEP-8
+- `invRegex.py` example renamed to `inv_regex.py` and updated to PEP-8
   variable and method naming. PR submitted by Ross J. Duff, thanks!
 
-- Removed examples sparser.py and pymicko.py, since each included its
+- Removed examples `sparser.py` and `pymicko.py`, since each included its
   own GPL license in the header. Since this conflicts with pyparsing's
   MIT license, they were removed from the distribution to avoid
   confusion among those making use of them in their own projects.
@@ -226,7 +232,7 @@ Version 3.0.9 - May, 2022
 - Removed use of deprecated `pkg_resources` package in
   railroad diagramming code (issue #391).
 
-- Updated bigquery_view_parser.py example to parse examples at
+- Updated `bigquery_view_parser.py` example to parse examples at
   https://cloud.google.com/bigquery/docs/reference/legacy-sql
 
 
