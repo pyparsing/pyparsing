@@ -145,7 +145,8 @@ def railroad_to_html(diagrams: List[NamedDiagram], embed=False, **kwargs) -> str
             continue
         io = StringIO()
         try:
-            diagram.diagram.writeStandalone(io.write)
+            css = kwargs.get('css')
+            diagram.diagram.writeStandalone(io.write, css=css)
         except AttributeError:
             diagram.diagram.writeSvg(io.write)
         title = diagram.name
