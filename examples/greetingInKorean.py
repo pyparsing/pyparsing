@@ -7,11 +7,11 @@
 #
 from pyparsing import Word, pyparsing_unicode as ppu
 
-koreanChars = ppu.Korean.alphas
-koreanWord = Word(koreanChars, min=2)
+korean_chars = ppu.한국어.alphas
+korean_word = Word(korean_chars, min=2)
 
 # define grammar
-greet = koreanWord + "," + koreanWord + "!"
+greet = korean_word + "," + korean_word + "!"
 
 # input string
 hello = "안녕, 여러분!"  # "Hello, World!" in Korean

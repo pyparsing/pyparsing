@@ -41,7 +41,7 @@ class TestExamples(unittest.TestCase):
         self._run("rosettacode")
 
     def test_excelExpr(self):
-        self._run("excelExpr")
+        self._run("excel_expr")
 
     def test_lucene_grammar(self):
         self._run("lucene_grammar")
