@@ -45,3 +45,6 @@ class TestExamples(unittest.TestCase):
 
     def test_lucene_grammar(self):
         self._run("lucene_grammar")
+
+    def test_range_check(self):
+        self._run("range_check")
