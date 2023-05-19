@@ -19,6 +19,11 @@ Version 3.1.0b2 - (in development)
   version 3.0. Fixes Issue #477 (railroad diagrams generated with black bars),
   reported by Sam Morley-Short.
 
+- Fixed bug in `NotAny`, where parse actions on the negated expr were not being run.
+  This could cause `NotAny` to incorrectly fail if the expr would normally match,
+  but would fail to match if a condition used as a parse action returned False.
+  Fixes Issue #482, raised by byaka, thank you!
+
 - Fixed `create_diagram()` to accept keyword args, to be passed through to the
   `template.render()` method to generate the output HTML (PR submitted by Aussie Schnore,
   good catch!)

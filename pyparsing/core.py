@@ -903,17 +903,24 @@ class ParserElement(ABC):
 
         return loc, ret_tokens
 
-    def try_parse(self, instring: str, loc: int, raise_fatal: bool = False) -> int:
+    def try_parse(
+        self,
+        instring: str,
+        loc: int,
+        *,
+        raise_fatal: bool = False,
+        do_actions: bool = False,
+    ) -> int:
         try:
-            return self._parse(instring, loc, doActions=False)[0]
+            return self._parse(instring, loc, doActions=do_actions)[0]
         except ParseFatalException:
             if raise_fatal:
                 raise
             raise ParseException(instring, loc, self.errmsg, self)
 
-    def can_parse_next(self, instring: str, loc: int) -> bool:
+    def can_parse_next(self, instring: str, loc: int, do_actions: bool = False) -> bool:
         try:
-            self.try_parse(instring, loc)
+            self.try_parse(instring, loc, do_actions=do_actions)
         except (ParseException, IndexError):
             return False
         else:
@@ -4649,7 +4656,7 @@ class IndentedBlock(ParseElementEnhance):
 
         # see if self.expr matches at the current location - if not it will raise an exception
         # and no further work is necessary
-        self.expr.try_parse(instring, anchor_loc, doActions)
+        self.expr.try_parse(instring, anchor_loc, do_actions=doActions)
 
         indent_col = col(anchor_loc, instring)
         peer_detect_expr = self._Indent(indent_col)
@@ -4927,7 +4934,7 @@ class NotAny(ParseElementEnhance):
         self.errmsg = "Found unwanted token, " + str(self.expr)
 
     def parseImpl(self, instring, loc, doActions=True):
-        if self.expr.can_parse_next(instring, loc):
+        if self.expr.can_parse_next(instring, loc, do_actions=doActions):
             raise ParseException(instring, loc, self.errmsg, self)
         return loc, []
 
@@ -6060,9 +6067,9 @@ python_quoted_string = Combine(
     (Regex(r'"""(?:[^"\\]|""(?!")|"(?!"")|\\.)*', flags=re.MULTILINE) + '"""').set_name(
         "multiline double quoted string"
     )
-    ^ (Regex(r"'''(?:[^'\\]|''(?!')|'(?!'')|\\.)*", flags=re.MULTILINE) + "'''").set_name(
-        "multiline single quoted string"
-    )
+    ^ (
+        Regex(r"'''(?:[^'\\]|''(?!')|'(?!'')|\\.)*", flags=re.MULTILINE) + "'''"
+    ).set_name("multiline single quoted string")
     ^ (Regex(r'"(?:[^"\n\r\\]|(?:\\")|(?:\\(?:[^x]|x[0-9a-fA-F]+)))*') + '"').set_name(
         "double quoted string"
     )

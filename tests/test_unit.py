@@ -7455,6 +7455,28 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
 
         self.assertParseAndCheckList(named_number_list, test_string, expected)
 
+    def testParseActionRunsInNotAny(self):
+        # see Issue #482
+        data = """ [gog1] [G1] [gog2] [gog3] [gog4] [G2] [gog5] [G3] [gog6] """
+
+        poi_type = pp.Word(pp.alphas).set_results_name("type")
+        poi = pp.Suppress("[") + poi_type + pp.Char(pp.nums) + pp.Suppress("]")
+
+        def cnd_is_type(val):
+            return lambda toks: toks.type == val
+
+        poi_gog = poi("gog").add_condition(cnd_is_type("gog"))
+        poi_g = poi("g").add_condition(cnd_is_type("G"))
+
+        pattern = poi_gog + ~poi_g
+
+        matches = pattern.search_string(data).as_list()
+        self.assertEqual(
+            [["gog", "2"], ["gog", "3"], ["gog", "6"]],
+            matches,
+            "failed testing parse actions being run inside a NotAny",
+        )
+
     def testParseResultsNameBelowUngroupedName(self):
         rule_num = pp.Regex("[0-9]+")("LIT_NUM*")
         list_num = pp.Group(
