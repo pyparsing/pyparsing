@@ -1322,6 +1322,7 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
         # fmt: on
 
     def testPythonQuotedStrings(self):
+        # fmt: off
         success1, _ = pp.python_quoted_string.run_tests([
             '"""xyz"""',
             '''"""xyz
@@ -1354,6 +1355,7 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
         ], failure_tests=True)
 
         self.assertTrue(success1 and success2, "Python quoted string matching failure")
+        # fmt: on
 
     def testCaselessOneOf(self):
         caseless1 = pp.oneOf("d a b c aA B A C", caseless=True)
@@ -6393,223 +6395,244 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
     def testCommonExpressions(self):
         import ast
 
-        success = ppc.mac_address.runTests(
-            """
-            AA:BB:CC:DD:EE:FF
-            AA.BB.CC.DD.EE.FF
-            AA-BB-CC-DD-EE-FF
-            """
-        )[0]
-        self.assertTrue(success, "error in parsing valid MAC address")
+        with self.subTest("MAC address success run_tests"):
+            success = ppc.mac_address.runTests(
+                """
+                AA:BB:CC:DD:EE:FF
+                AA.BB.CC.DD.EE.FF
+                AA-BB-CC-DD-EE-FF
+                """
+            )[0]
+            self.assertTrue(success, "error in parsing valid MAC address")
 
-        success = ppc.mac_address.runTests(
-            """
-            # mixed delimiters
-            AA.BB:CC:DD:EE:FF
-            """,
-            failureTests=True,
-        )[0]
-        self.assertTrue(success, "error in detecting invalid mac address")
+        with self.subTest("MAC address expected failure run_tests"):
+            success = ppc.mac_address.runTests(
+                """
+                # mixed delimiters
+                AA.BB:CC:DD:EE:FF
+                """,
+                failureTests=True,
+            )[0]
+            self.assertTrue(success, "error in detecting invalid mac address")
 
-        success = ppc.ipv4_address.runTests(
-            """
-            0.0.0.0
-            1.1.1.1
-            127.0.0.1
-            1.10.100.199
-            255.255.255.255
-            """
-        )[0]
-        self.assertTrue(success, "error in parsing valid IPv4 address")
+        with self.subTest("IPv4 address success run_tests"):
+            success = ppc.ipv4_address.runTests(
+                """
+                0.0.0.0
+                1.1.1.1
+                127.0.0.1
+                1.10.100.199
+                255.255.255.255
+                """
+            )[0]
+            self.assertTrue(success, "error in parsing valid IPv4 address")
 
-        success = ppc.ipv4_address.runTests(
-            """
-            # out of range value
-            256.255.255.255
-            """,
-            failureTests=True,
-        )[0]
-        self.assertTrue(success, "error in detecting invalid IPv4 address")
+        with self.subTest("IPv4 address expected failure run_tests"):
+            success = ppc.ipv4_address.runTests(
+                """
+                # out of range value
+                256.255.255.255
+                """,
+                failureTests=True,
+            )[0]
+            self.assertTrue(success, "error in detecting invalid IPv4 address")
 
-        success = ppc.ipv6_address.runTests(
-            """
-            2001:0db8:85a3:0000:0000:8a2e:0370:7334
-            2134::1234:4567:2468:1236:2444:2106
-            0:0:0:0:0:0:A00:1
-            1080::8:800:200C:417A
-            ::A00:1
+        with self.subTest("IPv6 address success run_tests"):
+            success = ppc.ipv6_address.runTests(
+                """
+                2001:0db8:85a3:0000:0000:8a2e:0370:7334
+                2134::1234:4567:2468:1236:2444:2106
+                0:0:0:0:0:0:A00:1
+                1080::8:800:200C:417A
+                ::A00:1
+    
+                # loopback address
+                ::1
+    
+                # the null address
+                ::
+    
+                # ipv4 compatibility form
+                ::ffff:192.168.0.1
+                """
+            )[0]
+            self.assertTrue(success, "error in parsing valid IPv6 address")
 
-            # loopback address
-            ::1
+        with self.subTest("IPv6 address expected failure run_tests"):
+            success = ppc.ipv6_address.runTests(
+                """
+                # too few values
+                1080:0:0:0:8:800:200C
+    
+                # too many ::'s, only 1 allowed
+                2134::1234:4567::2444:2106
+                """,
+                failureTests=True,
+            )[0]
+            self.assertTrue(success, "error in detecting invalid IPv6 address")
 
-            # the null address
-            ::
+        with self.subTest("ppc.number success run_tests"):
+            success = ppc.number.runTests(
+                """
+                100
+                -100
+                +100
+                3.14159
+                6.02e23
+                1e-12
+                """
+            )[0]
+            self.assertTrue(success, "error in parsing valid numerics")
 
-            # ipv4 compatibility form
-            ::ffff:192.168.0.1
-            """
-        )[0]
-        self.assertTrue(success, "error in parsing valid IPv6 address")
-
-        success = ppc.ipv6_address.runTests(
-            """
-            # too few values
-            1080:0:0:0:8:800:200C
-
-            # too many ::'s, only 1 allowed
-            2134::1234:4567::2444:2106
-            """,
-            failureTests=True,
-        )[0]
-        self.assertTrue(success, "error in detecting invalid IPv6 address")
-
-        success = ppc.number.runTests(
-            """
-            100
-            -100
-            +100
-            3.14159
-            6.02e23
-            1e-12
-            """
-        )[0]
-        self.assertTrue(success, "error in parsing valid numerics")
-
-        success = ppc.sci_real.runTests(
-            """
-            1e12
-            -1e12
-            3.14159
-            6.02e23
-            """
-        )[0]
-        self.assertTrue(success, "error in parsing valid scientific notation reals")
+        with self.subTest("ppc.sci_real success run_tests"):
+            success = ppc.sci_real.runTests(
+                """
+                1e12
+                -1e12
+                3.14159
+                6.02e23
+                """
+            )[0]
+            self.assertTrue(success, "error in parsing valid scientific notation reals")
 
         # any int or real number, returned as float
-        success = ppc.fnumber.runTests(
-            """
-            100
-            -100
-            +100
-            3.14159
-            6.02e23
-            1e-12
-            """
-        )[0]
-        self.assertTrue(success, "error in parsing valid numerics")
-
-        success, results = ppc.iso8601_date.runTests(
-            """
-            1997
-            1997-07
-            1997-07-16
-            """
-        )
-        self.assertTrue(success, "error in parsing valid iso8601_date")
-        expected = [("1997", None, None), ("1997", "07", None), ("1997", "07", "16")]
-        for r, exp in zip(results, expected):
-            self.assertEqual(
-                exp,
-                (r[1].year, r[1].month, r[1].day),
-                "failed to parse date into fields",
-            )
-
-        success, results = (
-            ppc.iso8601_date()
-            .addParseAction(ppc.convertToDate())
-            .runTests(
+        with self.subTest("ppc.fnumber success run_tests"):
+            success = ppc.fnumber.runTests(
                 """
-            1997-07-16
-            """
-            )
-        )
-        self.assertTrue(
-            success, "error in parsing valid iso8601_date with parse action"
-        )
-        self.assertEqual(
-            datetime.date(1997, 7, 16),
-            results[0][1][0],
-            "error in parsing valid iso8601_date with parse action - incorrect value",
-        )
-
-        success, results = ppc.iso8601_datetime.runTests(
-            """
-            1997-07-16T19:20+01:00
-            1997-07-16T19:20:30+01:00
-            1997-07-16T19:20:30.45Z
-            1997-07-16 19:20:30.45
-            """
-        )
-        self.assertTrue(success, "error in parsing valid iso8601_datetime")
-
-        success, results = (
-            ppc.iso8601_datetime()
-            .addParseAction(ppc.convertToDatetime())
-            .runTests(
+                100
+                -100
+                +100
+                3.14159
+                6.02e23
+                1e-12
                 """
-            1997-07-16T19:20:30.45
-            """
+            )[0]
+            self.assertTrue(success, "error in parsing valid numerics")
+
+        with self.subTest("ppc.iso8601_date success run_tests"):
+            success, results = ppc.iso8601_date.runTests(
+                """
+                1997
+                1997-07
+                1997-07-16
+                """
             )
-        )
+            self.assertTrue(success, "error in parsing valid iso8601_date")
+            expected = [
+                ("1997", None, None),
+                ("1997", "07", None),
+                ("1997", "07", "16"),
+            ]
+            for r, exp in zip(results, expected):
+                self.assertEqual(
+                    exp,
+                    (r[1].year, r[1].month, r[1].day),
+                    "failed to parse date into fields",
+                )
 
-        self.assertTrue(success, "error in parsing valid iso8601_datetime")
-        self.assertEqual(
-            datetime.datetime(1997, 7, 16, 19, 20, 30, 450000),
-            results[0][1][0],
-            "error in parsing valid iso8601_datetime - incorrect value",
-        )
-
-        success = ppc.uuid.runTests(
-            """
-            123e4567-e89b-12d3-a456-426655440000
-            """
-        )[0]
-        self.assertTrue(success, "failed to parse valid uuid")
-
-        success = ppc.fraction.runTests(
-            """
-            1/2
-            -15/16
-            -3/-4
-            """
-        )[0]
-        self.assertTrue(success, "failed to parse valid fraction")
-
-        success = ppc.mixed_integer.runTests(
-            """
-            1/2
-            -15/16
-            -3/-4
-            1 1/2
-            2 -15/16
-            0 -3/-4
-            12
-            """
-        )[0]
-        self.assertTrue(success, "failed to parse valid mixed integer")
-
-        success, results = ppc.number.runTests(
-            """
-            100
-            -3
-            1.732
-            -3.14159
-            6.02e23"""
-        )
-        self.assertTrue(success, "failed to parse numerics")
-
-        for test, result in results:
-            expected = ast.literal_eval(test)
-            self.assertEqual(
-                expected,
-                result[0],
-                f"numeric parse failed (wrong value) ({result[0]} should be {expected})",
+        with self.subTest("ppc.iso8601_date conversion success run_tests"):
+            success, results = (
+                ppc.iso8601_date()
+                .addParseAction(ppc.convertToDate())
+                .runTests(
+                    """
+                1997-07-16
+                """
+                )
+            )
+            self.assertTrue(
+                success, "error in parsing valid iso8601_date with parse action"
             )
             self.assertEqual(
-                type(expected),
-                type(result[0]),
-                f"numeric parse failed (wrong type) ({type(result[0])} should be {type(expected)})",
+                datetime.date(1997, 7, 16),
+                results[0][1][0],
+                "error in parsing valid iso8601_date with parse action - incorrect value",
             )
+
+        with self.subTest("ppc.iso8601_datetime success run_tests"):
+            success, results = ppc.iso8601_datetime.runTests(
+                """
+                1997-07-16T19:20+01:00
+                1997-07-16T19:20:30+01:00
+                1997-07-16T19:20:30.45Z
+                1997-07-16 19:20:30.45
+                """
+            )
+            self.assertTrue(success, "error in parsing valid iso8601_datetime")
+
+        with self.subTest("ppc.iso8601_datetime conversion success run_tests"):
+            success, results = (
+                ppc.iso8601_datetime()
+                .addParseAction(ppc.convertToDatetime())
+                .runTests(
+                    """
+                1997-07-16T19:20:30.45
+                """
+                )
+            )
+
+            self.assertTrue(success, "error in parsing valid iso8601_datetime")
+            self.assertEqual(
+                datetime.datetime(1997, 7, 16, 19, 20, 30, 450000),
+                results[0][1][0],
+                "error in parsing valid iso8601_datetime - incorrect value",
+            )
+
+        with self.subTest("ppc.uuid success run_tests"):
+            success = ppc.uuid.runTests(
+                """
+                123e4567-e89b-12d3-a456-426655440000
+                """
+            )[0]
+            self.assertTrue(success, "failed to parse valid uuid")
+
+        with self.subTest("ppc.fraction success run_tests"):
+            success = ppc.fraction.runTests(
+                """
+                1/2
+                -15/16
+                -3/-4
+                """
+            )[0]
+            self.assertTrue(success, "failed to parse valid fraction")
+
+        with self.subTest("ppc.mixed_integer success run_tests"):
+            success = ppc.mixed_integer.runTests(
+                """
+                1/2
+                -15/16
+                -3/-4
+                1 1/2
+                2 -15/16
+                0 -3/-4
+                12
+                """
+            )[0]
+            self.assertTrue(success, "failed to parse valid mixed integer")
+
+        with self.subTest("ppc.number success run_tests"):
+            success, results = ppc.number.runTests(
+                """
+                100
+                -3
+                1.732
+                -3.14159
+                6.02e23"""
+            )
+            self.assertTrue(success, "failed to parse numerics")
+
+            for test, result in results:
+                expected = ast.literal_eval(test)
+                self.assertEqual(
+                    expected,
+                    result[0],
+                    f"numeric parse failed (wrong value) ({result[0]} should be {expected})",
+                )
+                self.assertEqual(
+                    type(expected),
+                    type(result[0]),
+                    f"numeric parse failed (wrong type) ({type(result[0])} should be {type(expected)})",
+                )
 
     def testCommonUrl(self):
         url_good_tests = """\
