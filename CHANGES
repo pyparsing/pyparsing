@@ -30,6 +30,10 @@ Version 3.1.0b2 - (in development)
 
 - Fixed bug in `python_quoted_string` regex.
 
+- Added `examples/bf.py` Brainf*ck parser/executor example. Illustrates using
+  a pyparsing grammar to parse language syntax, and attach executable AST nodes to
+  the parsed results.
+
 
 Version 3.1.0b1 - April, 2023
 -----------------------------
