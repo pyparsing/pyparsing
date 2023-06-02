@@ -2463,7 +2463,7 @@ class Empty(Literal):
         return "Empty"
 
     def parseImpl(self, instring, loc, doActions=True):
-        return super(Literal, self).parseImpl(instring, loc, doActions)
+        return loc, []
 
 
 class _SingleCharLiteral(Literal):
