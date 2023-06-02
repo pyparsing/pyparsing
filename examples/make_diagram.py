@@ -25,6 +25,8 @@ from examples.delta_time import time_expression as imported_expr
 # from examples.one_to_ninety_nine import one_to_99 as imported_expr
 # from examples.simpleSQL import simpleSQL as imported_expr
 # from examples.simpleBool import boolExpr as imported_expr
+# from examples.adventureEngine import Parser; imported_expr = Parser().bnf
+
 grammar = imported_expr
 
 # or define a custom grammar here

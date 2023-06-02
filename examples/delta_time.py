@@ -114,7 +114,8 @@ def fill_default_time_fields(t):
 weekday_name_list = list(calendar.day_name)
 weekday_name = pp.one_of(weekday_name_list).set_name("weekday_name")
 
-_24hour_time = ~(integer + any_time_units).set_name("numbered_time_units") + pp.Word(pp.nums, exact=4).set_name("HHMM").add_parse_action(
+_4_digit_integer = pp.Word(pp.nums, exact=4)
+_24hour_time = ~(_4_digit_integer + any_time_units).set_name("numbered_time_units") + _4_digit_integer.set_name("HHMM").add_parse_action(
     lambda t: [int(t[0][:2]), int(t[0][2:])], fill_24hr_time_fields
 )
 _24hour_time.set_name("0000 time")

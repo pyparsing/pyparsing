@@ -647,89 +647,89 @@ def playGame(p, startRoom):
         print(" -", a_or_an(i))
 
 
-# ====================
-# start game definition
-roomMap = """
-     d-Z
-     |
-   f-c-e
-   . |
-   q<b
-     |
-     A
-"""
-rooms = createRooms(roomMap)
-rooms["A"].desc = "You are standing on the front porch of a wooden shack."
-rooms["b"].desc = "You are in a garden."
-rooms["c"].desc = "You are in a kitchen."
-rooms["d"].desc = "You are on the back porch."
-rooms["e"].desc = "You are in a library."
-rooms["f"].desc = "You are on the patio."
-rooms["q"].desc = "You are sinking in quicksand.  You're dead..."
-rooms["q"].gameOver = True
+if __name__ == '__main__':
+    # start game definition
+    roomMap = """
+         d-Z
+         |
+       f-c-e
+       . |
+       q<b
+         |
+         A
+    """
+    rooms = createRooms(roomMap)
+    rooms["A"].desc = "You are standing on the front porch of a wooden shack."
+    rooms["b"].desc = "You are in a garden."
+    rooms["c"].desc = "You are in a kitchen."
+    rooms["d"].desc = "You are on the back porch."
+    rooms["e"].desc = "You are in a library."
+    rooms["f"].desc = "You are on the patio."
+    rooms["q"].desc = "You are sinking in quicksand.  You're dead..."
+    rooms["q"].gameOver = True
 
-# define global variables for referencing rooms
-frontPorch = rooms["A"]
-garden = rooms["b"]
-kitchen = rooms["c"]
-backPorch = rooms["d"]
-library = rooms["e"]
-patio = rooms["f"]
+    # define global variables for referencing rooms
+    frontPorch = rooms["A"]
+    garden = rooms["b"]
+    kitchen = rooms["c"]
+    backPorch = rooms["d"]
+    library = rooms["e"]
+    patio = rooms["f"]
 
-# create items
-itemNames = (
-    """sword.diamond.apple.flower.coin.shovel.book.mirror.telescope.gold bar""".split(
-        "."
+    # create items
+    itemNames = (
+        """sword.diamond.apple.flower.coin.shovel.book.mirror.telescope.gold bar""".split(
+            "."
+        )
     )
-)
-for itemName in itemNames:
-    Item(itemName)
-Item.items["apple"].isDeadly = True
-Item.items["mirror"].isFragile = True
-Item.items["coin"].isVisible = False
-Item.items["shovel"].usableConditionTest = lambda p, t: p.room is garden
+    for itemName in itemNames:
+        Item(itemName)
+    Item.items["apple"].isDeadly = True
+    Item.items["mirror"].isFragile = True
+    Item.items["coin"].isVisible = False
+    Item.items["shovel"].usableConditionTest = lambda p, t: p.room is garden
 
 
-def use_shovel(p, subj, target):
-    coin = Item.items["coin"]
-    if not coin.isVisible and coin in p.room.inv:
-        coin.isVisible = True
+    def use_shovel(p, subj, target):
+        coin = Item.items["coin"]
+        if not coin.isVisible and coin in p.room.inv:
+            coin.isVisible = True
 
 
-Item.items["shovel"].useAction = use_shovel
+    Item.items["shovel"].useAction = use_shovel
 
-Item.items["telescope"].isTakeable = False
-
-
-def use_telescope(p, subj, target):
-    print("You don't see anything.")
+    Item.items["telescope"].isTakeable = False
 
 
-Item.items["telescope"].useAction = use_telescope
+    def use_telescope(p, subj, target):
+        print("You don't see anything.")
 
-OpenableItem("treasure chest", Item.items["gold bar"])
-Item.items["chest"] = Item.items["treasure chest"]
-Item.items["chest"].isTakeable = False
-Item.items["chest"].cantTakeMessage = "It's too heavy!"
 
-OpenableItem("mailbox")
-Item.items["mailbox"].isTakeable = False
-Item.items["mailbox"].cantTakeMessage = "It's nailed to the wall!"
+    Item.items["telescope"].useAction = use_telescope
 
-putItemInRoom("mailbox", frontPorch)
-putItemInRoom("shovel", frontPorch)
-putItemInRoom("coin", garden)
-putItemInRoom("flower", garden)
-putItemInRoom("apple", library)
-putItemInRoom("mirror", library)
-putItemInRoom("telescope", library)
-putItemInRoom("book", kitchen)
-putItemInRoom("diamond", backPorch)
-putItemInRoom("treasure chest", patio)
+    OpenableItem("treasure chest", Item.items["gold bar"])
+    Item.items["chest"] = Item.items["treasure chest"]
+    Item.items["chest"].isTakeable = False
+    Item.items["chest"].cantTakeMessage = "It's too heavy!"
 
-# create player
-plyr = Player("Bob")
-plyr.take(Item.items["sword"])
+    OpenableItem("mailbox")
+    Item.items["mailbox"].isTakeable = False
+    Item.items["mailbox"].cantTakeMessage = "It's nailed to the wall!"
 
-# start game
-playGame(plyr, frontPorch)
+    putItemInRoom("mailbox", frontPorch)
+    putItemInRoom("shovel", frontPorch)
+    putItemInRoom("coin", garden)
+    putItemInRoom("flower", garden)
+    putItemInRoom("apple", library)
+    putItemInRoom("mirror", library)
+    putItemInRoom("telescope", library)
+    putItemInRoom("book", kitchen)
+    putItemInRoom("diamond", backPorch)
+    putItemInRoom("treasure chest", patio)
+
+    # create player
+    plyr = Player("Bob")
+    plyr.take(Item.items["sword"])
+
+    # start game
+    playGame(plyr, frontPorch)

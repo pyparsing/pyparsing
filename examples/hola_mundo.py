@@ -7,6 +7,7 @@ from pyparsing import (
     nums,
     Group,
     OneOrMore,
+    Opt,
     pyparsing_unicode as ppu,
 )
 
@@ -24,7 +25,7 @@ tokens = saludo.parse_string("Hola, Mundo !")
 # el metodo parseString, nos devuelve una lista con los tokens
 # encontrados, en caso de no haber errores...
 for i, token in enumerate(tokens):
-    print("Token %d -> %s" % (i, token))
+    print(f"Token {i} -> {token}")
 
 # imprimimos cada uno de los tokens Y listooo!!, he aquí a salida
 # Token 0 -> Hola
@@ -37,30 +38,36 @@ saludo = Group(OneOrMore(Word(alphas))) + "," + Word(alphas) + one_of("! . ?")
 tokens = saludo.parse_string("Hasta mañana, Mundo !")
 
 for i, token in enumerate(tokens):
-    print("Token %d -> %s" % (i, token))
+    print(f"Token {i} -> {token}")
 
 # Ahora parseamos algunas cadenas, usando el metodo runTests
-saludo.run_tests(
-    """\
-    Hola, Mundo!
-    Hasta mañana, Mundo !
-""",
+saludo.run_tests("""\
+        Hola, Mundo!
+        Hasta mañana, Mundo !
+    """,
     fullDump=False,
 )
 
 # Por supuesto, se pueden "reutilizar" gramáticas, por ejemplo:
 numimag = Word(nums) + "i"
 numreal = Word(nums)
-numcomplex = numreal + "+" + numimag
-print(numcomplex.parse_string("3+5i"))
+numcomplex = numimag | numreal + Opt("+" + numimag)
 
 # Funcion para cambiar a complejo numero durante parsear:
 def hace_python_complejo(t):
     valid_python = "".join(t).replace("i", "j")
-    return complex(valid_python)
+    for tipo in (int, complex):
+        try:
+            return tipo(valid_python)
+        except ValueError:
+            pass
 
 
 numcomplex.set_parse_action(hace_python_complejo)
-print(numcomplex.parse_string("3+5i"))
+numcomplex.run_tests("""\
+    3
+    5i
+    3+5i   
+""")
 
 # Excelente!!, bueno, los dejo, me voy a seguir tirando código...
