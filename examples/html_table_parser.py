@@ -11,16 +11,16 @@ import urllib.request
 
 
 # define basic HTML tags, and compose into a Table
-table, table_end = pp.makeHTMLTags("table")
-thead, thead_end = pp.makeHTMLTags("thead")
-tbody, tbody_end = pp.makeHTMLTags("tbody")
-tr, tr_end = pp.makeHTMLTags("tr")
-th, th_end = pp.makeHTMLTags("th")
-td, td_end = pp.makeHTMLTags("td")
-a, a_end = pp.makeHTMLTags("a")
+table, table_end = pp.make_html_tags("table")
+thead, thead_end = pp.make_html_tags("thead")
+tbody, tbody_end = pp.make_html_tags("tbody")
+tr, tr_end = pp.make_html_tags("tr")
+th, th_end = pp.make_html_tags("th")
+td, td_end = pp.make_html_tags("td")
+a, a_end = pp.make_html_tags("a")
 
 # method to strip HTML tags from a string - will be used to clean up content of table cells
-strip_html = (pp.anyOpenTag | pp.anyCloseTag).suppress().transformString
+strip_html = (pp.any_open_tag | pp.any_close_tag).suppress().transform_string
 
 # expression for parsing <a href="url">text</a> links, returning a (text, url) tuple
 link = pp.Group(a + a.tag_body("text") + a_end.suppress())
@@ -32,13 +32,14 @@ def extract_text_and_url(t):
 
 link.addParseAction(extract_text_and_url)
 
+
 # method to create table rows of header and data tags
 def table_row(start_tag, end_tag):
     body = start_tag.tag_body
-    body.addParseAction(pp.tokenMap(str.strip), pp.tokenMap(strip_html))
+    body.add_parse_action(pp.token_map(str.strip), pp.token_map(strip_html))
     row = pp.Group(
         tr.suppress()
-        + pp.ZeroOrMore(start_tag.suppress() + body + end_tag.suppress())
+        + (start_tag.suppress() + body + end_tag.suppress())[...]
         + tr_end.suppress()
     )
     return row
@@ -51,8 +52,8 @@ td_row = table_row(td, td_end)
 html_table = (
     table
     + tbody
-    + pp.Optional(th_row("headers"))
-    + pp.ZeroOrMore(td_row)("rows")
+    + th_row[...]("headers")
+    + td_row[...]("rows")
     + tbody_end
     + table_end
 )
@@ -67,11 +68,14 @@ with urllib.request.urlopen(
 tz_table = html_table.searchString(page_html)[0]
 
 # convert rows to dicts
-rows = [dict(zip(tz_table.headers, row)) for row in tz_table.rows]
+rows = [dict(zip(tz_table.headers[0], row)) for row in tz_table.rows]
 
-# make a dict keyed by TZ database name
-tz_db = {row["TZ database name"]: row for row in rows}
+# make a dict keyed by TZ database identifier
+# (get identifier key from second column header)
+identifier_key = tz_table.headers[0][1]
+tz_db = {row[identifier_key]: row for row in rows}
 
 from pprint import pprint
 
 pprint(tz_db["America/Chicago"])
+pprint(tz_db["Zulu"])
