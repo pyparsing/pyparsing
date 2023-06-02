@@ -68,7 +68,7 @@ def plural(s):
 
 week, day, hour, minute, second = map(plural, "week day hour minute second".split())
 time_units = hour | minute | second
-any_time_units = (week | day | time_units).set_name("time_units")
+any_time_units = (week | day | time_units).set_name("any_time_units")
 
 am = CL("am")
 pm = CL("pm")
@@ -95,7 +95,9 @@ the_qty = CK("the").set_parse_action(pp.replaceWith(1))
 qty = pp.ungroup(
     (integer | couple | a_qty | the_qty).set_name("qty_expression")
 ).set_name("qty")
-time_ref_present = pp.Empty().add_parse_action(pp.replace_with(True))("time_ref_present")
+time_ref_present = pp.Empty().add_parse_action(pp.replace_with(True))(
+    "time_ref_present"
+)
 
 
 def fill_24hr_time_fields(t):
@@ -111,20 +113,21 @@ def fill_default_time_fields(t):
             t[fld] = 0
 
 
+# get weekday names from the calendar module
 weekday_name_list = list(calendar.day_name)
 weekday_name = pp.one_of(weekday_name_list).set_name("weekday_name")
 
-_4_digit_integer = pp.Word(pp.nums, exact=4)
-_24hour_time = ~(_4_digit_integer + any_time_units).set_name("numbered_time_units") + _4_digit_integer.set_name("HHMM").add_parse_action(
+# expressions for military 2400 time
+_24hour_time = ~(pp.Word(pp.nums) + any_time_units).set_name("numbered_time_units") + pp.Word(
+    pp.nums, exact=4, as_keyword=True
+).set_name("HHMM").add_parse_action(
     lambda t: [int(t[0][:2]), int(t[0][2:])], fill_24hr_time_fields
 )
 _24hour_time.set_name("0000 time")
 ampm = am | pm
 timespec = (
     integer("HH")
-    + pp.Opt(
-        CK("o'clock") | COLON + integer("MM") + pp.Opt(COLON + integer("SS"))
-    )
+    + pp.Opt(CK("o'clock") | COLON + integer("MM") + pp.Opt(COLON + integer("SS")))
     + (am | pm)("ampm")
 ).add_parse_action(fill_default_time_fields)
 absolute_time = _24hour_time | timespec
@@ -325,6 +328,7 @@ time_and_day.add_parse_action(save_original_string, compute_timestamp, remove_te
 time_expression = time_and_day
 
 
+# fmt: off
 def main():
     current_time = datetime.now()
     # test grammar
@@ -381,11 +385,11 @@ def main():
         10000 seconds ago
     """
 
-    # fmt: on
-    time_of_day = timedelta(hours=current_time.hour,
-                            minutes=current_time.minute,
-                            seconds=current_time.second,
-                            )
+    time_of_day = timedelta(
+        hours=current_time.hour,
+        minutes=current_time.minute,
+        seconds=current_time.second,
+    )
     expected = {
         "now": timedelta(0),
         "10 seconds ago": timedelta(seconds=-10),
