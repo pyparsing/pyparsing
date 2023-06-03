@@ -98,27 +98,27 @@ class IncrPtr(Instruction):
 
 
 class DecrPtr(Instruction):
-    def execute(self, bf_engine):
+    def execute(self, bf_engine: BFEngine):
         bf_engine.ptr -= 1
 
 
 class IncrPtrValue(Instruction):
-    def execute(self, bf_engine):
+    def execute(self, bf_engine: BFEngine):
         bf_engine.at_ptr += 1
 
 
 class DecrPtrValue(Instruction):
-    def execute(self, bf_engine):
+    def execute(self, bf_engine: BFEngine):
         bf_engine.at_ptr -= 1
 
 
 class OutputPtrValue(Instruction):
-    def execute(self, bf_engine):
+    def execute(self, bf_engine: BFEngine):
         bf_engine.output_value_at_ptr()
 
 
 class InputPtrValue(Instruction):
-    def execute(self, bf_engine):
+    def execute(self, bf_engine: BFEngine):
         bf_engine.input_value()
 
 
@@ -127,7 +127,7 @@ class RunInstructionLoop(Instruction):
         super().__init__(tokens)
         self.instructions = self.tokens[0][1:-1]
 
-    def execute(self, bf_engine):
+    def execute(self, bf_engine: BFEngine):
         while bf_engine.at_ptr:
             for i in self.instructions:
                 i.execute(bf_engine)

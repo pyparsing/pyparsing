@@ -1895,22 +1895,24 @@ s = """
 {"last_update":"1191595695", "numofapproved":"1", "id":"11621"},
 {"last_update":"1193105000", "numofapproved":"1", "id":"13421"},
 {"last_update":"1195104657", "numofapproved":"1", "id":"16701"}],
-"request_timestamp":1206363392.08521, "request_call":"requestDetails",
-"instance":"tbedi", "call_time":"0.10059", "request_date":"2008-03-2412:56:32 UTC", "request_url":"http://cmsdoc.cern.ch/cms/test/aprom/phedex/dev/gowri/datasvc/tbedi/requestDetails?format=json"}}
+"request_timestamp":1206363392.08521,
+"request_call":"requestDetails",
+"instance":"tbedi",
+"call_time":"0.10059",
+"request_date":"2008-03-2412:56:32 UTC",
+"request_url":"http://cmsdoc.cern.ch/cms/test/aprom/phedex/dev/gowri/datasvc/tbedi/requestDetails?format=json"}}
 """
 
 from jsonParser import jsonObject
 
-data = jsonObject.parseString(s)
+data = jsonObject.parseString(s)[0]
 
-# ~ from pprint import pprint
-# ~ pprint( data[0].asList() )
-# ~ print
-# ~ print data.dump()
-print(data.phedex.call_time)
-print(data.phedex.instance)
-print(data.phedex.request_call)
-print(len(data.phedex.request))
-for req in data.phedex.request[:10]:
-    # ~ print req.dump()
-    print("-", req.id, req.last_update)
+# from pprint import pprint
+# pprint(data)
+# print()
+print(data["phedex"]["call_time"])
+print(data["phedex"]["instance"])
+print(data["phedex"]["request_call"])
+print(len(data["phedex"]["request"]))
+for req in data["phedex"]["request"][:10]:
+    print("-", req["id"], req["last_update"])

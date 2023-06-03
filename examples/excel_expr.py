@@ -7,32 +7,32 @@
 import pyparsing as pp
 ppc = pp.common
 
-pp.ParserElement.enablePackrat()
+pp.ParserElement.enable_packrat()
 
 EQ, LPAR, RPAR, COLON, COMMA = pp.Suppress.using_each("=():,")
 EXCL, DOLLAR = pp.Literal.using_each("!$")
-sheetRef = pp.Word(pp.alphas, pp.alphanums) | pp.QuotedString("'", escQuote="''")
-colRef = pp.Opt(DOLLAR) + pp.Word(pp.alphas, max=2)
-rowRef = pp.Opt(DOLLAR) + pp.Word(pp.nums)
-cellRef = pp.Combine(
-    pp.Group(pp.Opt(sheetRef + EXCL)("sheet") + colRef("col") + rowRef("row"))
+sheet_ref = pp.Word(pp.alphas, pp.alphanums) | pp.QuotedString("'", escQuote="''")
+col_ref = pp.Opt(DOLLAR) + pp.Word(pp.alphas, max=2)
+row_ref = pp.Opt(DOLLAR) + pp.Word(pp.nums)
+cell_ref = pp.Combine(
+    pp.Group(pp.Opt(sheet_ref + EXCL)("sheet") + col_ref("col") + row_ref("row"))
 )
 
-cellRange = (
-    pp.Group(cellRef("start") + COLON + cellRef("end"))("range")
-    | cellRef
-    | pp.Word(pp.alphas, pp.alphanums)
+cell_range = (
+        pp.Group(cell_ref("start") + COLON + cell_ref("end"))("range")
+        | cell_ref
+        | pp.Word(pp.alphas, pp.alphanums)
 )
 
 expr = pp.Forward()
 
 COMPARISON_OP = pp.one_of("< = > >= <= != <>")
-condExpr = expr + COMPARISON_OP + expr
+cond_expr = expr + COMPARISON_OP + expr
 
-ifFunc = (
+if_func = (
     pp.CaselessKeyword("if")
     - LPAR
-    + pp.Group(condExpr)("condition")
+    + pp.Group(cond_expr)("condition")
     + COMMA
     + pp.Group(expr)("if_true")
     + COMMA
@@ -45,33 +45,33 @@ def stat_function(name):
     return pp.Group(pp.CaselessKeyword(name) + pp.Group(LPAR + pp.DelimitedList(expr) + RPAR))
 
 
-sumFunc = stat_function("sum")
-minFunc = stat_function("min")
-maxFunc = stat_function("max")
-aveFunc = stat_function("ave")
-funcCall = ifFunc | sumFunc | minFunc | maxFunc | aveFunc
+sum_func = stat_function("sum")
+min_func = stat_function("min")
+max_func = stat_function("max")
+ave_func = stat_function("ave")
+func_call = if_func | sum_func | min_func | max_func | ave_func
 
-multOp = pp.one_of("* /")
-addOp = pp.one_of("+ -")
-numericLiteral = ppc.number
-operand = numericLiteral | funcCall | cellRange | cellRef
-arithExpr = pp.infix_notation(
+mult_op = pp.one_of("* /")
+add_op = pp.one_of("+ -")
+numeric_literal = ppc.number
+operand = numeric_literal | func_call | cell_range | cell_ref
+arith_expr = pp.infix_notation(
     operand,
     [
-        (multOp, 2, pp.OpAssoc.LEFT),
-        (addOp, 2, pp.OpAssoc.LEFT),
+        (mult_op, 2, pp.OpAssoc.LEFT),
+        (add_op, 2, pp.OpAssoc.LEFT),
     ],
 )
 
-textOperand = pp.dblQuotedString | cellRef
-textExpr = pp.infix_notation(
-    textOperand,
+text_operand = pp.dbl_quoted_string | cell_ref
+text_expr = pp.infix_notation(
+    text_operand,
     [
         ("&", 2, pp.OpAssoc.LEFT),
     ],
 )
 
-expr <<= arithExpr | textExpr
+expr <<= arith_expr | text_expr
 
 
 def main():
