@@ -12,6 +12,11 @@ help from Devin J. Pohly in structuring the code to enable this peaceful transit
 
 Version 3.2.0 will also discontinue support for Python versions 3.6 and 3.7.
 
+Version 3.1.0 - June, 2023
+--------------------------
+- Added `tag_emitter.py` to examples. This example demonstrates how to insert
+  tags into your parsed results that are not part of the original parsed text.
+
 
 Version 3.1.0b2 - May, 2023
 ---------------------------
