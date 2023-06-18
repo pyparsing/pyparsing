@@ -311,7 +311,8 @@ if __name__ == "__main__":
         a:b:c*
         a:b:c~2.0
         """
-    z = """
+    # strings with backslashes still to be tested
+    z = r"""
         \+blah
         \-blah
         foo \|| bar

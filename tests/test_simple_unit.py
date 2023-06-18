@@ -10,7 +10,7 @@
 import unittest
 import pyparsing as pp
 from collections import namedtuple
-from datetime import datetime
+from datetime import datetime, timezone
 
 ppt = pp.pyparsing_test
 TestParseResultsAsserts = ppt.TestParseResultsAsserts
@@ -403,18 +403,18 @@ class TestParseAction(PyparsingExpressionTestCase):
         PpTestSpec(
             desc="Use two parse actions to convert numeric string, then convert to datetime",
             expr=pp.Word(pp.nums).add_parse_action(
-                lambda t: int(t[0]), lambda t: datetime.utcfromtimestamp(t[0])
+                lambda t: int(t[0]), lambda t: datetime.fromtimestamp(t[0], timezone.utc)
             ),
             text="1537415628",
-            expected_list=[datetime(2018, 9, 20, 3, 53, 48)],
+            expected_list=[datetime(2018, 9, 20, 3, 53, 48, tzinfo=timezone.utc)],
         ),
         PpTestSpec(
             desc="Use tokenMap for parse actions that operate on a single-length token",
             expr=pp.Word(pp.nums).add_parse_action(
-                pp.token_map(int), pp.token_map(datetime.utcfromtimestamp)
+                pp.token_map(int), pp.token_map(lambda t: datetime.fromtimestamp(t, timezone.utc))
             ),
             text="1537415628",
-            expected_list=[datetime(2018, 9, 20, 3, 53, 48)],
+            expected_list=[datetime(2018, 9, 20, 3, 53, 48, tzinfo=timezone.utc)],
         ),
         PpTestSpec(
             desc="Using a built-in function that takes a sequence of strs as a parse action",
