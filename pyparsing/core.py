@@ -3224,97 +3224,100 @@ class QuotedString(Token):
         convertWhitespaceEscapes: bool = True,
     ):
         super().__init__()
-        escChar = escChar or esc_char
-        escQuote = escQuote or esc_quote
-        unquoteResults = unquoteResults and unquote_results
-        endQuoteChar = endQuoteChar or end_quote_char
-        convertWhitespaceEscapes = (
+        esc_char = escChar or esc_char
+        esc_quote = escQuote or esc_quote
+        unquote_results = unquoteResults and unquote_results
+        end_quote_char = endQuoteChar or end_quote_char
+        convert_whitespace_escapes = (
             convertWhitespaceEscapes and convert_whitespace_escapes
         )
         quote_char = quoteChar or quote_char
 
-        # remove white space from quote chars - wont work anyway
+        # remove white space from quote chars
         quote_char = quote_char.strip()
         if not quote_char:
             raise ValueError("quote_char cannot be the empty string")
 
-        if endQuoteChar is None:
-            endQuoteChar = quote_char
+        if end_quote_char is None:
+            end_quote_char = quote_char
         else:
-            endQuoteChar = endQuoteChar.strip()
-            if not endQuoteChar:
+            end_quote_char = end_quote_char.strip()
+            if not end_quote_char:
                 raise ValueError("end_quote_char cannot be the empty string")
 
-        self.quoteChar: str = quote_char
-        self.quoteCharLen: int = len(quote_char)
-        self.firstQuoteChar: str = quote_char[0]
-        self.endQuoteChar: str = endQuoteChar
-        self.endQuoteCharLen: int = len(endQuoteChar)
-        self.escChar: str = escChar or ""
-        self.escQuote: str = escQuote or ""
-        self.unquoteResults: bool = unquoteResults
-        self.convertWhitespaceEscapes: bool = convertWhitespaceEscapes
+        self.quote_char: str = quote_char
+        self.quote_char_len: int = len(quote_char)
+        self.first_quote_char: str = quote_char[0]
+        self.end_quote_char: str = end_quote_char
+        self.end_quote_char_len: int = len(end_quote_char)
+        self.esc_char: str = esc_char or ""
+        self.has_esc_char: bool = esc_char is not None
+        self.esc_quote: str = esc_quote or ""
+        self.unquote_results: bool = unquote_results
+        self.convert_whitespace_escapes: bool = convert_whitespace_escapes
         self.multiline = multiline
+        self.re_flags = re.RegexFlag(0)
 
-        sep = ""
-        inner_pattern = ""
+        # fmt: off
+        # build up re pattern for the content between the quote delimiters
+        inner_pattern = []
 
-        if escQuote:
-            inner_pattern += rf"{sep}(?:{re.escape(escQuote)})"
-            sep = "|"
+        if esc_quote:
+            inner_pattern.append(rf"(?:{re.escape(esc_quote)})")
 
-        if escChar:
-            inner_pattern += rf"{sep}(?:{re.escape(escChar)}.)"
-            sep = "|"
+        if esc_char:
+            inner_pattern.append(rf"(?:{re.escape(esc_char)}.)")
 
-        if len(self.endQuoteChar) > 1:
-            inner_pattern += (
-                f"{sep}(?:"
+        if len(self.end_quote_char) > 1:
+            inner_pattern.append(
+                "(?:"
                 + "|".join(
-                    f"(?:{re.escape(self.endQuoteChar[:i])}(?!{re.escape(self.endQuoteChar[i:])}))"
-                    for i in range(len(self.endQuoteChar) - 1, 0, -1)
+                    f"(?:{re.escape(self.end_quote_char[:i])}(?!{re.escape(self.end_quote_char[i:])}))"
+                    for i in range(len(self.end_quote_char) - 1, 0, -1)
                 )
                 + ")"
             )
-            sep = "|"
 
-        self.flags = re.RegexFlag(0)
-
-        if multiline:
-            self.flags = re.MULTILINE | re.DOTALL
-            inner_pattern += (
-                rf"{sep}(?:[^{_escape_regex_range_chars(self.endQuoteChar[0])}"
-                rf"{(_escape_regex_range_chars(escChar) if escChar is not None else '')}])"
+        if self.multiline:
+            self.re_flags |= re.MULTILINE | re.DOTALL
+            inner_pattern.append(
+                rf"(?:[^{_escape_regex_range_chars(self.end_quote_char[0])}"
+                rf"{(_escape_regex_range_chars(esc_char) if self.has_esc_char else '')}])"
             )
         else:
-            inner_pattern += (
-                rf"{sep}(?:[^{_escape_regex_range_chars(self.endQuoteChar[0])}\n\r"
-                rf"{(_escape_regex_range_chars(escChar) if escChar is not None else '')}])"
+            inner_pattern.append(
+                rf"(?:[^{_escape_regex_range_chars(self.end_quote_char[0])}\n\r"
+                rf"{(_escape_regex_range_chars(esc_char) if self.has_esc_char else '')}])"
             )
 
         self.pattern = "".join(
             [
-                re.escape(self.quoteChar),
+                re.escape(self.quote_char),
                 "(?:",
-                inner_pattern,
+                '|'.join(inner_pattern),
                 ")*",
-                re.escape(self.endQuoteChar),
+                re.escape(self.end_quote_char),
             ]
         )
 
-        if self.unquoteResults:
-            if self.convertWhitespaceEscapes:
+        if self.unquote_results:
+            if self.convert_whitespace_escapes:
                 self.unquote_scan_re = re.compile(
-                    rf"({'|'.join(re.escape(k) for k in self.ws_map)})|({re.escape(self.escChar)}.)|(\n|.)",
-                    flags=self.flags,
+                    rf"({'|'.join(re.escape(k) for k in self.ws_map)})"
+                    rf"|({re.escape(self.esc_char)}.)"
+                    rf"|(\n|.)",
+                    flags=self.re_flags,
                 )
             else:
                 self.unquote_scan_re = re.compile(
-                    rf"({re.escape(self.escChar)}.)|(\n|.)", flags=self.flags
+                    rf"({re.escape(self.esc_char)}.)"
+                    rf"|(\n|.)",
+                    flags=self.re_flags
                 )
+        # fmt: on
 
         try:
-            self.re = re.compile(self.pattern, self.flags)
+            self.re = re.compile(self.pattern, self.re_flags)
             self.reString = self.pattern
             self.re_match = self.re.match
         except re.error:
@@ -3325,46 +3328,60 @@ class QuotedString(Token):
         self.mayReturnEmpty = True
 
     def _generateDefaultName(self) -> str:
-        if self.quoteChar == self.endQuoteChar and isinstance(self.quoteChar, str_type):
-            return f"string enclosed in {self.quoteChar!r}"
+        if self.quote_char == self.end_quote_char and isinstance(
+            self.quote_char, str_type
+        ):
+            return f"string enclosed in {self.quote_char!r}"
 
-        return f"quoted string, starting with {self.quoteChar} ending with {self.endQuoteChar}"
+        return f"quoted string, starting with {self.quote_char} ending with {self.end_quote_char}"
 
     def parseImpl(self, instring, loc, doActions=True):
+        # check first character of opening quote to see if that is a match
+        # before doing the more complicated regex match
         result = (
-            instring[loc] == self.firstQuoteChar
+            instring[loc] == self.first_quote_char
             and self.re_match(instring, loc)
             or None
         )
         if not result:
             raise ParseException(instring, loc, self.errmsg, self)
 
+        # get ending loc and matched string from regex matching result
         loc = result.end()
         ret = result.group()
 
-        if self.unquoteResults:
+        if self.unquote_results:
             # strip off quotes
-            ret = ret[self.quoteCharLen : -self.endQuoteCharLen]
+            ret = ret[self.quote_char_len : -self.end_quote_char_len]
 
             if isinstance(ret, str_type):
-                if self.convertWhitespaceEscapes:
+                # fmt: off
+                if self.convert_whitespace_escapes:
+                    # as we iterate over matches in the input string,
+                    # collect from whichever match group of the unquote_scan_re
+                    # regex matches (only 1 group will match at any given time)
                     ret = "".join(
-                        self.ws_map[match.group(1)]
-                        if match.group(1)
-                        else match.group(2)[-1]
-                        if match.group(2)
+                        # match group 1 matches \t, \n, etc.
+                        self.ws_map[match.group(1)] if match.group(1)
+                        # match group 2 matches escaped characters
+                        else match.group(2)[-1] if match.group(2)
+                        # match group 3 matches any character
                         else match.group(3)
                         for match in self.unquote_scan_re.finditer(ret)
                     )
                 else:
                     ret = "".join(
-                        match.group(1)[-1] if match.group(1) else match.group(2)
+                        # match group 1 matches escaped characters
+                        match.group(1)[-1] if match.group(1)
+                        # match group 2 matches any character
+                        else match.group(2)
                         for match in self.unquote_scan_re.finditer(ret)
                     )
+                # fmt: on
 
                 # replace escaped quotes
-                if self.escQuote:
-                    ret = ret.replace(self.escQuote, self.endQuoteChar)
+                if self.esc_quote:
+                    ret = ret.replace(self.esc_quote, self.end_quote_char)
 
         return loc, ret
 

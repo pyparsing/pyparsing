@@ -3448,6 +3448,17 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             result1, expected, msg="issue with ParseResults.extend(ParseResults)"
         )
 
+    def testQuotedStringLoc(self):
+        expr = pp.QuotedString("'")
+        expr.add_parse_action(lambda t: t[0].upper())
+
+        test_string = "Using 'quotes' for 'sarcasm' or 'emphasis' is not good 'style'."
+        transformed = expr.transform_string(test_string)
+        print(test_string)
+        print(transformed)
+        expected = re.sub(r"'([^']+)'", lambda match: match[1].upper(), test_string)
+        self.assertEqual(expected, transformed)
+
     def testParseResultsWithNestedNames(self):
         from pyparsing import (
             Dict,
