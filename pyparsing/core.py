@@ -3266,7 +3266,6 @@ class QuotedString(Token):
         if escChar:
             inner_pattern += rf"{sep}(?:{re.escape(escChar)}.)"
             sep = "|"
-            self.escCharReplacePattern = re.escape(escChar) + "(.)"
 
         if len(self.endQuoteChar) > 1:
             inner_pattern += (
