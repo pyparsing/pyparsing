@@ -48,3 +48,6 @@ class TestExamples(unittest.TestCase):
 
     def test_range_check(self):
         self._run("range_check")
+
+    def test_stackish(self):
+        self._run("stackish")
