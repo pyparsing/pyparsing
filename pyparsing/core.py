@@ -4547,7 +4547,8 @@ class ParseElementEnhance(ParserElement):
             try:
                 return self.expr._parse(instring, loc, doActions, callPreParse=False)
             except ParseBaseException as pbe:
-                pbe.msg = self.errmsg
+                if not isinstance(self, Forward) or self.customName is not None:
+                    pbe.msg = self.errmsg
                 raise
         else:
             raise ParseException(instring, loc, "No expression defined", self)
