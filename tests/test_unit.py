@@ -6889,14 +6889,27 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
         s = """
         123 456 789
         """
-        input_file = StringIO(s)
+        from pathlib import Path
+
         integer = ppc.integer
+        test_parser = integer[1, ...]
 
-        results = pp.OneOrMore(integer).parseFile(input_file)
-        print(results)
+        input_file_as_stringio = StringIO(s)
+        input_file_as_str = "tests/parsefiletest_input_file.txt"
+        input_file_as_path = Path(input_file_as_str)
 
-        results = pp.OneOrMore(integer).parseFile("tests/parsefiletest_input_file.txt")
-        print(results)
+        expected_list = [int(i) for i in s.split()]
+
+        for input_file in (
+            input_file_as_stringio,
+            input_file_as_str,
+            input_file_as_path,
+        ):
+            with self.subTest(input_file=input_file):
+                print(f"parse_file() called with {type(input_file).__name__}")
+                results = test_parser.parseFile(input_file)
+                print(results)
+                self.assertEqual(expected_list, results.as_list())
 
     def testHTMLStripper(self):
         sample = """
