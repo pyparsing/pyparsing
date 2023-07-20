@@ -1079,7 +1079,7 @@ class ParserElement(ABC):
         ParserElement._left_recursion_enabled = True
 
     @staticmethod
-    def enable_packrat(cache_size_limit: int = 128, *, force: bool = False) -> None:
+    def enable_packrat(cache_size_limit: Union[int, None] = 128, *, force: bool = False) -> None:
         """
         Enables "packrat" parsing, which adds memoizing to the parsing logic.
         Repeated parse attempts at the same string location (which happens
