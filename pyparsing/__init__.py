@@ -319,4 +319,7 @@ __all__ = [
     "unicodeString",
     "withAttribute",
     "withClass",
+    "common",
+    "unicode",
+    "testing",
 ]
