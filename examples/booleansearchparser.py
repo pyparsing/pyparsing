@@ -90,9 +90,11 @@ from pyparsing import (
     Suppress,
     OneOrMore,
     one_of,
+    ParserElement,
 )
 import re
 
+ParserElement.enablePackrat()
 
 # Updated on 02 Dec 2021 according to ftp://ftp.unicode.org/Public/UNIDATA/Blocks.txt
 # (includes characters not found in the BasicMultilingualPlane)
