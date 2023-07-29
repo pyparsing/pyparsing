@@ -2897,19 +2897,17 @@ class Word(Token):
                     repeat = ""
                 else:
                     re_body_fragment = f"[{_collapse_string_to_ranges(self.bodyChars)}]"
-                    if max == 0:
+                    if max == 0 and self.minLen == 1:
                         repeat = "*"
                     elif max == 2:
                         repeat = "?" if min <= 1 else ""
                     else:
                         if min != max:
-                            repeat = f"{{{min - 1 if min > 0 else 0},{max - 1}}}"
+                            repeat = f"{{{min - 1 if min > 0 else ''},{max - 1 if max > 0 else ''}}}"
                         else:
-                            repeat = f"{{{min - 1 if min > 0 else 0}}}"
+                            repeat = f"{{{min - 1 if min > 0 else ''}}}"
 
-                self.reString = (
-                    f"{re_leading_fragment}" f"{re_body_fragment}" f"{repeat}"
-                )
+                self.reString = f"{re_leading_fragment}{re_body_fragment}{repeat}"
 
             if self.asKeyword:
                 self.reString = rf"\b{self.reString}\b"

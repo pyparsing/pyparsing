@@ -5223,6 +5223,13 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
 
     def testWordMin(self):
         # failing tests
+        for min_val in range(3, 5):
+            with self.subTest(min_val=min_val):
+                wd = pp.Word("a", "1", min=min_val)
+                print(min_val, wd.reString)
+                with self.assertRaisesParseException():
+                    wd.parse_string("a1")
+
         for min_val in range(2, 5):
             with self.subTest(min_val=min_val):
                 wd = pp.Word("a", min=min_val)
@@ -5230,11 +5237,30 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
                 with self.assertRaisesParseException():
                     wd.parse_string("a")
 
+        for min_val in range(3, 5):
+            with self.subTest(min_val=min_val):
+                wd = pp.Word("a", "1", min=min_val)
+                print(min_val, wd.reString)
+                with self.assertRaisesParseException():
+                    wd.parse_string("a1")
+
         # passing tests
         for min_val in range(2, 5):
             with self.subTest(min_val=min_val):
                 wd = pp.Word("a", min=min_val)
                 test_string = "a" * min_val
+                self.assertParseAndCheckList(
+                    wd,
+                    test_string,
+                    [test_string],
+                    msg=f"Word(min={min_val}) failed",
+                    verbose=True,
+                )
+
+        for min_val in range(2, 5):
+            with self.subTest(min_val=min_val):
+                wd = pp.Word("a", "1", min=min_val)
+                test_string = "a" + "1" * (min_val - 1)
                 self.assertParseAndCheckList(
                     wd,
                     test_string,
