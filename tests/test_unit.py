@@ -9897,6 +9897,29 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
                 msg=f"unexpected exception line ({exception_line!r})",
             )
 
+
+    def testForwardReferenceException(self):
+        token = pp.Forward()
+        num = pp.Word(pp.nums)
+        num.setName("num")
+        text = pp.Word(pp.alphas)
+        text.setName("text")
+        fail = pp.Regex(r"\\[A-Za-z]*")("name")
+        def parse_fail(s, loc, toks):
+            raise pp.ParseFatalException(s, loc, f"Unknown symbol: {toks['name']}")
+        fail.set_parse_action(parse_fail)
+        token <<= num | text | fail
+
+        # If no name is given, do not intercept error messages
+        with self.assertRaises(pp.ParseFatalException, msg="Unknown symbol: \\fail"):
+            token.parse_string("\\fail")
+
+        # If name is given, do intercept error messages
+        token.set_name("token")
+        with self.assertRaises(pp.ParseFatalException, msg="Expected token, found.*"):
+            token.parse_string("\\fail")
+
+
     def testMiscellaneousExceptionBits(self):
         pp.ParserElement.verbose_stacktrace = True
 
