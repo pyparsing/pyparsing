@@ -28,72 +28,60 @@ SPACE White space is basically ignored. This is interesting because since
     separation character and perform reasonable diffs on two structures.
 """
 
-from pyparsing import (
-    Suppress,
-    Word,
-    nums,
-    alphas,
-    alphanums,
-    Combine,
-    oneOf,
-    Optional,
-    QuotedString,
-    Forward,
-    Group,
-    ZeroOrMore,
-    srange,
-    pyparsing_common as ppc,
-)
+import pyparsing as pp
+ppc = pp.common
 
-MARK, UNMARK, AT, COLON, QUOTE = map(Suppress, "[]@:'")
+MARK, UNMARK, AT, COLON, QUOTE = pp.Suppress.using_each("[]@:'")
 
 NUMBER = ppc.integer()
 FLOAT = ppc.real()
-STRING = QuotedString('"', multiline=True) | QuotedString("'", multiline=True)
-WORD = Word(alphas, alphanums + "_:")
-ATTRIBUTE = Combine(AT + WORD)
+STRING = pp.QuotedString('"', multiline=True) | pp.QuotedString("'", multiline=True)
+WORD = pp.DelimitedList(pp.Word(pp.alphas, pp.alphanums + "_"), delim=":", combine=True)
+ATTRIBUTE = pp.Combine(AT + WORD)
 
-strBody = Forward()
+str_body = pp.Forward()
 
 
-def setBodyLength(tokens):
-    strBody << Word(srange(r"[\0x00-\0xffff]"), exact=int(tokens[0]))
+def set_body_length(tokens):
+    str_body << pp.Word(pp.srange(r"[\0x00-\0xffff]"), exact=int(tokens[0]))
     return ""
 
 
-BLOB = Combine(
-    QUOTE + Word(nums).setParseAction(setBodyLength) + COLON + strBody + QUOTE
+BLOB = pp.Combine(
+    QUOTE + pp.Word(pp.nums).set_parse_action(set_body_length) + COLON + str_body + QUOTE
 )
 
-item = Forward()
 
-
-def assignUsing(s):
-    def assignPA(tokens):
+def assign_using(s):
+    def assign_pa(tokens):
         if s in tokens:
             tokens[tokens[s]] = tokens[0]
             del tokens[s]
 
-    return assignPA
+    return assign_pa
 
+
+item = pp.Forward()
 
 GROUP = (
     MARK
-    + Group(
-        ZeroOrMore(
-            (item + Optional(ATTRIBUTE)("attr")).setParseAction(assignUsing("attr"))
-        )
+    + pp.Group(
+        (item + ATTRIBUTE[0, 1]("attr")).set_parse_action(assign_using("attr"))[...]
     )
     + (WORD("name") | UNMARK)
-).setParseAction(assignUsing("name"))
+).set_parse_action(assign_using("name"))
 item <<= FLOAT | NUMBER | STRING | BLOB | GROUP
 
-item.runTests(
-    """\
-    [ '10:1234567890' @name 25 @age +0.45 @percentage person:zed
-    [ [ "hello" 1 child root
-    [ "child" [ 200 '4:like' "I" "hello" things root
-    [ [ "data" [ 2 1 ] @numbers child root
-    [ [ 1 2 3 ] @test 4 5 6 root
-    """
-)
+if __name__ == '__main__':
+
+    success, _ = item.run_tests(
+        """\
+        [ '10:1234567890' @name 25 @age +0.45 @percentage person:zed
+        [ [ "hello" 1 child root
+        [ "child" [ 200 '4:like' "I" "hello" things root
+        [ [ "data" [ 2 1 ] @numbers child root
+        [ [ 1 2 3 ] @test 4 5 6 root
+        """
+    )
+
+    assert success

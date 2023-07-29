@@ -4,11 +4,17 @@
 from importlib import import_module
 import unittest
 
+from pyparsing import testing as ppt
+
 
 class TestExamples(unittest.TestCase):
     def _run(self, name):
         mod = import_module("examples." + name)
-        getattr(mod, "main", lambda *args, **kwargs: None)()
+
+        # use pyparsing context to reset each test to clean
+        # pyparsing settings
+        with ppt.reset_pyparsing_context():
+            getattr(mod, "main", lambda *args, **kwargs: None)()
 
     def test_numerics(self):
         self._run("numerics")
@@ -48,3 +54,6 @@ class TestExamples(unittest.TestCase):
 
     def test_range_check(self):
         self._run("range_check")
+
+    def test_stackish(self):
+        self._run("stackish")

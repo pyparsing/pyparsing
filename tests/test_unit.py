@@ -3448,6 +3448,17 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             result1, expected, msg="issue with ParseResults.extend(ParseResults)"
         )
 
+    def testQuotedStringLoc(self):
+        expr = pp.QuotedString("'")
+        expr.add_parse_action(lambda t: t[0].upper())
+
+        test_string = "Using 'quotes' for 'sarcasm' or 'emphasis' is not good 'style'."
+        transformed = expr.transform_string(test_string)
+        print(test_string)
+        print(transformed)
+        expected = re.sub(r"'([^']+)'", lambda match: match[1].upper(), test_string)
+        self.assertEqual(expected, transformed)
+
     def testParseResultsWithNestedNames(self):
         from pyparsing import (
             Dict,
@@ -10003,6 +10014,26 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             expr = cls([])
             expr.streamline()
             to_railroad(expr)
+
+    def testForwardsDoProperStreamlining(self):
+        wd = pp.Word(pp.alphas)
+        w3 = wd + wd + wd
+        # before streamlining, w3 is {{W:(A-Za-z) W:(A-Za-z)} W:(A-Za-z)}
+        self.assertIsInstance(w3.exprs[0], pp.And)
+        self.assertEqual(len(w3.exprs), 2)
+
+        ff = pp.Forward()
+        ff <<= w3 + pp.Opt(ff)
+        # before streamlining, ff is {{{W:(A-Za-z) W:(A-Za-z)} W:(A-Za-z)} [Forward: None]}
+        self.assertEqual(len(ff.expr.exprs), 2)
+
+        ff.streamline()
+
+        # after streamlining:
+        #   w3 is {W:(A-Za-z) W:(A-Za-z) W:(A-Za-z)}
+        #   ff is {W:(A-Za-z) W:(A-Za-z) W:(A-Za-z) [Forward: None]}
+        self.assertEqual(len(ff.expr.exprs), 4)
+        self.assertEqual(len(w3.exprs), 3)
 
 
 class Test03_EnablePackratParsing(TestCase):
