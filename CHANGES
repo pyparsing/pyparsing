@@ -15,12 +15,15 @@ Version 3.2.0 will also discontinue support for Python versions 3.6 and 3.7.
 
 Version 3.1.1 - (in development)
 --------------------------------
-- Fixed bug in Word(min), reported by Ricardo Coccioli, good catch! (Issue #502)
+- Fixed regression in Word(min), reported by Ricardo Coccioli, good catch! (Issue #502)
 
 - Fixed bug in bad exception messages raised by Forward expressions. PR submitted
   by Kyle Sunden, thanks for your patience and collaboration on this (#493).
 
-- Fixed bug in type annotation for enable_packrat, PR submitted by Mike Urbach, thanks! (Issue #498)
+- Fixed regression in SkipTo, where ignored expressions were not checked when looking
+  for the target expression. Reported by catcombo, Issue #500.
+
+- Fixed type annotation for enable_packrat, PR submitted by Mike Urbach, thanks! (Issue #498)
 
 - Some general internal code cleanup. (Instigated by Michal Čihař, Issue #488)
 

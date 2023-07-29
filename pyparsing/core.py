@@ -771,6 +771,7 @@ class ParserElement(ABC):
             return loc
         exprsFound = True
         ignore_expr_fns = [e._parse for e in self.ignoreExprs]
+        last_loc = loc
         while exprsFound:
             exprsFound = False
             for ignore_fn in ignore_expr_fns:
@@ -780,6 +781,10 @@ class ParserElement(ABC):
                         exprsFound = True
                 except ParseException:
                     pass
+            # check if all ignore exprs matched but didn't actually advance the parse location
+            if loc == last_loc:
+                break
+            last_loc = loc
         return loc
 
     def preParse(self, instring: str, loc: int) -> int:
@@ -5325,8 +5330,7 @@ class SkipTo(ParseElementEnhance):
     ):
         super().__init__(other)
         failOn = failOn or fail_on
-        if ignore is not None:
-            self.ignore(ignore)
+        self.ignoreExpr = ignore
         self.mayReturnEmpty = True
         self.mayIndexError = False
         self.includeMatch = include
@@ -5336,6 +5340,20 @@ class SkipTo(ParseElementEnhance):
         else:
             self.failOn = failOn
         self.errmsg = "No match found for " + str(self.expr)
+        self.ignorer = Empty().leave_whitespace()
+        self._update_ignorer()
+
+    def _update_ignorer(self):
+        # rebuild internal ignore expr from current ignore exprs and assigned ignoreExpr
+        self.ignorer.ignoreExprs.clear()
+        for e in self.expr.ignoreExprs:
+            self.ignorer.ignore(e)
+        if self.ignoreExpr:
+            self.ignorer.ignore(self.ignoreExpr)
+
+    def ignore(self, expr):
+        super().ignore(expr)
+        self._update_ignorer()
 
     def parseImpl(self, instring, loc, doActions=True):
         startloc = loc
@@ -5344,7 +5362,9 @@ class SkipTo(ParseElementEnhance):
         self_failOn_canParseNext = (
             self.failOn.canParseNext if self.failOn is not None else None
         )
-        self_preParse = self.preParse if self.callPreparse else None
+        ignorer_try_parse = (
+            self.ignorer.try_parse if self.ignorer.ignoreExprs else None
+        )
 
         tmploc = loc
         while tmploc <= instrlen:
@@ -5353,9 +5373,18 @@ class SkipTo(ParseElementEnhance):
                 if self_failOn_canParseNext(instring, tmploc):
                     break
 
-            if self_preParse is not None:
-                # skip grammar-ignored expressions
-                tmploc = self_preParse(instring, tmploc)
+            if ignorer_try_parse is not None:
+                # advance past ignore expressions
+                prev_tmploc = tmploc
+                while 1:
+                    try:
+                        tmploc = ignorer_try_parse(instring, tmploc)
+                    except ParseBaseException:
+                        break
+                    # see if all ignorers matched, but didn't actually ignore anything
+                    if tmploc == prev_tmploc:
+                        break
+                    prev_tmploc = tmploc
 
             try:
                 self_expr_parse(instring, tmploc, doActions=False, callPreParse=False)

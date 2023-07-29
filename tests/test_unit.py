@@ -1804,6 +1804,15 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
         else:
             print(result.dump())
 
+    def testSkipToIgnoreExpr2(self):
+        a, star = pp.Literal.using_each("a*")
+        wrapper = a + ... + a
+        expr = star + pp.SkipTo(star, ignore=wrapper) + star
+
+        # pyparsing 3.0.9 -> ['*', 'a_*_a', '*']
+        # pyparsing 3.1.0 -> ['*', '', '*']
+        self.assertParseAndCheckList(expr, "*a_*_a*", ['*', 'a_*_a', '*'])
+
     def testEllipsisRepetition(self):
         word = pp.Word(pp.alphas).setName("word")
         num = pp.Word(pp.nums).setName("num")
