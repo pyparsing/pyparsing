@@ -1811,7 +1811,7 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
 
         # pyparsing 3.0.9 -> ['*', 'a_*_a', '*']
         # pyparsing 3.1.0 -> ['*', '', '*']
-        self.assertParseAndCheckList(expr, "*a_*_a*", ['*', 'a_*_a', '*'])
+        self.assertParseAndCheckList(expr, "*a_*_a*", ["*", "a_*_a", "*"])
 
     def testEllipsisRepetition(self):
         word = pp.Word(pp.alphas).setName("word")

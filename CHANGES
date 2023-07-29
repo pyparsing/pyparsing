@@ -13,8 +13,8 @@ help from Devin J. Pohly in structuring the code to enable this peaceful transit
 Version 3.2.0 will also discontinue support for Python versions 3.6 and 3.7.
 
 
-Version 3.1.1 - (in development)
---------------------------------
+Version 3.1.1 - July, 2023
+--------------------------
 - Fixed regression in Word(min), reported by Ricardo Coccioli, good catch! (Issue #502)
 
 - Fixed bug in bad exception messages raised by Forward expressions. PR submitted
