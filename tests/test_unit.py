@@ -9908,7 +9908,6 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
                 msg=f"unexpected exception line ({exception_line!r})",
             )
 
-
     def testForwardReferenceException(self):
         token = pp.Forward()
         num = pp.Word(pp.nums)
@@ -9930,6 +9929,22 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
         with self.assertRaises(pp.ParseFatalException, msg="Expected token, found.*"):
             token.parse_string("\\fail")
 
+    def testForwardExceptionText(self):
+        wd = pp.Word(pp.alphas)
+
+        ff = pp.Forward().set_name("fffff!")
+        ff <<= wd + pp.Opt(ff)
+
+        with self.assertRaises(pp.ParseFatalException, msg="no numbers!"):
+            try:
+                ff.parse_string("123")
+            except pp.ParseException as pe:
+                raise pp.ParseSyntaxException("no numbers! just alphas!") from pe
+
+        with self.assertRaises(pp.ParseException, msg="Expected W:(A-Za-z)"):
+            ff2 = pp.Forward()
+            ff2 <<= wd
+            ff2.parse_string("123")
 
     def testMiscellaneousExceptionBits(self):
         pp.ParserElement.verbose_stacktrace = True

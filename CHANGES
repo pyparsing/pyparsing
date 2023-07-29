@@ -15,6 +15,11 @@ Version 3.2.0 will also discontinue support for Python versions 3.6 and 3.7.
 
 Version 3.1.1 - (in development)
 --------------------------------
+- Fixed bug in bad exception messages raised by Forward expressions. PR submitted
+  by Kyle Sunden, thanks for your patience and collaboration on this (#493).
+
+- Fixed bug in type annotation for enable_packrat, PR submitted by Mike Urbach, thanks! (Issue #498)
+
 - Some general internal code cleanup. (Instigated by Michal Čihař, Issue #488)
 
 
