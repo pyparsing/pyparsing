@@ -5221,6 +5221,50 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
                     ["A1234567890"[:exarg]],
                 )
 
+    def testWordMin(self):
+        # failing tests
+        for min_val in range(2, 5):
+            with self.subTest(min_val=min_val):
+                wd = pp.Word("a", min=min_val)
+                print(min_val, wd.reString)
+                with self.assertRaisesParseException():
+                    wd.parse_string("a")
+
+        # passing tests
+        for min_val in range(2, 5):
+            with self.subTest(min_val=min_val):
+                wd = pp.Word("a", min=min_val)
+                test_string = "a" * min_val
+                self.assertParseAndCheckList(
+                    wd,
+                    test_string,
+                    [test_string],
+                    msg=f"Word(min={min_val}) failed",
+                    verbose=True,
+                )
+
+    def testWordExact(self):
+        # failing tests
+        for exact_val in range(2, 5):
+            with self.subTest(exact_val=exact_val):
+                wd = pp.Word("a", exact=exact_val)
+                print(exact_val, wd.reString)
+                with self.assertRaisesParseException():
+                    wd.parse_string("a")
+
+        # passing tests
+        for exact_val in range(2, 5):
+            with self.subTest(exact_val=exact_val):
+                wd = pp.Word("a", exact=exact_val)
+                test_string = "a" * exact_val
+                self.assertParseAndCheckList(
+                    wd,
+                    test_string,
+                    [test_string],
+                    msg=f"Word(exact={exact_val}) failed",
+                    verbose=True,
+                )
+
     def testInvalidMinMaxArgs(self):
         with self.assertRaises(ValueError):
             wd = pp.Word(min=2, max=1)
@@ -9915,8 +9959,10 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
         text = pp.Word(pp.alphas)
         text.setName("text")
         fail = pp.Regex(r"\\[A-Za-z]*")("name")
+
         def parse_fail(s, loc, toks):
             raise pp.ParseFatalException(s, loc, f"Unknown symbol: {toks['name']}")
+
         fail.set_parse_action(parse_fail)
         token <<= num | text | fail
 

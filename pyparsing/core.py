@@ -1079,7 +1079,9 @@ class ParserElement(ABC):
         ParserElement._left_recursion_enabled = True
 
     @staticmethod
-    def enable_packrat(cache_size_limit: Union[int, None] = 128, *, force: bool = False) -> None:
+    def enable_packrat(
+        cache_size_limit: Union[int, None] = 128, *, force: bool = False
+    ) -> None:
         """
         Enables "packrat" parsing, which adds memoizing to the parsing logic.
         Repeated parse attempts at the same string location (which happens
@@ -2879,7 +2881,7 @@ class Word(Token):
                 re_leading_fragment = f"[{_collapse_string_to_ranges(self.initChars)}]"
 
             if self.bodyChars == self.initChars:
-                if max == 0:
+                if max == 0 and self.minLen == 1:
                     repeat = "+"
                 elif max == 1:
                     repeat = ""
