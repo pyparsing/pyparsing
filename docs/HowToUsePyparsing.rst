@@ -5,8 +5,8 @@ Using the pyparsing module
 :author: Paul McGuire
 :address: ptmcg.pm+pyparsing@gmail.com
 
-:revision: 3.1.0
-:date: April, 2023
+:revision: 3.1.1
+:date: July, 2023
 
 :copyright: Copyright |copy| 2003-2023 Paul McGuire.
 
@@ -42,7 +42,7 @@ synonyms, but the synonyms will be removed in a future release.*
 
 *If you are using this documentation, but working with a 2.4.x version of pyparsing,
 you'll need to convert methods and arguments from the documented snake_case
-names to the legacy camelCase names. In pyparsing 3.0.x, both forms are
+names to the legacy camelCase names. In pyparsing 3.0.x and 3.1.x, both forms are
 supported, but the legacy forms are deprecated; they will be dropped in a
 future release.*
 
@@ -58,8 +58,8 @@ To parse an incoming data string, the client code must follow these steps:
    this to a program variable.  Optional results names or parse
    actions can also be defined at this time.
 
-2. Call ``parse_string()`` or ``scan_string()`` on this variable, passing in
-   the string to
+2. Call ``parse_string()``, ``scan_string()``, or ``search_string()``
+   on this variable, passing in the string to
    be parsed.  During the matching process, whitespace between
    tokens is skipped by default (although this can be changed).
    When token matches occur, any defined parse action methods are
@@ -691,6 +691,8 @@ Expression subclasses
   containing a default string or object to be supplied if the given optional
   parse element is not found in the input string; parse action will only
   be called if a match is found, or if a default is specified.
+
+  An optional element ``expr`` can also be expressed using ``expr | ""``.
 
   (``Opt`` was formerly named ``Optional``, but since the standard Python
   library module ``typing`` now defines ``Optional``, the pyparsing class has
