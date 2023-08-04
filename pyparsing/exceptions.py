@@ -9,7 +9,7 @@ from .util import (
     line,
     lineno,
     _collapse_string_to_ranges,
-    replaced_by_pep8,
+    _make_synonym_function,
 )
 from .unicode import pyparsing_unicode as ppu
 
@@ -244,8 +244,7 @@ class ParseBaseException(Exception):
         return self.explain_exception(self, depth)
 
     # fmt: off
-    @replaced_by_pep8(mark_input_line)
-    def markInputline(self): ...
+    markInputline =_make_synonym_function("markInputline", mark_input_line)
     # fmt: on
 
 

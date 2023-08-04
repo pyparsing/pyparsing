@@ -275,10 +275,3 @@ def _make_synonym_function(compat_name: str, fn: C) -> C:
         _inner.__kwdefaults__ = None
     _inner.__qualname__ = fn.__qualname__
     return cast(C, _inner)
-
-
-def replaced_by_pep8(fn: C) -> Callable[[Callable], C]:
-    """
-    Decorator for pre-PEP8 compatibility synonyms, to link them to the new function.
-    """
-    return lambda other: _make_synonym_function(other.__name__, fn)

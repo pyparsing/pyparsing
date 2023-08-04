@@ -10,7 +10,7 @@ from .util import (
     _bslash,
     _flatten,
     _escape_regex_range_chars,
-    replaced_by_pep8,
+    _make_synonym_function,
 )
 
 
@@ -1058,43 +1058,17 @@ dblSlashComment = dbl_slash_comment
 cppStyleComment = cpp_style_comment
 javaStyleComment = java_style_comment
 pythonStyleComment = python_style_comment
-
-@replaced_by_pep8(DelimitedList)
-def delimitedList(): ...
-
-@replaced_by_pep8(DelimitedList)
-def delimited_list(): ...
-
-@replaced_by_pep8(counted_array)
-def countedArray(): ...
-
-@replaced_by_pep8(match_previous_literal)
-def matchPreviousLiteral(): ...
-
-@replaced_by_pep8(match_previous_expr)
-def matchPreviousExpr(): ...
-
-@replaced_by_pep8(one_of)
-def oneOf(): ...
-
-@replaced_by_pep8(dict_of)
-def dictOf(): ...
-
-@replaced_by_pep8(original_text_for)
-def originalTextFor(): ...
-
-@replaced_by_pep8(nested_expr)
-def nestedExpr(): ...
-
-@replaced_by_pep8(make_html_tags)
-def makeHTMLTags(): ...
-
-@replaced_by_pep8(make_xml_tags)
-def makeXMLTags(): ...
-
-@replaced_by_pep8(replace_html_entity)
-def replaceHTMLEntity(): ...
-
-@replaced_by_pep8(infix_notation)
-def infixNotation(): ...
+delimitedList = _make_synonym_function("delimitedList", DelimitedList)
+delimited_list = _make_synonym_function("delimited_list", DelimitedList)
+countedArray = _make_synonym_function("countedArray", counted_array)
+matchPreviousLiteral = _make_synonym_function("matchPreviousLiteral", match_previous_literal)
+matchPreviousExpr = _make_synonym_function("matchPreviousExpr", match_previous_expr)
+oneOf = _make_synonym_function("oneOf", one_of)
+dictOf = _make_synonym_function("dictOf", dict_of)
+originalTextFor = _make_synonym_function("originalTextFor", original_text_for)
+nestedExpr = _make_synonym_function("nestedExpr", nested_expr)
+makeHTMLTags = _make_synonym_function("makeHTMLTags", make_html_tags)
+makeXMLTags = _make_synonym_function("makeXMLTags", make_xml_tags)
+replaceHTMLEntity = _make_synonym_function("replaceHTMLEntity", replace_html_entity)
+infixNotation = _make_synonym_function("infixNotation", infix_notation)
 # fmt: on

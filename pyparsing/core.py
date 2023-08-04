@@ -41,9 +41,9 @@ from .util import (
     _escape_regex_range_chars,
     _bslash,
     _flatten,
+    _make_synonym_function,
     LRUMemo as _LRUMemo,
     UnboundedMemo as _UnboundedMemo,
-    replaced_by_pep8,
 )
 from .exceptions import *
 from .actions import *
@@ -2253,82 +2253,32 @@ class ParserElement(ABC):
 
     # Compatibility synonyms
     # fmt: off
-    @staticmethod
-    @replaced_by_pep8(inline_literals_using)
-    def inlineLiteralsUsing(): ...
-
-    @staticmethod
-    @replaced_by_pep8(set_default_whitespace_chars)
-    def setDefaultWhitespaceChars(): ...
-
-    @replaced_by_pep8(set_results_name)
-    def setResultsName(self): ...
-
-    @replaced_by_pep8(set_break)
-    def setBreak(self): ...
-
-    @replaced_by_pep8(set_parse_action)
-    def setParseAction(self): ...
-
-    @replaced_by_pep8(add_parse_action)
-    def addParseAction(self): ...
-
-    @replaced_by_pep8(add_condition)
-    def addCondition(self): ...
-
-    @replaced_by_pep8(set_fail_action)
-    def setFailAction(self): ...
-
-    @replaced_by_pep8(try_parse)
-    def tryParse(self): ...
-
-    @staticmethod
-    @replaced_by_pep8(enable_left_recursion)
-    def enableLeftRecursion(): ...
-
-    @staticmethod
-    @replaced_by_pep8(enable_packrat)
-    def enablePackrat(): ...
-
-    @replaced_by_pep8(parse_string)
-    def parseString(self): ...
-
-    @replaced_by_pep8(scan_string)
-    def scanString(self): ...
-
-    @replaced_by_pep8(transform_string)
-    def transformString(self): ...
-
-    @replaced_by_pep8(search_string)
-    def searchString(self): ...
-
-    @replaced_by_pep8(ignore_whitespace)
-    def ignoreWhitespace(self): ...
-
-    @replaced_by_pep8(leave_whitespace)
-    def leaveWhitespace(self): ...
-
-    @replaced_by_pep8(set_whitespace_chars)
-    def setWhitespaceChars(self): ...
-
-    @replaced_by_pep8(parse_with_tabs)
-    def parseWithTabs(self): ...
-
-    @replaced_by_pep8(set_debug_actions)
-    def setDebugActions(self): ...
-
-    @replaced_by_pep8(set_debug)
-    def setDebug(self): ...
-
-    @replaced_by_pep8(set_name)
-    def setName(self): ...
-
-    @replaced_by_pep8(parse_file)
-    def parseFile(self): ...
-
-    @replaced_by_pep8(run_tests)
-    def runTests(self): ...
-
+    inlineLiteralsUsing = _make_synonym_function("inlineLiteralsUsing", inline_literals_using)
+    setDefaultWhitespaceChars = _make_synonym_function(
+        "setDefaultWhitespaceChars", set_default_whitespace_chars
+    )
+    setResultsName = _make_synonym_function("setResultsName", set_results_name)
+    setBreak = _make_synonym_function("setBreak", set_break)
+    setParseAction = _make_synonym_function("setParseAction", set_parse_action)
+    addParseAction = _make_synonym_function("addParseAction", add_parse_action)
+    addCondition = _make_synonym_function("addCondition", add_condition)
+    setFailAction = _make_synonym_function("setFailAction", set_fail_action)
+    tryParse = _make_synonym_function("tryParse", try_parse)
+    enableLeftRecursion = _make_synonym_function("enableLeftRecursion", enable_left_recursion)
+    enablePackrat = _make_synonym_function("enablePackrat", enable_packrat)
+    parseString = _make_synonym_function("parseString", parse_string)
+    scanString = _make_synonym_function("scanString", scan_string)
+    transformString = _make_synonym_function("transformString", transform_string)
+    searchString = _make_synonym_function("searchString", search_string)
+    ignoreWhitespace = _make_synonym_function("ignoreWhitespace", ignore_whitespace)
+    leaveWhitespace = _make_synonym_function("leaveWhitespace", leave_whitespace)
+    setWhitespaceChars = _make_synonym_function("setWhitespaceChars", set_whitespace_chars)
+    parseWithTabs = _make_synonym_function("parseWithTabs", parse_with_tabs)
+    setDebugActions = _make_synonym_function("setDebugActions", set_debug_actions)
+    setDebug = _make_synonym_function("setDebug", set_debug)
+    setName = _make_synonym_function("setName", set_name)
+    parseFile = _make_synonym_function("parseFile", parse_file)
+    runTests = _make_synonym_function("runTests", run_tests)
     canParseNext = can_parse_next
     resetCache = reset_cache
     defaultName = default_name
@@ -3911,11 +3861,8 @@ class ParseExpression(ParserElement):
 
     # Compatibility synonyms
     # fmt: off
-    @replaced_by_pep8(leave_whitespace)
-    def leaveWhitespace(self): ...
-
-    @replaced_by_pep8(ignore_whitespace)
-    def ignoreWhitespace(self): ...
+    leaveWhitespace = _make_synonym_function("leaveWhitespace", leave_whitespace)
+    ignoreWhitespace = _make_synonym_function("ignoreWhitespace", ignore_whitespace)
     # fmt: on
 
 
@@ -4635,11 +4582,8 @@ class ParseElementEnhance(ParserElement):
 
     # Compatibility synonyms
     # fmt: off
-    @replaced_by_pep8(leave_whitespace)
-    def leaveWhitespace(self): ...
-
-    @replaced_by_pep8(ignore_whitespace)
-    def ignoreWhitespace(self): ...
+    leaveWhitespace = _make_synonym_function("leaveWhitespace", leave_whitespace)
+    ignoreWhitespace = _make_synonym_function("ignoreWhitespace", ignore_whitespace)
     # fmt: on
 
 
@@ -5666,11 +5610,8 @@ class Forward(ParseElementEnhance):
 
     # Compatibility synonyms
     # fmt: off
-    @replaced_by_pep8(leave_whitespace)
-    def leaveWhitespace(self): ...
-
-    @replaced_by_pep8(ignore_whitespace)
-    def ignoreWhitespace(self): ...
+    leaveWhitespace = _make_synonym_function("leaveWhitespace", leave_whitespace)
+    ignoreWhitespace = _make_synonym_function("ignoreWhitespace", ignore_whitespace)
     # fmt: on
 
 
@@ -6144,16 +6085,8 @@ lineStart = line_start
 lineEnd = line_end
 stringStart = string_start
 stringEnd = string_end
-
-@replaced_by_pep8(null_debug_action)
-def nullDebugAction(): ...
-
-@replaced_by_pep8(trace_parse_action)
-def traceParseAction(): ...
-
-@replaced_by_pep8(condition_as_parse_action)
-def conditionAsParseAction(): ...
-
-@replaced_by_pep8(token_map)
-def tokenMap(): ...
+nullDebugAction = _make_synonym_function("nullDebugAction", null_debug_action)
+traceParseAction = _make_synonym_function("traceParseAction", trace_parse_action)
+conditionAsParseAction = _make_synonym_function("conditionAsParseAction", condition_as_parse_action)
+tokenMap = _make_synonym_function("tokenMap", token_map)
 # fmt: on
