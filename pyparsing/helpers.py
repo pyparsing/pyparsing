@@ -777,7 +777,7 @@ def infix_notation(
         rpar = Suppress(rpar)
 
     # if lpar and rpar are not suppressed, wrap in group
-    if not (isinstance(rpar, Suppress) and isinstance(rpar, Suppress)):
+    if not (isinstance(lpar, Suppress) and isinstance(rpar, Suppress)):
         lastExpr = base_expr | Group(lpar + ret + rpar)
     else:
         lastExpr = base_expr | (lpar + ret + rpar)
