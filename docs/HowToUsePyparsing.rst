@@ -836,7 +836,7 @@ Other classes
 
     - elements can be deleted using ``del``
 
-    - the ``-1``th element can be extracted and removed in a single operation
+    - the last element can be extracted and removed in a single operation
       using ``pop()``, or any element can be extracted and removed
       using ``pop(n)``
 
