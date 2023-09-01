@@ -206,7 +206,7 @@ class pyparsing_common:
     scientific notation and returns a float"""
 
     # streamlining this expression makes the docs nicer-looking
-    number = (sci_real | real | signed_integer).setName("number").streamline()
+    number = (sci_real | real | signed_integer).set_name("number").streamline()
     """any numeric expression, returns the corresponding Python type"""
 
     fnumber = (
