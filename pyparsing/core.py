@@ -41,9 +41,9 @@ from .util import (
     _escape_regex_range_chars,
     _bslash,
     _flatten,
-    _make_synonym_function,
     LRUMemo as _LRUMemo,
     UnboundedMemo as _UnboundedMemo,
+    replaced_by_pep8,
 )
 from .exceptions import *
 from .actions import *
@@ -2253,32 +2253,32 @@ class ParserElement(ABC):
 
     # Compatibility synonyms
     # fmt: off
-    inlineLiteralsUsing = _make_synonym_function("inlineLiteralsUsing", inline_literals_using)
-    setDefaultWhitespaceChars = _make_synonym_function(
+    inlineLiteralsUsing = replaced_by_pep8("inlineLiteralsUsing", inline_literals_using)
+    setDefaultWhitespaceChars = replaced_by_pep8(
         "setDefaultWhitespaceChars", set_default_whitespace_chars
     )
-    setResultsName = _make_synonym_function("setResultsName", set_results_name)
-    setBreak = _make_synonym_function("setBreak", set_break)
-    setParseAction = _make_synonym_function("setParseAction", set_parse_action)
-    addParseAction = _make_synonym_function("addParseAction", add_parse_action)
-    addCondition = _make_synonym_function("addCondition", add_condition)
-    setFailAction = _make_synonym_function("setFailAction", set_fail_action)
-    tryParse = _make_synonym_function("tryParse", try_parse)
-    enableLeftRecursion = _make_synonym_function("enableLeftRecursion", enable_left_recursion)
-    enablePackrat = _make_synonym_function("enablePackrat", enable_packrat)
-    parseString = _make_synonym_function("parseString", parse_string)
-    scanString = _make_synonym_function("scanString", scan_string)
-    transformString = _make_synonym_function("transformString", transform_string)
-    searchString = _make_synonym_function("searchString", search_string)
-    ignoreWhitespace = _make_synonym_function("ignoreWhitespace", ignore_whitespace)
-    leaveWhitespace = _make_synonym_function("leaveWhitespace", leave_whitespace)
-    setWhitespaceChars = _make_synonym_function("setWhitespaceChars", set_whitespace_chars)
-    parseWithTabs = _make_synonym_function("parseWithTabs", parse_with_tabs)
-    setDebugActions = _make_synonym_function("setDebugActions", set_debug_actions)
-    setDebug = _make_synonym_function("setDebug", set_debug)
-    setName = _make_synonym_function("setName", set_name)
-    parseFile = _make_synonym_function("parseFile", parse_file)
-    runTests = _make_synonym_function("runTests", run_tests)
+    setResultsName = replaced_by_pep8("setResultsName", set_results_name)
+    setBreak = replaced_by_pep8("setBreak", set_break)
+    setParseAction = replaced_by_pep8("setParseAction", set_parse_action)
+    addParseAction = replaced_by_pep8("addParseAction", add_parse_action)
+    addCondition = replaced_by_pep8("addCondition", add_condition)
+    setFailAction = replaced_by_pep8("setFailAction", set_fail_action)
+    tryParse = replaced_by_pep8("tryParse", try_parse)
+    enableLeftRecursion = replaced_by_pep8("enableLeftRecursion", enable_left_recursion)
+    enablePackrat = replaced_by_pep8("enablePackrat", enable_packrat)
+    parseString = replaced_by_pep8("parseString", parse_string)
+    scanString = replaced_by_pep8("scanString", scan_string)
+    transformString = replaced_by_pep8("transformString", transform_string)
+    searchString = replaced_by_pep8("searchString", search_string)
+    ignoreWhitespace = replaced_by_pep8("ignoreWhitespace", ignore_whitespace)
+    leaveWhitespace = replaced_by_pep8("leaveWhitespace", leave_whitespace)
+    setWhitespaceChars = replaced_by_pep8("setWhitespaceChars", set_whitespace_chars)
+    parseWithTabs = replaced_by_pep8("parseWithTabs", parse_with_tabs)
+    setDebugActions = replaced_by_pep8("setDebugActions", set_debug_actions)
+    setDebug = replaced_by_pep8("setDebug", set_debug)
+    setName = replaced_by_pep8("setName", set_name)
+    parseFile = replaced_by_pep8("parseFile", parse_file)
+    runTests = replaced_by_pep8("runTests", run_tests)
     canParseNext = can_parse_next
     resetCache = reset_cache
     defaultName = default_name
@@ -3861,8 +3861,8 @@ class ParseExpression(ParserElement):
 
     # Compatibility synonyms
     # fmt: off
-    leaveWhitespace = _make_synonym_function("leaveWhitespace", leave_whitespace)
-    ignoreWhitespace = _make_synonym_function("ignoreWhitespace", ignore_whitespace)
+    leaveWhitespace = replaced_by_pep8("leaveWhitespace", leave_whitespace)
+    ignoreWhitespace = replaced_by_pep8("ignoreWhitespace", ignore_whitespace)
     # fmt: on
 
 
@@ -4582,8 +4582,8 @@ class ParseElementEnhance(ParserElement):
 
     # Compatibility synonyms
     # fmt: off
-    leaveWhitespace = _make_synonym_function("leaveWhitespace", leave_whitespace)
-    ignoreWhitespace = _make_synonym_function("ignoreWhitespace", ignore_whitespace)
+    leaveWhitespace = replaced_by_pep8("leaveWhitespace", leave_whitespace)
+    ignoreWhitespace = replaced_by_pep8("ignoreWhitespace", ignore_whitespace)
     # fmt: on
 
 
@@ -5610,8 +5610,8 @@ class Forward(ParseElementEnhance):
 
     # Compatibility synonyms
     # fmt: off
-    leaveWhitespace = _make_synonym_function("leaveWhitespace", leave_whitespace)
-    ignoreWhitespace = _make_synonym_function("ignoreWhitespace", ignore_whitespace)
+    leaveWhitespace = replaced_by_pep8("leaveWhitespace", leave_whitespace)
+    ignoreWhitespace = replaced_by_pep8("ignoreWhitespace", ignore_whitespace)
     # fmt: on
 
 
@@ -6085,8 +6085,8 @@ lineStart = line_start
 lineEnd = line_end
 stringStart = string_start
 stringEnd = string_end
-nullDebugAction = _make_synonym_function("nullDebugAction", null_debug_action)
-traceParseAction = _make_synonym_function("traceParseAction", trace_parse_action)
-conditionAsParseAction = _make_synonym_function("conditionAsParseAction", condition_as_parse_action)
-tokenMap = _make_synonym_function("tokenMap", token_map)
+nullDebugAction = replaced_by_pep8("nullDebugAction", null_debug_action)
+traceParseAction = replaced_by_pep8("traceParseAction", trace_parse_action)
+conditionAsParseAction = replaced_by_pep8("conditionAsParseAction", condition_as_parse_action)
+tokenMap = replaced_by_pep8("tokenMap", token_map)
 # fmt: on

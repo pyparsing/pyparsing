@@ -10,7 +10,7 @@ from .util import (
     _bslash,
     _flatten,
     _escape_regex_range_chars,
-    _make_synonym_function,
+    replaced_by_pep8,
 )
 
 
@@ -1058,17 +1058,17 @@ dblSlashComment = dbl_slash_comment
 cppStyleComment = cpp_style_comment
 javaStyleComment = java_style_comment
 pythonStyleComment = python_style_comment
-delimitedList = _make_synonym_function("delimitedList", DelimitedList)
-delimited_list = _make_synonym_function("delimited_list", DelimitedList)
-countedArray = _make_synonym_function("countedArray", counted_array)
-matchPreviousLiteral = _make_synonym_function("matchPreviousLiteral", match_previous_literal)
-matchPreviousExpr = _make_synonym_function("matchPreviousExpr", match_previous_expr)
-oneOf = _make_synonym_function("oneOf", one_of)
-dictOf = _make_synonym_function("dictOf", dict_of)
-originalTextFor = _make_synonym_function("originalTextFor", original_text_for)
-nestedExpr = _make_synonym_function("nestedExpr", nested_expr)
-makeHTMLTags = _make_synonym_function("makeHTMLTags", make_html_tags)
-makeXMLTags = _make_synonym_function("makeXMLTags", make_xml_tags)
-replaceHTMLEntity = _make_synonym_function("replaceHTMLEntity", replace_html_entity)
-infixNotation = _make_synonym_function("infixNotation", infix_notation)
+delimitedList = replaced_by_pep8("delimitedList", DelimitedList)
+delimited_list = replaced_by_pep8("delimited_list", DelimitedList)
+countedArray = replaced_by_pep8("countedArray", counted_array)
+matchPreviousLiteral = replaced_by_pep8("matchPreviousLiteral", match_previous_literal)
+matchPreviousExpr = replaced_by_pep8("matchPreviousExpr", match_previous_expr)
+oneOf = replaced_by_pep8("oneOf", one_of)
+dictOf = replaced_by_pep8("dictOf", dict_of)
+originalTextFor = replaced_by_pep8("originalTextFor", original_text_for)
+nestedExpr = replaced_by_pep8("nestedExpr", nested_expr)
+makeHTMLTags = replaced_by_pep8("makeHTMLTags", make_html_tags)
+makeXMLTags = replaced_by_pep8("makeXMLTags", make_xml_tags)
+replaceHTMLEntity = replaced_by_pep8("replaceHTMLEntity", replace_html_entity)
+infixNotation = replaced_by_pep8("infixNotation", infix_notation)
 # fmt: on

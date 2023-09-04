@@ -1,7 +1,7 @@
 # actions.py
 
 from .exceptions import ParseException
-from .util import _make_synonym_function, col
+from .util import col, replaced_by_pep8
 
 
 class OnlyOnce:
@@ -199,9 +199,9 @@ def with_class(classname, namespace=""):
 
 # pre-PEP8 compatibility symbols
 # fmt: off
-replaceWith = _make_synonym_function("replaceWith", replace_with)
-removeQuotes = _make_synonym_function("removeQuotes", remove_quotes)
-withAttribute = _make_synonym_function("withAttribute", with_attribute)
-withClass = _make_synonym_function("withClass", with_class)
-matchOnlyAtCol = _make_synonym_function("matchOnlyAtCol", match_only_at_col)
+replaceWith = replaced_by_pep8("replaceWith", replace_with)
+removeQuotes = replaced_by_pep8("removeQuotes", remove_quotes)
+withAttribute = replaced_by_pep8("withAttribute", with_attribute)
+withClass = replaced_by_pep8("withClass", with_class)
+matchOnlyAtCol = replaced_by_pep8("matchOnlyAtCol", match_only_at_col)
 # fmt: on
