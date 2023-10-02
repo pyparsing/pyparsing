@@ -244,8 +244,7 @@ class ParseBaseException(Exception):
         return self.explain_exception(self, depth)
 
     # fmt: off
-    @replaced_by_pep8(mark_input_line)
-    def markInputline(self): ...
+    markInputline = replaced_by_pep8("markInputline", mark_input_line)
     # fmt: on
 
 

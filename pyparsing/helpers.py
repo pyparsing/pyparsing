@@ -1058,43 +1058,17 @@ dblSlashComment = dbl_slash_comment
 cppStyleComment = cpp_style_comment
 javaStyleComment = java_style_comment
 pythonStyleComment = python_style_comment
-
-@replaced_by_pep8(DelimitedList)
-def delimitedList(): ...
-
-@replaced_by_pep8(DelimitedList)
-def delimited_list(): ...
-
-@replaced_by_pep8(counted_array)
-def countedArray(): ...
-
-@replaced_by_pep8(match_previous_literal)
-def matchPreviousLiteral(): ...
-
-@replaced_by_pep8(match_previous_expr)
-def matchPreviousExpr(): ...
-
-@replaced_by_pep8(one_of)
-def oneOf(): ...
-
-@replaced_by_pep8(dict_of)
-def dictOf(): ...
-
-@replaced_by_pep8(original_text_for)
-def originalTextFor(): ...
-
-@replaced_by_pep8(nested_expr)
-def nestedExpr(): ...
-
-@replaced_by_pep8(make_html_tags)
-def makeHTMLTags(): ...
-
-@replaced_by_pep8(make_xml_tags)
-def makeXMLTags(): ...
-
-@replaced_by_pep8(replace_html_entity)
-def replaceHTMLEntity(): ...
-
-@replaced_by_pep8(infix_notation)
-def infixNotation(): ...
+delimitedList = replaced_by_pep8("delimitedList", DelimitedList)
+delimited_list = replaced_by_pep8("delimited_list", DelimitedList)
+countedArray = replaced_by_pep8("countedArray", counted_array)
+matchPreviousLiteral = replaced_by_pep8("matchPreviousLiteral", match_previous_literal)
+matchPreviousExpr = replaced_by_pep8("matchPreviousExpr", match_previous_expr)
+oneOf = replaced_by_pep8("oneOf", one_of)
+dictOf = replaced_by_pep8("dictOf", dict_of)
+originalTextFor = replaced_by_pep8("originalTextFor", original_text_for)
+nestedExpr = replaced_by_pep8("nestedExpr", nested_expr)
+makeHTMLTags = replaced_by_pep8("makeHTMLTags", make_html_tags)
+makeXMLTags = replaced_by_pep8("makeXMLTags", make_xml_tags)
+replaceHTMLEntity = replaced_by_pep8("replaceHTMLEntity", replace_html_entity)
+infixNotation = replaced_by_pep8("infixNotation", infix_notation)
 # fmt: on

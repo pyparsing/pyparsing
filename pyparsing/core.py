@@ -2253,82 +2253,32 @@ class ParserElement(ABC):
 
     # Compatibility synonyms
     # fmt: off
-    @staticmethod
-    @replaced_by_pep8(inline_literals_using)
-    def inlineLiteralsUsing(): ...
-
-    @staticmethod
-    @replaced_by_pep8(set_default_whitespace_chars)
-    def setDefaultWhitespaceChars(): ...
-
-    @replaced_by_pep8(set_results_name)
-    def setResultsName(self): ...
-
-    @replaced_by_pep8(set_break)
-    def setBreak(self): ...
-
-    @replaced_by_pep8(set_parse_action)
-    def setParseAction(self): ...
-
-    @replaced_by_pep8(add_parse_action)
-    def addParseAction(self): ...
-
-    @replaced_by_pep8(add_condition)
-    def addCondition(self): ...
-
-    @replaced_by_pep8(set_fail_action)
-    def setFailAction(self): ...
-
-    @replaced_by_pep8(try_parse)
-    def tryParse(self): ...
-
-    @staticmethod
-    @replaced_by_pep8(enable_left_recursion)
-    def enableLeftRecursion(): ...
-
-    @staticmethod
-    @replaced_by_pep8(enable_packrat)
-    def enablePackrat(): ...
-
-    @replaced_by_pep8(parse_string)
-    def parseString(self): ...
-
-    @replaced_by_pep8(scan_string)
-    def scanString(self): ...
-
-    @replaced_by_pep8(transform_string)
-    def transformString(self): ...
-
-    @replaced_by_pep8(search_string)
-    def searchString(self): ...
-
-    @replaced_by_pep8(ignore_whitespace)
-    def ignoreWhitespace(self): ...
-
-    @replaced_by_pep8(leave_whitespace)
-    def leaveWhitespace(self): ...
-
-    @replaced_by_pep8(set_whitespace_chars)
-    def setWhitespaceChars(self): ...
-
-    @replaced_by_pep8(parse_with_tabs)
-    def parseWithTabs(self): ...
-
-    @replaced_by_pep8(set_debug_actions)
-    def setDebugActions(self): ...
-
-    @replaced_by_pep8(set_debug)
-    def setDebug(self): ...
-
-    @replaced_by_pep8(set_name)
-    def setName(self): ...
-
-    @replaced_by_pep8(parse_file)
-    def parseFile(self): ...
-
-    @replaced_by_pep8(run_tests)
-    def runTests(self): ...
-
+    inlineLiteralsUsing = replaced_by_pep8("inlineLiteralsUsing", inline_literals_using)
+    setDefaultWhitespaceChars = replaced_by_pep8(
+        "setDefaultWhitespaceChars", set_default_whitespace_chars
+    )
+    setResultsName = replaced_by_pep8("setResultsName", set_results_name)
+    setBreak = replaced_by_pep8("setBreak", set_break)
+    setParseAction = replaced_by_pep8("setParseAction", set_parse_action)
+    addParseAction = replaced_by_pep8("addParseAction", add_parse_action)
+    addCondition = replaced_by_pep8("addCondition", add_condition)
+    setFailAction = replaced_by_pep8("setFailAction", set_fail_action)
+    tryParse = replaced_by_pep8("tryParse", try_parse)
+    enableLeftRecursion = replaced_by_pep8("enableLeftRecursion", enable_left_recursion)
+    enablePackrat = replaced_by_pep8("enablePackrat", enable_packrat)
+    parseString = replaced_by_pep8("parseString", parse_string)
+    scanString = replaced_by_pep8("scanString", scan_string)
+    transformString = replaced_by_pep8("transformString", transform_string)
+    searchString = replaced_by_pep8("searchString", search_string)
+    ignoreWhitespace = replaced_by_pep8("ignoreWhitespace", ignore_whitespace)
+    leaveWhitespace = replaced_by_pep8("leaveWhitespace", leave_whitespace)
+    setWhitespaceChars = replaced_by_pep8("setWhitespaceChars", set_whitespace_chars)
+    parseWithTabs = replaced_by_pep8("parseWithTabs", parse_with_tabs)
+    setDebugActions = replaced_by_pep8("setDebugActions", set_debug_actions)
+    setDebug = replaced_by_pep8("setDebug", set_debug)
+    setName = replaced_by_pep8("setName", set_name)
+    parseFile = replaced_by_pep8("parseFile", parse_file)
+    runTests = replaced_by_pep8("runTests", run_tests)
     canParseNext = can_parse_next
     resetCache = reset_cache
     defaultName = default_name
@@ -3911,11 +3861,8 @@ class ParseExpression(ParserElement):
 
     # Compatibility synonyms
     # fmt: off
-    @replaced_by_pep8(leave_whitespace)
-    def leaveWhitespace(self): ...
-
-    @replaced_by_pep8(ignore_whitespace)
-    def ignoreWhitespace(self): ...
+    leaveWhitespace = replaced_by_pep8("leaveWhitespace", leave_whitespace)
+    ignoreWhitespace = replaced_by_pep8("ignoreWhitespace", ignore_whitespace)
     # fmt: on
 
 
@@ -4635,11 +4582,8 @@ class ParseElementEnhance(ParserElement):
 
     # Compatibility synonyms
     # fmt: off
-    @replaced_by_pep8(leave_whitespace)
-    def leaveWhitespace(self): ...
-
-    @replaced_by_pep8(ignore_whitespace)
-    def ignoreWhitespace(self): ...
+    leaveWhitespace = replaced_by_pep8("leaveWhitespace", leave_whitespace)
+    ignoreWhitespace = replaced_by_pep8("ignoreWhitespace", ignore_whitespace)
     # fmt: on
 
 
@@ -5666,11 +5610,8 @@ class Forward(ParseElementEnhance):
 
     # Compatibility synonyms
     # fmt: off
-    @replaced_by_pep8(leave_whitespace)
-    def leaveWhitespace(self): ...
-
-    @replaced_by_pep8(ignore_whitespace)
-    def ignoreWhitespace(self): ...
+    leaveWhitespace = replaced_by_pep8("leaveWhitespace", leave_whitespace)
+    ignoreWhitespace = replaced_by_pep8("ignoreWhitespace", ignore_whitespace)
     # fmt: on
 
 
@@ -6144,16 +6085,8 @@ lineStart = line_start
 lineEnd = line_end
 stringStart = string_start
 stringEnd = string_end
-
-@replaced_by_pep8(null_debug_action)
-def nullDebugAction(): ...
-
-@replaced_by_pep8(trace_parse_action)
-def traceParseAction(): ...
-
-@replaced_by_pep8(condition_as_parse_action)
-def conditionAsParseAction(): ...
-
-@replaced_by_pep8(token_map)
-def tokenMap(): ...
+nullDebugAction = replaced_by_pep8("nullDebugAction", null_debug_action)
+traceParseAction = replaced_by_pep8("traceParseAction", trace_parse_action)
+conditionAsParseAction = replaced_by_pep8("conditionAsParseAction", condition_as_parse_action)
+tokenMap = replaced_by_pep8("tokenMap", token_map)
 # fmt: on
