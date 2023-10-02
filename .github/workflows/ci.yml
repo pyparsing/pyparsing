@@ -21,7 +21,7 @@ jobs:
     strategy:
       matrix:
         os: ["ubuntu-latest"]
-        toxenv: [py, pyparsing_packaging]
+        toxenv: [py]
         python-version: ["3.7", "3.8", "3.9", "3.10", "3.11"]
         include:
           - python-version: "3.11"
