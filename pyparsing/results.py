@@ -278,10 +278,10 @@ class ParseResults:
         return iter(self._tokdict)
 
     def values(self):
-        return self._tokdict.values()
+        return (self[k] for k in self.keys())
 
     def items(self):
-        return self._tokdict.items()
+        return ((k, self[k]) for k in self.keys())
 
     def haskeys(self) -> bool:
         """
