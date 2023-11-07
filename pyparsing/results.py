@@ -179,10 +179,10 @@ class ParseResults:
 
         if isinstance(name, int):
             name = str(name)
-        
+
         if not modal:
             self._all_names = {name}
-        
+
         self._name = name
 
         if toklist in self._null_values:
@@ -190,7 +190,7 @@ class ParseResults:
 
         if isinstance(toklist, (str_type, type)):
             toklist = [toklist]
-        
+
         if asList:
             if isinstance(toklist, ParseResults):
                 self[name] = _ParseResultsWithOffset(
@@ -202,7 +202,7 @@ class ParseResults:
                 )
             self[name]._name = name
             return
-        
+
         try:
             self[name] = toklist[0]
         except (KeyError, TypeError, IndexError):
@@ -214,10 +214,10 @@ class ParseResults:
     def __getitem__(self, i):
         if isinstance(i, (int, slice)):
             return self._toklist[i]
-        
+
         if i not in self._all_names:
             return self._tokdict[i][-1][0]
-        
+
         return ParseResults([v[0] for v in self._tokdict[i]])
 
     def __setitem__(self, k, v, isinstance=isinstance):
@@ -239,7 +239,7 @@ class ParseResults:
         if not isinstance(i, (int, slice)):
             del self._tokdict[i]
             return
-        
+
         mylen = len(self._toklist)
         del self._toklist[i]
 
@@ -665,7 +665,7 @@ class ParseResults:
 
         if not full:
             return "".join(out)
-        
+
         if self.haskeys():
             items = sorted((str(k), v) for k, v in self.items())
             for k, v in items:
@@ -690,7 +690,7 @@ class ParseResults:
                 )
         if not any(isinstance(vv, ParseResults) for vv in self):
             return "".join(out)
-        
+
         v = self
         for i, vv in enumerate(v):
             if isinstance(vv, ParseResults):
