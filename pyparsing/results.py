@@ -266,7 +266,7 @@ class ParseResults:
         return len(self._toklist)
 
     def __bool__(self) -> bool:
-        return bool(self._toklist or self._tokdict)
+        return not not (self._toklist or self._tokdict)
 
     def __iter__(self) -> Iterator:
         return iter(self._toklist)
@@ -287,7 +287,7 @@ class ParseResults:
         """
         Since ``keys()`` returns an iterator, this method is helpful in bypassing
         code that looks for the existence of any defined results names."""
-        return bool(self._tokdict)
+        return not not self._tokdict
 
     def pop(self, *args, **kwargs):
         """
