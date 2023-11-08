@@ -146,8 +146,10 @@ from .common import (
 # define backward compat synonyms
 if "pyparsing_unicode" not in globals():
     pyparsing_unicode = unicode  # type: ignore[misc]
+
 if "pyparsing_common" not in globals():
     pyparsing_common = common  # type: ignore[misc]
+
 if "pyparsing_test" not in globals():
     pyparsing_test = testing  # type: ignore[misc]
 

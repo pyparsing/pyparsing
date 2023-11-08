@@ -19,7 +19,9 @@ class OnlyOnce:
         if not self.called:
             results = self.callable(s, l, t)
             self.called = True
+
             return results
+
         raise ParseException(s, l, "OnlyOnce obj called multiple times w/out reset")
 
     def reset(self):
@@ -57,6 +59,7 @@ def replace_with(repl_str):
 
         term[1, ...].parse_string("324 234 N/A 234") # -> [324, 234, nan, 234]
     """
+
     return lambda s, l, t: [repl_str]
 
 
@@ -74,6 +77,7 @@ def remove_quotes(s, l, t):
         quoted_string.set_parse_action(remove_quotes)
         quoted_string.parse_string("'Now is the Winter of our Discontent'") # -> ["Now is the Winter of our Discontent"]
     """
+
     return t[0][1:-1]
 
 
@@ -134,20 +138,22 @@ def with_attribute(*args, **attr_dict):
         1 4 0 1 0
         1,3 2,3 1,1
     """
+
     if args:
         attrs = args[:]
     else:
         attrs = attr_dict.items()
+
     attrs = [(k, v) for k, v in attrs]
 
     def pa(s, l, tokens):
         for attrName, attrValue in attrs:
             if attrName not in tokens:
                 raise ParseException(s, l, "no matching attribute " + attrName)
+
             if attrValue != with_attribute.ANY_VALUE and tokens[attrName] != attrValue:
                 raise ParseException(
-                    s,
-                    l,
+                    s, l,
                     f"attribute {attrName!r} has value {tokens[attrName]!r}, must be {attrValue!r}",
                 )
 
@@ -193,7 +199,9 @@ def with_class(classname, namespace=""):
         1 4 0 1 0
         1,3 2,3 1,1
     """
+
     classattr = f"{namespace}:class" if namespace else "class"
+
     return with_attribute(**{classattr: classname})
 
 

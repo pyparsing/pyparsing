@@ -75,15 +75,19 @@ class ParseBaseException(Exception):
         Returns a multi-line string listing the ParserElements and/or function names in the
         exception's stack trace.
         """
+
         import inspect
         from .core import ParserElement
 
         if depth is None:
             depth = sys.getrecursionlimit()
+
         ret = []
+
         if isinstance(exc, ParseBaseException):
             ret.append(exc.line)
             ret.append(" " * (exc.column - 1) + "^")
+
         ret.append(f"{type(exc).__name__}: {exc}")
 
         if depth <= 0:
@@ -91,19 +95,21 @@ class ParseBaseException(Exception):
 
         callers = inspect.getinnerframes(exc.__traceback__, context=depth)
         seen = set()
+
         for ff in callers[-depth:]:
             frm = ff[0]
-
             f_self = frm.f_locals.get("self", None)
+
             if isinstance(f_self, ParserElement):
                 if not frm.f_code.co_name.startswith(
                     ("parseImpl", "_parseNoCache")
                 ):
                     continue
+
                 if id(f_self) in seen:
                     continue
-                seen.add(id(f_self))
 
+                seen.add(id(f_self))
                 self_type = type(f_self)
                 ret.append(
                     f"{self_type.__module__}.{self_type.__name__} - {f_self}"
@@ -115,12 +121,14 @@ class ParseBaseException(Exception):
 
             else:
                 code = frm.f_code
+
                 if code.co_name in ("wrapper", "<module>"):
                     continue
 
                 ret.append(code.co_name)
 
             depth -= 1
+
             if not depth:
                 break
 
@@ -132,6 +140,7 @@ class ParseBaseException(Exception):
         internal factory method to simplify creating one type of ParseException
         from another - avoids having __init__ signature conflicts among subclasses
         """
+
         return cls(pe.pstr, pe.loc, pe.msg, pe.parser_element)
 
     @property
@@ -139,6 +148,7 @@ class ParseBaseException(Exception):
         """
         Return the line of text where the exception occurred.
         """
+
         return line(self.loc, self.pstr)
 
     @property
@@ -146,6 +156,7 @@ class ParseBaseException(Exception):
         """
         Return the 1-based line number of text where the exception occurred.
         """
+
         return lineno(self.loc, self.pstr)
 
     @property
@@ -153,6 +164,7 @@ class ParseBaseException(Exception):
         """
         Return the 1-based column on the line of text where the exception occurred.
         """
+
         return col(self.loc, self.pstr)
 
     @property
@@ -160,6 +172,7 @@ class ParseBaseException(Exception):
         """
         Return the 1-based column on the line of text where the exception occurred.
         """
+
         return col(self.loc, self.pstr)
 
     # pre-PEP8 compatibility
@@ -178,14 +191,20 @@ class ParseBaseException(Exception):
             else:
                 # pull out next word at error location
                 found_match = _exception_word_extractor.match(self.pstr, self.loc)
+
                 if found_match is not None:
                     found = found_match.group(0)
                 else:
                     found = self.pstr[self.loc : self.loc + 1]
+
                 foundstr = (", found %r" % found).replace(r"\\", "\\")
         else:
             foundstr = ""
-        return f"{self.msg}{foundstr}  (at char {self.loc}), (line:{self.lineno}, col:{self.column})"
+
+        return (
+            f"{self.msg}{foundstr}  "
+            f"(at char {self.loc}), (line:{self.lineno}, col:{self.column})"
+        )
 
     def __repr__(self):
         return str(self)
@@ -197,9 +216,11 @@ class ParseBaseException(Exception):
         Extracts the exception line from the input string, and marks
         the location of the exception with a special symbol.
         """
+
         markerString = marker_string if marker_string is not None else markerString
         line_str = self.line
         line_column = self.column - 1
+
         if markerString:
             line_str = "".join(
                 (line_str[:line_column], markerString, line_str[line_column:])
@@ -243,6 +264,7 @@ class ParseBaseException(Exception):
         stack of expressions that are displayed in the ``explain`` output. To get the full listing
         of parser expressions, you may have to set ``ParserElement.verbose_stacktrace = True``
         """
+
         return self.explain_exception(self, depth)
 
     # fmt: off

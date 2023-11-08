@@ -161,11 +161,17 @@ class pyparsing_common:
     Parse action for converting parsed numbers to Python float
     """
 
-    integer = Word(nums).set_name("integer").set_parse_action(convert_to_integer)
+    integer = (
+        Word(nums)
+        .set_name("integer")
+        .set_parse_action(convert_to_integer)
+    )
     """expression that parses an unsigned integer, returns an int"""
 
     hex_integer = (
-        Word(hexnums).set_name("hex integer").set_parse_action(token_map(int, 16))
+        Word(hexnums)
+        .set_name("hex integer")
+        .set_parse_action(token_map(int, 16))
     )
     """expression that parses a hexadecimal integer, returns an int"""
 
@@ -206,7 +212,11 @@ class pyparsing_common:
     scientific notation and returns a float"""
 
     # streamlining this expression makes the docs nicer-looking
-    number = (sci_real | real | signed_integer).set_name("number").streamline()
+    number = (
+        (sci_real | real | signed_integer)
+        .set_name("number")
+        .streamline()
+    )
     """any numeric expression, returns the corresponding Python type"""
 
     fnumber = (
@@ -216,7 +226,10 @@ class pyparsing_common:
     )
     """any int or real number, returned as float"""
 
-    identifier = Word(identchars, identbodychars).set_name("identifier")
+    identifier = (
+        Word(identchars, identbodychars)
+        .set_name("identifier")
+    )
     """typical code identifier (leading alpha or '_', followed by 0 or more alphas, nums, or '_')"""
 
     ipv4_address = Regex(
@@ -244,9 +257,10 @@ class pyparsing_common:
     ).set_name("IPv6 address")
     "IPv6 address (long, short, or mixed form)"
 
-    mac_address = Regex(
-        r"[0-9a-fA-F]{2}([:.-])[0-9a-fA-F]{2}(?:\1[0-9a-fA-F]{2}){4}"
-    ).set_name("MAC address")
+    mac_address = (
+        Regex(r"[0-9a-fA-F]{2}([:.-])[0-9a-fA-F]{2}(?:\1[0-9a-fA-F]{2}){4}")
+        .set_name("MAC address")
+    )
     "MAC address xx:xx:xx:xx:xx (may also have '-' or '.' delimiters)"
 
     @staticmethod
@@ -303,17 +317,25 @@ class pyparsing_common:
 
         return cvt_fn
 
-    iso8601_date = Regex(
-        r"(?P<year>\d{4})(?:-(?P<month>\d\d)(?:-(?P<day>\d\d))?)?"
-    ).set_name("ISO8601 date")
+    iso8601_date = (
+        Regex(r"(?P<year>\d{4})(?:-(?P<month>\d\d)(?:-(?P<day>\d\d))?)?")
+        .set_name("ISO8601 date")
+    )
     "ISO8601 date (``yyyy-mm-dd``)"
 
-    iso8601_datetime = Regex(
-        r"(?P<year>\d{4})-(?P<month>\d\d)-(?P<day>\d\d)[T ](?P<hour>\d\d):(?P<minute>\d\d)(:(?P<second>\d\d(\.\d*)?)?)?(?P<tz>Z|[+-]\d\d:?\d\d)?"
-    ).set_name("ISO8601 datetime")
+    iso8601_datetime = (
+        Regex(
+            r"(?P<year>\d{4})-(?P<month>\d\d)-(?P<day>\d\d)[T ]"
+            r"(?P<hour>\d\d):(?P<minute>\d\d)(:(?P<second>\d\d(\.\d*)?)?)?"
+            r"(?P<tz>Z|[+-]\d\d:?\d\d)?"
+        )
+        .set_name("ISO8601 datetime"))
     "ISO8601 datetime (``yyyy-mm-ddThh:mm:ss.s(Z|+-00:00)``) - trailing seconds, milliseconds, and timezone optional; accepts separating ``'T'`` or ``' '``"
 
-    uuid = Regex(r"[0-9a-fA-F]{8}(-[0-9a-fA-F]{4}){3}-[0-9a-fA-F]{12}").set_name("UUID")
+    uuid = (
+        Regex(r"[0-9a-fA-F]{8}(-[0-9a-fA-F]{4}){3}-[0-9a-fA-F]{12}")
+        .set_name("UUID")
+    )
     "UUID (``xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx``)"
 
     _html_stripper = any_open_tag.suppress() | any_close_tag.suppress()
@@ -334,6 +356,7 @@ class pyparsing_common:
 
             More info at the pyparsing wiki page
         """
+
         return pyparsing_common._html_stripper.transform_string(tokens[0])
 
     _commasepitem = (

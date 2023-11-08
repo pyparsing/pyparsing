@@ -7,6 +7,7 @@ import itertools
 from functools import lru_cache, wraps
 from typing import Callable, List, Union, Iterable, TypeVar, cast
 
+
 _bslash = chr(92)
 C = TypeVar("C", bound=Callable)
 
@@ -27,10 +28,11 @@ class __config_flags:
                 stacklevel=3,
             )
             return
-        if dname in cls._all_names:
-            setattr(cls, dname, value)
-        else:
+
+        if dname not in cls._all_names:
             raise ValueError(f"no such {cls._type_desc} {dname!r}")
+
+        setattr(cls, dname, value)
 
     enable = classmethod(lambda cls, name: cls._set(name, True))
     disable = classmethod(lambda cls, name: cls._set(name, False))
@@ -49,8 +51,11 @@ def col(loc: int, strg: str) -> int:
     methods to maintain a consistent view of the parsed string, the parse
     location, and line and column positions within the parsed string.
     """
-    s = strg
-    return 1 if 0 < loc < len(s) and s[loc - 1] == "\n" else loc - s.rfind("\n", 0, loc)
+
+    if 0 < loc < len(strg) and strg[loc - 1] == "\n":
+        return 1
+
+    return loc - strg.rfind("\n", 0, loc)
 
 
 @lru_cache(maxsize=128)
@@ -64,6 +69,7 @@ def lineno(loc: int, strg: str) -> int:
     suggested methods to maintain a consistent view of the parsed string, the
     parse location, and line and column positions within the parsed string.
     """
+
     return strg.count("\n", 0, loc) + 1
 
 
@@ -72,8 +78,10 @@ def line(loc: int, strg: str) -> str:
     """
     Returns the line of text containing loc within a string, counting newlines as line separators.
     """
+
     last_cr = strg.rfind("\n", 0, loc)
     next_cr = strg.find("\n", loc)
+
     return strg[last_cr + 1 : next_cr] if next_cr >= 0 else strg[last_cr + 1 :]
 
 
@@ -103,6 +111,7 @@ class _FifoCache:
         self.not_in_cache = not_in_cache = object()
         cache = {}
         keyring = [object()] * size
+
         cache_get = cache.get
         cache_pop = cache.pop
         keyiter = itertools.cycle(range(size))
@@ -158,6 +167,7 @@ class LRUMemo:
         else:
             while len(self._memory) >= self._capacity:
                 self._memory.popitem(last=False)
+
             self._memory[key] = value
 
     def clear(self):
@@ -178,8 +188,10 @@ def _escape_regex_range_chars(s: str) -> str:
     # escape these chars: ^-[]
     for c in r"\^-[]":
         s = s.replace(c, _bslash + c)
+
     s = s.replace("\n", r"\n")
     s = s.replace("\t", r"\t")
+
     return str(s)
 
 
@@ -189,8 +201,10 @@ def _collapse_string_to_ranges(
     def is_consecutive(c):
         c_int = ord(c)
         is_consecutive.prev, prev = c_int, is_consecutive.prev
+
         if c_int - prev > 1:
             is_consecutive.value = next(is_consecutive.counter)
+
         return is_consecutive.value
 
     is_consecutive.prev = 0  # type: ignore [attr-defined]
@@ -208,32 +222,37 @@ def _collapse_string_to_ranges(
 
     ret = []
     s = "".join(sorted(set(s)))
-    if len(s) > 3:
-        for _, chars in itertools.groupby(s, key=is_consecutive):
-            first = last = next(chars)
-            last = collections.deque(
-                itertools.chain(iter([last]), chars), maxlen=1
-            ).pop()
-            if first == last:
-                ret.append(escape_re_range_char(first))
-            else:
-                sep = "" if ord(last) == ord(first) + 1 else "-"
-                ret.append(
-                    f"{escape_re_range_char(first)}{sep}{escape_re_range_char(last)}"
-                )
-    else:
+
+    if len(s) <= 3:
         ret = [escape_re_range_char(c) for c in s]
+        return "".join(ret)
+
+    for _, chars in itertools.groupby(s, key=is_consecutive):
+        first = last = next(chars)
+        last = collections.deque(
+            itertools.chain(iter([last]), chars), maxlen=1
+        ).pop()
+
+        if first == last:
+            ret.append(escape_re_range_char(first))
+        else:
+            sep = "" if ord(last) == ord(first) + 1 else "-"
+            ret.append(
+                f"{escape_re_range_char(first)}{sep}{escape_re_range_char(last)}"
+            )
 
     return "".join(ret)
 
 
 def _flatten(ll: list) -> list:
     ret = []
+
     for i in ll:
         if isinstance(i, list):
             ret.extend(_flatten(i))
         else:
             ret.append(i)
+
     return ret
 
 
@@ -267,11 +286,14 @@ def replaced_by_pep8(compat_name: str, fn: C) -> C:
     _inner.__doc__ = f"""Deprecated - use :class:`{fn.__name__}`"""
     _inner.__name__ = compat_name
     _inner.__annotations__ = fn.__annotations__
+
     if isinstance(fn, types.FunctionType):
         _inner.__kwdefaults__ = fn.__kwdefaults__
     elif isinstance(fn, type) and hasattr(fn, "__init__"):
         _inner.__kwdefaults__ = fn.__init__.__kwdefaults__
     else:
         _inner.__kwdefaults__ = None
+
     _inner.__qualname__ = fn.__qualname__
+
     return cast(C, _inner)
