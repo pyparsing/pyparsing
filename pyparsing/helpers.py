@@ -95,15 +95,17 @@ def match_previous_literal(expr: ParserElement) -> ParserElement:
     rep = Forward()
 
     def copy_token_to_repeater(s, l, t):
-        if t:
-            if len(t) == 1:
-                rep << t[0]
-            else:
-                # flatten t tokens
-                tflat = _flatten(t.as_list())
-                rep << And(Literal(tt) for tt in tflat)
-        else:
+        if not t:
             rep << Empty()
+            return
+
+        if len(t) == 1:
+            rep << t[0]
+            return
+
+        # flatten t tokens
+        tflat = _flatten(t.as_list())
+        rep << And(Literal(tt) for tt in tflat)
 
     expr.add_parse_action(copy_token_to_repeater, callDuringTry=True)
     rep.set_name("(prev) " + str(expr))
@@ -230,7 +232,7 @@ def one_of(
                 if isequal(other, cur):
                     del symbols[i + j + 1]
                     break
-                elif masks(cur, other):
+                if masks(cur, other):
                     del symbols[i + j + 1]
                     symbols.insert(i, other)
                     break
@@ -787,7 +789,7 @@ def infix_notation(
     pa: typing.Optional[ParseAction]
     opExpr1: ParserElement
     opExpr2: ParserElement
-    for i, operDef in enumerate(op_list):
+    for operDef in op_list:
         opExpr, arity, rightLeftAssoc, pa = (operDef + (None,))[:4]  # type: ignore[assignment]
         if isinstance(opExpr, str_type):
             opExpr = ParserElement._literalStringClass(opExpr)
