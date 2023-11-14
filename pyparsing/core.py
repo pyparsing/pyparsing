@@ -1731,13 +1731,14 @@ class ParserElement(ABC):
         self.skipWhitespace = True
         return self
 
-    def leave_whitespace(self, recursive: bool = True) -> "ParserElement":
+    def leave_whitespace(self, recursive: bool = True, make_copies: bool = True) -> "ParserElement":
         """
         Disables the skipping of whitespace before matching the characters in the
         :class:`ParserElement`'s defined pattern.  This is normally only used internally by
         the pyparsing module, but may be needed in some whitespace-sensitive grammars.
 
         :param recursive: If true (the default), also disable whitespace skipping in child elements (if any)
+        :param make_copies: If true (the default), child elements (if any) are copied before disabling.
         """
         self.skipWhitespace = False
         return self
@@ -3735,17 +3736,21 @@ class ParseExpression(ParserElement):
         self._defaultName = None
         return self
 
-    def leave_whitespace(self, recursive: bool = True) -> ParserElement:
+    def leave_whitespace(self, recursive: bool = True, make_copies: bool = True) -> ParserElement:
         """
         Extends ``leave_whitespace`` defined in base class, and also invokes ``leave_whitespace`` on
            all contained expressions.
         """
-        super().leave_whitespace(recursive)
+
+        super().leave_whitespace(recursive, make_copies)
 
         if recursive:
-            self.exprs = [e.copy() for e in self.exprs]
+            if make_copies:
+                self.exprs = [e.copy() for e in self.exprs]
+
             for e in self.exprs:
-                e.leave_whitespace(recursive)
+                e.leave_whitespace(recursive, make_copies)
+
         return self
 
     def ignore_whitespace(self, recursive: bool = True) -> ParserElement:
@@ -4521,13 +4526,15 @@ class ParseElementEnhance(ParserElement):
         else:
             raise ParseException(instring, loc, "No expression defined", self)
 
-    def leave_whitespace(self, recursive: bool = True) -> ParserElement:
-        super().leave_whitespace(recursive)
+    def leave_whitespace(self, recursive: bool = True, make_copies: bool = True) -> ParserElement:
+        super().leave_whitespace(recursive, make_copies)
 
-        if recursive:
-            if self.expr is not None:
+        if recursive and self.expr is not None:
+            if make_copies:
                 self.expr = self.expr.copy()
-                self.expr.leave_whitespace(recursive)
+
+            self.expr.leave_whitespace(recursive, make_copies)
+
         return self
 
     def ignore_whitespace(self, recursive: bool = True) -> ParserElement:
@@ -5539,7 +5546,7 @@ class Forward(ParseElementEnhance):
                                 raise
                         prev_loc, prev_peek = memo[peek_key] = new_loc, new_peek
 
-    def leave_whitespace(self, recursive: bool = True) -> ParserElement:
+    def leave_whitespace(self, recursive: bool = True, make_copies: bool = True) -> ParserElement:
         self.skipWhitespace = False
         return self
 
