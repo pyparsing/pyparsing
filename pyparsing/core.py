@@ -1544,19 +1544,24 @@ class ParserElement(ABC):
 
         if optElements:
 
-        def makeOptionalList(n):
-            if n > 1:
-                return Opt(self + makeOptionalList(n - 1))
+            def makeOptionalList(n):
+                if n > 1:
+                    return Opt(self + makeOptionalList(n - 1))
+                else:
+                    return Opt(self)
 
-            return Opt(self)
-
-        if not minElements:
-            ret = makeOptionalList(optElements)
-        elif minElements == 1:
-            ret = self + makeOptionalList(optElements)
+            if minElements:
+                if minElements == 1:
+                    ret = self + makeOptionalList(optElements)
+                else:
+                    ret = And([self] * minElements) + makeOptionalList(optElements)
+            else:
+                ret = makeOptionalList(optElements)
         else:
-            ret = And([self] * minElements) + makeOptionalList(optElements)
-
+            if minElements == 1:
+                ret = self
+            else:
+                ret = And([self] * minElements)
         return ret
 
     def __rmul__(self, other) -> "ParserElement":
