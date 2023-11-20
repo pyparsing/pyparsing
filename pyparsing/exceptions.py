@@ -83,7 +83,7 @@ class ParseBaseException(Exception):
         ret = []
         if isinstance(exc, ParseBaseException):
             ret.append(exc.line)
-            ret.append(" " * (exc.column - 1) + "^")
+            ret.append(f"{' ' * (exc.column - 1)}^")
         ret.append(f"{type(exc).__name__}: {exc}")
 
         if depth <= 0:
@@ -96,18 +96,14 @@ class ParseBaseException(Exception):
 
             f_self = frm.f_locals.get("self", None)
             if isinstance(f_self, ParserElement):
-                if not frm.f_code.co_name.startswith(
-                    ("parseImpl", "_parseNoCache")
-                ):
+                if not frm.f_code.co_name.startswith(("parseImpl", "_parseNoCache")):
                     continue
                 if id(f_self) in seen:
                     continue
                 seen.add(id(f_self))
 
                 self_type = type(f_self)
-                ret.append(
-                    f"{self_type.__module__}.{self_type.__name__} - {f_self}"
-                )
+                ret.append(f"{self_type.__module__}.{self_type.__name__} - {f_self}")
 
             elif f_self is not None:
                 self_type = type(f_self)

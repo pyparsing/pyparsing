@@ -1289,7 +1289,7 @@ class ParserElement(ABC):
         except ParseBaseException as exc:
             if ParserElement.verbose_stacktrace:
                 raise
-            
+
             # catch and re-raise exception from here, clears out pyparsing internal stack trace
             raise exc.with_traceback(None)
 
@@ -2316,7 +2316,7 @@ class _PendingSkip(ParserElement):
             def show_skip(t):
                 if t._skipped.as_list()[-1:] == [""]:
                     t.pop("_skipped")
-                    t["_skipped"] = "missing <" + repr(self.anchor) + ">"
+                    t["_skipped"] = f"missing <{self.anchor!r}>"
 
             return (
                 self.anchor + skipper().add_parse_action(must_skip)
@@ -2927,8 +2927,8 @@ class Word(Token):
         elif self.maxSpecified and loc < instrlen and instring[loc] in bodychars:
             throwException = True
         elif self.asKeyword and (
-            start > 0 and instring[start - 1] in bodychars
-            or loc < instrlen and instring[loc] in bodychars
+            (start > 0 and instring[start - 1] in bodychars)
+            or (loc < instrlen and instring[loc] in bodychars)
         ):
             throwException = True
 
@@ -3782,7 +3782,7 @@ class ParseExpression(ParserElement):
         return self
 
     def _generateDefaultName(self) -> str:
-        return f"{self.__class__.__name__}:({str(self.exprs)})"
+        return f"{self.__class__.__name__}:({self.exprs})"
 
     def streamline(self) -> ParserElement:
         if self.streamlined:
@@ -4032,7 +4032,7 @@ class And(ParseExpression):
         # strip off redundant inner {}'s
         while len(inner) > 1 and inner[0 :: len(inner) - 1] == "{}":
             inner = inner[1:-1]
-        return "{" + inner + "}"
+        return f"{{{inner}}}"
 
 
 class Or(ParseExpression):
@@ -4154,9 +4154,7 @@ class Or(ParseExpression):
                 maxException.msg = self.errmsg
             raise maxException
 
-        raise ParseException(
-            instring, loc, "no defined alternatives to match", self
-        )
+        raise ParseException(instring, loc, "no defined alternatives to match", self)
 
     def __ixor__(self, other):
         if isinstance(other, str_type):
@@ -4166,7 +4164,7 @@ class Or(ParseExpression):
         return self.append(other)  # Or([self, other])
 
     def _generateDefaultName(self) -> str:
-        return "{" + " ^ ".join(str(e) for e in self.exprs) + "}"
+        return f"{{{' ^ '.join(str(e) for e in self.exprs)}}}"
 
     def _setResultsName(self, name, listAllMatches=False):
         if (
@@ -4263,9 +4261,7 @@ class MatchFirst(ParseExpression):
                 maxException.msg = self.errmsg
             raise maxException
 
-        raise ParseException(
-            instring, loc, "no defined alternatives to match", self
-        )
+        raise ParseException(instring, loc, "no defined alternatives to match", self)
 
     def __ior__(self, other):
         if isinstance(other, str_type):
@@ -4275,7 +4271,7 @@ class MatchFirst(ParseExpression):
         return self.append(other)  # MatchFirst([self, other])
 
     def _generateDefaultName(self) -> str:
-        return "{" + " | ".join(str(e) for e in self.exprs) + "}"
+        return f"{{{' | '.join(str(e) for e in self.exprs)}}}"
 
     def _setResultsName(self, name, listAllMatches=False):
         if (
@@ -4472,7 +4468,7 @@ class Each(ParseExpression):
         return loc, total_results
 
     def _generateDefaultName(self) -> str:
-        return "{" + " & ".join(str(e) for e in self.exprs) + "}"
+        return f"{{{' & '.join(str(e) for e in self.exprs)}}}"
 
 
 class ParseElementEnhance(ParserElement):
@@ -4570,7 +4566,7 @@ class ParseElementEnhance(ParserElement):
         self._checkRecursion([])
 
     def _generateDefaultName(self) -> str:
-        return f"{self.__class__.__name__}:({str(self.expr)})"
+        return f"{self.__class__.__name__}:({self.expr})"
 
     # Compatibility synonyms
     # fmt: off
@@ -4805,9 +4801,7 @@ class PrecededBy(ParseElementEnhance):
         for offset in range(1, min(loc, self.retreat + 1) + 1):
             try:
                 # print('trying', offset, instring_slice, repr(instring_slice[loc - offset:]))
-                _, ret = test_expr._parse(
-                    instring_slice, len(instring_slice) - offset
-                )
+                _, ret = test_expr._parse(instring_slice, len(instring_slice) - offset)
             except ParseBaseException as pbe:
                 last_expr = pbe
             else:
@@ -4900,7 +4894,7 @@ class NotAny(ParseElementEnhance):
         return loc, []
 
     def _generateDefaultName(self) -> str:
-        return "~{" + str(self.expr) + "}"
+        return f"~{{{self.expr}}}"
 
 
 class _MultipleMatch(ParseElementEnhance):
@@ -5005,7 +4999,7 @@ class OneOrMore(_MultipleMatch):
     """
 
     def _generateDefaultName(self) -> str:
-        return "{" + str(self.expr) + "}..."
+        return f"{{{self.expr}}}..."
 
 
 class ZeroOrMore(_MultipleMatch):
@@ -5039,7 +5033,7 @@ class ZeroOrMore(_MultipleMatch):
             return loc, ParseResults([], name=self.resultsName)
 
     def _generateDefaultName(self) -> str:
-        return "[" + str(self.expr) + "]..."
+        return f"[{self.expr}]..."
 
 
 class DelimitedList(ParseElementEnhance):
@@ -5103,7 +5097,8 @@ class DelimitedList(ParseElementEnhance):
         super().__init__(delim_list_expr, savelist=True)
 
     def _generateDefaultName(self) -> str:
-        return "{0} [{1} {0}]...".format(self.content.streamline(), self.raw_delim)
+        content_expr = self.content.streamline()
+        return f"{content_expr} [{self.raw_delim} {content_expr}]..."
 
 
 class _NullToken:
@@ -5185,7 +5180,7 @@ class Opt(ParseElementEnhance):
         # strip off redundant inner {}'s
         while len(inner) > 1 and inner[0 :: len(inner) - 1] == "{}":
             inner = inner[1:-1]
-        return "[" + inner + "]"
+        return f"[{inner}]"
 
 
 Optional = Opt
@@ -5570,7 +5565,7 @@ class Forward(ParseElementEnhance):
             else:
                 retString = "None"
         finally:
-            return self.__class__.__name__ + ": " + retString
+            return f"{self.__class__.__name__}: {retString}"
 
     def copy(self) -> ParserElement:
         if self.expr is not None:
@@ -5881,7 +5876,7 @@ def trace_parse_action(f: ParseAction) -> ParseAction:
         thisFunc = f.__name__
         s, l, t = paArgs[-3:]
         if len(paArgs) > 3:
-            thisFunc = paArgs[0].__class__.__name__ + "." + thisFunc
+            thisFunc = f"{paArgs[0].__class__.__name__}.{thisFunc}"
         sys.stderr.write(f">>entering {thisFunc}(line: {line(l, s)!r}, {l}, {t!r})\n")
         try:
             ret = f(*paArgs)

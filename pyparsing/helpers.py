@@ -74,7 +74,7 @@ def counted_array(
         intExpr = intExpr.copy()
     intExpr.set_name("arrayLen")
     intExpr.add_parse_action(count_field_parse_action, call_during_try=True)
-    return (intExpr + array_expr).set_name("(len) " + str(expr) + "...")
+    return (intExpr + array_expr).set_name(f"(len) {expr}...")
 
 
 def match_previous_literal(expr: ParserElement) -> ParserElement:

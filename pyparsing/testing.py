@@ -194,9 +194,7 @@ class pyparsing_test:
                 # expected should be a tuple containing a list and/or a dict or an exception,
                 # and optional failure message string
                 # an empty tuple will skip any result validation
-                fail_msg = next(
-                    (exp for exp in expected if isinstance(exp, str)), None
-                )
+                fail_msg = next((exp for exp in expected if isinstance(exp, str)), None)
                 expected_exception = next(
                     (
                         exp
