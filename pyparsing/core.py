@@ -2867,18 +2867,18 @@ class Word(Token):
                         else:
                             repeat = f"{{{min - 1 if min > 0 else ''}}}"
 
-            self.reString = f"{re_leading_fragment}{re_body_fragment}{repeat}"
+                self.reString = f"{re_leading_fragment}{re_body_fragment}{repeat}"
 
-        if self.asKeyword:
-            self.reString = rf"\b{self.reString}\b"
+            if self.asKeyword:
+                self.reString = rf"\b{self.reString}\b"
 
-        try:
-            self.re = re.compile(self.reString)
-        except re.error:
-            self.re = None  # type: ignore[assignment]
-        else:
-            self.re_match = self.re.match
-            self.parseImpl = self.parseImpl_regex  # type: ignore[assignment]
+            try:
+                self.re = re.compile(self.reString)
+            except re.error:
+                self.re = None  # type: ignore[assignment]
+            else:
+                self.re_match = self.re.match
+                self.parseImpl = self.parseImpl_regex  # type: ignore[assignment]
 
     def _generateDefaultName(self) -> str:
         def charsAsStr(s):
