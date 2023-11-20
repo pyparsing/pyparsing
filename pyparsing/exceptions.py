@@ -86,41 +86,43 @@ class ParseBaseException(Exception):
             ret.append(" " * (exc.column - 1) + "^")
         ret.append(f"{type(exc).__name__}: {exc}")
 
-        if depth > 0:
-            callers = inspect.getinnerframes(exc.__traceback__, context=depth)
-            seen = set()
-            for i, ff in enumerate(callers[-depth:]):
-                frm = ff[0]
+        if depth <= 0:
+            return "\n".join(ret)
 
-                f_self = frm.f_locals.get("self", None)
-                if isinstance(f_self, ParserElement):
-                    if not frm.f_code.co_name.startswith(
-                        ("parseImpl", "_parseNoCache")
-                    ):
-                        continue
-                    if id(f_self) in seen:
-                        continue
-                    seen.add(id(f_self))
+        callers = inspect.getinnerframes(exc.__traceback__, context=depth)
+        seen = set()
+        for ff in callers[-depth:]:
+            frm = ff[0]
 
-                    self_type = type(f_self)
-                    ret.append(
-                        f"{self_type.__module__}.{self_type.__name__} - {f_self}"
-                    )
+            f_self = frm.f_locals.get("self", None)
+            if isinstance(f_self, ParserElement):
+                if not frm.f_code.co_name.startswith(
+                    ("parseImpl", "_parseNoCache")
+                ):
+                    continue
+                if id(f_self) in seen:
+                    continue
+                seen.add(id(f_self))
 
-                elif f_self is not None:
-                    self_type = type(f_self)
-                    ret.append(f"{self_type.__module__}.{self_type.__name__}")
+                self_type = type(f_self)
+                ret.append(
+                    f"{self_type.__module__}.{self_type.__name__} - {f_self}"
+                )
 
-                else:
-                    code = frm.f_code
-                    if code.co_name in ("wrapper", "<module>"):
-                        continue
+            elif f_self is not None:
+                self_type = type(f_self)
+                ret.append(f"{self_type.__module__}.{self_type.__name__}")
 
-                    ret.append(code.co_name)
+            else:
+                code = frm.f_code
+                if code.co_name in ("wrapper", "<module>"):
+                    continue
 
-                depth -= 1
-                if not depth:
-                    break
+                ret.append(code.co_name)
+
+            depth -= 1
+            if not depth:
+                break
 
         return "\n".join(ret)
 
