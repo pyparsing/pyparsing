@@ -37,6 +37,9 @@ diagrams = [
     "railroad-diagrams",
     "jinja2",
 ]
+types = [
+    "typing_extensions"
+]
 
 [project.urls]
 Homepage = "https://github.com/pyparsing/pyparsing/"

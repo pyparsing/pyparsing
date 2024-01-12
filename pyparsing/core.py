@@ -17,6 +17,7 @@ from typing import (
     Tuple,
     Union,
     cast,
+    TYPE_CHECKING
 )
 from abc import ABC, abstractmethod
 from enum import Enum
@@ -49,6 +50,9 @@ from .exceptions import *
 from .actions import *
 from .results import ParseResults, _ParseResultsWithOffset
 from .unicode import pyparsing_unicode
+
+if TYPE_CHECKING:
+    from typing_extensions import Self
 
 _MAX_INT = sys.maxsize
 str_type: Tuple[type, ...] = (str, bytes)
@@ -486,7 +490,7 @@ class ParserElement(ABC):
         self.callDuringTry = False
         self.suppress_warnings_: List[Diagnostics] = []
 
-    def suppress_warning(self, warning_type: Diagnostics) -> "ParserElement":
+    def suppress_warning(self, warning_type: Diagnostics) -> "Self":
         """
         Suppress warnings emitted for a particular diagnostic on this expression.
 
@@ -592,7 +596,7 @@ class ParserElement(ABC):
         newself.modalResults = not listAllMatches
         return newself
 
-    def set_break(self, break_flag: bool = True) -> "ParserElement":
+    def set_break(self, break_flag: bool = True) -> "Self":
         """
         Method to invoke the Python pdb debugger when this element is
         about to be parsed. Set ``break_flag`` to ``True`` to enable, ``False`` to
@@ -614,7 +618,7 @@ class ParserElement(ABC):
             self._parse = self._parse._originalParseMethod  # type: ignore [attr-defined, assignment]
         return self
 
-    def set_parse_action(self, *fns: ParseAction, **kwargs) -> "ParserElement":
+    def set_parse_action(self, *fns: ParseAction, **kwargs) -> "Self":
         """
         Define one or more actions to perform when successfully matching parse element definition.
 
@@ -702,7 +706,7 @@ class ParserElement(ABC):
 
         return self
 
-    def add_parse_action(self, *fns: ParseAction, **kwargs) -> "ParserElement":
+    def add_parse_action(self, *fns: ParseAction, **kwargs) -> "Self":
         """
         Add one or more parse actions to expression's list of parse actions. See :class:`set_parse_action`.
 
@@ -714,7 +718,7 @@ class ParserElement(ABC):
         )
         return self
 
-    def add_condition(self, *fns: ParseCondition, **kwargs) -> "ParserElement":
+    def add_condition(self, *fns: ParseCondition, **kwargs) -> "Self":
         """Add a boolean predicate function to expression's list of parse actions. See
         :class:`set_parse_action` for function call signatures. Unlike ``set_parse_action``,
         functions passed to ``add_condition`` need to return boolean success/fail of the condition.
@@ -751,7 +755,7 @@ class ParserElement(ABC):
         )
         return self
 
-    def set_fail_action(self, fn: ParseFailAction) -> "ParserElement":
+    def set_fail_action(self, fn: ParseFailAction) -> "Self":
         """
         Define action to perform if parsing fails at this expression.
         Fail acton fn is a callable function that takes the arguments
@@ -1730,7 +1734,7 @@ class ParserElement(ABC):
         """
         return Suppress(self)
 
-    def ignore_whitespace(self, recursive: bool = True) -> "ParserElement":
+    def ignore_whitespace(self, recursive: bool = True) -> "Self":
         """
         Enables the skipping of whitespace before matching the characters in the
         :class:`ParserElement`'s defined pattern.
@@ -1740,7 +1744,7 @@ class ParserElement(ABC):
         self.skipWhitespace = True
         return self
 
-    def leave_whitespace(self, recursive: bool = True) -> "ParserElement":
+    def leave_whitespace(self, recursive: bool = True) -> "Self":
         """
         Disables the skipping of whitespace before matching the characters in the
         :class:`ParserElement`'s defined pattern.  This is normally only used internally by
@@ -1753,7 +1757,7 @@ class ParserElement(ABC):
 
     def set_whitespace_chars(
         self, chars: Union[Set[str], str], copy_defaults: bool = False
-    ) -> "ParserElement":
+    ) -> "Self":
         """
         Overrides the default whitespace chars
         """
@@ -1762,7 +1766,7 @@ class ParserElement(ABC):
         self.copyDefaultWhiteChars = copy_defaults
         return self
 
-    def parse_with_tabs(self) -> "ParserElement":
+    def parse_with_tabs(self) -> "Self":
         """
         Overrides default behavior to expand ``<TAB>`` s to spaces before parsing the input string.
         Must be called before ``parse_string`` when the input grammar contains elements that
@@ -1771,7 +1775,7 @@ class ParserElement(ABC):
         self.keepTabs = True
         return self
 
-    def ignore(self, other: "ParserElement") -> "ParserElement":
+    def ignore(self, other: "ParserElement") -> "Self":
         """
         Define expression to be ignored (e.g., comments) while doing pattern
         matching; may be called repeatedly, to define multiple comment or other
@@ -1802,7 +1806,7 @@ class ParserElement(ABC):
         start_action: DebugStartAction,
         success_action: DebugSuccessAction,
         exception_action: DebugExceptionAction,
-    ) -> "ParserElement":
+    ) -> "Self":
         """
         Customize display of debugging messages while doing pattern matching:
 
@@ -1823,7 +1827,7 @@ class ParserElement(ABC):
         self.debug = True
         return self
 
-    def set_debug(self, flag: bool = True, recurse: bool = False) -> "ParserElement":
+    def set_debug(self, flag: bool = True, recurse: bool = False) -> "Self":
         """
         Enable display of debugging messages while doing pattern matching.
         Set ``flag`` to ``True`` to enable, ``False`` to disable.
@@ -1888,7 +1892,7 @@ class ParserElement(ABC):
         Child classes must define this method, which defines how the ``default_name`` is set.
         """
 
-    def set_name(self, name: str) -> "ParserElement":
+    def set_name(self, name: str) -> "Self":
         """
         Define name for this expression, makes debugging and exception messages clearer.
 
@@ -1914,7 +1918,7 @@ class ParserElement(ABC):
     def __repr__(self) -> str:
         return str(self)
 
-    def streamline(self) -> "ParserElement":
+    def streamline(self) -> "Self":
         self.streamlined = True
         self._defaultName = None
         return self
@@ -3739,12 +3743,12 @@ class ParseExpression(ParserElement):
     def recurse(self) -> List[ParserElement]:
         return self.exprs[:]
 
-    def append(self, other) -> ParserElement:
+    def append(self, other) -> "Self":
         self.exprs.append(other)
         self._defaultName = None
         return self
 
-    def leave_whitespace(self, recursive: bool = True) -> ParserElement:
+    def leave_whitespace(self, recursive: bool = True) -> "Self":
         """
         Extends ``leave_whitespace`` defined in base class, and also invokes ``leave_whitespace`` on
            all contained expressions.
@@ -3757,7 +3761,7 @@ class ParseExpression(ParserElement):
                 e.leave_whitespace(recursive)
         return self
 
-    def ignore_whitespace(self, recursive: bool = True) -> ParserElement:
+    def ignore_whitespace(self, recursive: bool = True) -> "Self":
         """
         Extends ``ignore_whitespace`` defined in base class, and also invokes ``leave_whitespace`` on
            all contained expressions.
@@ -3769,7 +3773,7 @@ class ParseExpression(ParserElement):
                 e.ignore_whitespace(recursive)
         return self
 
-    def ignore(self, other) -> ParserElement:
+    def ignore(self, other) -> "Self":
         if isinstance(other, Suppress):
             if other not in self.ignoreExprs:
                 super().ignore(other)
@@ -3784,7 +3788,7 @@ class ParseExpression(ParserElement):
     def _generateDefaultName(self) -> str:
         return f"{self.__class__.__name__}:({self.exprs})"
 
-    def streamline(self) -> ParserElement:
+    def streamline(self) -> "Self":
         if self.streamlined:
             return self
 
@@ -3934,7 +3938,7 @@ class And(ParseExpression):
             self.mayReturnEmpty = True
         self.callPreparse = True
 
-    def streamline(self) -> ParserElement:
+    def streamline(self) -> "Self":
         # collapse any _PendingSkip's
         if self.exprs and any(
             isinstance(e, ParseExpression)
@@ -4061,7 +4065,7 @@ class Or(ParseExpression):
         else:
             self.mayReturnEmpty = True
 
-    def streamline(self) -> ParserElement:
+    def streamline(self) -> "Self":
         super().streamline()
         if self.exprs:
             self.mayReturnEmpty = any(e.mayReturnEmpty for e in self.exprs)
@@ -4216,7 +4220,7 @@ class MatchFirst(ParseExpression):
         else:
             self.mayReturnEmpty = True
 
-    def streamline(self) -> ParserElement:
+    def streamline(self) -> "Self":
         if self.streamlined:
             return self
 
@@ -4372,7 +4376,7 @@ class Each(ParseExpression):
             return NotImplemented
         return self.append(other)  # Each([self, other])
 
-    def streamline(self) -> ParserElement:
+    def streamline(self) -> "Self":
         super().streamline()
         if self.exprs:
             self.mayReturnEmpty = all(e.mayReturnEmpty for e in self.exprs)
@@ -4513,7 +4517,7 @@ class ParseElementEnhance(ParserElement):
                 pbe.msg = self.errmsg
             raise
 
-    def leave_whitespace(self, recursive: bool = True) -> ParserElement:
+    def leave_whitespace(self, recursive: bool = True) -> "Self":
         super().leave_whitespace(recursive)
 
         if recursive:
@@ -4522,7 +4526,7 @@ class ParseElementEnhance(ParserElement):
                 self.expr.leave_whitespace(recursive)
         return self
 
-    def ignore_whitespace(self, recursive: bool = True) -> ParserElement:
+    def ignore_whitespace(self, recursive: bool = True) -> "Self":
         super().ignore_whitespace(recursive)
 
         if recursive:
@@ -4531,7 +4535,7 @@ class ParseElementEnhance(ParserElement):
                 self.expr.ignore_whitespace(recursive)
         return self
 
-    def ignore(self, other) -> ParserElement:
+    def ignore(self, other) -> "Self":
         if not isinstance(other, Suppress) or other not in self.ignoreExprs:
             super().ignore(other)
             if self.expr is not None:
@@ -4539,7 +4543,7 @@ class ParseElementEnhance(ParserElement):
 
         return self
 
-    def streamline(self) -> ParserElement:
+    def streamline(self) -> "Self":
         super().streamline()
         if self.expr is not None:
             self.expr.streamline()
@@ -4913,7 +4917,7 @@ class _MultipleMatch(ParseElementEnhance):
             ender = self._literalStringClass(ender)
         self.stopOn(ender)
 
-    def stopOn(self, ender) -> ParserElement:
+    def stopOn(self, ender) -> "Self":
         if isinstance(ender, str_type):
             ender = self._literalStringClass(ender)
         self.not_ender = ~ender if ender is not None else None
@@ -5372,7 +5376,7 @@ class Forward(ParseElementEnhance):
         super().__init__(other, savelist=False)  # type: ignore[arg-type]
         self.lshift_line = None
 
-    def __lshift__(self, other) -> "Forward":
+    def __lshift__(self, other) -> "Self":
         if hasattr(self, "caller_frame"):
             del self.caller_frame
         if isinstance(other, str_type):
@@ -5523,15 +5527,15 @@ class Forward(ParseElementEnhance):
                             raise
                     prev_loc, prev_peek = memo[peek_key] = new_loc, new_peek
 
-    def leave_whitespace(self, recursive: bool = True) -> ParserElement:
+    def leave_whitespace(self, recursive: bool = True) -> "Self":
         self.skipWhitespace = False
         return self
 
-    def ignore_whitespace(self, recursive: bool = True) -> ParserElement:
+    def ignore_whitespace(self, recursive: bool = True) -> "Self":
         self.skipWhitespace = True
         return self
 
-    def streamline(self) -> ParserElement:
+    def streamline(self) -> "Self":
         if not self.streamlined:
             self.streamlined = True
             if self.expr is not None:
@@ -5646,7 +5650,7 @@ class Combine(TokenConverter):
         self.joinString = joinString
         self.callPreparse = True
 
-    def ignore(self, other) -> ParserElement:
+    def ignore(self, other) -> "Self":
         if self.adjacent:
             ParserElement.ignore(self, other)
         else:
@@ -5841,7 +5845,7 @@ class Suppress(TokenConverter):
     def postParse(self, instring, loc, tokenlist):
         return []
 
-    def suppress(self) -> ParserElement:
+    def suppress(self) -> "Self":
         return self
 
 
