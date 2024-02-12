@@ -4510,7 +4510,8 @@ class ParseElementEnhance(ParserElement):
             return self.expr._parse(instring, loc, doActions, callPreParse=False)
         except ParseBaseException as pbe:
             if not isinstance(self, Forward) or self.customName is not None:
-                pbe.msg = self.errmsg
+                if self.errmsg:
+                    pbe.msg = self.errmsg
             raise
 
     def leave_whitespace(self, recursive: bool = True) -> ParserElement:
