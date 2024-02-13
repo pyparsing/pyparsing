@@ -26,7 +26,7 @@ Version 3.1.2 - in development
 - Added unit tests to test for exception message contents, with enhancement to
   `pyparsing.testing.assertRaisesParseException` to accept an expected exception message.
 
-- Added example `email_parser.py`, as suggested by John Byrd (#539).
+- Added example `email_address_parser.py`, as suggested by John Byrd (#539).
 
 - Some code refactoring to reduce code nesting, PRs submitted by InSync.
 

@@ -59,4 +59,4 @@ class TestExamples(unittest.TestCase):
         self._run("stackish")
 
     def test_email_parser(self):
-        self._run("email_parser")
+        self._run("email_address_parser")

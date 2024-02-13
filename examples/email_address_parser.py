@@ -1,5 +1,5 @@
 #
-# email_parser.py
+# email_address_parser.py
 #
 # email address parser based on RFC 5322 BNF segments
 # - see https://datatracker.ietf.org/doc/html/rfc5322#section-3.4.
@@ -13,9 +13,9 @@ from pyparsing import Regex
 
 email_address = Regex(
     # RFC5322 email address
-    r"""(?P<account>(?:(?:"[\w\s()<>[\].,;:@"]+")|[!#-'*+\-/-9=?A-Z\^-~.]+))"""
+    r"""(?P<account>(?:(?:\"[\w\s()<>[\].,;:@"]+\")|[!#-'*+\-/-9=?A-Z\^-~.]+))"""
     "@"
-    r"""(?P<domain>(?:(?:(?!-)[!#-'*+\-/-9=?A-Z\^-~]{1,63}(?<!-)\.)+[A-Za-z0-9]{2,6})|(?:\[[!-Z^-~]+\]))\b"""
+    r"""(?P<domain>(?:(?:(?!-)[!#-'*+\-/-9=?A-Z\^-~]{1,63}(?<!-)\.)+[A-Za-z0-9]{2,6})|(?:\[[!-Z^-~]+\]))(?:\b|$)"""
 ).set_name("email address")
 
 
