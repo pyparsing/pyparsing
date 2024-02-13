@@ -26,6 +26,9 @@ Version 3.1.2 - in development
 - Added unit tests to test for exception message contents, with enhancement to
   `pyparsing.testing.assertRaisesParseException` to accept an expected exception message.
 
+- Updated example `select_parser.py` to use PEP8 names and added Groups for better retrieval
+  of parsed values from multiple SELECT clauses.
+
 - Added example `email_address_parser.py`, as suggested by John Byrd (#539).
 
 - Some code refactoring to reduce code nesting, PRs submitted by InSync.

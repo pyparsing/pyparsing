@@ -4,14 +4,19 @@
 # a simple SELECT statement parser, taken from SQLite's SELECT statement
 # definition at https://www.sqlite.org/lang_select.html
 #
-import sys
-from pyparsing import *
+# fmt: off
+from pyparsing import (
+    pyparsing_common, ParserElement, OpAssoc,
+    CaselessKeyword, Combine, Forward, Group, Literal, MatchFirst, Optional, QuotedString, Regex, Suppress, Word,
+    alphanums, alphas, DelimitedList, infix_notation, nums, one_of, rest_of_line
+)
+# fmt: on
 
-ParserElement.enablePackrat()
+ParserElement.enable_packrat()
 
 LPAR, RPAR, COMMA = map(Suppress, "(),")
 DOT, STAR = map(Literal, ".*")
-select_stmt = Forward().setName("select statement")
+select_stmt = Forward().set_name("select statement")
 
 # keywords
 keywords = {
@@ -26,9 +31,9 @@ vars().update(keywords)
 
 any_keyword = MatchFirst(keywords.values())
 
-quoted_identifier = QuotedString('"', escQuote='""')
-identifier = (~any_keyword + Word(alphas, alphanums + "_")).setParseAction(
-    pyparsing_common.downcaseTokens
+quoted_identifier = QuotedString('"', esc_quote='""')
+identifier = (~any_keyword + Word(alphas, alphanums + "_")).set_parse_action(
+    pyparsing_common.downcase_tokens
 ) | quoted_identifier
 collation_name = identifier.copy()
 column_name = identifier.copy()
@@ -40,13 +45,13 @@ function_name = identifier.copy()
 parameter_name = identifier.copy()
 database_name = identifier.copy()
 
-comment = "--" + restOfLine
+comment = "--" + rest_of_line
 
 # expression
-expr = Forward().setName("expression")
+expr = Forward().set_name("expression")
 
 numeric_literal = pyparsing_common.number
-string_literal = QuotedString("'", escQuote="''")
+string_literal = QuotedString("'", esc_quote="''")
 blob_literal = Regex(r"[xX]'[0-9A-Fa-f]+'")
 literal_value = (
     numeric_literal
@@ -59,15 +64,15 @@ literal_value = (
     | CURRENT_DATE
     | CURRENT_TIMESTAMP
 )
-bind_parameter = Word("?", nums) | Combine(oneOf(": @ $") + parameter_name)
-type_name = oneOf("TEXT REAL INTEGER BLOB NULL")
+bind_parameter = Word("?", nums) | Combine(one_of(": @ $") + parameter_name)
+type_name = one_of("TEXT REAL INTEGER BLOB NULL")
 
 expr_term = (
     CAST + LPAR + expr + AS + type_name + RPAR
     | EXISTS + LPAR + select_stmt + RPAR
-    | function_name.setName("function_name")
+    | function_name.set_name("function_name")
     + LPAR
-    + Optional(STAR | delimitedList(expr))
+    + Optional(STAR | DelimitedList(expr))
     + RPAR
     | literal_value
     | bind_parameter
@@ -87,18 +92,18 @@ NOT_GLOB = Group(NOT + GLOB)
 NOT_REGEXP = Group(NOT + REGEXP)
 
 UNARY, BINARY, TERNARY = 1, 2, 3
-expr << infixNotation(
+expr <<= infix_notation(
     expr_term,
     [
-        (oneOf("- + ~") | NOT, UNARY, opAssoc.RIGHT),
-        (ISNULL | NOTNULL | NOT_NULL, UNARY, opAssoc.LEFT),
-        ("||", BINARY, opAssoc.LEFT),
-        (oneOf("* / %"), BINARY, opAssoc.LEFT),
-        (oneOf("+ -"), BINARY, opAssoc.LEFT),
-        (oneOf("<< >> & |"), BINARY, opAssoc.LEFT),
-        (oneOf("< <= > >="), BINARY, opAssoc.LEFT),
+        (one_of("- + ~") | NOT, UNARY, OpAssoc.RIGHT),
+        (ISNULL | NOTNULL | NOT_NULL, UNARY, OpAssoc.LEFT),
+        ("||", BINARY, OpAssoc.LEFT),
+        (one_of("* / %"), BINARY, OpAssoc.LEFT),
+        (one_of("+ -"), BINARY, OpAssoc.LEFT),
+        (one_of("<< >> & |"), BINARY, OpAssoc.LEFT),
+        (one_of("< <= > >="), BINARY, OpAssoc.LEFT),
         (
-            oneOf("= == != <>")
+            one_of("= == != <>")
             | IS
             | IN
             | LIKE
@@ -111,16 +116,16 @@ expr << infixNotation(
             | NOT_MATCH
             | NOT_REGEXP,
             BINARY,
-            opAssoc.LEFT,
+            OpAssoc.LEFT,
         ),
-        ((BETWEEN | NOT_BETWEEN, AND), TERNARY, opAssoc.LEFT),
+        ((BETWEEN | NOT_BETWEEN, AND), TERNARY, OpAssoc.LEFT),
         (
-            (IN | NOT_IN) + LPAR + Group(select_stmt | delimitedList(expr)) + RPAR,
+            (IN | NOT_IN) + LPAR + Group(select_stmt | DelimitedList(expr)) + RPAR,
             UNARY,
-            opAssoc.LEFT,
+            OpAssoc.LEFT,
         ),
-        (AND, BINARY, opAssoc.LEFT),
-        (OR, BINARY, opAssoc.LEFT),
+        (AND, BINARY, OpAssoc.LEFT),
+        (OR, BINARY, OpAssoc.LEFT),
     ],
 )
 
@@ -133,7 +138,7 @@ ordering_term = Group(
 )
 
 join_constraint = Group(
-    Optional(ON + expr | USING + LPAR + Group(delimitedList(column_name)) + RPAR)
+    Optional(ON + expr | USING + LPAR + Group(DelimitedList(column_name)) + RPAR)
 )
 
 join_op = COMMA | Group(
@@ -150,7 +155,7 @@ single_source = (
 )
 
 join_source <<= (
-    Group(single_source + OneOrMore(join_op + single_source + join_constraint))
+    Group(single_source + (join_op + single_source + join_constraint)[1, ...])
     | single_source
 )
 
@@ -161,24 +166,23 @@ result_column = Group(
     | expr("col") + Optional(Optional(AS) + column_alias("alias"))
 )
 
-select_core = (
+select_core = Group(
     SELECT
     + Optional(DISTINCT | ALL)
-    + Group(delimitedList(result_column))("columns")
+    + Group(DelimitedList(result_column))("columns")
     + Optional(FROM + join_source("from*"))
     + Optional(WHERE + expr("where_expr"))
     + Optional(
         GROUP
         + BY
-        + Group(delimitedList(ordering_term))("group_by_terms")
+        + Group(DelimitedList(ordering_term))("group_by_terms")
         + Optional(HAVING + expr("having_expr"))
     )
 )
 
-select_stmt << (
-    select_core
-    + ZeroOrMore(compound_operator + select_core)
-    + Optional(ORDER + BY + Group(delimitedList(ordering_term))("order_by_terms"))
+select_stmt <<= (
+    Group(select_core + (compound_operator + select_core)[...])("select_terms")
+    + Optional(ORDER + BY + Group(DelimitedList(ordering_term))("order_by_terms"))
     + Optional(
         LIMIT
         + (Group(expr + OFFSET + expr) | Group(expr + COMMA + expr) | expr)("limit")
@@ -231,7 +235,7 @@ def main():
         SELECT * FROM abcd WHERE ff not like 'bob%'
     """
 
-    success, _ = select_stmt.runTests(tests)
+    success, _ = select_stmt.run_tests(tests)
     print("\n{}".format("OK" if success else "FAIL"))
     return 0 if success else 1
 
