@@ -32,6 +32,10 @@ jobs:
     env:
       TOXENV: ${{ matrix.toxenv || 'py' }}
     steps:
+      - uses: actions/setup-node
+        with:
+          node-version: 'latest'
+
       - uses: actions/checkout@v4
 
       - name: Set up Python ${{ matrix.python-version }}
