@@ -4,9 +4,9 @@ Change Log
 
 NOTE: In the future release 3.2.0, use of many of the pre-PEP8 methods (such as
 `ParserElement.parseString`) will start to raise `DeprecationWarnings`. 3.2.0 should
-get released some time later in 2023. I currently plan to completely
+get released some time later in 2024. I currently plan to completely
 drop the pre-PEP8 methods in pyparsing 4.0, though we won't see that release until
-at least late 2023 if not 2024. So there is plenty of time to convert existing parsers to
+at least late 2024 if not 2025. So there is plenty of time to convert existing parsers to
 the new function names before the old functions are completely removed. (Big
 help from Devin J. Pohly in structuring the code to enable this peaceful transition.)
 
@@ -16,12 +16,17 @@ Version 3.2.0 will also discontinue support for Python versions 3.6 and 3.7.
 Version 3.1.2 - in development
 ------------------------------
 - Updated pep8 synonym wrappers for better type checking compatibility. PR submitted
-  by Ricardo Coccioli.
+  by Ricardo Coccioli (#507).
 
-- Fixed empty error message bug, PR submitted by InSync (#534).
+- Fixed empty error message bug, PR submitted by InSync (#534). This _should_ return
+  pyparsing's exception messages to a former, more helpful form. If you have code that
+  parses the exception messages returned by pyparsing, this may require some code
+  changes.
 
 - Added unit tests to test for exception message contents, with enhancement to
-  pyparsing.testing.assertRaisesParseException to accept an expected exception message.
+  `pyparsing.testing.assertRaisesParseException` to accept an expected exception message.
+
+- Added example `email_parser.py`, as suggested by John Byrd (#539).
 
 - Some code refactoring to reduce code nesting, PRs submitted by InSync.
 
