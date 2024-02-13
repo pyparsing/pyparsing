@@ -18,6 +18,11 @@ Version 3.1.2 - in development
 - Updated pep8 synonym wrappers for better type checking compatibility. PR submitted
   by Ricardo Coccioli.
 
+- Fixed empty error message bug, PR submitted by InSync (#534).
+
+- Added unit tests to test for exception message contents, with enhancement to
+  pyparsing.testing.assertRaisesParseException to accept an expected exception message.
+
 - Some code refactoring to reduce code nesting, PRs submitted by InSync.
 
 

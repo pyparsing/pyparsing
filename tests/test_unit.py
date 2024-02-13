@@ -10131,6 +10131,52 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
         self.assertEqual(len(ff.expr.exprs), 4)
         self.assertEqual(len(w3.exprs), 3)
 
+    test_exception_messages_tests = (
+        (
+            pp.Word(pp.alphas),
+            "123",
+            "Expected W:(A-Za-z), found '123'"
+        ),
+        (
+            pp.Word(pp.alphas).set_name("word"),
+            "123",
+            "Expected word, found '123'"
+        ),
+        (
+            pp.Group(pp.Word(pp.alphas).set_name("word")),
+            "123",
+            "Expected word, found '123'"
+        ),
+        (
+            pp.OneOrMore(pp.Word(pp.alphas).set_name("word")),
+            "123",
+            "Expected word, found '123'"
+        ),
+        (
+            pp.DelimitedList(pp.Word(pp.alphas).set_name("word")),
+            "123",
+            "Expected word, found '123'"
+        ),
+        (
+            pp.Suppress(pp.Word(pp.alphas).set_name("word")),
+            "123",
+            "Expected word, found '123'"
+        ),
+        (
+            pp.Forward() << pp.Word(pp.alphas).set_name("word"),
+            "123",
+            "Expected word, found '123'"
+        ),
+    )
+
+    def test_exception_messages(self, tests=test_exception_messages_tests):
+        for expr, input_str, expected_msg in tests:
+            with self.subTest(expr=expr, input_str=input_str):
+                with self.assertRaisesParseException(
+                        expected_msg=expected_msg
+                ):
+                    expr.parse_string(input_str)
+
 
 class Test03_EnablePackratParsing(TestCase):
     def runTest(self):

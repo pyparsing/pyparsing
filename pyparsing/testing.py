@@ -1,7 +1,9 @@
 # testing.py
 
 from contextlib import contextmanager
+import re
 import typing
+
 
 from .core import (
     ParserElement,
@@ -233,9 +235,16 @@ class pyparsing_test:
             )
 
         @contextmanager
-        def assertRaisesParseException(self, exc_type=ParseException, msg=None):
-            with self.assertRaises(exc_type, msg=msg):
-                yield
+        def assertRaisesParseException(self, exc_type=ParseException, expected_msg=None, msg=None):
+            if expected_msg is not None:
+                if isinstance(expected_msg, str):
+                    expected_msg = re.escape(expected_msg)
+                with self.assertRaisesRegex(exc_type, expected_msg, msg=msg):
+                    yield
+
+            else:
+                with self.assertRaises(exc_type, msg=msg):
+                    yield
 
     @staticmethod
     def with_line_numbers(
