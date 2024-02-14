@@ -5,10 +5,10 @@ repos:
     - id: black
       language_version: python3.6
 
-# Configuration for codespell is in pyproject.toml
-- repo: https://github.com/codespell-project/codespell
-  rev: v2.2.6
-  hooks:
-  - id: codespell
-    additional_dependencies:
-    - tomli
+-   repo: https://github.com/codespell-project/codespell
+    # Configuration for codespell is in pyproject.toml
+    rev: v2.2.6
+    hooks:
+    - id: codespell
+      additional_dependencies:
+      - tomli
