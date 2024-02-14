@@ -91,3 +91,4 @@ See `CHANGES <https://github.com/pyparsing/pyparsing/blob/master/CHANGES>`__ fil
 .. |Snyk Score| image:: https://snyk.io//advisor/python/pyparsing/badge.svg
    :target: https://snyk.io//advisor/python/pyparsing
    :alt: pyparsing
+Installating
