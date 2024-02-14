@@ -64,7 +64,8 @@ exclude = [
 
 [tool.codespell]
 # Ref: https://github.com/codespell-project/codespell#using-a-config-file
-skip = '.git'
+skip = '.git,hola_mundo.py'
 check-hidden = true
-# ignore-regex = ''
-# ignore-words-list = ''
+# case sensitive names, lines likely with regexpressions
+ignore-regex = '\b(OnlyOnce|fontEnd|Nd|Ned|Bu|Donn|[a-zA-Z]*\*[a-zA-Z]*)\b|.*\(.*\|.*\).*|itemsvisibles visibles'
+ignore-words-list = 'inout,halp,strng,te,ans,strin,datas,helpe,fourty'
