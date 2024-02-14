@@ -3505,16 +3505,16 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
         modifier_key = charString1
 
         # relations
-        comparitor_symbol = oneOf(RELATION_SYMBOLS)
-        named_comparitors = keywords("comparitors")
-        comparitor = Group(comparitor_symbol | named_comparitors)("comparitor")
-        comparitor.addParseAction(_set_info)
+        comparator_symbol = oneOf(RELATION_SYMBOLS)
+        named_comparators = keywords("comparators")
+        comparator = Group(comparator_symbol | named_comparators)("comparator")
+        comparator.addParseAction(_set_info)
 
         def modifier_list1(key):
             modifier = Dict(
                 Literal("/")
                 + Group(modifier_key(key))("name")
-                + Optional(comparitor_symbol("symbol") + term("value"))
+                + Optional(comparator_symbol("symbol") + term("value"))
             )("modifier")
             modifier.addParseAction(_set_info)
             return ZeroOrMore(modifier)("modifier_list")
@@ -3523,7 +3523,7 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             modifier = Dict(
                 Literal("/")
                 + Group(modifier_key(key))("name")
-                + Optional(comparitor_symbol("symbol") + term("value")),
+                + Optional(comparator_symbol("symbol") + term("value")),
                 asdict=True,
             )("modifier")
             modifier.addParseAction(_set_info)
@@ -3534,7 +3534,7 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
                 Dict(
                     Literal("/")
                     + Group(modifier_key(key))("name")
-                    + Optional(comparitor_symbol("symbol") + term("value"))
+                    + Optional(comparator_symbol("symbol") + term("value"))
                 )
             )
             modifier.addParseAction(_set_info)
@@ -3544,7 +3544,7 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             modifier = Dict(
                 Literal("/")
                 + Group(modifier_key(key))("name")
-                + Optional(comparitor_symbol("symbol") + term("value")),
+                + Optional(comparator_symbol("symbol") + term("value")),
                 asdict=True,
             )
             modifier.addParseAction(_set_info)
