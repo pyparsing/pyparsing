@@ -2321,7 +2321,7 @@ Version 2.1.0 - February, 2016
   aristotle2600 on reddit.
 
 - Removed keepOriginalText helper method, which was deprecated ages ago.
-  Superceded by originalTextFor.
+  Superseded by originalTextFor.
 
 - Same for the Upcase class, which was long ago deprecated and replaced
   with the upcaseTokens method.
@@ -2605,7 +2605,7 @@ Version 1.5.6 - June, 2011
   and robust in the face of future Python versions - much thanks to
   Raymond Hettinger for this rewrite!
 
-- Removal of exception cacheing, addressing a memory leak condition
+- Removal of exception caching, addressing a memory leak condition
   in Python 3. Thanks to Michael Droettboom and the Cape Town PUG for
   their analysis and work on this problem!
 
@@ -3583,7 +3583,7 @@ Version 1.4.2 - April 1, 2006 (No foolin'!)
   2004, so I'm guessing people really shouldn't have been using this
   feature - I'll drop it altogether in the next release, which will
   allow users to return a tuple from a parse action (which is really
-  handy when trying to reconstuct tuples from a tuple string
+  handy when trying to reconstruct tuples from a tuple string
   representation!).
 
 
@@ -4029,7 +4029,7 @@ Version 1.2beta2 - 19 May 2004
   sample Delphi forms as tests.  (Well done, Dang!)
 
 - Another performance speedup, 5-10%, inspired by Dang!  Plus about a 20%
-  speedup, by pre-constructing and cacheing exception objects instead of
+  speedup, by pre-constructing and caching exception objects instead of
   constructing them on the fly.
 
 - Fixed minor bug when specifying oneOf() with 'caseless=True'.
