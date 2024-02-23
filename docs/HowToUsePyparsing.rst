@@ -1367,6 +1367,8 @@ Common string and token constants
 
 - ``common.fnumber`` - any numeric expression; parsed tokens are converted to float
 
+- ``common.ieee_float`` - any floating-point literal (int, real number, infinity, or NaN), returned as float
+
 - ``common.identifier`` - a programming identifier (follows Python's syntax convention of leading alpha or "_",
   followed by 0 or more alpha, num, or "_")
 

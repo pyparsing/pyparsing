@@ -6599,6 +6599,23 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             )[0]
             self.assertTrue(success, "error in parsing valid numerics")
 
+        with self.subTest("ppc.ieee_float success run_tests"):
+            success = ppc.ieee_float.runTests(
+                """
+                100
+                3.14159
+                6.02e23
+                1E-12
+                0
+                -0
+                NaN
+                -nan
+                inf
+                -Infinity
+                """
+            )[0]
+            self.assertTrue(success, "error in parsing valid floating-point literals")
+
         with self.subTest("ppc.iso8601_date success run_tests"):
             success, results = ppc.iso8601_date.runTests(
                 """
