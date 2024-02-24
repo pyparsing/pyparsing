@@ -6,7 +6,7 @@
 # Extended test cases, simplified pushFirst method.
 # Removed unnecessary expr.suppress() call (thanks Nathaniel Peterson!), and added Group
 # Changed fnumber to use a Regex, which is now the preferred method
-# Reformatted to latest pypyparsing features, support multiple and variable args to functions
+# Reformatted to latest pyparsing features, support multiple and variable args to functions
 #
 # Copyright 2003-2019 by Paul McGuire
 #
