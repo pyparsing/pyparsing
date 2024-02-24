@@ -1299,7 +1299,7 @@ Helper parse actions
 Common string and token constants
 ---------------------------------
 
-- ``alphas`` - same as ``string.letters``
+- ``alphas`` - same as ``string.ascii_letters``
 
 - ``nums`` - same as ``string.digits``
 
