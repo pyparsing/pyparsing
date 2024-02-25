@@ -450,7 +450,7 @@ def main():
             else:
                 parsed["verify_offset"] = "FAIL"
 
-    print("(relative to %s)" % datetime.now())
+    print(f"(relative to {datetime.now()})")
     success, report = time_expression.runTests(tests, postParse=verify_offset)
     assert success
 

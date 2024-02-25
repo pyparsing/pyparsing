@@ -1,6 +1,6 @@
 # parseActions.py
 #
-#   A sample program a parser to match a date string of the form "YYYY/MM/DD",
+#   A sample parser to match a date string of the form "YYYY/MM/DD",
 # and return it as a datetime, or raise an exception if not a valid date.
 #
 # Copyright 2012, Paul T. McGuire
@@ -36,12 +36,7 @@ def convert_to_datetime(s, loc, tokens):
         # on the integer expression above
         return datetime(tokens.year, tokens.month, tokens.day).date()
     except Exception as ve:
-        errmsg = "'%s/%s/%s' is not a valid date, %s" % (
-            tokens.year,
-            tokens.month,
-            tokens.day,
-            ve,
-        )
+        errmsg = f"'{tokens.year}/{tokens.month}/{tokens.day}' is not a valid date, {ve}"
         raise pp.ParseException(s, loc, errmsg)
 
 

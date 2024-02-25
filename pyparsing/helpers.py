@@ -536,7 +536,7 @@ def nested_expr(
         )
     else:
         ret <<= Group(Suppress(opener) + ZeroOrMore(ret | content) + Suppress(closer))
-    ret.set_name("nested %s%s expression" % (opener, closer))
+    ret.set_name(f"nested {opener}{closer} expression")
     return ret
 
 
@@ -582,7 +582,7 @@ def _makeTags(tagStr, xml, suppress_LT=Suppress("<"), suppress_GT=Suppress(">"))
         )
     closeTag = Combine(Literal("</") + tagStr + ">", adjacent=False)
 
-    openTag.set_name("<%s>" % resname)
+    openTag.set_name(f"<{resname}>")
     # add start<tagname> results name in parse action now that ungrouped names are not reported at two levels
     openTag.add_parse_action(
         lambda t: t.__setitem__(
@@ -591,7 +591,7 @@ def _makeTags(tagStr, xml, suppress_LT=Suppress("<"), suppress_GT=Suppress(">"))
     )
     closeTag = closeTag(
         "end" + "".join(resname.replace(":", " ").title().split())
-    ).set_name("</%s>" % resname)
+    ).set_name(f"</{resname}>")
     openTag.tag = resname
     closeTag.tag = resname
     openTag.tag_body = SkipTo(closeTag())

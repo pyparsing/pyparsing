@@ -49,12 +49,12 @@ api_scanner = apiRef.scanString(test)
 while 1:
     try:
         t, s, e = next(api_scanner)
-        print("found %s on line %d" % (t.procname, lineno(s, test)))
+        print(f"found {t.procname} on line {lineno(s, test)}")
     except ParseSyntaxException as pe:
-        print("invalid arg count on line", pe.lineno)
-        print(pe.lineno, ":", pe.line)
+        print(f"invalid arg count on line {pe.lineno}")
+        print(f"{pe.lineno} : {pe.line}")
         # reset api scanner to start after this exception location
-        test = "\n" * (pe.lineno - 1) + test[pe.loc + 1 :]
+        test = "\n" * (pe.lineno - 1) + test[pe.loc + 1:]
         api_scanner = apiRef.scanString(test)
     except StopIteration:
         break

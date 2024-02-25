@@ -49,5 +49,5 @@ for item, start, stop in enum.scan_string(sample):
     for entry in item.names:
         if entry.value != "":
             idx = int(entry.value)
-        print("%s_%s = %d" % (item.enum.upper(), entry.name.upper(), idx))
+        print(f"{item.enum.upper()}_{entry.name.upper()} = {idx}")
         idx += 1

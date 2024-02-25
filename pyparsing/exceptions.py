@@ -14,11 +14,11 @@ from .util import (
 from .unicode import pyparsing_unicode as ppu
 
 
-class ExceptionWordUnicode(ppu.Latin1, ppu.LatinA, ppu.LatinB, ppu.Greek, ppu.Cyrillic):
+class _ExceptionWordUnicodeSet(ppu.Latin1, ppu.LatinA, ppu.LatinB, ppu.Greek, ppu.Cyrillic):
     pass
 
 
-_extract_alphanums = _collapse_string_to_ranges(ExceptionWordUnicode.alphanums)
+_extract_alphanums = _collapse_string_to_ranges(_ExceptionWordUnicodeSet.alphanums)
 _exception_word_extractor = re.compile("([" + _extract_alphanums + "]{1,16})|.")
 
 
@@ -83,7 +83,7 @@ class ParseBaseException(Exception):
         ret = []
         if isinstance(exc, ParseBaseException):
             ret.append(exc.line)
-            ret.append(f"{' ' * (exc.column - 1)}^")
+            ret.append(" " * (exc.column - 1) + "^")
         ret.append(f"{type(exc).__name__}: {exc}")
 
         if depth <= 0:
@@ -218,8 +218,10 @@ class ParseBaseException(Exception):
 
         Example::
 
+            # an expression to parse 3 integers
             expr = pp.Word(pp.nums) * 3
             try:
+                # a failing parse - the third integer is prefixed with "A"
                 expr.parse_string("123 456 A789")
             except pp.ParseException as pe:
                 print(pe.explain(depth=0))
@@ -252,16 +254,16 @@ class ParseException(ParseBaseException):
 
     Example::
 
+        integer = Word(nums).set_name("integer")
         try:
-            Word(nums).set_name("integer").parse_string("ABC")
+            integer.parse_string("ABC")
         except ParseException as pe:
             print(pe)
-            print("column: {}".format(pe.column))
+            print(f"column: {pe.column}")
 
     prints::
 
-       Expected integer (at char 0), (line:1, col:1)
-        column: 1
+       Expected integer (at char 0), (line:1, col:1) column: 1
 
     """
 

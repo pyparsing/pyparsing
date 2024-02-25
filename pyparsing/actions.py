@@ -111,7 +111,6 @@ def with_attribute(*args, **attr_dict):
             <div type="graph">1,3 2,3 1,1</div>
             <div>this has no type</div>
             </div>
-
         '''
         div,div_end = make_html_tags("div")
 

@@ -100,7 +100,7 @@ pound_char = Combine(
 #     a single matched pair of quotes around it.
 delphi_string = Combine(
     OneOrMore(CONCAT | pound_char | unquoted_sglQuotedString), adjacent=False
-).setParseAction(lambda s, l, t: "'%s'" % t[0])
+).setParseAction(lambda s, l, t: f"'{t[0]}'")
 
 string_value = delphi_string | base16_value
 
@@ -219,9 +219,10 @@ def main(testfiles=None, action=printer):
         except Exception:
             failures.append(f)
 
+    nl = "\n"
     if failures:
-        print("\nfailed while processing %s" % ", ".join(failures))
-    print("\nsucceeded on %d of %d files" % (success, len(testfiles)))
+        print(f"{nl}failed while processing {', '.join(failures)}")
+    print(f"{nl}succeeded on {success} of {len(testfiles)} files")
 
     if len(retval) == 1 and len(testfiles) == 1:
         # if only one file is parsed, return the parseResults directly

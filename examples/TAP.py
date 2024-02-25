@@ -148,15 +148,15 @@ class TAPSummary:
         testListStr = lambda tl: "[" + ",".join(str(t.num) for t in tl) + "]"
         summaryText = []
         if showPassed or showAll:
-            summaryText.append("PASSED: %s" % testListStr(self.passedTests))
+            summaryText.append(f"PASSED: {testListStr(self.passedTests)}")
         if self.failedTests or showAll:
-            summaryText.append("FAILED: %s" % testListStr(self.failedTests))
+            summaryText.append(f"FAILED: {testListStr(self.failedTests)}")
         if self.skippedTests or showAll:
-            summaryText.append("SKIPPED: %s" % testListStr(self.skippedTests))
+            summaryText.append(f"SKIPPED: {testListStr(self.skippedTests)}")
         if self.todoTests or showAll:
-            summaryText.append("TODO: %s" % testListStr(self.todoTests))
+            summaryText.append(f"TODO: {testListStr(self.todoTests)}")
         if self.bonusTests or showAll:
-            summaryText.append("BONUS: %s" % testListStr(self.bonusTests))
+            summaryText.append(f"BONUS: {testListStr(self.bonusTests)}")
         if self.passedSuite:
             summaryText.append("PASSED")
         else:

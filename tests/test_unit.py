@@ -561,7 +561,7 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             self.assertEqual(
                 num_expected_toks,
                 len(flatten(iniData.asList())),
-                "file %s not parsed correctly" % fnam,
+                f"file {fnam} not parsed correctly",
             )
             for chkkey, chkexpect in resCheckList:
                 var = iniData
@@ -831,8 +831,7 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
                     print("$$$", results[0])
                 self.assertTrue(
                     len(results) > t[0] and results[t[0]] == t[1],
-                    "failed on %s, item %d s/b '%s', got '%s'"
-                    % (line, t[0], t[1], str(results.asList())),
+                    f"failed on {line}, item {t[0]:d} s/b '{t[1]}', got '{results.asList()}'",
                 )
 
     def testParseEBNF(self):
@@ -901,7 +900,7 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
                 self.assertEqual(
                     numToks,
                     len(tokens),
-                    f"error matching IDL string, {strng} -> {str(tokens)}",
+                    f"error matching IDL string, {strng} -> {tokens}",
                 )
             except ParseException as err:
                 print(err.line)
@@ -910,7 +909,7 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
                 self.assertEqual(
                     0,
                     numToks,
-                    f"unexpected ParseException while parsing {strng}, {str(err)}",
+                    f"unexpected ParseException while parsing {strng}, {err}",
                 )
                 self.assertEqual(
                     expectedErrloc,
@@ -1143,7 +1142,7 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             self.assertTrue(
                 len(sglStrings) == 1
                 and (sglStrings[0][1] == 17 and sglStrings[0][2] == 66),
-                "single quoted string escaped quote failure (%s)" % str(sglStrings[0]),
+                f"single quoted string escaped quote failure ({sglStrings[0]})",
             )
 
         with self.subTest():
@@ -1155,7 +1154,7 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             self.assertTrue(
                 len(dblStrings) == 1
                 and (dblStrings[0][1] == 83 and dblStrings[0][2] == 132),
-                "double quoted string escaped quote failure (%s)" % str(dblStrings[0]),
+                f"double quoted string escaped quote failure ({dblStrings[0]})",
             )
 
         with self.subTest():
@@ -1172,8 +1171,7 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
                     and allStrings[1][1] == 83
                     and allStrings[1][2] == 132
                 ),
-                "quoted string escaped quote failure (%s)"
-                % ([str(s[0]) for s in allStrings]),
+                f"quoted string escaped quote failure ({[str(s[0]) for s in allStrings]})",
             )
 
         dblQuoteTest = r"""
@@ -1189,7 +1187,7 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             self.assertTrue(
                 len(sglStrings) == 1
                 and (sglStrings[0][1] == 17 and sglStrings[0][2] == 66),
-                "single quoted string escaped quote failure (%s)" % str(sglStrings[0]),
+                f"single quoted string escaped quote failure ({sglStrings[0]})",
             )
 
         with self.subTest():
@@ -1201,7 +1199,7 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             self.assertTrue(
                 len(dblStrings) == 1
                 and (dblStrings[0][1] == 83 and dblStrings[0][2] == 132),
-                "double quoted string escaped quote failure (%s)" % str(dblStrings[0]),
+                f"double quoted string escaped quote failure ({dblStrings[0]})",
             )
 
         with self.subTest():
@@ -1217,8 +1215,7 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
                     and allStrings[1][1] == 83
                     and allStrings[1][2] == 132
                 ),
-                "quoted string escaped quote failure (%s)"
-                % ([str(s[0]) for s in allStrings]),
+                f"quoted string escaped quote failure ({[str(s[0]) for s in allStrings]})",
             )
 
         print(
@@ -1471,7 +1468,7 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             self.assertEqual(
                 ln,
                 len(results[key]),
-                "expected %d elements in %s, found %s" % (ln, key, str(results[key])),
+                f"expected {ln:d} elements in {key}, found {results[key]}",
             )
 
     def testParseKeyword(self):
@@ -1486,10 +1483,10 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             except Exception:
                 print("failed")
                 if litShouldPass:
-                    self.fail("Literal failed to match %s, should have" % s)
+                    self.fail(f"Literal failed to match {s}, should have")
             else:
                 if not litShouldPass:
-                    self.fail("Literal matched %s, should not have" % s)
+                    self.fail(f"Literal matched {s}, should not have")
 
             print("Match Keyword", end=" ")
             try:
@@ -1497,10 +1494,10 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             except Exception:
                 print("failed")
                 if kwShouldPass:
-                    self.fail("Keyword failed to match %s, should have" % s)
+                    self.fail(f"Keyword failed to match {s}, should have")
             else:
                 if not kwShouldPass:
-                    self.fail("Keyword matched %s, should not have" % s)
+                    self.fail(f"Keyword matched {s}, should not have")
 
         test("ifOnlyIfOnly", True, False)
         test("if(OnlyIfOnly)", True, True)
@@ -1555,7 +1552,7 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
         self.assertParseResultsEquals(
             queryRes.pred,
             expected_list=[["y", ">", "28"], ["x", "<", "12"], ["x", ">", "3"]],
-            msg="Incorrect list for attribute pred, %s" % str(queryRes.pred.asList()),
+            msg=f"Incorrect list for attribute pred, {queryRes.pred.asList()}",
         )
 
     def testReStringRange(self):
@@ -2021,7 +2018,7 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             self.assertEqual(
                 expected,
                 found,
-                f"Failed repeater for test: {tst}, matching {str(seq)}",
+                f"Failed repeater for test: {tst}, matching {seq}",
             )
         print()
 
@@ -2041,7 +2038,7 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             self.assertEqual(
                 expected,
                 found,
-                f"Failed repeater for test: {tst}, matching {str(seq)}",
+                f"Failed repeater for test: {tst}, matching {seq}",
             )
 
         print()
@@ -2073,7 +2070,7 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             self.assertEqual(
                 expected,
                 found,
-                f"Failed repeater for test: {tst}, matching {str(seq)}",
+                f"Failed repeater for test: {tst}, matching {seq}",
             )
 
         print()
@@ -2093,7 +2090,7 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             self.assertEqual(
                 expected,
                 found,
-                f"Failed repeater for test: {tst}, matching {str(seq)}",
+                f"Failed repeater for test: {tst}, matching {seq}",
             )
 
     def testRepeater2(self):
@@ -2308,8 +2305,8 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
                 self.args = t[0][0::2]
 
             def __str__(self):
-                sep = " %s " % self.reprsymbol
-                return "(" + sep.join(map(str, self.args)) + ")"
+                sep = f" {self.reprsymbol} "
+                return f"({sep.join(map(str, self.args))})"
 
         class BoolAnd(BoolOperand):
             reprsymbol = "&"
@@ -2424,7 +2421,7 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
         for t in test:
             count = 0
             print(
-                "%r => %s (count=%d)" % (t, expr.parseString(t, parseAll=True), count)
+                f"{t!r} => {expr.parseString(t, parseAll=True)} (count={count:d})"
             )
             self.assertEqual(1, count, "count evaluated too many times!")
 
@@ -3962,8 +3959,7 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
                     return True
                 except pp.ParseException:
                     print(
-                        "%s incorrectly failed to match %s"
-                        % (repr(expression), repr(instring))
+                        f"{expression!r} incorrectly failed to match {instring!r}"
                     )
             else:
                 try:
@@ -4796,7 +4792,7 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
 
     def testOriginalTextFor(self):
         def rfn(t):
-            return "%s:%d" % (t.src, len("".join(t)))
+            return f"{t.src}:{len(''.join(t))}"
 
         makeHTMLStartTag = lambda tag: pp.originalTextFor(
             pp.makeHTMLTags(tag)[0], asString=False
@@ -5536,11 +5532,11 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             strs = pp.delimitedList(expr).searchString(src)
             print(strs)
             self.assertTrue(
-                bool(strs), "no matches found for test expression '%s'" % expr
+                bool(strs), f"no matches found for test expression '{expr}'"
             )
             for lst in strs:
                 self.assertEqual(
-                    2, len(lst), "invalid match found for test expression '%s'" % expr
+                    2, len(lst), f"invalid match found for test expression '{expr}'"
                 )
 
         src = """'ms1',1,0,'2009-12-22','2009-12-22 10:41:22') ON DUPLICATE KEY UPDATE sent_count = sent_count + 1, mtime = '2009-12-22 10:41:22';"""
@@ -6059,7 +6055,7 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             self.assertEqual(
                 ["de"],
                 result.asList(),
-                "failed to select longest match, chose %s" % result,
+                f"failed to select longest match, chose {result}",
             )
         except ParseException:
             failed = True
@@ -7276,7 +7272,7 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
                 )
             print(
                 r[0],
-                "exc: %s" % r[1]
+                f"exc: {r[1]}"
                 if exp is None and isinstance(r[1], Exception)
                 else ("no match", "match")[r[1].mismatches == exp],
             )
@@ -7305,7 +7301,7 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
                 )
             print(
                 r[0],
-                "exc: %s" % r[1]
+                f"exc: {r[1]}"
                 if exp is None and isinstance(r[1], Exception)
                 else ("no match", "match")[r[1].mismatches == exp],
             )
@@ -7953,7 +7949,7 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
         stmt <<= pattern
 
         def key_parse_action(toks):
-            print("Parsing '%s'..." % toks[0])
+            print(f"Parsing '{toks[0]}'...")
 
         key.setParseAction(key_parse_action)
         header = pp.Suppress("[") + pp.Literal("test") + pp.Suppress("]")
@@ -9559,7 +9555,7 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             testGrammar.parseString("AC", parseAll=True)
         except pp.ParseException as pe:
             print(pe.pstr, "->", pe)
-            self.fail("error in Optional matching of string %s" % pe.pstr)
+            self.fail(f"error in Optional matching of string {pe.pstr}")
 
     def testReturnOfFurthestException(self):
         # test return of furthest exception

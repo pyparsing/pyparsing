@@ -36,6 +36,9 @@ Version 3.1.2 - in development
 
 - Some code refactoring to reduce code nesting, PRs submitted by InSync.
 
+- All internal string expressions using '%' string interpolation and `str.format()`
+  converted to f-strings.
+
 
 Version 3.1.1 - July, 2023
 --------------------------

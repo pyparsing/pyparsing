@@ -47,7 +47,7 @@ for g in genedata:
     for t, startLoc, endLoc in searchseq.scanString(g.gene, overlap=True):
         if show_header:
             # only need to show the header once
-            print("%s/%s/%s (%d)" % (g.gene_id, g.organism, g.location, g.gene_len))
+            print(f"{g.gene_id}/{g.organism}/{g.location} ({g.gene_len})")
             print("-" * 24)
             show_header = False
 

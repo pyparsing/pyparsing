@@ -75,7 +75,7 @@ def expand_state_definition(source, loc, tokens):
     baseStateClass = tokens.name
     statedef.extend(
         [
-            "class %s(object):" % baseStateClass,
+            f"class {baseStateClass}(object):",
             "    def __str__(self):",
             "        return self.__class__.__name__",
             "    @classmethod",
@@ -173,7 +173,7 @@ def expand_named_state_definition(source, loc, tokens):
     # define base class for state classes
     statedef.extend(
         [
-            "class %s(object):" % baseStateClass,
+            f"class {baseStateClass}(object):",
             "    from statemachine import InvalidTransitionException as BaseTransitionException",
             "    class InvalidTransitionException(BaseTransitionException): pass",
             "    def __str__(self):",
@@ -186,10 +186,10 @@ def expand_named_state_definition(source, loc, tokens):
             "        try:",
             "            return cls.tnmap[name]()",
             "        except KeyError:",
-            "            raise cls.InvalidTransitionException('%s does not support transition %r'% (cls.__name__, name))",
+            "            raise cls.InvalidTransitionException(f'{cls.__name__} does not support transition {name!r}'",
             "    def __bad_tn(name):",
             "        def _fn(cls):",
-            "            raise cls.InvalidTransitionException('%s does not support transition %r'% (cls.__name__, name))",
+            "            raise cls.InvalidTransitionException(f'{cls.__name__} does not support transition {name!r}'",
             "        _fn.__name__ = name",
             "        return _fn",
         ]
@@ -207,9 +207,9 @@ def expand_named_state_definition(source, loc, tokens):
     # define state transition methods for valid transitions from each state
     for s in states:
         trns = list(fromTo[s].items())
-        # statedef.append("%s.tnmap = {%s}" % (s, ", ".join("%s:%s" % tn for tn in trns)))
+        # statedef.append(f"{s}.tnmap = {{{', '.join('%s:%s' % tn for tn in trns)}}}")
         statedef.extend(
-            "{}.{} = classmethod(lambda cls: {}())".format(s, tn_, to_)
+            f"{s}.{tn_} = classmethod(lambda cls: {to_}())"
             for tn_, to_ in trns
         )
 
@@ -286,8 +286,8 @@ class SuffixImporter:
     @classmethod
     def trigger_url(cls):
         if cls.suffix is None:
-            raise ValueError("%s.suffix is not set" % cls.__name__)
-        return "suffix:%s" % cls.suffix
+            raise ValueError(f"{cls.__name__}.suffix is not set")
+        return f"suffix:{cls.suffix}"
 
     @classmethod
     def register(cls):

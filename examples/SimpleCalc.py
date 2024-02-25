@@ -52,7 +52,7 @@ from fourFn import BNF, exprStack, evaluate_stack
 #     elif op[0].isalpha():
 #         if op in variables:
 #             return variables[op]
-#         raise Exception("invalid identifier '%s'" % op)
+#         raise Exception(f"invalid identifier {op!r}")
 #     else:
 #         return float( op )
 

@@ -688,34 +688,22 @@ class ParseResults:
             return "".join(out)
 
         v = self
+        incr = "  "
+        nl = "\n"
         for i, vv in enumerate(v):
             if isinstance(vv, ParseResults):
-                out.append(
-                    "\n{}{}[{}]:\n{}{}{}".format(
-                        indent,
-                        ("  " * (_depth)),
-                        i,
-                        indent,
-                        ("  " * (_depth + 1)),
-                        vv.dump(
+                vv_dump = vv.dump(
                             indent=indent,
                             full=full,
                             include_list=include_list,
                             _depth=_depth + 1,
-                        ),
+                        )
+                out.append(
+                    f"{nl}{indent}{incr * _depth}[{i}]:{nl}{indent}{incr * (_depth + 1)}{vv_dump}"
                     )
-                )
             else:
                 out.append(
-                    "\n%s%s[%d]:\n%s%s%s"
-                    % (
-                        indent,
-                        ("  " * (_depth)),
-                        i,
-                        indent,
-                        ("  " * (_depth + 1)),
-                        str(vv),
-                    )
+                    f"{nl}{indent}{incr * _depth}[{i}]:{nl}{indent}{incr * (_depth + 1)}{vv}"
                 )
 
         return "".join(out)

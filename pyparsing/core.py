@@ -571,6 +571,7 @@ class ParserElement(ABC):
 
         Example::
 
+            integer = Word(nums)
             date_str = (integer.set_results_name("year") + '/'
                         + integer.set_results_name("month") + '/'
                         + integer.set_results_name("day"))
@@ -1081,7 +1082,7 @@ class ParserElement(ABC):
         elif cache_size_limit > 0:
             ParserElement.recursion_memos = _LRUMemo(capacity=cache_size_limit)  # type: ignore[assignment]
         else:
-            raise NotImplementedError("Memo size of %s" % cache_size_limit)
+            raise NotImplementedError(f"Memo size of {cache_size_limit}")
         ParserElement._left_recursion_enabled = True
 
     @staticmethod
@@ -1779,7 +1780,7 @@ class ParserElement(ABC):
 
         Example::
 
-            patt = Word(alphas)[1, ...]
+            patt = Word(alphas)[...]
             patt.parse_string('ablaj /* comment */ lskjd')
             # -> ['ablaj']
 
@@ -1894,8 +1895,11 @@ class ParserElement(ABC):
 
         Example::
 
-            Word(nums).parse_string("ABC")  # -> Exception: Expected W:(0-9) (at char 0), (line:1, col:1)
-            Word(nums).set_name("integer").parse_string("ABC")  # -> Exception: Expected integer (at char 0), (line:1, col:1)
+            integer = Word(nums)
+            integer.parse_string("ABC")  # -> Exception: Expected W:(0-9) (at char 0), (line:1, col:1)
+
+            integer.set_name("integer")
+            integer.parse_string("ABC")  # -> Exception: Expected integer (at char 0), (line:1, col:1)
         """
         self.customName = name
         self.errmsg = f"Expected {self.name}"
@@ -2144,6 +2148,7 @@ class ParserElement(ABC):
         success = True
         NL = Literal(r"\n").add_parse_action(replace_with("\n")).ignore(quoted_string)
         BOM = "\ufeff"
+        nlstr = "\n"
         for t in tests:
             if comment_specified and comment.matches(t, False) or comments and not t:
                 comments.append(
@@ -2153,7 +2158,7 @@ class ParserElement(ABC):
             if not t:
                 continue
             out = [
-                "\n" + "\n".join(comments) if comments else "",
+                f"{nlstr}{nlstr.join(comments) if comments else ''}",
                 pyparsing_test.with_line_numbers(t) if with_line_numbers else t,
             ]
             comments = []
@@ -2162,9 +2167,9 @@ class ParserElement(ABC):
                 t = NL.transform_string(t.lstrip(BOM))
                 result = self.parse_string(t, parse_all=parseAll)
             except ParseBaseException as pe:
-                fatal = "(FATAL)" if isinstance(pe, ParseFatalException) else ""
+                fatal = "(FATAL) " if isinstance(pe, ParseFatalException) else ""
                 out.append(pe.explain())
-                out.append(f"FAIL{fatal}: {pe}")
+                out.append(f"FAIL: {fatal}{pe}")
                 if ParserElement.verbose_stacktrace:
                     out.extend(traceback.format_tb(pe.__traceback__))
                 success = success and failureTests
@@ -2367,9 +2372,9 @@ class Literal(Token):
 
     Example::
 
-        Literal('blah').parse_string('blah')  # -> ['blah']
-        Literal('blah').parse_string('blahfooblah')  # -> ['blah']
-        Literal('blah').parse_string('bla')  # -> Exception: Expected "blah"
+        Literal('abc').parse_string('abc')  # -> ['abc']
+        Literal('abc').parse_string('abcdef')  # -> ['abc']
+        Literal('abc').parse_string('ab')  # -> Exception: Expected "abc"
 
     For case-insensitive matching, use :class:`CaselessLiteral`.
 
@@ -2399,7 +2404,7 @@ class Literal(Token):
         self.match = match_string
         self.matchLen = len(match_string)
         self.firstMatchChar = match_string[:1]
-        self.errmsg = "Expected " + self.name
+        self.errmsg = f"Expected {self.name}"
         self.mayReturnEmpty = False
         self.mayIndexError = False
 
@@ -2575,7 +2580,7 @@ class CaselessLiteral(Literal):
         super().__init__(match_string.upper())
         # Preserve the defining literal.
         self.returnString = match_string
-        self.errmsg = "Expected " + self.name
+        self.errmsg = f"Expected {self.name}"
 
     def parseImpl(self, instring, loc, doActions=True):
         if instring[loc : loc + self.matchLen].upper() == self.match:
@@ -2750,7 +2755,7 @@ class Word(Token):
         integer = Word(nums) # equivalent to Word("0123456789") or Word(srange("0-9"))
 
         # a word with a leading capital, and zero or more lowercase
-        capital_word = Word(alphas.upper(), alphas.lower())
+        capitalized_word = Word(alphas.upper(), alphas.lower())
 
         # hostnames are alphanumeric, with leading alpha, and '-'
         hostname = Word(alphas, alphanums + '-')
@@ -2827,7 +2832,7 @@ class Word(Token):
             self.maxLen = exact
             self.minLen = exact
 
-        self.errmsg = "Expected " + self.name
+        self.errmsg = f"Expected {self.name}"
         self.mayIndexError = False
         self.asKeyword = asKeyword
         if self.asKeyword:
@@ -3030,7 +3035,7 @@ class Regex(Token):
                 "Regex may only be constructed with a string or a compiled RE object"
             )
 
-        self.errmsg = "Expected " + self.name
+        self.errmsg = f"Expected {self.name}"
         self.mayIndexError = False
         self.asGroupList = asGroupList
         self.asMatch = asMatch
@@ -3282,7 +3287,7 @@ class QuotedString(Token):
         except re.error:
             raise ValueError(f"invalid pattern {self.pattern!r} passed to Regex")
 
-        self.errmsg = "Expected " + self.name
+        self.errmsg = f"Expected {self.name}"
         self.mayIndexError = False
         self.mayReturnEmpty = True
 
@@ -3397,7 +3402,7 @@ class CharsNotIn(Token):
             self.maxLen = exact
             self.minLen = exact
 
-        self.errmsg = "Expected " + self.name
+        self.errmsg = f"Expected {self.name}"
         self.mayReturnEmpty = self.minLen == 0
         self.mayIndexError = False
 
@@ -3470,7 +3475,7 @@ class White(Token):
         )
         # self.leave_whitespace()
         self.mayReturnEmpty = True
-        self.errmsg = "Expected " + self.name
+        self.errmsg = f"Expected {self.name}"
 
         self.minLen = min
 
@@ -3782,7 +3787,7 @@ class ParseExpression(ParserElement):
         return self
 
     def _generateDefaultName(self) -> str:
-        return f"{self.__class__.__name__}:({self.exprs})"
+        return f"{type(self).__name__}:({self.exprs})"
 
     def streamline(self) -> ParserElement:
         if self.streamlined:
@@ -3821,7 +3826,7 @@ class ParseExpression(ParserElement):
                 self.mayReturnEmpty |= other.mayReturnEmpty
                 self.mayIndexError |= other.mayIndexError
 
-        self.errmsg = "Expected " + str(self)
+        self.errmsg = f"Expected {self}"
 
         return self
 
@@ -4567,7 +4572,7 @@ class ParseElementEnhance(ParserElement):
         self._checkRecursion([])
 
     def _generateDefaultName(self) -> str:
-        return f"{self.__class__.__name__}:({self.expr})"
+        return f"{type(self).__name__}:({self.expr})"
 
     # Compatibility synonyms
     # fmt: off
@@ -4782,7 +4787,7 @@ class PrecededBy(ParseElementEnhance):
             retreat = 0
             self.exact = True
         self.retreat = retreat
-        self.errmsg = "not preceded by " + str(expr)
+        self.errmsg = f"not preceded by {expr}"
         self.skipWhitespace = False
         self.parseAction.append(lambda s, l, t: t.__delitem__(slice(None, None)))
 
@@ -4887,7 +4892,7 @@ class NotAny(ParseElementEnhance):
         self.skipWhitespace = False
 
         self.mayReturnEmpty = True
-        self.errmsg = "Found unwanted token, " + str(self.expr)
+        self.errmsg = f"Found unwanted token, {self.expr}"
 
     def parseImpl(self, instring, loc, doActions=True):
         if self.expr.can_parse_next(instring, loc, do_actions=doActions):
@@ -5566,7 +5571,7 @@ class Forward(ParseElementEnhance):
             else:
                 retString = "None"
         finally:
-            return f"{self.__class__.__name__}: {retString}"
+            return f"{type(self).__name__}: {retString}"
 
     def copy(self) -> ParserElement:
         if self.expr is not None:
@@ -5877,7 +5882,7 @@ def trace_parse_action(f: ParseAction) -> ParseAction:
         thisFunc = f.__name__
         s, l, t = paArgs[-3:]
         if len(paArgs) > 3:
-            thisFunc = f"{paArgs[0].__class__.__name__}.{thisFunc}"
+            thisFunc = f"{type(paArgs[0]).__name__}.{thisFunc}"
         sys.stderr.write(f">>entering {thisFunc}(line: {line(l, s)!r}, {l}, {t!r})\n")
         try:
             ret = f(*paArgs)

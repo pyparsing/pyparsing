@@ -3,7 +3,7 @@ from pathlib import Path
 from pyparsing import quoted_string
 
 nw = datetime.utcnow()
-now_string = '"%s"' % (nw.strftime("%d %b %Y %X")[:-3] + " UTC")
+now_string = f'"{nw.strftime("%d %b %Y %X")[:-3]} UTC"'
 print(now_string)
 
 quoted_time = quoted_string()

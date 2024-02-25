@@ -76,9 +76,9 @@ class Room:
                 is_form = "are"
             else:
                 is_form = "is"
-            print("There {} {} here.".format(is_form, enumerate_items(visibleItems)))
+            print(f"There {is_form} {enumerate_items(visibleItems)} here.")
         else:
-            print("You see %s." % (enumerate_items(visibleItems)))
+            print(f"You see {enumerate_items(visibleItems)}.")
 
 
 class Exit(Room):
@@ -220,7 +220,7 @@ class TakeCommand(Command):
             else:
                 print(subj.cantTakeMessage)
         else:
-            print("There is no %s here." % subj)
+            print(f"There is no {subj} here.")
 
 
 class DropCommand(Command):
@@ -239,7 +239,7 @@ class DropCommand(Command):
             rm.add_item(subj)
             player.drop(subj)
         else:
-            print("You don't have %s." % (a_or_an(subj)))
+            print(f"You don't have {a_or_an(subj)}.")
 
 
 class InventoryCommand(Command):
@@ -251,7 +251,7 @@ class InventoryCommand(Command):
         return "INVENTORY or INV or I - lists what items you have"
 
     def _do_command(self, player):
-        print("You have %s." % enumerate_items(player.inv))
+        print(f"You have {enumerate_items(player.inv)}.")
 
 
 class LookCommand(Command):
@@ -340,7 +340,7 @@ class UseCommand(Command):
             else:
                 print("You can't use that here.")
         else:
-            print("There is no %s here to use." % self.subject)
+            print(f"There is no {self.subject} here to use.")
 
 
 class OpenCommand(Command):
@@ -364,7 +364,7 @@ class OpenCommand(Command):
             else:
                 print("You can't open that.")
         else:
-            print("There is no %s here to open." % self.subject)
+            print(f"There is no {self.subject} here to open.")
 
 
 class CloseCommand(Command):
@@ -388,7 +388,7 @@ class CloseCommand(Command):
             else:
                 print("You can't close that.")
         else:
-            print("There is no %s here to close." % self.subject)
+            print(f"There is no {self.subject} here to close.")
 
 
 class QuitCommand(Command):
@@ -428,7 +428,7 @@ class HelpCommand(Command):
             QuitCommand,
             HelpCommand,
         ]:
-            print("  - %s" % cmd.help_description())
+            print(f"  - {cmd.help_description()}")
         print()
 
 
@@ -515,7 +515,7 @@ class Parser:
     def validate_item_name(self, s, l, t):
         iname = " ".join(t)
         if iname not in Item.items:
-            raise AppParseException(s, l, "No such item '%s'." % iname)
+            raise AppParseException(s, l, f"No such item '{iname}'.")
         return iname
 
     def parse_cmd(self, cmdstr):
@@ -556,7 +556,7 @@ class Player:
 
     def take(self, it):
         if it.isDeadly:
-            print("Aaaagh!...., the %s killed me!" % it)
+            print(f"Aaaagh!...., the {it} killed me!")
             self.gameOver = True
         else:
             self.inv.append(it)

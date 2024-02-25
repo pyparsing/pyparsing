@@ -26,7 +26,7 @@ Green.cars_can_go = True
 # setup some class level methods
 def flash_crosswalk(s):
     def flash():
-        print("%s...%s...%s" % (s, s, s))
+        print(f"{s}...{s}...{s}")
 
     return flash
 

@@ -130,7 +130,7 @@ def typeAsCtypes(typestr):
     if typestr in typemap:
         return typemap[typestr]
     if typestr.endswith("*"):
-        return "POINTER(%s)" % typeAsCtypes(typestr.rstrip(" *"))
+        return f"POINTER({typeAsCtypes(typestr.rstrip(' *'))})"
     return typestr
 
 
@@ -178,7 +178,7 @@ for fntd in fn_typedefs:
         )
     )
 for udtype in user_defined_types:
-    print("class %s(Structure): pass" % typemap[udtype])
+    print(f"class {typemap[udtype]}(Structure): pass")
 
 print()
 print("# constant definitions")
@@ -192,7 +192,7 @@ for fn in functions:
 
     print("{}.restype = {}".format(prefix, typeAsCtypes(fn.fn_type)))
     if fn.varargs:
-        print("# warning - %s takes variable argument list" % prefix)
+        print(f"# warning - {prefix} takes variable argument list")
         del fn.fn_args[-1]
 
     if fn.fn_args.asList() != [["void"]]:
@@ -202,4 +202,4 @@ for fn in functions:
             )
         )
     else:
-        print("%s.argtypes = ()" % (prefix))
+        print(f"{prefix}.argtypes = ()")
