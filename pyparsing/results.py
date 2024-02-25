@@ -693,14 +693,14 @@ class ParseResults:
         for i, vv in enumerate(v):
             if isinstance(vv, ParseResults):
                 vv_dump = vv.dump(
-                            indent=indent,
-                            full=full,
-                            include_list=include_list,
-                            _depth=_depth + 1,
-                        )
+                    indent=indent,
+                    full=full,
+                    include_list=include_list,
+                    _depth=_depth + 1,
+                )
                 out.append(
                     f"{nl}{indent}{incr * _depth}[{i}]:{nl}{indent}{incr * (_depth + 1)}{vv_dump}"
-                    )
+                )
             else:
                 out.append(
                     f"{nl}{indent}{incr * _depth}[{i}]:{nl}{indent}{incr * (_depth + 1)}{vv}"

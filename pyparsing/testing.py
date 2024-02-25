@@ -235,7 +235,9 @@ class pyparsing_test:
             )
 
         @contextmanager
-        def assertRaisesParseException(self, exc_type=ParseException, expected_msg=None, msg=None):
+        def assertRaisesParseException(
+            self, exc_type=ParseException, expected_msg=None, msg=None
+        ):
             if expected_msg is not None:
                 if isinstance(expected_msg, str):
                     expected_msg = re.escape(expected_msg)
