@@ -946,11 +946,9 @@ class ParserElement(ABC):
 
         not_in_cache: bool
 
-        def get(self, *args):
-            ...
+        def get(self, *args): ...
 
-        def set(self, *args):
-            ...
+        def set(self, *args): ...
 
     # argument cache for optimizing repeated calls when backtracking through recursive expressions
     packrat_cache = (
@@ -3168,6 +3166,7 @@ class QuotedString(Token):
         [['This is the "quote"']]
         [['This is the quote with "embedded" quotes']]
     """
+
     ws_map = dict(((r"\t", "\t"), (r"\n", "\n"), (r"\f", "\f"), (r"\r", "\r")))
 
     def __init__(
@@ -5950,8 +5949,8 @@ def srange(s: str) -> str:
     - any combination of the above (``'aeiouy'``,
       ``'a-zA-Z0-9_$'``, etc.)
     """
-    _expanded = (
-        lambda p: p
+    _expanded = lambda p: (
+        p
         if not isinstance(p, ParseResults)
         else "".join(chr(c) for c in range(ord(p[0]), ord(p[1]) + 1))
     )
