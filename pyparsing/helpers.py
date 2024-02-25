@@ -537,6 +537,8 @@ def nested_expr(
     else:
         ret <<= Group(Suppress(opener) + ZeroOrMore(ret | content) + Suppress(closer))
     ret.set_name(f"nested {opener}{closer} expression")
+    # don't override error message from content expressions
+    ret.errmsg = None
     return ret
 
 

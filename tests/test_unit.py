@@ -10040,6 +10040,41 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             ff2 <<= wd
             ff2.parse_string("123")
 
+    def testForwardExceptionText2(self):
+        """
+        Test various expressions for error messages, under conditions in wrapped ParserElements
+        """
+        v = "(omit closing paren"
+        w = "('omit closing quote)"
+
+        for s, expr, expected in (
+            (v, pp.nested_expr(), "Expected ')'"),
+            (v, pp.Combine(pp.nested_expr(), adjacent=False), "Expected ')'"),
+            (v, pp.QuotedString("(", endQuoteChar=")"), "Expected quoted string, starting with ( ending with ), found '('"),
+            (w, pp.nested_expr(content=pp.sgl_quoted_string), "Expected ')'"),
+            ("", pp.nested_expr(), ""),
+            ("", pp.Word("A"), ""),
+        ):
+            print(repr(s))
+            print(expr)
+
+            with self.subTest("parse expr", expr=expr, s=s, expected=expected):
+                with self.assertRaisesParseException(expected_msg=expected) as ctx:
+                    expr.parse_string(s, parse_all=True)
+                print(ctx.exception)
+
+            with self.subTest("parse expr[1, ...]", expr=expr, s=s, expected=expected):
+                with self.assertRaisesParseException(expected_msg=expected) as ctx:
+                    expr[1, ...].parse_string(s, parse_all=True)
+                print(ctx.exception)
+
+            with self.subTest("parse DelimitedList(expr)", expr=expr, s=s, expected=expected):
+                with self.assertRaisesParseException(expected_msg=expected) as ctx:
+                    pp.DelimitedList(expr).parse_string(s, parse_all=True)
+                print(ctx.exception)
+
+            print()
+
     def testMiscellaneousExceptionBits(self):
         pp.ParserElement.verbose_stacktrace = True
 

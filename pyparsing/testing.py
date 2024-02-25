@@ -241,12 +241,12 @@ class pyparsing_test:
             if expected_msg is not None:
                 if isinstance(expected_msg, str):
                     expected_msg = re.escape(expected_msg)
-                with self.assertRaisesRegex(exc_type, expected_msg, msg=msg):
-                    yield
+                with self.assertRaisesRegex(exc_type, expected_msg, msg=msg) as ctx:
+                    yield ctx
 
             else:
-                with self.assertRaises(exc_type, msg=msg):
-                    yield
+                with self.assertRaises(exc_type, msg=msg) as ctx:
+                    yield ctx
 
     @staticmethod
     def with_line_numbers(
