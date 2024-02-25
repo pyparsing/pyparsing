@@ -15,6 +15,9 @@ Version 3.2.0 will also discontinue support for Python versions 3.6 and 3.7.
 
 Version 3.1.2 - in development
 ------------------------------
+- Added `ieee_float` expression to `pyparsing.common`, which parses float values,
+  plus "NaN", "Inf", "Infinity". PR submitted by Bob Peterson (#538).
+
 - Updated pep8 synonym wrappers for better type checking compatibility. PR submitted
   by Ricardo Coccioli (#507).
 
