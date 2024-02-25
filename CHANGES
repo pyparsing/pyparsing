@@ -34,6 +34,9 @@ Version 3.1.2 - in development
 
 - Added example `email_address_parser.py`, as suggested by John Byrd (#539).
 
+- Added example `directx_x_file_parser.py` to parse DirectX template definitions, and
+  generate a Pyparsing parser from a template to parse .x files.
+
 - Some code refactoring to reduce code nesting, PRs submitted by InSync.
 
 - All internal string expressions using '%' string interpolation and `str.format()`
