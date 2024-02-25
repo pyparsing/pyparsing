@@ -216,6 +216,13 @@ class pyparsing_common:
     )
     """any int or real number, returned as float"""
 
+    ieee_float = (
+        Regex(r"(?i)[+-]?((\d+\.?\d*(e[+-]?\d+)?)|nan|inf(inity)?)")
+        .set_name("ieee_float")
+        .set_parse_action(convert_to_float)
+    )
+    """any floating-point literal (int, real number, infinity, or NaN), returned as float"""
+
     identifier = Word(identchars, identbodychars).set_name("identifier")
     """typical code identifier (leading alpha or '_', followed by 0 or more alphas, nums, or '_')"""
 
