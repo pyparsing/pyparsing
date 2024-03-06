@@ -3858,8 +3858,10 @@ class ParseExpression(ParserElement):
             if (
                 isinstance(e, ParserElement)
                 and e.resultsName
-                and Diagnostics.warn_ungrouped_named_tokens_in_collection
-                not in e.suppress_warnings_
+                and (
+                    Diagnostics.warn_ungrouped_named_tokens_in_collection
+                    not in e.suppress_warnings_
+                )
             ):
                 warning = (
                     "warn_ungrouped_named_tokens_in_collection:"
@@ -3867,6 +3869,7 @@ class ParseExpression(ParserElement):
                     f" collides with {e.resultsName!r} on contained expression"
                 )
                 warnings.warn(warning, stacklevel=3)
+                break
 
         return super()._setResultsName(name, listAllMatches)
 
@@ -4962,8 +4965,10 @@ class _MultipleMatch(ParseElementEnhance):
                 if (
                     isinstance(e, ParserElement)
                     and e.resultsName
-                    and Diagnostics.warn_ungrouped_named_tokens_in_collection
-                    not in e.suppress_warnings_
+                    and (
+                        Diagnostics.warn_ungrouped_named_tokens_in_collection
+                        not in e.suppress_warnings_
+                    )
                 ):
                     warning = (
                         "warn_ungrouped_named_tokens_in_collection:"
@@ -4971,6 +4976,7 @@ class _MultipleMatch(ParseElementEnhance):
                         f" collides with {e.resultsName!r} on contained expression"
                     )
                     warnings.warn(warning, stacklevel=3)
+                    break
 
         return super()._setResultsName(name, listAllMatches)
 
