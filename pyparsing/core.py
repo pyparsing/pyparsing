@@ -1506,15 +1506,10 @@ class ParserElement(ABC):
         """
         if other is Ellipsis:
             other = (0, None)
-        elif isinstance(other, tuple) and other[:1] == (Ellipsis,):
-            other = ((0,) + other[1:] + (None,))[:2]
-
-        if not isinstance(other, (int, tuple)):
-            return NotImplemented
 
         if isinstance(other, int):
             minElements, optElements = other, 0
-        else:
+        elif isinstance(other, tuple):
             other = tuple(o if o is not Ellipsis else None for o in other)
             other = (other + (None, None))[:2]
             if other[0] is None:
@@ -1531,6 +1526,8 @@ class ParserElement(ABC):
                 optElements -= minElements
             else:
                 return NotImplemented
+        else:
+            return NotImplemented
 
         if minElements < 0:
             raise ValueError("cannot multiply ParserElement by negative value")
