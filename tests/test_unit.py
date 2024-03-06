@@ -3873,10 +3873,15 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
     def testMulWithEllipsis(self):
         """multiply an expression with Ellipsis as ``expr * ...`` to match ZeroOrMore"""
 
-        expr = pp.Literal("A")("Achar") * ...
-        res = expr.parseString("A", parseAll=True)
-        self.assertEqual(["A"], res.asList(), "expected expr * ... to match ZeroOrMore")
-        print(res.dump())
+        for factor in (..., (...,), (..., 10,)):
+            expr = pp.Literal("A")("Achar") * factor
+            res = expr.parseString("A", parseAll=True)
+            self.assertEqual(
+                ["A"],
+                res.asList(),
+                f"expected expr * {str(factor).replace('Ellipsis', '...')} to match ZeroOrMore",
+            )
+            print(res.dump())
 
     def testUpcaseDowncaseUnicode(self):
         import sys
