@@ -1510,6 +1510,8 @@ class ParserElement(ABC):
             minElements, maxElements = (other + (None, None))[:2]
         elif other is Ellipsis:
             minElements, maxElements = other, None
+        else:
+            return NotImplemented
 
         if minElements in (Ellipsis, None):
             minElements = 0
