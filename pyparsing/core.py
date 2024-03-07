@@ -1504,64 +1504,39 @@ class ParserElement(ABC):
         occurrences.  If this behavior is desired, then write
         ``expr*(None, n) + ~expr``
         """
-        if other is Ellipsis:
-            other = (0, None)
-        elif isinstance(other, tuple) and other[:1] == (Ellipsis,):
-            other = ((0,) + other[1:] + (None,))[:2]
-
-        if not isinstance(other, (int, tuple)):
+        if isinstance(other, int):
+            minElements, maxElements = other, other
+        elif isinstance(other, tuple):
+            minElements, maxElements = (other + (None, None))[:2]
+        elif other is Ellipsis:
+            minElements, maxElements = other, None
+        else:
             return NotImplemented
 
-        if isinstance(other, int):
-            minElements, optElements = other, 0
-        else:
-            other = tuple(o if o is not Ellipsis else None for o in other)
-            other = (other + (None, None))[:2]
-            if other[0] is None:
-                other = (0, other[1])
-            if isinstance(other[0], int) and other[1] is None:
-                if other[0] == 0:
-                    return ZeroOrMore(self)
-                if other[0] == 1:
-                    return OneOrMore(self)
-                else:
-                    return self * other[0] + ZeroOrMore(self)
-            elif isinstance(other[0], int) and isinstance(other[1], int):
-                minElements, optElements = other
-                optElements -= minElements
-            else:
-                return NotImplemented
-
-        if minElements < 0:
+        if minElements in (Ellipsis, None):
+            minElements = 0
+        elif minElements < 0:
             raise ValueError("cannot multiply ParserElement by negative value")
-        if optElements < 0:
-            raise ValueError(
-                "second tuple value must be greater or equal to first tuple value"
-            )
-        if minElements == optElements == 0:
-            return And([])
 
-        if optElements:
-
-            def makeOptionalList(n):
-                if n > 1:
-                    return Opt(self + makeOptionalList(n - 1))
-                else:
-                    return Opt(self)
-
-            if minElements:
-                if minElements == 1:
-                    ret = self + makeOptionalList(optElements)
-                else:
-                    ret = And([self] * minElements) + makeOptionalList(optElements)
+        if maxElements in (Ellipsis, None):
+            if minElements == 0:
+                return ZeroOrMore(self)
+            elif minElements == 1:
+                return OneOrMore(self)
             else:
-                ret = makeOptionalList(optElements)
-        else:
-            if minElements == 1:
-                ret = self
+                return self * minElements + ZeroOrMore(self)
+        elif maxElements < minElements:
+            raise ValueError("second tuple value must be greater or equal to first tuple value")
+
+        if minElements == maxElements:
+            if minElements == 0:
+                return And([])
+            elif minElements == 1:
+                return self
             else:
-                ret = And([self] * minElements)
-        return ret
+                return And([self] * minElements)
+
+        return And([self] * minElements) + (Opt(self) * (maxElements - minElements))
 
     def __rmul__(self, other) -> "ParserElement":
         return self.__mul__(other)
