@@ -1510,8 +1510,6 @@ class ParserElement(ABC):
             minElements, maxElements = (other + (None, None))[:2]
         elif other is Ellipsis:
             minElements, maxElements = other, None
-        else:
-            return NotImplemented
 
         if minElements in (Ellipsis, None):
             minElements = 0
@@ -1527,6 +1525,9 @@ class ParserElement(ABC):
                 return self * minElements + ZeroOrMore(self)
         elif maxElements < minElements:
             raise ValueError("second tuple value must be greater or equal to first tuple value")
+
+        if not type(minElements) == type(maxElements) == int:
+            return NotImplemented
 
         if minElements == maxElements:
             if minElements == 0:
