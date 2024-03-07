@@ -85,7 +85,7 @@ class ParseBaseException(Exception):
         ret = []
         if isinstance(exc, ParseBaseException):
             ret.append(exc.line)
-            ret.append(" " * (exc.column - 1) + "^")
+            ret.append(f"{' ' * (exc.column - 1)}^")
         ret.append(f"{type(exc).__name__}: {exc}")
 
         if depth <= 0:

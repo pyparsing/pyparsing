@@ -16,18 +16,24 @@ ppt = pp.pyparsing_test
 TestParseResultsAsserts = ppt.TestParseResultsAsserts
 
 # Test spec data class for specifying simple pyparsing test cases
-PpTestSpec = namedtuple(
-    "PpTestSpec",
-    "desc expr text parse_fn " "expected_list expected_dict expected_fail_locn",
+PyparsingTest = namedtuple(
+    "PyparsingTest",
+    "desc expr text parse_fn expected_list expected_dict expected_fail_locn",
 )
-PpTestSpec.__new__.__defaults__ = ("", pp.Empty(), "", "parseString", None, None, None)
+# fmt: off
+PyparsingTest.__new__.__defaults__ = (
+    "", pp.Empty(), "", "parse_string", None, None, None,
+)
+# fmt: on
+
+NL = "\n"
 
 
 class PyparsingExpressionTestCase(ppt.TestParseResultsAsserts, unittest.TestCase):
     """
     Base pyparsing testing class to parse various pyparsing expressions against
     given text strings. Subclasses must define a class attribute 'tests' which
-    is a list of PpTestSpec instances.
+    is a list of PyparsingTest instances.
     """
 
     tests = []
@@ -47,37 +53,37 @@ class PyparsingExpressionTestCase(ppt.TestParseResultsAsserts, unittest.TestCase
             with self.subTest(test_spec=test_spec):
                 test_spec.expr.streamline()
                 print(
-                    f"\n{test_spec.desc} - {type(test_spec.expr).__name__}({test_spec.expr})"
+                    f"{NL}{test_spec.desc} - {type(test_spec.expr).__name__}({test_spec.expr})"
                 )
 
-                parsefn = getattr(test_spec.expr, test_spec.parse_fn)
+                parse_function = getattr(test_spec.expr, test_spec.parse_fn)
                 if test_spec.expected_fail_locn is None:
                     # expect success
-                    result = parsefn(test_spec.text)
-                    if test_spec.parse_fn == "parseString":
-                        print(result.dump())
+                    subtest_result = parse_function(test_spec.text)
+                    if test_spec.parse_fn == "parse_string":
+                        print(subtest_result.dump())
                         # compare results against given list and/or dict
                         self.assertParseResultsEquals(
-                            result,
+                            subtest_result,
                             expected_list=test_spec.expected_list,
                             expected_dict=test_spec.expected_dict,
                         )
                     elif test_spec.parse_fn == "transformString":
-                        print(result)
+                        print(subtest_result)
                         # compare results against given list and/or dict
                         if test_spec.expected_list is not None:
-                            self.assertEqual([result], test_spec.expected_list)
+                            self.assertEqual([subtest_result], test_spec.expected_list)
                     elif test_spec.parse_fn == "searchString":
-                        print(result)
+                        print(subtest_result)
                         # compare results against given list and/or dict
                         if test_spec.expected_list is not None:
-                            self.assertEqual([result], test_spec.expected_list)
+                            self.assertEqual([subtest_result], test_spec.expected_list)
                 else:
                     # expect fail
                     with self.assertRaisesParseException():
                         try:
-                            parsefn(test_spec.text)
-                        except Exception as exc:
+                            parse_function(test_spec.text)
+                        except pp.ParseBaseException as exc:
                             print(pp.ParseException.explain(exc))
                             self.assertEqual(exc.loc, test_spec.expected_fail_locn)
                             raise
@@ -88,37 +94,37 @@ class PyparsingExpressionTestCase(ppt.TestParseResultsAsserts, unittest.TestCase
 
 class TestLiteral(PyparsingExpressionTestCase):
     tests = [
-        PpTestSpec(
+        PyparsingTest(
             desc="Simple match",
             expr=pp.Literal("xyz"),
             text="xyz",
             expected_list=["xyz"],
         ),
-        PpTestSpec(
+        PyparsingTest(
             desc="Simple match after skipping whitespace",
             expr=pp.Literal("xyz"),
             text="  xyz",
             expected_list=["xyz"],
         ),
-        PpTestSpec(
+        PyparsingTest(
             desc="Simple fail - parse an empty string",
             expr=pp.Literal("xyz"),
             text="",
             expected_fail_locn=0,
         ),
-        PpTestSpec(
+        PyparsingTest(
             desc="Simple fail - parse a mismatching string",
             expr=pp.Literal("xyz"),
             text="xyu",
             expected_fail_locn=0,
         ),
-        PpTestSpec(
+        PyparsingTest(
             desc="Simple fail - parse a partially matching string",
             expr=pp.Literal("xyz"),
             text="xy",
             expected_fail_locn=0,
         ),
-        PpTestSpec(
+        PyparsingTest(
             desc="Fail - parse a partially matching string by matching individual letters",
             expr=pp.Literal("x") + pp.Literal("y") + pp.Literal("z"),
             text="xy",
@@ -129,7 +135,7 @@ class TestLiteral(PyparsingExpressionTestCase):
 
 class TestCaselessLiteral(PyparsingExpressionTestCase):
     tests = [
-        PpTestSpec(
+        PyparsingTest(
             desc="Match colors, converting to consistent case",
             expr=(
                 pp.CaselessLiteral("RED")
@@ -144,19 +150,19 @@ class TestCaselessLiteral(PyparsingExpressionTestCase):
 
 class TestWord(PyparsingExpressionTestCase):
     tests = [
-        PpTestSpec(
+        PyparsingTest(
             desc="Simple Word match",
             expr=pp.Word("xy"),
             text="xxyxxyy",
             expected_list=["xxyxxyy"],
         ),
-        PpTestSpec(
+        PyparsingTest(
             desc="Simple Word match of two separate Words",
             expr=pp.Word("x") + pp.Word("y"),
             text="xxxxxyy",
             expected_list=["xxxxx", "yy"],
         ),
-        PpTestSpec(
+        PyparsingTest(
             desc="Simple Word match of two separate Words - implicitly skips whitespace",
             expr=pp.Word("x") + pp.Word("y"),
             text="xxxxx yy",
@@ -167,26 +173,15 @@ class TestWord(PyparsingExpressionTestCase):
 
 class TestCombine(PyparsingExpressionTestCase):
     tests = [
-        PpTestSpec(
+        PyparsingTest(
             desc="Parsing real numbers - fail, parsed numbers are in pieces",
             expr=(pp.Word(pp.nums) + "." + pp.Word(pp.nums))[...],
             text="1.2 2.3 3.1416 98.6",
-            expected_list=[
-                "1",
-                ".",
-                "2",
-                "2",
-                ".",
-                "3",
-                "3",
-                ".",
-                "1416",
-                "98",
-                ".",
-                "6",
-            ],
+            # fmt: off
+            expected_list=["1", ".", "2", "2", ".", "3", "3", ".", "1416", "98", ".", "6"],
+            # fmt: on
         ),
-        PpTestSpec(
+        PyparsingTest(
             desc="Parsing real numbers - better, use Combine to combine multiple tokens into one",
             expr=pp.Combine(pp.Word(pp.nums) + "." + pp.Word(pp.nums))[...],
             text="1.2 2.3 3.1416 98.6",
@@ -197,53 +192,29 @@ class TestCombine(PyparsingExpressionTestCase):
 
 class TestRepetition(PyparsingExpressionTestCase):
     tests = [
-        PpTestSpec(
+        PyparsingTest(
             desc="Match several words",
             expr=(pp.Word("x") | pp.Word("y"))[...],
             text="xxyxxyyxxyxyxxxy",
             expected_list=["xx", "y", "xx", "yy", "xx", "y", "x", "y", "xxx", "y"],
         ),
-        PpTestSpec(
+        PyparsingTest(
             desc="Match several words, skipping whitespace",
             expr=(pp.Word("x") | pp.Word("y"))[...],
             text="x x  y xxy yxx y xyx  xxy",
-            expected_list=[
-                "x",
-                "x",
-                "y",
-                "xx",
-                "y",
-                "y",
-                "xx",
-                "y",
-                "x",
-                "y",
-                "x",
-                "xx",
-                "y",
-            ],
+            # fmt: off
+            expected_list=["x", "x", "y", "xx", "y", "y", "xx", "y", "x", "y", "x", "xx", "y"],
+            # fmt: on
         ),
-        PpTestSpec(
+        PyparsingTest(
             desc="Match several words, skipping whitespace (old style)",
             expr=pp.OneOrMore(pp.Word("x") | pp.Word("y")),
             text="x x  y xxy yxx y xyx  xxy",
-            expected_list=[
-                "x",
-                "x",
-                "y",
-                "xx",
-                "y",
-                "y",
-                "xx",
-                "y",
-                "x",
-                "y",
-                "x",
-                "xx",
-                "y",
-            ],
+            # fmt: off
+            expected_list=["x", "x", "y", "xx", "y", "y", "xx", "y", "x", "y", "x", "xx", "y"],
+            # fmt: on
         ),
-        PpTestSpec(
+        PyparsingTest(
             desc="Match words and numbers - show use of results names to collect types of tokens",
             expr=(pp.Word(pp.alphas)("alpha*") | pp.pyparsing_common.integer("int*"))[
                 ...
@@ -255,41 +226,41 @@ class TestRepetition(PyparsingExpressionTestCase):
                 "int": [23084, 8234, 934],
             },
         ),
-        PpTestSpec(
-            desc="Using delimited_list (comma is the default delimiter)",
-            expr=pp.delimited_list(pp.Word(pp.alphas)),
+        PyparsingTest(
+            desc="Using DelimitedList (comma is the default delimiter)",
+            expr=pp.DelimitedList(pp.Word(pp.alphas)),
             text="xxyx,xy,y,xxyx,yxx, xy",
             expected_list=["xxyx", "xy", "y", "xxyx", "yxx", "xy"],
         ),
-        PpTestSpec(
-            desc="Using delimited_list (comma is the default delimiter) with trailing delimiter",
-            expr=pp.delimited_list(pp.Word(pp.alphas), allow_trailing_delim=True),
+        PyparsingTest(
+            desc="Using DelimitedList (comma is the default delimiter) with trailing delimiter",
+            expr=pp.DelimitedList(pp.Word(pp.alphas), allow_trailing_delim=True),
             text="xxyx,xy,y,xxyx,yxx, xy,",
             expected_list=["xxyx", "xy", "y", "xxyx", "yxx", "xy"],
         ),
-        PpTestSpec(
-            desc="Using delimited_list (comma is the default delimiter) with minimum size",
-            expr=pp.delimited_list(pp.Word(pp.alphas), min=3),
+        PyparsingTest(
+            desc="Using DelimitedList (comma is the default delimiter) with minimum size",
+            expr=pp.DelimitedList(pp.Word(pp.alphas), min=3),
             text="xxyx,xy",
             expected_fail_locn=7,
         ),
-        PpTestSpec(
-            desc="Using delimited_list (comma is the default delimiter) with maximum size",
-            expr=pp.delimited_list(pp.Word(pp.alphas), max=3),
+        PyparsingTest(
+            desc="Using DelimitedList (comma is the default delimiter) with maximum size",
+            expr=pp.DelimitedList(pp.Word(pp.alphas), max=3),
             text="xxyx,xy,y,xxyx,yxx, xy,",
             expected_list=["xxyx", "xy", "y"],
         ),
-        PpTestSpec(
-            desc="Using delimited_list, with ':' delimiter",
-            expr=pp.delimited_list(
+        PyparsingTest(
+            desc="Using DelimitedList, with ':' delimiter",
+            expr=pp.DelimitedList(
                 pp.Word(pp.hexnums, exact=2), delim=":", combine=True
             ),
             text="0A:4B:73:21:FE:76",
             expected_list=["0A:4B:73:21:FE:76"],
         ),
-        PpTestSpec(
-            desc="Using delimited_list, with ':' delimiter",
-            expr=pp.delimited_list(
+        PyparsingTest(
+            desc="Using DelimitedList, with ':' delimiter",
+            expr=pp.DelimitedList(
                 pp.Word(pp.hexnums, exact=2),
                 delim=":",
                 combine=True,
@@ -303,21 +274,21 @@ class TestRepetition(PyparsingExpressionTestCase):
 
 class TestResultsName(PyparsingExpressionTestCase):
     tests = [
-        PpTestSpec(
+        PyparsingTest(
             desc="Match with results name",
             expr=pp.Literal("xyz").set_results_name("value"),
             text="xyz",
             expected_dict={"value": "xyz"},
             expected_list=["xyz"],
         ),
-        PpTestSpec(
+        PyparsingTest(
             desc="Match with results name - using naming short-cut",
             expr=pp.Literal("xyz")("value"),
             text="xyz",
             expected_dict={"value": "xyz"},
             expected_list=["xyz"],
         ),
-        PpTestSpec(
+        PyparsingTest(
             desc="Define multiple results names",
             expr=pp.Word(pp.alphas, pp.alphanums)("key")
             + "="
@@ -332,7 +303,7 @@ class TestResultsName(PyparsingExpressionTestCase):
 class TestGroups(PyparsingExpressionTestCase):
     EQ = pp.Suppress("=")
     tests = [
-        PpTestSpec(
+        PyparsingTest(
             desc="Define multiple results names in groups",
             expr=pp.Group(
                 pp.Word(pp.alphas)("key") + EQ + pp.pyparsing_common.number("value")
@@ -340,8 +311,11 @@ class TestGroups(PyparsingExpressionTestCase):
             text="range=5280 long=-138.52 lat=46.91",
             expected_list=[["range", 5280], ["long", -138.52], ["lat", 46.91]],
         ),
-        PpTestSpec(
-            desc="Define multiple results names in groups - use Dict to define results names using parsed keys",
+        PyparsingTest(
+            desc=(
+                "Define multiple results names in groups"
+                " - use Dict to define results names using parsed keys"
+            ),
             expr=pp.Dict(
                 pp.Group(pp.Word(pp.alphas) + EQ + pp.pyparsing_common.number)[...]
             ),
@@ -349,7 +323,7 @@ class TestGroups(PyparsingExpressionTestCase):
             expected_list=[["range", 5280], ["long", -138.52], ["lat", 46.91]],
             expected_dict={"lat": 46.91, "long": -138.52, "range": 5280},
         ),
-        PpTestSpec(
+        PyparsingTest(
             desc="Define multiple value types",
             expr=pp.Dict(
                 pp.Group(
@@ -381,48 +355,46 @@ class TestGroups(PyparsingExpressionTestCase):
 
 class TestParseAction(PyparsingExpressionTestCase):
     tests = [
-        PpTestSpec(
+        PyparsingTest(
             desc="Parsing real numbers - use parse action to convert to float at parse time",
             expr=pp.Combine(pp.Word(pp.nums) + "." + pp.Word(pp.nums)).add_parse_action(
                 lambda t: float(t[0])
             )[...],
             text="1.2 2.3 3.1416 98.6",
-            expected_list=[
-                1.2,
-                2.3,
-                3.1416,
-                98.6,
-            ],  # note, these are now floats, not strs
+            # note, these are now floats, not strs
+            expected_list=[1.2, 2.3, 3.1416, 98.6],
         ),
-        PpTestSpec(
+        PyparsingTest(
             desc="Match with numeric string converted to int",
             expr=pp.Word("0123456789").addParseAction(lambda t: int(t[0])),
             text="12345",
             expected_list=[12345],  # note - result is type int, not str
         ),
-        PpTestSpec(
+        PyparsingTest(
             desc="Use two parse actions to convert numeric string, then convert to datetime",
             expr=pp.Word(pp.nums).add_parse_action(
-                lambda t: int(t[0]), lambda t: datetime.fromtimestamp(t[0], timezone.utc)
+                lambda t: int(t[0]),
+                lambda t: datetime.fromtimestamp(t[0], timezone.utc),
             ),
             text="1537415628",
             expected_list=[datetime(2018, 9, 20, 3, 53, 48, tzinfo=timezone.utc)],
         ),
-        PpTestSpec(
+        PyparsingTest(
             desc="Use tokenMap for parse actions that operate on a single-length token",
             expr=pp.Word(pp.nums).add_parse_action(
-                pp.token_map(int), pp.token_map(lambda t: datetime.fromtimestamp(t, timezone.utc))
+                pp.token_map(int),
+                pp.token_map(lambda t: datetime.fromtimestamp(t, timezone.utc)),
             ),
             text="1537415628",
             expected_list=[datetime(2018, 9, 20, 3, 53, 48, tzinfo=timezone.utc)],
         ),
-        PpTestSpec(
+        PyparsingTest(
             desc="Using a built-in function that takes a sequence of strs as a parse action",
             expr=pp.Word(pp.hexnums, exact=2)[...].add_parse_action(":".join),
             text="0A4B7321FE76",
             expected_list=["0A:4B:73:21:FE:76"],
         ),
-        PpTestSpec(
+        PyparsingTest(
             desc="Using a built-in function that takes a sequence of strs as a parse action",
             expr=pp.Word(pp.hexnums, exact=2)[...].add_parse_action(sorted),
             text="0A4B7321FE76",
@@ -444,7 +416,7 @@ class TestResultsModifyingParseAction(PyparsingExpressionTestCase):
         t["max"] = max(t)
 
     tests = [
-        PpTestSpec(
+        PyparsingTest(
             desc="A parse action that adds new key-values",
             expr=pp.pyparsing_common.integer[...].addParseAction(
                 compute_stats_parse_action
@@ -458,29 +430,25 @@ class TestResultsModifyingParseAction(PyparsingExpressionTestCase):
 
 class TestRegex(PyparsingExpressionTestCase):
     tests = [
-        PpTestSpec(
+        PyparsingTest(
             desc="Parsing real numbers - using Regex instead of Combine",
             expr=pp.Regex(r"\d+\.\d+").add_parse_action(lambda t: float(t[0]))[...],
             text="1.2 2.3 3.1416 98.6",
-            expected_list=[
-                1.2,
-                2.3,
-                3.1416,
-                98.6,
-            ],  # note, these are now floats, not strs
+            # note, these are now floats, not strs
+            expected_list=[1.2, 2.3, 3.1416, 98.6],
         ),
     ]
 
 
 class TestParseCondition(PyparsingExpressionTestCase):
     tests = [
-        PpTestSpec(
+        PyparsingTest(
             desc="Define a condition to only match numeric values that are multiples of 7",
             expr=pp.Word(pp.nums).addCondition(lambda t: int(t[0]) % 7 == 0)[...],
             text="14 35 77 12 28",
             expected_list=["14", "35", "77"],
         ),
-        PpTestSpec(
+        PyparsingTest(
             desc="Separate conversion to int and condition into separate parse action/conditions",
             expr=pp.Word(pp.nums)
             .add_parse_action(lambda t: int(t[0]))
@@ -507,7 +475,7 @@ class TestTransformStringUsingParseActions(PyparsingExpressionTestCase):
         return f"<{htmltag}>{t.body}</{htmltag}>"
 
     tests = [
-        PpTestSpec(
+        PyparsingTest(
             desc="Use transformString to convert simple markup to HTML",
             expr=(
                 pp.one_of(markup_convert_map)("markup_symbol")
@@ -526,19 +494,19 @@ class TestTransformStringUsingParseActions(PyparsingExpressionTestCase):
 
 class TestCommonHelperExpressions(PyparsingExpressionTestCase):
     tests = [
-        PpTestSpec(
+        PyparsingTest(
             desc="A comma-delimited list of words",
-            expr=pp.delimited_list(pp.Word(pp.alphas)),
+            expr=pp.DelimitedList(pp.Word(pp.alphas)),
             text="this, that, blah,foo,   bar",
             expected_list=["this", "that", "blah", "foo", "bar"],
         ),
-        PpTestSpec(
+        PyparsingTest(
             desc="A counted array of words",
             expr=pp.Group(pp.counted_array(pp.Word("ab")))[...],
             text="2 aaa bbb 0 3 abab bbaa abbab",
             expected_list=[["aaa", "bbb"], [], ["abab", "bbaa", "abbab"]],
         ),
-        PpTestSpec(
+        PyparsingTest(
             desc="skipping comments with ignore",
             expr=(
                 pp.pyparsing_common.identifier("lhs")
@@ -549,11 +517,14 @@ class TestCommonHelperExpressions(PyparsingExpressionTestCase):
             expected_list=["abc_100", "=", 3.1416],
             expected_dict={"lhs": "abc_100", "rhs": 3.1416},
         ),
-        PpTestSpec(
-            desc="some pre-defined expressions in pyparsing_common, and building a dotted identifier with delimted_list",
+        PyparsingTest(
+            desc=(
+                "some pre-defined expressions in pyparsing_common, and"
+                " building a dotted identifier with DelimitedList"
+            ),
             expr=(
                 pp.pyparsing_common.number("id_num")
-                + pp.delimitedList(pp.pyparsing_common.identifier, ".", combine=True)(
+                + pp.DelimitedList(pp.pyparsing_common.identifier, ".", combine=True)(
                     "name"
                 )
                 + pp.pyparsing_common.ipv4_address("ip_address")
@@ -566,19 +537,19 @@ class TestCommonHelperExpressions(PyparsingExpressionTestCase):
                 "ip_address": "192.168.10.199",
             },
         ),
-        PpTestSpec(
+        PyparsingTest(
             desc="using one_of (shortcut for Literal('a') | Literal('b') | Literal('c'))",
             expr=pp.one_of("a b c")[...],
             text="a b a b b a c c a b b",
             expected_list=["a", "b", "a", "b", "b", "a", "c", "c", "a", "b", "b"],
         ),
-        PpTestSpec(
+        PyparsingTest(
             desc="parsing nested parentheses",
             expr=pp.nested_expr(),
             text="(a b (c) d (e f g ()))",
             expected_list=[["a", "b", ["c"], "d", ["e", "f", "g", []]]],
         ),
-        PpTestSpec(
+        PyparsingTest(
             desc="parsing nested braces",
             expr=(
                 pp.Keyword("if")
@@ -602,33 +573,37 @@ class TestCommonHelperExpressions(PyparsingExpressionTestCase):
 class TestWhitespaceMethods(PyparsingExpressionTestCase):
     tests = [
         # These test the single-element versions
-        PpTestSpec(
+        PyparsingTest(
             desc="The word foo",
             expr=pp.Literal("foo").ignore_whitespace(),
             text="      foo        ",
             expected_list=["foo"],
         ),
-        PpTestSpec(
+        PyparsingTest(
             desc="The word foo",
             expr=pp.Literal("foo").leave_whitespace(),
             text="      foo        ",
             expected_fail_locn=0,
         ),
-        PpTestSpec(
+        PyparsingTest(
             desc="The word foo",
             expr=pp.Literal("foo").ignore_whitespace(),
             text="foo",
             expected_list=["foo"],
         ),
-        PpTestSpec(
+        PyparsingTest(
             desc="The word foo",
             expr=pp.Literal("foo").leave_whitespace(),
             text="foo",
             expected_list=["foo"],
         ),
         # These test the composite elements
-        PpTestSpec(
-            desc="If we recursively leave whitespace on the parent, this whitespace-dependent grammar will succeed, even if the children themselves skip whitespace",
+        PyparsingTest(
+            desc=(
+                "If we recursively leave whitespace on the parent, this"
+                " whitespace-dependent grammar will succeed, even if the"
+                " children themselves skip whitespace"
+            ),
             expr=pp.And(
                 [
                     pp.Literal(" foo").ignore_whitespace(),
@@ -639,8 +614,12 @@ class TestWhitespaceMethods(PyparsingExpressionTestCase):
             expected_list=[" foo", " bar"],
         ),
         #
-        PpTestSpec(
-            desc="If we recursively ignore whitespace in our parsing, this whitespace-dependent grammar will fail, even if the children themselves keep whitespace",
+        PyparsingTest(
+            desc=(
+                "If we recursively ignore whitespace in our parsing, this"
+                " whitespace-dependent grammar will fail, even if the children"
+                " themselves keep whitespace"
+            ),
             expr=pp.And(
                 [
                     pp.Literal(" foo").leave_whitespace(),
@@ -650,8 +629,11 @@ class TestWhitespaceMethods(PyparsingExpressionTestCase):
             text=" foo bar",
             expected_fail_locn=1,
         ),
-        PpTestSpec(
-            desc="If we leave whitespace on the parent, but it isn't recursive, this whitespace-dependent grammar will fail",
+        PyparsingTest(
+            desc=(
+                "If we leave whitespace on the parent, but it isn't recursive,"
+                " this whitespace-dependent grammar will fail"
+            ),
             expr=pp.And(
                 [
                     pp.Literal(" foo").ignore_whitespace(),
@@ -662,8 +644,12 @@ class TestWhitespaceMethods(PyparsingExpressionTestCase):
             expected_fail_locn=5,
         ),
         # These test the Enhance classes
-        PpTestSpec(
-            desc="If we recursively leave whitespace on the parent, this whitespace-dependent grammar will succeed, even if the children themselves skip whitespace",
+        PyparsingTest(
+            desc=(
+                "If we recursively leave whitespace on the parent,"
+                " this whitespace-dependent grammar will succeed, even"
+                " if the children themselves skip whitespace"
+            ),
             expr=pp.Optional(pp.Literal(" foo").ignore_whitespace()).leave_whitespace(
                 recursive=True
             ),
@@ -671,16 +657,23 @@ class TestWhitespaceMethods(PyparsingExpressionTestCase):
             expected_list=[" foo"],
         ),
         #
-        PpTestSpec(
-            desc="If we ignore whitespace on the parent, but it isn't recursive, parsing will fail because we skip to the first character 'f' before the internal expr can see it",
+        PyparsingTest(
+            desc=(
+                "If we ignore whitespace on the parent, but it isn't recursive,"
+                " parsing will fail because we skip to the first character"
+                " 'f' before the internal expr can see it"
+            ),
             expr=pp.Optional(pp.Literal(" foo").leave_whitespace()).ignore_whitespace(
                 recursive=True
             ),
             text=" foo",
             expected_list=[],
         ),
-        # PpTestSpec(
-        #     desc="If we leave whitespace on the parent, this whitespace-dependent grammar will succeed, even if the children themselves skip whitespace",
+        # PyparsingTest(
+        #     desc=(
+        #         "If we leave whitespace on the parent, this whitespace-dependent"
+        #         " grammar will succeed, even if the children themselves skip whitespace"
+        #     ),
         #     expr=pp.Optional(pp.Literal(" foo").ignoreWhitespace()).leaveWhitespace(
         #         recursive=False
         #     ),
