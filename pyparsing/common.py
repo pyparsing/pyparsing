@@ -151,12 +151,12 @@ class pyparsing_common:
         [UUID('12345678-1234-5678-1234-567812345678')]
     """
 
-    convert_to_integer = staticmethod(token_map(int))
+    convert_to_integer = token_map(int)
     """
     Parse action for converting parsed integers to Python int
     """
 
-    convert_to_float = staticmethod(token_map(float))
+    convert_to_float = token_map(float)
     """
     Parse action for converting parsed numbers to Python float
     """

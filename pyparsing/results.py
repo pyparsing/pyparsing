@@ -788,10 +788,12 @@ class ParseResults:
             ret = cls([ret], name=name)
         return ret
 
-    # Compatibility synonyms
-    asList = replaced_by_pep8("asList", as_list)
-    asDict = replaced_by_pep8("asDict", as_dict)
-    getName = replaced_by_pep8("getName", get_name)
+    asList = as_list
+    """Deprecated - use :class:`as_list`"""
+    asDict = as_dict
+    """Deprecated - use :class:`as_dict`"""
+    getName = get_name
+    """Deprecated - use :class:`get_name`"""
 
 
 MutableMapping.register(ParseResults)
