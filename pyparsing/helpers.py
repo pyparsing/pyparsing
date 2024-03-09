@@ -1049,7 +1049,7 @@ def delimited_list(
     )
 
 
-# pre-PEP8 compatible names
+# Compatibility synonyms
 # fmt: off
 opAssoc = OpAssoc
 anyOpenTag = any_open_tag

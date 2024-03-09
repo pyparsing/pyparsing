@@ -121,7 +121,7 @@ class version_info(NamedTuple):
 
 
 __version_info__ = version_info(3, 1, 3, "final", 1)
-__version_time__ = "07 Mar 2024 13:11 UTC"
+__version_time__ = "09 Mar 2024 15:40 UTC"
 __version__ = __version_info__.__version__
 __versionTime__ = __version_time__
 __author__ = "Paul McGuire <ptmcg.gm+pyparsing@gmail.com>"
@@ -143,7 +143,7 @@ from .common import (
     _builtin_exprs as common_builtin_exprs,
 )
 
-# define backward compat synonyms
+# Compatibility synonyms
 if "pyparsing_unicode" not in globals():
     pyparsing_unicode = unicode  # type: ignore[misc]
 if "pyparsing_common" not in globals():

@@ -10,6 +10,9 @@ from collections.abc import (
 import pprint
 from typing import Tuple, Any, Dict, Set, List
 
+from .util import replaced_by_pep8
+
+
 str_type: Tuple[type, ...] = (str, bytes)
 _generator_type = type((_ for _ in ()))
 
@@ -785,12 +788,10 @@ class ParseResults:
             ret = cls([ret], name=name)
         return ret
 
-    asList = as_list
-    """Deprecated - use :class:`as_list`"""
-    asDict = as_dict
-    """Deprecated - use :class:`as_dict`"""
-    getName = get_name
-    """Deprecated - use :class:`get_name`"""
+    # Compatibility synonyms
+    asList = replaced_by_pep8("asList", as_list)
+    asDict = replaced_by_pep8("asDict", as_dict)
+    getName = replaced_by_pep8("getName", get_name)
 
 
 MutableMapping.register(ParseResults)

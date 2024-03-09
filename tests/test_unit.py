@@ -10206,6 +10206,36 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
                 with self.assertRaisesParseException(expected_msg=expected_msg):
                     expr.parse_string(input_str)
 
+    def test_pep8_synonyms(self):
+        """
+        Test that staticmethods wrapped by replaced_by_pep8 wrapper are properly
+        callable as staticmethods.
+        """
+
+        def run_subtest(fn_name, expr=None, args=""):
+            bool_expr = pp.one_of("true false", as_keyword=True)
+            if expr is None:
+                expr = "bool_expr"
+
+            # try calling a ParserElement staticmethod via a ParserElement instance
+            with self.subTest(fn_name=fn_name):
+                exec(f"{expr}.{fn_name}({args})", globals(), locals())
+
+        # access staticmethod synonyms using a ParserElement
+        parser_element_staticmethod_names = """
+            enablePackrat disableMemoization enableLeftRecursion resetCache
+        """.split()
+
+        if not (pp.ParserElement._packratEnabled or pp.ParserElement._left_recursion_enabled):
+            for name in parser_element_staticmethod_names:
+                run_subtest(name)
+        pp.ParserElement.disable_memoization()
+
+        run_subtest("setDefaultWhitespaceChars", args="' '")
+        run_subtest("inlineLiteralsUsing", args="pp.Suppress")
+
+        run_subtest("setDefaultKeywordChars", expr="pp.Keyword('START')", args="'abcde'")
+
 
 class Test03_EnablePackratParsing(TestCase):
     def runTest(self):

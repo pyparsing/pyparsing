@@ -14,6 +14,9 @@ Version 3.2.0 will also discontinue support for Python versions 3.6 and 3.7.
 
 Version 3.1.3 - in development
 ------------------------------
+- Fixed issue where PEP8 compatibility names for `ParserElement` staticmethods were
+  not themselves defined as staticmethods. When called using a `ParserElement` instance,
+  this resulted  in a `TypeError` exception. Reported by eylenburg (#548).
 
 
 Version 3.1.2 - March, 2024
