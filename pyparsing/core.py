@@ -218,19 +218,11 @@ if _should_enable_warnings(
 
 
 # build list of single arg builtins, that can be used as parse actions
+# fmt: off
 _single_arg_builtins = {
-    sum,
-    len,
-    sorted,
-    reversed,
-    list,
-    tuple,
-    set,
-    any,
-    all,
-    min,
-    max,
+    sum, len, sorted, reversed, list, tuple, set, any, all, min, max
 }
+# fmt: on
 
 _generatorType = types.GeneratorType
 ParseImplReturnType = Tuple[int, Any]
@@ -255,13 +247,13 @@ DebugSuccessAction = Callable[
 DebugExceptionAction = Callable[[str, int, "ParserElement", Exception, bool], None]
 
 
-alphas = string.ascii_uppercase + string.ascii_lowercase
-identchars = pyparsing_unicode.Latin1.identchars
-identbodychars = pyparsing_unicode.Latin1.identbodychars
-nums = "0123456789"
-hexnums = nums + "ABCDEFabcdef"
-alphanums = alphas + nums
-printables = "".join([c for c in string.printable if c not in string.whitespace])
+alphas: str = string.ascii_uppercase + string.ascii_lowercase
+identchars: str = pyparsing_unicode.Latin1.identchars
+identbodychars: str = pyparsing_unicode.Latin1.identbodychars
+nums: str = "0123456789"
+hexnums: str = nums + "ABCDEFabcdef"
+alphanums: str = alphas + nums
+printables: str = "".join([c for c in string.printable if c not in string.whitespace])
 
 _trim_arity_call_line: traceback.StackSummary = None  # type: ignore[assignment]
 

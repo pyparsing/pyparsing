@@ -6,7 +6,7 @@
 # Copyright 2002-2021, Paul McGuire
 #
 #
-
+import collections
 import contextlib
 import datetime
 import random
@@ -24,6 +24,9 @@ from examples.jsonParser import jsonObject
 from pyparsing import ParserElement, ParseException, ParseFatalException
 from tests.json_parser_tests import test1, test2, test3, test4, test5
 import platform
+
+python_full_version = sys.version_info
+python_version = python_full_version[:2]
 
 ppc = pp.pyparsing_common
 ppt = pp.pyparsing_test
@@ -7676,6 +7679,37 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
     def testUnicodeTests(self):
         ppu = pp.pyparsing_unicode
 
+        # verify ranges are converted to sets properly
+        for unicode_property, expected_length in [
+            ("alphas", 48965),
+            ("alphanums", 49430),
+            ("identchars", 49013),
+            ("identbodychars", 50729),
+            ("printables", 65484),
+        ]:
+            charset = getattr(ppu.BMP, unicode_property)
+            charset_len = len(charset)
+
+            if python_version >= (3, 9):
+                # this test is sensitive to the Unicode version used in specific
+                # python versions
+                with self.subTest(unicode_property=unicode_property, msg="verify len"):
+                    print(f"ppu.BMP.{unicode_property:14}: {charset_len:6d}")
+                    self.assertEqual(
+                        charset_len,
+                        expected_length,
+                        f"incorrect number of ppu.BMP.{unicode_property},"
+                        f" found {charset_len} expected {expected_length}",
+                    )
+
+            with self.subTest(unicode_property=unicode_property, msg="verify unique"):
+                char_counts = collections.Counter(charset)
+                self.assertTrue(
+                    all(count == 1 for count in char_counts.values()),
+                    f"duplicate items found in ppu.BMP.{unicode_property}:"
+                    f" {[c for c, count in char_counts.items() if count > 1]}",
+                )
+
         # verify proper merging of ranges by addition
         kanji_printables = ppu.Japanese.Kanji.printables
         katakana_printables = ppu.Japanese.Katakana.printables
@@ -10226,7 +10260,9 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             enablePackrat disableMemoization enableLeftRecursion resetCache
         """.split()
 
-        if not (pp.ParserElement._packratEnabled or pp.ParserElement._left_recursion_enabled):
+        if not (
+            pp.ParserElement._packratEnabled or pp.ParserElement._left_recursion_enabled
+        ):
             for name in parser_element_staticmethod_names:
                 run_subtest(name)
         pp.ParserElement.disable_memoization()
@@ -10234,7 +10270,9 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
         run_subtest("setDefaultWhitespaceChars", args="' '")
         run_subtest("inlineLiteralsUsing", args="pp.Suppress")
 
-        run_subtest("setDefaultKeywordChars", expr="pp.Keyword('START')", args="'abcde'")
+        run_subtest(
+            "setDefaultKeywordChars", expr="pp.Keyword('START')", args="'abcde'"
+        )
 
 
 class Test03_EnablePackratParsing(TestCase):
