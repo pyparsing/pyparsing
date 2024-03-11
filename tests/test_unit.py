@@ -7685,31 +7685,27 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
         print(f"Unicode version {unicode_version}")
 
         # verify ranges are converted to sets properly
-        # this test is sensitive to the Unicode version used in specific
-        # python versions
-        for unicode_property, test_expected_length in [
-            ("alphas", {"11.0.0": 48832, "12.1.0": 48862, "14.0.0": 48965}),
-            ("alphanums", {"11.0.0": 49297, "12.1.0": 49327, "14.0.0": 49430}),
-            ("identchars", {"11.0.0": 48880, "12.1.0": 48910, "14.0.0": 49013}),
-            ("identbodychars", {"11.0.0": 50557, "12.1.0": 50586, "14.0.0": 50729}),
+        for unicode_property, expected_length in [
+            ("alphas", 48965),
+            ("alphanums", 49430),
+            ("identchars", 49013),
+            ("identbodychars", 50729),
             ("printables", 65484),
         ]:
             charset = getattr(ppu.BMP, unicode_property)
             charset_len = len(charset)
 
-            if isinstance(test_expected_length, dict):
-                expected_length = test_expected_length[unicode_version]
-            else:
-                expected_length = test_expected_length
-
-            with self.subTest(unicode_property=unicode_property, msg="verify len"):
-                print(f"ppu.BMP.{unicode_property:14}: {charset_len:6d}")
-                self.assertEqual(
-                    charset_len,
-                    expected_length,
-                    f"incorrect number of ppu.BMP.{unicode_property},"
-                    f" found {charset_len} expected {expected_length}",
-                )
+            # this subtest is sensitive to the Unicode version used in the current
+            # python version
+            if unicode_version == "14.0.0":
+                with self.subTest(unicode_property=unicode_property, msg="verify len"):
+                    print(f"ppu.BMP.{unicode_property:14}: {charset_len:6d}")
+                    self.assertEqual(
+                        charset_len,
+                        expected_length,
+                        f"incorrect number of ppu.BMP.{unicode_property},"
+                        f" found {charset_len} expected {expected_length}",
+                    )
 
             with self.subTest(unicode_property=unicode_property, msg="verify unique"):
                 char_counts = collections.Counter(charset)
