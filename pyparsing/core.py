@@ -1526,7 +1526,7 @@ class ParserElement(ABC):
             elif minElements == 1:
                 return OneOrMore(self)
             else:
-                return self * minElements + ZeroOrMore(self)
+                return (self * minElements) + ZeroOrMore(self)
         elif type(maxElements) != int:
             return NotImplemented
         elif maxElements < minElements:
@@ -1546,7 +1546,7 @@ class ParserElement(ABC):
             else:
                 return Opt(self)
 
-        return self * minElements + makeOptionalList(maxElements - minElements)
+        return (self * minElements) + makeOptionalList(maxElements - minElements)
 
     def __rmul__(self, other) -> "ParserElement":
         return self.__mul__(other)
