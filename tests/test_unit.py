@@ -7677,37 +7677,46 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
         self.assertTrue(was_called, "set_trace wasn't called by setBreak")
 
     def testUnicodeTests(self):
+        import unicodedata
+
         ppu = pp.pyparsing_unicode
 
+        unicode_version = unicodedata.unidata_version
+        print(f"Unicode version {unicode_version}")
+
         # verify ranges are converted to sets properly
-        for unicode_property, expected_length in [
-            ("alphas", 48965),
-            ("alphanums", 49430),
-            ("identchars", 49013),
-            ("identbodychars", 50729),
+        # this test is sensitive to the Unicode version used in specific
+        # python versions
+        for unicode_property, test_expected_length in [
+            ("alphas", {"11.0.0": 48832, "12.1.0": 48862, "14.0.0": 48965}),
+            ("alphanums", {"11.0.0": 49297, "12.1.0": 49327, "14.0.0": 49430}),
+            ("identchars", {"11.0.0": 48880, "12.1.0": 48910, "14.0.0": 49013}),
+            ("identbodychars", {"11.0.0": 50557, "12.1.0": 50586, "14.0.0": 50729}),
             ("printables", 65484),
         ]:
             charset = getattr(ppu.BMP, unicode_property)
             charset_len = len(charset)
 
-            if python_version >= (3, 9):
-                # this test is sensitive to the Unicode version used in specific
-                # python versions
-                with self.subTest(unicode_property=unicode_property, msg="verify len"):
-                    print(f"ppu.BMP.{unicode_property:14}: {charset_len:6d}")
-                    self.assertEqual(
-                        charset_len,
-                        expected_length,
-                        f"incorrect number of ppu.BMP.{unicode_property},"
-                        f" found {charset_len} expected {expected_length}",
-                    )
+            if isinstance(test_expected_length, dict):
+                expected_length = test_expected_length[unicode_version]
+            else:
+                expected_length = test_expected_length
+
+            with self.subTest(unicode_property=unicode_property, msg="verify len"):
+                print(f"ppu.BMP.{unicode_property:14}: {charset_len:6d}")
+                self.assertEqual(
+                    charset_len,
+                    expected_length,
+                    f"incorrect number of ppu.BMP.{unicode_property},"
+                    f" found {charset_len} expected {expected_length}",
+                )
 
             with self.subTest(unicode_property=unicode_property, msg="verify unique"):
                 char_counts = collections.Counter(charset)
                 self.assertTrue(
                     all(count == 1 for count in char_counts.values()),
                     f"duplicate items found in ppu.BMP.{unicode_property}:"
-                    f" {[c for c, count in char_counts.items() if count > 1]}",
+                    f" {[(ord(c), c) for c, count in char_counts.items() if count > 1]}",
                 )
 
         # verify proper merging of ranges by addition
@@ -7715,32 +7724,52 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
         katakana_printables = ppu.Japanese.Katakana.printables
         hiragana_printables = ppu.Japanese.Hiragana.printables
         japanese_printables = ppu.Japanese.printables
-        self.assertEqual(
-            set(kanji_printables + katakana_printables + hiragana_printables),
-            set(japanese_printables),
-            "failed to construct ranges by merging Japanese types",
-        )
+        with self.subTest(msg="verify constructing ranges by merging types"):
+            self.assertEqual(
+                set(kanji_printables + katakana_printables + hiragana_printables),
+                set(japanese_printables),
+                "failed to construct ranges by merging Japanese types",
+            )
 
         # verify proper merging of ranges using multiple inheritance
         cjk_printables = ppu.CJK.printables
-        self.assertEqual(
-            len(set(cjk_printables)),
-            len(cjk_printables),
-            "CJK contains duplicate characters - all should be unique",
-        )
-
         chinese_printables = ppu.Chinese.printables
         korean_printables = ppu.Korean.printables
-        print(
-            len(set(chinese_printables + korean_printables + japanese_printables)),
-            len(cjk_printables),
-        )
+        with self.subTest(
+            msg="verify merging ranges by using multiple inheritance generates unique list of characters"
+        ):
+            char_counts = collections.Counter(cjk_printables)
+            self.assertTrue(
+                all(count == 1 for count in char_counts.values()),
+                "duplicate items found in ppu.CJK.printables:"
+                f" {[(ord(c), c) for c, count in char_counts.items() if count > 1]}",
+            )
 
-        self.assertEqual(
-            len(set(chinese_printables + korean_printables + japanese_printables)),
-            len(cjk_printables),
-            "failed to construct ranges by merging Chinese, Japanese and Korean",
-        )
+        with self.subTest(
+            msg="verify merging ranges by using multiple inheritance generates sorted list of characters"
+        ):
+            self.assertEqual(
+                list(cjk_printables),
+                sorted(cjk_printables),
+                "CJK printables are not sorted",
+            )
+
+        with self.subTest(
+            msg="verify summing chars is equivalent to merging ranges by using multiple inheritance (CJK)"
+        ):
+            print(
+                len(set(chinese_printables + korean_printables + japanese_printables)),
+                len(cjk_printables),
+            )
+
+            self.assertEqual(
+                set(chinese_printables + korean_printables + japanese_printables),
+                set(cjk_printables),
+                "failed to construct ranges by merging Chinese, Japanese and Korean",
+            )
+
+    def testUnicodeTests2(self):
+        ppu = pp.unicode
 
         alphas = ppu.Greek.alphas
         greet = pp.Word(alphas) + "," + pp.Word(alphas) + "!"
@@ -7760,71 +7789,87 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
         class Turkish_set(ppu.Latin1, ppu.LatinA):
             pass
 
-        self.assertEqual(
-            set(ppu.Latin1.printables + ppu.LatinA.printables),
-            set(Turkish_set.printables),
-            "failed to construct ranges by merging Latin1 and LatinA (printables)",
-        )
+        for attrname in "printables alphas nums identchars identbodychars".split():
+            with self.subTest(
+                "verify unicode_set composed using MI", attrname=attrname
+            ):
+                latin1_value = getattr(ppu.Latin1, attrname)
+                latinA_value = getattr(ppu.LatinA, attrname)
+                turkish_value = getattr(Turkish_set, attrname)
+                self.assertEqual(
+                    set(latin1_value + latinA_value),
+                    set(turkish_value),
+                    f"failed to construct ranges by merging Latin1 and LatinA ({attrname})",
+                )
 
-        self.assertEqual(
-            set(ppu.Latin1.alphas + ppu.LatinA.alphas),
-            set(Turkish_set.alphas),
-            "failed to construct ranges by merging Latin1 and LatinA (alphas)",
-        )
+        with self.subTest("Test using new Turkish_set for parsing"):
+            key = pp.Word(Turkish_set.alphas)
+            value = ppc.integer | pp.Word(Turkish_set.alphas, Turkish_set.alphanums)
+            EQ = pp.Suppress("=")
+            key_value = key + EQ + value
 
-        self.assertEqual(
-            set(ppu.Latin1.nums + ppu.LatinA.nums),
-            set(Turkish_set.nums),
-            "failed to construct ranges by merging Latin1 and LatinA (nums)",
-        )
+            sample = """\
+                şehir=İzmir
+                ülke=Türkiye
+                nüfus=4279677"""
+            result = pp.Dict(pp.OneOrMore(pp.Group(key_value))).parseString(
+                sample, parseAll=True
+            )
 
-        key = pp.Word(Turkish_set.alphas)
-        value = ppc.integer | pp.Word(Turkish_set.alphas, Turkish_set.alphanums)
-        EQ = pp.Suppress("=")
-        key_value = key + EQ + value
-
-        sample = """\
-            şehir=İzmir
-            ülke=Türkiye
-            nüfus=4279677"""
-        result = pp.Dict(pp.OneOrMore(pp.Group(key_value))).parseString(
-            sample, parseAll=True
-        )
-
-        print(result.dump())
-        self.assertParseResultsEquals(
-            result,
-            expected_dict={"şehir": "İzmir", "ülke": "Türkiye", "nüfus": 4279677},
-            msg="Failed to parse Turkish key-value pairs",
-        )
+            print(result.dump())
+            self.assertParseResultsEquals(
+                result,
+                expected_dict={"şehir": "İzmir", "ülke": "Türkiye", "nüfus": 4279677},
+                msg="Failed to parse Turkish key-value pairs",
+            )
 
         # Basic Multilingual Plane only contains chars up to 65535
         def filter_16_bit(s):
             return "".join(c for c in s if ord(c) < 2**16)
 
-        bmp_printables = ppu.BMP.printables
-        sample = (
-            "".join(
-                random.choice(filter_16_bit(unicode_set.printables))
-                for unicode_set in (
-                    ppu.Japanese,
-                    Turkish_set,
-                    ppu.Greek,
-                    ppu.Hebrew,
-                    ppu.Devanagari,
-                    ppu.Hangul,
-                    ppu.Latin1,
-                    ppu.Chinese,
-                    ppu.Cyrillic,
-                    ppu.Arabic,
-                    ppu.Thai,
+        with self.subTest():
+            bmp_printables = ppu.BMP.printables
+            sample = (
+                "".join(
+                    random.choice(filter_16_bit(unicode_set.printables))
+                    for unicode_set in (
+                        ppu.Japanese,
+                        Turkish_set,
+                        ppu.Greek,
+                        ppu.Hebrew,
+                        ppu.Devanagari,
+                        ppu.Hangul,
+                        ppu.Latin1,
+                        ppu.Chinese,
+                        ppu.Cyrillic,
+                        ppu.Arabic,
+                        ppu.Thai,
+                    )
+                    for _ in range(8)
                 )
-                * 8
+                + "\N{REPLACEMENT CHARACTER}"
             )
-            + "\N{REPLACEMENT CHARACTER}"
-        )
-        print(sample)
-        self.assertParseAndCheckList(pp.Word(bmp_printables), sample, [sample])
+            print(sample)
+            self.assertParseAndCheckList(pp.Word(bmp_printables), sample, [sample])
+
+    def testUnicodeSetNameEquivalence(self):
+        ppu = pp.unicode
+
+        for ascii_name, unicode_name in [
+            ("Arabic", "العربية"),
+            ("Chinese", "中文"),
+            ("Cyrillic", "кириллица"),
+            ("Greek", "Ελληνικά"),
+            ("Hebrew", "עִברִית"),
+            ("Japanese", "日本語"),
+            ("Korean", "한국어"),
+            ("Thai", "ไทย"),
+            ("Devanagari", "देवनागरी"),
+        ]:
+            with self.subTest(ascii_name=ascii_name, unicode_name=unicode_name):
+                self.assertTrue(
+                    eval(f"ppu.{ascii_name} is ppu.{unicode_name}", {}, locals())
+                )
 
     # Make sure example in indentedBlock docstring actually works!
     def testIndentedBlockExample(self):
