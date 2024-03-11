@@ -1534,7 +1534,7 @@ class ParserElement(ABC):
 
         if minElements == maxElements:
             if minElements == 0:
-                return And([])
+                return Empty()
             elif minElements == 1:
                 return self
             else:
