@@ -218,19 +218,11 @@ if _should_enable_warnings(
 
 
 # build list of single arg builtins, that can be used as parse actions
+# fmt: off
 _single_arg_builtins = {
-    sum,
-    len,
-    sorted,
-    reversed,
-    list,
-    tuple,
-    set,
-    any,
-    all,
-    min,
-    max,
+    sum, len, sorted, reversed, list, tuple, set, any, all, min, max
 }
+# fmt: on
 
 _generatorType = types.GeneratorType
 ParseImplReturnType = Tuple[int, Any]
@@ -255,13 +247,13 @@ DebugSuccessAction = Callable[
 DebugExceptionAction = Callable[[str, int, "ParserElement", Exception, bool], None]
 
 
-alphas = string.ascii_uppercase + string.ascii_lowercase
-identchars = pyparsing_unicode.Latin1.identchars
-identbodychars = pyparsing_unicode.Latin1.identbodychars
-nums = "0123456789"
-hexnums = nums + "ABCDEFabcdef"
-alphanums = alphas + nums
-printables = "".join([c for c in string.printable if c not in string.whitespace])
+alphas: str = string.ascii_uppercase + string.ascii_lowercase
+identchars: str = pyparsing_unicode.Latin1.identchars
+identbodychars: str = pyparsing_unicode.Latin1.identbodychars
+nums: str = "0123456789"
+hexnums: str = nums + "ABCDEFabcdef"
+alphanums: str = alphas + nums
+printables: str = "".join([c for c in string.printable if c not in string.whitespace])
 
 _trim_arity_call_line: traceback.StackSummary = None  # type: ignore[assignment]
 
@@ -2264,10 +2256,15 @@ class ParserElement(ABC):
 
     # Compatibility synonyms
     # fmt: off
-    inlineLiteralsUsing = replaced_by_pep8("inlineLiteralsUsing", inline_literals_using)
-    setDefaultWhitespaceChars = replaced_by_pep8(
+    inlineLiteralsUsing = staticmethod(replaced_by_pep8("inlineLiteralsUsing", inline_literals_using))
+    setDefaultWhitespaceChars = staticmethod(replaced_by_pep8(
         "setDefaultWhitespaceChars", set_default_whitespace_chars
-    )
+    ))
+    disableMemoization = staticmethod(replaced_by_pep8("disableMemoization", disable_memoization))
+    enableLeftRecursion = staticmethod(replaced_by_pep8("enableLeftRecursion", enable_left_recursion))
+    enablePackrat = staticmethod(replaced_by_pep8("enablePackrat", enable_packrat))
+    resetCache = staticmethod(replaced_by_pep8("resetCache", reset_cache))
+
     setResultsName = replaced_by_pep8("setResultsName", set_results_name)
     setBreak = replaced_by_pep8("setBreak", set_break)
     setParseAction = replaced_by_pep8("setParseAction", set_parse_action)
@@ -2275,8 +2272,6 @@ class ParserElement(ABC):
     addCondition = replaced_by_pep8("addCondition", add_condition)
     setFailAction = replaced_by_pep8("setFailAction", set_fail_action)
     tryParse = replaced_by_pep8("tryParse", try_parse)
-    enableLeftRecursion = replaced_by_pep8("enableLeftRecursion", enable_left_recursion)
-    enablePackrat = replaced_by_pep8("enablePackrat", enable_packrat)
     parseString = replaced_by_pep8("parseString", parse_string)
     scanString = replaced_by_pep8("scanString", scan_string)
     transformString = replaced_by_pep8("transformString", transform_string)
@@ -2290,8 +2285,7 @@ class ParserElement(ABC):
     setName = replaced_by_pep8("setName", set_name)
     parseFile = replaced_by_pep8("parseFile", parse_file)
     runTests = replaced_by_pep8("runTests", run_tests)
-    canParseNext = can_parse_next
-    resetCache = reset_cache
+    canParseNext = replaced_by_pep8("canParseNext", can_parse_next)
     defaultName = default_name
     # fmt: on
 
@@ -2556,7 +2550,10 @@ class Keyword(Token):
         """
         Keyword.DEFAULT_KEYWORD_CHARS = chars
 
-    setDefaultKeywordChars = set_default_keyword_chars
+    # Compatibility synonyms
+    setDefaultKeywordChars = staticmethod(
+        replaced_by_pep8("setDefaultKeywordChars", set_default_keyword_chars)
+    )
 
 
 class CaselessLiteral(Literal):
@@ -6070,7 +6067,7 @@ _builtin_exprs: List[ParserElement] = [
     v for v in vars().values() if isinstance(v, ParserElement)
 ]
 
-# backward compatibility names
+# Compatibility synonyms
 # fmt: off
 sglQuotedString = sgl_quoted_string
 dblQuotedString = dbl_quoted_string

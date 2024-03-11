@@ -212,6 +212,7 @@ class TestRailroadDiagrams(unittest.TestCase):
 
     def test_kwargs_pass_thru_create_diagram(self):
         from io import StringIO
+
         # Creates a simple diagram with a blue body and
         # various other railroad features colored with
         # a complete disregard for taste
@@ -302,10 +303,11 @@ class TestRailroadDiagrams(unittest.TestCase):
             vertical=6,
             show_results_names=True,
             css=DEFAULT_STYLE,
-            head=expStyle
+            head=expStyle,
         )
 
         self.assertIn(expStyle, diag_html_capture.getvalue())
+
 
 if __name__ == "__main__":
     unittest.main()

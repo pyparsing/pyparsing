@@ -10,6 +10,9 @@ from collections.abc import (
 import pprint
 from typing import Tuple, Any, Dict, Set, List
 
+from .util import replaced_by_pep8
+
+
 str_type: Tuple[type, ...] = (str, bytes)
 _generator_type = type((_ for _ in ()))
 
