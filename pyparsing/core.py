@@ -1546,7 +1546,7 @@ class ParserElement(ABC):
             else:
                 return Opt(self)
 
-        return And([self] * minElements) + makeOptionalList(maxElements - minElements)
+        return self * minElements + makeOptionalList(maxElements - minElements)
 
     def __rmul__(self, other) -> "ParserElement":
         return self.__mul__(other)
