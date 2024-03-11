@@ -1540,7 +1540,13 @@ class ParserElement(ABC):
             else:
                 return And([self] * minElements)
 
-        return And([self] * minElements) + (Opt(self) * (maxElements - minElements))
+        def makeOptionalList(n):
+            if n > 1:
+                return Opt(self + makeOptionalList(n - 1))
+            else:
+                return Opt(self)
+
+        return And([self] * minElements) + makeOptionalList(maxElements - minElements)
 
     def __rmul__(self, other) -> "ParserElement":
         return self.__mul__(other)
