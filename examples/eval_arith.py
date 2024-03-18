@@ -59,7 +59,7 @@ def operatorOperands(tokenlist):
 
 
 class EvalPowerOp:
-    "Class to evaluate multiplication and division expressions"
+    "Class to evaluate power expressions"
 
     def __init__(self, tokens):
         self.value = tokens[0]
