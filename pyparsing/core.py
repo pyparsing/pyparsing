@@ -607,7 +607,7 @@ class ParserElement(ABC):
             self._parse = self._parse._originalParseMethod  # type: ignore [attr-defined, assignment]
         return self
 
-    def set_parse_action(self, *fns: ParseAction, **kwargs) -> "ParserElement":
+    def set_parse_action(self, *fns: ParseAction, **kwargs: Any) -> "ParserElement":
         """
         Define one or more actions to perform when successfully matching parse element definition.
 
