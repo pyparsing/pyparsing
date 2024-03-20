@@ -1530,7 +1530,9 @@ class ParserElement(ABC):
         elif type(maxElements) != int:
             return NotImplemented
         elif maxElements < minElements:
-            raise ValueError("second tuple value must be greater or equal to first tuple value")
+            raise ValueError(
+                "second tuple value must be greater or equal to first tuple value"
+            )
 
         if minElements == maxElements:
             if minElements == 0:
