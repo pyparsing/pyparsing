@@ -1508,28 +1508,25 @@ class ParserElement(ABC):
             minElements, maxElements = other, other
         elif isinstance(other, tuple):
             minElements, maxElements = (other + (None, None))[:2]
+            minElements = 0 if minElements in (None, Ellipsis) else minElements
+            maxElements = None if maxElements in (None, Ellipsis) else maxElements
         elif other is Ellipsis:
-            minElements, maxElements = other, None
+            minElements, maxElements = 0, None
         else:
             return NotImplemented
 
-        if minElements in (Ellipsis, None):
-            minElements = 0
-        elif type(minElements) is not int:
-            return NotImplemented
-        elif minElements < 0:
+        if minElements < 0:
             raise ValueError("cannot multiply ParserElement by negative value")
 
-        if maxElements in (Ellipsis, None):
+        if maxElements is None:
             if minElements == 0:
                 return ZeroOrMore(self)
             elif minElements == 1:
                 return OneOrMore(self)
             else:
                 return (self * minElements) + ZeroOrMore(self)
-        elif type(maxElements) is not int:
-            return NotImplemented
-        elif maxElements < minElements:
+
+        if maxElements < minElements:
             raise ValueError(
                 "second tuple value must be greater or equal to first tuple value"
             )
