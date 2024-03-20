@@ -1504,6 +1504,9 @@ class ParserElement(ABC):
         occurrences.  If this behavior is desired, then write
         ``expr*(None, n) + ~expr``
         """
+        minElements: int
+        maxElements: typing.Optional[int]
+
         if isinstance(other, int):
             minElements, maxElements = other, other
         elif isinstance(other, tuple):
