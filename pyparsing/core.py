@@ -607,7 +607,7 @@ class ParserElement(ABC):
             self._parse = self._parse._originalParseMethod  # type: ignore [attr-defined, assignment]
         return self
 
-    def set_parse_action(self, *fns: ParseAction, **kwargs) -> "ParserElement":
+    def set_parse_action(self, *fns: ParseAction, **kwargs: Any) -> "ParserElement":
         """
         Define one or more actions to perform when successfully matching parse element definition.
 
@@ -695,7 +695,7 @@ class ParserElement(ABC):
 
         return self
 
-    def add_parse_action(self, *fns: ParseAction, **kwargs) -> "ParserElement":
+    def add_parse_action(self, *fns: ParseAction, **kwargs: Any) -> "ParserElement":
         """
         Add one or more parse actions to expression's list of parse actions. See :class:`set_parse_action`.
 
@@ -707,7 +707,7 @@ class ParserElement(ABC):
         )
         return self
 
-    def add_condition(self, *fns: ParseCondition, **kwargs) -> "ParserElement":
+    def add_condition(self, *fns: ParseCondition, **kwargs: Any) -> "ParserElement":
         """Add a boolean predicate function to expression's list of parse actions. See
         :class:`set_parse_action` for function call signatures. Unlike ``set_parse_action``,
         functions passed to ``add_condition`` need to return boolean success/fail of the condition.
