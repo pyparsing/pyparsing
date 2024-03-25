@@ -11,7 +11,9 @@ import contextlib
 import datetime
 import random
 import re
+import shlex
 import sys
+import sysconfig
 import warnings
 from types import SimpleNamespace
 from io import StringIO
@@ -146,9 +148,14 @@ class Test01_PyparsingTestInit(TestCase):
             pp.__version__,
             pp.__version_time__,
         )
-        print("Python version", sys.version)
-        print("__version_info__     :", pp.__version_info__)
-        print("__version_info__ repr:", repr(pp.__version_info__))
+        python_jit_enabled = "--enable-experimental-jit" in shlex.split(
+            sysconfig.get_config_vars().get("CONFIG_ARGS", "")
+        )
+        print(
+            f"Python version {sys.version} {'(JIT enabled)' if python_jit_enabled else ''}"
+        )
+        print(f"__version_info__     : {pp.__version_info__}")
+        print(f"__version_info__ repr: {repr(pp.__version_info__)}")
 
 
 class Test01a_PyparsingEnvironmentTests(TestCase):

@@ -22,6 +22,8 @@ Version 3.1.3 - in development
 - Some type annotations added for parse action related methods, thanks August
   Karlstedt (#551).
 
+- Added early testing support for Python 3.13 with JIT enabled.
+
 
 Version 3.1.2 - March, 2024
 ---------------------------
