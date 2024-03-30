@@ -2006,7 +2006,7 @@ class ParserElement(ABC):
         full_dump: bool = True,
         print_results: bool = True,
         failure_tests: bool = False,
-        post_parse: typing.Optional[Callable[[str, ParseResults], str]] = None,
+        post_parse: typing.Optional[Callable[[str, ParseResults], typing.Optional[str]]] = None,
         file: typing.Optional[TextIO] = None,
         with_line_numbers: bool = False,
         *,
@@ -2014,7 +2014,7 @@ class ParserElement(ABC):
         fullDump: bool = True,
         printResults: bool = True,
         failureTests: bool = False,
-        postParse: typing.Optional[Callable[[str, ParseResults], str]] = None,
+        postParse: typing.Optional[Callable[[str, ParseResults], typing.Optional[str]]] = None,
     ) -> Tuple[bool, List[Tuple[str, Union[ParseResults, Exception]]]]:
         """
         Execute the parse expression on a series of test strings, showing each
