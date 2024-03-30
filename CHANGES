@@ -15,12 +15,15 @@ Version 3.2.0 will also discontinue support for Python versions 3.6 and 3.7.
 
 Version 3.1.3 - in development
 ------------------------------
-- Fixed issue where PEP8 compatibility names for `ParserElement` staticmethods were
-  not themselves defined as staticmethods. When called using a `ParserElement` instance,
+- Fixed issue where PEP8 compatibility names for `ParserElement` static methods were
+  not themselves defined as `staticmethods`. When called using a `ParserElement` instance,
   this resulted  in a `TypeError` exception. Reported by eylenburg (#548).
 
 - Some type annotations added for parse action related methods, thanks August
   Karlstedt (#551).
+
+- delta_time.py example cleaned up to use latest PEP8 names and add minor
+  enhancements.
 
 - Added early testing support for Python 3.13 with JIT enabled.
 
