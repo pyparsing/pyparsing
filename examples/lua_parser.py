@@ -85,33 +85,35 @@ operator precedence:
 import pyparsing as pp
 
 ppc = pp.pyparsing_common
-pp.ParserElement.enablePackrat()
+pp.ParserElement.enable_packrat()
 
-LBRACK, RBRACK, LBRACE, RBRACE, LPAR, RPAR, EQ, COMMA, SEMI, COLON = map(
-    pp.Suppress, "[]{}()=,;:"
-)
+LBRACK, RBRACK, LBRACE, RBRACE, LPAR, RPAR = pp.Suppress.using_each("[]{}()")
+COMMA, SEMI, COLON = pp.Suppress.using_each(",;:")
 OPT_SEMI = pp.Optional(SEMI).suppress()
 ELLIPSIS = pp.Literal("...")
+EQ = pp.Literal("=")
+
 keywords = {
     k.upper(): pp.Keyword(k)
     for k in """\
-    return break do end while if then elseif else for in function local repeat until nil false true and or not
+    return break do end while if then elseif else for in function
+    local repeat until nil false true and or not
     """.split()
 }
 vars().update(keywords)
-any_keyword = pp.MatchFirst(keywords.values()).setName("<keyword>")
+any_keyword = pp.MatchFirst(keywords.values()).set_name("keyword")
 
 comment_intro = pp.Literal("--")
-short_comment = comment_intro + pp.restOfLine
+short_comment = comment_intro + pp.rest_of_line
 long_comment = comment_intro + LBRACK + ... + RBRACK
 lua_comment = long_comment | short_comment
 
 # must use negative lookahead to ensure we don't parse a keyword as an identifier
 ident = ~any_keyword + ppc.identifier
 
-name = pp.delimitedList(ident, delim=".", combine=True)
+name = pp.DelimitedList(ident, delim=".", combine=True)
 
-namelist = pp.delimitedList(name)
+namelist = pp.DelimitedList(name)
 number = ppc.number
 
 # does not parse levels
@@ -121,15 +123,17 @@ string = pp.QuotedString("'") | pp.QuotedString('"') | multiline_string
 exp = pp.Forward()
 
 #     explist1 ::= {exp ','} exp
-explist1 = pp.delimitedList(exp)
+explist1 = pp.DelimitedList(exp)
 
-stat = pp.Forward()
+# set up for recursive definition of 'stmt' (since some statements are
+# composed of nested statements)
+stat = pp.Forward().set_name("stat")
 
 #    laststat ::= return [explist1]  |  break
 laststat = pp.Group(RETURN + explist1) | BREAK
 
 #    block ::= {stat [';']} [laststat[';']]
-block = pp.Group(stat + OPT_SEMI)[1, ...] + pp.Optional(laststat + OPT_SEMI)
+block = pp.Group((stat + OPT_SEMI)[1, ...] + pp.Optional(laststat + OPT_SEMI))
 
 #    field ::= '[' exp ']' '=' exp  |  Name '=' exp  |  exp
 field = pp.Group(
@@ -140,7 +144,7 @@ field = pp.Group(
 fieldsep = COMMA | SEMI
 
 #    fieldlist ::= field {fieldsep field} [fieldsep]
-field_list = pp.delimitedList(field, delim=fieldsep) + pp.Optional(fieldsep)
+field_list = pp.DelimitedList(field, delim=fieldsep, allow_trailing_delim=True)
 
 #    tableconstructor ::= '{' [fieldlist] '}'
 tableconstructor = pp.Group(LBRACE + pp.Optional(field_list) + RBRACE)
@@ -165,14 +169,16 @@ args = LPAR + pp.Optional(explist1) + RPAR | tableconstructor | string
 #    prefixexp ::= var  |  functioncall  |  '(' exp ')'
 #    functioncall ::=  prefixexp args  |  prefixexp ':' Name args
 
-prefixexp = name | LPAR + exp + RPAR
-functioncall = prefixexp + args | prefixexp + COLON + name + args
+exp_group = pp.Group(LPAR + exp + RPAR)
+prefixexp = name | exp_group
+functioncall = pp.Group(prefixexp + pp.Optional(COLON + name) + pp.Group(args))
 var = pp.Forward()
-var_atom = functioncall | name | LPAR + exp + RPAR
+var_atom = functioncall | name | exp_group
 index_ref = pp.Group(LBRACK + exp + RBRACK)
-var <<= pp.delimitedList(pp.Group(var_atom + index_ref) | var_atom, delim=".")
+var_part = pp.Group(var_atom + index_ref) | var_atom
+var <<= pp.DelimitedList(var_part, delim=".")
 
-varlist1 = pp.delimitedList(var)
+varlist1 = pp.DelimitedList(var)
 
 # exp ::=  nil  |  false  |  true  |  Number  |  String  |  '...'  |
 #              function  |  prefixexp  |  tableconstructor
@@ -186,14 +192,14 @@ exp_atom = (
     | functioncall
     | var  # prefixexp
     | tableconstructor
-)
+).set_name("exp_atom")
 
 # precedence of operations from https://www.lua.org/manual/5.3/manual.html#3.4.8
-exp <<= pp.infixNotation(
+exp <<= pp.infix_notation(
     exp_atom,
     [
         ("^", 2, pp.opAssoc.LEFT),
-        (NOT | pp.oneOf("# - ~"), 1, pp.opAssoc.RIGHT),
+        ((NOT | pp.oneOf("# - ~")).set_name("not op"), 1, pp.opAssoc.RIGHT),
         (pp.oneOf("* / // %"), 2, pp.opAssoc.LEFT),
         (pp.oneOf("+ -"), 2, pp.opAssoc.LEFT),
         ("..", 2, pp.opAssoc.LEFT),
@@ -205,7 +211,7 @@ exp <<= pp.infixNotation(
         (AND, 2, pp.opAssoc.LEFT),
         (OR, 2, pp.opAssoc.LEFT),
     ],
-)
+).set_name("exp")
 
 assignment_stat = pp.Optional(LOCAL) + varlist1 + EQ + explist1
 func_call_stat = pp.Optional(LOCAL) + functioncall
@@ -227,18 +233,7 @@ if_stat = (
 )
 function_def = pp.Optional(LOCAL) + FUNCTION + funcname + funcbody
 
-for var_name in """
-        assignment_stat
-        func_call_stat
-        do_stat
-        while_stat
-        repeat_stat
-        for_loop_stat
-        for_seq_stat
-        if_stat
-        function_def
-        """.split():
-    vars()[var_name].setName(var_name)
+pp.autoname_elements()
 
 #    stat ::=  varlist1 '=' explist1  |
 #              functioncall  |
@@ -263,13 +258,12 @@ stat <<= pp.Group(
     | function_def
 )
 
-lua_script = stat[...]
+lua_script = stat[...].set_name("script")
 
 # ignore comments
 lua_script.ignore(lua_comment)
 
 if __name__ == "__main__":
-
     sample = r"""
     function test(x)
         local t = {foo=1, bar=2, arg=x}
@@ -283,6 +277,9 @@ if __name__ == "__main__":
         if (10 > 8) then
             n = n + 2
         end
+        for var in vars do
+            print(var, '=', var)
+        end
     end
     """
 
@@ -291,3 +288,4 @@ if __name__ == "__main__":
         result.pprint()
     except pp.ParseException as pe:
         print(pe.explain())
+        raise

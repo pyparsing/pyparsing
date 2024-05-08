@@ -22,8 +22,11 @@ Version 3.1.3 - in development
 - Some type annotations added for parse action related methods, thanks August
   Karlstedt (#551).
 
-- delta_time.py example cleaned up to use latest PEP8 names and add minor
-  enhancements.
+- Added `set_name` calls to internal expressions generated in `infix_notation`, for
+  improved railroad diagramming.
+
+- `delta_time`, `lua_parser`, and `roman_numerals` examples cleaned up to use latest PEP8
+  names and add minor enhancements.
 
 - Added early testing support for Python 3.13 with JIT enabled.
 

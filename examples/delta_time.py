@@ -105,7 +105,7 @@ couple = (
 a_qty = (a_ | an_).set_parse_action(pp.replace_with(1))
 the_qty = the_.set_parse_action(pp.replace_with(1))
 qty = pp.ungroup(
-    pp.Opt(adverb_) + (integer | couple | a_qty | the_qty).set_name("qty_expression")
+    (pp.Opt(adverb_) + (integer | couple | a_qty | the_qty)).set_name("qty_expression")
 ).set_name("qty")
 time_ref_present = pp.Empty().add_parse_action(pp.replace_with(True))(
     "time_ref_present"
