@@ -87,7 +87,7 @@ class TestRailroadDiagrams(unittest.TestCase):
         subtests = [
             (jsonObject, "jsonObject", 8),
             (boolExpr, "boolExpr", 7),
-            (simpleSQL, "simpleSQL", 20),
+            (simpleSQL, "simpleSQL", 22),
             (calendars, "calendars", 13),
         ]
         for example_expr, label, expected_rr_len in subtests:
