@@ -23,7 +23,7 @@ class TestExamples(unittest.TestCase):
         self._run("TAP")
 
     def test_roman_numerals(self):
-        self._run("romanNumerals")
+        self._run("roman_numerals")
 
     def test_sexp_parser(self):
         self._run("sexpParser")
