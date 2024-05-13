@@ -86,7 +86,7 @@ class TestRailroadDiagrams(unittest.TestCase):
     def test_example_rr_diags(self):
         subtests = [
             (jsonObject, "jsonObject", 8),
-            (boolExpr, "boolExpr", 5),
+            (boolExpr, "boolExpr", 7),
             (simpleSQL, "simpleSQL", 20),
             (calendars, "calendars", 13),
         ]
