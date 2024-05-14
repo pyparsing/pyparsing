@@ -6391,6 +6391,48 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
         integer.addParseAction(pp.traceParseAction(Z()))
         integer.parseString("132", parseAll=True)
 
+    def testTraceParseActionDecorator_with_exception(self):
+        @pp.trace_parse_action
+        def convert_to_int_raising_type_error(t):
+            return int(t[0]) + ".000"
+
+        @pp.trace_parse_action
+        def convert_to_int_raising_index_error(t):
+            return int(t[1])
+
+        @pp.trace_parse_action
+        def convert_to_int_raising_value_error(t):
+            a, b = t[0]
+            return int(t[1])
+
+        @pp.trace_parse_action
+        def convert_to_int_raising_parse_exception(t):
+            pp.Word(pp.alphas).parse_string("123")
+
+        for pa, expected_message in (
+            (convert_to_int_raising_type_error, "TypeError:"),
+            (convert_to_int_raising_index_error, "IndexError:"),
+            (convert_to_int_raising_value_error, "ValueError:"),
+            (convert_to_int_raising_parse_exception, "ParseException:"),
+        ):
+            print(f"Using parse action {pa.__name__!r}")
+            integer = pp.Word(pp.nums).set_parse_action(pa)
+            stderr_capture = StringIO()
+            try:
+                with contextlib.redirect_stderr(stderr_capture):
+                    integer.parse_string("132", parse_all=True)
+            except Exception as exc:
+                print(f"Exception raised: {type(exc).__name__}: {exc}")
+            else:
+                print("No exception raised")
+            stderr_text = stderr_capture.getvalue()
+            print(stderr_text)
+            self.assertTrue(
+                expected_message in stderr_text,
+                f"Expected exception type {expected_message!r} not found in trace_parse_action output"
+            )
+
+
     def testRunTests(self):
         integer = pp.Word(pp.nums).setParseAction(lambda t: int(t[0]))
         intrange = integer("start") + "-" + integer("end")
