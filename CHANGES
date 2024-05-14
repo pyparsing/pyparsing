@@ -22,6 +22,9 @@ Version 3.1.3 - in development
 - Some type annotations added for parse action related methods, thanks August
   Karlstedt (#551).
 
+- Added exception type to `trace_parse_action` exception output, while investigating
+  SO question posted by medihack.
+
 - Added `set_name` calls to internal expressions generated in `infix_notation`, for
   improved railroad diagramming.
 
