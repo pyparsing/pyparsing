@@ -7,11 +7,13 @@ from examples.jsonParser import jsonObject
 from examples.simpleBool import boolExpr
 from examples.simpleSQL import simpleSQL
 from examples.mozillaCalendarParser import calendars
-from pyparsing.diagram import to_railroad, railroad_to_html, NamedDiagram
+from pyparsing.diagram import to_railroad, railroad_to_html, NamedDiagram, AnnotatedItem
 import pyparsing as pp
+import railroad
 import tempfile
 import os
 import sys
+
 
 print(f"Running {__file__}")
 print(sys.version_info)
@@ -209,6 +211,17 @@ class TestRailroadDiagrams(unittest.TestCase):
         diag_str = diag_strio.getvalue().lower()
         tags = "<html> </html> <head> </head> <body> </body>".split()
         assert not any(tag in diag_str for tag in tags)
+
+    def test_create_diagram_for_oneormore_with_stopon(self):
+        wd = pp.Word(pp.alphas)
+        grammar = "start" + wd[1, ...: "end"] + "end"
+
+        pp.autoname_elements()
+        railroad_diag = to_railroad(grammar)
+        assert len(railroad_diag) == 3
+        assert isinstance(railroad_diag[1][1].items[1].item, railroad.Sequence)
+        assert isinstance(railroad_diag[1][1].items[1].item.items[0], AnnotatedItem)
+        assert isinstance(railroad_diag[1][1].items[1].item.items[1], railroad.NonTerminal)
 
     def test_kwargs_pass_thru_create_diagram(self):
         from io import StringIO

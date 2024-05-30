@@ -573,8 +573,38 @@ def _to_diagram_element(
     elif isinstance(element, pyparsing.Opt):
         ret = EditablePartial.from_call(railroad.Optional, item="")
     elif isinstance(element, pyparsing.OneOrMore):
-        ret = EditablePartial.from_call(railroad.OneOrMore, item="")
+        if element.not_ender is not None:
+            args = [
+                parent,
+                lookup,
+                vertical,
+                index,
+                name_hint,
+                show_results_names,
+                show_groups,
+            ]
+            return _to_diagram_element(
+                (~pyparsing.FollowedBy(element.not_ender.expr)
+                 + element.expr)[1, ...].set_name(element.name),
+                *args,
+            )
+        ret = EditablePartial.from_call(railroad.OneOrMore, item=None)
     elif isinstance(element, pyparsing.ZeroOrMore):
+        if element.not_ender is not None:
+            args = [
+                parent,
+                lookup,
+                vertical,
+                index,
+                name_hint,
+                show_results_names,
+                show_groups,
+            ]
+            return _to_diagram_element(
+                (~pyparsing.FollowedBy(element.not_ender.expr)
+                 + element.expr)[...].set_name(element.name),
+                *args
+            )
         ret = EditablePartial.from_call(railroad.ZeroOrMore, item="")
     elif isinstance(element, pyparsing.Group):
         ret = EditablePartial.from_call(
