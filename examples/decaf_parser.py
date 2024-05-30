@@ -9,6 +9,7 @@
 #
 # Copyright 2018, Paul McGuire
 #
+# fmt: off
 """
     Program ::= Decl+
     Decl ::= VariableDecl | FunctionDecl  | ClassDecl | InterfaceDecl
@@ -43,71 +44,54 @@
 import pyparsing as pp
 from pyparsing import pyparsing_common as ppc
 
-pp.ParserElement.enablePackrat()
+pp.ParserElement.enable_packrat()
 
 # keywords
-keywords = (
-    VOID,
-    INT,
-    DOUBLE,
-    BOOL,
-    STRING,
-    CLASS,
-    INTERFACE,
-    NULL,
-    THIS,
-    EXTENDS,
-    IMPLEMENTS,
-    FOR,
-    WHILE,
-    IF,
-    ELSE,
-    RETURN,
-    BREAK,
-    NEW,
-    NEWARRAY,
-    PRINT,
-    READINTEGER,
-    READLINE,
-    TRUE,
-    FALSE,
-) = map(
-    pp.Keyword,
-    """void int double bool string class interface null this extends implements or while
-               if else return break new NewArray Print ReadInteger ReadLine true false""".split(),
+_keywords = (
+    VOID, INT, DOUBLE, BOOL, STRING, CLASS, INTERFACE, NULL, THIS, EXTENDS,
+    IMPLEMENTS, FOR, WHILE, IF, ELSE, RETURN, BREAK, NEW, NEWARRAY,
+    PRINT, READINTEGER, READLINE, TRUE, FALSE,
+) = pp.Keyword.using_each(
+    """
+    void int double bool string class interface null this extends implements or while
+    if else return break new NewArray Print ReadInteger ReadLine true false
+    """.split(),
 )
-keywords = pp.MatchFirst(list(keywords))
+keywords = pp.MatchFirst(_keywords)
 
-LPAR, RPAR, LBRACE, RBRACE, LBRACK, RBRACK, DOT, EQ, COMMA, SEMI = map(
-    pp.Suppress, "(){}[].=,;"
+(
+    LPAR, RPAR, LBRACE, RBRACE, LBRACK, RBRACK, DOT, EQ, COMMA, SEMI
+) = pp.Suppress.using_each("(){}[].=,;")
+
+hex_constant = pp.Regex(r"0[xX][0-9a-fA-F]+").add_parse_action(
+    lambda t: int(t[0][2:], 16)
 )
-hexConstant = pp.Regex(r"0[xX][0-9a-fA-F]+").addParseAction(lambda t: int(t[0][2:], 16))
-intConstant = hexConstant | ppc.integer
-doubleConstant = ppc.real
-boolConstant = TRUE | FALSE
-stringConstant = pp.dblQuotedString
+int_constant = hex_constant | ppc.integer
+double_constant = ppc.real
+bool_constant = TRUE | FALSE
+string_constant = pp.dbl_quoted_string
 null = NULL
-constant = doubleConstant | boolConstant | intConstant | stringConstant | null
-ident = ~keywords + pp.Word(pp.alphas, pp.alphanums + "_")
-type_ = pp.Group((INT | DOUBLE | BOOL | STRING | ident) + pp.ZeroOrMore("[]"))
+constant = double_constant | bool_constant | int_constant | string_constant | null
+ident = ~keywords + ppc.identifier
+type_ = pp.Group((INT | DOUBLE | BOOL | STRING | ident) + pp.Literal("[]")[...])
 
 variable = type_ + ident
 variable_decl = variable + SEMI
 
 expr = pp.Forward()
 expr_parens = pp.Group(LPAR + expr + RPAR)
-actuals = pp.Optional(pp.delimitedList(expr))
+actuals = pp.DelimitedList(expr) | ""
 call = pp.Group(
     ident("call_ident") + LPAR + actuals("call_args") + RPAR
-    | (expr_parens + pp.ZeroOrMore(DOT + ident))("call_ident_expr")
+    | (expr_parens + (DOT + ident)[...])("call_ident_expr")
     + LPAR
     + actuals("call_args")
     + RPAR
 )
 lvalue = (
     (ident | expr_parens)
-    + pp.ZeroOrMore(DOT + (ident | expr_parens))
-    + pp.ZeroOrMore(LBRACK + expr + RBRACK)
+    + (DOT + (ident | expr_parens))[...]
+    + (LBRACK + expr + RBRACK)[...]
 )
 assignment = pp.Group(lvalue("lhs") + EQ + expr("rhs"))
 read_integer = pp.Group(READINTEGER + LPAR + RPAR)
@@ -115,54 +99,22 @@ read_line = pp.Group(READLINE + LPAR + RPAR)
 new_statement = pp.Group(NEW + ident)
 new_array = pp.Group(NEWARRAY + LPAR + expr + COMMA + type_ + RPAR)
 rvalue = constant | call | read_integer | read_line | new_statement | new_array | ident
-arith_expr = pp.infixNotation(
+arith_expr = pp.infix_notation(
     rvalue,
     [
-        (
-            "-",
-            1,
-            pp.opAssoc.RIGHT,
-        ),
-        (
-            pp.oneOf("* / %"),
-            2,
-            pp.opAssoc.LEFT,
-        ),
-        (
-            pp.oneOf("+ -"),
-            2,
-            pp.opAssoc.LEFT,
-        ),
+        ("-", 1, pp.OpAssoc.RIGHT,),
+        (pp.one_of("* / %"), 2, pp.OpAssoc.LEFT,),
+        (pp.one_of("+ -"), 2, pp.OpAssoc.LEFT,),
     ],
 )
-comparison_expr = pp.infixNotation(
+comparison_expr = pp.infix_notation(
     arith_expr,
     [
-        (
-            "!",
-            1,
-            pp.opAssoc.RIGHT,
-        ),
-        (
-            pp.oneOf("< > <= >="),
-            2,
-            pp.opAssoc.LEFT,
-        ),
-        (
-            pp.oneOf("== !="),
-            2,
-            pp.opAssoc.LEFT,
-        ),
-        (
-            pp.oneOf("&&"),
-            2,
-            pp.opAssoc.LEFT,
-        ),
-        (
-            pp.oneOf("||"),
-            2,
-            pp.opAssoc.LEFT,
-        ),
+        ("!", 1, pp.OpAssoc.RIGHT,),
+        (pp.one_of("< > <= >="), 2, pp.OpAssoc.LEFT,),
+        (pp.one_of("== !="), 2, pp.OpAssoc.LEFT,),
+        (pp.one_of("&&"), 2, pp.OpAssoc.LEFT,),
+        (pp.one_of("||"), 2, pp.OpAssoc.LEFT,),
     ],
 )
 expr <<= (
@@ -183,7 +135,7 @@ stmt = pp.Forward()
 print_stmt = pp.Group(
     PRINT("statement")
     + LPAR
-    + pp.Group(pp.Optional(pp.delimitedList(expr)))("args")
+    + pp.Group(pp.DelimitedList(expr) | "")("args")
     + RPAR
     + SEMI
 )
@@ -192,11 +144,11 @@ return_stmt = pp.Group(RETURN("statement") + expr + SEMI)
 for_stmt = pp.Group(
     FOR("statement")
     + LPAR
-    + pp.Optional(expr)
+    + (expr | "")
     + SEMI
     + expr
     + SEMI
-    + pp.Optional(expr)
+    + (expr | "")
     + RPAR
     + stmt
 )
@@ -207,10 +159,10 @@ if_stmt = pp.Group(
     + pp.Group(expr)("condition")
     + RPAR
     + pp.Group(stmt)("then_statement")
-    + pp.Group(pp.Optional(ELSE + stmt))("else_statement")
+    + pp.Group((ELSE + stmt | ""))("else_statement")
 )
 stmt_block = pp.Group(
-    LBRACE + pp.ZeroOrMore(variable_decl) + pp.ZeroOrMore(stmt) + RBRACE
+    LBRACE + variable_decl[...] + stmt[...] + RBRACE
 )
 stmt <<= (
     if_stmt
@@ -223,7 +175,7 @@ stmt <<= (
     | pp.Group(expr + SEMI)
 )
 
-formals = pp.Optional(pp.delimitedList(variable))
+formals = pp.DelimitedList(variable) | ""
 prototype = pp.Group(
     (type_ | VOID)("return_type")
     + ident("function_name")
@@ -245,26 +197,25 @@ interface_decl = pp.Group(
     INTERFACE
     + ident("interface_name")
     + LBRACE
-    + pp.ZeroOrMore(prototype)("prototypes")
+    + prototype[...]("prototypes")
     + RBRACE
 )("interface")
 field = variable_decl | function_decl
 class_decl = pp.Group(
     CLASS
     + ident("class_name")
-    + pp.Optional(EXTENDS + ident)("extends")
-    + pp.Optional(IMPLEMENTS + pp.delimitedList(ident))("implements")
+    + (EXTENDS + ident | "")("extends")
+    + (IMPLEMENTS + pp.DelimitedList(ident) | "")("implements")
     + LBRACE
-    + pp.ZeroOrMore(field)("fields")
+    + field[...]("fields")
     + RBRACE
 )("class_decl")
 
 decl = variable_decl | function_decl | class_decl | interface_decl | prototype
-program = pp.OneOrMore(pp.Group(decl))
+program = pp.Group(decl)[1, ...]
 decaf_parser = program
 
-stmt.runTests(
-    """\
+stmt.runTests("""\
     sin(30);
     a = 1;
     b = 1 + 1;
@@ -291,4 +242,4 @@ test_program = """
     }
 """
 
-print(decaf_parser.parseString(test_program).dump())
+print(decaf_parser.parse_string(test_program).dump())
