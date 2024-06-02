@@ -20,7 +20,7 @@ Version 3.1.3 - in development
   this resulted  in a `TypeError` exception. Reported by eylenburg (#548).
 
 - Updated railroad diagram generation for `ZeroOrMore` and `OneOrMore` expressions with
-  `stop_on` expressions, while investigating #557, reported by Bernd Wechner.
+  `stop_on` expressions, while investigating #558, reported by user Gu_f.
 
 - Some type annotations added for parse action related methods, thanks August
   Karlstedt (#551).
