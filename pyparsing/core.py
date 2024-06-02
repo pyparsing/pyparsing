@@ -272,7 +272,7 @@ def _trim_arity(func, max_limit=3):
     # user's parse action 'func', so that we don't incur call penalty at parse time
 
     # fmt: off
-    LINE_DIFF = 7
+    LINE_DIFF = 9
     # IF ANY CODE CHANGES, EVEN JUST COMMENTS OR BLANK LINES, BETWEEN THE NEXT LINE AND
     # THE CALL TO FUNC INSIDE WRAPPER, LINE_DIFF MUST BE MODIFIED!!!!
     _trim_arity_call_line = (_trim_arity_call_line or traceback.extract_stack(limit=2)[-1])
@@ -280,6 +280,8 @@ def _trim_arity(func, max_limit=3):
 
     def wrapper(*args):
         nonlocal found_arity, limit
+        if found_arity:
+            return func(*args[limit:])
         while 1:
             try:
                 ret = func(*args[limit:])

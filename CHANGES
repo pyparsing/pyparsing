@@ -34,6 +34,8 @@ Version 3.1.3 - in development
 - `delta_time`, `lua_parser`, `decaf_parser`, and `roman_numerals` examples cleaned up
   to use latest PEP8 names and add minor enhancements.
 
+- Minor performance speedup in `trim_arity`, to benefit any parsers using parse actions.
+
 - Added early testing support for Python 3.13 with JIT enabled.
 
 
