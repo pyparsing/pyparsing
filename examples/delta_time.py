@@ -126,20 +126,6 @@ time_ref_present = pp.Empty().add_parse_action(pp.replace_with(True))(
     "time_ref_present"
 )
 
-
-def _fill_24hr_time_fields(t: pp.ParseResults) -> None:
-    t["HH"] = t[0]
-    t["MM"] = t[1]
-    t["SS"] = 0
-    t["ampm"] = "am" if t.HH < 12 else "pm"
-
-
-def _fill_default_time_fields(t: pp.ParseResults) -> None:
-    for fld in "HH MM SS".split():
-        if fld not in t:
-            t[fld] = 0
-
-
 # get weekday names from the calendar module
 weekday_names = list(calendar.day_name)
 weekday_name = pp.MatchFirst(CK.using_each(weekday_names)).set_name("weekday_name")
@@ -148,23 +134,39 @@ weekday_name = pp.MatchFirst(CK.using_each(weekday_names)).set_name("weekday_nam
 _24hour_time = ~(pp.Word(pp.nums) + any_time_units).set_name(
     "numbered_time_units"
 ) + pp.Word(pp.nums, exact=4, as_keyword=True).set_name("HHMM").add_parse_action(
-    lambda t: [int(t[0][:2]), int(t[0][2:])], _fill_24hr_time_fields
+    lambda t: [int(t[0][:2]), int(t[0][2:])]
 )
 _24hour_time.set_name("0000 time")
+
+@_24hour_time.add_parse_action
+def _fill_24hr_time_fields(t: pp.ParseResults) -> None:
+    t["HH"] = t[0]
+    t["MM"] = t[1]
+    t["SS"] = 0
+    t["ampm"] = "am" if t.HH < 12 else "pm"
+
 ampm = am | pm
 o_clock = CK("o'clock", ident_chars=pp.srange("[A-Za-z']"))
 timespec = (
     integer("HH")
     + pp.Opt(o_clock | COLON + integer("MM") + pp.Opt(COLON + integer("SS")))
     + (am | pm)("ampm")
-).add_parse_action(_fill_default_time_fields)
+)
+
+@timespec.add_parse_action
+def _fill_default_time_fields(t: pp.ParseResults) -> None:
+    for fld in "HH MM SS".split():
+        if fld not in t:
+            t[fld] = 0
+
+
 absolute_time = _24hour_time | timespec
 absolute_time.set_name("absolute time")
 
 absolute_time_of_day = noon | midnight | now | absolute_time
 absolute_time_of_day.set_name("time of day")
 
-
+@absolute_time_of_day.add_parse_action
 def _add_computed_time(t: pp.ParseResults) -> None:
     initial_word = t[0]
     if initial_word in "now noon midnight".split():
@@ -176,9 +178,6 @@ def _add_computed_time(t: pp.ParseResults) -> None:
     else:
         t["HH"] = {"am": int(t["HH"]) % 12, "pm": int(t["HH"]) % 12 + 12}[t.ampm]
         t["computed_time"] = datetime_time(hour=t.HH, minute=t.MM, second=t.SS)
-
-
-absolute_time_of_day.add_parse_action(_add_computed_time)
 
 
 #     relative_time_reference ::= qty time_units ('ago' | ('from' | 'before' | 'after') absolute_time_of_day)
@@ -197,7 +196,7 @@ relative_time_reference = (
     | in_("dir") + qty("qty") + time_units("units")
 ).set_name("relative time")
 
-
+@relative_time_reference.add_parse_action
 def _compute_relative_time(t: pp.ParseResults) -> None:
     if "ref_time" not in t:
         t["ref_time"] = _now().time().replace(microsecond=0)
@@ -207,18 +206,14 @@ def _compute_relative_time(t: pp.ParseResults) -> None:
     t["time_delta"] = timedelta(seconds=t.dir * delta_seconds)
 
 
-relative_time_reference.add_parse_action(_compute_relative_time)
-
 time_reference = absolute_time_of_day | relative_time_reference
 time_reference.set_name("time reference")
 
-
+@time_reference.add_parse_action
 def _add_default_time_ref_fields(t: pp.ParseResults) -> None:
     if "time_delta" not in t:
         t["time_delta"] = timedelta()
 
-
-time_reference.add_parse_action(_add_default_time_ref_fields)
 
 #     absolute_day_reference ::= 'today' | 'tomorrow' | 'yesterday' | ('next' | 'last') weekday_name
 #     day_units ::= 'days' | 'weeks'
@@ -227,6 +222,12 @@ day_units = day | week
 weekday_reference = pp.Opt(next_ | last_, 1)("dir") + weekday_name("day_name")
 
 
+absolute_day_reference = (
+    today | tomorrow | yesterday | (now + time_ref_present) | weekday_reference
+)
+absolute_day_reference.set_name("absolute day")
+
+@absolute_day_reference.add_parse_action
 def _convert_abs_day_reference_to_date(t: pp.ParseResults) -> None:
     now_ref = _now().replace(microsecond=0)
 
@@ -259,12 +260,6 @@ def _convert_abs_day_reference_to_date(t: pp.ParseResults) -> None:
         }[name]
 
 
-absolute_day_reference = (
-    today | tomorrow | yesterday | (now + time_ref_present) | weekday_reference
-)
-absolute_day_reference.add_parse_action(_convert_abs_day_reference_to_date)
-absolute_day_reference.set_name("absolute day")
-
 #     relative_day_reference ::=  'in' qty day_units
 #                                   | qty day_units
 #                                     ('ago'
@@ -276,7 +271,7 @@ relative_day_reference = in_("dir") + qty("qty") + day_units("units") | qty(
 )
 relative_day_reference.set_name("relative day")
 
-
+@relative_day_reference.add_parse_action
 def _compute_relative_date(t: pp.ParseResults) -> None:
     now = _now().replace(microsecond=0)
     if "ref_day" in t:
@@ -287,19 +282,15 @@ def _compute_relative_date(t: pp.ParseResults) -> None:
     t["date_delta"] = timedelta(days=day_diff)
 
 
-relative_day_reference.add_parse_action(_compute_relative_date)
-
 # combine expressions for absolute and relative day references
 day_reference = relative_day_reference | absolute_day_reference
 day_reference.set_name("day reference")
 
-
+@day_reference.add_parse_action
 def _add_default_date_fields(t: pp.ParseResults) -> None:
     if "date_delta" not in t:
         t["date_delta"] = timedelta()
 
-
-day_reference.add_parse_action(_add_default_date_fields)
 
 # combine date and time expressions into single overall parser
 time_and_day = time_reference + time_ref_present + pp.Opt(
@@ -309,12 +300,14 @@ time_and_day.set_name("time and day")
 
 
 # parse actions for total time_and_day expression
+@time_and_day.add_parse_action
 def _save_original_string(s: str, _: int, t: pp.ParseResults) -> None:
     # save original input string and reference time
     t["original"] = " ".join(s.strip().split())
     t["relative_to"] = _now().replace(microsecond=0)
 
 
+@time_and_day.add_parse_action
 def _compute_timestamp(t: pp.ParseResults) -> None:
     # accumulate values from parsed time and day subexpressions - fill in defaults for omitted parts
     now = _now().replace(microsecond=0)
@@ -345,6 +338,7 @@ def _compute_timestamp(t: pp.ParseResults) -> None:
     t["time_offset"] = t.computed_dt - t.relative_to
 
 
+@time_and_day.add_parse_action
 def _remove_temp_keys(t: pp.ParseResults) -> None:
     # strip out keys that are just used internally
     all_keys = list(t.keys())
@@ -358,10 +352,8 @@ def _remove_temp_keys(t: pp.ParseResults) -> None:
         ):
             del t[k]
 
-
-time_and_day.add_parse_action(
-    _save_original_string, _compute_timestamp, _remove_temp_keys
-)
+    # delete list elements - just return keys
+    del t[:]
 
 
 time_expression = time_and_day
@@ -372,45 +364,101 @@ if _GENERATE_DIAGRAM:
     time_expression.create_diagram("delta_time.html")
 
 
-# fmt: off
-def main():
+def demo():
+    """
+    Demonstrate using the time_expression parser, and accessing
+    the parsed results.
+
+    - parse a complex time expression
+    - show all fields that are accessible in the results
+    - show an example of using one of the results fields in Python
+    """
+
+    # - parse a complex time expression
+    example_expr = "10 seconds before noon tomorrow"
+    result = time_expression.parse_string(example_expr)
+
+    # - show all fields that are accessible in the results
+    print(f"\nDemo: Results of parsing {example_expr!r}", end="")
+    print(result.dump(include_list=False))
+
+    # - show an example of using one of the results fields in Python
+    print("Computed time:", result.computed_dt)
+
+
+def run_all_tests() -> bool:
     import itertools
+    from typing import Dict
 
-    def offset_weekday(day_name: str, offset_dir: int, next_present: bool = False) -> timedelta:
-        """
-        Compute a timedelta for a reference to a weekday by name, relative to the current weekday.
+    def make_weekday_time_references() -> Dict[str, timedelta]:
+        def offset_weekday(
+            day_name: str, offset_dir: int, next_present: bool = False
+        ) -> timedelta:
+            """
+            Compute a timedelta for a reference to a weekday by name, relative to
+            the current weekday.
 
-        If the current day is Monday:
-           "next Monday" will be one week in the future
-           "last Monday" will be one week in the past
-           "Monday" will be the current day
-           "next Tuesday" and "Tuesday" will be one day in the future
-           "last Tuesday" will be 6 days in the past
-           ... and similar for all other weekdays
-        """
-        to_day_num = _DAY_NUM_BY_NAME[day_name]
-        from_day_num = current_time.weekday()
+            If the current day is Monday:
+               "next Monday" will be one week in the future
+               "last Monday" will be one week in the past
+               "Monday" will be the current day
+               "next Tuesday" and "Tuesday" will be one day in the future
+               "last Tuesday" will be 6 days in the past
+               ... and similar for all other weekdays
+            """
+            to_day_num = _DAY_NUM_BY_NAME[day_name]
+            from_day_num = current_time.weekday()
 
-        if to_day_num != from_day_num:
-            if offset_dir == 1:
-                return timedelta(days=(to_day_num + 7 - from_day_num) % 7)
-            else:
-                return timedelta(days=-((from_day_num + 7 - to_day_num) % 7))
-        else:
-            if offset_dir == 1:
-                if next_present:
-                    return timedelta(days=7)
+            if to_day_num != from_day_num:
+                if offset_dir == 1:
+                    return timedelta(days=(to_day_num + 7 - from_day_num) % 7)
                 else:
-                    return timedelta()
+                    return timedelta(days=-((from_day_num + 7 - to_day_num) % 7))
             else:
-                return timedelta(days=-7)
+                if offset_dir == 1:
+                    if next_present:
+                        return timedelta(days=7)
+                    else:
+                        return timedelta()
+                else:
+                    return timedelta(days=-7)
 
-    def next_weekday_by_name(day_name: str, next_present: bool = False) -> timedelta:
-        return offset_weekday(day_name, 1, next_present)
+        def next_weekday_by_name(
+            day_name: str, *, next_present: bool = False
+        ) -> timedelta:
+            return offset_weekday(day_name, 1, next_present)
 
-    def prev_weekday_by_name(day_name: str) -> timedelta:
-        return offset_weekday(day_name, -1)
+        def prev_weekday_by_name(day_name: str, **_) -> timedelta:
+            return offset_weekday(day_name, -1)
 
+        # add test_time_exprs for various times, forward and backward to a weekday by name
+        # define lists of expression terms to generate permutations of times, weekdays,
+        # and next/last
+        times = [("noon", 12), ("2am", 2), ("2pm", 14), ("1500", 15)]
+        rels = ["", "next", "last"]
+        weekday_rel_func = {
+            "": next_weekday_by_name,
+            "next": next_weekday_by_name,
+            "last": prev_weekday_by_name,
+        }
+
+        weekday_test_cases = {}
+        for (timestr, timehours), rel, dayname in itertools.product(
+            times, rels, _WEEKDAY_NAMES
+        ):
+            next_or_prev_weekday_func = weekday_rel_func[rel]
+            expected_offset = (
+                timedelta(hours=timehours) - time_of_day
+            ) + next_or_prev_weekday_func(dayname, next_present=rel == "next")
+
+            # times such as "noon last Friday" or just "noon Friday"
+            weekday_test_cases[f"{timestr} {rel} {dayname}"] = expected_offset
+            # times such as "next Tuesday at 4pm" or just "Tuesday at 4pm"
+            weekday_test_cases[f"{rel} {dayname} at {timestr}"] = expected_offset
+            # times such as "next Tuesday 4pm" or just "Tuesday 4pm"
+            weekday_test_cases[f"{rel} {dayname} {timestr}"] = expected_offset
+
+        return weekday_test_cases
 
     # get the current time as a timedelta, to compare with parsed times
     current_time = _now()
@@ -422,6 +470,7 @@ def main():
 
     # generate a dict of time expressions and correspdoning offset from
     # the current time
+    # fmt: off
     test_time_exprs = {
         "now": timedelta(0),
         "midnight": -time_of_day,
@@ -486,35 +535,8 @@ def main():
     }
     # fmt: on
 
-    # add test_time_exprs for various times, forward and backward to a weekday by name
-    times = [("noon", 12), ("2am", 2), ("2pm", 14), ("1500", 15)]
-    rels = ["", "next", "last"]
-    weekday_rel_func = {
-        "": next_weekday_by_name,
-        "next": next_weekday_by_name,
-        "last": prev_weekday_by_name,
-    }
-
-    offsets_by_weekday_name = {}
-    for ((timestr, timehours), rel, dayname) in itertools.product(times, rels, _WEEKDAY_NAMES):
-        if rel == "next":
-            weekday_kwargs = {"next_present": True}
-        else:
-            weekday_kwargs = {}
-        expected_offset = (
-                (timedelta(hours=timehours)
-                - time_of_day)
-                + weekday_rel_func[rel](dayname, **weekday_kwargs)
-        )
-        # times such as "noon last Friday"
-        offsets_by_weekday_name[f"{timestr} {rel} {dayname}"] = expected_offset
-        # times such as "next Tuesday at 4pm" or just "Tuesday at 4pm"
-        offsets_by_weekday_name[f"{rel} {dayname} at {timestr}"] = expected_offset
-        # times such as "next Tuesday 4pm" or just "Tuesday 4pm"
-        offsets_by_weekday_name[f"{rel} {dayname} {timestr}"] = expected_offset
-
-
-    test_time_exprs.update(offsets_by_weekday_name)
+    # add expressions using weekday names
+    test_time_exprs.update(make_weekday_time_references())
 
     def verify_offset(test_time_str: str, parsed: pp.ParseResults) -> None:
         """
@@ -539,22 +561,31 @@ def main():
 
     # run all test cases
     print(f"(relative to {_now()})")
-    success, report = time_expression.run_tests(list(test_time_exprs), post_parse=verify_offset)
+    success, report = time_expression.run_tests(
+        list(test_time_exprs), post_parse=verify_offset
+    )
     assert success
 
-    # collect all tests that failed to compute the expected time (relative to the current time)
+    # collect all tests that failed to compute the expected time (relative to
+    # the current time)
     fails = []
     for test, rpt in report:
         if rpt._testing_verify_offset != "PASS":
             fails.append((test, rpt))
 
     if fails:
-        print("\nFAILED")
-        print("\n".join(f"- {test}" for test, rpt in fails))
+        print(f"\nFAILED ({len(fails)}/{len(test_time_exprs)} tests)")
+        print("\n".join(f"- {test}" for test, _ in fails))
     else:
-        print("\nPASSED")
+        print(f"\nPASSED ({len(test_time_exprs)} tests)")
 
-    return 0 if not fails else 1
+    return not fails
+
+
+def main() -> int:
+    tests_pass = run_all_tests()
+    demo()
+    return 0 if tests_pass else 1
 
 
 if __name__ == "__main__":
