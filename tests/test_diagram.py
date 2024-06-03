@@ -87,12 +87,12 @@ class TestRailroadDiagrams(unittest.TestCase):
 
     def test_example_rr_diags(self):
         subtests = [
-            (jsonObject, "jsonObject", 8),
-            (boolExpr, "boolExpr", 7),
-            (simpleSQL, "simpleSQL", 22),
-            (calendars, "calendars", 13),
+            ("jsonObject", jsonObject, 8),
+            ("boolExpr", boolExpr, 7),
+            ("simpleSQL", simpleSQL, 22),
+            ("calendars", calendars, 13),
         ]
-        for example_expr, label, expected_rr_len in subtests:
+        for label, example_expr, expected_rr_len in subtests:
             with self.subTest(f"{label}: test rr diag without results names"):
                 railroad = self.generate_railroad(example_expr, example_expr)
                 if len(railroad) != expected_rr_len:
@@ -169,11 +169,7 @@ class TestRailroadDiagrams(unittest.TestCase):
     def test_complete_combine_element(self):
         ints = pp.Word(pp.nums)
         grammar = pp.Combine(
-            ints("hours")
-            + pp.Literal(":")
-            + ints("minutes")
-            + pp.Literal(":")
-            + ints("seconds")
+            ints("hours") + ":" + ints("minutes") + ":" + ints("seconds")
         )
         railroad = to_railroad(grammar)
         assert len(railroad) == 1
@@ -183,11 +179,7 @@ class TestRailroadDiagrams(unittest.TestCase):
     def test_create_diagram(self):
         ints = pp.Word(pp.nums)
         grammar = pp.Combine(
-            ints("hours")
-            + pp.Literal(":")
-            + ints("minutes")
-            + pp.Literal(":")
-            + ints("seconds")
+            ints("hours") + ":" + ints("minutes") + ":" + ints("seconds")
         )
 
         diag_strio = StringIO()
@@ -199,11 +191,7 @@ class TestRailroadDiagrams(unittest.TestCase):
     def test_create_diagram_embed(self):
         ints = pp.Word(pp.nums)
         grammar = pp.Combine(
-            ints("hours")
-            + pp.Literal(":")
-            + ints("minutes")
-            + pp.Literal(":")
-            + ints("seconds")
+            ints("hours") + ":" + ints("minutes") + ":" + ints("seconds")
         )
 
         diag_strio = StringIO()
@@ -214,14 +202,16 @@ class TestRailroadDiagrams(unittest.TestCase):
 
     def test_create_diagram_for_oneormore_with_stopon(self):
         wd = pp.Word(pp.alphas)
-        grammar = "start" + wd[1, ...: "end"] + "end"
+        grammar = "start" + wd[1, ...:"end"] + "end"
 
         pp.autoname_elements()
         railroad_diag = to_railroad(grammar)
         assert len(railroad_diag) == 3
         assert isinstance(railroad_diag[1][1].items[1].item, railroad.Sequence)
         assert isinstance(railroad_diag[1][1].items[1].item.items[0], AnnotatedItem)
-        assert isinstance(railroad_diag[1][1].items[1].item.items[1], railroad.NonTerminal)
+        assert isinstance(
+            railroad_diag[1][1].items[1].item.items[1], railroad.NonTerminal
+        )
 
     def test_kwargs_pass_thru_create_diagram(self):
         from io import StringIO
