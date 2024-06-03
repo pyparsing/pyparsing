@@ -584,7 +584,7 @@ def _to_diagram_element(
                 show_groups,
             ]
             return _to_diagram_element(
-                (~pyparsing.FollowedBy(element.not_ender.expr)
+                (~element.not_ender.expr
                  + element.expr)[1, ...].set_name(element.name),
                 *args,
             )
@@ -601,7 +601,7 @@ def _to_diagram_element(
                 show_groups,
             ]
             return _to_diagram_element(
-                (~pyparsing.FollowedBy(element.not_ender.expr)
+                (~element.not_ender.expr
                  + element.expr)[...].set_name(element.name),
                 *args
             )
