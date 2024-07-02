@@ -3714,6 +3714,7 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             + pp.Group(pp.Word(pp.alphas)("key") + "=" + pp.Word(pp.nums)("value"))[...]
         )
         result = expr.parse_string("1 a=100 b=200 c=300")
+        orig_elements = result._toklist[:]
 
         r2 = result.deepcopy()
         print(r2.dump())
@@ -3721,6 +3722,18 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
         # check copy and contained results are different from original
         self.assertFalse(r2 is result, "copy failed")
         self.assertFalse(r2[1] is result[1], "deep copy failed")
+
+        # check copy and original are equal
+        self.assertEqual(result.as_dict(), r2.as_dict())
+        self.assertEqual(result.as_list(), r2.as_list())
+
+        # check original is unchanged
+        self.assertTrue(
+            all(
+                orig_element is result_element
+                for orig_element, result_element in zip(orig_elements, result._toklist)
+            )
+        )
 
         # update contained results
         result[1][0] = result[1]["key"] = "q"
@@ -6429,9 +6442,8 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             print(stderr_text)
             self.assertTrue(
                 expected_message in stderr_text,
-                f"Expected exception type {expected_message!r} not found in trace_parse_action output"
+                f"Expected exception type {expected_message!r} not found in trace_parse_action output",
             )
-
 
     def testRunTests(self):
         integer = pp.Word(pp.nums).setParseAction(lambda t: int(t[0]))
