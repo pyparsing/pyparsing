@@ -1,7 +1,7 @@
 PyParsing -- A Python Parsing Module
 ====================================
 
-|Version| |Build Status| |Coverage| |License| |Python Versions| |Snyk Score|
+|Version| |Build Status| |Coverage| |License| |Python Versions| |Snyk Score| |Monthly Downloads| 
 
 Introduction
 ============
@@ -91,3 +91,7 @@ See `CHANGES <https://github.com/pyparsing/pyparsing/blob/master/CHANGES>`__ fil
 .. |Snyk Score| image:: https://snyk.io//advisor/python/pyparsing/badge.svg
    :target: https://snyk.io//advisor/python/pyparsing
    :alt: pyparsing
+
+.. |Monthly Downloads| image:: https://assets.piptrends.com/get-last-month-downloads-badge/pyparsing.svg
+    :target: https://piptrends.com/package/pyparsing
+    :alt: pyparsing Downloads Last Month by pip Trends
