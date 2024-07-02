@@ -89,7 +89,7 @@ class AnnotatedItem(railroad.Group):
     """
 
     def __init__(self, label: str, item):
-        super().__init__(item=item, label="[{}]".format(label) if label else label)
+        super().__init__(item=item, label=f"[{label}]")
 
 
 class EditablePartial(Generic[T]):
@@ -145,7 +145,7 @@ def railroad_to_html(diagrams: List[NamedDiagram], embed=False, **kwargs) -> str
             continue
         io = StringIO()
         try:
-            css = kwargs.get('css')
+            css = kwargs.get("css")
             diagram.diagram.writeStandalone(io.write, css=css)
         except AttributeError:
             diagram.diagram.writeSvg(io.write)
@@ -425,9 +425,11 @@ def _apply_diagram_item_enhancements(fn):
             element_results_name = element.resultsName
             if element_results_name:
                 # add "*" to indicate if this is a "list all results" name
-                element_results_name += "" if element.modalResults else "*"
+                modal_tag = "" if element.modalResults else "*"
                 ret = EditablePartial.from_call(
-                    railroad.Group, item=ret, label=element_results_name
+                    railroad.Group,
+                    item=ret,
+                    label=f"{repr(element_results_name)}{modal_tag}",
                 )
 
         return ret
@@ -534,7 +536,7 @@ def _to_diagram_element(
         # (all will have the same name, and resultsName)
         if not exprs:
             return None
-        if len(set((e.name, e.resultsName) for e in exprs)) == 1:
+        if len(set((e.name, e.resultsName) for e in exprs)) == 1 and len(exprs) > 2:
             ret = EditablePartial.from_call(
                 railroad.OneOrMore, item="", repeat=str(len(exprs))
             )
@@ -563,7 +565,7 @@ def _to_diagram_element(
         if show_groups:
             ret = EditablePartial.from_call(AnnotatedItem, label="", item="")
         else:
-            ret = EditablePartial.from_call(railroad.Group, label="", item="")
+            ret = EditablePartial.from_call(railroad.Sequence, items=[])
     elif isinstance(element, pyparsing.TokenConverter):
         label = type(element).__name__.lower()
         if label == "tokenconverter":
@@ -584,8 +586,7 @@ def _to_diagram_element(
                 show_groups,
             ]
             return _to_diagram_element(
-                (~element.not_ender.expr
-                 + element.expr)[1, ...].set_name(element.name),
+                (~element.not_ender.expr + element.expr)[1, ...].set_name(element.name),
                 *args,
             )
         ret = EditablePartial.from_call(railroad.OneOrMore, item=None)
@@ -601,9 +602,8 @@ def _to_diagram_element(
                 show_groups,
             ]
             return _to_diagram_element(
-                (~element.not_ender.expr
-                 + element.expr)[...].set_name(element.name),
-                *args
+                (~element.not_ender.expr + element.expr)[...].set_name(element.name),
+                *args,
             )
         ret = EditablePartial.from_call(railroad.ZeroOrMore, item="")
     elif isinstance(element, pyparsing.Group):

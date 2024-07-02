@@ -22,6 +22,11 @@ Version 3.1.3 - in development
 - Updated railroad diagram generation for `ZeroOrMore` and `OneOrMore` expressions with
   `stop_on` expressions, while investigating #558, reported by user Gu_f.
 
+- Fixed some cosmetics/bugs in railroad diagrams:
+  - fixed groups being shown even when `show_groups`=False
+  - show results names as quoted strings when `show_results_names`=True
+  - only use integer loop counter if repetition > 2
+
 - Some type annotations added for parse action related methods, thanks August
   Karlstedt (#551).
 
