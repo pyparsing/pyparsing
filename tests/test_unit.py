@@ -2208,6 +2208,28 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
 
         self.assertParseResultsEquals(testVal, expected_list=expected)
 
+    def testSetNameToStrAndNone(self):
+        wd = pp.Word(pp.alphas)
+        with self.subTest():
+            self.assertEqual("W:(A-Za-z)", wd.name)
+
+        with self.subTest():
+            wd.set_name("test_word")
+            self.assertEqual("test_word", wd.name)
+
+        with self.subTest():
+            wd.set_name(None)
+            self.assertEqual("W:(A-Za-z)", wd.name)
+
+        # same tests but using name property setter
+        with self.subTest():
+            wd.name = "test_word"
+            self.assertEqual("test_word", wd.name)
+
+        with self.subTest():
+            wd.name = None
+            self.assertEqual("W:(A-Za-z)", wd.name)
+
     def testCombineSetName(self):
         ab = pp.Combine(
             pp.Literal("a").set_name("AAA") | pp.Literal("b").set_name("BBB")

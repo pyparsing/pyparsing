@@ -1881,9 +1881,14 @@ class ParserElement(ABC):
         Child classes must define this method, which defines how the ``default_name`` is set.
         """
 
-    def set_name(self, name: str) -> "ParserElement":
+    def set_name(self, name: typing.Optional[str]) -> "ParserElement":
         """
-        Define name for this expression, makes debugging and exception messages clearer.
+        Define name for this expression, makes debugging and exception messages clearer. If
+        `__diag__.enable_debug_on_named_expressions` is set to True, setting a name will also
+        enable debug for this expression.
+
+        If `name` is None, clears any custom name for this expression, and clears the
+        debug flag is it was enabled via `__diag__.enable_debug_on_named_expressions`.
 
         Example::
 
@@ -1894,15 +1899,21 @@ class ParserElement(ABC):
             integer.parse_string("ABC")  # -> Exception: Expected integer (at char 0), (line:1, col:1)
         """
         self.customName = name
-        self.errmsg = f"Expected {self.name}"
+        self.errmsg = f"Expected {str(self)}"
+
         if __diag__.enable_debug_on_named_expressions:
-            self.set_debug()
+            self.set_debug(name is not None)
+
         return self
 
     @property
     def name(self) -> str:
         # This will use a user-defined name if available, but otherwise defaults back to the auto-generated name
         return self.customName if self.customName is not None else self.default_name
+
+    @name.setter
+    def name(self, new_name) -> None:
+        self.set_name(new_name)
 
     def __str__(self) -> str:
         return self.name
@@ -3580,7 +3591,7 @@ class LineStart(PositionToken):
         self.orig_whiteChars = set() | self.whiteChars
         self.whiteChars.discard("\n")
         self.skipper = Empty().set_whitespace_chars(self.whiteChars)
-        self.errmsg = "Expected start of line"
+        self.set_name("start of line")
 
     def preParse(self, instring: str, loc: int) -> int:
         if loc == 0:
@@ -3609,7 +3620,7 @@ class LineEnd(PositionToken):
         super().__init__()
         self.whiteChars.discard("\n")
         self.set_whitespace_chars(self.whiteChars, copy_defaults=False)
-        self.errmsg = "Expected end of line"
+        self.set_name("end of line")
 
     def parseImpl(self, instring, loc, do_actions=True) -> ParseImplReturnType:
         if loc < len(instring):
@@ -3630,7 +3641,7 @@ class StringStart(PositionToken):
 
     def __init__(self):
         super().__init__()
-        self.errmsg = "Expected start of text"
+        self.set_name("start of text")
 
     def parseImpl(self, instring, loc, do_actions=True) -> ParseImplReturnType:
         # see if entire string up to here is just whitespace and ignoreables
@@ -3647,7 +3658,7 @@ class StringEnd(PositionToken):
 
     def __init__(self):
         super().__init__()
-        self.errmsg = "Expected end of text"
+        self.set_name("end of text")
 
     def parseImpl(self, instring, loc, do_actions=True) -> ParseImplReturnType:
         if loc < len(instring):
@@ -3674,7 +3685,7 @@ class WordStart(PositionToken):
         wordChars = word_chars if wordChars == printables else wordChars
         super().__init__()
         self.wordChars = set(wordChars)
-        self.errmsg = "Not at the start of a word"
+        self.set_name("start of a word")
 
     def parseImpl(self, instring, loc, do_actions=True) -> ParseImplReturnType:
         if loc != 0:
@@ -3700,7 +3711,7 @@ class WordEnd(PositionToken):
         super().__init__()
         self.wordChars = set(wordChars)
         self.skipWhitespace = False
-        self.errmsg = "Not at the end of a word"
+        self.set_name("end of a word")
 
     def parseImpl(self, instring, loc, do_actions=True) -> ParseImplReturnType:
         instrlen = len(instring)
@@ -4519,6 +4530,8 @@ class ParseElementEnhance(ParserElement):
 
         try:
             return self.expr._parse(instring, loc, do_actions, callPreParse=False)
+        except ParseSyntaxException:
+            raise
         except ParseBaseException as pbe:
             if not isinstance(self, Forward) or self.customName is not None:
                 if self.errmsg:
