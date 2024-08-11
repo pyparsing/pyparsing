@@ -5296,7 +5296,7 @@ class SkipTo(ParseElementEnhance):
             self.failOn = self._literalStringClass(failOn)
         else:
             self.failOn = failOn
-        self.errmsg = "No match found for " + str(self.expr)
+        self.errmsg = f"No match found for {self.expr}"
         self.ignorer = Empty().leave_whitespace()
         self._update_ignorer()
 

@@ -36,7 +36,7 @@ jinja2_template_source = """\
 </head>
 <body>
 {% endif %}
-<meta charset="UTF-8">
+<meta charset="UTF-8"/>
 {{ body | safe }}
 {% for diagram in diagrams %}
     <div class="railroad-group">

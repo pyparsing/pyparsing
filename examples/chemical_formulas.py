@@ -116,4 +116,6 @@ formula.run_tests(
     post_parse=lambda _, tokens:
         f"Molecular weight: {sum_atomic_weights_by_results_name_with_converted_ints(tokens)}",
 )
+formula.create_diagram("chemical_formulas.html")
+
 print()

@@ -20,7 +20,7 @@ Version 3.1.3 - in development
   this resulted  in a `TypeError` exception. Reported by eylenburg (#548).
 
 - To address a compatibility issue in RDFLib, added a property setter for the
-  `ParserElement.name` property, to call ParserElement.set_name.
+  `ParserElement.name` property, to call `ParserElement.set_name`.
 
 - Modified `ParserElement.set_name()` to accept a None value, to clear the defined
   name and corresponding error message for a `ParserElement`.
