@@ -9038,6 +9038,27 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             save_stdout.getvalue(),
         )
 
+    def testTagElements(self):
+        end_punc = (
+            ("." + pp.Tag("mood", "normal"))
+            | ("!" + pp.Tag("mood", "excited"))
+            | ("?" + pp.Tag("mood", "curious"))
+        )
+        greeting = "Hello" + pp.Word(pp.alphas) + end_punc[1, ...]
+
+        for ending, expected_mood in [
+            (".", "normal"),
+            ("!", "excited"),
+            ("?", "curious"),
+            ("!!", "excited"),
+            ("!?", "curious"),
+        ]:
+            self.assertParseAndCheckDict(
+                greeting,
+                f"Hello World{ending}",
+                {"mood": expected_mood}
+            )
+
     def testEnableDebugOnNamedExpressions(self):
         """
         - enable_debug_on_named_expressions - flag to auto-enable debug on all subsequent
@@ -10357,6 +10378,16 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             pp.Forward() << pp.Word(pp.alphas).set_name("word"),
             "123",
             "Expected word, found '123'",
+        ),
+        (
+            pp.Forward() << pp.Word(pp.alphas),
+            "123",
+            "Expected W:(A-Za-z), found '123'",
+        ),
+        (
+            pp.Group(pp.Word(pp.alphas)),
+            "123",
+            "Expected W:(A-Za-z), found '123'",
         ),
     )
 

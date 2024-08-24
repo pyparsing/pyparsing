@@ -15,6 +15,30 @@ Version 3.2.0 will also discontinue support for Python versions 3.6 and 3.7.
 
 Version 3.1.3 - August, 2024
 ----------------------------
+- Added new `Tag` ParserElement, for inserting metadata into the parsed results.
+  This allows a parser to add metadata or annotations to the parsed tokens.
+  The `Tag` element also accepts an optional `value` parameter, defaulting to `True`.
+  See the new `tag_metadata.py` example in the `examples` directory.
+
+  Example:
+
+        # add tag indicating mood
+        end_punc = "." | ("!" + Tag("enthusiastic")))
+        greeting = "Hello" + Word(alphas) + end_punc
+
+        result = greeting.parse_string("Hello World.")
+        print(result.dump())
+
+        result = greeting.parse_string("Hello World!")
+        print(result.dump())
+
+  prints:
+
+        ['Hello', 'World', '.']
+
+        ['Hello', 'World', '!']
+        - enthusiastic: True
+
 - Fixed issue where PEP8 compatibility names for `ParserElement` static methods were
   not themselves defined as `staticmethods`. When called using a `ParserElement` instance,
   this resulted  in a `TypeError` exception. Reported by eylenburg (#548).

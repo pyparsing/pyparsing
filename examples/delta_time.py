@@ -122,9 +122,7 @@ the_qty = the_.set_parse_action(pp.replace_with(1))
 qty = pp.ungroup(
     (pp.Opt(adverb_) + (integer | couple | a_qty | the_qty)).set_name("qty_expression")
 ).set_name("qty")
-time_ref_present = pp.Empty().add_parse_action(pp.replace_with(True))(
-    "time_ref_present"
-)
+time_ref_present = pp.Tag("time_ref_present")
 
 # get weekday names from the calendar module
 weekday_names = list(calendar.day_name)
@@ -133,8 +131,11 @@ weekday_name = pp.MatchFirst(CK.using_each(weekday_names)).set_name("weekday_nam
 # expressions for military 2400 time
 _24hour_time = ~(pp.Word(pp.nums) + any_time_units).set_name(
     "numbered_time_units"
-) + pp.Word(pp.nums, exact=4, as_keyword=True).set_name("HHMM").add_parse_action(
-    lambda t: [int(t[0][:2]), int(t[0][2:])]
+) + pp.Regex(
+    r"\b([01]\d|2[0-3])([0-5]\d)\b",
+    as_group_list=True
+).set_name("HHMM").add_parse_action(
+    lambda t: [int(t[0][0]), int(t[0][1])]
 )
 _24hour_time.set_name("0000 time")
 

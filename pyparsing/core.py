@@ -3724,6 +3724,47 @@ class WordEnd(PositionToken):
         return loc, []
 
 
+class Tag(Token):
+    """
+    A meta-element for inserting a named result into the parsed
+    tokens that may be checked later in a parse action or while
+    processing the parsed results. Accepts an optional tag value,
+    defaulting to `True`.
+
+    Example::
+
+        end_punc = "." | ("!" + Tag("enthusiastic")))
+        greeting = "Hello," + Word(alphas) + end_punc
+
+        result = greeting.parse_string("Hello, World.")
+        print(result.dump())
+
+        result = greeting.parse_string("Hello, World!")
+        print(result.dump())
+
+    prints::
+
+        ['Hello,', 'World', '.']
+
+        ['Hello,', 'World', '!']
+        - enthusiastic: True
+    """
+    def __init__(self, tag_name: str, value: Any = True):
+        super().__init__()
+        self.mayReturnEmpty = True
+        self.mayIndexError = False
+        self.leave_whitespace()
+        self.tag_name = tag_name
+        self.tag_value = value
+        self.add_parse_action(self._add_tag)
+
+    def _add_tag(self, tokens: ParseResults):
+        tokens[self.tag_name] = self.tag_value
+
+    def _generateDefaultName(self) -> str:
+        return f"{type(self).__name__}:{self.tag_name}={self.tag_value!r}"
+
+
 class ParseExpression(ParserElement):
     """Abstract subclass of ParserElement, for combining and
     post-processing parsed tokens.
