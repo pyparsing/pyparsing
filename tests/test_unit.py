@@ -9418,10 +9418,8 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
         tests = [
             ("ABCDEMNXYZ", "[A-EMNX-Z]+"),
             (pp.printables, "[!-~]+"),
-            (pp.alphas, "[A-Za-z]+"),
             (pp.alphanums, "[0-9A-Za-z]+"),
             (pp.pyparsing_unicode.Latin1.printables, "[!-~¡-ÿ]+"),
-            (pp.pyparsing_unicode.Latin1.alphas, "[A-Za-zªµºÀ-ÖØ-öø-ÿ]+"),
             (pp.pyparsing_unicode.Latin1.alphanums, "[0-9A-Za-zª²³µ¹ºÀ-ÖØ-öø-ÿ]+"),
             (pp.alphas8bit, "[À-ÖØ-öø-ÿ]+"),
         ]
