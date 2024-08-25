@@ -53,6 +53,11 @@ from .unicode import pyparsing_unicode
 _MAX_INT = sys.maxsize
 str_type: Tuple[type, ...] = (str, bytes)
 
+if sys.version_info >= (3, 7):
+    _RePattern = re.Pattern
+else:
+    _RePattern = typing.Pattern
+
 #
 # Copyright (c) 2003-2022  Paul T. McGuire
 #
@@ -3057,7 +3062,7 @@ class Regex(Token):
             self.parseImpl = self.parseImplAsMatch  # type: ignore [assignment]
 
     @cached_property
-    def re(self) -> re.Pattern:
+    def re(self) -> _RePattern:
         if self._re:
             return self._re
 
