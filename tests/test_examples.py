@@ -60,3 +60,6 @@ class TestExamples(unittest.TestCase):
 
     def test_email_parser(self):
         self._run("email_address_parser")
+
+    def test_mongodb_query_parser(self):
+        self._run("mongodb_query_expression")

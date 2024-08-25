@@ -69,7 +69,7 @@ expression <<= pp.infixNotation(
 ).set_name("query expression")
 
 
-if __name__ == "__main__":
+def main():
 
     # test strings taken from grammar description doc, and TestQueryParser.java
     tests = r"""
@@ -366,3 +366,6 @@ if __name__ == "__main__":
         import sys
 
         sys.exit(1)
+
+if __name__ == "__main__":
+    main()

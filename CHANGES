@@ -39,6 +39,12 @@ Version 3.1.3 - August, 2024
         ['Hello', 'World', '!']
         - enthusiastic: True
 
+- Added example `mongodb_query_expression.py`, to convert human-readable infix query
+  expressions (such as `a==100 and b>=200`) and transform them into the equivalen
+  query argument for the pymongo package (`{'$and': [{'a': 100}, {'b': {'$gte': 200}}]}`).
+  Supports many equality and inequality operators - see the docstring for the
+  `transform_query` function for more examples.
+
 - Fixed issue where PEP8 compatibility names for `ParserElement` static methods were
   not themselves defined as `staticmethods`. When called using a `ParserElement` instance,
   this resulted  in a `TypeError` exception. Reported by eylenburg (#548).
