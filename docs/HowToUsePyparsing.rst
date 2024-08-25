@@ -5,8 +5,8 @@ Using the pyparsing module
 :author: Paul McGuire
 :address: ptmcg.pm+pyparsing@gmail.com
 
-:revision: 3.1.1
-:date: July, 2023
+:revision: 3.1.3
+:date: August, 2024
 
 :copyright: Copyright |copy| 2003-2023 Paul McGuire.
 
@@ -817,6 +817,10 @@ Special subclasses
   patterns; when defining the actual expression later in the
   program, insert it into the ``Forward`` object using the ``<<=``
   operator (see fourFn.py_ for an example).
+
+- ``Tag`` - a non-parsing token that always matches, and inserts
+  a tag and value into the current parsed tokens; useful for adding
+  metadata or annotations to parsed results (see tag_example.py_).
 
 
 Other classes
