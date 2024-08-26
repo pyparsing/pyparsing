@@ -2,15 +2,19 @@
 Change Log
 ==========
 
-NOTE: In the future release 3.2.0, use of many of the pre-PEP8 methods (such as
-`ParserElement.parseString`) will start to raise `DeprecationWarnings`. 3.2.0 should
-get released some time later in 2024. I currently plan to completely
-drop the pre-PEP8 methods in pyparsing 4.0, though we won't see that release until
-at least late 2024 if not 2025. So there is plenty of time to convert existing parsers to
-the new function names before the old functions are completely removed. (Big
-help from Devin J. Pohly in structuring the code to enable this peaceful transition.)
+RELEASE PLANNING NOTES:
 
-Version 3.2.0 will also discontinue support for Python versions 3.6 and 3.7.
+In the pyparsing release 3.3.0, use of many of the pre-PEP8 methods (such as
+`ParserElement.parseString`) will start to raise `DeprecationWarnings`. I plan to
+completely drop the pre-PEP8 methods in pyparsing 4.0, though we won't see that release
+until some time in 2025. So there is plenty of time to convert existing parsers to
+the new function names before the old functions are completely removed. (Big help from
+Devin J. Pohly in structuring the code to enable this peaceful transition.)
+
+
+Version 3.2.0 - in development
+------------------------------
+- Discontinued support for Python 3.6, 3.7, and 3.8.
 
 
 Version 3.1.4 - August, 2024
