@@ -31,7 +31,7 @@ class ParseBaseException(Exception):
     msg: str
     pstr: str
     parser_element: typing.Any  # "ParserElement"
-    args: typing.Tuple[str, int, typing.Optional[str]]
+    args: tuple[str, int, typing.Optional[str]]
 
     __slots__ = (
         "loc",

@@ -3,13 +3,10 @@ import railroad
 import pyparsing
 import typing
 from typing import (
-    List,
     NamedTuple,
     Generic,
     TypeVar,
-    Dict,
     Callable,
-    Set,
     Iterable,
 )
 from jinja2 import Template
@@ -135,7 +132,7 @@ class EditablePartial(Generic[T]):
         return self.func(*args, **kwargs)
 
 
-def railroad_to_html(diagrams: List[NamedDiagram], embed=False, **kwargs) -> str:
+def railroad_to_html(diagrams: list[NamedDiagram], embed=False, **kwargs) -> str:
     """
     Given a list of NamedDiagram, produce a single HTML string that visualises those diagrams
     :params kwargs: kwargs to be passed in to the template
@@ -180,7 +177,7 @@ def to_railroad(
     vertical: int = 3,
     show_results_names: bool = False,
     show_groups: bool = False,
-) -> List[NamedDiagram]:
+) -> list[NamedDiagram]:
     """
     Convert a pyparsing element tree into a list of diagrams. This is the recommended entrypoint to diagram
     creation if you want to access the Railroad tree before it is converted to HTML
@@ -313,16 +310,16 @@ class ConverterState:
 
     def __init__(self, diagram_kwargs: typing.Optional[dict] = None):
         #: A dictionary mapping ParserElements to state relating to them
-        self._element_diagram_states: Dict[int, ElementState] = {}
+        self._element_diagram_states: dict[int, ElementState] = {}
         #: A dictionary mapping ParserElement IDs to subdiagrams generated from them
-        self.diagrams: Dict[int, EditablePartial[NamedDiagram]] = {}
+        self.diagrams: dict[int, EditablePartial[NamedDiagram]] = {}
         #: The index of the next unnamed element
         self.unnamed_index: int = 1
         #: The index of the next element. This is used for sorting
         self.index: int = 0
         #: Shared kwargs that are used to customize the construction of diagrams
         self.diagram_kwargs: dict = diagram_kwargs or {}
-        self.extracted_diagram_names: Set[str] = set()
+        self.extracted_diagram_names: set[str] = set()
 
     def __setitem__(self, key: int, value: ElementState):
         self._element_diagram_states[key] = value

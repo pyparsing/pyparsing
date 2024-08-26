@@ -5,7 +5,7 @@ import types
 import collections
 import itertools
 from functools import lru_cache, wraps
-from typing import Callable, List, Union, Iterable, TypeVar, cast
+from typing import Callable, Union, Iterable, TypeVar, cast
 
 _bslash = chr(92)
 C = TypeVar("C", bound=Callable)
@@ -14,8 +14,8 @@ C = TypeVar("C", bound=Callable)
 class __config_flags:
     """Internal class for defining compatibility and debugging flags"""
 
-    _all_names: List[str] = []
-    _fixed_names: List[str] = []
+    _all_names: list[str] = []
+    _fixed_names: list[str] = []
     _type_desc = "configuration"
 
     @classmethod

@@ -602,7 +602,7 @@ def _makeTags(tagStr, xml, suppress_LT=Suppress("<"), suppress_GT=Suppress(">"))
 
 def make_html_tags(
     tag_str: Union[str, ParserElement]
-) -> Tuple[ParserElement, ParserElement]:
+) -> tuple[ParserElement, ParserElement]:
     """Helper to construct opening and closing tag expressions for HTML,
     given a tag name. Matches tags in either upper or lower case,
     attributes with namespaces and with quoted or unquoted values.
@@ -629,7 +629,7 @@ def make_html_tags(
 
 def make_xml_tags(
     tag_str: Union[str, ParserElement]
-) -> Tuple[ParserElement, ParserElement]:
+) -> tuple[ParserElement, ParserElement]:
     """Helper to construct opening and closing tag expressions for XML,
     given a tag name. Matches tags only in the given upper/lower case.
 
@@ -664,16 +664,16 @@ class OpAssoc(Enum):
 
 
 InfixNotationOperatorArgType = Union[
-    ParserElement, str, Tuple[Union[ParserElement, str], Union[ParserElement, str]]
+    ParserElement, str, tuple[Union[ParserElement, str], Union[ParserElement, str]]
 ]
 InfixNotationOperatorSpec = Union[
-    Tuple[
+    tuple[
         InfixNotationOperatorArgType,
         int,
         OpAssoc,
         typing.Optional[ParseAction],
     ],
-    Tuple[
+    tuple[
         InfixNotationOperatorArgType,
         int,
         OpAssoc,
@@ -683,7 +683,7 @@ InfixNotationOperatorSpec = Union[
 
 def infix_notation(
     base_expr: ParserElement,
-    op_list: List[InfixNotationOperatorSpec],
+    op_list: list[InfixNotationOperatorSpec],
     lpar: Union[str, ParserElement] = Suppress("("),
     rpar: Union[str, ParserElement] = Suppress(")"),
 ) -> ParserElement:
@@ -1032,7 +1032,7 @@ python_style_comment = Regex(r"#.*").set_name("Python style comment")
 
 # build list of built-in expressions, for future reference if a global default value
 # gets updated
-_builtin_exprs: List[ParserElement] = [
+_builtin_exprs: list[ParserElement] = [
     v for v in vars().values() if isinstance(v, ParserElement)
 ]
 

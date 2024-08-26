@@ -7,21 +7,21 @@ from collections.abc import (
     Iterable,
 )
 import pprint
-from typing import Tuple, Any, Dict, Set, List
+from typing import Any
 
 from .util import replaced_by_pep8
 
 
-str_type: Tuple[type, ...] = (str, bytes)
+str_type: tuple[type, ...] = (str, bytes)
 _generator_type = type((_ for _ in ()))
 
 
 class _ParseResultsWithOffset:
-    tup: Tuple["ParseResults", int]
+    tup: tuple["ParseResults", int]
     __slots__ = ["tup"]
 
     def __init__(self, p1: "ParseResults", p2: int):
-        self.tup: Tuple[ParseResults, int] = (p1, p2)
+        self.tup: tuple[ParseResults, int] = (p1, p2)
 
     def __getitem__(self, i):
         return self.tup[i]
@@ -79,14 +79,14 @@ class ParseResults:
         - year: '1999'
     """
 
-    _null_values: Tuple[Any, ...] = (None, [], ())
+    _null_values: tuple[Any, ...] = (None, [], ())
 
     _name: str
     _parent: "ParseResults"
-    _all_names: Set[str]
+    _all_names: set[str]
     _modal: bool
-    _toklist: List[Any]
-    _tokdict: Dict[str, Any]
+    _toklist: list[Any]
+    _tokdict: dict[str, Any]
 
     __slots__ = (
         "_name",
@@ -173,7 +173,7 @@ class ParseResults:
     def __init__(
         self, toklist=None, name=None, asList=True, modal=True, isinstance=isinstance
     ):
-        self._tokdict: Dict[str, _ParseResultsWithOffset]
+        self._tokdict: dict[str, _ParseResultsWithOffset]
         self._modal = modal
 
         if name is None or name == "":

@@ -9,12 +9,9 @@ from typing import (
     Any,
     Callable,
     Generator,
-    List,
     NamedTuple,
     Sequence,
-    Set,
     TextIO,
-    Tuple,
     Union,
     cast,
 )
@@ -51,12 +48,7 @@ from .results import ParseResults, _ParseResultsWithOffset
 from .unicode import pyparsing_unicode
 
 _MAX_INT = sys.maxsize
-str_type: Tuple[type, ...] = (str, bytes)
-
-if sys.version_info >= (3, 7):
-    _RePattern = re.Pattern
-else:
-    _RePattern = typing.Pattern
+str_type: tuple[type, ...] = (str, bytes)
 
 #
 # Copyright (c) 2003-2022  Paul T. McGuire
@@ -81,19 +73,7 @@ else:
 # SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #
 
-
-if sys.version_info >= (3, 8):
-    from functools import cached_property
-else:
-
-    class cached_property:
-        def __init__(self, func):
-            self._func = func
-
-        def __get__(self, instance, owner=None):
-            ret = instance.__dict__[self._func.__name__] = self._func(instance)
-            return ret
-
+from functools import cached_property
 
 class __compat__(__config_flags):
     """
@@ -230,7 +210,7 @@ _single_arg_builtins = {
 # fmt: on
 
 _generatorType = types.GeneratorType
-ParseImplReturnType = Tuple[int, Any]
+ParseImplReturnType = tuple[int, Any]
 PostParseReturnType = Union[ParseResults, Sequence[ParseResults]]
 ParseAction = Union[
     Callable[[], Any],
@@ -458,7 +438,7 @@ class ParserElement(ABC):
         debug_fail: typing.Optional[DebugExceptionAction]
 
     def __init__(self, savelist: bool = False):
-        self.parseAction: List[ParseAction] = list()
+        self.parseAction: list[ParseAction] = list()
         self.failAction: typing.Optional[ParseFailAction] = None
         self.customName: str = None  # type: ignore[assignment]
         self._defaultName: typing.Optional[str] = None
@@ -470,7 +450,7 @@ class ParserElement(ABC):
         # used when checking for left-recursion
         self.mayReturnEmpty = False
         self.keepTabs = False
-        self.ignoreExprs: List["ParserElement"] = list()
+        self.ignoreExprs: list["ParserElement"] = list()
         self.debug = False
         self.streamlined = False
         # optimize exception handling for subclasses that don't advance parse index
@@ -483,7 +463,7 @@ class ParserElement(ABC):
         # avoid redundant calls to preParse
         self.callPreparse = True
         self.callDuringTry = False
-        self.suppress_warnings_: List[Diagnostics] = []
+        self.suppress_warnings_: list[Diagnostics] = []
 
     def suppress_warning(self, warning_type: Diagnostics) -> "ParserElement":
         """
@@ -809,7 +789,7 @@ class ParserElement(ABC):
     # @profile
     def _parseNoCache(
         self, instring, loc, do_actions=True, callPreParse=True
-    ) -> Tuple[int, ParseResults]:
+    ) -> tuple[int, ParseResults]:
         TRY, MATCH, FAIL = 0, 1, 2
         debugging = self.debug  # and do_actions)
         len_instring = len(instring)
@@ -935,7 +915,7 @@ class ParserElement(ABC):
     # cache for left-recursion in Forward references
     recursion_lock = RLock()
     recursion_memos: typing.Dict[
-        Tuple[int, "Forward", bool], Tuple[int, Union[ParseResults, Exception]]
+        tuple[int, "Forward", bool], tuple[int, Union[ParseResults, Exception]]
     ] = {}
 
     class _CacheType(dict):
@@ -960,7 +940,7 @@ class ParserElement(ABC):
     # we can cache these arguments and save ourselves the trouble of re-parsing the contained expression
     def _parseCache(
         self, instring, loc, do_actions=True, callPreParse=True
-    ) -> Tuple[int, ParseResults]:
+    ) -> tuple[int, ParseResults]:
         HIT, MISS = 0, 1
         TRY, MATCH, FAIL = 0, 1, 2
         lookup = (self, instring, loc, callPreParse, do_actions)
@@ -995,7 +975,7 @@ class ParserElement(ABC):
                             pass
                     raise value
 
-                value = cast(Tuple[int, ParseResults, int], value)
+                value = cast(tuple[int, ParseResults, int], value)
                 loc_, result, endloc = value[0], value[1].copy(), value[2]
                 if self.debug and self.debugActions.debug_match:
                     try:
@@ -1208,7 +1188,7 @@ class ParserElement(ABC):
         *,
         debug: bool = False,
         maxMatches: int = _MAX_INT,
-    ) -> Generator[Tuple[ParseResults, int, int], None, None]:
+    ) -> Generator[tuple[ParseResults, int, int], None, None]:
         """
         Scan the input string for expression matches.  Each match will return the
         matching tokens, start location, and end location.  May be called with optional
@@ -1311,7 +1291,7 @@ class ParserElement(ABC):
 
             Now Is The Winter Of Our Discontent Made Glorious Summer By This Sun Of York.
         """
-        out: List[str] = []
+        out: list[str] = []
         lastE = 0
         # force preservation of <TAB>s, to minimize unwanted transformation of string, and to
         # keep string locs straight between transform_string and scan_string
@@ -1750,7 +1730,7 @@ class ParserElement(ABC):
         return self
 
     def set_whitespace_chars(
-        self, chars: Union[Set[str], str], copy_defaults: bool = False
+        self, chars: Union[set[str], str], copy_defaults: bool = False
     ) -> "ParserElement":
         """
         Overrides the default whitespace chars
@@ -1931,7 +1911,7 @@ class ParserElement(ABC):
         self._defaultName = None
         return self
 
-    def recurse(self) -> List["ParserElement"]:
+    def recurse(self) -> list["ParserElement"]:
         return []
 
     def _checkRecursion(self, parseElementList):
@@ -2018,7 +1998,7 @@ class ParserElement(ABC):
 
     def run_tests(
         self,
-        tests: Union[str, List[str]],
+        tests: Union[str, list[str]],
         parse_all: bool = True,
         comment: typing.Optional[Union["ParserElement", str]] = "#",
         full_dump: bool = True,
@@ -2037,7 +2017,7 @@ class ParserElement(ABC):
         postParse: typing.Optional[
             Callable[[str, ParseResults], typing.Optional[str]]
         ] = None,
-    ) -> Tuple[bool, List[Tuple[str, Union[ParseResults, Exception]]]]:
+    ) -> tuple[bool, list[tuple[str, Union[ParseResults, Exception]]]]:
         """
         Execute the parse expression on a series of test strings, showing each
         test, the parsed results or where the parse failed. Quick and easy way to
@@ -2155,8 +2135,8 @@ class ParserElement(ABC):
         print_ = file.write
 
         result: Union[ParseResults, Exception]
-        allResults: List[Tuple[str, Union[ParseResults, Exception]]] = []
-        comments: List[str] = []
+        allResults: list[tuple[str, Union[ParseResults, Exception]]] = []
+        comments: list[str] = []
         success = True
         NL = Literal(r"\n").add_parse_action(replace_with("\n")).ignore(quoted_string)
         BOM = "\ufeff"
@@ -3062,7 +3042,7 @@ class Regex(Token):
             self.parseImpl = self.parseImplAsMatch  # type: ignore [assignment]
 
     @cached_property
-    def re(self) -> _RePattern:
+    def re(self) -> re.Pattern:
         if self._re:
             return self._re
 
@@ -3243,7 +3223,7 @@ class QuotedString(Token):
 
         # fmt: off
         # build up re pattern for the content between the quote delimiters
-        inner_pattern: List[str] = []
+        inner_pattern: list[str] = []
 
         if esc_quote:
             inner_pattern.append(rf"(?:{re.escape(esc_quote)})")
@@ -3777,7 +3757,7 @@ class ParseExpression(ParserElement):
 
     def __init__(self, exprs: typing.Iterable[ParserElement], savelist: bool = False):
         super().__init__(savelist)
-        self.exprs: List[ParserElement]
+        self.exprs: list[ParserElement]
         if isinstance(exprs, _generatorType):
             exprs = list(exprs)
 
@@ -3801,7 +3781,7 @@ class ParseExpression(ParserElement):
                 self.exprs = [exprs]
         self.callPreparse = False
 
-    def recurse(self) -> List[ParserElement]:
+    def recurse(self) -> list[ParserElement]:
         return self.exprs[:]
 
     def append(self, other) -> ParserElement:
@@ -3970,9 +3950,9 @@ class And(ParseExpression):
     def __init__(
         self, exprs_arg: typing.Iterable[ParserElement], savelist: bool = True
     ):
-        exprs: List[ParserElement] = list(exprs_arg)
+        exprs: list[ParserElement] = list(exprs_arg)
         if exprs and Ellipsis in exprs:
-            tmp: List[ParserElement] = []
+            tmp: list[ParserElement] = []
             for i, expr in enumerate(exprs):
                 if expr is not Ellipsis:
                     tmp.append(expr)
@@ -4144,8 +4124,8 @@ class Or(ParseExpression):
     def parseImpl(self, instring, loc, do_actions=True) -> ParseImplReturnType:
         maxExcLoc = -1
         maxException = None
-        matches: List[Tuple[int, ParserElement]] = []
-        fatals: List[ParseFatalException] = []
+        matches: list[tuple[int, ParserElement]] = []
+        fatals: list[ParseFatalException] = []
         if all(e.callPreparse for e in self.exprs):
             loc = self.preParse(instring, loc)
         for e in self.exprs:
@@ -4480,11 +4460,11 @@ class Each(ParseExpression):
         tmpReqd = self.required[:]
         tmpOpt = self.optionals[:]
         multis = self.multioptionals[:]
-        matchOrder: List[ParserElement] = []
+        matchOrder: list[ParserElement] = []
 
         keepMatching = True
-        failed: List[ParserElement] = []
-        fatals: List[ParseFatalException] = []
+        failed: list[ParserElement] = []
+        fatals: list[ParseFatalException] = []
         while keepMatching:
             tmpExprs = tmpReqd + tmpOpt + multis
             failed.clear()
@@ -4567,7 +4547,7 @@ class ParseElementEnhance(ParserElement):
             self.callPreparse = expr.callPreparse
             self.ignoreExprs.extend(expr.ignoreExprs)
 
-    def recurse(self) -> List[ParserElement]:
+    def recurse(self) -> list[ParserElement]:
         return [self.expr] if self.expr is not None else []
 
     def parseImpl(self, instring, loc, do_actions=True):
@@ -6131,7 +6111,7 @@ punc8bit = srange(r"[\0xa1-\0xbf\0xd7\0xf7]")
 
 # build list of built-in expressions, for future reference if a global default value
 # gets updated
-_builtin_exprs: List[ParserElement] = [
+_builtin_exprs: list[ParserElement] = [
     v for v in vars().values() if isinstance(v, ParserElement)
 ]
 
