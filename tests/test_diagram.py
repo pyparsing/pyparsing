@@ -201,6 +201,10 @@ class TestRailroadDiagrams(unittest.TestCase):
         assert not any(tag in diag_str for tag in tags)
 
     def test_create_diagram_for_oneormore_with_stopon(self):
+        import pytest
+        if sys.version_info < (3, 7):
+            pytest.skip("Test not valid pre-Python 3.7")
+
         wd = pp.Word(pp.alphas)
         grammar = "start" + wd[1, ...:"end"] + "end"
 
