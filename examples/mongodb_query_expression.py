@@ -184,9 +184,11 @@ def regex_comparison_op(s, l, tokens):
         return {field: {"$exists": True}}
 
     if value.startswith(".*"):
-        re_string = value.removeprefix(".*")
+        re_string = value[2:]
+    elif value.startswith("^"):
+        re_string = value[1:]
     else:
-        re_string = f"^{value.removeprefix('^')}"
+        re_string = f"^{value}"
 
     return {field: {"$regex": re_string}}
 
