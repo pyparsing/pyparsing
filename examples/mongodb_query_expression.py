@@ -180,15 +180,18 @@ def regex_comparison_op(s, l, tokens):
     except ValueError:
         raise InvalidExpressionException(s, l, f"{tokens[1]!r} operations may not be chained")
 
-    if value == ".*":
+    if value in ("", ".*"):
         return {field: {"$exists": True}}
 
-    if value.startswith(".*"):
-        re_string = value[2:]
-    elif value.startswith("^"):
+    if value[:1] == "%":
         re_string = value[1:]
     else:
         re_string = f"^{value}"
+
+    if re_string[-1:] == "%":
+        re_string = re_string[:-1]
+    else:
+        re_string += "$"
 
     return {field: {"$regex": re_string}}
 
@@ -315,13 +318,13 @@ def transform_query(query_string: str, include_comment: bool = False) -> Dict:
         {'names': {'$all': ['Alice', 'Bob']}}
 
     - regex matches
-        a ~= "ABC"
+        a ~= "ABC%"
         {'a': {'$regex': '^ABC.*'}}
 
-        a ~= "ABC$"
-        {'a': {'$regex': '^ABC$'}}
+        a ~= "%ABC"
+        {'a': {'$regex': '.*ABC$'}}
 
-        a ~= "ABC\d+$"
+        a ~= "ABC\d+"
         {'a': {'$regex': '^ABC\\d+$'}}
 
     - Unicode operators
@@ -376,9 +379,9 @@ def main():
         a.b > 1000
         a.0 == "Alice"
         a.0.b > 1000
-        name ~= "Al"
-        name ~= ".*Al"
-        name ~= "Al$"
+        name ~= "%Al"
+        name ~= "Al%"
+        name ~= "%Al%"
     """).splitlines() + [r'name ~= "Al\d+"']:
         print(test)
         print(transform_query(test))
