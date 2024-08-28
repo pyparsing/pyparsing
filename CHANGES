@@ -16,6 +16,9 @@ Version 3.2.0 - in development
 ------------------------------
 - Discontinued support for Python 3.6, 3.7, and 3.8.
 
+- Added `complex_chemical_formulas.py` example, to add parsing capability for
+  formulas such as "3(C₆H₅OH)₂".
+
 
 Version 3.1.4 - August, 2024
 ----------------------------
