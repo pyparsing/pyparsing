@@ -14,7 +14,7 @@
 #
 # Copyright 2024, Paul McGuire
 #
-
+import re
 from functools import reduce
 from operator import or_
 from typing import Union, Dict
@@ -179,19 +179,24 @@ def regex_comparison_op(s, l, tokens):
     except ValueError:
         raise InvalidExpressionException(s, l, f"{tokens[1]!r} operations may not be chained")
 
+    # ~= means this is already a regex
+    if op == "~=":
+        return {field: {"$regex": value}}
+
     if value in ("", ".*"):
         return {field: {"$exists": True}}
 
-    if value[:1] == "%":
-        re_string = value[1:]
-    else:
-        re_string = f"^{value}"
+    # convert "%" wild cards to ".*" and add anchors
+    value = re.escape(value)
+    xform = {
+        (False, False): lambda ss: f"^{ss}$",
+        (False, True): lambda ss: f"^{ss[:-1]}",
+        (True, False): lambda ss: f"{ss[1:]}$",
+        (True, True): lambda ss: ss[1:-1],
+    }[value[:1] == "%", value[-1:] == "%"]
 
-    if re_string[-1:] == "%":
-        re_string = re_string[:-1]
-    else:
-        re_string += "$"
-
+    DBL_PCT = "\x80"
+    re_string = xform(value).replace('%%', DBL_PCT).replace('%', '.*').replace(DBL_PCT, '%')
     return {field: {"$regex": re_string}}
 
 
@@ -324,15 +329,27 @@ def transform_query(query_string: str, include_comment: bool = False) -> Dict:
         names contains none ["Alice", "Bob"]
         {'names': {'$nin': ['Alice', 'Bob']}}
 
-    - regex matches
-        a ~= "ABC%"
-        {'a': {'$regex': '^ABC.*'}}
+    - LIKE and regex matches
+        a LIKE "ABC%"
+        {'a': {'$regex': '^ABC'}}
 
-        a ~= "%ABC"
-        {'a': {'$regex': '.*ABC$'}}
+        a LIKE "%ABC"
+        {'a': {'$regex': 'ABC$'}}
+
+        a LIKE "%AB%C"
+        {'a': {'$regex': 'AB.*C$'}}
+
+        a LIKE "%AB%"
+        {'a': {'$regex': 'AB'}}
+
+        a ~= "^ABC"
+        {'a': {'$regex': '^ABC'}}
+
+        a ~= "ABC$"
+        {'a': {'$regex': 'ABC$'}}
 
         a ~= "ABC\d+"
-        {'a': {'$regex': '^ABC\\d+$'}}
+        {'a': {'$regex': '^ABC\\d+'}}
 
     - Unicode operators
         100 < a ≤ 200 and 300 > b ≥ 200 or c ≠ -1
@@ -355,7 +372,7 @@ def main():
     for test in dedent("""\
         a = 100
         a = 100 and b = 200
-        a > b
+        a > 1000
         a==100 and b>=200
         a==100 and b>=200 or c<200
         a==100 and (b>=200 or c<200)
@@ -388,9 +405,17 @@ def main():
         a.b > 1000
         a.0 == "Alice"
         a.0.b > 1000
-        name ~= "%Al"
-        name ~= "Al%"
-        name ~= "%Al%"
+        name like "%Al"
+        name like "Al%"
+        name like "%Al%"
+        name like "A%e"
+        name like "%A%e%"
+        name like "%A%%e%"
+        name like "%A+"
+        name ~= "Al$"
+        name ~= "^Al"
+        name ~= "Al"
+        name ~= "A+"
     """).splitlines() + [r'name ~= "Al\d+"']:
         print(test)
         print(transform_query(test))
