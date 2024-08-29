@@ -61,3 +61,11 @@ exclude = [
     "tests/.mypy_cache",
     "update_pyparsing_timestamp.py",
 ]
+
+[tool.codespell]
+# Ref: https://github.com/codespell-project/codespell#using-a-config-file
+skip = '.git,hola_mundo.py'
+check-hidden = true
+# case sensitive names, lines likely with regexpressions
+ignore-regex = '\b(OnlyOnce|fontEnd|Nd|Ned|Bu|Donn|[a-zA-Z]*\*[a-zA-Z]*)\b|.*\(.*\|.*\).*|itemsvisibles visibles'
+ignore-words-list = 'inout,halp,strng,te,ans,strin,datas,helpe,fourty'

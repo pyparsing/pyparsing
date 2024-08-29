@@ -156,7 +156,7 @@ test4 = """
         /*
             Defines the implementation of org.cofax.Redirection that
             Cofax will use.  If this Redirection class does not suit
-            your needs simply implenet a new Redirection class
+            your needs simply implement a new Redirection class
             and set here.
         */
         "redirectionClass": "org.cofax.SqlRedirection",

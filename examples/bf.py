@@ -15,7 +15,7 @@ import pyparsing as pp
 
 # define the basic parser
 
-# define Literals for each symbol in the BF langauge
+# define Literals for each symbol in the BF language
 PLUS, MINUS, GT, LT, INP, OUT, LBRACK, RBRACK = pp.Literal.using_each("+-<>,.[]")
 
 # use a pyparsing Forward for the recursive definition of an instruction that can
