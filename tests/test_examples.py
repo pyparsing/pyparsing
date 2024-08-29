@@ -63,3 +63,6 @@ class TestExamples(unittest.TestCase):
 
     def test_mongodb_query_parser(self):
         self._run("mongodb_query_expression")
+
+    def test_lox_parser(self):
+        self._run("lox_parser")
