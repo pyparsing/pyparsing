@@ -85,7 +85,7 @@ from pyparsing import (
     alphanums,
     dbl_quoted_string,
     empty,
-    ParseException,
+    ParseBaseException,
     one_of,
     StringEnd,
     FollowedBy,
@@ -878,7 +878,8 @@ def test(strng):
     tokens = []
     try:
         tokens = make_verilog_bnf().parse_string(strng)
-    except ParseException as err:
+    except ParseBaseException as err:
+        print()
         print(err.explain())
     return tokens
 
@@ -902,10 +903,10 @@ if __name__ == "__main__":
         make_verilog_bnf()
         numlines = 0
         fileDir = "verilog"
-        fileDir = "scratch/verilog"
-        # fileDir = "scratch/verilog/new3"
+        if len(sys.argv) > 1:
+            fileDir = sys.argv[1]
         fileDir = Path(fileDir)
-        allFiles = [f for f in fileDir.glob("*.v")]
+        allFiles = [f for f in fileDir.rglob("*.v")]
 
         pretty = pprint.PrettyPrinter(indent=2)
         totalTime = 0
@@ -930,8 +931,8 @@ if __name__ == "__main__":
             else:
                 print(f"failed {elapsed}")
                 failCount += 1
-                for i, line in enumerate(filelines, 1):
-                    print(f"{i:4d}: {line.rstrip()}")
+                # for i, line in enumerate(filelines, 1):
+                #     print(f"{i:4d}: {line.rstrip()}")
 
         print(f"Total parse time: {totalTime}")
         print(f"Total source lines: {numlines}")
