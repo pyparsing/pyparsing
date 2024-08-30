@@ -10492,6 +10492,12 @@ class Test06_WithBoundedPackrat(Test02_WithoutPackrat):
             msg="incorrect cache type",
         )
 
+    def test_exceeding_fifo_cache_size(self):
+        letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+        letter_lit = pp.MatchFirst(pp.Literal.using_each(letters))
+        result = letter_lit[...].parse_string(letters, parse_all=True)
+        self.assertEqual(list(result), list(letters))
+
 
 class Test07_EnableUnboundedPackratParsing(TestCase):
     def runTest(self):
