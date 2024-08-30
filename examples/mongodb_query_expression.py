@@ -34,6 +34,7 @@ __all__ = [
 class InvalidExpressionException(pp.ParseFatalException):
     pass
 
+
 def key_phrase(expr: Union[str, pp.ParserElement]) -> pp.ParserElement:
     if isinstance(expr, str):
         expr = pp.And(pp.CaselessKeyword.using_each(expr.split()))
@@ -56,6 +57,7 @@ AND, OR, NOT, IN, CONTAINS, ALL, ANY, NONE, LIKE = pp.CaselessKeyword.using_each
     "and or not in contains all any none like".split()
 )
 NOT_IN = key_phrase(NOT + IN)
+NOT_LIKE = key_phrase(NOT + LIKE)
 CONTAINS_ALL = key_phrase(CONTAINS + ALL)
 CONTAINS_NONE = key_phrase(CONTAINS + NONE)
 CONTAINS_ANY = key_phrase(CONTAINS + ANY)
@@ -179,11 +181,13 @@ def regex_comparison_op(s, l, tokens):
     except ValueError:
         raise InvalidExpressionException(s, l, f"{tokens[1]!r} operations may not be chained")
 
-    # ~= means this is already a regex
-    if op == "~=":
-        return {field: {"$regex": value}}
+    # =~ means value is already a regex
+    if op == "=~":
+        return {field: {"$regex": value} if value not in ("", ".*") else {"$exists": True}}
 
-    if value in ("", ".*"):
+    # op is LIKE or NOT LIKE; value is a "%" wildcard string, convert it to a regex
+
+    if value in ("", "%"):
         return {field: {"$exists": True}}
 
     # convert "%" wild cards to ".*" and add anchors
@@ -195,9 +199,14 @@ def regex_comparison_op(s, l, tokens):
         (True, True): lambda ss: ss[1:-1],
     }[value[:1] == "%", value[-1:] == "%"]
 
+    # convert "%" to ".*" and "%%" to "%"
     DBL_PCT = "\x80"
     re_string = xform(value).replace('%%', DBL_PCT).replace('%', '.*').replace(DBL_PCT, '%')
-    return {field: {"$regex": re_string}}
+
+    if op == "like":
+        return {field: {"$regex": re_string}}
+    else:
+        return {"$nor": [{field: {"$regex": re_string}}]}
 
 
 def binary_multi_op(tokens):
@@ -209,23 +218,27 @@ def binary_multi_op(tokens):
     op = oper_map[tokens[1]]
     values = tokens[::2]
 
-    # detect 'and' with all equality checks, collapse to single dict
-    if (
-        op == "$and"
-        and not any(
-            isinstance(v, (dict, list))
-            for dd in values
-            for v in dd.values()
-        )
-    ):
+    if op == "$and":
+        # collapse all equality checks into a single term
+        literal_values = []
+        expr_values = []
+        for dd in values:
+            k, v = next(iter(dd.items()))
+            (literal_values, expr_values)[isinstance(v, (dict, list))].append(dd)
+
+        # collapse literal equalities into a single dict
         try:
-            ret = reduce(or_, values)
+            collapsed_literal_values = reduce(or_, literal_values)
         except TypeError:
             # compatibility for pre-Python 3.9 versions
-            ret = {}
+            collapsed_literal_values = {}
             for v in values:
-                ret.update(v)
-        return ret
+                collapsed_literal_values.update(v)
+
+        if expr_values:
+            return {"$and": [collapsed_literal_values, *expr_values]}
+        else:
+            return collapsed_literal_values
 
     return {op: values}
 
@@ -249,7 +262,7 @@ comparison_expr = pp.infix_notation(
     operand | operand_list,
     [
         (pp.one_of("<= >= < > ≤ ≥"), 2, pp.OpAssoc.LEFT, binary_comparison_op),
-        (LIKE | "~=", 2, pp.OpAssoc.LEFT, regex_comparison_op),
+        (LIKE | NOT_LIKE | "=~", 2, pp.OpAssoc.LEFT, regex_comparison_op),
         (pp.one_of("= == != ≠"), 2, pp.OpAssoc.LEFT, binary_eq_neq),
         (
             IN | NOT_IN | CONTAINS_ALL | CONTAINS_NONE | CONTAINS_ANY | CONTAINS | pp.one_of("⊇ ∈ ∉"),
@@ -329,7 +342,7 @@ def transform_query(query_string: str, include_comment: bool = False) -> Dict:
         names contains none ["Alice", "Bob"]
         {'names': {'$nin': ['Alice', 'Bob']}}
 
-    - LIKE and regex matches
+    - LIKE, NOT LIKE, and regex matches
         a LIKE "ABC%"
         {'a': {'$regex': '^ABC'}}
 
@@ -342,13 +355,16 @@ def transform_query(query_string: str, include_comment: bool = False) -> Dict:
         a LIKE "%AB%"
         {'a': {'$regex': 'AB'}}
 
-        a ~= "^ABC"
+        a NOT LIKE "%AB%"
+        {'$nor': [{'a': {'$regex': 'AB'}}]}
+
+        a =~ "^ABC"
         {'a': {'$regex': '^ABC'}}
 
-        a ~= "ABC$"
+        a =~ "ABC$"
         {'a': {'$regex': 'ABC$'}}
 
-        a ~= "ABC\d+"
+        a =~ "ABC\d+"
         {'a': {'$regex': '^ABC\\d+'}}
 
     - Unicode operators
@@ -372,6 +388,7 @@ def main():
     for test in dedent("""\
         a = 100
         a = 100 and b = 200
+        a = 100 and b < 200 and c > 300 and d = 400
         a > 1000
         a==100 and b>=200
         a==100 and b>=200 or c<200
@@ -412,11 +429,12 @@ def main():
         name like "%A%e%"
         name like "%A%%e%"
         name like "%A+"
-        name ~= "Al$"
-        name ~= "^Al"
-        name ~= "Al"
-        name ~= "A+"
-    """).splitlines() + [r'name ~= "Al\d+"']:
+        name not like "%A+"
+        name =~ "Al$"
+        name =~ "^Al"
+        name =~ "Al"
+        name =~ "A+"
+    """).splitlines() + [r'name =~ "Al\d+"']:
         print(test)
         print(transform_query(test))
         print()

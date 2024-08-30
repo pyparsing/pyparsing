@@ -15,7 +15,7 @@ Devin J. Pohly in structuring the code to enable this peaceful transition.)
 Version 3.2.0 - in development
 ------------------------------
 - Discontinued support for Python 3.6, 3.7, and 3.8. Reworked portions of the
-  packrat cache to utilize insertion-preserving ordering in dicts.
+  packrat cache to leverage insertion-preserving ordering in dicts.
 
 - Added `lox_parser.py` example, a parser for the Lox language used as a tutorial in
   Robert Nystrom's "Crafting Interpreters" (http://craftinginterpreters.com/)
@@ -25,8 +25,8 @@ Version 3.2.0 - in development
 
 - Added query syntax to `mongodb_query_expression.py` with better support for
   array fields ("contains", "contains all", "contains any", and "contains none");
-  and "like" operator to support SQL "%" wildcard matching and "~=" operator to
-  support regex matching.
+  and "like" and "not like" operators to support SQL "%" wildcard matching and "=~"
+  operator to support regex matching.
 
 
 Version 3.1.4 - August, 2024
