@@ -75,6 +75,7 @@ str_type: tuple[type, ...] = (str, bytes)
 
 from functools import cached_property
 
+
 class __compat__(__config_flags):
     """
     A cross-version compatibility configuration for pyparsing features that will be
@@ -582,10 +583,8 @@ class ParserElement(ABC):
             _parseMethod = self._parse
 
             def breaker(instring, loc, do_actions=True, callPreParse=True):
-                import pdb
-
-                # this call to pdb.set_trace() is intentional, not a checkin error
-                pdb.set_trace()
+                # this call to breakpoint() is intentional, not a checkin error
+                breakpoint()
                 return _parseMethod(instring, loc, do_actions, callPreParse)
 
             breaker._originalParseMethod = _parseMethod  # type: ignore [attr-defined]
@@ -3734,6 +3733,7 @@ class Tag(Token):
         ['Hello,', 'World', '!']
         - enthusiastic: True
     """
+
     def __init__(self, tag_name: str, value: Any = True):
         super().__init__()
         self.mayReturnEmpty = True
@@ -5219,7 +5219,9 @@ class Opt(ParseElementEnhance):
     def parseImpl(self, instring, loc, do_actions=True) -> ParseImplReturnType:
         self_expr = self.expr
         try:
-            loc, tokens = self_expr._parse(instring, loc, do_actions, callPreParse=False)
+            loc, tokens = self_expr._parse(
+                instring, loc, do_actions, callPreParse=False
+            )
         except (ParseException, IndexError):
             default_value = self.defaultValue
             if default_value is not self.__optionalNotMatched:

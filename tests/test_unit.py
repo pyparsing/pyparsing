@@ -7736,11 +7736,11 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
         """
         Test behavior of ParserElement.setBreak(), to invoke the debugger before parsing that element is attempted.
 
-        Temporarily monkeypatches pdb.set_trace.
+        Temporarily monkeypatches sys.breakpointhook().
         """
         was_called = False
 
-        def mock_set_trace():
+        def mock_set_trace(*args, **kwargs):
             nonlocal was_called
             was_called = True
 
@@ -7748,13 +7748,13 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
         wd.setBreak()
 
         print("Before parsing with setBreak:", was_called)
-        import pdb
 
         with ppt.reset_pyparsing_context():
-            pdb.set_trace = mock_set_trace
+            sys.breakpointhook = mock_set_trace
             wd.parseString("ABC", parseAll=True)
 
         print("After parsing with setBreak:", was_called)
+        sys.breakpointhook = sys.__breakpointhook__
         self.assertTrue(was_called, "set_trace wasn't called by setBreak")
 
     def testUnicodeTests(self):
