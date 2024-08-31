@@ -436,9 +436,12 @@ def main():
         name =~ "Al"
         name =~ "A+"
         a = 100 and a = 100
-        a = 100 and a = 200
+        # a = 100 and a = 200
     """).splitlines() + [r'name =~ "Al\d+"']:
         print(test)
+        if test.startswith("#"):
+            print("(skipping...)\n")
+            continue
         print(transform_query(test))
         print()
 
