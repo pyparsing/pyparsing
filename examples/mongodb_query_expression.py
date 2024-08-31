@@ -15,8 +15,6 @@
 # Copyright 2024, Paul McGuire
 #
 import re
-from functools import reduce
-from operator import or_
 from typing import Union, Dict
 
 import pyparsing as pp
@@ -227,13 +225,16 @@ def binary_multi_op(tokens):
             (literal_values, expr_values)[isinstance(v, (dict, list))].append(dd)
 
         # collapse literal equalities into a single dict
-        try:
-            collapsed_literal_values = reduce(or_, literal_values)
-        except TypeError:
-            # compatibility for pre-Python 3.9 versions
-            collapsed_literal_values = {}
-            for v in values:
-                collapsed_literal_values.update(v)
+        collapsed_literal_values = {}
+        for dd in literal_values:
+            k, v = next(iter(dd.items()))
+            if k not in collapsed_literal_values:
+                collapsed_literal_values.update(dd)
+            else:
+                if v != collapsed_literal_values[k]:
+                    raise InvalidExpressionException(
+                        "multiple equality terms for same field but with different values"
+                    )
 
         if expr_values:
             return {"$and": [collapsed_literal_values, *expr_values]}
@@ -434,6 +435,8 @@ def main():
         name =~ "^Al"
         name =~ "Al"
         name =~ "A+"
+        a = 100 and a = 100
+        a = 100 and a = 200
     """).splitlines() + [r'name =~ "Al\d+"']:
         print(test)
         print(transform_query(test))
