@@ -4559,7 +4559,10 @@ class ParseElementEnhance(ParserElement):
         except ParseSyntaxException:
             raise
         except ParseBaseException as pbe:
-            if not isinstance(self, Forward) or self.customName is not None:
+            pbe.pstr = pbe.pstr or instring
+            pbe.loc = pbe.loc or loc
+            pbe.parser_element = pbe.parser_element or self
+            if not isinstance(self, Forward) and self.customName is not None:
                 if self.errmsg:
                     pbe.msg = self.errmsg
             raise
@@ -4839,7 +4842,7 @@ class PrecededBy(ParseElementEnhance):
     def parseImpl(self, instring, loc=0, do_actions=True) -> ParseImplReturnType:
         if self.exact:
             if loc < self.retreat:
-                raise ParseException(instring, loc, self.errmsg)
+                raise ParseException(instring, loc, self.errmsg, self)
             start = loc - self.retreat
             _, ret = self.expr._parse(instring, start)
             return loc, ret
@@ -4847,7 +4850,7 @@ class PrecededBy(ParseElementEnhance):
         # retreat specified a maximum lookbehind window, iterate
         test_expr = self.expr + StringEnd()
         instring_slice = instring[max(0, loc - self.retreat) : loc]
-        last_expr = ParseException(instring, loc, self.errmsg)
+        last_expr = ParseException(instring, loc, self.errmsg, self)
 
         for offset in range(1, min(loc, self.retreat + 1) + 1):
             try:
