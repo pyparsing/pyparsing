@@ -22,12 +22,12 @@ Version 3.2.0 - in development
     in dicts.
   - Changed `pdb.set_trace()` call in `ParserElement.set_break()` to `breakpoint()`.
 
-- Fixed code in `ParseElementEnhance` subclasses that replaced detailed
-  exception messages raised in contained expressions with a less-specific and
-  less-informative generic exception message and location.
-  POSSIBLE BREAKING CHANGE: If your code has conditional logic based on the
-  the message content in raised `ParseExceptions`, this bugfix may break your
-  code.
+- POSSIBLE BREAKING CHANGE: Fixed code in `ParseElementEnhance` subclasses that
+  replaced detailed exception messages raised in contained expressions with a
+  less-specific and less-informative generic exception message and location.
+
+  If your code has conditional logic based on the message content in raised
+  `ParseExceptions`, this bugfix may break your code.
 
 - Added `lox_parser.py` example, a parser for the Lox language used as a tutorial in
   Robert Nystrom's "Crafting Interpreters" (http://craftinginterpreters.com/)
