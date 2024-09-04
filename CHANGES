@@ -38,7 +38,8 @@ Version 3.2.0 - in development
 - Added query syntax to `mongodb_query_expression.py` with better support for
   array fields ("contains", "contains all", "contains any", and "contains none");
   and "like" and "not like" operators to support SQL "%" wildcard matching and "=~"
-  operator to support regex matching.
+  operator to support regex matching. Also added support for dates and datetimes
+  as query values.
 
 - Added `indent` and `base_1` arguments to `pyparsing.testing.with_line_numbers`. When
   using `with_line_numbers` inside a parse action, set `base_1`=False, since the

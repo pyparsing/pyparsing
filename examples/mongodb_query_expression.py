@@ -14,6 +14,7 @@
 #
 # Copyright 2024, Paul McGuire
 #
+from datetime import datetime
 import re
 from typing import Union, Dict
 
@@ -39,15 +40,21 @@ def key_phrase(expr: Union[str, pp.ParserElement]) -> pp.ParserElement:
     return pp.Combine(expr, adjacent=False, join_string=" ")
 
 
+LBRACK, RBRACK = pp.Suppress.using_each("[]")
+
 integer = ppc.integer()
 ident = pp.Combine(
     ppc.identifier
     + ("." + (ppc.identifier() | integer))[...]
 )
 num = ppc.number()
-LBRACK, RBRACK = pp.Suppress.using_each("[]")
 
-operand = ident | (pp.QuotedString('"') | pp.QuotedString("'")).set_name("quoted_string") | num
+date = pp.Regex(r"\d{4}(/|-)\d{2}(\1)\d{2}")
+date_time = pp.Regex(r"\d{4}(/|-)\d{2}(\1)\d{2} \d{2}:\d{2}(:\d{2})?")
+date.add_parse_action(lambda t: datetime.fromisoformat(t[0].replace("/", "-")))
+date_time.add_parse_action(lambda t: datetime.fromisoformat(t[0].replace("/", "-")))
+
+operand = ident | (pp.QuotedString('"') | pp.QuotedString("'")).set_name("quoted_string") | date_time | date | num
 operand.set_name("operand")
 operand_list = pp.Group(LBRACK + pp.DelimitedList(operand) + RBRACK, aslist=True)
 
@@ -326,6 +333,13 @@ def transform_query(query_string: str, include_comment: bool = False) -> Dict:
         100 < a < 200
         {'$and': [{'a': {'$gt': 100}}, {'a': {'$lt': 200}}]}
 
+    - dates and datetimes
+      (dates are in YYYY/MM/DD format, and may use '/' or '-' separators)
+      (times may be HH:MM or HH:MM:SS format)
+        dob = 1935-01-08
+        motm = 1969/07/20 10:56
+        y2k = 2000/01/01 00:00:00
+
     - `in` and `not in`
         name in ["Alice", "Bob"]
         {'name': {'$in': ['Alice', 'Bob']}}
@@ -436,8 +450,16 @@ def main():
         name =~ "Al"
         name =~ "A+"
         a = 100 and a = 100
+        dob = 1935-01-08
+        motm = 1969/07/20 10:56
+        y2k = 2000/01/01 00:00:00
+        # redundant equality conditions get collapsed
+        a = 100 and a = 100
+        # cannot define conflicting equality conditions
         # a = 100 and a = 200
-    """).splitlines() + [r'name =~ "Al\d+"']:
+        """
+        r"""name =~ "Al\d+" """
+    ).splitlines():
         print(test)
         if test.startswith("#"):
             print("(skipping...)\n")
