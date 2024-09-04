@@ -1451,7 +1451,7 @@ Create your parser as you normally would. Then call ``create_diagram()``, passin
 
 This will result in the railroad diagram being written to ``street_address_diagram.html``.
 
-`create_diagrams` takes the following arguments:
+`create_diagram` takes the following arguments:
 
 - ``output_html`` (str or file-like object) - output target for generated diagram HTML
 
