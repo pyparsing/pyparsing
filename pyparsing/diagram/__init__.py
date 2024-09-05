@@ -503,7 +503,7 @@ def _to_diagram_element(
 
     # If the element isn't worth extracting, we always treat it as the first time we say it
     if _worth_extracting(element):
-        if el_id in lookup:
+        if el_id in lookup and lookup[el_id].name is not None:
             # If we've seen this element exactly once before, we are only just now finding out that it's a duplicate,
             # so we have to extract it into a new diagram.
             looked_up = lookup[el_id]
