@@ -281,8 +281,8 @@ comparison_expr = pp.infix_notation(
     ]
 )
 
-# "not" operator only matches if not followed by "in"
-NOT_OP = NOT + ~IN
+# "not" operator only matches if not followed by "in" or "like"
+NOT_OP = NOT + ~(IN | LIKE)
 AND_OP = AND | pp.Literal("∧").add_parse_action(pp.replace_with("and"))
 OR_OP = OR | pp.Literal("∨").add_parse_action(pp.replace_with("or"))
 
@@ -450,15 +450,15 @@ def main():
         name =~ "Al"
         name =~ "A+"
         a = 100 and a = 100
-        dob = 1935-01-08
-        motm = 1969/07/20 10:56
         y2k = 2000/01/01 00:00:00
+        motm = 1969/07/20 10:56
+        1946-01-01 <= dob <= 1964-12-31
         # redundant equality conditions get collapsed
         a = 100 and a = 100
         # cannot define conflicting equality conditions
         # a = 100 and a = 200
         """
-        r"""name =~ "Al\d+" """
+        r"name =~ 'Al\d+'"
     ).splitlines():
         print(test)
         if test.startswith("#"):
