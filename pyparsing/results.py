@@ -1,4 +1,6 @@
 # results.py
+from __future__ import annotations
+
 from collections.abc import (
     MutableMapping,
     Mapping,
@@ -17,10 +19,10 @@ _generator_type = type((_ for _ in ()))
 
 
 class _ParseResultsWithOffset:
-    tup: tuple["ParseResults", int]
+    tup: tuple[ParseResults, int]
     __slots__ = ["tup"]
 
-    def __init__(self, p1: "ParseResults", p2: int):
+    def __init__(self, p1: ParseResults, p2: int):
         self.tup: tuple[ParseResults, int] = (p1, p2)
 
     def __getitem__(self, i):
@@ -82,7 +84,7 @@ class ParseResults:
     _null_values: tuple[Any, ...] = (None, [], ())
 
     _name: str
-    _parent: "ParseResults"
+    _parent: ParseResults
     _all_names: set[str]
     _modal: bool
     _toklist: list[Any]
@@ -226,7 +228,7 @@ class ParseResults:
             self._toklist[k] = v
             sub = v
         else:
-            self._tokdict[k] = self._tokdict.get(k, list()) + [
+            self._tokdict[k] = self._tokdict.get(k, []) + [
                 _ParseResultsWithOffset(v, 0)
             ]
             sub = v
@@ -443,12 +445,12 @@ class ParseResults:
                 raise AttributeError(name)
             return ""
 
-    def __add__(self, other: "ParseResults") -> "ParseResults":
+    def __add__(self, other: ParseResults) -> ParseResults:
         ret = self.copy()
         ret += other
         return ret
 
-    def __iadd__(self, other: "ParseResults") -> "ParseResults":
+    def __iadd__(self, other: ParseResults) -> ParseResults:
         if not other:
             return self
 
@@ -470,7 +472,7 @@ class ParseResults:
         self._all_names |= other._all_names
         return self
 
-    def __radd__(self, other) -> "ParseResults":
+    def __radd__(self, other) -> ParseResults:
         if isinstance(other, int) and other == 0:
             # useful for merging many ParseResults using sum() builtin
             return self.copy()
@@ -553,7 +555,7 @@ class ParseResults:
 
         return dict((k, to_item(v)) for k, v in self.items())
 
-    def copy(self) -> "ParseResults":
+    def copy(self) -> ParseResults:
         """
         Returns a new shallow copy of a :class:`ParseResults` object. `ParseResults`
         items contained within the source are shared with the copy. Use
@@ -567,7 +569,7 @@ class ParseResults:
         ret._name = self._name
         return ret
 
-    def deepcopy(self) -> "ParseResults":
+    def deepcopy(self) -> ParseResults:
         """
         Returns a new deep copy of a :class:`ParseResults` object.
         """
@@ -616,7 +618,7 @@ class ParseResults:
         if self._name:
             return self._name
         elif self._parent:
-            par: "ParseResults" = self._parent
+            par: ParseResults = self._parent
             parent_tokdict_items = par._tokdict.items()
             return next(
                 (
@@ -761,7 +763,7 @@ class ParseResults:
         return dir(type(self)) + list(self.keys())
 
     @classmethod
-    def from_dict(cls, other, name=None) -> "ParseResults":
+    def from_dict(cls, other, name=None) -> ParseResults:
         """
         Helper classmethod to construct a ``ParseResults`` from a ``dict``, preserving the
         name-value relations as results names. If an optional ``name`` argument is

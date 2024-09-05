@@ -1,6 +1,7 @@
 #
 # core.py
 #
+from __future__ import annotations
 
 from collections import deque
 import os
@@ -332,7 +333,7 @@ def condition_as_parse_action(
 
 
 def _default_start_debug_action(
-    instring: str, loc: int, expr: "ParserElement", cache_hit: bool = False
+    instring: str, loc: int, expr: ParserElement, cache_hit: bool = False
 ):
     cache_hit_str = "*" if cache_hit else ""
     print(
@@ -348,7 +349,7 @@ def _default_success_debug_action(
     instring: str,
     startloc: int,
     endloc: int,
-    expr: "ParserElement",
+    expr: ParserElement,
     toks: ParseResults,
     cache_hit: bool = False,
 ):
@@ -359,7 +360,7 @@ def _default_success_debug_action(
 def _default_exception_debug_action(
     instring: str,
     loc: int,
-    expr: "ParserElement",
+    expr: ParserElement,
     exc: Exception,
     cache_hit: bool = False,
 ):
@@ -451,7 +452,7 @@ class ParserElement(ABC):
         # used when checking for left-recursion
         self.mayReturnEmpty = False
         self.keepTabs = False
-        self.ignoreExprs: list["ParserElement"] = list()
+        self.ignoreExprs: list[ParserElement] = list()
         self.debug = False
         self.streamlined = False
         # optimize exception handling for subclasses that don't advance parse index
@@ -466,7 +467,7 @@ class ParserElement(ABC):
         self.callDuringTry = False
         self.suppress_warnings_: list[Diagnostics] = []
 
-    def suppress_warning(self, warning_type: Diagnostics) -> "ParserElement":
+    def suppress_warning(self, warning_type: Diagnostics) -> ParserElement:
         """
         Suppress warnings emitted for a particular diagnostic on this expression.
 
@@ -499,7 +500,7 @@ class ParserElement(ABC):
             to_visit.extend(cur.recurse())
             yield cur
 
-    def copy(self) -> "ParserElement":
+    def copy(self) -> ParserElement:
         """
         Make a copy of this :class:`ParserElement`.  Useful for defining
         different parse actions for the same parsing pattern, using copies of
@@ -530,7 +531,7 @@ class ParserElement(ABC):
 
     def set_results_name(
         self, name: str, list_all_matches: bool = False, *, listAllMatches: bool = False
-    ) -> "ParserElement":
+    ) -> ParserElement:
         """
         Define name for referencing matching tokens as a nested attribute
         of the returned parse results.
@@ -562,7 +563,7 @@ class ParserElement(ABC):
         listAllMatches = listAllMatches or list_all_matches
         return self._setResultsName(name, listAllMatches)
 
-    def _setResultsName(self, name, list_all_matches=False) -> "ParserElement":
+    def _setResultsName(self, name, list_all_matches=False) -> ParserElement:
         if name is None:
             return self
         newself = self.copy()
@@ -573,7 +574,7 @@ class ParserElement(ABC):
         newself.modalResults = not list_all_matches
         return newself
 
-    def set_break(self, break_flag: bool = True) -> "ParserElement":
+    def set_break(self, break_flag: bool = True) -> ParserElement:
         """
         Method to invoke the Python pdb debugger when this element is
         about to be parsed. Set ``break_flag`` to ``True`` to enable, ``False`` to
@@ -593,7 +594,7 @@ class ParserElement(ABC):
             self._parse = self._parse._originalParseMethod  # type: ignore [attr-defined, assignment]
         return self
 
-    def set_parse_action(self, *fns: ParseAction, **kwargs: Any) -> "ParserElement":
+    def set_parse_action(self, *fns: ParseAction, **kwargs: Any) -> ParserElement:
         """
         Define one or more actions to perform when successfully matching parse element definition.
 
@@ -681,7 +682,7 @@ class ParserElement(ABC):
 
         return self
 
-    def add_parse_action(self, *fns: ParseAction, **kwargs: Any) -> "ParserElement":
+    def add_parse_action(self, *fns: ParseAction, **kwargs: Any) -> ParserElement:
         """
         Add one or more parse actions to expression's list of parse actions. See :class:`set_parse_action`.
 
@@ -693,7 +694,7 @@ class ParserElement(ABC):
         )
         return self
 
-    def add_condition(self, *fns: ParseCondition, **kwargs: Any) -> "ParserElement":
+    def add_condition(self, *fns: ParseCondition, **kwargs: Any) -> ParserElement:
         """Add a boolean predicate function to expression's list of parse actions. See
         :class:`set_parse_action` for function call signatures. Unlike ``set_parse_action``,
         functions passed to ``add_condition`` need to return boolean success/fail of the condition.
@@ -730,7 +731,7 @@ class ParserElement(ABC):
         )
         return self
 
-    def set_fail_action(self, fn: ParseFailAction) -> "ParserElement":
+    def set_fail_action(self, fn: ParseFailAction) -> ParserElement:
         """
         Define action to perform if parsing fails at this expression.
         Fail acton fn is a callable function that takes the arguments
@@ -1392,7 +1393,7 @@ class ParserElement(ABC):
             last = e
         yield instring[last:]
 
-    def __add__(self, other) -> "ParserElement":
+    def __add__(self, other) -> ParserElement:
         """
         Implementation of ``+`` operator - returns :class:`And`. Adding strings to a :class:`ParserElement`
         converts them to :class:`Literal`\\ s by default.
@@ -1428,7 +1429,7 @@ class ParserElement(ABC):
             return NotImplemented
         return And([self, other])
 
-    def __radd__(self, other) -> "ParserElement":
+    def __radd__(self, other) -> ParserElement:
         """
         Implementation of ``+`` operator when left operand is not a :class:`ParserElement`
         """
@@ -1441,7 +1442,7 @@ class ParserElement(ABC):
             return NotImplemented
         return other + self
 
-    def __sub__(self, other) -> "ParserElement":
+    def __sub__(self, other) -> ParserElement:
         """
         Implementation of ``-`` operator, returns :class:`And` with error stop
         """
@@ -1451,7 +1452,7 @@ class ParserElement(ABC):
             return NotImplemented
         return self + And._ErrorStop() + other
 
-    def __rsub__(self, other) -> "ParserElement":
+    def __rsub__(self, other) -> ParserElement:
         """
         Implementation of ``-`` operator when left operand is not a :class:`ParserElement`
         """
@@ -1461,7 +1462,7 @@ class ParserElement(ABC):
             return NotImplemented
         return other - self
 
-    def __mul__(self, other) -> "ParserElement":
+    def __mul__(self, other) -> ParserElement:
         """
         Implementation of ``*`` operator, allows use of ``expr * 3`` in place of
         ``expr + expr + expr``.  Expressions may also be multiplied by a 2-integer
@@ -1541,10 +1542,10 @@ class ParserElement(ABC):
                 ret = And([self] * minElements)
         return ret
 
-    def __rmul__(self, other) -> "ParserElement":
+    def __rmul__(self, other) -> ParserElement:
         return self.__mul__(other)
 
-    def __or__(self, other) -> "ParserElement":
+    def __or__(self, other) -> ParserElement:
         """
         Implementation of ``|`` operator - returns :class:`MatchFirst`
         """
@@ -1560,7 +1561,7 @@ class ParserElement(ABC):
             return NotImplemented
         return MatchFirst([self, other])
 
-    def __ror__(self, other) -> "ParserElement":
+    def __ror__(self, other) -> ParserElement:
         """
         Implementation of ``|`` operator when left operand is not a :class:`ParserElement`
         """
@@ -1570,7 +1571,7 @@ class ParserElement(ABC):
             return NotImplemented
         return other | self
 
-    def __xor__(self, other) -> "ParserElement":
+    def __xor__(self, other) -> ParserElement:
         """
         Implementation of ``^`` operator - returns :class:`Or`
         """
@@ -1580,7 +1581,7 @@ class ParserElement(ABC):
             return NotImplemented
         return Or([self, other])
 
-    def __rxor__(self, other) -> "ParserElement":
+    def __rxor__(self, other) -> ParserElement:
         """
         Implementation of ``^`` operator when left operand is not a :class:`ParserElement`
         """
@@ -1590,7 +1591,7 @@ class ParserElement(ABC):
             return NotImplemented
         return other ^ self
 
-    def __and__(self, other) -> "ParserElement":
+    def __and__(self, other) -> ParserElement:
         """
         Implementation of ``&`` operator - returns :class:`Each`
         """
@@ -1600,7 +1601,7 @@ class ParserElement(ABC):
             return NotImplemented
         return Each([self, other])
 
-    def __rand__(self, other) -> "ParserElement":
+    def __rand__(self, other) -> ParserElement:
         """
         Implementation of ``&`` operator when left operand is not a :class:`ParserElement`
         """
@@ -1610,7 +1611,7 @@ class ParserElement(ABC):
             return NotImplemented
         return other & self
 
-    def __invert__(self) -> "ParserElement":
+    def __invert__(self) -> ParserElement:
         """
         Implementation of ``~`` operator - returns :class:`NotAny`
         """
@@ -1680,7 +1681,7 @@ class ParserElement(ABC):
 
         return ret
 
-    def __call__(self, name: typing.Optional[str] = None) -> "ParserElement":
+    def __call__(self, name: typing.Optional[str] = None) -> ParserElement:
         """
         Shortcut for :class:`set_results_name`, with ``list_all_matches=False``.
 
@@ -1700,14 +1701,14 @@ class ParserElement(ABC):
 
         return self.copy()
 
-    def suppress(self) -> "ParserElement":
+    def suppress(self) -> ParserElement:
         """
         Suppresses the output of this :class:`ParserElement`; useful to keep punctuation from
         cluttering up returned output.
         """
         return Suppress(self)
 
-    def ignore_whitespace(self, recursive: bool = True) -> "ParserElement":
+    def ignore_whitespace(self, recursive: bool = True) -> ParserElement:
         """
         Enables the skipping of whitespace before matching the characters in the
         :class:`ParserElement`'s defined pattern.
@@ -1717,7 +1718,7 @@ class ParserElement(ABC):
         self.skipWhitespace = True
         return self
 
-    def leave_whitespace(self, recursive: bool = True) -> "ParserElement":
+    def leave_whitespace(self, recursive: bool = True) -> ParserElement:
         """
         Disables the skipping of whitespace before matching the characters in the
         :class:`ParserElement`'s defined pattern.  This is normally only used internally by
@@ -1730,7 +1731,7 @@ class ParserElement(ABC):
 
     def set_whitespace_chars(
         self, chars: Union[set[str], str], copy_defaults: bool = False
-    ) -> "ParserElement":
+    ) -> ParserElement:
         """
         Overrides the default whitespace chars
         """
@@ -1739,7 +1740,7 @@ class ParserElement(ABC):
         self.copyDefaultWhiteChars = copy_defaults
         return self
 
-    def parse_with_tabs(self) -> "ParserElement":
+    def parse_with_tabs(self) -> ParserElement:
         """
         Overrides default behavior to expand ``<TAB>`` s to spaces before parsing the input string.
         Must be called before ``parse_string`` when the input grammar contains elements that
@@ -1748,7 +1749,7 @@ class ParserElement(ABC):
         self.keepTabs = True
         return self
 
-    def ignore(self, other: "ParserElement") -> "ParserElement":
+    def ignore(self, other: ParserElement) -> ParserElement:
         """
         Define expression to be ignored (e.g., comments) while doing pattern
         matching; may be called repeatedly, to define multiple comment or other
@@ -1779,7 +1780,7 @@ class ParserElement(ABC):
         start_action: DebugStartAction,
         success_action: DebugSuccessAction,
         exception_action: DebugExceptionAction,
-    ) -> "ParserElement":
+    ) -> ParserElement:
         """
         Customize display of debugging messages while doing pattern matching:
 
@@ -1800,7 +1801,7 @@ class ParserElement(ABC):
         self.debug = True
         return self
 
-    def set_debug(self, flag: bool = True, recurse: bool = False) -> "ParserElement":
+    def set_debug(self, flag: bool = True, recurse: bool = False) -> ParserElement:
         """
         Enable display of debugging messages while doing pattern matching.
         Set ``flag`` to ``True`` to enable, ``False`` to disable.
@@ -1865,7 +1866,7 @@ class ParserElement(ABC):
         Child classes must define this method, which defines how the ``default_name`` is set.
         """
 
-    def set_name(self, name: typing.Optional[str]) -> "ParserElement":
+    def set_name(self, name: typing.Optional[str]) -> ParserElement:
         """
         Define name for this expression, makes debugging and exception messages clearer. If
         `__diag__.enable_debug_on_named_expressions` is set to True, setting a name will also
@@ -1905,12 +1906,12 @@ class ParserElement(ABC):
     def __repr__(self) -> str:
         return str(self)
 
-    def streamline(self) -> "ParserElement":
+    def streamline(self) -> ParserElement:
         self.streamlined = True
         self._defaultName = None
         return self
 
-    def recurse(self) -> list["ParserElement"]:
+    def recurse(self) -> list[ParserElement]:
         return []
 
     def _checkRecursion(self, parseElementList):
@@ -1999,7 +2000,7 @@ class ParserElement(ABC):
         self,
         tests: Union[str, list[str]],
         parse_all: bool = True,
-        comment: typing.Optional[Union["ParserElement", str]] = "#",
+        comment: typing.Optional[Union[ParserElement, str]] = "#",
         full_dump: bool = True,
         print_results: bool = True,
         failure_tests: bool = False,
@@ -2302,7 +2303,7 @@ class _PendingSkip(ParserElement):
     def _generateDefaultName(self) -> str:
         return str(self.anchor + Empty()).replace("Empty", "...")
 
-    def __add__(self, other) -> "ParserElement":
+    def __add__(self, other) -> ParserElement:
         skipper = SkipTo(other).set_name("...")("_skipped*")
         if self.must_skip:
 
@@ -5431,7 +5432,7 @@ class Forward(ParseElementEnhance):
         super().__init__(other, savelist=False)  # type: ignore[arg-type]
         self.lshift_line = None
 
-    def __lshift__(self, other) -> "Forward":
+    def __lshift__(self, other) -> Forward:
         if hasattr(self, "caller_frame"):
             del self.caller_frame
         if isinstance(other, str_type):
@@ -5453,13 +5454,13 @@ class Forward(ParseElementEnhance):
         self.lshift_line = traceback.extract_stack(limit=2)[-2]  # type: ignore[assignment]
         return self
 
-    def __ilshift__(self, other) -> "Forward":
+    def __ilshift__(self, other) -> Forward:
         if not isinstance(other, ParserElement):
             return NotImplemented
 
         return self << other
 
-    def __or__(self, other) -> "ParserElement":
+    def __or__(self, other) -> ParserElement:
         caller_line = traceback.extract_stack(limit=2)[-2]
         if (
             __diag__.warn_on_match_first_with_lshift_operator
@@ -5885,13 +5886,13 @@ class Suppress(TokenConverter):
             expr = _PendingSkip(NoMatch())
         super().__init__(expr)
 
-    def __add__(self, other) -> "ParserElement":
+    def __add__(self, other) -> ParserElement:
         if isinstance(self.expr, _PendingSkip):
             return Suppress(SkipTo(other)) + other
 
         return super().__add__(other)
 
-    def __sub__(self, other) -> "ParserElement":
+    def __sub__(self, other) -> ParserElement:
         if isinstance(self.expr, _PendingSkip):
             return Suppress(SkipTo(other)) - other
 
