@@ -207,10 +207,10 @@ class TestRailroadDiagrams(unittest.TestCase):
         pp.autoname_elements()
         railroad_diag = to_railroad(grammar)
         assert len(railroad_diag) == 3
-        assert isinstance(railroad_diag[1][1].items[1].item, railroad.Sequence)
-        assert isinstance(railroad_diag[1][1].items[1].item.items[0], AnnotatedItem)
+        assert isinstance(railroad_diag[1].diagram.items[1].item, railroad.Sequence)
+        assert isinstance(railroad_diag[1].diagram.items[1].item.items[0], AnnotatedItem)
         assert isinstance(
-            railroad_diag[1][1].items[1].item.items[1], railroad.NonTerminal
+            railroad_diag[1].diagram.items[1].item.items[1], railroad.NonTerminal
         )
 
     def test_kwargs_pass_thru_create_diagram(self):

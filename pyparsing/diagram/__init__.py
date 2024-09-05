@@ -1,9 +1,9 @@
 # mypy: ignore-errors
 import railroad
 import pyparsing
+import dataclasses
 import typing
 from typing import (
-    NamedTuple,
     Generic,
     TypeVar,
     Callable,
@@ -52,14 +52,15 @@ jinja2_template_source = """\
 
 template = Template(jinja2_template_source)
 
-# Note: ideally this would be a dataclass, but we're supporting Python 3.5+ so we can't do this yet
-NamedDiagram = NamedTuple(
-    "NamedDiagram",
-    [("name", str), ("diagram", typing.Optional[railroad.DiagramItem]), ("index", int)],
-)
-"""
-A simple structure for associating a name with a railroad diagram
-"""
+@dataclasses.dataclass
+class NamedDiagram:
+    """
+    A simple structure for associating a name with a railroad diagram
+    """
+    name: str
+    index: int
+    diagram: railroad.DiagramItem = None
+
 
 T = TypeVar("T")
 
@@ -241,37 +242,27 @@ def _should_vertical(
         return len(_visible_exprs(exprs)) >= specification
 
 
+@dataclasses.dataclass
 class ElementState:
     """
     State recorded for an individual pyparsing Element
     """
-
-    # Note: this should be a dataclass, but we have to support Python 3.5
-    def __init__(
-        self,
-        element: pyparsing.ParserElement,
-        converted: EditablePartial,
-        parent: EditablePartial,
-        number: int,
-        name: str = None,
-        parent_index: typing.Optional[int] = None,
-    ):
-        #: The pyparsing element that this represents
-        self.element: pyparsing.ParserElement = element
-        #: The name of the element
-        self.name: typing.Optional[str] = name
-        #: The output Railroad element in an unconverted state
-        self.converted: EditablePartial = converted
-        #: The parent Railroad element, which we store so that we can extract this if it's duplicated
-        self.parent: EditablePartial = parent
-        #: The order in which we found this element, used for sorting diagrams if this is extracted into a diagram
-        self.number: int = number
-        #: The index of this inside its parent
-        self.parent_index: typing.Optional[int] = parent_index
-        #: If true, we should extract this out into a subdiagram
-        self.extract: bool = False
-        #: If true, all of this element's children have been filled out
-        self.complete: bool = False
+    #: The pyparsing element that this represents
+    element: pyparsing.ParserElement
+    #: The output Railroad element in an unconverted state
+    converted: EditablePartial
+    #: The parent Railroad element, which we store so that we can extract this if it's duplicated
+    parent: EditablePartial
+    #: The order in which we found this element, used for sorting diagrams if this is extracted into a diagram
+    number: int
+    #: The name of the element
+    name: str = None
+    #: The index of this inside its parent
+    parent_index: typing.Optional[int] = None
+    #: If true, we should extract this out into a subdiagram
+    extract: bool = False
+    #: If true, all of this element's children have been filled out
+    complete: bool = False
 
     def mark_for_extraction(
         self, el_id: int, state: "ConverterState", name: str = None, force: bool = False
