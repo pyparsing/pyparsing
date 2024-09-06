@@ -21,6 +21,9 @@ Version 3.2.0 - in development
   - Reworked portions of the packrat cache to leverage insertion-preserving ordering
     in dicts.
   - Changed `pdb.set_trace()` call in `ParserElement.set_break()` to `breakpoint()`.
+  - Converted `typing.NamedTuple` to `dataclasses.dataclass` in railroad diagramming
+    code.
+  - Added `from __future__ import annotations` to clean up some type annotations.
 
 - POSSIBLE BREAKING CHANGE: Fixed code in `ParseElementEnhance` subclasses that
   replaced detailed exception messages raised in contained expressions with a
