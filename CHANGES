@@ -34,7 +34,8 @@ Version 3.2.0 - in development
   thanks a ton!
 
 - Added `lox_parser.py` example, a parser for the Lox language used as a tutorial in
-  Robert Nystrom's "Crafting Interpreters" (http://craftinginterpreters.com/)
+  Robert Nystrom's "Crafting Interpreters" (http://craftinginterpreters.com/).
+  With helpful corrections from RoDuth.
 
 - Added `complex_chemical_formulas.py` example, to add parsing capability for
   formulas such as "3(C₆H₅OH)₂".

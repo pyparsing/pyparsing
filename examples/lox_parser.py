@@ -4,7 +4,7 @@ The Lox language grammar
 From Robert Nystrom's "Crafting Interpreters"
 http://craftinginterpreters.com/
 
-The BNF for the Lox language is found at http://craftinginterpreters.com/appendix-i.html
+The BNF for the Lox language is at http://craftinginterpreters.com/appendix-i.html
 """
 import pyparsing as pp
 pp.ParserElement.enable_packrat()
@@ -12,13 +12,14 @@ pp.ParserElement.enable_packrat()
 # punctuation
 COMMA, LPAR, RPAR, LBRACE, RBRACE, EQ, SEMI = map(pp.Suppress, ",(){}=;")
 
-keywords = (CLASS, FUN, VAR, FOR, IF, ELSE, PRINT, RETURN, WHILE, TRUE, FALSE, NIL, THIS, SUPER, AND, OR,) = map(
-    pp.Keyword,
-    """class fun var for if else print return while true false nil this super and or""".split()
+# keywords
+(CLASS, FUN, VAR, FOR, IF, ELSE, PRINT, RETURN, WHILE,
+ TRUE, FALSE, NIL, THIS, SUPER, AND, OR) = pp.Keyword.using_each(
+    "class fun var for if else print return while"
+    " true false nil this super and or".split()
 )
-keyword = pp.MatchFirst(keywords)
 
-identifier = pp.Combine(~keyword + pp.Word(pp.alphas + "_", pp.alphanums + "_'"))
+identifier = pp.Word(pp.alphas + "_", pp.alphanums + "_'")
 string = pp.QuotedString('"')
 number = pp.Regex(r"\d+(?:\.\d+)?")
 
@@ -48,14 +49,14 @@ class_decl <<= (
 primary = (TRUE | FALSE | NIL | THIS | number | string | identifier
            | SUPER + "." + identifier
            # | LPAR + expression + RPAR  <-- not needed, infix_notation takes care of this
-           )
+           ).set_name("primary")
 call = primary + (
         LPAR + pp.Opt(arguments) + RPAR
         | "." + identifier
 )[1, ...]
 
 arith_expression = pp.infix_notation(
-    call | primary,
+    (call | primary).set_name("arith_operand"),
     [
         (pp.one_of("! -"), 1, pp.opAssoc.RIGHT),
         (pp.one_of("/ *"), 2, pp.opAssoc.LEFT),
@@ -104,13 +105,15 @@ declaration <<= (
 program = declaration[...]
 program.ignore(pp.dbl_slash_comment)
 
+# define names so that we get a better diagram
+pp.autoname_elements()
+
+
 def main():
-    pp.autoname_elements()
-    program.create_diagram("lox_program_parser.html", show_groups=True, vertical=3)
+    import textwrap
 
-
-    program.run_tests(
-        [
+    success, _ = program.run_tests(
+        textwrap.dedent(t) for t in [
             """\
                 var a = 1;
                 {
@@ -223,6 +226,9 @@ def main():
             """
         ]
     )
+    assert success
+
 
 if __name__ == '__main__':
+    program.create_diagram("lox_program_parser.html", vertical=3)
     main()
