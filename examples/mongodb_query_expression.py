@@ -50,7 +50,7 @@ ident = pp.Combine(
 num = ppc.number()
 
 date = pp.Regex(r"\d{4}(/|-)\d{2}(\1)\d{2}")
-date_time = pp.Regex(r"\d{4}(/|-)\d{2}(\1)\d{2} \d{2}:\d{2}(:\d{2})?")
+date_time = pp.Regex(r"\d{4}(/|-)\d{2}(\1)\d{2} \d{2}:\d{2}(:\d{2}(\.\d+)?)?")
 date.add_parse_action(lambda t: datetime.fromisoformat(t[0].replace("/", "-")))
 date_time.add_parse_action(lambda t: datetime.fromisoformat(t[0].replace("/", "-")))
 
@@ -206,7 +206,12 @@ def regex_comparison_op(s, l, tokens):
 
     # convert "%" to ".*" and "%%" to "%"
     DBL_PCT = "\x80"
-    re_string = xform(value).replace('%%', DBL_PCT).replace('%', '.*').replace(DBL_PCT, '%')
+    re_string = (
+        xform(value)
+        .replace('%%', DBL_PCT)
+        .replace('%', '.*')
+        .replace(DBL_PCT, '%')
+    )
 
     if op == "like":
         return {field: {"$regex": re_string}}
@@ -276,7 +281,15 @@ comparison_expr = pp.infix_notation(
         (LIKE | NOT_LIKE | "=~", 2, pp.OpAssoc.LEFT, regex_comparison_op),
         (pp.one_of("= == != ≠"), 2, pp.OpAssoc.LEFT, binary_eq_neq),
         (
-            IN | NOT_IN | CONTAINS_ALL | CONTAINS_NONE | CONTAINS_ANY | CONTAINS | pp.one_of("⊇ ∈ ∉"),
+            (
+                IN
+                | NOT_IN
+                | CONTAINS_ALL
+                | CONTAINS_NONE
+                | CONTAINS_ANY
+                | CONTAINS
+                | pp.one_of("⊇ ∈ ∉")
+            ),
             2,
             pp.OpAssoc.LEFT,
             binary_array_comparison_op
@@ -340,10 +353,10 @@ def transform_query(query_string: str, include_comment: bool = False) -> Dict:
 
     - dates and datetimes
       (dates are in YYYY/MM/DD format, and may use '/' or '-' separators)
-      (times may be HH:MM or HH:MM:SS format)
+      (times may be HH:MM, HH:MM:SS, or HH:MM:SS.SSS format)
         dob = 1935-01-08
         motm = 1969/07/20 10:56
-        y2k = 2000/01/01 00:00:00
+        y2k = 2000/01/01 00:00:00.000
 
     - `in` and `not in`
         name in ["Alice", "Bob"]
@@ -395,12 +408,12 @@ def transform_query(query_string: str, include_comment: bool = False) -> Dict:
         names ⊇ ["Alice", "Bob"]
 
     """
-    generator_expr = (
+    transformer_expr = (
         query_condition_expr_with_comment
         if include_comment
         else query_condition_expr
     )
-    return generator_expr.parse_string(query_string, parse_all=True)[0]
+    return transformer_expr.parse_string(query_string, parse_all=True)[0]
 
 
 def main():
@@ -455,10 +468,11 @@ def main():
         name =~ "Al"
         name =~ "A+"
         a = 100 and a = 100
-        y2k = 2000/01/01 00:00:00
+        y2k_day = 2000/01/01
+        y2k_sec = 2000/01/01 00:00:00
+        y2k_msec = 2000/01/01 00:00:00.000
         motm = 1969/07/20 10:56
         1946 <= birth_year <= 1964
-        1946 <= birth_year <= 1964 and state = "OH"
         1946-01-01 <= dob <= 1964-12-31
         # redundant equality conditions get collapsed
         a = 100 and a = 100
