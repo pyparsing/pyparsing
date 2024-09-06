@@ -29,6 +29,9 @@ Version 3.2.0 - in development
   If your code has conditional logic based on the message content in raised
   `ParseExceptions`, this bugfix may break your code.
 
+- Fixed the displayed output of `Regex` terms to deduplicate repeated backslashes,
+  for easier reading in debugging, printing, and railroad diagrams.
+
 - Fixed (or at least reduced) elusive bug when generating railroad diagrams,
   where some diagram elements were just empty blocks. Fix submitted by RoDuth,
   thanks a ton!

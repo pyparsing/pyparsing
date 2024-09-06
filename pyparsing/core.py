@@ -3060,8 +3060,8 @@ class Regex(Token):
         return self.re_match("") is not None
 
     def _generateDefaultName(self) -> str:
-        unescaped = self.pattern.replace("\\\\", "\\")
-        return f"Re:({unescaped!r})"
+        unescaped = repr(self.pattern).replace("\\\\", "\\")
+        return f"Re:({unescaped})"
 
     def parseImpl(self, instring, loc, do_actions=True) -> ParseImplReturnType:
         result = self.re_match(instring, loc)
