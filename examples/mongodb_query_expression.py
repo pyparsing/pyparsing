@@ -43,9 +43,11 @@ def key_phrase(expr: Union[str, pp.ParserElement]) -> pp.ParserElement:
 LBRACK, RBRACK = pp.Suppress.using_each("[]")
 
 integer = ppc.integer()
+array_ref = LBRACK + integer + RBRACK
+array_ref.add_parse_action(lambda t: f".{t[0]}")
 ident = pp.Combine(
     ppc.identifier
-    + ("." + (ppc.identifier() | integer))[...]
+    + ("." + (ppc.identifier() | integer) | array_ref)[...]
 )
 num = ppc.number()
 
@@ -347,6 +349,9 @@ def transform_query(query_string: str, include_comment: bool = False) -> Dict:
         a.0 < 100
         {'a.0': {'$lt': 100}}
 
+        a[0] < 100
+        {'a.0': {'$lt': 100}}
+
     - chained inequalities
         100 < a < 200
         {'$and': [{'a': {'$gt': 100}}, {'a': {'$lt': 200}}]}
@@ -454,7 +459,9 @@ def main():
         names contains "Alice"
         a.b > 1000
         a.0 == "Alice"
+        a[0] == "Alice"
         a.0.b > 1000
+        a[0].b == "Alice"
         name like "%Al"
         name like "Al%"
         name like "%Al%"
