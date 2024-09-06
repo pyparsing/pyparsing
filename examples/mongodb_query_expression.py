@@ -244,7 +244,10 @@ def binary_multi_op(tokens):
                     )
 
         if expr_values:
-            return {"$and": [collapsed_literal_values, *expr_values]}
+            if collapsed_literal_values:
+                return {"$and": [collapsed_literal_values, *expr_values]}
+            else:
+                return {"$and": expr_values}
         else:
             return collapsed_literal_values
 
@@ -452,6 +455,8 @@ def main():
         a = 100 and a = 100
         y2k = 2000/01/01 00:00:00
         motm = 1969/07/20 10:56
+        1946 <= birth_year <= 1964
+        1946 <= birth_year <= 1964 and state = "OH"
         1946-01-01 <= dob <= 1964-12-31
         # redundant equality conditions get collapsed
         a = 100 and a = 100
