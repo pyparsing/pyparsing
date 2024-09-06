@@ -56,7 +56,7 @@ date_time.add_parse_action(lambda t: datetime.fromisoformat(t[0].replace("/", "-
 
 operand = ident | (pp.QuotedString('"') | pp.QuotedString("'")).set_name("quoted_string") | date_time | date | num
 operand.set_name("operand")
-operand_list = pp.Group(LBRACK + pp.DelimitedList(operand) + RBRACK, aslist=True)
+operand_list = pp.Group(LBRACK + pp.Optional(pp.DelimitedList(operand)) + RBRACK, aslist=True)
 
 AND, OR, NOT, IN, CONTAINS, ALL, ANY, NONE, LIKE = pp.CaselessKeyword.using_each(
     "and or not in contains all any none like".split()
@@ -270,7 +270,7 @@ def unary_op(tokens):
 
 
 comparison_expr = pp.infix_notation(
-    operand | operand_list,
+    (operand | operand_list).set_name("comparison_operand"),
     [
         (pp.one_of("<= >= < > ≤ ≥"), 2, pp.OpAssoc.LEFT, binary_comparison_op),
         (LIKE | NOT_LIKE | "=~", 2, pp.OpAssoc.LEFT, regex_comparison_op),
@@ -290,7 +290,7 @@ AND_OP = AND | pp.Literal("∧").add_parse_action(pp.replace_with("and"))
 OR_OP = OR | pp.Literal("∨").add_parse_action(pp.replace_with("or"))
 
 query_condition_expr = pp.infix_notation(
-    comparison_expr | ident,
+    (comparison_expr | ident).set_name("query_operand"),
     [
         (NOT_OP, 1, pp.OpAssoc.RIGHT, unary_op),
         (AND_OP, 2, pp.OpAssoc.LEFT, binary_multi_op),
@@ -303,6 +303,8 @@ query_condition_expr_with_comment = pp.And([query_condition_expr])
 query_condition_expr_with_comment.add_parse_action(
     lambda s, l, t: t[0].__setitem__("$comment", s)
 )
+
+pp.autoname_elements()
 
 
 def transform_query(query_string: str, include_comment: bool = False) -> Dict:
@@ -474,4 +476,5 @@ def main():
 
 
 if __name__ == '__main__':
+    query_condition_expr.create_diagram("mongodb_query_expression.html")
     main()
