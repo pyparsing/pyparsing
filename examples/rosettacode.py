@@ -35,37 +35,36 @@ BNF = """
 """
 
 import pyparsing as pp
+pp.ParserElement.enable_packrat()
 
-pp.ParserElement.enablePackrat()
-
-LBRACE, RBRACE, LPAR, RPAR, SEMI = map(pp.Suppress, "{}();")
+LBRACE, RBRACE, LPAR, RPAR, SEMI = pp.Suppress.using_each("{}();")
 EQ = pp.Literal("=")
 
-keywords = (WHILE, IF, PRINT, PUTC, ELSE) = map(
-    pp.Keyword, "while if print putc else".split()
+WHILE, IF, PRINT, PUTC, ELSE = pp.Keyword.using_each(
+    "while if print putc else".split()
 )
-any_keyword = pp.MatchFirst(keywords)
-identifier = ~any_keyword + pp.pyparsing_common.identifier
+any_keyword = pp.MatchFirst((WHILE, IF, PRINT, PUTC, ELSE))
+identifier = pp.Combine(~any_keyword + pp.pyparsing_common.identifier.set_name("ident_name")).set_name("identifier")
 integer = pp.pyparsing_common.integer
-string = pp.QuotedString('"', convertWhitespaceEscapes=False).setName("quoted string")
+string = pp.QuotedString('"', convertWhitespaceEscapes=False).set_name("quoted string")
 char = pp.Regex(r"'\\?.'")
 
 # fmt: off
 expr = pp.infixNotation(
-    identifier | integer | char,
+    (identifier | integer | char).set_name("arith_operand"),
     [
-        (pp.oneOf("+ - !"), 1, pp.opAssoc.RIGHT,),
-        (pp.oneOf("* / %"), 2, pp.opAssoc.LEFT, ),
-        (pp.oneOf("+ -"), 2, pp.opAssoc.LEFT, ),
-        (pp.oneOf("< <= > >="), 2, pp.opAssoc.LEFT, ),
-        (pp.oneOf("== !="), 2, pp.opAssoc.LEFT, ),
-        (pp.oneOf("&&"), 2, pp.opAssoc.LEFT, ),
-        (pp.oneOf("||"), 2, pp.opAssoc.LEFT, ),
+        (pp.one_of("+ - !"), 1, pp.OpAssoc.RIGHT,),
+        (pp.one_of("* / %"), 2, pp.OpAssoc.LEFT, ),
+        (pp.one_of("+ -"), 2, pp.OpAssoc.LEFT, ),
+        (pp.one_of("< <= > >="), 2, pp.OpAssoc.LEFT, ),
+        (pp.one_of("== !="), 2, pp.OpAssoc.LEFT, ),
+        (pp.one_of("&&"), 2, pp.OpAssoc.LEFT, ),
+        (pp.one_of("||"), 2, pp.OpAssoc.LEFT, ),
     ],
 )
 # fmt: on
 
-prt_list = pp.Group(pp.delimitedList(string | expr))
+prt_list = pp.Group(pp.DelimitedList(string | expr))
 paren_expr = pp.Group(LPAR + expr + RPAR)
 
 stmt = pp.Forward()
@@ -75,19 +74,20 @@ if_stmt = pp.Group(IF - paren_expr + stmt + pp.Optional(ELSE + stmt))
 print_stmt = pp.Group(PRINT - pp.Group(LPAR + prt_list + RPAR) + SEMI)
 putc_stmt = pp.Group(PUTC - paren_expr + SEMI)
 stmt_list = pp.Group(LBRACE + stmt[...] + RBRACE)
+empty_statement = pp.Group(SEMI)
 stmt <<= (
-    pp.Group(SEMI)
+    empty_statement
     | assignment_stmt
     | while_stmt
     | if_stmt
     | print_stmt
     | putc_stmt
     | stmt_list
-).setName("statement")
+).set_name("statement")
 
-code = stmt[...]
-code.ignore(pp.cppStyleComment)
-
+program = stmt[...]
+program.ignore(pp.cppStyleComment)
+pp.autoname_elements()
 
 tests = [
     r"""
@@ -279,7 +279,9 @@ def main():
     import sys
     sys.setrecursionlimit(2000)
 
-    success, report = code.run_tests(tests)
+    program.create_diagram("rosettacode_diagram.html")
+
+    success, report = program.run_tests(tests)
     assert success
 
 
