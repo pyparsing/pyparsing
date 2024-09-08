@@ -12,8 +12,8 @@ the new function names before the old functions are completely removed. (Big hel
 Devin J. Pohly in structuring the code to enable this peaceful transition.)
 
 
-Version 3.2.0 - in development
-------------------------------
+Version 3.2.0a1 - September, 2024
+---------------------------------
 - Discontinued support for Python 3.6, 3.7, and 3.8. Adopted new Python features from
   Python versions 3.7-3.9:
   - Updated type annotations to use built-in container types instead of names
