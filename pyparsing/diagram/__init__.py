@@ -54,11 +54,13 @@ jinja2_template_source = """\
 
 template = Template(jinja2_template_source)
 
+
 @dataclasses.dataclass
 class NamedDiagram:
     """
     A simple structure for associating a name with a railroad diagram
     """
+
     name: str
     index: int
     diagram: railroad.DiagramItem = None
@@ -249,6 +251,7 @@ class ElementState:
     """
     State recorded for an individual pyparsing Element
     """
+
     #: The pyparsing element that this represents
     element: pyparsing.ParserElement
     #: The output Railroad element in an unconverted state

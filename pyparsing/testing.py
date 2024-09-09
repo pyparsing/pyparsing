@@ -320,7 +320,9 @@ class pyparsing_test:
         if mark_control != "unicode":
             s_lines = s.splitlines()[start_line - base_1 : end_line]
         else:
-            s_lines = [line + "␊" for line in s.split("␊")[start_line - base_1 : end_line]]
+            s_lines = [
+                line + "␊" for line in s.split("␊")[start_line - base_1 : end_line]
+            ]
         if not s_lines:
             return ""
 
@@ -346,13 +348,15 @@ class pyparsing_test:
             + "\n"
         )
         digits = "1234567890"
-        header2 = lead + ("" if base_1 else "0") + digits * (-(-max_line_len // 10)) + "\n"
+        header2 = (
+            lead + ("" if base_1 else "0") + digits * (-(-max_line_len // 10)) + "\n"
+        )
         return (
             header1
             + header2
             + "\n".join(
                 f"{indent}{i:{lineno_width}d}:{line}{eol_mark}"
-                for i, line in enumerate(s_lines, start=start_line+base_1)
+                for i, line in enumerate(s_lines, start=start_line + base_1)
             )
             + "\n"
         )

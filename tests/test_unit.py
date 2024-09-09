@@ -9052,9 +9052,7 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             ("!?", "curious"),
         ]:
             self.assertParseAndCheckDict(
-                greeting,
-                f"Hello World{ending}",
-                {"mood": expected_mood}
+                greeting, f"Hello World{ending}", {"mood": expected_mood}
             )
 
     def testEnableDebugOnNamedExpressions(self):
@@ -10405,11 +10403,8 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
                 raise TooManyRepsException(f"{len(t)} is too many, only 3 allowed")
 
         # parse an int followed by no more than 3 words
-        parser = (
-            pp.Word(pp.nums)
-            + pp.Group(
-                pp.Word(pp.alphas)[...].add_parse_action(no_more_than_3)
-            )
+        parser = pp.Word(pp.nums) + pp.Group(
+            pp.Word(pp.alphas)[...].add_parse_action(no_more_than_3)
         )
 
         # should succeed
@@ -10418,9 +10413,9 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
 
         # should raise exception with local exception message
         with self.assertRaisesParseException(
-                exc_type=ParseFatalException,
-                expected_msg="4 is too many, only 3 allowed",
-                msg="wrong exception message"
+            exc_type=ParseFatalException,
+            expected_msg="4 is too many, only 3 allowed",
+            msg="wrong exception message",
         ) as pe_context:
             result = parser.parse_string("2000 abc def ghi jkl")
 
@@ -10457,9 +10452,7 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
         run_subtest("inlineLiteralsUsing", args="pp.Suppress")
 
         run_subtest(
-            "setDefaultKeywordChars",
-            expr="pp.Keyword('START')",
-            args="'abcde'"
+            "setDefaultKeywordChars", expr="pp.Keyword('START')", args="'abcde'"
         )
         pass
 
