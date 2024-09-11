@@ -12,8 +12,8 @@ the new function names before the old functions are completely removed. (Big hel
 Devin J. Pohly in structuring the code to enable this peaceful transition.)
 
 
-Version 3.2.0a1 - September, 2024
----------------------------------
+Version 3.2.0 - September, 2024
+-------------------------------
 - Discontinued support for Python 3.6, 3.7, and 3.8. Adopted new Python features from
   Python versions 3.7-3.9:
   - Updated type annotations to use built-in container types instead of names
@@ -30,7 +30,7 @@ Version 3.2.0a1 - September, 2024
   less-specific and less-informative generic exception message and location.
 
   If your code has conditional logic based on the message content in raised
-  `ParseExceptions`, this bugfix may break your code.
+  `ParseExceptions`, this bugfix may require changes in your code.
 
 - Fixed the displayed output of `Regex` terms to deduplicate repeated backslashes,
   for easier reading in debugging, printing, and railroad diagrams.
@@ -39,12 +39,11 @@ Version 3.2.0a1 - September, 2024
   where some diagram elements were just empty blocks. Fix submitted by RoDuth,
   thanks a ton!
 
-- Added `lox_parser.py` example, a parser for the Lox language used as a tutorial in
-  Robert Nystrom's "Crafting Interpreters" (http://craftinginterpreters.com/).
-  With helpful corrections from RoDuth.
-
-- Added `complex_chemical_formulas.py` example, to add parsing capability for
-  formulas such as "3(C₆H₅OH)₂".
+- Added `indent` and `base_1` arguments to `pyparsing.testing.with_line_numbers`. When
+  using `with_line_numbers` inside a parse action, set `base_1`=False, since the
+  reported `loc` value is 0-based. `indent` can be a leading string (typically of
+  spaces or tabs) to indent the numbered string passed to `with_line_numbers`.
+  Added while working on #557, reported by Bernd Wechner.
 
 - Added query syntax to `mongodb_query_expression.py` with better support for
   array fields ("contains", "contains all", "contains any", and "contains none");
@@ -53,11 +52,12 @@ Version 3.2.0a1 - September, 2024
   - added support for dates and datetimes as query values
   - added support for `a[0]` style array referencing
 
-- Added `indent` and `base_1` arguments to `pyparsing.testing.with_line_numbers`. When
-  using `with_line_numbers` inside a parse action, set `base_1`=False, since the
-  reported `loc` value is 0-based. `indent` can be a leading string (typically of
-  spaces or tabs) to indent the numbered string passed to `with_line_numbers`.
-  Added while working on #557, reported by Bernd Wechner.
+- Added `lox_parser.py` example, a parser for the Lox language used as a tutorial in
+  Robert Nystrom's "Crafting Interpreters" (http://craftinginterpreters.com/).
+  With helpful corrections from RoDuth.
+
+- Added `complex_chemical_formulas.py` example, to add parsing capability for
+  formulas such as "3(C₆H₅OH)₂".
 
 
 Version 3.1.4 - August, 2024
