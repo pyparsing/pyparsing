@@ -165,20 +165,32 @@ def binary_array_comparison_op(s, l, tokens):
             f"{tokens[1]!r} operator may not be chained with more than 2 terms"
         )
 
+    # check for inverted "in" conditions
+    if op == "in" and not isinstance(value, list):
+        field, value = value, field
+        if isinstance(value, list):
+            op = "contains all"
+        else:
+            op = "contains"
+
+    elif op == "not in" and not isinstance(value, list):
+        field, value = value, field
+        field, op, value = field, "contains none", value if isinstance(value, list) else [value]
+
     if op == "contains none":
         return {
-            field: { "$nin": list(set(value))}
+            field: { "$nin": list(set(value) if isinstance(value, list) else {value})}
         }
 
     if op == "contains any":
         return {
-            field: { "$in": list(set(value))}
+            field: { "$in": list(set(value) if isinstance(value, list) else {value})}
         }
 
     if op == "contains":
-        return {field: {binary_map[op]: [value]}}
+        return {field: {binary_map[op]: value if isinstance(value, list) else [value]}}
 
-    return {field: {binary_map[op]: list(set(value))}}
+    return {field: {binary_map[op]: list(set(value) if isinstance(value, list) else {value})}}
 
 
 def regex_comparison_op(s, l, tokens):
@@ -367,6 +379,12 @@ def transform_query(query_string: str, include_comment: bool = False) -> Dict:
         name in ["Alice", "Bob"]
         {'name': {'$in': ['Alice', 'Bob']}}
 
+        "Alice" in names
+        {'names': {'$in': ['Alice']}}
+
+        "Bob" not in names
+        {'names': {'$nin': ['Bob']}}
+
     - `contains [any | all | None]`
         names contains "Alice"
         {'names': {'$in': ['Alice']}}
@@ -457,6 +475,8 @@ def main():
         names contains none ["Alice", "Bob"]
         names contains any ["Alice", "Bob"]
         names contains "Alice"
+        "Alice" in names
+        "Bob" not in names
         a.b > 1000
         a.0 == "Alice"
         a[0] == "Alice"
