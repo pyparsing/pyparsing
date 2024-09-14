@@ -231,7 +231,7 @@ class Test01c_PyparsingMainTest(TestCase):
         project_home = Path(__file__).parent.parent
 
         with tmp_chdir(project_home):
-            completed = subprocess.run("python -m pyparsing -v".split(), capture_output=True, text=True)
+            completed = subprocess.run("python -m pyparsing --version".split(), capture_output=True, text=True)
             self.assertEqual(0, completed.returncode)
             self.assertEqual("", completed.stderr)
             self.assertEqual(pp.__version__, completed.stdout.rstrip())
