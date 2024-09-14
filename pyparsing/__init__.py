@@ -93,39 +93,9 @@ classes inherit from. Use the docstrings for examples of how to:
  - find more useful common expressions in the :class:`pyparsing_common`
    namespace class
 """
-from typing import NamedTuple
-
-
-class version_info(NamedTuple):
-    major: int
-    minor: int
-    micro: int
-    releaselevel: str
-    serial: int
-
-    @property
-    def __version__(self):
-        return (
-            f"{self.major}.{self.minor}.{self.micro}"
-            + (
-                f"{'r' if self.releaselevel[0] == 'c' else ''}{self.releaselevel[0]}{self.serial}",
-                "",
-            )[self.releaselevel == "final"]
-        )
-
-    def __str__(self):
-        return f"{__name__} {self.__version__} / {__version_time__}"
-
-    def __repr__(self):
-        return f"{__name__}.{type(self).__name__}({', '.join('{}={!r}'.format(*nv) for nv in zip(self._fields, self))})"
-
-
-__version_info__ = version_info(3, 2, 0, "beta", 2)
-__version_time__ = "13 Sep 2024 05:30 UTC"
-__version__ = __version_info__.__version__
-__versionTime__ = __version_time__
 __author__ = "Paul McGuire <ptmcg.gm+pyparsing@gmail.com>"
 
+from .version import *
 from .util import *
 from .exceptions import *
 from .actions import *

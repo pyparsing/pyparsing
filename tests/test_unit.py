@@ -9,6 +9,7 @@
 import collections
 import contextlib
 import datetime
+from pathlib import Path
 import random
 import re
 import shlex
@@ -67,6 +68,21 @@ class resetting:
     def __exit__(self, *args):
         for attr, value in zip(self.save_attrs, self.save_values):
             setattr(self.ob, attr, value)
+
+
+try:
+    from contextlib import chdir as tmp_chdir
+except ImportError:
+    import os
+
+    @contextlib.contextmanager
+    def tmp_chdir(tmp_cwd: Path):
+        cwd = Path.cwd()
+        try:
+            os.chdir(tmp_cwd)
+            yield
+        except:
+            os.chdir(cwd)
 
 
 def find_all_re_matches(patt, s):
@@ -206,6 +222,19 @@ class Test01b_PyparsingUnitTestUtilitiesTests(TestCase):
                         print(base.parseString("x"))
                     except ParseException as pe:
                         pass
+
+
+class Test01c_PyparsingMainTest(TestCase):
+    def runTest(self):
+        import subprocess
+
+        project_home = Path(__file__).parent.parent
+
+        with tmp_chdir(project_home):
+            completed = subprocess.run("python -m pyparsing -v".split(), capture_output=True, text=True)
+            self.assertEqual(0, completed.returncode)
+            self.assertEqual("", completed.stderr)
+            self.assertEqual(pp.__version__, completed.stdout.rstrip())
 
 
 class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
@@ -4380,10 +4409,10 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
 
         test_patt = pp.Word("A") - pp.LineStart() + pp.Word("B")
         print(test_patt.streamline())
-        success = test_patt.runTests(pass_tests)[0]
+        success, _ = test_patt.runTests(pass_tests)
         self.assertTrue(success, "failed LineStart passing tests (1)")
 
-        success = test_patt.runTests(fail_tests, failureTests=True)[0]
+        success, _ = test_patt.runTests(fail_tests, failureTests=True)
         self.assertTrue(success, "failed LineStart failure mode tests (1)")
 
         with ppt.reset_pyparsing_context():
@@ -4393,10 +4422,10 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             test_patt = pp.Word("A") - pp.LineStart() + pp.Word("B")
             print(test_patt.streamline())
             # should fail the pass tests too, since \n is no longer valid whitespace and we aren't parsing for it
-            success = test_patt.runTests(pass_tests, failureTests=True)[0]
+            success, _ = test_patt.runTests(pass_tests, failureTests=True)
             self.assertTrue(success, "failed LineStart passing tests (2)")
 
-            success = test_patt.runTests(fail_tests, failureTests=True)[0]
+            success, _ = test_patt.runTests(fail_tests, failureTests=True)
             self.assertTrue(success, "failed LineStart failure mode tests (2)")
 
             test_patt = (
@@ -4407,10 +4436,10 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
                 + pp.LineEnd().suppress()
             )
             print(test_patt.streamline())
-            success = test_patt.runTests(pass_tests)[0]
+            success, _ = test_patt.runTests(pass_tests)
             self.assertTrue(success, "failed LineStart passing tests (3)")
 
-            success = test_patt.runTests(fail_tests, failureTests=True)[0]
+            success, _ = test_patt.runTests(fail_tests, failureTests=True)
             self.assertTrue(success, "failed LineStart failure mode tests (3)")
 
     def testLineStart2(self):
@@ -5764,12 +5793,13 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             pp.Group(ppc.iso8601_date)("date*")[...]
         )
 
-        expr.runTests(
+        success, _ = expr.runTests(
             """
             1999-12-31 100 2001-01-01
             42
             """
         )
+        self.assertTrue(success)
 
     def testEachWithParseFatalException(self):
         option_expr = pp.Keyword("options") - "(" + ppc.integer + ")"
@@ -6496,7 +6526,7 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             # invalid range
             1-2, 3-1, 4-6, 7, 12
             """
-        success = indices.runTests(tests, printResults=False, failureTests=True)[0]
+        success, _ = indices.runTests(tests, printResults=False, failureTests=True)
         self.assertTrue(success, "failed to raise exception on improper range test")
 
     def testRunTestsPostParse(self):
@@ -6509,13 +6539,13 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             accum.append((test, result.asList()))
             return f"eval: {result.numerator / result.denominator}"
 
-        success = fraction.runTests(
+        success, _ = fraction.runTests(
             """\
             1/2
             1/0
         """,
             postParse=eval_fraction,
-        )[0]
+        )
         print(success)
 
         self.assertTrue(success, "failed to parse fractions in RunTestsPostParse")
@@ -6547,27 +6577,27 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
         import ast
 
         with self.subTest("MAC address success run_tests"):
-            success = ppc.mac_address.runTests(
+            success, _ = ppc.mac_address.runTests(
                 """
                 AA:BB:CC:DD:EE:FF
                 AA.BB.CC.DD.EE.FF
                 AA-BB-CC-DD-EE-FF
                 """
-            )[0]
+            )
             self.assertTrue(success, "error in parsing valid MAC address")
 
         with self.subTest("MAC address expected failure run_tests"):
-            success = ppc.mac_address.runTests(
+            success, _ = ppc.mac_address.runTests(
                 """
                 # mixed delimiters
                 AA.BB:CC:DD:EE:FF
                 """,
                 failureTests=True,
-            )[0]
+            )
             self.assertTrue(success, "error in detecting invalid mac address")
 
         with self.subTest("IPv4 address success run_tests"):
-            success = ppc.ipv4_address.runTests(
+            success, _ = ppc.ipv4_address.runTests(
                 """
                 0.0.0.0
                 1.1.1.1
@@ -6575,21 +6605,21 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
                 1.10.100.199
                 255.255.255.255
                 """
-            )[0]
+            )
             self.assertTrue(success, "error in parsing valid IPv4 address")
 
         with self.subTest("IPv4 address expected failure run_tests"):
-            success = ppc.ipv4_address.runTests(
+            success, _ = ppc.ipv4_address.runTests(
                 """
                 # out of range value
                 256.255.255.255
                 """,
                 failureTests=True,
-            )[0]
+            )
             self.assertTrue(success, "error in detecting invalid IPv4 address")
 
         with self.subTest("IPv6 address success run_tests"):
-            success = ppc.ipv6_address.runTests(
+            success, _ = ppc.ipv6_address.runTests(
                 """
                 2001:0db8:85a3:0000:0000:8a2e:0370:7334
                 2134::1234:4567:2468:1236:2444:2106
@@ -6606,11 +6636,11 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
                 # ipv4 compatibility form
                 ::ffff:192.168.0.1
                 """
-            )[0]
+            )
             self.assertTrue(success, "error in parsing valid IPv6 address")
 
         with self.subTest("IPv6 address expected failure run_tests"):
-            success = ppc.ipv6_address.runTests(
+            success, _ = ppc.ipv6_address.runTests(
                 """
                 # too few values
                 1080:0:0:0:8:800:200C
@@ -6619,11 +6649,11 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
                 2134::1234:4567::2444:2106
                 """,
                 failureTests=True,
-            )[0]
+            )
             self.assertTrue(success, "error in detecting invalid IPv6 address")
 
         with self.subTest("ppc.number success run_tests"):
-            success = ppc.number.runTests(
+            success, _ = ppc.number.runTests(
                 """
                 100
                 -100
@@ -6632,23 +6662,23 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
                 6.02e23
                 1e-12
                 """
-            )[0]
+            )
             self.assertTrue(success, "error in parsing valid numerics")
 
         with self.subTest("ppc.sci_real success run_tests"):
-            success = ppc.sci_real.runTests(
+            success, _ = ppc.sci_real.runTests(
                 """
                 1e12
                 -1e12
                 3.14159
                 6.02e23
                 """
-            )[0]
+            )
             self.assertTrue(success, "error in parsing valid scientific notation reals")
 
         # any int or real number, returned as float
         with self.subTest("ppc.fnumber success run_tests"):
-            success = ppc.fnumber.runTests(
+            success, _ = ppc.fnumber.runTests(
                 """
                 100
                 -100
@@ -6657,11 +6687,11 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
                 6.02e23
                 1e-12
                 """
-            )[0]
+            )
             self.assertTrue(success, "error in parsing valid numerics")
 
         with self.subTest("ppc.ieee_float success run_tests"):
-            success = ppc.ieee_float.runTests(
+            success, _ = ppc.ieee_float.runTests(
                 """
                 100
                 3.14159
@@ -6674,7 +6704,7 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
                 inf
                 -Infinity
                 """
-            )[0]
+            )
             self.assertTrue(success, "error in parsing valid floating-point literals")
 
         with self.subTest("ppc.iso8601_date success run_tests"):
@@ -6747,25 +6777,25 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             )
 
         with self.subTest("ppc.uuid success run_tests"):
-            success = ppc.uuid.runTests(
+            success, _ = ppc.uuid.runTests(
                 """
                 123e4567-e89b-12d3-a456-426655440000
                 """
-            )[0]
+            )
             self.assertTrue(success, "failed to parse valid uuid")
 
         with self.subTest("ppc.fraction success run_tests"):
-            success = ppc.fraction.runTests(
+            success, _ = ppc.fraction.runTests(
                 """
                 1/2
                 -15/16
                 -3/-4
                 """
-            )[0]
+            )
             self.assertTrue(success, "failed to parse valid fraction")
 
         with self.subTest("ppc.mixed_integer success run_tests"):
-            success = ppc.mixed_integer.runTests(
+            success, _ = ppc.mixed_integer.runTests(
                 """
                 1/2
                 -15/16
@@ -6775,7 +6805,7 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
                 0 -3/-4
                 12
                 """
-            )[0]
+            )
             self.assertTrue(success, "failed to parse valid mixed integer")
 
         with self.subTest("ppc.number success run_tests"):
@@ -7671,7 +7701,8 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
         )("LIST")
 
         test_string = "[ 1,2,3,4,5,6 ]"
-        list_num.runTests(test_string)
+        success, _ = list_num.runTests(test_string)
+        self.assertTrue(success)
 
         U = list_num.parseString(test_string, parseAll=True)
         self.assertTrue(
@@ -7694,7 +7725,8 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
         site = pp.QuotedString('"')("name") + pp.Group(data)("data")
 
         test_string = '"Golden Gate Bridge" 37.819722 -122.478611 height=746 span=4200'
-        site.runTests(test_string)
+        success, _ = site.runTests(test_string)
+        self.assertTrue(success)
 
         a, aEnd = pp.makeHTMLTags("a")
         attrs = a.parseString("<a href='blah'>", parseAll=True)
@@ -8482,12 +8514,14 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
         expr_a = pp.Literal("not") + pp.Literal("the") + pp.Literal("bird")
         expr_b = pp.Literal("the") + pp.Literal("bird")
         expr = (expr_a ^ expr_b)("rexp")
-        expr.runTests(
+        success, _ = expr.runTests(
             """\
             not the bird
             the bird
         """
         )
+        self.assertTrue(success)
+
         result = expr.parseString("not the bird", parseAll=True)
         self.assertParseResultsEquals(
             result, ["not", "the", "bird"], {"rexp": ["not", "the", "bird"]}
@@ -8498,12 +8532,14 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
         )
 
         expr = (expr_a | expr_b)("rexp")
-        expr.runTests(
+        success, _ = expr.runTests(
             """\
             not the bird
             the bird
         """
         )
+        self.assertTrue(success)
+
         result = expr.parseString("not the bird", parseAll=True)
         self.assertParseResultsEquals(
             result, ["not", "the", "bird"], {"rexp": ["not", "the", "bird"]}
@@ -8533,12 +8569,13 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
                     pp.Diagnostics.warn_multiple_tokens_in_named_alternation
                 )("rexp")
 
-            expr.runTests(
+            success, _ = expr.runTests(
                 """\
                 not the bird
                 the bird
             """
             )
+            self.assertTrue(success)
             self.assertEqual(
                 "not the bird".split(),
                 list(expr.parseString("not the bird", parseAll=True)["rexp"]),
@@ -9336,23 +9373,36 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
 
         # Create an And using a list of expressions instead of using '+' operator
         expr = pp.And([pp.Word("abc"), pp.Word("123")])
-        expr.runTests(
+        success, _ = expr.runTests(
             """
             aaa 333
             b 1
             ababab 32123
         """
         )
+        self.assertTrue(success)
+
+        success, _ = expr.runTests("""\
+            aad 111
+            """, failure_tests=True
+        )
+        self.assertTrue(success)
 
         # Passing a single expression to a ParseExpression, when it really wants a sequence
         expr = pp.Or(pp.Or(ppc.integer))
-        expr.runTests(
-            """
+        success, _ = expr.runTests("""\
             123
             456
-            abc
-        """
+            """
         )
+        self.assertTrue(success)
+
+        success, _ = expr.runTests("""\
+            abc
+            """, failure_tests=True
+        )
+        self.assertTrue(success)
+
 
     def testEnableWarnDiags(self):
         import pprint
