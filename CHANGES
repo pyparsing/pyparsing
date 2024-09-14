@@ -38,7 +38,7 @@ Version 3.2.0 - September, 2024
         #!/bin/bash
 
         # Get the current pyparsing version
-        PYPARSING_VERSION=$(python -m pyparsing --version 2>&1 | awk '{print $2}')
+        PYPARSING_VERSION=$(python -m pyparsing --version)
 
         # Split the version into major, minor, and patch parts
         IFS='.' read -r major minor patch <<< "$PYPARSING_VERSION"
