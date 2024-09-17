@@ -1,4 +1,5 @@
 # util.py
+from typing import List
 import inspect
 import warnings
 import types
@@ -14,8 +15,8 @@ C = TypeVar("C", bound=Callable)
 class __config_flags:
     """Internal class for defining compatibility and debugging flags"""
 
-    _all_names: list[str] = []
-    _fixed_names: list[str] = []
+    _all_names: List[str] = []
+    _fixed_names: List[str] = []
     _type_desc = "configuration"
 
     @classmethod
