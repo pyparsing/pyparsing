@@ -11,7 +11,7 @@ quoted_time.set_parse_action(lambda: now_string)
 
 version_time = "__version_time__ = " + quoted_time
 
-pp_init = Path("pyparsing/version.py")
+pp_init = Path("pyparsing/__init__.py")
 orig_code = pp_init.read_text()
 new_code = version_time.transform_string(orig_code)
 pp_init.write_text(new_code)

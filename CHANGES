@@ -32,25 +32,6 @@ Version 3.2.0 - September, 2024
   If your code has conditional logic based on the message content in raised
   `ParseExceptions`, this bugfix may require changes in your code.
 
-- Added `__main__.py` so that shell scripts can easily detect the running version of
-  pyparsing, using `python3 -m pyparsing --version`. For example:
-
-        #!/bin/bash
-
-        # Get the current pyparsing version
-        PYPARSING_VERSION=$(python -m pyparsing --version)
-
-        # Split the version into major, minor, and patch parts
-        IFS='.' read -r major minor patch <<< "$PYPARSING_VERSION"
-
-        # Check if the major version is greater than 3, or if major is 3,
-        # check if minor is greater than 1
-        if [[ "$major" -gt 3 ]] || { [[ "$major" -eq 3 ]] && [[ "$minor" -gt 1 ]]; }; then
-            echo "pyparsing version is greater than 3.1: $PYPARSING_VERSION"
-        else
-            echo "pyparsing version is not greater than 3.1: $PYPARSING_VERSION"
-        fi
-
 - Fixed the displayed output of `Regex` terms to deduplicate repeated backslashes,
   for easier reading in debugging, printing, and railroad diagrams.
 

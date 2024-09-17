@@ -9,7 +9,6 @@
 import collections
 import contextlib
 import datetime
-from pathlib import Path
 import random
 import re
 import shlex
@@ -68,21 +67,6 @@ class resetting:
     def __exit__(self, *args):
         for attr, value in zip(self.save_attrs, self.save_values):
             setattr(self.ob, attr, value)
-
-
-try:
-    from contextlib import chdir as tmp_chdir
-except ImportError:
-    import os
-
-    @contextlib.contextmanager
-    def tmp_chdir(tmp_cwd: Path):
-        cwd = Path.cwd()
-        try:
-            os.chdir(tmp_cwd)
-            yield
-        except:
-            os.chdir(cwd)
 
 
 def find_all_re_matches(patt, s):
@@ -222,19 +206,6 @@ class Test01b_PyparsingUnitTestUtilitiesTests(TestCase):
                         print(base.parseString("x"))
                     except ParseException as pe:
                         pass
-
-
-class Test01c_PyparsingMainTest(TestCase):
-    def runTest(self):
-        import subprocess
-
-        project_home = Path(__file__).parent.parent
-
-        with tmp_chdir(project_home):
-            completed = subprocess.run("python -m pyparsing --version".split(), capture_output=True, text=True)
-            self.assertEqual(0, completed.returncode)
-            self.assertEqual("", completed.stderr)
-            self.assertEqual(pp.__version__, completed.stdout.rstrip())
 
 
 class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
@@ -6546,8 +6517,6 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
         """,
             postParse=eval_fraction,
         )
-        print(success)
-
         self.assertTrue(success, "failed to parse fractions in RunTestsPostParse")
 
         expected_accum = [("1/2", [1, "/", 2]), ("1/0", [1, "/", 0])]
