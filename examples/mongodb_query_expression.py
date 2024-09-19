@@ -179,18 +179,18 @@ def binary_array_comparison_op(s, l, tokens):
 
     if op == "contains none":
         return {
-            field: { "$nin": list(set(value) if isinstance(value, list) else {value})}
+            field: { "$nin": list({}.fromkeys(value, None) if isinstance(value, list) else {value})}
         }
 
     if op == "contains any":
         return {
-            field: { "$in": list(set(value) if isinstance(value, list) else {value})}
+            field: { "$in": list({}.fromkeys(value, None) if isinstance(value, list) else {value})}
         }
 
     if op == "contains":
         return {field: {binary_map[op]: value if isinstance(value, list) else [value]}}
 
-    return {field: {binary_map[op]: list(set(value) if isinstance(value, list) else {value})}}
+    return {field: {binary_map[op]: list({}.fromkeys(value, None) if isinstance(value, list) else {value})}}
 
 
 def regex_comparison_op(s, l, tokens):
@@ -348,18 +348,18 @@ def transform_query(query_string: str, include_comment: bool = False) -> Dict:
         {'$and': [{'a': 100}, {'b': {'$gte': 200}}]}
 
         a==100 and not (b>=200 or c<200)
-        {'$and': [{'a': 100}, {'$not': {'$or': [{'b': {'$gte': 200}}, {'c': {'$lt': 200}}]}}]}
+        {'$and': [{'a': 100}, {'$nor': [{'$or': [{'b': {'$gte': 200}}, {'c': {'$lt': 200}}]}]}]}
 
         name in ["Alice", "Bob"]
         {'name': {'$in': ['Alice', 'Bob']}}
 
     Also supported:
     - embedded and array references
-        a.b < 100
-        {'a.b': {'$lt': 100}}
+        a.b > 1000
+        {'a.b': {'$gt': 1000}}
 
-        a.0 < 100
-        {'a.0': {'$lt': 100}}
+        a.0 == "Alice"
+        {'a.0': 'Alice'}
 
         a[0] < 100
         {'a.0': {'$lt': 100}}
@@ -372,7 +372,13 @@ def transform_query(query_string: str, include_comment: bool = False) -> Dict:
       (dates are in YYYY/MM/DD format, and may use '/' or '-' separators)
       (times may be HH:MM, HH:MM:SS, or HH:MM:SS.SSS format)
         dob = 1935-01-08
-        motm = 1969/07/20 10:56
+        event.timestamp = 1969/07/20 10:56
+        1946-01-01 <= dob <= 1964-12-31
+        {'$and': [
+            {'dob': {'$gte': datetime.datetime(1946, 1, 1, 0, 0)}},
+            {'dob': {'$lte': datetime.datetime(1964, 12, 31, 0, 0)}}
+            ]
+        }
         y2k = 2000/01/01 00:00:00.000
 
     - `in` and `not in`
@@ -510,9 +516,9 @@ def main():
     ).splitlines():
         print(test)
         if test.startswith("#"):
-            print("(skipping...)\n")
             continue
-        print(transform_query(test))
+        transformed = transform_query(test)
+        print(transformed)
         print()
 
 
