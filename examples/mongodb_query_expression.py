@@ -71,6 +71,9 @@ CONTAINS_ANY = key_phrase(CONTAINS + ANY)
 
 
 def binary_eq_neq(s, l, tokens):
+    """
+    Parse action called for '=' and '!=' comparisons.
+    """
     a, op, b = tokens[0]
     try:
         {a: None}
@@ -85,6 +88,10 @@ def binary_eq_neq(s, l, tokens):
 
 
 def binary_comparison_op(s, l, tokens):
+    """
+    Parse action called for '<', '>', '<=', and '>=' comparisons.
+    Includes logic to handle chained inequalities, like '100 <= a < 200'.
+    """
     tokens = tokens[0]
     binary_map = {
         "<": "$lt",
@@ -145,6 +152,9 @@ def binary_comparison_op(s, l, tokens):
 
 
 def binary_array_comparison_op(s, l, tokens):
+    """
+    Parse action to handle array membership tests, such as 'in', 'not in', etc.
+    """
     tokens = tokens[0]
     binary_map = {
         "in": "$in",
@@ -194,6 +204,9 @@ def binary_array_comparison_op(s, l, tokens):
 
 
 def regex_comparison_op(s, l, tokens):
+    """
+    Parse action to handle regex and wildcard ("LIKE" syntax) matching.
+    """
     tokens = tokens[0]
     try:
         field, op, value = tokens
@@ -234,6 +247,18 @@ def regex_comparison_op(s, l, tokens):
 
 
 def binary_multi_op(tokens):
+    """
+    Parse action to handle binary Boolean operators 'and' and 'or',
+    combining 2 or more condition expressions.
+
+    When this action is called, all the operators will be the same (all 'and' or all 'or').
+    If an expression contains multiple 'and' operators (as in 'a=100 and b=200 and c=300'),
+    then it will receive them as [{'a': 100}, 'and', {'b': 200}, 'and', {'c': 300}] (the
+    individual equality tests having already been processed by binary_eq_neq and converted
+    to dicts). There is no limit to the number of terms that can be combined using 'and'
+    or 'or'. This method will merge all the parsed value conditions into a single
+    dict expression.
+    """
     tokens = tokens[0]
     oper_map = {
         "and": "$and",
@@ -274,6 +299,9 @@ def binary_multi_op(tokens):
 
 
 def unary_op(tokens):
+    """
+    Parse action to handle 'not' Boolean operator.
+    """
     tokens = tokens[0]
     oper_map = {
         "not": "$nor",
@@ -288,8 +316,12 @@ def unary_op(tokens):
     return {oper_map[op]: [value]}
 
 
-comparison_expr = pp.infix_notation(
-    (operand | operand_list).set_name("comparison_operand"),
+# use pyparsing's infix_notation function to define a recursive grammar
+# implementing the various operator expressions and their associated parse
+# actions, as well as expressions nested in ()'s to override the default
+# precedence of operations
+arith_comparison_expr = pp.infix_notation(
+    (operand | operand_list).set_name("arith_comparison_operand"),
     [
         (pp.one_of("<= >= < > ≤ ≥"), 2, pp.OpAssoc.LEFT, binary_comparison_op),
         (LIKE | NOT_LIKE | "=~", 2, pp.OpAssoc.LEFT, regex_comparison_op),
@@ -316,8 +348,8 @@ NOT_OP = NOT + ~(IN | LIKE)
 AND_OP = AND | pp.Literal("∧").add_parse_action(pp.replace_with("and"))
 OR_OP = OR | pp.Literal("∨").add_parse_action(pp.replace_with("or"))
 
-query_condition_expr = pp.infix_notation(
-    (comparison_expr | ident).set_name("query_operand"),
+boolean_comparison_expr = pp.infix_notation(
+    (arith_comparison_expr | ident).set_name("boolean_comparison_operand"),
     [
         (NOT_OP, 1, pp.OpAssoc.RIGHT, unary_op),
         (AND_OP, 2, pp.OpAssoc.LEFT, binary_multi_op),
@@ -325,8 +357,10 @@ query_condition_expr = pp.infix_notation(
     ]
 )
 
+query_condition_expr = boolean_comparison_expr
+
 # add $comment containing the original expression string
-query_condition_expr_with_comment = pp.And([query_condition_expr])
+query_condition_expr_with_comment = pp.And([boolean_comparison_expr])
 query_condition_expr_with_comment.add_parse_action(
     lambda s, l, t: t[0].__setitem__("$comment", s)
 )
@@ -338,7 +372,37 @@ def transform_query(query_string: str, include_comment: bool = False) -> Dict:
     r"""
     Parse a query string using boolean and arithmetic comparison operations,
     and convert it to a dict for the expression equivalent using MongoDB query
-    expression structure.
+    expression structure. If 'include_comment' is set to True, the resulting
+    query will include the original string as a `$comment` element in the
+    generated query.
+
+    Arithmetic comparison operators are (in order of precedence):
+        <= >= < > ≤ ≥
+        = == != ≠
+        =~, like, not like
+        ⊇ ∈ ∉, in, not in, contains, contains all, contains none, contains any
+
+    Boolean operators are (in order of precedence) 'not', 'and', and 'or'. '∧' and '∨'
+    can be used interchangeably with 'and' and 'or'. Boolean operators are all of lower
+    precedence than arithmetic comparison operators.
+
+    '=' and '==' are equivalent, to accommodate variations in user expression dialects.
+
+    '=~' performs regex search matching; use regex '^' or '$' anchors for matching
+    leading or trailing expressions.
+
+    'like' and 'not like' perform SQL-like wild card matching, using '%' to match
+    any substring; the substring is assumed to be anchored at start and end of the string,
+    unless it starts and/or ends with '%'. Use '%%' to match a literal '%' character.
+
+    '⊇', '∈', '∉' correspond to 'contains all', 'in', and 'not in', and should be used
+    on array fields, or when testing a scalar field for membership in a list.
+
+    Array indexing can be done using 'field.0' form or 'field[0]' form.
+
+    Embedded documents are accessed using '.' notation, as in 'field.subfield'.
+
+    All operator keywords are case-insensitive (i.e., 'LIKE' and 'like' are equivalent).
 
     Examples:
         a = 100 and b = 200
@@ -371,14 +435,13 @@ def transform_query(query_string: str, include_comment: bool = False) -> Dict:
     - dates and datetimes
       (dates are in YYYY/MM/DD format, and may use '/' or '-' separators)
       (times may be HH:MM, HH:MM:SS, or HH:MM:SS.SSS format)
-        dob = 1935-01-08
-        event.timestamp = 1969/07/20 10:56
         1946-01-01 <= dob <= 1964-12-31
         {'$and': [
             {'dob': {'$gte': datetime.datetime(1946, 1, 1, 0, 0)}},
             {'dob': {'$lte': datetime.datetime(1964, 12, 31, 0, 0)}}
             ]
         }
+        event.timestamp = 1969/07/20 10:56
         y2k = 2000/01/01 00:00:00.000
 
     - `in` and `not in`
@@ -440,7 +503,7 @@ def transform_query(query_string: str, include_comment: bool = False) -> Dict:
     transformer_expr = (
         query_condition_expr_with_comment
         if include_comment
-        else query_condition_expr
+        else boolean_comparison_expr
     )
     return transformer_expr.parse_string(query_string, parse_all=True)[0]
 
@@ -504,7 +567,7 @@ def main():
         y2k_day = 2000/01/01
         y2k_sec = 2000/01/01 00:00:00
         y2k_msec = 2000/01/01 00:00:00.000
-        motm = 1969/07/20 10:56
+        event.timestamp = 1969/07/20 10:56
         1946 <= birth_year <= 1964
         1946-01-01 <= dob <= 1964-12-31
         # redundant equality conditions get collapsed
