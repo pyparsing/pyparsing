@@ -1,4 +1,5 @@
 # exceptions.py
+from __future__ import annotations
 
 import re
 import sys
@@ -61,7 +62,7 @@ class ParseBaseException(Exception):
         self.args = (pstr, loc, msg)
 
     @staticmethod
-    def explain_exception(exc, depth=16):
+    def explain_exception(exc: Exception, depth: int = 16) -> str:
         """
         Method to take an exception and translate the Python internal traceback into a list
         of the pyparsing expressions that caused the exception to be raised.
@@ -125,7 +126,7 @@ class ParseBaseException(Exception):
         return "\n".join(ret)
 
     @classmethod
-    def _from_exception(cls, pe):
+    def _from_exception(cls, pe) -> ParseBaseException:
         """
         internal factory method to simplify creating one type of ParseException
         from another - avoids having __init__ signature conflicts among subclasses
@@ -204,7 +205,7 @@ class ParseBaseException(Exception):
             )
         return line_str.strip()
 
-    def explain(self, depth=16) -> str:
+    def explain(self, depth: int = 16) -> str:
         """
         Method to translate the Python internal traceback into a list
         of the pyparsing expressions that caused the exception to be raised.
