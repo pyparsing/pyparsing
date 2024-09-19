@@ -445,8 +445,12 @@ def transform_query(query_string: str, include_comment: bool = False) -> Dict:
             {'dob': {'$lte': datetime.datetime(1964, 12, 31, 0, 0)}}
             ]
         }
+
         event.timestamp = 1969/07/20 10:56
+        {'event.timestamp': datetime.datetime(1969, 7, 20, 10, 56)}
+
         y2k = 2000/01/01 00:00:00.000
+        {'y2k': datetime.datetime(2000, 1, 1, 0, 0)}
 
     - `in` and `not in`
         name in ["Alice", "Bob"]
