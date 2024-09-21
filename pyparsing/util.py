@@ -134,13 +134,13 @@ class LRUMemo:
     def __init__(self, capacity):
         self._capacity = capacity
         self._active = {}
-        self._memory = collections.OrderedDict()
+        self._memory = {}
 
     def __getitem__(self, key):
         try:
             return self._active[key]
         except KeyError:
-            self._memory.move_to_end(key)
+            self._memory[key] = self._memory.pop(key)
             return self._memory[key]
 
     def __setitem__(self, key, value):
@@ -153,8 +153,9 @@ class LRUMemo:
         except KeyError:
             pass
         else:
-            while len(self._memory) >= self._capacity:
-                self._memory.popitem(last=False)
+            oldest_keys = list(self._memory)[:-self._capacity]
+            for key_to_delete in oldest_keys:
+                self._memory.pop(key_to_delete)
             self._memory[key] = value
 
     def clear(self):
