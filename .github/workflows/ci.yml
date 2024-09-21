@@ -22,12 +22,12 @@ jobs:
       matrix:
         os: ["ubuntu-latest"]
         toxenv: [py]
-        python-version: ["3.9", "3.10", "3.11", "3.12", "3.13.0-rc.1"]
+        python-version: ["3.9", "3.10", "3.11", "3.12", "3.13.0-rc.2"]
         include:
           - python-version: "3.12"
             os: macos-latest
           - python-version: "3.11"
-            toxenv: mypy-test
+            toxenv: mypy-check
           - python-version: "pypy-3.9"
     env:
       TOXENV: ${{ matrix.toxenv || 'py' }}
