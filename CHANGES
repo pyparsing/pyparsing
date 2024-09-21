@@ -39,6 +39,9 @@ Version 3.2.0 - September, 2024
   where some diagram elements were just empty blocks. Fix submitted by RoDuth,
   thanks a ton!
 
+- Added type annotations to remainder of `pyparsing` package, and added `mypy`
+  run to `tox.ini`.
+
 - Added `indent` and `base_1` arguments to `pyparsing.testing.with_line_numbers`. When
   using `with_line_numbers` inside a parse action, set `base_1`=False, since the
   reported `loc` value is 0-based. `indent` can be a leading string (typically of

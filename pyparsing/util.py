@@ -153,7 +153,7 @@ class LRUMemo:
         except KeyError:
             pass
         else:
-            oldest_keys = list(self._memory)[:-self._capacity]
+            oldest_keys = list(self._memory)[: -self._capacity]
             for key_to_delete in oldest_keys:
                 self._memory.pop(key_to_delete)
             self._memory[key] = value
@@ -266,10 +266,10 @@ def replaced_by_pep8(compat_name: str, fn: C) -> C:
     _inner.__name__ = compat_name
     _inner.__annotations__ = fn.__annotations__
     if isinstance(fn, types.FunctionType):
-        _inner.__kwdefaults__ = fn.__kwdefaults__
+        _inner.__kwdefaults__ = fn.__kwdefaults__  # type: ignore [attr-defined]
     elif isinstance(fn, type) and hasattr(fn, "__init__"):
-        _inner.__kwdefaults__ = fn.__init__.__kwdefaults__
+        _inner.__kwdefaults__ = fn.__init__.__kwdefaults__  # type: ignore [misc,attr-defined]
     else:
-        _inner.__kwdefaults__ = None
+        _inner.__kwdefaults__ = None  # type: ignore [attr-defined]
     _inner.__qualname__ = fn.__qualname__
     return cast(C, _inner)

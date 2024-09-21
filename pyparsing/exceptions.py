@@ -1,6 +1,7 @@
 # exceptions.py
 from __future__ import annotations
 
+import copy
 import re
 import sys
 import typing
@@ -89,7 +90,7 @@ class ParseBaseException(Exception):
             ret.append(f"{' ' * (exc.column - 1)}^")
         ret.append(f"{type(exc).__name__}: {exc}")
 
-        if depth <= 0:
+        if depth <= 0 or exc.__traceback__ is None:
             return "\n".join(ret)
 
         callers = inspect.getinnerframes(exc.__traceback__, context=depth)
@@ -169,6 +170,9 @@ class ParseBaseException(Exception):
     @parserElement.setter
     def parserElement(self, elem):
         self.parser_element = elem
+
+    def copy(self):
+        return copy.copy(self)
 
     def __str__(self) -> str:
         if self.pstr:

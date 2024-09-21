@@ -55,7 +55,7 @@ class unicode_set:
     @_lazyclassproperty
     def _chars_for_ranges(cls) -> list[str]:
         ret: list[int] = []
-        for cc in cls.__mro__:
+        for cc in cls.__mro__:  # type: ignore[attr-defined]
             if cc is unicode_set:
                 break
             for rr in getattr(cc, "_ranges", ()):

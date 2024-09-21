@@ -174,7 +174,7 @@ class ParseResults:
     # constructor as small and fast as possible
     def __init__(
         self, toklist=None, name=None, asList=True, modal=True, isinstance=isinstance
-    ):
+    ) -> None:
         self._tokdict: dict[str, _ParseResultsWithOffset]
         self._modal = modal
 
@@ -586,11 +586,11 @@ class ParseResults:
                     dest[k] = v.deepcopy() if isinstance(v, ParseResults) else v
             elif isinstance(obj, Iterable):
                 ret._toklist[i] = type(obj)(
-                    v.deepcopy() if isinstance(v, ParseResults) else v for v in obj
+                    v.deepcopy() if isinstance(v, ParseResults) else v for v in obj  # type: ignore[call-arg]
                 )
         return ret
 
-    def get_name(self) -> str:
+    def get_name(self) -> str | None:
         r"""
         Returns the results name for this token expression. Useful when several
         different expressions might match at a particular location.

@@ -211,7 +211,7 @@ def one_of(
         masks = lambda a, b: b.startswith(a)
         parseElementClass = Keyword if asKeyword else Literal
 
-    symbols: List[str] = []
+    symbols: list[str]
     if isinstance(strs, str_type):
         strs = typing.cast(str, strs)
         symbols = strs.split()

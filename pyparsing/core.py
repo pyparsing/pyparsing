@@ -3,6 +3,7 @@
 #
 from __future__ import annotations
 
+import collections.abc
 from collections import deque
 import os
 import typing
@@ -589,9 +590,9 @@ class ParserElement(ABC):
                 return _parseMethod(instring, loc, do_actions, callPreParse)
 
             breaker._originalParseMethod = _parseMethod  # type: ignore [attr-defined]
-            self._parse = breaker  # type: ignore [assignment]
+            self._parse = breaker  # type: ignore [method-assign]
         elif hasattr(self._parse, "_originalParseMethod"):
-            self._parse = self._parse._originalParseMethod  # type: ignore [attr-defined, assignment]
+            self._parse = self._parse._originalParseMethod  # type: ignore [method-assign]
         return self
 
     def set_parse_action(self, *fns: ParseAction, **kwargs: Any) -> ParserElement:
@@ -914,25 +915,42 @@ class ParserElement(ABC):
 
     # cache for left-recursion in Forward references
     recursion_lock = RLock()
-    recursion_memos: typing.Dict[
-        tuple[int, "Forward", bool], tuple[int, Union[ParseResults, Exception]]
+    recursion_memos: collections.abc.MutableMapping[
+        tuple[int, Forward, bool], tuple[int, Union[ParseResults, Exception]]
     ] = {}
 
-    class _CacheType(dict):
+    class _CacheType(typing.Protocol):
         """
-        class to help type checking
+        Class to be used for packrat and left-recursion cacheing of results
+        and exceptions.
         """
 
         not_in_cache: bool
 
-        def get(self, *args): ...
+        def get(self, *args) -> typing.Any: ...
 
-        def set(self, *args): ...
+        def set(self, *args) -> None: ...
 
-    # argument cache for optimizing repeated calls when backtracking through recursive expressions
-    packrat_cache = (
-        _CacheType()
-    )  # set later by enable_packrat(); this is here so that reset_cache() doesn't fail
+        def clear(self) -> None: ...
+
+    class NullCache(dict):
+        """
+        A null cache type for initialization of the packrat_cache class variable.
+        If/when enable_packrat() is called, this null cache will be replaced by a
+        proper _CacheType class instance.
+        """
+
+        not_in_cache: bool = True
+
+        def get(self, *args) -> typing.Any: ...
+
+        def set(self, *args) -> None: ...
+
+        def clear(self) -> None: ...
+
+    # class-level argument cache for optimizing repeated calls when backtracking
+    # through recursive expressions
+    packrat_cache: _CacheType = NullCache()
     packrat_cache_lock = RLock()
     packrat_cache_stats = [0, 0]
 
@@ -1055,7 +1073,7 @@ class ParserElement(ABC):
         elif ParserElement._packratEnabled:
             raise RuntimeError("Packrat and Bounded Recursion are not compatible")
         if cache_size_limit is None:
-            ParserElement.recursion_memos = _UnboundedMemo()  # type: ignore[assignment]
+            ParserElement.recursion_memos = _UnboundedMemo()
         elif cache_size_limit > 0:
             ParserElement.recursion_memos = _LRUMemo(capacity=cache_size_limit)  # type: ignore[assignment]
         else:
@@ -1108,7 +1126,7 @@ class ParserElement(ABC):
         if cache_size_limit is None:
             ParserElement.packrat_cache = _UnboundedCache()
         else:
-            ParserElement.packrat_cache = _FifoCache(cache_size_limit)  # type: ignore[assignment]
+            ParserElement.packrat_cache = _FifoCache(cache_size_limit)
         ParserElement._parse = ParserElement._parseCache
 
     def parse_string(
@@ -1883,7 +1901,7 @@ class ParserElement(ABC):
             integer.set_name("integer")
             integer.parse_string("ABC")  # -> Exception: Expected integer (at char 0), (line:1, col:1)
         """
-        self.customName = name
+        self.customName = name  # type: ignore[assignment]
         self.errmsg = f"Expected {str(self)}"
 
         if __diag__.enable_debug_on_named_expressions:
@@ -2502,7 +2520,7 @@ class Keyword(Token):
         return repr(self.match)
 
     def parseImpl(self, instring, loc, do_actions=True) -> ParseImplReturnType:
-        errmsg = self.errmsg
+        errmsg = self.errmsg or ""
         errloc = loc
         if self.caseless:
             if instring[loc : loc + self.matchLen].upper() == self.caselessmatch:
@@ -2880,7 +2898,7 @@ class Word(Token):
                 self.re = None  # type: ignore[assignment]
             else:
                 self.re_match = self.re.match
-                self.parseImpl = self.parseImpl_regex  # type: ignore[assignment]
+                self.parseImpl = self.parseImpl_regex  # type: ignore[method-assign]
 
     def _generateDefaultName(self) -> str:
         def charsAsStr(s):
@@ -3037,9 +3055,9 @@ class Regex(Token):
         self.asGroupList = asGroupList
         self.asMatch = asMatch
         if self.asGroupList:
-            self.parseImpl = self.parseImplAsGroupList  # type: ignore [assignment]
+            self.parseImpl = self.parseImplAsGroupList  # type: ignore [method-assign]
         if self.asMatch:
-            self.parseImpl = self.parseImplAsMatch  # type: ignore [assignment]
+            self.parseImpl = self.parseImplAsMatch  # type: ignore [method-assign]
 
     @cached_property
     def re(self) -> re.Pattern:
@@ -3052,12 +3070,12 @@ class Regex(Token):
             raise ValueError(f"invalid pattern ({self.pattern!r}) passed to Regex")
 
     @cached_property
-    def re_match(self) -> Callable[[str], Any]:
+    def re_match(self) -> Callable[[str, int], Any]:
         return self.re.match
 
     @cached_property
-    def mayReturnEmpty(self) -> bool:
-        return self.re_match("") is not None
+    def mayReturnEmpty(self) -> bool:  # type: ignore[override]
+        return self.re_match("", 0) is not None
 
     def _generateDefaultName(self) -> str:
         unescaped = repr(self.pattern).replace("\\\\", "\\")
@@ -4165,7 +4183,7 @@ class Or(ParseExpression):
                 best_expr = matches[0][1]
                 return best_expr._parse(instring, loc, do_actions)
 
-            longest = -1, None
+            longest: tuple[int, typing.Optional[ParseResults]] = -1, None
             for loc1, expr1 in matches:
                 if loc1 <= longest[0]:
                     # already have a longer match than this one will deliver, we are done
@@ -4200,7 +4218,7 @@ class Or(ParseExpression):
             # infer from this check that all alternatives failed at the current position
             # so emit this collective error message instead of any single error message
             if maxExcLoc == loc:
-                maxException.msg = self.errmsg
+                maxException.msg = self.errmsg or ""
             raise maxException
 
         raise ParseException(instring, loc, "no defined alternatives to match", self)
@@ -4307,7 +4325,7 @@ class MatchFirst(ParseExpression):
             # infer from this check that all alternatives failed at the current position
             # so emit this collective error message instead of any individual error message
             if maxExcLoc == loc:
-                maxException.msg = self.errmsg
+                maxException.msg = self.errmsg or ""
             raise maxException
 
         raise ParseException(instring, loc, "no defined alternatives to match", self)
@@ -4688,7 +4706,7 @@ class IndentedBlock(ParseElementEnhance):
         if self._grouped:
             wrapper = Group
         else:
-            wrapper = lambda expr: expr
+            wrapper = lambda expr: expr  # type: ignore[misc, assignment]
         return (wrapper(block) + Optional(trailing_undent)).parseImpl(
             instring, anchor_loc, do_actions
         )
@@ -4814,9 +4832,7 @@ class PrecededBy(ParseElementEnhance):
 
     """
 
-    def __init__(
-        self, expr: Union[ParserElement, str], retreat: typing.Optional[int] = None
-    ):
+    def __init__(self, expr: Union[ParserElement, str], retreat: int = 0):
         super().__init__(expr)
         self.expr = self.expr().leave_whitespace()
         self.mayReturnEmpty = True
@@ -4851,7 +4867,7 @@ class PrecededBy(ParseElementEnhance):
         # retreat specified a maximum lookbehind window, iterate
         test_expr = self.expr + StringEnd()
         instring_slice = instring[max(0, loc - self.retreat) : loc]
-        last_expr = ParseException(instring, loc, self.errmsg, self)
+        last_expr: ParseBaseException = ParseException(instring, loc, self.errmsg, self)
 
         for offset in range(1, min(loc, self.retreat + 1) + 1):
             try:
@@ -5230,9 +5246,9 @@ class Opt(ParseElementEnhance):
                     tokens = ParseResults([default_value])
                     tokens[self_expr.resultsName] = default_value
                 else:
-                    tokens = [default_value]
+                    tokens = [default_value]  # type: ignore[assignment]
             else:
-                tokens = []
+                tokens = []  # type: ignore[assignment]
         return loc, tokens
 
     def _generateDefaultName(self) -> str:
@@ -5571,9 +5587,9 @@ class Forward(ParseElementEnhance):
                             # in case the action did backtrack
                             prev_loc, prev_result = memo[peek_key] = memo[act_key]
                             del memo[peek_key], memo[act_key]
-                            return prev_loc, prev_result.copy()
+                            return prev_loc, copy.copy(prev_result)
                         del memo[peek_key]
-                        return prev_loc, prev_peek.copy()
+                        return prev_loc, copy.copy(prev_peek)
                     # the match did get better: see if we can improve further
                     if do_actions:
                         try:
