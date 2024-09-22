@@ -162,6 +162,23 @@ class ParseBaseException(Exception):
         """
         return col(self.loc, self.pstr)
 
+    @property
+    def found(self) -> str:
+        if not self.pstr:
+            return ""
+
+        if self.loc >= len(self.pstr):
+            return "end of text"
+
+        # pull out next word at error location
+        found_match = _exception_word_extractor.match(self.pstr, self.loc)
+        if found_match is not None:
+            found = found_match.group(0)
+        else:
+            found = self.pstr[self.loc : self.loc + 1]
+
+        return repr(found).replace(r"\\", "\\")
+
     # pre-PEP8 compatibility
     @property
     def parserElement(self):
@@ -175,19 +192,7 @@ class ParseBaseException(Exception):
         return copy.copy(self)
 
     def __str__(self) -> str:
-        if self.pstr:
-            if self.loc >= len(self.pstr):
-                foundstr = ", found end of text"
-            else:
-                # pull out next word at error location
-                found_match = _exception_word_extractor.match(self.pstr, self.loc)
-                if found_match is not None:
-                    found = found_match.group(0)
-                else:
-                    found = self.pstr[self.loc : self.loc + 1]
-                foundstr = (", found %r" % found).replace(r"\\", "\\")
-        else:
-            foundstr = ""
+        foundstr = f", found {self.found}" if self.found else ""
         return f"{self.msg}{foundstr}  (at char {self.loc}), (line:{self.lineno}, col:{self.column})"
 
     def __repr__(self):
