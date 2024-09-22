@@ -1,8 +1,6 @@
-import pytest
 from typing import Union, Iterable
+import pytest
 import pyparsing as pp
-import itertools
-import collections
 
 
 @pytest.mark.parametrize(
@@ -14,16 +12,36 @@ import collections
         ("Mixed list with single values and lists", [1, [2, 3], 4], [1, 2, 3, 4]),
         ("Deeper nested lists", [1, [2, [3, 4]], 5], [1, 2, 3, 4, 5]),
         ("Deeper nesting with sublists", [[[1], 2], [3]], [1, 2, 3]),
-        ("Mixed empty and non-empty nested lists", [[], [1], [2, [3]], [[4, 5]]], [1, 2, 3, 4, 5]),
+        (
+            "Mixed empty and non-empty nested lists",
+            [[], [1], [2, [3]], [[4, 5]]],
+            [1, 2, 3, 4, 5],
+        ),
         ("Deeply nested empty lists", [[[[]]]], []),
         ("Mixed empty lists and non-empty elements", [1, [], 2, [3, []]], [1, 2, 3]),
-        ("ParseResults instead of lists", [pp.ParseResults([1, 2]), pp.ParseResults([3, 4])], [1, 2, 3, 4]),
-        ("ParseResults with mixed types", [1, pp.ParseResults([2, 3]), 4], [1, 2, 3, 4]),
-        ("Nested ParseResults", [pp.ParseResults([1, pp.ParseResults([2, 3])]), 4], [1, 2, 3, 4]),
-        ("Empty ParseResults", [pp.ParseResults([]), 1, pp.ParseResults([2, 3])], [1, 2, 3]),
-    ]
+        (
+            "ParseResults instead of lists",
+            [pp.ParseResults([1, 2]), pp.ParseResults([3, 4])],
+            [1, 2, 3, 4],
+        ),
+        (
+            "ParseResults with mixed types",
+            [1, pp.ParseResults([2, 3]), 4],
+            [1, 2, 3, 4],
+        ),
+        (
+            "Nested ParseResults",
+            [pp.ParseResults([1, pp.ParseResults([2, 3])]), 4],
+            [1, 2, 3, 4],
+        ),
+        (
+            "Empty ParseResults",
+            [pp.ParseResults([]), 1, pp.ParseResults([2, 3])],
+            [1, 2, 3],
+        ),
+    ],
 )
-def test_flatten(test_label, input_list, expected_output):
+def test_flatten(test_label: str, input_list: list, expected_output: list):
     from pyparsing.util import _flatten
 
     """Test flatten with various inputs."""
@@ -51,9 +69,14 @@ def test_flatten(test_label, input_list, expected_output):
         ("Verify range ending with '-' creates valid regex", "*+,-", True, r"*-\-"),
         ("Verify range ending with ']' creates valid regex", r"WXYZ[\]", True, r"W-\]"),
         ("Verify range starting with '^' creates valid regex", "^_`a", True, r"\^-a"),
-    ]
+    ],
 )
-def test_collapse_string_to_ranges(test_label: str, input_string: Union[str, Iterable[str]], re_escape: bool, expected_output: str):
+def test_collapse_string_to_ranges(
+    test_label: str,
+    input_string: Union[str, Iterable[str]],
+    re_escape: bool,
+    expected_output: str,
+):
     """Test collapsing a string into character ranges with and without regex escaping."""
     from pyparsing.util import _collapse_string_to_ranges
     from random import random
@@ -66,23 +89,24 @@ def test_collapse_string_to_ranges(test_label: str, input_string: Union[str, Ite
     assert collapsed == expected_output
 
     if input_string:
-        # assert that this can be used as a valid regex range string
-        if re_escape:
-            collapsed_re = re.compile(f"[{collapsed}]+")
-            match = collapsed_re.match(input_string)
-            print(f"re.match:'{collapsed_re.pattern}' -> {match and match[0]!r}")
-            assert match is not None and match[0] == input_string
-
         # for added coverage, randomly shuffle input string
         shuffled = "".join(sorted(list(input_string), key=lambda _: random()))
         collapsed = _collapse_string_to_ranges(shuffled, re_escape)
         print(f"{shuffled!r} -> {collapsed!r}")
         assert collapsed == expected_output
 
+        # added test to assert that the collapsed string can be used as a valid regex range string
+        if re_escape:
+            collapsed_re = re.compile(f"[{collapsed}]+")
+            match = collapsed_re.match(input_string)
+            print(f"re.match:'{collapsed_re.pattern}' -> {match and match[0]!r}")
+            assert match is not None and match[0] == input_string
+
     print()
 
+
 @pytest.mark.parametrize(
-    "test_label, loc, strg, expected_output",
+    "test_label, loc, input_string, expected_output",
     [
         ("First column, no newline", 0, "abcdef", 1),
         ("Second column, no newline", 1, "abcdef", 2),
@@ -94,17 +118,17 @@ def test_collapse_string_to_ranges(test_label: str, input_string: Union[str, Ite
         ("Column after newline at end", 3, "abc\n", 4),
         ("Tab character in the string", 4, "a\tbcd\tef", 5),
         ("Multiple lines with tab", 8, "a\tb\nc\td", 5),
-    ]
+    ],
 )
-def test_col(test_label, loc, strg, expected_output):
+def test_col(test_label: str, loc: int, input_string: str, expected_output: int):
     from pyparsing.util import col
 
     print(test_label)
-    assert col(loc, strg) == expected_output
+    assert col(loc, input_string) == expected_output
 
 
 @pytest.mark.parametrize(
-    "test_label, loc, strg, expected_output",
+    "test_label, loc, input_string, expected_output",
     [
         ("Single line, no newlines", 0, "abcdef", "abcdef"),
         ("First line in multi-line string", 2, "abc\ndef", "abc"),
@@ -116,17 +140,17 @@ def test_col(test_label, loc, strg, expected_output):
         ("Single line with newline at end", 2, "abc\n", "abc"),
         ("Multi-line with multiple newlines", 6, "line1\nline2\nline3", "line2"),
         ("Multi-line with trailing newline", 11, "line1\nline2\nline3\n", "line2"),
-    ]
+    ],
 )
-def test_line(test_label, loc, strg, expected_output):
+def test_line(test_label: str, loc: int, input_string: str, expected_output: str):
     from pyparsing import line
 
     print(test_label)
-    assert line(loc, strg) == expected_output
+    assert line(loc, input_string) == expected_output
 
 
 @pytest.mark.parametrize(
-    "test_label, loc, strg, expected_output",
+    "test_label, loc, input_string, expected_output",
     [
         ("Single line, no newlines", 0, "abcdef", 1),
         ("First line in multi-line string", 2, "abc\ndef", 1),
@@ -139,9 +163,9 @@ def test_line(test_label, loc, strg, expected_output):
         ("Single line with newline at end", 4, "abc\n", 2),
         ("Multi-line with trailing newline", 12, "line1\nline2\nline3\n", 3),
         ("Location in middle of a tabbed string", 7, "a\tb\nc\td", 2),
-    ]
+    ],
 )
-def test_lineno(test_label, loc, strg, expected_output):
+def test_lineno(test_label: str, loc: int, input_string: str, expected_output: int):
     from pyparsing import lineno
 
-    assert lineno(loc, strg) == expected_output
+    assert lineno(loc, input_string) == expected_output

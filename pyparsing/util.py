@@ -184,6 +184,14 @@ def _escape_regex_range_chars(s: str) -> str:
 def _collapse_string_to_ranges(
     s: Union[str, Iterable[str]], re_escape: bool = True
 ) -> str:
+
+    # Developer notes:
+    # - Do not optimize this code assuming that the given input string
+    #   or internal lists will be short (such as in loading generators into
+    #   lists to make it easier to find the last element); this method is also
+    #   used to generate regex ranges for character sets in the pyparsing.unicode
+    #   classes, and these can be _very_ long strings
+
     def is_consecutive(c):
         c_int = ord(c)
         is_consecutive.prev, prev = c_int, is_consecutive.prev
@@ -191,7 +199,7 @@ def _collapse_string_to_ranges(
             is_consecutive.value = next(is_consecutive.counter)
         return is_consecutive.value
 
-    is_consecutive.prev = 0  # type: ignore [attr-defined]
+    is_consecutive.prev= 0  # type: ignore [attr-defined]
     is_consecutive.counter = itertools.count()  # type: ignore [attr-defined]
     is_consecutive.value = -1  # type: ignore [attr-defined]
 
