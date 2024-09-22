@@ -153,7 +153,7 @@ class LRUMemo:
         except KeyError:
             pass
         else:
-            oldest_keys = list(self._memory)[: -self._capacity]
+            oldest_keys = list(self._memory)[: -(self._capacity + 1)]
             for key_to_delete in oldest_keys:
                 self._memory.pop(key_to_delete)
             self._memory[key] = value
@@ -205,13 +205,16 @@ def _collapse_string_to_ranges(
         escape_re_range_char = no_escape_re_range_char
 
     ret = []
+
+    # reduce input string to remove duplicates, and put in sorted order
     s = "".join(sorted(set(s)))
-    if len(s) > 3:
+    if len(s) > 2:
+        # find groups of characters that are consecutive (can be replaced
+        # with "<first>-<last>")
         for _, chars in itertools.groupby(s, key=is_consecutive):
             first = last = next(chars)
-            last = collections.deque(
-                itertools.chain(iter([last]), chars), maxlen=1
-            ).pop()
+            for c in chars:
+                last = c
             if first == last:
                 ret.append(escape_re_range_char(first))
             else:
@@ -220,16 +223,19 @@ def _collapse_string_to_ranges(
                     f"{escape_re_range_char(first)}{sep}{escape_re_range_char(last)}"
                 )
     else:
+        # no need to list this (or these 2) chars with "-", just return as a list
         ret = [escape_re_range_char(c) for c in s]
 
     return "".join(ret)
 
 
-def _flatten(ll: list) -> list:
+def _flatten(ll: Iterable) -> list:
     ret = []
-    for i in ll:
-        if isinstance(i, list):
-            ret.extend(_flatten(i))
+    to_visit = [*ll]
+    while to_visit:
+        i = to_visit.pop(0)
+        if isinstance(i, Iterable) and not isinstance(i, str):
+            to_visit[:0] = i
         else:
             ret.append(i)
     return ret
