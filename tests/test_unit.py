@@ -10185,6 +10185,23 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
                 msg=f"unexpected exception line ({exception_line!r})",
             )
 
+    def testExceptionMessageCustomization(self):
+        with resetting(pp.ParseBaseException, "formatted_message"):
+            def custom_exception_message(exc) -> str:
+                found_phrase = f", found {exc.found}" if exc.found else ""
+                return f"{exc.lineno}:{exc.column} {exc.msg}{found_phrase}"
+
+            pp.ParseBaseException.formatted_message = custom_exception_message
+
+            try:
+                pp.Word(pp.nums).parse_string("ABC")
+            except ParseException as pe:
+                pe_msg = str(pe)
+            else:
+                pe_msg = ""
+
+            self.assertEqual("1:1 Expected W:(0-9), found 'ABC'", pe_msg)
+
     def testForwardReferenceException(self):
         token = pp.Forward()
         num = pp.Word(pp.nums)

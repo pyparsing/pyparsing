@@ -19,11 +19,26 @@ Version 3.2.0 - September, 2024
   - Updated type annotations to use built-in container types instead of names
     imported from the `typing` module (e.g., `list[str]` vs `List[str]`).
   - Reworked portions of the packrat cache to leverage insertion-preserving ordering
-    in dicts.
+    in dicts (including removal of uses of `OrderedDict`).
   - Changed `pdb.set_trace()` call in `ParserElement.set_break()` to `breakpoint()`.
   - Converted `typing.NamedTuple` to `dataclasses.dataclass` in railroad diagramming
     code.
   - Added `from __future__ import annotations` to clean up some type annotations.
+
+- Added type annotations to remainder of `pyparsing` package, and added `mypy`
+  run to `tox.ini`, so that type annotations are now run as part of pyparsing's CI.
+  Addresses Issue #373, raised by Iwan Aucamp, thanks!
+
+- Exception message format can now be customized, by overriding
+  `ParseBaseException.format_message`:
+
+      def custom_exception_message(exc) -> str:
+          found_phrase = f", found {exc.found}" if exc.found else ""
+          return f"{exc.lineno}:{exc.column} {exc.msg}{found_phrase}"
+
+      ParseBaseException.formatted_message = custom_exception_message
+
+  (PR #571 submitted by Odysseyas Krystalakos, nice work!)
 
 - POSSIBLE BREAKING CHANGE: Fixed code in `ParseElementEnhance` subclasses that
   replaced detailed exception messages raised in contained expressions with a
@@ -38,9 +53,6 @@ Version 3.2.0 - September, 2024
 - Fixed (or at least reduced) elusive bug when generating railroad diagrams,
   where some diagram elements were just empty blocks. Fix submitted by RoDuth,
   thanks a ton!
-
-- Added type annotations to remainder of `pyparsing` package, and added `mypy`
-  run to `tox.ini`.
 
 - Added `indent` and `base_1` arguments to `pyparsing.testing.with_line_numbers`. When
   using `with_line_numbers` inside a parse action, set `base_1`=False, since the
