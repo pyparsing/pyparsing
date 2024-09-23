@@ -1203,6 +1203,7 @@ class ParserElement(ABC):
         instring: str,
         max_matches: int = _MAX_INT,
         overlap: bool = False,
+        always_skip_whitespace=True,
         *,
         debug: bool = False,
         maxMatches: int = _MAX_INT,
@@ -1247,7 +1248,13 @@ class ParserElement(ABC):
             instring = str(instring).expandtabs()
         instrlen = len(instring)
         loc = 0
-        preparseFn = self.preParse
+        if always_skip_whitespace:
+            preparser = Empty()
+            preparser.ignoreExprs = self.ignoreExprs
+            preparser.whiteChars = self.whiteChars
+            preparseFn = preparser.preParse
+        else:
+            preparseFn = self.preParse
         parseFn = self._parse
         ParserElement.resetCache()
         matches = 0
@@ -1316,7 +1323,8 @@ class ParserElement(ABC):
         self.keepTabs = True
         try:
             for t, s, e in self.scan_string(instring, debug=debug):
-                out.append(instring[lastE:s])
+                if s > lastE:
+                    out.append(instring[lastE:s])
                 lastE = e
 
                 if not t:
@@ -1370,7 +1378,12 @@ class ParserElement(ABC):
         maxMatches = min(maxMatches, max_matches)
         try:
             return ParseResults(
-                [t for t, s, e in self.scan_string(instring, maxMatches, debug=debug)]
+                [
+                    t
+                    for t, s, e in self.scan_string(
+                        instring, maxMatches, always_skip_whitespace=False, debug=debug
+                    )
+                ]
             )
         except ParseBaseException as exc:
             if ParserElement.verbose_stacktrace:

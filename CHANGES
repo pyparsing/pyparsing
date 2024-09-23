@@ -47,6 +47,12 @@ Version 3.2.0 - September, 2024
   If your code has conditional logic based on the message content in raised
   `ParseExceptions`, this bugfix may require changes in your code.
 
+- POSSIBLE BREAKING CHANGE: Fixed bug in `transform_string()` where whitespace
+  in the input string was not properly preserved in the output string.
+
+  If your code uses `transform_string`, this bugfix may require changes in
+  your code.
+
 - Fixed the displayed output of `Regex` terms to deduplicate repeated backslashes,
   for easier reading in debugging, printing, and railroad diagrams.
 
