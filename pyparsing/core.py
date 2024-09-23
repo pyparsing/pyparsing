@@ -3955,7 +3955,7 @@ class ParseExpression(ParserElement):
 
 class And(ParseExpression):
     """
-    Requires all given :class:`ParseExpression` s to be found in the given order.
+    Requires all given :class:`ParserElement` s to be found in the given order.
     Expressions may be separated by whitespace.
     May be constructed using the ``'+'`` operator.
     May also be constructed using the ``'-'`` operator, which will
@@ -4116,7 +4116,7 @@ class And(ParseExpression):
 
 
 class Or(ParseExpression):
-    """Requires that at least one :class:`ParseExpression` is found. If
+    """Requires that at least one :class:`ParserElement` is found. If
     two expressions match, the expression that matches the longest
     string will be used. May be constructed using the ``'^'``
     operator.
@@ -4271,7 +4271,7 @@ class Or(ParseExpression):
 
 
 class MatchFirst(ParseExpression):
-    """Requires that at least one :class:`ParseExpression` is found. If
+    """Requires that at least one :class:`ParserElement` is found. If
     more than one expression matches, the first one listed is the one that will
     match. May be constructed using the ``'|'`` operator.
 
@@ -4378,7 +4378,7 @@ class MatchFirst(ParseExpression):
 
 
 class Each(ParseExpression):
-    """Requires all given :class:`ParseExpression` s to be found, but in
+    """Requires all given :class:`ParserElement` s to be found, but in
     any order. Expressions may be separated by whitespace.
 
     May be constructed using the ``'&'`` operator.
@@ -5690,7 +5690,7 @@ class Forward(ParseElementEnhance):
 
 class TokenConverter(ParseElementEnhance):
     """
-    Abstract subclass of :class:`ParseExpression`, for converting parsed results.
+    Abstract subclass of :class:`ParseElementEnhance`, for converting parsed results.
     """
 
     def __init__(self, expr: Union[ParserElement, str], savelist=False):
