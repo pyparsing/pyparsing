@@ -54,19 +54,23 @@ def flatten(nested_list):
 
 
 class resetting:
-    def __init__(self, *args):
-        ob = args[0]
-        attrnames = args[1:]
+    def __init__(self, ob, attrname: str, *attrnames):
         self.ob = ob
-        self.save_attrs = attrnames
-        self.save_values = [getattr(ob, attrname) for attrname in attrnames]
+        self.unset_attr = object()
+        self.save_attrs = [attrname, *attrnames]
+        self.save_values = [
+            getattr(ob, name, self.unset_attr) for name in self.save_attrs
+        ]
 
     def __enter__(self):
         pass
 
     def __exit__(self, *args):
         for attr, value in zip(self.save_attrs, self.save_values):
-            setattr(self.ob, attr, value)
+            if value is not self.unset_attr:
+                setattr(self.ob, attr, value)
+            else:
+                delattr(self.ob, attr)
 
 
 def find_all_re_matches(patt, s):
