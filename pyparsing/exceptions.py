@@ -5,15 +5,16 @@ import copy
 import re
 import sys
 import typing
+from functools import cached_property
 
+from .unicode import pyparsing_unicode as ppu
 from .util import (
+    _collapse_string_to_ranges,
     col,
     line,
     lineno,
-    _collapse_string_to_ranges,
     replaced_by_pep8,
 )
-from .unicode import pyparsing_unicode as ppu
 
 
 class _ExceptionWordUnicodeSet(
@@ -134,35 +135,35 @@ class ParseBaseException(Exception):
         """
         return cls(pe.pstr, pe.loc, pe.msg, pe.parser_element)
 
-    @property
+    @cached_property
     def line(self) -> str:
         """
         Return the line of text where the exception occurred.
         """
         return line(self.loc, self.pstr)
 
-    @property
+    @cached_property
     def lineno(self) -> int:
         """
         Return the 1-based line number of text where the exception occurred.
         """
         return lineno(self.loc, self.pstr)
 
-    @property
+    @cached_property
     def col(self) -> int:
         """
         Return the 1-based column on the line of text where the exception occurred.
         """
         return col(self.loc, self.pstr)
 
-    @property
+    @cached_property
     def column(self) -> int:
         """
         Return the 1-based column on the line of text where the exception occurred.
         """
         return col(self.loc, self.pstr)
 
-    @property
+    @cached_property
     def found(self) -> str:
         if not self.pstr:
             return ""
