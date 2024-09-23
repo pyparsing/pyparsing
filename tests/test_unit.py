@@ -3758,6 +3758,32 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             "ParseResults with empty list but containing a results name evaluated as False",
         )
 
+    def testParseResultsWithAsListWithAndWithoutFlattening(self):
+        ppc = pp.common
+
+        # define a recursive grammar so we can easily build nested ParseResults
+        LPAR, RPAR = pp.Suppress.using_each("()")
+        fn_call = pp.Forward()
+        fn_arg = fn_call | ppc.identifier | ppc.number
+        fn_call <<= ppc.identifier + pp.Group(LPAR + pp.Optional(pp.DelimitedList(fn_arg)) + RPAR)
+
+        tests = [
+            ("random()", ["random", []]),
+            ("sin(theta)", ["sin", ["theta"]]),
+            ("sin(rad(30))", ["sin", ["rad", [30]]]),
+            ("sin(rad(30), rad(60, 180))", ["sin", ["rad", [30], "rad", [60, 180]]]),
+            ("sin(rad(30), rad(60, 180), alpha)", ["sin", ["rad", [30], "rad", [60, 180], "alpha"]]),
+        ]
+        for test_string, expected in tests:
+            with self.subTest():
+                print(test_string)
+                observed = fn_call.parse_string(test_string, parse_all=True)
+                print(observed.as_list())
+                self.assertEqual(expected, observed.as_list())
+                print(observed.as_list(flatten=True))
+                self.assertEqual(flatten(expected), observed.as_list(flatten=True))
+                print()
+
     def testParseResultsCopy(self):
         expr = (
             pp.Word(pp.nums)

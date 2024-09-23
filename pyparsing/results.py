@@ -1,6 +1,7 @@
 # results.py
 from __future__ import annotations
 
+import collections
 from collections.abc import (
     MutableMapping,
     Mapping,
@@ -506,9 +507,10 @@ class ParseResults:
                 out.append(str(item))
         return out
 
-    def as_list(self) -> list:
+    def as_list(self, *, flatten: bool = False) -> list:
         """
         Returns the parse results as a nested list of matching tokens, all converted to strings.
+        If flatten is True, all the nesting levels in the returned list are collapsed.
 
         Example::
 
@@ -521,10 +523,22 @@ class ParseResults:
             result_list = result.as_list()
             print(type(result_list), result_list) # -> <class 'list'> ['sldkj', 'lsdkj', 'sldkj']
         """
-        return [
-            res.as_list() if isinstance(res, ParseResults) else res
-            for res in self._toklist
-        ]
+        def flattened(pr):
+            to_visit = collections.deque([*self])
+            while to_visit:
+                to_do = to_visit.popleft()
+                if isinstance(to_do, ParseResults):
+                    to_visit.extendleft(to_do[::-1])
+                else:
+                    yield to_do
+
+        if flatten:
+            return [*flattened(self)]
+        else:
+            return [
+                res.as_list() if isinstance(res, ParseResults) else res
+                for res in self._toklist
+            ]
 
     def as_dict(self) -> dict:
         """

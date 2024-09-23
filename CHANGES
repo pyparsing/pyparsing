@@ -60,6 +60,9 @@ Version 3.2.0 - September, 2024
   where some diagram elements were just empty blocks. Fix submitted by RoDuth,
   thanks a ton!
 
+- Added optional `flatten` Boolean argument to `ParseResults.as_list()`, to
+  return the parsed values in a flattened list.
+
 - Added `indent` and `base_1` arguments to `pyparsing.testing.with_line_numbers`. When
   using `with_line_numbers` inside a parse action, set `base_1`=False, since the
   reported `loc` value is 0-based. `indent` can be a leading string (typically of
