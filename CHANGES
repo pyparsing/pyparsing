@@ -60,6 +60,10 @@ Version 3.2.0 - September, 2024
   where some diagram elements were just empty blocks. Fix submitted by RoDuth,
   thanks a ton!
 
+- Fixed railroad diagrams that get generated with a parser containing a Regex element
+  defined using a verbose pattern - the pattern gets flattened and comments removed
+  before creating the corresponding diagram element.
+
 - Added optional `flatten` Boolean argument to `ParseResults.as_list()`, to
   return the parsed values in a flattened list.
 

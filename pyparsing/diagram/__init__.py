@@ -14,6 +14,7 @@ from typing import (
 from jinja2 import Template
 from io import StringIO
 import inspect
+import re
 
 
 jinja2_template_source = """\
@@ -53,6 +54,12 @@ jinja2_template_source = """\
 """
 
 template = Template(jinja2_template_source)
+
+
+def _collapse_verbose_regex(regex_str: str) -> str:
+    collapsed = pyparsing.Regex(r"#.*").suppress().transform_string(regex_str)
+    collapsed = re.sub(r"\s*\n\s*", "", collapsed)
+    return collapsed
 
 
 @dataclasses.dataclass
@@ -611,6 +618,11 @@ def _to_diagram_element(
         ret = EditablePartial.from_call(railroad.Sequence, items=[])
     elif len(exprs) > 0 and not element_results_name:
         ret = EditablePartial.from_call(railroad.Group, item="", label=name)
+    elif isinstance(element, pyparsing.Regex):
+        patt = _collapse_verbose_regex(element.pattern)
+        element.pattern = patt
+        element._defaultName = None
+        ret = EditablePartial.from_call(railroad.Terminal, element.defaultName)
     elif len(exprs) > 0:
         ret = EditablePartial.from_call(railroad.Sequence, items=[])
     else:
