@@ -8,23 +8,25 @@
 # Copyright (c) 2018  Paul T. McGuire
 #
 import unittest
-import pyparsing as pp
-from collections import namedtuple
+from collections.abc import Iterable, Mapping
 from datetime import datetime, timezone
+from typing import NamedTuple
 
+import pyparsing as pp
 ppt = pp.pyparsing_test
 TestParseResultsAsserts = ppt.TestParseResultsAsserts
 
+
 # Test spec data class for specifying simple pyparsing test cases
-PyparsingTest = namedtuple(
-    "PyparsingTest",
-    "desc expr text parse_fn expected_list expected_dict expected_fail_locn",
-)
-# fmt: off
-PyparsingTest.__new__.__defaults__ = (
-    "", pp.Empty(), "", "parse_string", None, None, None,
-)
-# fmt: on
+class PyparsingTest(NamedTuple):
+    desc: str = ""
+    expr: pp.ParserElement = pp.Empty()
+    text: str = ""
+    parse_fn: str = "parse_string"
+    expected_list: Iterable = None
+    expected_dict: Mapping = None
+    expected_fail_locn: int = None
+
 
 NL = "\n"
 
