@@ -121,7 +121,7 @@ class version_info(NamedTuple):
 
 
 __version_info__ = version_info(3, 2, 0, "beta", 2)
-__version_time__ = "24 Sep 2024 06:11 UTC"
+__version_time__ = "24 Sep 2024 22:43 UTC"
 __version__ = __version_info__.__version__
 __versionTime__ = __version_time__
 __author__ = "Paul McGuire <ptmcg.gm+pyparsing@gmail.com>"
