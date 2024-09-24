@@ -10,6 +10,7 @@ from .util import (
     _bslash,
     _flatten,
     _escape_regex_range_chars,
+    make_compressed_re,
     replaced_by_pep8,
 )
 
@@ -645,9 +646,12 @@ any_open_tag, any_close_tag = make_html_tags(
 )
 
 _htmlEntityMap = {k.rstrip(";"): v for k, v in html.entities.html5.items()}
-common_html_entity = Regex("&(?P<entity>" + "|".join(_htmlEntityMap) + ");").set_name(
-    "common HTML entity"
+_most_common_entities = "nbsp lt gt amp quot apos cent pound euro copy".replace(
+    " ", "|"
 )
+common_html_entity = Regex(
+    lambda: f"&(?P<entity>{_most_common_entities}|{make_compressed_re(_htmlEntityMap)});"
+).set_name("common HTML entity")
 
 
 def replace_html_entity(s, l, t):

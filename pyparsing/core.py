@@ -3051,18 +3051,24 @@ class Regex(Token):
 
             self._re = None
             self.reString = self.pattern = pattern
-            self.flags = flags
 
         elif hasattr(pattern, "pattern") and hasattr(pattern, "match"):
             self._re = pattern
             self.pattern = self.reString = pattern.pattern
-            self.flags = flags
+
+        elif callable(pattern):
+            # defer creating this pattern until we really need it
+            self.pattern = pattern
+            self._re = None
 
         else:
             raise TypeError(
-                "Regex may only be constructed with a string or a compiled RE object"
+                "Regex may only be constructed with a string or a compiled RE object,"
+                " or a callable that takes no arguments and returns a string or a"
+                " compiled RE object"
             )
 
+        self.flags = flags
         self.errmsg = f"Expected {self.name}"
         self.mayIndexError = False
         self.asGroupList = asGroupList
@@ -3077,8 +3083,19 @@ class Regex(Token):
         if self._re:
             return self._re
 
+        if callable(self.pattern):
+            # replace self.pattern with the string returned by calling self.pattern()
+            self.pattern = cast(Callable[[], str], self.pattern)()
+
+            # see if we got a compiled RE back instead of a str - if so, we're done
+            if hasattr(self.pattern, "pattern") and hasattr(self.pattern, "match"):
+                self._re = cast(re.Pattern[str], self.pattern)
+                self.pattern = self.reString = self._re.pattern
+                return self._re
+
         try:
-            return re.compile(self.pattern, self.flags)
+            self._re = re.compile(self.pattern, self.flags)
+            return self._re
         except re.error:
             raise ValueError(f"invalid pattern ({self.pattern!r}) passed to Regex")
 

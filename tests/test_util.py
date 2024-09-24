@@ -1,3 +1,4 @@
+import random
 from typing import Union, Iterable
 import pytest
 import pyparsing as pp
@@ -169,3 +170,28 @@ def test_lineno(test_label: str, loc: int, input_string: str, expected_output: i
     from pyparsing import lineno
 
     assert lineno(loc, input_string) == expected_output
+
+
+def test_html_entities() -> None:
+    import html.entities
+    from pyparsing import common_html_entity
+
+    # create test string from all known HTML5 entities, in random order
+    entity_strings = [f'&{e.rstrip(";")};' for e in html.entities.html5]
+    random.shuffle(entity_strings)
+    test_string = " ".join(entity_strings)
+
+    # verify that all are parsed
+    parsed = common_html_entity[...].parse_string(test_string, parse_all=True)
+    assert len(parsed) == len(html.entities.html5)
+
+
+def test_make_compressed_re() -> None:
+    import re
+    from pyparsing.util import make_compressed_re
+
+    words = "blue brown black blues bluesky co ci ce ca cu".split()
+    for i in range(1, 9):
+        print(i, make_compressed_re(words, max_level=i))
+        regex = re.compile(make_compressed_re(words, max_level=i) + "$")
+        assert all(regex.match(wd) for wd in words)

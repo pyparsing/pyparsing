@@ -64,6 +64,13 @@ Version 3.2.0 - September, 2024
   defined using a verbose pattern - the pattern gets flattened and comments removed
   before creating the corresponding diagram element.
 
+- Defined a more performant regular expression used internally by `common_html_entity`.
+
+- `Regex` instances can now be created using a callable that takes no arguments
+  and just returns a string or a compiled regular expression, so that creating complex
+  regular expression patterns can be deferred until they are actually used for the first
+  time in the parser.
+
 - Added optional `flatten` Boolean argument to `ParseResults.as_list()`, to
   return the parsed values in a flattened list.
 
