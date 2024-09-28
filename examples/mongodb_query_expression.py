@@ -60,7 +60,13 @@ date_time = pp.Regex(r"\d{4}(/|-)\d{2}(\1)\d{2} \d{2}:\d{2}(:\d{2}(\.\d+)?)?")
 date.add_parse_action(lambda t: datetime.fromisoformat(t[0].replace("/", "-")))
 date_time.add_parse_action(lambda t: datetime.fromisoformat(t[0].replace("/", "-")))
 
-operand = ident | (pp.QuotedString('"') | pp.QuotedString("'")).set_name("quoted_string") | date_time | date | num
+operand = (
+    ident
+    | (pp.QuotedString('"') | pp.QuotedString("'")).set_name("quoted_string")
+    | date_time
+    | date
+    | num
+)
 operand.set_name("operand")
 operand_list = pp.Group(LBRACK + pp.Optional(pp.DelimitedList(operand)) + RBRACK, aslist=True)
 

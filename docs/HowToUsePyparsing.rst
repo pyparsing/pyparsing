@@ -771,6 +771,8 @@ Expression operators
   equivalent to ``OneOrMore(expr)``, and ``expr[..., 3]`` is equivalent to "up to 3 instances
   of ``expr``".
 
+- ``[:stop_on]`` - specifies a stopping expression for the current repetition (may be combined
+  with ``...`` or ``min, max``), as in ``Keyword("start") + Word(alphas)[...:Keyword("end")] + Keyword("end")``
 
 Positional subclasses
 ---------------------
@@ -1116,6 +1118,22 @@ Helper methods
       as the generated pyparsing expression.  You can then use
       this expression to parse input strings, or incorporate it
       into a larger, more complex grammar.
+
+  Here is an ``infix_notation`` definition for 4-function arithmetic,
+  taking numbers or variables as operands. The order of definition of
+  the operators follows the standard precedence of operations for
+  arithmetic::
+
+        number = pp.common.number()
+        variable = pp.common.identifier()
+        arithmetic_expression = pp.infix_notation(
+            integer | variable,
+            [
+                ("-", 1, pp.OpAssoc.RIGHT),
+                (pp.one_of("* /"), 2, pp.OpAssoc.LEFT),
+                (pp.one_of("+ -"), 2, pp.OpAssoc.LEFT),
+            ]
+        )
 
   ``infix_notation`` also supports optional arguments ``lpar`` and ``rpar``, to
   parse groups with symbols other than "(" and ")". They may be passed as strings
