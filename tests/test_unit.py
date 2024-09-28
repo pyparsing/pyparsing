@@ -5713,6 +5713,15 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
         print(res.asList())
         self.assertEqual(["aaayaaa"], res.asList())
 
+    def testQuotedStringEscapedExtendedChars(self):
+        quoted = pp.QuotedString("'")
+        self.assertParseAndCheckList(
+            quoted,
+            "'null: \0 octal: \267 hex: \xb7 unicode: \u00b7'",
+            ['null: \x00 octal: · hex: · unicode: ·'],
+            "failed to parse embedded numeric escapes",
+        )
+
     def testWordBoundaryExpressions(self):
         ws = pp.WordStart()
         we = pp.WordEnd()
@@ -5822,12 +5831,22 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             parser2 = pp.Optional(
                 pp.Optional("Tal") + pp.Optional("Weiss")
             ) & pp.Keyword("Major")
+            parser3 = (pp.Keyword("Tal") | pp.Keyword("Weiss"))[...] & pp.Keyword("Major")
+
             p1res = parser1.parseString(the_input, parseAll=True)
+
             p2res = parser2.parseString(the_input, parseAll=True)
             self.assertEqual(
                 p1res.asList(),
                 p2res.asList(),
                 f"Each failed to match with nested Optionals, {p1res.as_list()} should match {p2res.as_list()}",
+            )
+
+            p3res = parser3.parseString(the_input, parseAll=True)
+            self.assertEqual(
+                p1res.asList(),
+                p3res.asList(),
+                f"Each failed to match with repeated Optionals, {p1res.as_list()} should match {p3res.as_list()}",
             )
 
     def testOptionalEachTest2(self):

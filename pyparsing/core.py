@@ -3315,6 +3315,7 @@ class QuotedString(Token):
             if self.convert_whitespace_escapes:
                 self.unquote_scan_re = re.compile(
                     rf"({'|'.join(re.escape(k) for k in self.ws_map)})"
+                    rf"|(\\[0-7]{3}|\\0|\\x[0-9a-fA-F]{2}|\\u[0-9a-fA-F]{4})"
                     rf"|({re.escape(self.esc_char)}.)"
                     rf"|(\n|.)",
                     flags=self.re_flags,
@@ -3361,6 +3362,16 @@ class QuotedString(Token):
         loc = result.end()
         ret = result.group()
 
+        def convert_escaped_numerics(s: str) -> str:
+            if s == "0":
+                return "\0"
+            if s.isdigit() and len(s) == 3:
+                return chr(int(s, base=8))
+            elif s.startswith(("u", "x")):
+                return chr(int(s[1:], base=16))
+            else:
+                return s
+
         if self.unquote_results:
             # strip off quotes
             ret = ret[self.quote_char_len : -self.end_quote_char_len]
@@ -3374,10 +3385,13 @@ class QuotedString(Token):
                     ret = "".join(
                         # match group 1 matches \t, \n, etc.
                         self.ws_map[match.group(1)] if match.group(1)
-                        # match group 2 matches escaped characters
-                        else match.group(2)[-1] if match.group(2)
-                        # match group 3 matches any character
-                        else match.group(3)
+                        # match group 2 matches escaped octal, null, hex, and Unicode
+                        # sequences
+                        else convert_escaped_numerics(match.group(2)[1:]) if match.group(2)
+                        # match group 3 matches escaped characters
+                        else match.group(3)[-1] if match.group(3)
+                        # match group 4 matches any character
+                        else match.group(4)
                         for match in self.unquote_scan_re.finditer(ret)
                     )
                 else:
