@@ -24,6 +24,7 @@ Version 3.2.0 - October, 2024
   - Converted `typing.NamedTuple` to `dataclasses.dataclass` in railroad diagramming
     code.
   - Added `from __future__ import annotations` to clean up some type annotations.
+  (with assistance from ISyncWithFoo, issue #535, thanks for the help!)
 
 - Added type annotations to remainder of `pyparsing` package, and added `mypy`
   run to `tox.ini`, so that type annotations are now run as part of pyparsing's CI.
