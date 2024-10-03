@@ -70,15 +70,15 @@ operand = (
 operand.set_name("operand")
 operand_list = pp.Group(LBRACK + pp.Optional(pp.DelimitedList(operand)) + RBRACK, aslist=True)
 
-AND, OR, NOT, IN, CONTAINS, ALL, ANY, NONE, LIKE = pp.CaselessKeyword.using_each(
-    "and or not in contains all any none like".split()
+AND, OR, NOT, IN, CONTAINS, ALL, ANY, NONE, LIKE, SEARCH, FOR = pp.CaselessKeyword.using_each(
+    "and or not in contains all any none like search for".split()
 )
 NOT_IN = key_phrase(NOT + IN)
 NOT_LIKE = key_phrase(NOT + LIKE)
 CONTAINS_ALL = key_phrase(CONTAINS + ALL)
 CONTAINS_NONE = key_phrase(CONTAINS + NONE)
 CONTAINS_ANY = key_phrase(CONTAINS + ANY)
-
+SEARCH_FOR = key_phrase(SEARCH + FOR)
 
 def binary_eq_neq(s, l, tokens):
     """
@@ -310,13 +310,16 @@ def binary_multi_op(tokens):
 
 def unary_op(tokens):
     """
-    Parse action to handle 'not' Boolean operator.
+    Parse action to handle 'not' Boolean operator or 'search for' operator.
     """
     tokens = tokens[0]
     oper_map = {
         "not": "$nor",
     }
     op, value = tokens
+
+    if op == "search for":
+        return {"$text": {"$search": value}}
 
     # detect 'not not'
     k, v = next(iter(value.items()))
@@ -361,7 +364,7 @@ OR_OP = OR | pp.Literal("∨").add_parse_action(pp.replace_with("or"))
 boolean_comparison_expr = pp.infix_notation(
     (arith_comparison_expr | ident).set_name("boolean_comparison_operand"),
     [
-        (NOT_OP, 1, pp.OpAssoc.RIGHT, unary_op),
+        (NOT_OP | SEARCH_FOR, 1, pp.OpAssoc.RIGHT, unary_op),
         (AND_OP, 2, pp.OpAssoc.LEFT, binary_multi_op),
         (OR_OP, 2, pp.OpAssoc.LEFT, binary_multi_op),
     ]
@@ -506,6 +509,10 @@ def transform_query(query_string: str, include_comment: bool = False) -> Dict:
         a =~ "ABC\d+"
         {'a': {'$regex': '^ABC\\d+'}}
 
+    - SEARCH FOR keywords using text search indexes
+        search for "birds"
+        {'$text': {'$search': 'birds'}}
+
     - Unicode operators
         100 < a ≤ 200 and 300 > b ≥ 200 or c ≠ -1
         100 < a ≤ 200 ∧ 300 > b ≥ 200 ∨ c ≠ -1
@@ -523,8 +530,7 @@ def transform_query(query_string: str, include_comment: bool = False) -> Dict:
 
 
 def main():
-    from textwrap import dedent
-    for test in dedent("""\
+    for test in ("""\
         a = 100
         a = 100 and b = 200
         a = 100 and b < 200 and c > 300 and d = 400
@@ -539,7 +545,10 @@ def main():
         xyz == 2000 or abc == '32' or def == "foo"
         100 < a < 200
         a==100 and not (100 < b <= 200)
+
+        # fields with embedded spaces
         1900 < "wine vintage" < 2000
+
         name > "M"
         100 < a ≤ 200 or 300 > b ≥ 200 or c ≠ -1
         100 < a ≤ 200 ∧ 300 > b ≥ 200 ∧ c ≠ -1
@@ -588,14 +597,24 @@ def main():
         a = 100 and a = 100
         # cannot define conflicting equality conditions
         a = 100 and a = 200
+        search for "world"
+        search for "hello" and a > 100
         """
         r"name =~ 'Al\d+'"
     ).splitlines():
+        test = test.strip()
+        if not test:
+            continue
+
         print(test)
+
         if test.startswith("#"):
             continue
+
         try:
             transformed = transform_query(test)
+        except pp.ParseBaseException as exc:
+            print(exc.explain(depth=0))
         except Exception as exc:
             print(pp.ParseException.explain_exception(exc))
         else:

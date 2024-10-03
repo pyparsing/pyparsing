@@ -53,68 +53,73 @@ Version 3.2.0 - October, 2024
       If your code raises `IndexError`s in parse actions, this bugfix may require
       changes in your code.
 
-- Added type annotations to remainder of `pyparsing` package, and added `mypy`
-  run to `tox.ini`, so that type annotations are now run as part of pyparsing's CI.
-  Addresses Issue #373, raised by Iwan Aucamp, thanks!
+- FIXES AND NEW FEATURES
 
-- Exception message format can now be customized, by overriding
-  `ParseBaseException.format_message`:
+    - Added type annotations to remainder of `pyparsing` package, and added `mypy`
+      run to `tox.ini`, so that type annotations are now run as part of pyparsing's CI.
+      Addresses Issue #373, raised by Iwan Aucamp, thanks!
 
-      def custom_exception_message(exc) -> str:
-          found_phrase = f", found {exc.found}" if exc.found else ""
-          return f"{exc.lineno}:{exc.column} {exc.msg}{found_phrase}"
+    - Exception message format can now be customized, by overriding
+      `ParseBaseException.format_message`:
 
-      ParseBaseException.formatted_message = custom_exception_message
+          def custom_exception_message(exc) -> str:
+              found_phrase = f", found {exc.found}" if exc.found else ""
+              return f"{exc.lineno}:{exc.column} {exc.msg}{found_phrase}"
 
-  (PR #571 submitted by Odysseyas Krystalakos, nice work!)
+          ParseBaseException.formatted_message = custom_exception_message
 
-- `run_tests` now detects if an exception is raised in a parse action, and will
-  report it with an enhanced error message, with the exception type, string,
-  and parse action name.
+      (PR #571 submitted by Odysseyas Krystalakos, nice work!)
 
-- `QuotedString` now handles translation of escaped integer, hex, octal, and
-  Unicode sequences to their corresponding characters.
+    - `run_tests` now detects if an exception is raised in a parse action, and will
+      report it with an enhanced error message, with the exception type, string,
+      and parse action name.
 
-- Fixed the displayed output of `Regex` terms to deduplicate repeated backslashes,
-  for easier reading in debugging, printing, and railroad diagrams.
+    - `QuotedString` now handles translation of escaped integer, hex, octal, and
+      Unicode sequences to their corresponding characters.
 
-- Fixed (or at least reduced) elusive bug when generating railroad diagrams,
-  where some diagram elements were just empty blocks. Fix submitted by RoDuth,
-  thanks a ton!
+    - Fixed the displayed output of `Regex` terms to deduplicate repeated backslashes,
+      for easier reading in debugging, printing, and railroad diagrams.
 
-- Fixed railroad diagrams that get generated with a parser containing a Regex element
-  defined using a verbose pattern - the pattern gets flattened and comments removed
-  before creating the corresponding diagram element.
+    - Fixed (or at least reduced) elusive bug when generating railroad diagrams,
+      where some diagram elements were just empty blocks. Fix submitted by RoDuth,
+      thanks a ton!
 
-- Defined a more performant regular expression used internally by `common_html_entity`.
+    - Fixed railroad diagrams that get generated with a parser containing a Regex element
+      defined using a verbose pattern - the pattern gets flattened and comments removed
+      before creating the corresponding diagram element.
 
-- `Regex` instances can now be created using a callable that takes no arguments
-  and just returns a string or a compiled regular expression, so that creating complex
-  regular expression patterns can be deferred until they are actually used for the first
-  time in the parser.
+    - Defined a more performant regular expression used internally by `common_html_entity`.
 
-- Added optional `flatten` Boolean argument to `ParseResults.as_list()`, to
-  return the parsed values in a flattened list.
+    - `Regex` instances can now be created using a callable that takes no arguments
+      and just returns a string or a compiled regular expression, so that creating complex
+      regular expression patterns can be deferred until they are actually used for the first
+      time in the parser.
 
-- Added `indent` and `base_1` arguments to `pyparsing.testing.with_line_numbers`. When
-  using `with_line_numbers` inside a parse action, set `base_1`=False, since the
-  reported `loc` value is 0-based. `indent` can be a leading string (typically of
-  spaces or tabs) to indent the numbered string passed to `with_line_numbers`.
-  Added while working on #557, reported by Bernd Wechner.
+    - Added optional `flatten` Boolean argument to `ParseResults.as_list()`, to
+      return the parsed values in a flattened list.
 
-- Added query syntax to `mongodb_query_expression.py` with better support for
-  array fields ("contains", "contains all", "contains any", and "contains none");
-  and "like" and "not like" operators to support SQL "%" wildcard matching and "=~"
-  operator to support regex matching. Also:
-  - added support for dates and datetimes as query values
-  - added support for `a[0]` style array referencing
+    - Added `indent` and `base_1` arguments to `pyparsing.testing.with_line_numbers`. When
+      using `with_line_numbers` inside a parse action, set `base_1`=False, since the
+      reported `loc` value is 0-based. `indent` can be a leading string (typically of
+      spaces or tabs) to indent the numbered string passed to `with_line_numbers`.
+      Added while working on #557, reported by Bernd Wechner.
 
-- Added `lox_parser.py` example, a parser for the Lox language used as a tutorial in
-  Robert Nystrom's "Crafting Interpreters" (http://craftinginterpreters.com/).
-  With helpful corrections from RoDuth.
+- NEW/ENHANCED EXAMPLES
 
-- Added `complex_chemical_formulas.py` example, to add parsing capability for
-  formulas such as "3(C₆H₅OH)₂".
+    - Added query syntax to `mongodb_query_expression.py` with better support for
+      array fields ("contains", "contains all", "contains any", and "contains none");
+      "like" and "not like" operators to support SQL "%" wildcard matching and "=~"
+      operator to support regex matching; and text search using "search for" operator.
+      Also added support for:
+      - dates and datetimes as query values
+      - `a[0]` style array referencing
+
+    - Added `lox_parser.py` example, a parser for the Lox language used as a tutorial in
+      Robert Nystrom's "Crafting Interpreters" (http://craftinginterpreters.com/).
+      With helpful corrections from RoDuth.
+
+    - Added `complex_chemical_formulas.py` example, to add parsing capability for
+      formulas such as "3(C₆H₅OH)₂".
 
 
 Version 3.1.4 - August, 2024
