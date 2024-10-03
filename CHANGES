@@ -48,7 +48,7 @@ Version 3.2.0 - October, 2024
       incorrectly handled as an `IndexError` raised as part of the `ParserElement`
       parsing methods, and reraised as a `ParseException`. Now an `IndexError`
       that raises inside a parse action will properly propagate out as an `IndexError`.
-      (Issue #573)
+      (Issue #573, reported by August Karlstedt, thanks!)
 
       If your code raises `IndexError`s in parse actions, this bugfix may require
       changes in your code.
