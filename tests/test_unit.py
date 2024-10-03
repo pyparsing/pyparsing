@@ -7648,7 +7648,10 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
                     f"class {cls.__name__} raised wrong exception type {type(e).__name__}",
                 )
 
-    def testParseActionException(self):
+    def testParseActionIndexErrorException(self):
+        """
+        Tests raising an IndexError in a parse action
+        """
         import traceback
 
         number = pp.Word(pp.nums)
@@ -7656,34 +7659,19 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
         def number_action():
             raise IndexError  # this is the important line!
 
-        number.setParseAction(number_action)
+        number.add_parse_action(number_action)
         symbol = pp.Word("abcd", max=1)
-        expr = number | symbol
+        expr = pp.Group(number) ^ symbol
 
         try:
             expr.parseString("1 + 2", parseAll=True)
+        except IndexError as ie:
+            pass
         except Exception as e:
-            print_traceback = True
-            try:
-                self.assertTrue(
-                    hasattr(e, "__cause__"),
-                    "no __cause__ attribute in the raised exception",
-                )
-                self.assertTrue(
-                    e.__cause__ is not None,
-                    "__cause__ not propagated to outer exception",
-                )
-                self.assertEqual(
-                    IndexError,
-                    type(e.__cause__),
-                    "__cause__ references wrong exception",
-                )
-                print_traceback = False
-            finally:
-                if print_traceback:
-                    traceback.print_exc()
+            traceback.print_exc()
+            self.fail(f"Expected IndexError not raised, raised {type(e).__name__}: {e}")
         else:
-            self.fail("Expected ParseException not raised")
+            self.fail("Expected IndexError not raised")
 
     # tests Issue #22
     def testParseActionNesting(self):

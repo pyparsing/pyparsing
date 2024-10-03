@@ -243,12 +243,26 @@ hexnums: str = nums + "ABCDEFabcdef"
 alphanums: str = alphas + nums
 printables: str = "".join([c for c in string.printable if c not in string.whitespace])
 
+
+class _ParseActionIndexError(Exception):
+    """
+    Internal wrapper around IndexError so that IndexErrors raised inside
+    parse actions aren't misinterpreted as IndexErrors raised inside
+    ParserElement parseImpl methods.
+    """
+
+    def __init__(self, msg: str, exc: BaseException):
+        self.msg: str = msg
+        self.exc: BaseException = exc
+
+
 _trim_arity_call_line: traceback.StackSummary = None  # type: ignore[assignment]
+pa_call_line_synth = ()
 
 
 def _trim_arity(func, max_limit=3):
     """decorator to trim function calls to match the arity of the target"""
-    global _trim_arity_call_line
+    global _trim_arity_call_line, pa_call_line_synth
 
     if func in _single_arg_builtins:
         return lambda s, l, t: func(t)
@@ -263,8 +277,8 @@ def _trim_arity(func, max_limit=3):
     LINE_DIFF = 9
     # IF ANY CODE CHANGES, EVEN JUST COMMENTS OR BLANK LINES, BETWEEN THE NEXT LINE AND
     # THE CALL TO FUNC INSIDE WRAPPER, LINE_DIFF MUST BE MODIFIED!!!!
-    _trim_arity_call_line = (_trim_arity_call_line or traceback.extract_stack(limit=2)[-1])
-    pa_call_line_synth = (_trim_arity_call_line[0], _trim_arity_call_line[1] + LINE_DIFF)
+    _trim_arity_call_line = _trim_arity_call_line or traceback.extract_stack(limit=2)[-1]
+    pa_call_line_synth = pa_call_line_synth or (_trim_arity_call_line[0], _trim_arity_call_line[1] + LINE_DIFF)
 
     def wrapper(*args):
         nonlocal found_arity, limit
@@ -294,6 +308,11 @@ def _trim_arity(func, max_limit=3):
                             continue
 
                     raise
+            except IndexError as ie:
+                # wrap IndexErrors inside a _ParseActionIndexError
+                raise _ParseActionIndexError(
+                    "IndexError raised in parse action", ie
+                ).with_traceback(None)
     # fmt: on
 
     # copy func name to wrapper for sensible debug output
@@ -791,7 +810,6 @@ class ParserElement(ABC):
     def _parseNoCache(
         self, instring, loc, do_actions=True, callPreParse=True
     ) -> tuple[int, ParseResults]:
-        TRY, MATCH, FAIL = 0, 1, 2
         debugging = self.debug  # and do_actions)
         len_instring = len(instring)
 
@@ -960,7 +978,6 @@ class ParserElement(ABC):
         self, instring, loc, do_actions=True, callPreParse=True
     ) -> tuple[int, ParseResults]:
         HIT, MISS = 0, 1
-        TRY, MATCH, FAIL = 0, 1, 2
         lookup = (self, instring, loc, callPreParse, do_actions)
         with ParserElement.packrat_cache_lock:
             cache = ParserElement.packrat_cache
@@ -1189,12 +1206,14 @@ class ParserElement(ABC):
                 loc = self.preParse(instring, loc)
                 se = Empty() + StringEnd().set_debug(False)
                 se._parse(instring, loc)
+        except _ParseActionIndexError as pa_exc:
+            raise pa_exc.exc
         except ParseBaseException as exc:
             if ParserElement.verbose_stacktrace:
                 raise
-            else:
-                # catch and re-raise exception from here, clearing out pyparsing internal stack trace
-                raise exc.with_traceback(None)
+
+            # catch and re-raise exception from here, clearing out pyparsing internal stack trace
+            raise exc.with_traceback(None)
         else:
             return tokens
 
@@ -2198,7 +2217,18 @@ class ParserElement(ABC):
                 success = success and failureTests
                 result = pe
             except Exception as exc:
-                out.append(f"FAIL-EXCEPTION: {type(exc).__name__}: {exc}")
+                tag = "FAIL-EXCEPTION"
+
+                # see if this exception was raised in a parse action
+                tb = exc.__traceback__
+                it = iter(traceback.walk_tb(tb))
+                for f, line in it:
+                    if (f.f_code.co_filename, line) == pa_call_line_synth:
+                        next_f = next(it)[0]
+                        tag += f" (raised in parse action {next_f.f_code.co_name!r})"
+                        break
+
+                out.append(f"{tag}: {type(exc).__name__}: {exc}")
                 if ParserElement.verbose_stacktrace:
                     out.extend(traceback.format_tb(exc.__traceback__))
                 success = success and failureTests
@@ -2516,9 +2546,8 @@ class Keyword(Token):
         match_string = matchString or match_string
         self.match = match_string
         self.matchLen = len(match_string)
-        try:
-            self.firstMatchChar = match_string[0]
-        except IndexError:
+        self.firstMatchChar = match_string[:1]
+        if not self.firstMatchChar:
             raise ValueError("null string passed to Keyword; use Empty() instead")
         self.errmsg = f"Expected {type(self).__name__} {self.name}"
         self.mayReturnEmpty = False

@@ -26,6 +26,33 @@ Version 3.2.0 - October, 2024
   - Added `from __future__ import annotations` to clean up some type annotations.
   (with assistance from ISyncWithFoo, issue #535, thanks for the help!)
 
+- POSSIBLE BREAKING CHANGES
+
+    The following bugfixes may result in subtle changes in the results returned or
+    exceptions raised by pyparsing.
+
+    - Fixed code in `ParseElementEnhance` subclasses that
+      replaced detailed exception messages raised in contained expressions with a
+      less-specific and less-informative generic exception message and location.
+
+      If your code has conditional logic based on the message content in raised
+      `ParseExceptions`, this bugfix may require changes in your code.
+
+    - Fixed bug in `transform_string()` where whitespace
+      in the input string was not properly preserved in the output string.
+
+      If your code uses `transform_string`, this bugfix may require changes in
+      your code.
+
+    - Fixed bug where an `IndexError` raised in a parse action was
+      incorrectly handled as an `IndexError` raised as part of the `ParserElement`
+      parsing methods, and reraised as a `ParseException`. Now an `IndexError`
+      that raises inside a parse action will properly propagate out as an `IndexError`.
+      (Issue #573)
+
+      If your code raises `IndexError`s in parse actions, this bugfix may require
+      changes in your code.
+
 - Added type annotations to remainder of `pyparsing` package, and added `mypy`
   run to `tox.ini`, so that type annotations are now run as part of pyparsing's CI.
   Addresses Issue #373, raised by Iwan Aucamp, thanks!
@@ -41,18 +68,9 @@ Version 3.2.0 - October, 2024
 
   (PR #571 submitted by Odysseyas Krystalakos, nice work!)
 
-- POSSIBLE BREAKING CHANGE: Fixed code in `ParseElementEnhance` subclasses that
-  replaced detailed exception messages raised in contained expressions with a
-  less-specific and less-informative generic exception message and location.
-
-  If your code has conditional logic based on the message content in raised
-  `ParseExceptions`, this bugfix may require changes in your code.
-
-- POSSIBLE BREAKING CHANGE: Fixed bug in `transform_string()` where whitespace
-  in the input string was not properly preserved in the output string.
-
-  If your code uses `transform_string`, this bugfix may require changes in
-  your code.
+- `run_tests` now detects if an exception is raised in a parse action, and will
+  report it with an enhanced error message, with the exception type, string,
+  and parse action name.
 
 - `QuotedString` now handles translation of escaped integer, hex, octal, and
   Unicode sequences to their corresponding characters.
