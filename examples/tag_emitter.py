@@ -15,16 +15,10 @@ hex_int = ("0x" + pp.Word(pp.hexnums)).add_parse_action(lambda t: int(t[1], base
 dec_int = pp.Word(pp.nums).add_parse_action(lambda t: int(t[0]))
 
 
-# define function to inject an expression that will add an extra tag in the
-# parsed output, to indicate what the original input format was
-def emit_tag(s):
-    return pp.Empty().add_parse_action(pp.replace_with(s))
-
-
-# define a parser that includes the tag emitter for each integer format type
-int_parser = (binary_int("value") + emit_tag("binary")("original_format")
-              | hex_int("value") + emit_tag("hex")("original_format")
-              | dec_int("value") + emit_tag("decimal")("original_format")
+# define a parser that includes the tag for each integer format type
+int_parser = (binary_int("value") + pp.Tag("original_format", "binary")
+              | hex_int("value") + pp.Tag("original_format", "hex")
+              | dec_int("value") + pp.Tag("original_format", "decimal")
               )
 
 # parse some integers
