@@ -356,6 +356,7 @@ def unary_op(tokens):
 arith_comparison_expr = pp.infix_notation(
     (operand | operand_list).set_name("arith_comparison_operand"),
     [
+        (SEARCH_FOR, 1, pp.OpAssoc.RIGHT, unary_op),
         (pp.one_of("<= >= < > ≤ ≥"), 2, pp.OpAssoc.LEFT, binary_comparison_op),
         (pp.one_of("= == != ≠"), 2, pp.OpAssoc.LEFT, binary_eq_neq),
         (LIKE | NOT_LIKE | "=~", 2, pp.OpAssoc.LEFT, regex_comparison_op),
@@ -384,7 +385,7 @@ OR_OP = OR | pp.Literal("∨").add_parse_action(pp.replace_with("or"))
 boolean_comparison_expr = pp.infix_notation(
     (arith_comparison_expr | ident).set_name("boolean_comparison_operand"),
     [
-        (NOT_OP | SEARCH_FOR, 1, pp.OpAssoc.RIGHT, unary_op),
+        (NOT_OP, 1, pp.OpAssoc.RIGHT, unary_op),
         (AND_OP, 2, pp.OpAssoc.LEFT, binary_multi_op),
         (OR_OP, 2, pp.OpAssoc.LEFT, binary_multi_op),
     ],
@@ -410,6 +411,7 @@ def transform_query(query_string: str, include_comment: bool = False) -> Dict:
     generated query.
 
     Arithmetic comparison operators are (in order of precedence):
+        search for
         <= >= < > ≤ ≥
         = == != ≠
         =~, like, not like
@@ -539,11 +541,23 @@ def transform_query(query_string: str, include_comment: bool = False) -> Dict:
 
     - Unicode operators
         100 < a ≤ 200 and 300 > b ≥ 200 or c ≠ -1
-        100 < a ≤ 200 ∧ 300 > b ≥ 200 ∨ c ≠ -1
-        name ∈ ["Alice", "Bob"]
-        name ∉ ["Alice", "Bob"]
-        names ⊇ ["Alice", "Bob"]
+        {'$or': [{'$and': [{'$and': [{'a': {'$gt': 100}}, {'a': {'$lte': 200}}]},
+                           {'$and': [{'b': {'$lt': 300}}, {'b': {'$gte': 200}}]}]},
+                 {'c': {'$ne': -1}}]}
 
+        100 < a ≤ 200 ∧ 300 > b ≥ 200 ∨ c ≠ -1
+        {'$or': [{'$and': [{'$and': [{'a': {'$gt': 100}}, {'a': {'$lte': 200}}]},
+                           {'$and': [{'b': {'$lt': 300}}, {'b': {'$gte': 200}}]}]},
+                 {'c': {'$ne': -1}}]}
+
+        name ∈ ["Alice", "Bob"]
+        {'name': {'$in': ['Alice', 'Bob']}}
+
+        name ∉ ["Alice", "Bob"]
+        {'name': {'$nin': ['Alice', 'Bob']}}
+
+        names ⊇ ["Alice", "Bob"]
+        {'names': {'$all': ['Alice', 'Bob']}}
     """
     transformer_expr = (
         query_condition_expr_with_comment
@@ -554,6 +568,8 @@ def transform_query(query_string: str, include_comment: bool = False) -> Dict:
 
 
 def main():
+    from pprint import pprint
+
     for test in (
         """\
         a = 100
@@ -643,7 +659,7 @@ def main():
         except Exception as exc:
             print(pp.ParseException.explain_exception(exc))
         else:
-            print(transformed)
+            pprint(transformed)
         print()
 
 

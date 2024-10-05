@@ -94,14 +94,15 @@ operand_list = pp.Group(
     LBRACK + pp.Optional(pp.DelimitedList(operand)) + RBRACK, aslist=True
 )
 
-AND, OR, NOT, IN, CONTAINS, ALL, ANY, NONE, LIKE = pp.CaselessKeyword.using_each(
-    "and or not in contains all any none like".split()
+AND, OR, NOT, IN, CONTAINS, ALL, ANY, NONE, LIKE, SEARCH, FOR = pp.CaselessKeyword.using_each(
+    "and or not in contains all any none like search for".split()
 )
 NOT_IN = key_phrase(NOT + IN)
 NOT_LIKE = key_phrase(NOT + LIKE)
 CONTAINS_ALL = key_phrase(CONTAINS + ALL)
 CONTAINS_NONE = key_phrase(CONTAINS + NONE)
 CONTAINS_ANY = key_phrase(CONTAINS + ANY)
+SEARCH_FOR = key_phrase(SEARCH + FOR)
 
 
 # use pyparsing's infix_notation function to define a recursive grammar
@@ -111,21 +112,9 @@ CONTAINS_ANY = key_phrase(CONTAINS + ANY)
 arith_comparison_expr = pp.infix_notation(
     (operand | operand_list).set_name("arith_comparison_operand"),
     [
-        (
-            pp.one_of("<= >= < > ≤ ≥"),
-            2,
-            pp.OpAssoc.LEFT,
-        ),
-        (
-            pp.one_of("= == != ≠"),
-            2,
-            pp.OpAssoc.LEFT,
-        ),
-        (
-            LIKE | NOT_LIKE | "=~",
-            2,
-            pp.OpAssoc.LEFT,
-        ),
+        (pp.one_of("<= >= < > ≤ ≥"), 2, pp.OpAssoc.LEFT,),
+        (pp.one_of("= == != ≠"), 2, pp.OpAssoc.LEFT,),
+        ( LIKE | NOT_LIKE | "=~", 2, pp.OpAssoc.LEFT,),
         (
             (
                 IN
@@ -147,33 +136,22 @@ NOT_OP = NOT + ~(IN | LIKE)
 AND_OP = AND | pp.Literal("∧").add_parse_action(pp.replace_with("and"))
 OR_OP = OR | pp.Literal("∨").add_parse_action(pp.replace_with("or"))
 
+
 boolean_comparison_expr = pp.infix_notation(
     (arith_comparison_expr | ident).set_name("boolean_comparison_operand"),
     [
-        (
-            NOT_OP,
-            1,
-            pp.OpAssoc.RIGHT,
-        ),
-        (
-            AND_OP,
-            2,
-            pp.OpAssoc.LEFT,
-        ),
-        (
-            OR_OP,
-            2,
-            pp.OpAssoc.LEFT,
-        ),
+        (NOT_OP, 1, pp.OpAssoc.RIGHT,),
+        (AND_OP, 2, pp.OpAssoc.LEFT,),
+        (OR_OP, 2, pp.OpAssoc.LEFT,),
     ],
 )
-
 query_condition_expr = boolean_comparison_expr
 
 pp.autoname_elements()
 
 
 def main():
+    from pprint import pprint
     from textwrap import dedent
 
     for test in dedent(
@@ -252,7 +230,7 @@ def main():
         except Exception as exc:
             print(pp.ParseException.explain_exception(exc))
         else:
-            print(transformed)
+            pprint(transformed.as_list()[0])
         print()
 
 
