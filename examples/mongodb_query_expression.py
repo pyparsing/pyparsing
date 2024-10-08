@@ -171,7 +171,7 @@ def binary_array_comparison_op(s, l, tokens):
     binary_map = {
         "in": "$in",
         "not in": "$nin",
-        "contains": "$in",
+        "contains any": "$in",
         "contains all": "$all",
         # add Unicode operators, because we can
         "⊇": "$all",
@@ -189,10 +189,11 @@ def binary_array_comparison_op(s, l, tokens):
     # check for inverted "in" conditions
     if op == "in" and not isinstance(value, list):
         field, value = value, field
-        if isinstance(value, list):
-            op = "contains all"
-        else:
-            op = "contains"
+        field, op, value = (
+            field,
+            "contains any",
+            value if isinstance(value, list) else [value],
+        )
 
     elif op == "not in" and not isinstance(value, list):
         field, value = value, field
@@ -211,9 +212,6 @@ def binary_array_comparison_op(s, l, tokens):
         return {
             field: {"$in": list(unique(value)) if isinstance(value, list) else {value}}
         }
-
-    if op == "contains":
-        return {field: {binary_map[op]: value if isinstance(value, list) else [value]}}
 
     return {
         field: {
@@ -362,13 +360,12 @@ arith_comparison_expr = pp.infix_notation(
         (LIKE | NOT_LIKE | "=~", 2, pp.OpAssoc.LEFT, regex_comparison_op),
         (
             (
-                IN
-                | NOT_IN
-                | CONTAINS_ALL
-                | CONTAINS_NONE
-                | CONTAINS_ANY
-                | CONTAINS
-                | pp.one_of("⊇ ∈ ∉")
+                    IN
+                    | NOT_IN
+                    | CONTAINS_ALL
+                    | CONTAINS_NONE
+                    | CONTAINS_ANY
+                    | pp.one_of("⊇ ∈ ∉")
             ),
             2,
             pp.OpAssoc.LEFT,
@@ -497,10 +494,7 @@ def transform_query(query_string: str, include_comment: bool = False) -> Dict:
         "Bob" not in names
         {'names': {'$nin': ['Bob']}}
 
-    - `contains [any | all | None]`
-        names contains "Alice"
-        {'names': {'$in': ['Alice']}}
-
+    - `contains [any | all | none]`
         names contains any ["Alice", "Bob"]
         {'names': {'$in': ['Alice', 'Bob']}}
 
@@ -603,11 +597,10 @@ def main():
         name ∈ ["Alice", "Bob"]
         name not in ["Alice", "Bob"]
         name ∉ ["Alice", "Bob"]
+        names contains any ["Alice", "Bob"]
         names contains all ["Alice", "Bob"]
         names ⊇ ["Alice", "Bob"]
         names contains none ["Alice", "Bob"]
-        names contains any ["Alice", "Bob"]
-        names contains "Alice"
         "Alice" in names
         "Bob" not in names
         a.b > 1000
@@ -659,7 +652,7 @@ def main():
         except Exception as exc:
             print(pp.ParseException.explain_exception(exc))
         else:
-            pprint(transformed)
+            pprint(transformed, indent=2, sort_dicts=False)
         print()
 
 
