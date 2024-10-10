@@ -1,9 +1,8 @@
 [build-system]
-requires = ["flit_core >=3.2,<4"]
-build-backend = "flit_core.buildapi"
+requires = ["setuptools", "wheel", "cython"]
 
 [project]
-name = "pyparsing"
+name = "cythonized_pyparsing"
 authors = [{name = "Paul McGuire", email = "ptmcg.gm+pyparsing@gmail.com"}]
 readme = "README.rst"
 license = {file = "LICENSE"}
@@ -40,7 +39,7 @@ diagrams = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/pyparsing/pyparsing/"
+Homepage = "https://github.com/honeydew-ai/pyparsing"
 
 [tool.flit.sdist]
 include = [
