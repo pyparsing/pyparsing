@@ -183,7 +183,8 @@ class ParseBaseException(Exception):
                 foundstr = (", found %r" % found).replace(r"\\", "\\")
         else:
             foundstr = ""
-        return f"{self.msg}{foundstr}  (at char {self.loc}), (line:{self.lineno}, col:{self.column})"
+        return self.msg + foundstr + "  (at char " + str(self.loc) + "), (line:" + str(self.lineno) + ", col:" + str(self.column) + ")"
+
 
     def __repr__(self):
         return str(self)
@@ -298,4 +299,4 @@ class RecursiveGrammarException(Exception):
         self.parseElementTrace = parseElementList
 
     def __str__(self) -> str:
-        return f"RecursiveGrammarException: {self.parseElementTrace}"
+        return "RecursiveGrammarException: " + str(self.parseElementTrace)
