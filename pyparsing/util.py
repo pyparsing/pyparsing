@@ -267,6 +267,9 @@ def make_compressed_re(
         else:
             yield namelist[0][0], [namelist[0][1:]]
 
+    if max_level == 0:
+        return "|".join(sorted(word_list, key=len, reverse=True))
+
     ret = []
     first = True
     for initial, suffixes in get_suffixes_from_common_prefixes(sorted(word_list)):
@@ -275,19 +278,21 @@ def make_compressed_re(
         first = False
 
         trailing = ""
-        if '' in suffixes:
+        if "" in suffixes:
             trailing = "?"
-            suffixes.remove('')
+            suffixes.remove("")
 
         if len(suffixes) > 1:
             if all(len(s) == 1 for s in suffixes):
                 ret.append(f"{initial}[{''.join(suffixes)}]{trailing}")
             else:
                 if _level < max_level:
-                    suffix_re = make_compressed_re(sorted(suffixes), max_level, _level + 1)
+                    suffix_re = make_compressed_re(
+                        sorted(suffixes), max_level, _level + 1
+                    )
                     ret.append(f"{initial}({suffix_re}){trailing}")
                 else:
-                    ret.append(f"{initial}({'|'.join(suffixes)}){trailing}")
+                    ret.append(f"{initial}({'|'.join(sorted(suffixes))}){trailing}")
         else:
             if suffixes:
                 if len(suffixes[0]) > 1 and trailing:

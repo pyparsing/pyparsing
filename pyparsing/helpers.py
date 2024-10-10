@@ -1,5 +1,6 @@
 # helpers.py
 import html.entities
+import operator
 import re
 import sys
 import typing
@@ -204,13 +205,13 @@ def one_of(
         )
 
     if caseless:
-        isequal = lambda a, b: a.upper() == b.upper()
+        is_equal = lambda a, b: a.upper() == b.upper()
         masks = lambda a, b: b.upper().startswith(a.upper())
-        parseElementClass = CaselessKeyword if asKeyword else CaselessLiteral
+        parse_element_class = CaselessKeyword if asKeyword else CaselessLiteral
     else:
-        isequal = lambda a, b: a == b
+        is_equal = operator.eq
         masks = lambda a, b: b.startswith(a)
-        parseElementClass = Keyword if asKeyword else Literal
+        parse_element_class = Keyword if asKeyword else Literal
 
     symbols: list[str]
     if isinstance(strs, str_type):
@@ -225,20 +226,19 @@ def one_of(
 
     # reorder given symbols to take care to avoid masking longer choices with shorter ones
     # (but only if the given symbols are not just single characters)
-    if any(len(sym) > 1 for sym in symbols):
-        i = 0
-        while i < len(symbols) - 1:
-            cur = symbols[i]
-            for j, other in enumerate(symbols[i + 1 :]):
-                if isequal(other, cur):
-                    del symbols[i + j + 1]
-                    break
-                if masks(cur, other):
-                    del symbols[i + j + 1]
-                    symbols.insert(i, other)
-                    break
-            else:
-                i += 1
+    i = 0
+    while i < len(symbols) - 1:
+        cur = symbols[i]
+        for j, other in enumerate(symbols[i + 1 :]):
+            if is_equal(other, cur):
+                del symbols[i + j + 1]
+                break
+            if len(other) > len(cur) and masks(cur, other):
+                del symbols[i + j + 1]
+                symbols.insert(i, other)
+                break
+        else:
+            i += 1
 
     if useRegex:
         re_flags: int = re.IGNORECASE if caseless else 0
@@ -270,7 +270,7 @@ def one_of(
             )
 
     # last resort, just use MatchFirst
-    return MatchFirst(parseElementClass(sym) for sym in symbols).set_name(
+    return MatchFirst(parse_element_class(sym) for sym in symbols).set_name(
         " | ".join(symbols)
     )
 

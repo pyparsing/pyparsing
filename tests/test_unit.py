@@ -8774,6 +8774,19 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             "CaselessKeyword not working the same as Keyword(caseless=True)",
         )
 
+    def testOneOf(self):
+        expr = pp.oneOf("a b abb")
+        assert expr.pattern == "abb|a|b"
+
+        expr = pp.oneOf("a abb b abb")
+        assert expr.pattern == "abb|a|b"
+
+        expr = pp.oneOf("a abb abbb b abb")
+        assert expr.pattern == "abbb|abb|a|b"
+
+        expr = pp.oneOf("a abbb abb b abb")
+        assert expr.pattern == "abbb|abb|a|b"
+
     def testOneOfKeywords(self):
         literal_expr = pp.oneOf("a b c")
         success, _ = literal_expr[...].runTests(
@@ -9778,13 +9791,25 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
                 "still have infinite loop in oneOf with duplicate symbols (string input)"
             )
 
+        print("verify oneOf handles duplicate symbols")
+        try:
+            test1 = pp.oneOf("a a a b c d a")
+        except RuntimeError:
+            self.fail(
+                "still have infinite loop in oneOf with duplicate symbols (string input)"
+            )
+
+        assert test1.pattern == "[abcd]"
+
         print("verify oneOf handles generator input")
         try:
-            test1 = pp.oneOf(c for c in "a b c d a" if not c.isspace())
+            test1 = pp.oneOf(c for c in "a b c d a d d d" if not c.isspace())
         except RuntimeError:
             self.fail(
                 "still have infinite loop in oneOf with duplicate symbols (generator input)"
             )
+
+        assert test1.pattern == "[abcd]"
 
         print("verify oneOf handles list input")
         try:
@@ -9794,13 +9819,19 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
                 "still have infinite loop in oneOf with duplicate symbols (list input)"
             )
 
+        assert test1.pattern == "[abcd]"
+
         print("verify oneOf handles set input")
         try:
-            test1 = pp.oneOf(set("a b c d a"))
+            test1 = pp.oneOf(set("a b c d a".split()))
         except RuntimeError:
             self.fail(
                 "still have infinite loop in oneOf with duplicate symbols (set input)"
             )
+
+        # set will generate scrambled letters, get pattern but resort to test
+        pattern_letters = test1.pattern[1:-1]
+        assert sorted(pattern_letters) == sorted("abcd")
 
     def testOneOfWithEmptyList(self):
         """test oneOf helper function with an empty list as input"""
