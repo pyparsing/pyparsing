@@ -6,7 +6,8 @@ name = "cythonized_pyparsing"
 authors = [{name = "Paul McGuire", email = "ptmcg.gm+pyparsing@gmail.com"}]
 readme = "README.rst"
 license = {file = "LICENSE"}
-dynamic = ["version", "description"]
+description = "A Cythonized version of the pyparsing module"
+version = "0.0.0"
 requires-python = ">=3.6.8"
 classifiers = [
     "Development Status :: 5 - Production/Stable",
