@@ -7,14 +7,13 @@ from collections.abc import (
     Iterable,
 )
 import pprint
+import types
 from typing import Tuple, Any, Dict, Set, List
 
 from .util import replaced_by_pep8
 
 
 str_type: Tuple[type, ...] = (str, bytes)
-_generator_type = type((_ for _ in ()))
-
 
 class _ParseResultsWithOffset:
     tup: Tuple["ParseResults", int]
@@ -157,7 +156,7 @@ class ParseResults:
 
         if toklist is None:
             self._toklist = []
-        elif isinstance(toklist, (list, _generator_type)):
+        elif isinstance(toklist, (list, types.GeneratorType)):
             self._toklist = (
                 [toklist[:]]
                 if isinstance(toklist, ParseResults.List)
@@ -523,7 +522,8 @@ class ParseResults:
             res.as_list() if isinstance(res, ParseResults) else res
             for res in self._toklist
         ]
-
+    
+    
     def as_dict(self) -> dict:
         """
         Returns the named parse results as a nested dictionary.

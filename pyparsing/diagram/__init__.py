@@ -256,7 +256,7 @@ class ElementState:
         converted: EditablePartial,
         parent: EditablePartial,
         number: int,
-        name: str = None,
+        name: typing.Optional[str] = None,
         parent_index: typing.Optional[int] = None,
     ):
         #: The pyparsing element that this represents
@@ -277,7 +277,7 @@ class ElementState:
         self.complete: bool = False
 
     def mark_for_extraction(
-        self, el_id: int, state: "ConverterState", name: str = None, force: bool = False
+        self, el_id: int, state: "ConverterState", name: typing.Optional[str] = None, force: bool = False
     ):
         """
         Called when this instance has been seen twice, and thus should eventually be extracted into a sub-diagram

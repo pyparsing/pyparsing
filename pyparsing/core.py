@@ -8,6 +8,7 @@ import typing
 from typing import (
     Any,
     Callable,
+    Match,
     Generator,
     List,
     NamedTuple,
@@ -139,8 +140,6 @@ class __diag__(__config_flags):
     def enable_all_warnings(cls) -> None:
         for name in cls._warning_names:
             cls.enable(name)
-
-
 class Diagnostics(Enum):
     """
     Diagnostic configuration (all default to disabled)
@@ -436,7 +435,7 @@ class ParserElement(ABC):
                 expr.whiteChars = set(chars)
 
     @staticmethod
-    def inline_literals_using(cls: type) -> None:
+    def inline_literals_using(cls) -> None:
         """
         Set class to be used for inclusion of string literals into a parser.
 
@@ -565,7 +564,7 @@ class ParserElement(ABC):
         return cpy
 
     def set_results_name(
-        self, name: str, list_all_matches: bool = False, *, listAllMatches: bool = False
+        self, name: typing.Optional[str], list_all_matches: bool = False, *, listAllMatches: bool = False
     ) -> "ParserElement":
         """
         Define name for referencing matching tokens as a nested attribute
@@ -2413,7 +2412,7 @@ class Literal(Token):
     use :class:`Keyword` or :class:`CaselessKeyword`.
     """
 
-    def __new__(cls, match_string: str = "", *, matchString: str = ""):
+    def __new__(cls, match_string = None, *, matchString = None):
         # Performance tuning: select a subclass with optimized parseImpl
         if cls is Literal:
             match_string = matchString or match_string
@@ -2429,7 +2428,7 @@ class Literal(Token):
     def __getnewargs__(self):
         return (self.match,)
 
-    def __init__(self, match_string: str = "", *, matchString: str = ""):
+    def __init__(self, match_string = None, *, matchString = None):
         super().__init__()
         match_string = matchString or match_string
         self.match = match_string
@@ -2455,7 +2454,7 @@ class Empty(Literal):
     An empty token, will always match.
     """
 
-    def __init__(self, match_string="", *, matchString=""):
+    def __init__(self, match_string=None, *, matchString=""):
         super().__init__("")
         self.mayReturnEmpty = True
         self.mayIndexError = False
@@ -3132,7 +3131,7 @@ class Regex(Token):
         ret = result
         return loc, ret
 
-    def sub(self, repl: str) -> ParserElement:
+    def sub(self, repl: Union[str, Callable[[Match], str]]) -> ParserElement:
         r"""
         Return :class:`Regex` with an attached parse action to transform the parsed
         result as if called using `re.sub(expr, repl, string) <https://docs.python.org/3/library/re.html#re.sub>`_.
@@ -5499,6 +5498,7 @@ class Forward(ParseElementEnhance):
             and Diagnostics.warn_on_match_first_with_lshift_operator
             not in self.suppress_warnings_
         ):
+            import pdb; pdb.set_trace()
             warnings.warn(
                 "using '<<' operator with '|' is probably an error, use '<<='",
                 stacklevel=2,
@@ -6094,18 +6094,19 @@ def token_map(func, *args) -> ParseAction:
     return pa
 
 
-def autoname_elements() -> None:
-    """
-    Utility to simplify mass-naming of parser elements, for
-    generating railroad diagram with named subdiagrams.
-    """
-    calling_frame = sys._getframe().f_back
-    if calling_frame is None:
-        return
-    calling_frame = typing.cast(types.FrameType, calling_frame)
-    for name, var in calling_frame.f_locals.items():
-        if isinstance(var, ParserElement) and not var.customName:
-            var.set_name(name)
+# [CPYPARSING] disabling this function
+# def autoname_elements() -> None:
+#     """
+#     Utility to simplify mass-naming of parser elements, for
+#     generating railroad diagram with named subdiagrams.
+#     """
+#     calling_frame = sys._getframe().f_back
+#     if calling_frame is None:
+#         return
+#     calling_frame = typing.cast(types.FrameType, calling_frame)
+#     for name, var in calling_frame.f_locals.items():
+#         if isinstance(var, ParserElement) and not var.customName:
+#             var.set_name(name)
 
 
 dbl_quoted_string = Combine(
