@@ -9,6 +9,6 @@ py_files = [os.path.join("pyparsing", file) for file in os.listdir("pyparsing") 
 extensions = cythonize(py_files)
 
 setup(
-    name='cythonized_pyparsing',
+    name='pyparsing',
     ext_modules=extensions,
 )

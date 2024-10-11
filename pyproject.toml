@@ -2,7 +2,7 @@
 requires = ["setuptools", "wheel", "cython"]
 
 [project]
-name = "cythonized_pyparsing"
+name = "pyparsing"
 authors = [{name = "Paul McGuire", email = "ptmcg.gm+pyparsing@gmail.com"}]
 readme = "README.rst"
 license = {file = "LICENSE"}
