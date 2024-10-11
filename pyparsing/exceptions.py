@@ -53,13 +53,12 @@ class ParseBaseException(Exception):
         msg: typing.Optional[str] = None,
         elem=None,
     ):
-        self.loc = loc
         if msg is None:
-            self.msg = pstr
-            self.pstr = ""
-        else:
-            self.msg = msg
-            self.pstr = pstr
+            msg, pstr = pstr, ""
+
+        self.loc = loc
+        self.msg = msg
+        self.pstr = pstr
         self.parser_element = elem
         self.args = (pstr, loc, msg)
 
@@ -85,7 +84,7 @@ class ParseBaseException(Exception):
 
         if depth is None:
             depth = sys.getrecursionlimit()
-        ret = []
+        ret: list[str] = []
         if isinstance(exc, ParseBaseException):
             ret.append(exc.line)
             ret.append(f"{' ' * (exc.column - 1)}^")
@@ -95,7 +94,7 @@ class ParseBaseException(Exception):
             return "\n".join(ret)
 
         callers = inspect.getinnerframes(exc.__traceback__, context=depth)
-        seen = set()
+        seen: set[int] = set()
         for ff in callers[-depth:]:
             frm = ff[0]
 
@@ -213,9 +212,7 @@ class ParseBaseException(Exception):
         line_str = self.line
         line_column = self.column - 1
         if markerString:
-            line_str = "".join(
-                (line_str[:line_column], markerString, line_str[line_column:])
-            )
+            line_str = f"{line_str[:line_column]}{markerString}{line_str[line_column:]}"
         return line_str.strip()
 
     def explain(self, depth: int = 16) -> str:
@@ -306,6 +303,8 @@ class RecursiveGrammarException(Exception):
     Exception thrown by :class:`ParserElement.validate` if the
     grammar could be left-recursive; parser may need to enable
     left recursion using :class:`ParserElement.enable_left_recursion<ParserElement.enable_left_recursion>`
+
+    Deprecated: only used by deprecated method ParserElement.validate.
     """
 
     def __init__(self, parseElementList):

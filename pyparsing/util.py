@@ -1,11 +1,11 @@
 # util.py
-import inspect
-import warnings
-import types
-import itertools
+import contextlib
 from functools import lru_cache, wraps
-from operator import itemgetter
+import inspect
+import itertools
+import types
 from typing import Callable, Union, Iterable, TypeVar, cast
+import warnings
 
 _bslash = chr(92)
 C = TypeVar("C", bound=Callable)
@@ -181,32 +181,66 @@ def _escape_regex_range_chars(s: str) -> str:
     return str(s)
 
 
+class _GroupConsecutive:
+    """
+    Used as a callable `key` for itertools.groupby to group
+    characters that are consecutive:
+        itertools.groupby("abcdejkmpqrs", key=IsConsecutive())
+        yields:
+            (0, iter(['a', 'b', 'c', 'd', 'e']))
+            (1, iter(['j', 'k']))
+            (2, iter(['m']))
+            (3, iter(['p', 'q', 'r', 's']))
+    """
+    def __init__(self):
+        self.prev = 0
+        self.counter = itertools.count()
+        self.value = -1
+
+    def __call__(self, char: str) -> int:
+        c_int = ord(char)
+        self.prev, prev = c_int, self.prev
+        if c_int - prev > 1:
+            self.value = next(self.counter)
+        return self.value
+
+
 def _collapse_string_to_ranges(
     s: Union[str, Iterable[str]], re_escape: bool = True
 ) -> str:
+    """
+    Take a string or list of single-character strings, and return
+    a string of the consecutive characters in that string collapsed
+    into groups, as might be used in a regular expression '[a-z]'
+    character set:
+        'a' -> 'a' -> '[a]'
+        'bc' -> 'bc' -> '[bc]'
+        'defgh' -> 'd-h' -> '[d-h]'
+        'fdgeh' -> 'd-h' -> '[d-h]'
+        'jklnpqrtu' -> 'j-lnp-rtu' -> '[j-lnp-rtu]'
+    Duplicates get collapsed out:
+        'aaa' -> 'a' -> '[a]'
+        'bcbccb' -> 'bc' -> '[bc]'
+        'defghhgf' -> 'd-h' -> '[d-h]'
+        'jklnpqrjjjtu' -> 'j-lnp-rtu' -> '[j-lnp-rtu]'
+    Spaces are preserved:
+        'ab c' -> ' a-c' -> '[ a-c]'
+    Characters that are significant when defining regex ranges
+    get escaped:
+        'acde[]-' -> r'\-\[\]ac-e' -> r'[\-\[\]ac-e]'
+    """
 
     # Developer notes:
     # - Do not optimize this code assuming that the given input string
     #   or internal lists will be short (such as in loading generators into
     #   lists to make it easier to find the last element); this method is also
     #   used to generate regex ranges for character sets in the pyparsing.unicode
-    #   classes, and these can be _very_ long strings
+    #   classes, and these can be _very_ long lists of strings
 
-    def is_consecutive(c):
-        c_int = ord(c)
-        is_consecutive.prev, prev = c_int, is_consecutive.prev
-        if c_int - prev > 1:
-            is_consecutive.value = next(is_consecutive.counter)
-        return is_consecutive.value
-
-    is_consecutive.prev = 0  # type: ignore [attr-defined]
-    is_consecutive.counter = itertools.count()  # type: ignore [attr-defined]
-    is_consecutive.value = -1  # type: ignore [attr-defined]
-
-    def escape_re_range_char(c):
+    def escape_re_range_char(c: str) -> str:
         return "\\" + c if c in r"\^-][" else c
 
-    def no_escape_re_range_char(c):
+    def no_escape_re_range_char(c: str) -> str:
         return c
 
     if not re_escape:
@@ -215,24 +249,42 @@ def _collapse_string_to_ranges(
     ret = []
 
     # reduce input string to remove duplicates, and put in sorted order
-    s = "".join(sorted(set(s)))
-    if len(s) > 2:
-        # find groups of characters that are consecutive (can be replaced
-        # with "<first>-<last>")
-        for _, chars in itertools.groupby(s, key=is_consecutive):
+    s_chars: list[str] = sorted(set(s))
+
+    if len(s_chars) > 2:
+        # find groups of characters that are consecutive (can be collapsed
+        # down to "<first>-<last>")
+        for _, chars in itertools.groupby(s_chars, key=_GroupConsecutive()):
+            # _ is unimportant, is just used to identify groups
+            # chars is an iterator of one or more consecutive characters
+            # that comprise the current group
             first = last = next(chars)
-            for c in chars:
-                last = c
+            with contextlib.suppress(ValueError):
+                *_, last = chars
+
             if first == last:
+                # there was only a single char in this group
                 ret.append(escape_re_range_char(first))
+
+            elif last == chr(ord(first) + 1):
+                # there were only 2 characters in this group
+                #   'a','b' -> 'ab'
+                ret.append(f"{escape_re_range_char(first)}{escape_re_range_char(last)}")
+
             else:
-                sep = "" if ord(last) == ord(first) + 1 else "-"
+                # there were > 2 characters in this group, make into a range
+                #   'c','d','e' -> 'c-e'
                 ret.append(
-                    f"{escape_re_range_char(first)}{sep}{escape_re_range_char(last)}"
+                    f"{escape_re_range_char(first)}-{escape_re_range_char(last)}"
                 )
     else:
-        # no need to list this (or these 2) chars with "-", just return as a list
-        ret = [escape_re_range_char(c) for c in s]
+        # only 1 or 2 chars were given to form into groups
+        #   'a' -> ['a']
+        #   'bc' -> ['b', 'c']
+        #   'dg' -> ['d', 'g']
+        # no need to list them with "-", just return as a list
+        # (after escaping)
+        ret = [escape_re_range_char(c) for c in s_chars]
 
     return "".join(ret)
 
@@ -271,11 +323,10 @@ def make_compressed_re(
         return "|".join(sorted(word_list, key=len, reverse=True))
 
     ret = []
-    first = True
+    sep = ""
     for initial, suffixes in get_suffixes_from_common_prefixes(sorted(word_list)):
-        if not first:
-            ret.append("|")
-        first = False
+        ret.append(sep)
+        sep = "|"
 
         trailing = ""
         if "" in suffixes:
@@ -292,13 +343,15 @@ def make_compressed_re(
                     )
                     ret.append(f"{initial}({suffix_re}){trailing}")
                 else:
-                    ret.append(f"{initial}({'|'.join(sorted(suffixes))}){trailing}")
+                    suffixes.sort(key=len, reverse=True)
+                    ret.append(f"{initial}({'|'.join(suffixes)}){trailing}")
         else:
             if suffixes:
-                if len(suffixes[0]) > 1 and trailing:
-                    ret.append(f"{initial}({suffixes[0]}){trailing}")
+                suffix = suffixes[0]
+                if len(suffix) > 1 and trailing:
+                    ret.append(f"{initial}({suffix}){trailing}")
                 else:
-                    ret.append(f"{initial}{suffixes[0]}{trailing}")
+                    ret.append(f"{initial}{suffix}{trailing}")
             else:
                 ret.append(initial)
     return "".join(ret)
