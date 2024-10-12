@@ -7,7 +7,7 @@ authors = [{name = "Paul McGuire", email = "ptmcg.gm+pyparsing@gmail.com"}]
 readme = "README.rst"
 license = {file = "LICENSE"}
 description = "A Cythonized version of the pyparsing module"
-version = "0.0.0"
+version = "3.1.4"
 requires-python = ">=3.6.8"
 classifiers = [
     "Development Status :: 5 - Production/Stable",

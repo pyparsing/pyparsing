@@ -9,6 +9,7 @@ py_files.append(os.path.join("pyparsing", "diagram", "__init__.py"))
 extensions = cythonize(py_files)
 
 setup(
-    name='pyparsing',
+    name="pyparsing",
+    version="3.1.4",
     ext_modules=extensions,
 )
