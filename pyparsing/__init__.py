@@ -127,7 +127,7 @@ __versionTime__ = __version_time__
 __author__ = "Paul McGuire <ptmcg.gm+pyparsing@gmail.com>"
 
 from .util import *
-from .exceptions import *
+from .exceptions import ParseFatalException, RecursiveGrammarException, ParseSyntaxException, ParseException, ParseBaseException
 from .actions import *
 from .core import __diag__, __compat__
 from .results import *
