@@ -5,10 +5,10 @@ Using the pyparsing module
 :author: Paul McGuire
 :address: ptmcg.pm+pyparsing@gmail.com
 
-:revision: 3.1.3
-:date: August, 2024
+:revision: 3.2.0
+:date: October, 2024
 
-:copyright: Copyright |copy| 2003-2023 Paul McGuire.
+:copyright: Copyright |copy| 2003-2024 Paul McGuire.
 
 .. |copy| unicode:: 0xA9
 
@@ -42,9 +42,9 @@ synonyms, but the synonyms will be removed in a future release.*
 
 *If you are using this documentation, but working with a 2.4.x version of pyparsing,
 you'll need to convert methods and arguments from the documented snake_case
-names to the legacy camelCase names. In pyparsing 3.0.x and 3.1.x, both forms are
+names to the legacy camelCase names. In pyparsing 3.x, both forms are
 supported, but the legacy forms are deprecated; they will be dropped in a
-future release.*
+future 4.0 release.*
 
 -----------
 
@@ -822,7 +822,7 @@ Special subclasses
 
 - ``Tag`` - a non-parsing token that always matches, and inserts
   a tag and value into the current parsed tokens; useful for adding
-  metadata or annotations to parsed results (see tag_example.py_).
+  metadata or annotations to parsed results (see `examples/tag_example.py <../examples/tag_example.py>`_).
 
 
 Other classes

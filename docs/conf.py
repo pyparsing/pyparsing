@@ -21,7 +21,7 @@ from pyparsing import __version__ as pyparsing_version
 # -- Project information -----------------------------------------------------
 
 project = "PyParsing"
-copyright = "2018-2022, Paul T. McGuire"
+copyright = "2018-2024, Paul T. McGuire"
 author = "Paul T. McGuire"
 
 # The short X.Y version
@@ -47,10 +47,8 @@ extensions = [
 templates_path = ["_templates"]
 
 # The suffix(es) of source filenames.
-# You can specify multiple suffix as a list of string:
-#
-# source_suffix = ['.rst', '.md']
-source_suffix = ".rst"
+# You can specify multiple suffixes:
+source_suffix = {'.rst': 'restructuredtext'}
 
 # The master toctree document.
 master_doc = "index"
@@ -60,7 +58,7 @@ master_doc = "index"
 #
 # This is also used if you do content translation via gettext catalogs.
 # Usually you set "language" from the command line for these cases.
-language = None
+language = "en"
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
@@ -76,7 +74,7 @@ pygments_style = "sphinx"
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
-html_theme = "alabaster"
+html_theme = "classic"
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the

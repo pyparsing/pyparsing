@@ -1,1 +1,1 @@
-sphinx-build.exe -M html . _build
+sphinx-build.exe -E -b html . _build

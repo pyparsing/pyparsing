@@ -107,7 +107,7 @@ Version 3.2.0 - October, 2024
 - NEW/ENHANCED EXAMPLES
 
     - Added query syntax to `mongodb_query_expression.py` with:
-      - better support for array fields ("contains", "contains all",
+      - better support for array fields ("contains all",
         "contains any", and "contains none")
       - "like" and "not like" operators to support SQL "%" wildcard matching
         and "=~" operator to support regex matching

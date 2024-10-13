@@ -445,7 +445,7 @@ class ParserElement(ABC):
     @classmethod
     def using_each(cls, seq, **class_kwargs):
         """
-        Yields a sequence of class(obj, **class_kwargs) for obj in seq.
+        Yields a sequence of ``class(obj, **class_kwargs)`` for obj in seq.
 
         Example::
 
