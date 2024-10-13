@@ -208,7 +208,7 @@ class _GroupConsecutive:
 def _collapse_string_to_ranges(
     s: Union[str, Iterable[str]], re_escape: bool = True
 ) -> str:
-    """
+    r"""
     Take a string or list of single-character strings, and return
     a string of the consecutive characters in that string collapsed
     into groups, as might be used in a regular expression '[a-z]'
