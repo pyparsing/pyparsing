@@ -6,10 +6,10 @@ import re
 
 import pytest
 
-if platform.python_implementation() == "PyPy":
-    mpl_mathtext = None
-else:
+try:
     import matplotlib.mathtext as mpl_mathtext
+except ImportError:
+    mpl_mathtext = None
 
 # fmt: off
 @pytest.mark.parametrize(
