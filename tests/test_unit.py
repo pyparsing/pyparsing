@@ -40,6 +40,14 @@ IRON_PYTHON_ENV = python_impl == "IronPython"
 JYTHON_ENV = python_impl == "Jython"
 PYPY_ENV = python_impl == "PyPy"
 
+# global flags for Python config settings
+_config_vars = sysconfig.get_config_vars()
+_config_args = set(
+    shlex.split(_config_vars.get("CONFIG_ARGS", ""))
+)
+PYTHON_JIT_ENABLED = "--enable-experimental-jit" in _config_args
+PYTHON_FREE_THREADED = _config_vars.get("Py_GIL_DISABLED", 0) == 1
+
 # get full stack traces during testing
 pp.ParserElement.verbose_stacktrace = True
 
@@ -152,11 +160,15 @@ class Test01_PyparsingTestInit(TestCase):
             pp.__version__,
             pp.__version_time__,
         )
-        python_jit_enabled = "--enable-experimental-jit" in shlex.split(
-            sysconfig.get_config_vars().get("CONFIG_ARGS", "")
-        )
+        config_options = []
+        if PYTHON_JIT_ENABLED:
+            config_options.append("JIT enabled")
+        if PYTHON_FREE_THREADED:
+            config_options.append("free_threaded")
+        config_options_str = f" ({','.join(config_options)})"
         print(
-            f"Python version {sys.version} {'(JIT enabled)' if python_jit_enabled else ''}"
+            f"Python version {sys.version}"
+            f"{config_options_str if config_options else ''}"
         )
         print(f"__version_info__     : {pp.__version_info__}")
         print(f"__version_info__ repr: {repr(pp.__version_info__)}")
@@ -10507,7 +10519,14 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
         self.assertEqual("(0-9)", repr(expr))
 
     def testEmptyExpressionsAreHandledProperly(self):
-        from pyparsing.diagram import to_railroad
+        try:
+            from pyparsing.diagram import to_railroad
+        except ModuleNotFoundError as mnfe:
+            print("Failed 'from pyparsing.diagram import to_railroad'"
+                  f"\n  {type(mnfe).__name__}: {mnfe}")
+            if mnfe.__cause__:
+                print(f"\n {type(mnfe.__cause__).__name__}: {mnfe.__cause__}")
+            self.skipTest("Failed 'from pyparsing.diagram import to_railroad'")
 
         for cls in (pp.And, pp.Or, pp.MatchFirst, pp.Each):
             print("testing empty", cls.__name__)
