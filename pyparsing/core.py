@@ -5558,7 +5558,8 @@ class Forward(ParseElementEnhance):
             not in self.suppress_warnings_
         ):
             warnings.warn(
-                "using '<<' operator with '|' is probably an error, use '<<='",
+                "warn_on_match_first_with_lshift_operator:"
+                " using '<<' operator with '|' is probably an error, use '<<='",
                 stacklevel=2,
             )
         ret = super().__or__(other)
@@ -5572,7 +5573,8 @@ class Forward(ParseElementEnhance):
             and Diagnostics.warn_on_assignment_to_Forward not in self.suppress_warnings_
         ):
             warnings.warn_explicit(
-                "Forward defined here but no expression attached later using '<<=' or '<<'",
+                "warn_on_assignment_to_Forward:"
+                " Forward defined here but no expression attached later using '<<=' or '<<'",
                 UserWarning,
                 filename=self.caller_frame.filename,
                 lineno=self.caller_frame.lineno,
@@ -5600,7 +5602,8 @@ class Forward(ParseElementEnhance):
             else:
                 stacklevel = 2
             warnings.warn(
-                "Forward expression was never assigned a value, will not parse any input",
+                "warn_on_parse_using_empty_Forward:"
+                " Forward expression was never assigned a value, will not parse any input",
                 stacklevel=stacklevel,
             )
         if not ParserElement._left_recursion_enabled:

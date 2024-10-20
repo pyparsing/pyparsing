@@ -199,7 +199,8 @@ def one_of(
         and __diag__.warn_on_multiple_string_args_to_oneof
     ):
         warnings.warn(
-            "More than one string argument passed to one_of, pass"
+            "warn_on_multiple_string_args_to_oneof:"
+            " More than one string argument passed to one_of, pass"
             " choices as a list or space-delimited string",
             stacklevel=2,
         )
