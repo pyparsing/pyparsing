@@ -130,7 +130,7 @@ API Changes
 
       ident = ppu.Greek.identifier
       # or
-      # ident = ppu.Î•Î»Î»Î·Î½Î¹ÎºÎ¬.identifier
+      # ident = ppu.Ελληνικά.identifier
 
 - Added bool ``embed`` argument to ``ParserElement.create_diagram()``.
   When passed as True, the resulting diagram will omit the ``<DOCTYPE>``,
@@ -198,7 +198,7 @@ Fixed Bugs
 - Updated ``create_diagram()`` code to be compatible with railroad-diagrams package
   version 3.0.
 
-- Fixed bug in pyparsing.common.url, when input URL is not alone
+- Fixed bug in ``pyparsing.common.url``, when input URL is not alone
   on an input line.
 
 - Fixed bug in srange, when parsing escaped '/' and '\' inside a
@@ -262,8 +262,14 @@ Fixed Bugs
 New / Enhanced Examples
 =======================
 - Added example ``mongodb_query_expression.py``, to convert human-readable infix query
-  expressions (such as ``a==100 and b>=200``) and transform them into the equivalent
-  query argument for the pymongo package (``{'$and': [{'a': 100}, {'b': {'$gte': 200}}]}``).
+  expressions, such as::
+
+      a==100 and b>=200
+
+  and transform them into an equivalent query argument for the pymongo package::
+
+      {'$and': [{'a': 100}, {'b': {'$gte': 200}}]}
+
   Supports many equality and inequality operators - see the docstring for the
   ``transform_query`` function for many more examples.
 

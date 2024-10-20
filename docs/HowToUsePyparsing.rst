@@ -374,6 +374,14 @@ methods for code to use are:
   basic element can be referenced multiple times and given
   different names within a complex grammar.
 
+.. _using_each:
+
+- ``using_each(list_of_symbols)`` a short-cut for defining a number of
+  symbols of a particular ``ParserElement`` subclass::
+
+     LBRACK, RBRACK, LBRACE, RBRACE, LPAR, RPAR = Suppress.using_each("[]{}()")
+     AND, OR, NOT = Keyword.using_each("and or not".split())
+
 .. _set_parse_action:
 
 - ``set_parse_action(*fn)`` - specify one or more functions to call after successful
@@ -412,7 +420,7 @@ methods for code to use are:
   
   A nice short-cut for calling ``set_parse_action`` is to use it as a decorator::
   
-    identifier = Word(alphas, alphanums+"_")
+    identifier = Word(alphas, alphanums + "_")
     
     @identifier.set_parse_action
     def resolve_identifier(results: ParseResults):
@@ -463,9 +471,11 @@ methods for code to use are:
   when trying to match this element
 
 - ``validate()`` - function to verify that the defined grammar does not
-  contain infinitely recursive constructs (``validate()`` is deprecated, and
+  contain infinitely recursive constructs.
+
+  *(``validate()`` is deprecated, and
   will be removed in a future pyparsing release. Pyparsing now supports
-  left-recursive parsers, which this function attempted to catch.)
+  left-recursive parsers, which this function attempted to catch.)*
 
 .. _parse_with_tabs:
 
@@ -613,7 +623,7 @@ Basic ParserElement subclasses
 
   ``SkipTo`` can also be written using ``...``::
 
-    LBRACE, RBRACE = map(Literal, "{}")
+    LBRACE, RBRACE = Literal.using_each("{}")
 
     brace_expr = LBRACE + SkipTo(RBRACE) + RBRACE
     # can also be written as
@@ -1423,27 +1433,27 @@ access them using code like the following::
 
 The following language ranges are defined.
 
-==========================    =================     ================================================
+==========================    =================     ========================================================
 Unicode set                   Alternate names       Description
---------------------------    -----------------     ------------------------------------------------
-Arabic                        العربية
-Chinese                       中文
-CJK                                                 Union of Chinese, Japanese, and Korean sets
-Cyrillic                      кириллица
-Devanagari                    देवनागरी
-Greek                         Ελληνικά
-Hangul                        Korean, 한국어
-Hebrew                        עִברִית
-Japanese                      日本語                 Union of Kanji, Katakana, and Hiragana sets
-Japanese.Hiragana             ひらがな
-Japanese.Kanji                漢字
-Japanese.Katakana             カタカナ
-Latin1                                              All Unicode characters up to code point 255
-LatinA
-LatinB
-Thai                          ไทย
-BasicMultilingualPlane        BMP                   All Unicode characters up to code point 65535
-==========================    =================     ================================================
+--------------------------    -----------------     --------------------------------------------------------
+``Arabic``                        العربية
+``Chinese``                   中文
+``CJK``                                             Union of Chinese, Japanese, and Korean sets
+``Cyrillic``                  кириллица
+``Devanagari``                देवनागरी
+``Greek``                     Ελληνικά
+``Hangul``                    Korean, 한국어
+``Hebrew``                        עִברִית
+``Japanese``                  日本語                 Union of Kanji, Katakana, and Hiragana sets
+``Japanese.Hiragana``         ひらがな
+``Japanese.Kanji``            漢字
+``Japanese.Katakana``         カタカナ
+``Latin1``                                          All Unicode characters up to code point 0x7f (255)
+``LatinA``                                          Unicode characters for code points 0x100-0x17f (256-383)
+``LatinB``                                          Unicode characters for code points 0x180-0x24f (384-591)
+``Thai``                      ไทย
+``BasicMultilingualPlane``    BMP                   All Unicode characters up to code point 0xffff (65535)
+==========================    =================     ========================================================
 
 The base ``unicode`` class also includes definitions based on all Unicode code points up to ``sys.maxunicode``. This
 set will include emojis, wingdings, and many other specialized and typographical variant characters.
@@ -1493,7 +1503,7 @@ Example
 -------
 You can view an example railroad diagram generated from `a pyparsing grammar for
 SQL SELECT statements <_static/sql_railroad.html>`_ (generated from
-`examples/select_parser.py <../examples/select_parser.py>`_).
+`examples/select_parser.py <https://github.com/pyparsing/pyparsing/blob/master/examples/select_parser.py>`_).
 
 Naming tip
 ----------
