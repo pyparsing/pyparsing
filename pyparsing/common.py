@@ -1,3 +1,4 @@
+# cython: profile=True
 # common.py
 from .core import *
 from .helpers import DelimitedList, any_open_tag, any_close_tag

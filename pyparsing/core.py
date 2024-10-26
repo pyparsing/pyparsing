@@ -1,4 +1,4 @@
-#
+# cython: profile=True
 # core.py
 #
 

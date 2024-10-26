@@ -1,3 +1,4 @@
+# cython: profile=True
 # exceptions.py
 
 import re

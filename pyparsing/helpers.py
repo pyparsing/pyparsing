@@ -1,3 +1,4 @@
+# cython: profile=True
 # helpers.py
 import html.entities
 import re

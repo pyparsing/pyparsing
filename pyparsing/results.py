@@ -1,3 +1,4 @@
+# cython: profile=True
 # results.py
 from collections.abc import (
     MutableMapping,

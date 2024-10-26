@@ -1,3 +1,4 @@
+# cython: profile=True
 # actions.py
 
 from .exceptions import ParseException

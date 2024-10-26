@@ -1,3 +1,4 @@
+# cython: profile=True
 # testing.py
 
 from contextlib import contextmanager

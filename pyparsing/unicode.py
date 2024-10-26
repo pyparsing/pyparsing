@@ -1,3 +1,4 @@
+# cython: profile=True
 # unicode.py
 
 import sys

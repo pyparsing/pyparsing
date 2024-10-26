@@ -1,3 +1,4 @@
+# cython: profile=True
 # util.py
 import inspect
 import warnings

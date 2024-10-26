@@ -1,3 +1,4 @@
+# cython: profile=True
 # module pyparsing.py
 #
 # Copyright (c) 2003-2022  Paul T. McGuire
