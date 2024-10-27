@@ -54,7 +54,7 @@ roman_numeral = (
     + (ninety | forty | fifty[0, 1] + ten[0, 3])[0, 1]
     + (nine | four | five[0, 1] + one[0, 3])[0, 1]
 ).set_parse_action(sum)
-pp.autoname_elements()
+# pp.autoname_elements()
 
 # uncomment to generate railroad diagram
 # roman_numeral.create_diagram("romanNumerals.html")

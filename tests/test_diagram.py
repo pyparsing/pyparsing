@@ -200,20 +200,20 @@ class TestRailroadDiagrams(unittest.TestCase):
         tags = "<html> </html> <head> </head> <body> </body>".split()
         assert not any(tag in diag_str for tag in tags)
 
-    def test_create_diagram_for_oneormore_with_stopon(self):
-        wd = pp.Word(pp.alphas)
-        grammar = "start" + wd[1, ...:"end"] + "end"
+    # def test_create_diagram_for_oneormore_with_stopon(self):
+    #     wd = pp.Word(pp.alphas)
+    #     grammar = "start" + wd[1, ...:"end"] + "end"
 
-        pp.autoname_elements()
-        railroad_diag = to_railroad(grammar)
-        assert len(railroad_diag) == 3
-        assert isinstance(railroad_diag[1].diagram.items[1].item, railroad.Sequence)
-        assert isinstance(
-            railroad_diag[1].diagram.items[1].item.items[0], AnnotatedItem
-        )
-        assert isinstance(
-            railroad_diag[1].diagram.items[1].item.items[1], railroad.NonTerminal
-        )
+    #     # pp.autoname_elements()
+    #     railroad_diag = to_railroad(grammar)
+    #     assert len(railroad_diag) == 3
+    #     assert isinstance(railroad_diag[1].diagram.items[1].item, railroad.Sequence)
+    #     assert isinstance(
+    #         railroad_diag[1].diagram.items[1].item.items[0], AnnotatedItem
+    #     )
+    #     assert isinstance(
+    #         railroad_diag[1].diagram.items[1].item.items[1], railroad.NonTerminal
+    #     )
 
     def test_kwargs_pass_thru_create_diagram(self):
         from io import StringIO

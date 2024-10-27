@@ -269,9 +269,9 @@ class pyparsing_unicode(unicode_set):
                 (0x1F213,),
             ]
 
-        漢字 = Kanji
-        カタカナ = Katakana
-        ひらがな = Hiragana
+        # 漢字 = Kanji
+        # カタカナ = Katakana
+        # ひらがな = Hiragana
 
         _ranges = (
             Kanji._ranges
@@ -343,14 +343,14 @@ class pyparsing_unicode(unicode_set):
     BMP = BasicMultilingualPlane
 
     # add language identifiers using language Unicode
-    العربية = Arabic
-    中文 = Chinese
-    кириллица = Cyrillic
-    Ελληνικά = Greek
-    עִברִית = Hebrew
-    日本語 = Japanese
-    한국어 = Korean
-    ไทย = Thai
-    देवनागरी = Devanagari
+    # العربية = Arabic
+    # 中文 = Chinese
+    # кириллица = Cyrillic
+    # Ελληνικά = Greek
+    # עִברִית = Hebrew
+    # 日本語 = Japanese
+    # 한국어 = Korean
+    # ไทย = Thai
+    # देवनागरी = Devanagari
 
     # fmt: on

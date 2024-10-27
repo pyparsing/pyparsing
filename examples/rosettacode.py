@@ -87,7 +87,7 @@ stmt <<= (
 
 program = stmt[...]
 program.ignore(pp.cppStyleComment)
-pp.autoname_elements()
+# pp.autoname_elements()
 
 tests = [
     r"""

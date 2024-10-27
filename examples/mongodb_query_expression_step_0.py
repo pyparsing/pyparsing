@@ -147,7 +147,7 @@ boolean_comparison_expr = pp.infix_notation(
 )
 query_condition_expr = boolean_comparison_expr
 
-pp.autoname_elements()
+# pp.autoname_elements()
 
 
 def main():

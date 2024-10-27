@@ -361,7 +361,7 @@ time_expression = time_and_day
 
 _GENERATE_DIAGRAM = False
 if _GENERATE_DIAGRAM:
-    pp.autoname_elements()
+    # pp.autoname_elements()
     time_expression.create_diagram("delta_time.html")
 
 

@@ -156,7 +156,7 @@ if __name__ == "__main__":
         # print()
 
     # create railroad diagram
-    pp.autoname_elements()
+    # pp.autoname_elements()
     directx_template_defn.create_diagram(
         "directx_x_file_parser.html", show_results_names=True, show_groups=False
     )

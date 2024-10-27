@@ -106,7 +106,7 @@ program = declaration[...]
 program.ignore(pp.dbl_slash_comment)
 
 # define names so that we get a better diagram
-pp.autoname_elements()
+# pp.autoname_elements()
 
 
 def main():

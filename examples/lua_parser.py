@@ -233,7 +233,7 @@ if_stat = (
 )
 function_def = pp.Optional(LOCAL) + FUNCTION + funcname + funcbody
 
-pp.autoname_elements()
+# pp.autoname_elements()
 
 #    stat ::=  varlist1 '=' explist1  |
 #              functioncall  |

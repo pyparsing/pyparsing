@@ -396,7 +396,7 @@ query_condition_expr_with_comment.add_parse_action(
     lambda s, l, t: t[0].__setitem__("$comment", s)
 )
 
-pp.autoname_elements()
+# pp.autoname_elements()
 
 
 def transform_query(query_string: str, include_comment: bool = False) -> Dict:

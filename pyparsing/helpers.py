@@ -241,7 +241,7 @@ def one_of(
             i += 1
 
     if useRegex:
-        re_flags: int = re.IGNORECASE if caseless else 0
+        re_flags: int | re.RegexFlag = re.IGNORECASE if caseless else 0
 
         try:
             if all(len(sym) == 1 for sym in symbols):

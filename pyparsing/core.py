@@ -1,7 +1,7 @@
 #
 # core.py
 #
-from __future__ import annotations
+# from __future__ import annotations
 
 import collections.abc
 from collections import deque
@@ -77,7 +77,8 @@ str_type: tuple[type, ...] = (str, bytes)
 
 from functools import cached_property
 
-
+class Forward:
+    pass
 class __compat__(__config_flags):
     """
     A cross-version compatibility configuration for pyparsing features that will be
@@ -95,7 +96,7 @@ class __compat__(__config_flags):
 
     collect_all_And_tokens = True
 
-    _all_names = [__ for __ in locals() if not __.startswith("_")]
+    _all_names = ["collect_all_And_tokens"]
     _fixed_names = """
         collect_all_And_tokens
         """.split()
@@ -113,7 +114,8 @@ class __diag__(__config_flags):
     warn_on_match_first_with_lshift_operator = False
     enable_debug_on_named_expressions = False
 
-    _all_names = [__ for __ in locals() if not __.startswith("_")]
+    _all_names = ['warn_multiple_tokens_in_named_alternation', 'warn_ungrouped_named_tokens_in_collection', 'warn_name_set_on_empty_Forward', 'warn_on_parse_using_empty_Forward', 'warn_on_assignment_to_Forward', 'warn_on_multiple_string_args_to_oneof', 'warn_on_match_first_with_lshift_operator', 'enable_debug_on_named_expressions']
+    
     _warning_names = [name for name in _all_names if name.startswith("warn")]
     _debug_names = [name for name in _all_names if name.startswith("enable_debug")]
 
@@ -243,7 +245,8 @@ hexnums: str = nums + "ABCDEFabcdef"
 alphanums: str = alphas + nums
 printables: str = "".join([c for c in string.printable if c not in string.whitespace])
 
-
+class ParserElement:
+    pass
 class _ParseActionIndexError(Exception):
     """
     Internal wrapper around IndexError so that IndexErrors raised inside
@@ -273,12 +276,8 @@ def _trim_arity(func, max_limit=3):
     # synthesize what would be returned by traceback.extract_stack at the call to
     # user's parse action 'func', so that we don't incur call penalty at parse time
 
-    # fmt: off
-    LINE_DIFF = 9
-    # IF ANY CODE CHANGES, EVEN JUST COMMENTS OR BLANK LINES, BETWEEN THE NEXT LINE AND
-    # THE CALL TO FUNC INSIDE WRAPPER, LINE_DIFF MUST BE MODIFIED!!!!
-    _trim_arity_call_line = _trim_arity_call_line or traceback.extract_stack(limit=2)[-1]
-    pa_call_line_synth = pa_call_line_synth or (_trim_arity_call_line[0], _trim_arity_call_line[1] + LINE_DIFF)
+    # [CPYPARSING] use preprocessed constants
+    pa_call_line_synth = ("core.py", 320)
 
     def wrapper(*args):
         nonlocal found_arity, limit
@@ -294,34 +293,33 @@ def _trim_arity(func, max_limit=3):
                 if found_arity:
                     raise
                 else:
-                    tb = te.__traceback__
-                    frames = traceback.extract_tb(tb, limit=2)
-                    frame_summary = frames[-1]
-                    trim_arity_type_error = (
-                        [frame_summary[:2]][-1][:2] == pa_call_line_synth
-                    )
-                    del tb
+                    # [CPYPARSING] use _trim_arity.inspect_tracebacks
+                    if _trim_arity.inspect_tracebacks:
+                        try:
+                            tb = sys.exc_info()[-1]
+                            if not extract_tb(tb, limit=2)[-1][:2] == pa_call_line_synth:
+                                raise
+                        finally:
+                            try:
+                                del tb
+                            except NameError:
+                                pass
 
-                    if trim_arity_type_error:
-                        if limit < max_limit:
-                            limit += 1
-                            continue
-
-                    raise
-            except IndexError as ie:
-                # wrap IndexErrors inside a _ParseActionIndexError
-                raise _ParseActionIndexError(
-                    "IndexError raised in parse action", ie
-                ).with_traceback(None)
-    # fmt: on
+                if limit <= max_limit:
+                    limit += 1
+                    continue
+                raise
 
     # copy func name to wrapper for sensible debug output
     # (can't use functools.wraps, since that messes with function signature)
     func_name = getattr(func, "__name__", getattr(func, "__class__").__name__)
-    wrapper.__name__ = func_name
+    wrapper.__name__ = str(func_name)
     wrapper.__doc__ = func.__doc__
 
     return wrapper
+
+# [CPYPARSING] add _trim_arity.inspect_tracebacks
+_trim_arity.inspect_tracebacks = False
 
 
 def condition_as_parse_action(
@@ -421,7 +419,7 @@ class ParserElement(ABC):
                 expr.whiteChars = set(chars)
 
     @staticmethod
-    def inline_literals_using(cls: type) -> None:
+    def inline_literals_using(cls) -> None:
         """
         Set class to be used for inclusion of string literals into a parser.
 
@@ -550,7 +548,7 @@ class ParserElement(ABC):
         return cpy
 
     def set_results_name(
-        self, name: str, list_all_matches: bool = False, *, listAllMatches: bool = False
+        self, name: typing.Optional[str], list_all_matches: bool = False, *, listAllMatches: bool = False
     ) -> ParserElement:
         """
         Define name for referencing matching tokens as a nested attribute
@@ -2437,7 +2435,7 @@ class Literal(Token):
     use :class:`Keyword` or :class:`CaselessKeyword`.
     """
 
-    def __new__(cls, match_string: str = "", *, matchString: str = ""):
+    def __new__(cls, match_string = None, *, matchString = None):
         # Performance tuning: select a subclass with optimized parseImpl
         if cls is Literal:
             match_string = matchString or match_string
@@ -2453,7 +2451,7 @@ class Literal(Token):
     def __getnewargs__(self):
         return (self.match,)
 
-    def __init__(self, match_string: str = "", *, matchString: str = ""):
+    def __init__(self, match_string = None, *, matchString = None):
         super().__init__()
         match_string = matchString or match_string
         self.match = match_string
@@ -2479,7 +2477,7 @@ class Empty(Literal):
     An empty token, will always match.
     """
 
-    def __init__(self, match_string="", *, matchString=""):
+    def __init__(self, match_string=None, *, matchString=""):
         super().__init__("")
         self.mayReturnEmpty = True
         self.mayIndexError = False
@@ -2723,7 +2721,7 @@ class CloseMatch(Token):
         self.mayReturnEmpty = False
 
     def _generateDefaultName(self) -> str:
-        return f"{type(self).__name__}:{self.match_string!r}"
+        return type(self).__name__ + ":" + repr(self.match_string)
 
     def parseImpl(self, instring, loc, do_actions=True) -> ParseImplReturnType:
         start = loc
@@ -2953,9 +2951,9 @@ class Word(Token):
             return s
 
         if self.initChars != self.bodyChars:
-            base = f"W:({charsAsStr(self.initChars)}, {charsAsStr(self.bodyChars)})"
+            base = "W:(" + charsAsStr(self.initChars) + ", " + charsAsStr(self.bodyChars) + ")"
         else:
-            base = f"W:({charsAsStr(self.initChars)})"
+            base = "W:(" + charsAsStr(self.initChars) + ")"
 
         # add length specification
         if self.minLen > 1 or self.maxLen != _MAX_INT:
@@ -2963,11 +2961,11 @@ class Word(Token):
                 if self.minLen == 1:
                     return base[2:]
                 else:
-                    return base + f"{{{self.minLen}}}"
+                    return base + "{" + str(self.minLen) + "}"
             elif self.maxLen == _MAX_INT:
-                return base + f"{{{self.minLen},...}}"
+                return base + "{" + str(self.minLen) + ",...}"
             else:
-                return base + f"{{{self.minLen},{self.maxLen}}}"
+                return base + "{" + str(self.minLen) + "," + str(self.maxLen) + "}"
         return base
 
     def parseImpl(self, instring, loc, do_actions=True) -> ParseImplReturnType:
@@ -3138,7 +3136,7 @@ class Regex(Token):
 
     def _generateDefaultName(self) -> str:
         unescaped = repr(self.pattern).replace("\\\\", "\\")
-        return f"Re:({unescaped})"
+        return "Re:(" + unescaped + ")"
 
     def parseImpl(self, instring, loc, do_actions=True) -> ParseImplReturnType:
         result = self.re_match(instring, loc)
@@ -3172,7 +3170,7 @@ class Regex(Token):
         ret = result
         return loc, ret
 
-    def sub(self, repl: str) -> ParserElement:
+    def sub(self, repl: Union[str, Callable]) -> ParserElement:
         r"""
         Return :class:`Regex` with an attached parse action to transform the parsed
         result as if called using `re.sub(expr, repl, string) <https://docs.python.org/3/library/re.html#re.sub>`_.
@@ -3372,9 +3370,9 @@ class QuotedString(Token):
         if self.quote_char == self.end_quote_char and isinstance(
             self.quote_char, str_type
         ):
-            return f"string enclosed in {self.quote_char!r}"
+            return "string enclosed in '" + self.quote_char + "'"
 
-        return f"quoted string, starting with {self.quote_char} ending with {self.end_quote_char}"
+        return "quoted string, starting with " + self.quote_char + " ending with " + self.end_quote_char
 
     def parseImpl(self, instring, loc, do_actions=True) -> ParseImplReturnType:
         # check first character of opening quote to see if that is a match
@@ -3499,9 +3497,9 @@ class CharsNotIn(Token):
     def _generateDefaultName(self) -> str:
         not_chars_str = _collapse_string_to_ranges(self.notChars)
         if len(not_chars_str) > 16:
-            return f"!W:({self.notChars[: 16 - 3]}...)"
+            return "!W:(" + self.notChars[:16 - 3] + "...)"
         else:
-            return f"!W:({self.notChars})"
+            return "!W:(" + self.notChars + ")"
 
     def parseImpl(self, instring, loc, do_actions=True) -> ParseImplReturnType:
         notchars = self.notCharsSet
@@ -3839,7 +3837,7 @@ class Tag(Token):
         tokens[self.tag_name] = self.tag_value
 
     def _generateDefaultName(self) -> str:
-        return f"{type(self).__name__}:{self.tag_name}={self.tag_value!r}"
+        return type(self).__name__ + ":" + self.tag_name + "=" + repr(self.tag_value)
 
 
 class ParseExpression(ParserElement):
@@ -3919,7 +3917,7 @@ class ParseExpression(ParserElement):
         return self
 
     def _generateDefaultName(self) -> str:
-        return f"{type(self).__name__}:({self.exprs})"
+        return type(self).__name__ + ":(" + str(self.exprs) + ")"
 
     def streamline(self) -> ParserElement:
         if self.streamlined:
@@ -4172,7 +4170,7 @@ class And(ParseExpression):
         # strip off redundant inner {}'s
         while len(inner) > 1 and inner[0 :: len(inner) - 1] == "{}":
             inner = inner[1:-1]
-        return f"{{{inner}}}"
+        return "{" + inner + "}"
 
 
 class Or(ParseExpression):
@@ -4304,7 +4302,7 @@ class Or(ParseExpression):
         return self.append(other)  # Or([self, other])
 
     def _generateDefaultName(self) -> str:
-        return f"{{{' ^ '.join(str(e) for e in self.exprs)}}}"
+        return "{" + " ^ ".join(str(e) for e in self.exprs) + "}"
 
     def _setResultsName(self, name, list_all_matches=False) -> ParserElement:
         if (
@@ -4411,7 +4409,7 @@ class MatchFirst(ParseExpression):
         return self.append(other)  # MatchFirst([self, other])
 
     def _generateDefaultName(self) -> str:
-        return f"{{{' | '.join(str(e) for e in self.exprs)}}}"
+        return "{" + " | ".join(str(e) for e in self.exprs) + "}"
 
     def _setResultsName(self, name, list_all_matches=False) -> ParserElement:
         if (
@@ -4608,7 +4606,7 @@ class Each(ParseExpression):
         return loc, total_results
 
     def _generateDefaultName(self) -> str:
-        return f"{{{' & '.join(str(e) for e in self.exprs)}}}"
+        return "{" + " & ".join(str(e) for e in self.exprs) + "}"
 
 
 class ParseElementEnhance(ParserElement):
@@ -4712,7 +4710,7 @@ class ParseElementEnhance(ParserElement):
         self._checkRecursion([])
 
     def _generateDefaultName(self) -> str:
-        return f"{type(self).__name__}:({self.expr})"
+        return type(self).__name__ + ":(" + str(self.expr) + ")"
 
     # Compatibility synonyms
     # fmt: off
@@ -5038,7 +5036,7 @@ class NotAny(ParseElementEnhance):
         return loc, []
 
     def _generateDefaultName(self) -> str:
-        return f"~{{{self.expr}}}"
+        return "~{" + str(self.expr) + "}"
 
 
 class _MultipleMatch(ParseElementEnhance):
@@ -5146,7 +5144,7 @@ class OneOrMore(_MultipleMatch):
     """
 
     def _generateDefaultName(self) -> str:
-        return f"{{{self.expr}}}..."
+        return "{" + str(self.expr) + "}..."
 
 
 class ZeroOrMore(_MultipleMatch):
@@ -5180,7 +5178,7 @@ class ZeroOrMore(_MultipleMatch):
             return loc, ParseResults([], name=self.resultsName)
 
     def _generateDefaultName(self) -> str:
-        return f"[{self.expr}]..."
+        return "[" + str(self.expr) + "]..."
 
 
 class DelimitedList(ParseElementEnhance):
@@ -5245,7 +5243,7 @@ class DelimitedList(ParseElementEnhance):
 
     def _generateDefaultName(self) -> str:
         content_expr = self.content.streamline()
-        return f"{content_expr} [{self.raw_delim} {content_expr}]..."
+        return str(content_expr) + " [" + str(self.raw_delim) + " " + str(content_expr) + "]..."
 
 
 class _NullToken:
@@ -5329,7 +5327,7 @@ class Opt(ParseElementEnhance):
         # strip off redundant inner {}'s
         while len(inner) > 1 and inner[0 :: len(inner) - 1] == "{}":
             inner = inner[1:-1]
-        return f"[{inner}]"
+        return "[" + inner + "]"
 
 
 Optional = Opt
@@ -5714,7 +5712,7 @@ class Forward(ParseElementEnhance):
             else:
                 retString = "None"
         finally:
-            return f"{type(self).__name__}: {retString}"
+            return type(self).__name__ + ": " + retString
 
     def copy(self) -> ParserElement:
         if self.expr is not None:
@@ -6152,18 +6150,19 @@ def token_map(func, *args) -> ParseAction:
     return pa
 
 
-def autoname_elements() -> None:
-    """
-    Utility to simplify mass-naming of parser elements, for
-    generating railroad diagram with named subdiagrams.
-    """
-    calling_frame = sys._getframe().f_back
-    if calling_frame is None:
-        return
-    calling_frame = typing.cast(types.FrameType, calling_frame)
-    for name, var in calling_frame.f_locals.items():
-        if isinstance(var, ParserElement) and not var.customName:
-            var.set_name(name)
+# [CPYPARSING] disabling this function
+# def autoname_elements() -> None:
+#     """
+#     Utility to simplify mass-naming of parser elements, for
+#     generating railroad diagram with named subdiagrams.
+#     """
+#     calling_frame = sys._getframe().f_back
+#     if calling_frame is None:
+#         return
+#     calling_frame = typing.cast(types.FrameType, calling_frame)
+#     for name, var in calling_frame.f_locals.items():
+#         if isinstance(var, ParserElement) and not var.customName:
+#             var.set_name(name)
 
 
 dbl_quoted_string = Combine(
