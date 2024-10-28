@@ -3,6 +3,8 @@ from Cython.Build import cythonize
 import os
 from Cython.Distutils import build_ext as cython_build_ext
 import multiprocessing
+import subprocess
+import sys
 
 # Define the base directory
 base_dir = "pyparsing"
@@ -52,6 +54,19 @@ class build_ext(cython_build_ext):
     def initialize_options(self):
         super().initialize_options()
         self.parallel = num_cores
+    def run(self):
+        # Run the original build_ext command
+        super().run()
+
+        # Now, strip the built shared objects
+        for ext in self.extensions:
+            fullname = self.get_ext_fullpath(ext.name)
+            if os.path.exists(fullname):
+                print(f"Stripping debug symbols from {fullname}")
+                if sys.platform.startswith('linux'):
+                    subprocess.call(['strip', fullname])
+                elif sys.platform == 'darwin':
+                    subprocess.call(['strip', '-x', fullname])
 
 setup(
     name="pyparsing",
