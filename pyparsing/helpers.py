@@ -1010,8 +1010,9 @@ def indentedBlock(blockStatementExpr, indentStack, indent=True, backup_stacks=[]
     return smExpr.set_name("indented block")
 
 
-# it's easy to get these comment structures wrong - they're very common, so may as well make them available
-c_style_comment = Combine(Regex(r"/\*(?:[^*]|\*(?!/))*") + "*/").set_name(
+# it's easy to get these comment structures wrong - they're very common,
+# so may as well make them available
+c_style_comment = Regex(r"/\*(?:[^*]|\*(?!/))*\*\/").set_name(
     "C style comment"
 )
 "Comment of the form ``/* ... */``"
@@ -1023,7 +1024,9 @@ rest_of_line = Regex(r".*").leave_whitespace().set_name("rest of line")
 dbl_slash_comment = Regex(r"//(?:\\\n|[^\n])*").set_name("// comment")
 "Comment of the form ``// ... (to end of line)``"
 
-cpp_style_comment = Regex(r"(?:/\*(?:[^*]|\*(?!/))*\*/)|(?://(?:\\\n|[^\n])*)").set_name("C++ style comment")
+cpp_style_comment = Regex(
+    r"(?:/\*(?:[^*]|\*(?!/))*\*\/)|(?://(?:\\\n|[^\n])*)"
+).set_name("C++ style comment")
 "Comment of either form :class:`c_style_comment` or :class:`dbl_slash_comment`"
 
 java_style_comment = cpp_style_comment

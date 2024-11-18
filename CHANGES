@@ -12,6 +12,12 @@ the new function names before the old functions are completely removed. (Big hel
 Devin J. Pohly in structuring the code to enable this peaceful transition.)
 
 
+Version 3.2.1 - in development
+------------------------------
+- Improved performance of `cpp_style_comment` and `c_style_comment` Regex expressions.
+  PR submitted by Gabriel Gerlero, nice work, thanks!
+
+
 Version 3.2.0 - October, 2024
 -------------------------------
 - Discontinued support for Python 3.6, 3.7, and 3.8. Adopted new Python features from

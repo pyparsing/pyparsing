@@ -1327,24 +1327,6 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
                 f"quoted string escaped quote failure ({[str(s[0]) for s in allStrings]})",
             )
 
-        print(
-            "testing catastrophic RE backtracking in implementation of dblQuotedString"
-        )
-        for expr, test_string in [
-            (pp.dblQuotedString, '"' + "\\xff" * 500),
-            (pp.sglQuotedString, "'" + "\\xff" * 500),
-            (pp.quotedString, '"' + "\\xff" * 500),
-            (pp.quotedString, "'" + "\\xff" * 500),
-            (pp.QuotedString('"'), '"' + "\\xff" * 500),
-            (pp.QuotedString("'"), "'" + "\\xff" * 500),
-        ]:
-            with self.subTest(expr=expr, test_string=test_string):
-                expr.parseString(test_string + test_string[0], parseAll=True)
-                try:
-                    expr.parseString(test_string, parseAll=True)
-                except Exception:
-                    continue
-
         # test invalid endQuoteChar
         with self.subTest():
             with self.assertRaises(
@@ -1493,13 +1475,13 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             "Aa" * 4, "".join(res), "caseless1 CaselessLiteral return failed"
         )
 
-    def testCommentParser(self):
-        print("verify processing of C and HTML comments")
-        testdata = """
+    def testCStyleCommentParser(self):
+        print("verify processing of C-style /* */ comments")
+        testdata = f"""
         /* */
         /** **/
         /**/
-        /***/
+        /*{'*' * 1_000_000}*/
         /****/
         /* /*/
         /** /*/
@@ -1508,14 +1490,30 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
          ablsjdflj
          */
         """
-        found_lines = [
-            pp.lineno(s, testdata) for t, s, e in pp.cStyleComment.scanString(testdata)
-        ]
-        self.assertEqual(
-            list(range(11))[2:],
-            found_lines,
-            f"only found C comments on lines {found_lines}",
-        )
+        for test_expr in (pp.c_style_comment, pp.cpp_style_comment, pp.java_style_comment):
+            with self.subTest("parse test - /* */ comments", test_expr=test_expr):
+                found_matches = [
+                    len(t[0]) for t, s, e in test_expr.scanString(testdata)
+                ]
+                self.assertEqual(
+                    [5, 7, 4, 1000004, 6, 6, 7, 8, 33],
+                    found_matches,
+                    f"only found {test_expr} lengths {found_matches}",
+                )
+
+                found_lines = [
+                    pp.lineno(s, testdata) for t, s, e in test_expr.scanString(testdata)
+                ]
+                self.assertEqual(
+                    [2, 3, 4, 5, 6, 7, 8, 9, 10],
+                    found_lines,
+                    f"only found {test_expr} on lines {found_lines}",
+                )
+
+    def testHtmlCommentParser(self):
+        print("verify processing of HTML comments")
+
+        test_expr = pp.html_comment
         testdata = """
         <!-- -->
         <!--- --->
@@ -1531,27 +1529,88 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
          ablsjdflj
          -->
         """
+        found_matches = [
+            len(t[0]) for t, s, e in test_expr.scanString(testdata)
+        ]
+        self.assertEqual(
+            [8, 10, 7, 8, 9, 9, 10, 11, 79],
+            found_matches,
+            f"only found {test_expr} lengths {found_matches}",
+        )
+
         found_lines = [
             pp.lineno(s, testdata) for t, s, e in pp.htmlComment.scanString(testdata)
         ]
         self.assertEqual(
-            list(range(11))[2:],
+            [2, 3, 4, 5, 6, 7, 8, 9, 10],
             found_lines,
             f"only found HTML comments on lines {found_lines}",
         )
 
+    def testDoubleSlashCommentParser(self):
+        print("verify processing of C++ and Java comments - // comments")
+
         # test C++ single line comments that have line terminated with '\' (should continue comment to following line)
-        testSource = r"""
+        testdata = r"""
             // comment1
             // comment2 \
             still comment 2
             // comment 3
             """
-        self.assertEqual(
-            41,
-            len(pp.cppStyleComment.searchString(testSource)[1][0]),
-            r"failed to match single-line comment with '\' at EOL",
+        for test_expr in (pp.dbl_slash_comment, pp.cpp_style_comment, pp.java_style_comment):
+            with self.subTest("parse test - // comments", test_expr=test_expr):
+                found_matches = [
+                    len(t[0]) for t, s, e in test_expr.scanString(testdata)
+                ]
+                self.assertEqual(
+                    [11, 41, 12],
+                    found_matches,
+                    f"only found {test_expr} lengths {found_matches}",
+                )
+
+                found_lines = [
+                    pp.lineno(s, testdata) for t, s, e in test_expr.scanString(testdata)
+                ]
+                self.assertEqual(
+                    [2, 3, 5],
+                    found_lines,
+                    f"only found {test_expr} on lines {found_lines}",
+                )
+
+    def testReCatastrophicBacktrackingInQuotedStringParsers(self):
+        # reported by webpentest - 2016-04-28
+        print(
+            "testing catastrophic RE backtracking in implementation of quoted string parsers"
         )
+        for expr, test_string in [
+            (pp.dblQuotedString, '"' + "\\xff" * 500),
+            (pp.sglQuotedString, "'" + "\\xff" * 500),
+            (pp.quotedString, '"' + "\\xff" * 500),
+            (pp.quotedString, "'" + "\\xff" * 500),
+            (pp.QuotedString('"'), '"' + "\\xff" * 500),
+            (pp.QuotedString("'"), "'" + "\\xff" * 500),
+        ]:
+            with self.subTest("Test catastrophic RE backtracking", expr=expr):
+                try:
+                    expr.parse_string(test_string)
+                except pp.ParseException:
+                    continue
+
+    def testReCatastrophicBacktrackingInCommentParsers(self):
+        print(
+            "testing catastrophic RE backtracking in implementation of comment parsers"
+        )
+        for expr, test_string in [
+            (pp.c_style_comment, f"/*{'*' * 500}"),
+            (pp.cpp_style_comment, f"/*{'*' * 500}"),
+            (pp.java_style_comment, f"/*{'*' * 500}"),
+            (pp.html_comment, f"<-- {'-' * 500}")
+        ]:
+            with self.subTest("Test catastrophic RE backtracking", expr=expr):
+                try:
+                    expr.parse_string(test_string)
+                except pp.ParseException:
+                    continue
 
     def testParseExpressionResults(self):
         a = pp.Word("a", pp.alphas).setName("A")
