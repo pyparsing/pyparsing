@@ -215,12 +215,7 @@ _single_arg_builtins = {
 _generatorType = types.GeneratorType
 ParseImplReturnType = tuple[int, Any]
 PostParseReturnType = Union[ParseResults, Sequence[ParseResults]]
-ParseAction = Union[
-    Callable[[], Any],
-    Callable[[ParseResults], Any],
-    Callable[[int, ParseResults], Any],
-    Callable[[str, int, ParseResults], Any],
-]
+
 ParseCondition = Union[
     Callable[[], bool],
     Callable[[ParseResults], bool],
