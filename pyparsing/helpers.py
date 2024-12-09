@@ -799,6 +799,8 @@ def infix_notation(
     pa: typing.Optional[ParseAction]
     opExpr1: ParserElement
     opExpr2: ParserElement
+    matchExpr: ParserElement
+    match_lookahead: ParserElement
     for operDef in op_list:
         opExpr, arity, rightLeftAssoc, pa = (operDef + (None,))[:4]  # type: ignore[assignment]
         if isinstance(opExpr, str_type):
@@ -822,46 +824,63 @@ def infix_notation(
 
         thisExpr: ParserElement = Forward().set_name(term_name)
         thisExpr = typing.cast(Forward, thisExpr)
+        match_lookahead = And([])
         if rightLeftAssoc is OpAssoc.LEFT:
             if arity == 1:
-                matchExpr = _FB(lastExpr + opExpr) + Group(lastExpr + opExpr[1, ...])
+                match_lookahead = _FB(lastExpr + opExpr)
+                matchExpr = Group(lastExpr + opExpr[1, ...])
             elif arity == 2:
                 if opExpr is not None:
-                    matchExpr = _FB(lastExpr + opExpr + lastExpr) + Group(
+                    match_lookahead = _FB(lastExpr + opExpr + lastExpr)
+                    matchExpr = Group(
                         lastExpr + (opExpr + lastExpr)[1, ...]
                     )
                 else:
-                    matchExpr = _FB(lastExpr + lastExpr) + Group(lastExpr[2, ...])
+                    match_lookahead = _FB(lastExpr + lastExpr)
+                    matchExpr = Group(lastExpr[2, ...])
             elif arity == 3:
-                matchExpr = _FB(
-                    lastExpr + opExpr1 + lastExpr + opExpr2 + lastExpr
-                ) + Group(lastExpr + OneOrMore(opExpr1 + lastExpr + opExpr2 + lastExpr))
+                match_lookahead = _FB(lastExpr + opExpr1 + lastExpr + opExpr2 + lastExpr)
+                matchExpr = Group(lastExpr + (opExpr1 + lastExpr + opExpr2 + lastExpr)[1, ...])
         elif rightLeftAssoc is OpAssoc.RIGHT:
             if arity == 1:
                 # try to avoid LR with this extra test
                 if not isinstance(opExpr, Opt):
                     opExpr = Opt(opExpr)
-                matchExpr = _FB(opExpr.expr + thisExpr) + Group(opExpr + thisExpr)
+                match_lookahead = _FB(opExpr.expr + thisExpr)
+                matchExpr = Group(opExpr + thisExpr)
             elif arity == 2:
                 if opExpr is not None:
-                    matchExpr = _FB(lastExpr + opExpr + thisExpr) + Group(
+                    match_lookahead = _FB(lastExpr + opExpr + thisExpr)
+                    matchExpr = Group(
                         lastExpr + (opExpr + thisExpr)[1, ...]
                     )
                 else:
-                    matchExpr = _FB(lastExpr + thisExpr) + Group(
+                    match_lookahead = _FB(lastExpr + thisExpr)
+                    matchExpr = Group(
                         lastExpr + thisExpr[1, ...]
                     )
             elif arity == 3:
-                matchExpr = _FB(
+                match_lookahead = _FB(
                     lastExpr + opExpr1 + thisExpr + opExpr2 + thisExpr
-                ) + Group(lastExpr + opExpr1 + thisExpr + opExpr2 + thisExpr)
+                )
+                matchExpr = Group(lastExpr + opExpr1 + thisExpr + opExpr2 + thisExpr)
+
+        # suppress lookahead expr from railroad diagrams
+        match_lookahead.show_in_diagram = False
+
+        # TODO - determine why this statement can't be included in the following
+        #  if pa block
+        matchExpr = match_lookahead + matchExpr
+
         if pa:
             if isinstance(pa, (tuple, list)):
                 matchExpr.set_parse_action(*pa)
             else:
                 matchExpr.set_parse_action(pa)
+
         thisExpr <<= (matchExpr | lastExpr).setName(term_name)
         lastExpr = thisExpr
+
     ret <<= lastExpr
     root_expr.set_name("base_expr")
     return ret

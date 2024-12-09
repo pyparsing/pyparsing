@@ -99,7 +99,7 @@ class AnnotatedItem(railroad.Group):
     """
 
     def __init__(self, label: str, item):
-        super().__init__(item=item, label=f"[{label}]")
+        super().__init__(item=item, label=f"[{label}]" if label else "")
 
 
 class EditablePartial(Generic[T]):
@@ -461,6 +461,7 @@ def _to_diagram_element(
     name_hint: str = None,
     show_results_names: bool = False,
     show_groups: bool = False,
+    show_hidden: bool = False,
 ) -> typing.Optional[EditablePartial]:
     """
     Recursively converts a PyParsing Element to a railroad Element
@@ -472,8 +473,9 @@ def _to_diagram_element(
     do so
     :param name_hint: If provided, this will override the generated name
     :param show_results_names: bool flag indicating whether to add annotations for results names
-    :returns: The converted version of the input element, but as a Partial that hasn't yet been constructed
     :param show_groups: bool flag indicating whether to show groups using bounding box
+    :param show_hidden: bool flag indicating whether to show elements that are typically hidden
+    :returns: The converted version of the input element, but as a Partial that hasn't yet been constructed
     """
     exprs = element.recurse()
     name = name_hint or element.customName or type(element).__name__
@@ -532,6 +534,12 @@ def _to_diagram_element(
     # Recursively convert child elements
     # Here we find the most relevant Railroad element for matching pyparsing Element
     # We use ``items=[]`` here to hold the place for where the child elements will go once created
+
+    # see if this element is normally hidden, and whether hidden elements are desired
+    # if not, just return None
+    if not element.show_in_diagram and not show_hidden:
+        return None
+
     if isinstance(element, pyparsing.And):
         # detect And's created with ``expr*N`` notation - for these use a OneOrMore with a repeat
         # (all will have the same name, and resultsName)

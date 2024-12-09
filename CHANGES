@@ -14,6 +14,10 @@ Devin J. Pohly in structuring the code to enable this peaceful transition.)
 
 Version 3.2.1 - in development
 ------------------------------
+- Simplified railroad diagrams emitted for parsers using `infix_notation`, by hiding
+  lookahead terms. Updated `lox_parser.py` example and added `lox_parser_diagram.html`
+  diagram file.
+
 - Improved performance of `cpp_style_comment`, `c_style_comment`, `common.fnumber`
   and `common.ieee_float` Regex expressions. PRs submitted by Gabriel Gerlero,
   nice work, thanks!

@@ -230,5 +230,5 @@ def main():
 
 
 if __name__ == '__main__':
-    program.create_diagram("lox_program_parser.html", vertical=3)
+    program.create_diagram("lox_parser_diagram.html", vertical=2, show_groups=True)
     main()

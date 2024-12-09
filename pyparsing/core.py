@@ -481,6 +481,7 @@ class ParserElement(ABC):
         self.callPreparse = True
         self.callDuringTry = False
         self.suppress_warnings_: list[Diagnostics] = []
+        self.show_in_diagram = True
 
     def suppress_warning(self, warning_type: Diagnostics) -> ParserElement:
         """
