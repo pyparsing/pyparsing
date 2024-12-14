@@ -27,7 +27,7 @@ factop = Literal("!")
 # To use the infixNotation helper:
 #   1.  Define the "atom" operand term of the grammar.
 #       For this simple grammar, the smallest operand is either
-#       and integer or a variable.  This will be the first argument
+#       an integer or a variable.  This will be the first argument
 #       to the infixNotation method.
 #   2.  Define a list of tuples for each level of operator
 #       precedence.  Each tuple is of the form
@@ -51,8 +51,8 @@ factop = Literal("!")
 expr = infixNotation(
     operand,
     [
-        ("!", 1, opAssoc.LEFT),
-        ("^", 2, opAssoc.RIGHT),
+        (factop, 1, opAssoc.LEFT),
+        (expop, 2, opAssoc.RIGHT),
         (signop, 1, opAssoc.RIGHT),
         (multop, 2, opAssoc.LEFT),
         (plusop, 2, opAssoc.LEFT),
