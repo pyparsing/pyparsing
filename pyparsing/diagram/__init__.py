@@ -360,7 +360,7 @@ class ConverterState:
 
         # Replace the original definition of this element with a regular block
         if position.parent:
-            ret = EditablePartial.from_call(railroad.NonTerminal, text=position.name)
+            ret = EditablePartial.from_call(railroad.NonTerminal, text=position.name, href=f"#{position.name}")
             if "item" in position.parent.kwargs:
                 position.parent.kwargs["item"] = ret
             elif "items" in position.parent.kwargs:
@@ -520,14 +520,15 @@ def _to_diagram_element(
             # so we have to extract it into a new diagram.
             looked_up = lookup[el_id]
             looked_up.mark_for_extraction(el_id, lookup, name=name_hint)
-            ret = EditablePartial.from_call(railroad.NonTerminal, text=looked_up.name)
+            ret = EditablePartial.from_call(railroad.NonTerminal, text=looked_up.name, href=f"#{looked_up.name}")
             return ret
 
         elif el_id in lookup.diagrams:
             # If we have seen the element at least twice before, and have already extracted it into a subdiagram, we
             # just put in a marker element that refers to the sub-diagram
+            text = lookup.diagrams[el_id].kwargs["name"]
             ret = EditablePartial.from_call(
-                railroad.NonTerminal, text=lookup.diagrams[el_id].kwargs["name"]
+                railroad.NonTerminal, text=text, href=f"#{text}"
             )
             return ret
 
