@@ -1,6 +1,7 @@
 # mypy: ignore-errors
 from __future__ import annotations
 
+import itertools
 import railroad
 import pyparsing
 import dataclasses
@@ -40,7 +41,7 @@ jinja2_template_source = """\
 {{ body | safe }}
 {% for diagram in diagrams %}
     <div class="railroad-group">
-        <h1 class="railroad-heading" id="{{ diagram.title }}">{{ diagram.title }}</h1>
+        <h1 class="railroad-heading" id="{{ diagram.bookmark }}">{{ diagram.title }}</h1>
         <div class="railroad-description">{{ diagram.text }}</div>
         <div class="railroad-svg">
             {{ diagram.svg }}
@@ -54,6 +55,31 @@ jinja2_template_source = """\
 """
 
 template = Template(jinja2_template_source)
+
+
+_bookmark_lookup = {}
+_bookmark_ids = itertools.count(start=1)
+
+def _make_bookmark(s: str) -> str:
+    """
+    Converts a string into a valid HTML bookmark (ID or anchor name).
+    """
+    if s in _bookmark_lookup:
+        return _bookmark_lookup[s]
+
+    # Replace invalid characters with hyphens and ensure only valid characters
+    bookmark = re.sub(r'[^a-zA-Z0-9-]+', '-', s)
+
+    # Ensure it starts with a letter by adding 'z' if necessary
+    if not bookmark[:1].isalpha():
+        bookmark = f"z{bookmark}"
+
+    # Convert to lowercase and strip hyphens
+    bookmark = bookmark.lower().strip('-')
+
+    _bookmark_lookup[s] = f"{bookmark}-{next(_bookmark_ids)}"
+
+    return bookmark
 
 
 def _collapse_verbose_regex(regex_str: str) -> str:
@@ -71,6 +97,12 @@ class NamedDiagram:
     name: str
     index: int
     diagram: railroad.DiagramItem = None
+
+    @property
+    def bookmark(self):
+        bookmark = _make_bookmark(self.name)
+        print("returning bookmark", bookmark)
+        return bookmark
 
 
 T = TypeVar("T")
@@ -162,7 +194,11 @@ def railroad_to_html(diagrams: list[NamedDiagram], embed=False, **kwargs) -> str
         title = diagram.name
         if diagram.index == 0:
             title += " (root)"
-        data.append({"title": title, "text": "", "svg": io.getvalue()})
+        data.append(
+            {
+                "title": title, "text": "", "svg": io.getvalue(), "bookmark": diagram.bookmark
+            }
+        )
 
     return template.render(diagrams=data, embed=embed, **kwargs)
 
@@ -336,6 +372,12 @@ class ConverterState:
     def __contains__(self, key: int):
         return key in self._element_diagram_states
 
+    def get(self, key, default=None):
+        try:
+            return self[key]
+        except KeyError:
+            return default
+
     def generate_unnamed(self) -> int:
         """
         Generate a number used in the name of an otherwise unnamed diagram
@@ -360,7 +402,7 @@ class ConverterState:
 
         # Replace the original definition of this element with a regular block
         if position.parent:
-            ret = EditablePartial.from_call(railroad.NonTerminal, text=position.name, href=f"#{position.name}")
+            ret = EditablePartial.from_call(railroad.NonTerminal, text=position.name, href=f"#{_make_bookmark(position.name)}")
             if "item" in position.parent.kwargs:
                 position.parent.kwargs["item"] = ret
             elif "items" in position.parent.kwargs:
@@ -515,12 +557,12 @@ def _to_diagram_element(
 
     # If the element isn't worth extracting, we always treat it as the first time we say it
     if _worth_extracting(element):
-        if el_id in lookup and lookup[el_id].name is not None:
+        looked_up = lookup.get(el_id)
+        if looked_up and looked_up.name is not None:
             # If we've seen this element exactly once before, we are only just now finding out that it's a duplicate,
             # so we have to extract it into a new diagram.
-            looked_up = lookup[el_id]
             looked_up.mark_for_extraction(el_id, lookup, name=name_hint)
-            ret = EditablePartial.from_call(railroad.NonTerminal, text=looked_up.name, href=f"#{looked_up.name}")
+            ret = EditablePartial.from_call(railroad.NonTerminal, text=looked_up.name, href=f"#{_make_bookmark(looked_up.name)}")
             return ret
 
         elif el_id in lookup.diagrams:
@@ -528,7 +570,7 @@ def _to_diagram_element(
             # just put in a marker element that refers to the sub-diagram
             text = lookup.diagrams[el_id].kwargs["name"]
             ret = EditablePartial.from_call(
-                railroad.NonTerminal, text=text, href=f"#{text}"
+                railroad.NonTerminal, text=text, href=f"#{_make_bookmark(text)}"
             )
             return ret
 
@@ -695,7 +737,7 @@ def _to_diagram_element(
         lookup.extract_into_diagram(el_id)
         if ret is not None:
             text = lookup.diagrams[el_id].kwargs["name"]
-            href = f"#{text}"
+            href = f"#{_make_bookmark(text)}"
             ret = EditablePartial.from_call(
                 railroad.NonTerminal, text=text, href=href
             )
