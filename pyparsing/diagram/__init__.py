@@ -40,7 +40,7 @@ jinja2_template_source = """\
 {{ body | safe }}
 {% for diagram in diagrams %}
     <div class="railroad-group">
-        <h1 class="railroad-heading">{{ diagram.title }}</h1>
+        <h1 class="railroad-heading" id="{{ diagram.title }}">{{ diagram.title }}</h1>
         <div class="railroad-description">{{ diagram.text }}</div>
         <div class="railroad-svg">
             {{ diagram.svg }}
@@ -447,7 +447,7 @@ def _visible_exprs(exprs: Iterable[pyparsing.ParserElement]):
     return [
         e
         for e in exprs
-        if not (e.customName or e.resultsName or isinstance(e, non_diagramming_exprs))
+        if not isinstance(e, non_diagramming_exprs)
     ]
 
 
@@ -693,8 +693,10 @@ def _to_diagram_element(
     if el_id in lookup and lookup[el_id].extract and lookup[el_id].complete:
         lookup.extract_into_diagram(el_id)
         if ret is not None:
+            text = lookup.diagrams[el_id].kwargs["name"]
+            href = f"#{text}"
             ret = EditablePartial.from_call(
-                railroad.NonTerminal, text=lookup.diagrams[el_id].kwargs["name"]
+                railroad.NonTerminal, text=text, href=href
             )
 
     return ret

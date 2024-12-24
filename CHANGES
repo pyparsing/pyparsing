@@ -14,6 +14,10 @@ Devin J. Pohly in structuring the code to enable this peaceful transition.)
 
 Version 3.2.1 - in development
 ------------------------------
+- Updated generated railroad diagrams to make non-terminal elements links to their related
+  sub-diagrams. This _greatly_ improves navigation of the diagram, especially for
+  large, complex parsers.
+
 - Simplified railroad diagrams emitted for parsers using `infix_notation`, by hiding
   lookahead terms. Updated `lox_parser.py` example and added `lox_parser_diagram.html`
   diagram file.
