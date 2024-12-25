@@ -101,7 +101,6 @@ class NamedDiagram:
     @property
     def bookmark(self):
         bookmark = _make_bookmark(self.name)
-        print("returning bookmark", bookmark)
         return bookmark
 
 
