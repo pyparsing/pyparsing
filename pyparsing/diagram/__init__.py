@@ -77,7 +77,7 @@ def _make_bookmark(s: str) -> str:
     # Convert to lowercase and strip hyphens
     bookmark = bookmark.lower().strip('-')
 
-    _bookmark_lookup[s] = f"{bookmark}-{next(_bookmark_ids)}"
+    _bookmark_lookup[s] = f"{bookmark}-{next(_bookmark_ids):04d}"
 
     return bookmark
 
