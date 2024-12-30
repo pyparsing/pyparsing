@@ -77,7 +77,7 @@ def _make_bookmark(s: str) -> str:
     # Convert to lowercase and strip hyphens
     bookmark = bookmark.lower().strip('-')
 
-    _bookmark_lookup[s] = f"{bookmark}-{next(_bookmark_ids):04d}"
+    _bookmark_lookup[s] = bookmark = f"{bookmark}-{next(_bookmark_ids):04d}"
 
     return bookmark
 
@@ -403,7 +403,8 @@ class ConverterState:
 
         # Replace the original definition of this element with a regular block
         if position.parent:
-            ret = EditablePartial.from_call(railroad.NonTerminal, text=position.name, href=f"#{_make_bookmark(position.name)}")
+            href = f"#{_make_bookmark(position.name)}"
+            ret = EditablePartial.from_call(railroad.NonTerminal, text=position.name, href=href)
             if "item" in position.parent.kwargs:
                 position.parent.kwargs["item"] = ret
             elif "items" in position.parent.kwargs:
@@ -534,7 +535,7 @@ def _to_diagram_element(
             element,
             (
                 # pyparsing.TokenConverter,
-                # pyparsing.Forward,
+                pyparsing.Forward,
                 pyparsing.Located,
             ),
         ):
@@ -563,7 +564,8 @@ def _to_diagram_element(
             # If we've seen this element exactly once before, we are only just now finding out that it's a duplicate,
             # so we have to extract it into a new diagram.
             looked_up.mark_for_extraction(el_id, lookup, name=name_hint)
-            ret = EditablePartial.from_call(railroad.NonTerminal, text=looked_up.name, href=f"#{_make_bookmark(looked_up.name)}")
+            href = f"#{_make_bookmark(looked_up.name)}"
+            ret = EditablePartial.from_call(railroad.NonTerminal, text=looked_up.name, href=href)
             return ret
 
         elif el_id in lookup.diagrams:
@@ -618,7 +620,9 @@ def _to_diagram_element(
         if show_groups:
             ret = EditablePartial.from_call(AnnotatedItem, label="", item="")
         else:
-            ret = EditablePartial.from_call(railroad.Sequence, items=[])
+            ret = EditablePartial.from_call(
+                railroad.Group, item=None, label=element_results_name
+            )
     elif isinstance(element, pyparsing.TokenConverter):
         label = type(element).__name__.lower()
         if label == "tokenconverter":
@@ -659,10 +663,6 @@ def _to_diagram_element(
                 *args,
             )
         ret = EditablePartial.from_call(railroad.ZeroOrMore, item="")
-    elif isinstance(element, pyparsing.Group):
-        ret = EditablePartial.from_call(
-            railroad.Group, item=None, label=element_results_name
-        )
     elif isinstance(element, pyparsing.Empty) and not element.customName:
         # Skip unnamed "Empty" elements
         ret = None

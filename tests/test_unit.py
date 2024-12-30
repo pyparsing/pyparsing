@@ -6381,10 +6381,10 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             a | b | c
             d | e | f
             {a | b | c | d | e | f}
-            Forward: + | - term
-            + | - term
-            Forward: ?: term
-            ?: term
+            W:(0-9)_expression
+            + | - operations
+            W:(0-9)_expression
+            ?: operations
             Forward: {a | b | c [{d | e | f : ...}]...}
             int [, int]...
             (len) int...
@@ -9121,7 +9121,7 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
                 ],
             )
             self.assertEqual(
-                "Forward: + | - term [, Forward: + | - term]...",
+                "var_expression [, var_expression]...",
                 str(pp.delimitedList(math)),
             )
 

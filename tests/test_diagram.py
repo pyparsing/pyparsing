@@ -88,8 +88,8 @@ class TestRailroadDiagrams(unittest.TestCase):
     def test_example_rr_diags(self):
         subtests = [
             ("jsonObject", jsonObject, 8),
-            ("boolExpr", boolExpr, 7),
-            ("simpleSQL", simpleSQL, 22),
+            ("boolExpr", boolExpr, 6),
+            ("simpleSQL", simpleSQL, 20),
             ("calendars", calendars, 13),
         ]
         for label, example_expr, expected_rr_len in subtests:
@@ -132,9 +132,9 @@ class TestRailroadDiagrams(unittest.TestCase):
         outer <<= inner
 
         railroad = self.generate_railroad(outer, "inner_only")
-        assert len(railroad) == 2
+        assert len(railroad) == 1
         railroad = self.generate_railroad(outer, "inner_only", show_results_names=True)
-        assert len(railroad) == 2
+        assert len(railroad) == 1
 
     def test_each_grammar(self):
 
