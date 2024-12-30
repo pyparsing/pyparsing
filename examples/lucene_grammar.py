@@ -18,7 +18,7 @@ LPAR, RPAR = pp.Suppress.using_each("()")
 and_, or_, not_, to_ = pp.CaselessKeyword.using_each("AND OR NOT TO".split())
 keyword = and_ | or_ | not_ | to_
 
-expression = pp.Forward()
+expression = pp.Forward().set_name("query expression")
 
 valid_word = pp.Regex(
     r'([a-zA-Z0-9_.-]|\\\\|\\([+\-!(){}\[\]^"~*?:]|\|\||&&))'
@@ -37,18 +37,18 @@ proximity_modifier = pp.Group(TILDE + integer("proximity"))
 number = ppc.fnumber()
 fuzzy_modifier = TILDE + pp.Opt(number, default=0.5)("fuzzy")
 
-term = pp.Forward().set_name("field")
+term = pp.Forward().set_name("term")
 field_name = valid_word().set_name("fieldname")
-incl_range_search = pp.Group(LBRACK - term("lower") + to_ + term("upper") + RBRACK)
-excl_range_search = pp.Group(LBRACE - term("lower") + to_ + term("upper") + RBRACE)
-range_search = incl_range_search("incl_range") | excl_range_search("excl_range")
-boost = CARAT - number("boost")
+incl_range_search = pp.Group(LBRACK - term("lower") + to_ + term("upper") + RBRACK).set_name("incl_range_search")
+excl_range_search = pp.Group(LBRACE - term("lower") + to_ + term("upper") + RBRACE).set_name("excl_range_search")
+range_search = (incl_range_search("incl_range") | excl_range_search("excl_range")).set_name("range_search")
+boost = (CARAT - number("boost")).set_name("boost")
 
-string_expr = pp.Group(string + proximity_modifier) | string
-word_expr = pp.Group(valid_word + fuzzy_modifier) | valid_word
+string_expr = (pp.Group(string + proximity_modifier) | string).set_name("string_expr")
+word_expr = (pp.Group(valid_word + fuzzy_modifier) | valid_word).set_name("word_expr")
 term <<= (
     ~keyword
-    + pp.Opt(field_name("field") + COLON)
+    + pp.Opt(field_name("field") + COLON).set_name("field")
     + (word_expr | string_expr | range_search | pp.Group(LPAR + expression + RPAR))
     + pp.Opt(boost)
 )
@@ -66,7 +66,7 @@ expression <<= pp.infixNotation(
             pp.OpAssoc.LEFT,
         ),
     ],
-).set_name("query expression")
+)
 
 
 def main():
@@ -367,5 +367,13 @@ def main():
 
         sys.exit(1)
 
+
 if __name__ == "__main__":
+    import contextlib
+
+    with contextlib.suppress(Exception):
+        expression.create_diagram(
+            "lucene_grammar_diagram.html", vertical=2, show_groups=True
+        )
+
     main()

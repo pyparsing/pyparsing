@@ -56,9 +56,6 @@ roman_numeral = (
 ).set_parse_action(sum)
 pp.autoname_elements()
 
-# uncomment to generate railroad diagram
-# roman_numeral.create_diagram("romanNumerals.html")
-
 
 # unit tests
 def make_roman_numeral(n):
@@ -86,6 +83,12 @@ def make_roman_numeral(n):
 
 
 def main():
+    import contextlib
+
+    with contextlib.suppress(Exception):
+        # generate railroad diagram
+        roman_numeral.create_diagram("roman_numerals_diagram.html")
+
     # make a string of all roman numerals from I to MMMMM
     tests = " ".join(make_roman_numeral(i) for i in range(1, 5000 + 1))
 

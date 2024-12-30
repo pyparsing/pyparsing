@@ -63,6 +63,10 @@ dict_str <<= (
 dict_str.add_parse_action(cvtDict)
 
 if __name__ == "__main__":
+    import contextlib
+
+    with contextlib.suppress(Exception):
+        list_item.create_diagram("parse_python_value.html")
 
     tests = """['a', 100, ('A', [101,102]), 3.14, [ +2.718, 'xyzzy', -1.414] ]
                [{0: [2], 1: []}, {0: [], 1: [], 2: []}, {0: [1, 2]}]
@@ -77,4 +81,3 @@ if __name__ == "__main__":
                'a quoted string'"""
 
     list_item.run_tests(tests)
-    list_item.create_diagram("parse_python_value.html")

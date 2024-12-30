@@ -22,6 +22,8 @@ Version 3.2.1 - in development
   lookahead terms. Renamed internally generated expressions for clarity, and improved
   diagramming.
 
+- Added generated diagrams for many of the examples.
+
 - Improved performance of `cpp_style_comment`, `c_style_comment`, `common.fnumber`
   and `common.ieee_float` Regex expressions. PRs submitted by Gabriel Gerlero,
   nice work, thanks!

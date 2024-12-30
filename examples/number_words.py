@@ -112,6 +112,12 @@ numeric_expression.add_parse_action(sum)
 
 
 if __name__ == "__main__":
+    import contextlib
+
+    with contextlib.suppress(Exception):
+        # create railroad diagram
+        numeric_expression.create_diagram("number_words_diagram.html", vertical=5)
+
     numeric_expression.run_tests(
         """
         one
@@ -132,6 +138,3 @@ if __name__ == "__main__":
         """,
         postParse=lambda _, s: "{:,}".format(s[0]),
     )
-
-    # create railroad diagram
-    numeric_expression.create_diagram("numeric_words_diagram.html", vertical=5)

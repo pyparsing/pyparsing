@@ -47,17 +47,19 @@ from pyparsing import pyparsing_common as ppc
 pp.ParserElement.enable_packrat()
 
 # keywords
-_keywords = (
+keywords_ = (
     VOID, INT, DOUBLE, BOOL, STRING, CLASS, INTERFACE, NULL, THIS, EXTENDS,
     IMPLEMENTS, FOR, WHILE, IF, ELSE, RETURN, BREAK, NEW, NEWARRAY,
     PRINT, READINTEGER, READLINE, TRUE, FALSE,
-) = pp.Keyword.using_each(
-    """
-    void int double bool string class interface null this extends implements or while
-    if else return break new NewArray Print ReadInteger ReadLine true false
-    """.split(),
+) = list(
+        pp.Keyword.using_each(
+        """
+        void int double bool string class interface null this extends implements or while
+        if else return break new NewArray Print ReadInteger ReadLine true false
+        """.split(),
+    )
 )
-keywords = pp.MatchFirst(_keywords)
+keywords = pp.MatchFirst(keywords_).set_name("any_keyword")
 
 (
     LPAR, RPAR, LBRACE, RBRACE, LBRACK, RBRACK, DOT, EQ, COMMA, SEMI
@@ -100,7 +102,7 @@ new_statement = pp.Group(NEW + ident)
 new_array = pp.Group(NEWARRAY + LPAR + expr + COMMA + type_ + RPAR)
 rvalue = constant | call | read_integer | read_line | new_statement | new_array | ident
 arith_expr = pp.infix_notation(
-    rvalue,
+    rvalue.set_name("rvalue"),
     [
         ("-", 1, pp.OpAssoc.RIGHT,),
         (pp.one_of("* / %"), 2, pp.OpAssoc.LEFT,),
@@ -108,7 +110,7 @@ arith_expr = pp.infix_notation(
     ],
 )
 comparison_expr = pp.infix_notation(
-    arith_expr,
+    arith_expr.set_name("arith_expr"),
     [
         ("!", 1, pp.OpAssoc.RIGHT,),
         (pp.one_of("< > <= >="), 2, pp.OpAssoc.LEFT,),
@@ -215,31 +217,42 @@ decl = variable_decl | function_decl | class_decl | interface_decl | prototype
 program = pp.Group(decl)[1, ...]
 decaf_parser = program
 
-stmt.runTests("""\
-    sin(30);
-    a = 1;
-    b = 1 + 1;
-    b = 1 != 2 && false;
-    print("A");
-    a.b = 100;
-    a.b = 100.0;
-    a[100] = b;
-    a[0][0] = 2;
-    a = 0x1234;
-"""
-)
+pp.autoname_elements()
 
-test_program = """
-    void getenv(string var);
-    int main(string[] args) {
-        if (a > 100) {
-            Print(a, " is too big");
-        } else if (a < 100) {
-            Print(a, " is too small");
-        } else {
-            Print(a, "just right!");
+if __name__ == '__main__':
+    import contextlib
+
+    # create railroad diagram for this parser
+    with contextlib.suppress(Exception):
+        program.create_diagram(
+            "decaf_parser_diagram.html", vertical=2, show_groups=True
+        )
+
+    stmt.runTests("""\
+        sin(30);
+        a = 1;
+        b = 1 + 1;
+        b = 1 != 2 && false;
+        print("A");
+        a.b = 100;
+        a.b = 100.0;
+        a[100] = b;
+        a[0][0] = 2;
+        a = 0x1234;
+    """
+    )
+
+    test_program = """
+        void getenv(string var);
+        int main(string[] args) {
+            if (a > 100) {
+                Print(a, " is too big");
+            } else if (a < 100) {
+                Print(a, " is too small");
+            } else {
+                Print(a, "just right!");
+            }
         }
-    }
-"""
+    """
 
-print(decaf_parser.parse_string(test_program).dump())
+    print(decaf_parser.parse_string(test_program).dump())

@@ -5,9 +5,10 @@
 # Updated 2023 - using PEP8 API names
 #
 
-import pyparsing as pp
+import contextlib
 import random
 import string
+import pyparsing as pp
 
 
 def a_or_an(item):
@@ -508,7 +509,10 @@ class Parser:
             | doorsCommand
             | helpCommand
             | quitCommand
-        )("command")
+        )("command").set_name("command")
+
+        with contextlib.suppress(Exception):
+            parser.create_diagram("adventure_game_parser_diagram.html", vertical=2, show_groups=True)
 
         return parser
 

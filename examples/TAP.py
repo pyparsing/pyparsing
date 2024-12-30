@@ -37,6 +37,7 @@ from pyparsing import (
     restOfLine,
     FollowedBy,
     empty,
+    autoname_elements,
 )
 
 __all__ = ["tapOutputParser", "TAPTest", "TAPSummary"]
@@ -52,7 +53,7 @@ plan = "1.." + integer("ubound")
 OK, NOT_OK = map(Literal, ["ok", "not ok"])
 testStatus = OK | NOT_OK
 
-description = Regex("[^#\n]+")
+description = Regex(r"[^#\n]+")
 description.setParseAction(lambda t: t[0].lstrip("- "))
 
 TODO, SKIP = map(CaselessLiteral, "TODO SKIP".split())
@@ -78,6 +79,8 @@ bailLine = Group(Literal("Bail out!")("BAIL") + empty + Optional(restOfLine)("re
 tapOutputParser = Optional(Group(plan)("plan") + NL) & Group(
     OneOrMore((testLine | bailLine) + NL)
 )("tests")
+
+autoname_elements()
 
 
 class TAPTest:
@@ -170,6 +173,11 @@ tapOutputParser.setParseAction(TAPSummary)
 
 
 def main():
+    import contextlib
+
+    with contextlib.suppress(Exception):
+        tapOutputParser.create_diagram("TAP_diagram.html", vertical=3)
+
     test1 = """\
         1..4
         ok 1 - Input file opened

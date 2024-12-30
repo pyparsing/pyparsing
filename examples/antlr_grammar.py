@@ -35,6 +35,7 @@ from pyparsing import (
     alphanums,
     delimitedList,
     Char,
+    autoname_elements,
 )
 
 # http://www.antlr.org/grammar/ANTLR/ANTLRv3.g
@@ -75,11 +76,13 @@ keywords = (
     PROTECTED,
     PUBLIC,
     PRIVATE,
-) = map(
-    Keyword,
+) = list(
+    Keyword.using_each(
     """src scope options tokens fragment id lexer parser grammar tree catch finally throws protected
        public private """.split(),
+    )
 )
+
 KEYWORD = MatchFirst(keywords)
 
 # Tokens
@@ -252,6 +255,7 @@ rule = Group(ruleHeading + COLON + altList + SEMI + Optional(exceptionGroup))("r
 
 grammarDef = grammarHeading + Group(OneOrMore(rule))("rules")
 
+autoname_elements()
 
 def grammar():
     return grammarDef
@@ -341,6 +345,10 @@ def antlrConverter(antlrGrammarTree):
 
 
 if __name__ == "__main__":
+    import contextlib
+
+    with contextlib.suppress(Exception):
+        grammarDef.create_diagram("antlr_grammar_diagram.html", vertical=2, show_groups=True)
 
     text = """\
 grammar SimpleCalc;
@@ -379,7 +387,6 @@ fragment DIGIT    : '0'..'9' ;
 
 """
 
-    grammar().validate()
     antlrGrammarTree = grammar().parseString(text)
     print(antlrGrammarTree.dump())
     pyparsingRules = antlrConverter(antlrGrammarTree)

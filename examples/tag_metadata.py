@@ -21,13 +21,17 @@ end_punc = (
 
 greeting = "Hello," + (latin | greek | japanese) + end_punc
 
-greeting.run_tests(
-    """\
-    Hello, World.
-    Hello, World!
-    Hello, κόσμος?
-    Hello, 世界!
-    """
-)
+if __name__ == '__main__':
+    import contextlib
 
-greeting.create_diagram("tag_metadata_diagram.html")
+    with contextlib.suppress(Exception):
+        greeting.create_diagram("tag_metadata_diagram.html", vertical=3)
+
+    greeting.run_tests(
+        """\
+        Hello, World.
+        Hello, World!
+        Hello, κόσμος?
+        Hello, 世界!
+        """
+    )

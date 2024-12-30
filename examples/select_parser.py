@@ -8,7 +8,7 @@
 from pyparsing import (
     pyparsing_common, ParserElement, OpAssoc,
     CaselessKeyword, Combine, Forward, Group, Literal, MatchFirst, Optional, QuotedString, Regex, Suppress, Word,
-    alphanums, alphas, DelimitedList, infix_notation, nums, one_of, rest_of_line
+    alphanums, alphas, DelimitedList, infix_notation, nums, one_of, rest_of_line, autoname_elements
 )
 # fmt: on
 
@@ -29,12 +29,12 @@ keywords = {
 }
 vars().update(keywords)
 
-any_keyword = MatchFirst(keywords.values())
+any_keyword = MatchFirst(keywords.values()).set_name("any_keyword")
 
 quoted_identifier = QuotedString('"', esc_quote='""')
 identifier = (~any_keyword + Word(alphas, alphanums + "_")).set_parse_action(
     pyparsing_common.downcase_tokens
-) | quoted_identifier
+).set_name("identifier") | quoted_identifier
 collation_name = identifier.copy()
 column_name = identifier.copy()
 column_alias = identifier.copy()
@@ -67,6 +67,9 @@ literal_value = (
 bind_parameter = Word("?", nums) | Combine(one_of(": @ $") + parameter_name)
 type_name = one_of("TEXT REAL INTEGER BLOB NULL")
 
+def concat_qualified_column(t):
+    t[0][:] = ["".join(t[0])]
+
 expr_term = (
     CAST + LPAR + expr + AS + type_name + RPAR
     | EXISTS + LPAR + select_stmt + RPAR
@@ -77,10 +80,10 @@ expr_term = (
     | literal_value
     | bind_parameter
     | Group(
-        identifier("col_db") + DOT + identifier("col_tab") + DOT + identifier("col")
-    )
-    | Group(identifier("col_tab") + DOT + identifier("col"))
-    | Group(identifier("col"))
+        identifier("col_db") + DOT + identifier("col_tab") + DOT + identifier("col"),
+    ).add_parse_action(concat_qualified_column).set_name("db_table_column name")
+    | Group(identifier("col_tab") + DOT + identifier("col")).add_parse_action(concat_qualified_column).set_name("table_column name")
+    | Group(identifier("col")).set_name("column name")
 )
 
 NOT_NULL = Group(NOT + NULL)
@@ -93,17 +96,17 @@ NOT_REGEXP = Group(NOT + REGEXP)
 
 UNARY, BINARY, TERNARY = 1, 2, 3
 expr <<= infix_notation(
-    expr_term,
+    expr_term.set_name("expr_term"),
     [
         (one_of("- + ~") | NOT, UNARY, OpAssoc.RIGHT),
-        (ISNULL | NOTNULL | NOT_NULL, UNARY, OpAssoc.LEFT),
+        ((ISNULL | NOTNULL | NOT_NULL).set_name("null_comparison_operator"), UNARY, OpAssoc.LEFT),
         ("||", BINARY, OpAssoc.LEFT),
         (one_of("* / %"), BINARY, OpAssoc.LEFT),
         (one_of("+ -"), BINARY, OpAssoc.LEFT),
         (one_of("<< >> & |"), BINARY, OpAssoc.LEFT),
         (one_of("< <= > >="), BINARY, OpAssoc.LEFT),
         (
-            one_of("= == != <>")
+            (one_of("= == != <>")
             | IS
             | IN
             | LIKE
@@ -114,7 +117,7 @@ expr <<= infix_notation(
             | NOT_LIKE
             | NOT_GLOB
             | NOT_MATCH
-            | NOT_REGEXP,
+            | NOT_REGEXP).set_name("comparison_operator"),
             BINARY,
             OpAssoc.LEFT,
         ),
@@ -232,7 +235,7 @@ def main():
         SELECT * FROM abcd WHERE blobby == x'C0FFEE'  -- hex
         SELECT * FROM abcd WHERE ff NOT IN (1,2,4,5)
         SELECT * FROM abcd WHERE ff not between 3 and 9
-        SELECT * FROM abcd WHERE ff not like 'bob%'
+        SELECT * FROM abcd WHERE db_name.tab_name.ff not like 'bob%'
     """
 
     success, _ = select_stmt.run_tests(tests)

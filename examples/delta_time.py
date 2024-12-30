@@ -359,10 +359,7 @@ def _remove_temp_keys(t: pp.ParseResults) -> None:
 
 time_expression = time_and_day
 
-_GENERATE_DIAGRAM = False
-if _GENERATE_DIAGRAM:
-    pp.autoname_elements()
-    time_expression.create_diagram("delta_time.html")
+pp.autoname_elements()
 
 
 def demo():
@@ -590,4 +587,9 @@ def main() -> int:
 
 
 if __name__ == "__main__":
+    import contextlib
+
+    with contextlib.suppress(Exception):
+        time_expression.create_diagram("delta_time_diagram.html", vertical=3, show_results_names=True, show_groups=True)
+
     exit(main())

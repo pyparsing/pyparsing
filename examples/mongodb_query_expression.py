@@ -357,7 +357,7 @@ arith_comparison_expr = pp.infix_notation(
         (SEARCH_FOR, 1, pp.OpAssoc.RIGHT, unary_op),
         (pp.one_of("<= >= < > ≤ ≥"), 2, pp.OpAssoc.LEFT, binary_comparison_op),
         (pp.one_of("= == != ≠"), 2, pp.OpAssoc.LEFT, binary_eq_neq),
-        (LIKE | NOT_LIKE | "=~", 2, pp.OpAssoc.LEFT, regex_comparison_op),
+        ((LIKE | NOT_LIKE | "=~").set_name("like_operator"), 2, pp.OpAssoc.LEFT, regex_comparison_op),
         (
             (
                     IN
@@ -366,7 +366,7 @@ arith_comparison_expr = pp.infix_notation(
                     | CONTAINS_NONE
                     | CONTAINS_ANY
                     | pp.one_of("⊇ ∈ ∉")
-            ),
+            ).set_name("contain_operator"),
             2,
             pp.OpAssoc.LEFT,
             binary_array_comparison_op,
@@ -657,5 +657,14 @@ def main():
 
 
 if __name__ == "__main__":
-    query_condition_expr.create_diagram("mongodb_query_expression.html")
+    import contextlib
+
+    with contextlib.suppress(Exception):
+        query_condition_expr.create_diagram(
+            "mongodb_query_expression.html",
+            vertical=3,
+            show_results_names=True,
+            show_groups=True
+        )
+
     main()

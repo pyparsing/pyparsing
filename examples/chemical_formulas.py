@@ -106,23 +106,29 @@ subscript_int.add_parse_action(cvt_subscript_int)
 
 element_ref = pp.Group(element("symbol") + pp.Optional(subscript_int, default=1)("qty"))
 formula = element_ref[1, ...].set_name("chemical_formula")
-formula.run_tests(
-    """\
-    # sodium chloride
-    NaCl
-    # hydrogen hydroxide
-    H₂O
-    # phenol
-    C₆H₅OH
-    # ethanol
-    C₂H₅OH
-    # decanol
-    C₁₀H₂₁OH
-    """,
-    full_dump=False,
-    post_parse=lambda _, tokens:
-        f"Molecular weight: {sum_atomic_weights_by_results_name_with_converted_ints(tokens)}",
-)
-formula.create_diagram("chemical_formulas.html")
 
-print()
+if __name__ == '__main__':
+    import contextlib
+
+    with contextlib.suppress(Exception):
+        formula.create_diagram("chemical_formulas.html")
+
+    formula.run_tests(
+        """\
+        # sodium chloride
+        NaCl
+        # hydrogen hydroxide
+        H₂O
+        # phenol
+        C₆H₅OH
+        # ethanol
+        C₂H₅OH
+        # decanol
+        C₁₀H₂₁OH
+        """,
+        full_dump=False,
+        post_parse=lambda _, tokens:
+            f"Molecular weight: {sum_atomic_weights_by_results_name_with_converted_ints(tokens)}",
+    )
+
+    print()

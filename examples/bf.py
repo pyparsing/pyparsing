@@ -150,10 +150,14 @@ def run_program(tokens):
         t.execute(bf)
     print()
 
+if __name__ == '__main__':
 
-# generate railroad diagram
-program_expr.create_diagram("bf.html")
+    # generate railroad diagram
+    import contextlib
 
-# execute an example BF program
-hw = "+[-->-[>>+>-----<<]<--<---]>-.>>>+.>>..+++[.>]<<<<.+++.------.<<-.>>>>+."
-program_expr.parse_string(hw)
+    with contextlib.suppress(Exception):
+        program_expr.create_diagram("bf_diagram.html")
+
+    # execute an example BF program
+    hw = "+[-->-[>>+>-----<<]<--<---]>-.>>>+.>>..+++[.>]<<<<.+++.------.<<-.>>>>+."
+    program_expr.parse_string(hw)

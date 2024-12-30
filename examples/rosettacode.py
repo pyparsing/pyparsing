@@ -276,10 +276,13 @@ tests = [
 
 
 def main():
+    import contextlib
     import sys
+
     sys.setrecursionlimit(2000)
 
-    program.create_diagram("rosettacode_diagram.html")
+    with contextlib.suppress(Exception):
+        program.create_diagram("rosettacode_diagram.html")
 
     success, report = program.run_tests(tests)
     assert success

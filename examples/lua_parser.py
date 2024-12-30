@@ -264,6 +264,13 @@ lua_script = stat[...].set_name("script")
 lua_script.ignore(lua_comment)
 
 if __name__ == "__main__":
+    import contextlib
+
+    with contextlib.suppress(Exception):
+        lua_script.create_diagram(
+            "lua_parser_diagram.html", vertical=2, show_groups=True
+        )
+
     sample = r"""
     function test(x)
         local t = {foo=1, bar=2, arg=x}

@@ -89,6 +89,8 @@ def make_template_parser(template_defn: pp.ParseResults) -> pp.ParserElement:
                 expr = pp.Group(pp.DelimitedList(expr, max=dim) + SEMI)
         member_parsers.append(expr(member.name))
 
+    pp.autoname_elements()
+
     return (
         pp.Keyword(template_defn.name)("type")
         + ident("name")
@@ -99,6 +101,14 @@ def make_template_parser(template_defn: pp.ParseResults) -> pp.ParserElement:
 
 
 if __name__ == "__main__":
+    import contextlib
+
+    with contextlib.suppress(Exception):
+        # create railroad diagram
+        directx_template_defn.create_diagram(
+            "directx_x_file_parser.html", show_results_names=True, show_groups=False
+        )
+
 
     sample = """
     some stuff...
@@ -155,12 +165,6 @@ if __name__ == "__main__":
         )
         # print()
 
-    # create railroad diagram
-    pp.autoname_elements()
-    directx_template_defn.create_diagram(
-        "directx_x_file_parser.html", show_results_names=True, show_groups=False
-    )
-
     vector_template = directx_template_defn.parse_string(
         """\
     template Vector {
@@ -173,9 +177,12 @@ if __name__ == "__main__":
     """
     )
     vector_parser = make_template_parser(vector_template)
-    vector_parser.create_diagram(
-        "directx_x_vector_parser.html", show_results_names=True, show_groups=False
-    )
+
+    with contextlib.suppress(Exception):
+        vector_parser.create_diagram(
+            "directx_x_vector_parser.html", show_results_names=True, show_groups=False
+        )
+
     v = vector_parser.parse_string('Vector p1 {"datum_A"; 1.0; 3.0; 5.0;}')
     print(v.dump())
 

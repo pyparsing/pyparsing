@@ -108,9 +108,8 @@ element_ref = pp.infix_notation(
 # of one or more element_ref's
 formula = element_ref[1, ...].set_name("chemical_formula")
 
-# create railroad diagram for this parser
+# set names on unnamed expressions for better diagram output
 pp.autoname_elements()
-formula.create_diagram("complex_chemical_formulas.html")
 
 
 def molecular_weight(c: Counter) -> float:
@@ -123,29 +122,37 @@ def molecular_weight(c: Counter) -> float:
     """
     return sum(table_of_elements[k] * v for k, v in c.items())
 
+if __name__ == '__main__':
+    import contextlib
 
-formula.run_tests(
-    """\
-    NaCl
-    HOH
-    H₂O
-    H₂O₂
-    C₆H₅OH
-    C₁₀H₂₁OH
-    (C₆H₅OH)₂
-    3(C₆H₅OH)₂
-    C(OH)₆
-    CH₃(CH₂)₂OH
-    (CH₃)₃CH
-    CH₃(CH₂)₅CH₃
-    Ba(BrO₃)₂·H₂O
-    Ba(BrO₃)₂·2(H₂O)
-    """,
-    full_dump=False,
-    post_parse=(
-        lambda _, tokens:
-        f"Molecular counts/weight: {dict(tokens[0])}"
-        f", {molecular_weight(tokens[0]):.3f}"
-    ),
-)
-print()
+    # create railroad diagram for this parser
+    with contextlib.suppress(Exception):
+        formula.create_diagram(
+            "complex_chemical_formulas_diagram.html", vertical=2, show_groups=True
+        )
+
+    formula.run_tests(
+        """\
+        NaCl
+        HOH
+        H₂O
+        H₂O₂
+        C₆H₅OH
+        C₁₀H₂₁OH
+        (C₆H₅OH)₂
+        3(C₆H₅OH)₂
+        C(OH)₆
+        CH₃(CH₂)₂OH
+        (CH₃)₃CH
+        CH₃(CH₂)₅CH₃
+        Ba(BrO₃)₂·H₂O
+        Ba(BrO₃)₂·2(H₂O)
+        """,
+        full_dump=False,
+        post_parse=(
+            lambda _, tokens:
+            f"Molecular counts/weight: {dict(tokens[0])}"
+            f", {molecular_weight(tokens[0]):.3f}"
+        ),
+    )
+    print()
