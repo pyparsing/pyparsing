@@ -57,21 +57,21 @@ day = ranged_value(integer, 1, 31, "day")
 year = ranged_value(integer, 2000, None, "year")
 
 SLASH = pp.Suppress("/")
-dateExpr = year("year") + SLASH + month("month") + pp.Opt(SLASH + day("day"))
-dateExpr.set_name("date")
+date_expr = year("year") + SLASH + month("month") + pp.Opt(SLASH + day("day"))
+date_expr.set_name("date")
 
 # convert date fields to datetime (also validates dates as truly valid dates)
-dateExpr.set_parse_action(lambda t: date(t.year, t.month, t.day or 1))
+date_expr.set_parse_action(lambda t: date(t.year, t.month, t.day or 1))
 
 # add range checking on dates
 min_date = date(2002, 1, 1)
 max_date = date.today()
-date_expr = ranged_value(dateExpr, min_date, max_date, "date")
+range_checked_date_expr = ranged_value(date_expr, min_date, max_date, "date")
 
-date_expr.create_diagram("range_check.html")
+range_checked_date_expr.create_diagram("range_check.html")
 
 # tests of valid dates
-success_valid_tests, _ = date_expr.run_tests(
+success_valid_tests, _ = range_checked_date_expr.run_tests(
     """
     # valid date
     2011/5/8
@@ -85,7 +85,7 @@ success_valid_tests, _ = date_expr.run_tests(
 )
 
 # tests of invalid dates
-success_invalid_tests, _ = date_expr.run_tests(
+success_invalid_tests, _ = range_checked_date_expr.run_tests(
     """
     # all values are in range, but date is too early
     2001/1/1

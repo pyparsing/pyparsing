@@ -32,7 +32,7 @@ grammar = (pp.Group(integer[1, ...])
            ).setName("grammar")
 
 
-grammar.create_diagram("railroad_diagram_demo.html", vertical=6, show_results_names=True)
+grammar.create_diagram("railroad_diagram_demo.html", vertical=4, show_results_names=True)
 
 test = """\
     1 2 3 
