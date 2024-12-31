@@ -19,6 +19,9 @@ class TestExamples(unittest.TestCase):
     def test_numerics(self):
         self._run("numerics")
 
+    def test_parse_python_value(self):
+        self._run("parse_python_value")
+
     def test_tap(self):
         self._run("TAP")
 
