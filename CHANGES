@@ -12,7 +12,7 @@ the new function names before the old functions are completely removed. (Big hel
 Devin J. Pohly in structuring the code to enable this peaceful transition.)
 
 
-Version 3.2.1 - in development
+Version 3.2.1 - December, 2024
 ------------------------------
 - Updated generated railroad diagrams to make non-terminal elements links to their related
   sub-diagrams. This _greatly_ improves navigation of the diagram, especially for
@@ -22,14 +22,16 @@ Version 3.2.1 - in development
   lookahead terms. Renamed internally generated expressions for clarity, and improved
   diagramming.
 
-- Added generated diagrams for many of the examples.
-
 - Improved performance of `cpp_style_comment`, `c_style_comment`, `common.fnumber`
   and `common.ieee_float` Regex expressions. PRs submitted by Gabriel Gerlero,
   nice work, thanks!
 
 - Add missing type annotations to `match_only_at_col`, `replace_with`, `remove_quotes`,
   `with_attribute`, and `with_class`. Issue #585 reported by rafrafrek.
+
+- Added generated diagrams for many of the examples.
+
+- Replaced old examples/0README.html file with examples/README.md file.
 
 
 Version 3.2.0 - October, 2024
