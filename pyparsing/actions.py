@@ -5,7 +5,7 @@ from typing import Union, Callable, Any
 
 from .exceptions import ParseException
 from .util import col, replaced_by_pep8
-from .results import  ParseResults
+from .results import ParseResults
 
 
 ParseAction = Union[
