@@ -3,6 +3,16 @@
 This directory contains a number of examples of parsers created using pyparsing. They fall into a few general 
 categories (several examples include supporting railroad diagrams):
 
+<!-- TOC -->
+* [Pyparsing tutorial and language feature demonstrations](#pyparsing-tutorial-and-language-feature-demonstrations)
+* [Language parsers](#language-parsers)
+* [Domain Specific Language parsers](#domain-specific-language-parsers)
+* [Search and query language parsers](#search-and-query-language-parsers)
+* [Data format parsers](#data-format-parsers)
+* [Logical and arithmetic infix notation parsers and examples](#logical-and-arithmetic-infix-notation-parsers-and-examples)
+* [Helpful utilities](#helpful-utilities)
+<!-- TOC -->
+
 ## Pyparsing tutorial and language feature demonstrations
   * Hello World!
     * [greeting.py](./greeting.py)
@@ -18,7 +28,7 @@ categories (several examples include supporting railroad diagrams):
   * Unicode text handling
     * [tag_metadata.py](./tag_metadata.py) [(diagram)](./tag_metadata_diagram.html)
   * chemical formulas
-    * [chemical_formula.py](./chemical_formula.py)
+    * [chemical_formulas.py](./chemical_formulas.py)
     * [complex_chemical_formulas.py](./complex_chemical_formulas.py)
   * API checker
     * [apicheck.py](./apicheck.py) [(diagram)](./apicheck_diagram.html)
