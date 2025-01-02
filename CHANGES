@@ -12,6 +12,11 @@ the new function names before the old functions are completely removed. (Big hel
 Devin J. Pohly in structuring the code to enable this peaceful transition.)
 
 
+Version 3.2.2 - under development
+---------------------------------
+- Added support for Python 3.14.
+
+
 Version 3.2.1 - December, 2024
 ------------------------------
 - Updated generated railroad diagrams to make non-terminal elements links to their related
