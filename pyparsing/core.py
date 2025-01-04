@@ -355,7 +355,7 @@ def _default_start_debug_action(
         (
             f"{cache_hit_str}Match {expr} at loc {loc}({lineno(loc, instring)},{col(loc, instring)})\n"
             f"  {line(loc, instring)}\n"
-            f"  {' ' * (col(loc, instring) - 1)}^"
+            f"  {'^':>{col(loc, instring)}}"
         )
     )
 
