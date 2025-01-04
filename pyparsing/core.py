@@ -4036,25 +4036,31 @@ class And(ParseExpression):
             return "-"
 
     def __init__(
-        self, exprs_arg: typing.Iterable[ParserElement], savelist: bool = True
+        self,
+        exprs_arg: typing.Iterable[Union[ParserElement, str]],
+        savelist: bool = True,
     ):
-        exprs: list[ParserElement] = list(exprs_arg)
-        if exprs and Ellipsis in exprs:
-            tmp: list[ParserElement] = []
-            for i, expr in enumerate(exprs):
-                if expr is not Ellipsis:
-                    tmp.append(expr)
-                    continue
+        # instantiate exprs as a list, converting strs to ParserElements
+        exprs: list[ParserElement] = [
+            self._literalStringClass(e) if isinstance(e, str) else e for e in exprs_arg
+        ]
 
-                if i < len(exprs) - 1:
-                    skipto_arg: ParserElement = typing.cast(
-                        ParseExpression, (Empty() + exprs[i + 1])
-                    ).exprs[-1]
-                    tmp.append(SkipTo(skipto_arg)("_skipped*"))
-                    continue
+        # convert any Ellipsis elements to SkipTo
+        if Ellipsis in exprs:
 
+            # Ellipsis cannot be the last element
+            if exprs[-1] is Ellipsis:
                 raise Exception("cannot construct And with sequence ending in ...")
-            exprs[:] = tmp
+
+            tmp: list[ParserElement] = []
+            for cur_expr, next_expr in zip(exprs, exprs[1:]):
+                if cur_expr is Ellipsis:
+                    tmp.append(SkipTo(next_expr)("_skipped*"))
+                else:
+                    tmp.append(cur_expr)
+
+            exprs[:-1] = tmp
+
         super().__init__(exprs, savelist)
         if self.exprs:
             self.mayReturnEmpty = all(e.mayReturnEmpty for e in self.exprs)

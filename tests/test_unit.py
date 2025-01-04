@@ -1936,6 +1936,12 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
         )
         test(
             e,
+            "start 456 end",
+            ["start", "", "456", "end"],
+            {"_skipped": ["missing <alpha>"]},
+        )
+        test(
+            e,
             "start end",
             ["start", "", "", "end"],
             {"_skipped": ["missing <alpha>", "missing <int>"]},
