@@ -276,7 +276,7 @@ def one_of(
     )
 
 
-def dict_of(key: ParserElement, value: ParserElement) -> ParserElement:
+def dict_of(key: ParserElement, value: ParserElement) -> Dict:
     """Helper to easily and clearly define a dictionary by specifying
     the respective patterns for the key and value.  Takes care of
     defining the :class:`Dict`, :class:`ZeroOrMore`, and
@@ -691,7 +691,7 @@ def infix_notation(
     op_list: list[InfixNotationOperatorSpec],
     lpar: Union[str, ParserElement] = Suppress("("),
     rpar: Union[str, ParserElement] = Suppress(")"),
-) -> ParserElement:
+) -> Forward:
     """Helper method for constructing grammars of expressions made up of
     operators working in a precedence hierarchy.  Operators may be unary
     or binary, left- or right-associative.  Parse actions can also be
