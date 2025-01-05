@@ -4292,7 +4292,8 @@ class Or(ParseExpression):
         if maxException is not None:
             # infer from this check that all alternatives failed at the current position
             # so emit this collective error message instead of any single error message
-            if maxExcLoc == loc:
+            parse_start_loc = self.preParse(instring, loc)
+            if maxExcLoc == parse_start_loc:
                 maxException.msg = self.errmsg or ""
             raise maxException
 
@@ -4399,7 +4400,8 @@ class MatchFirst(ParseExpression):
         if maxException is not None:
             # infer from this check that all alternatives failed at the current position
             # so emit this collective error message instead of any individual error message
-            if maxExcLoc == loc:
+            parse_start_loc = self.preParse(instring, loc)
+            if maxExcLoc == parse_start_loc:
                 maxException.msg = self.errmsg or ""
             raise maxException
 

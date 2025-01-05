@@ -10657,6 +10657,26 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             "123",
             "Expected W:(A-Za-z), found '123'",
         ),
+        (
+            "prefix" + (pp.Regex("a").set_name("a") | pp.Regex("b").set_name("b")),
+            "prefixc",
+            "Expected {a | b}, found 'c'",
+        ),
+        (
+            "prefix" + (pp.Regex("a").set_name("a") | pp.Regex("b").set_name("b")),
+            "prefix c",
+            "Expected {a | b}, found 'c'",
+        ),
+        (
+            "prefix" + (pp.Regex("a").set_name("a") ^ pp.Regex("b").set_name("b")),
+            "prefixc",
+            "Expected {a ^ b}, found 'c'",
+        ),
+        (
+            "prefix" + (pp.Regex("a").set_name("a") ^ pp.Regex("b").set_name("b")),
+            "prefix c",
+            "Expected {a ^ b}, found 'c'",
+        ),
     )
 
     def test_exception_messages(self, tests=test_exception_messages_tests):

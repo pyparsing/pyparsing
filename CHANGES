@@ -14,6 +14,9 @@ Devin J. Pohly in structuring the code to enable this peaceful transition.)
 
 Version 3.2.2 - under development
 ---------------------------------
+- Better exception message for `MatchFirst` and `Or` expressions, showing all alternatives
+  rather than just the first one. Fixes Issue #592, reported by Focke, thanks!
+
 - Added support for Python 3.14.
 
 
