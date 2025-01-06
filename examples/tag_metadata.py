@@ -25,7 +25,11 @@ if __name__ == '__main__':
     import contextlib
 
     with contextlib.suppress(Exception):
-        greeting.create_diagram("tag_metadata_diagram.html", vertical=3)
+        greeting.create_diagram(
+            "tag_metadata_diagram.html",
+            vertical=3,
+            show_hidden=True
+        )
 
     greeting.run_tests(
         """\

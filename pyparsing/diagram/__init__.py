@@ -226,6 +226,7 @@ def to_railroad(
     vertical: int = 3,
     show_results_names: bool = False,
     show_groups: bool = False,
+    show_hidden: bool = False,
 ) -> list[NamedDiagram]:
     """
     Convert a pyparsing element tree into a list of diagrams. This is the recommended entrypoint to diagram
@@ -238,6 +239,8 @@ def to_railroad(
        included in the diagram
     :param show_groups - bool to indicate whether groups should be highlighted with an unlabeled
        surrounding box
+    :param show_hidden - bool to indicate whether internal elements that are typically hidden
+       should be shown
     """
     # Convert the whole tree underneath the root
     lookup = ConverterState(diagram_kwargs=diagram_kwargs or {})
@@ -248,6 +251,7 @@ def to_railroad(
         vertical=vertical,
         show_results_names=show_results_names,
         show_groups=show_groups,
+        show_hidden=show_hidden,
     )
 
     root_id = id(element)
@@ -453,6 +457,7 @@ def _apply_diagram_item_enhancements(fn):
         name_hint: str = None,
         show_results_names: bool = False,
         show_groups: bool = False,
+        show_hidden: bool = False,
     ) -> typing.Optional[EditablePartial]:
         ret = fn(
             element,
@@ -463,6 +468,7 @@ def _apply_diagram_item_enhancements(fn):
             name_hint,
             show_results_names,
             show_groups,
+            show_hidden,
         )
 
         # apply annotation for results name, if present
@@ -555,6 +561,7 @@ def _to_diagram_element(
                     name_hint=propagated_name,
                     show_results_names=show_results_names,
                     show_groups=show_groups,
+                    show_hidden=show_hidden,
                 )
 
     # If the element isn't worth extracting, we always treat it as the first time we say it
@@ -641,6 +648,7 @@ def _to_diagram_element(
                 name_hint,
                 show_results_names,
                 show_groups,
+                show_hidden,
             ]
             return _to_diagram_element(
                 (~element.not_ender.expr + element.expr)[1, ...].set_name(element.name),
@@ -657,6 +665,7 @@ def _to_diagram_element(
                 name_hint,
                 show_results_names,
                 show_groups,
+                show_hidden,
             ]
             return _to_diagram_element(
                 (~element.not_ender.expr + element.expr)[...].set_name(element.name),
@@ -707,6 +716,7 @@ def _to_diagram_element(
             index=i,
             show_results_names=show_results_names,
             show_groups=show_groups,
+            show_hidden=show_hidden,
         )
 
         # Some elements don't need to be shown in the diagram

@@ -17,6 +17,14 @@ Version 3.2.2 - under development
 - Better exception message for `MatchFirst` and `Or` expressions, showing all alternatives
   rather than just the first one. Fixes Issue #592, reported by Focke, thanks!
 
+- Added optional argument `show_hidden` to create_diagram` to show
+  elements that are used internally by pyparsing, but are not part of the actual
+  parser grammar. For instance, the `Tag` class can insert values into the parsed
+  results but it does not actually parse any input, so by default it is not included
+  in a railroad diagram. By calling `create_diagram` with `show_hidden` = `True`,
+  these internal elements will be included. (You can see this in the tag_metadata.py
+  script in the examples directory.)
+
 - Added support for Python 3.14.
 
 

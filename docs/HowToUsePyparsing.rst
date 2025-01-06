@@ -1489,6 +1489,8 @@ This will result in the railroad diagram being written to ``street_address_diagr
 
 - ``show_groups`` - bool flag whether groups should be highlighted with an unlabeled surrounding box
 
+- ``show_hidden`` - bool flag whether internal pyparsing elements that are normally omitted in diagrams should be shown (default=False)
+
 - ``embed`` - bool flag whether generated HTML should omit <HEAD>, <BODY>, and <DOCTYPE> tags to embed
   the resulting HTML in an enclosing HTML source (such as PyScript HTML)
 

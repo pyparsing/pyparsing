@@ -2264,6 +2264,7 @@ class ParserElement(ABC):
         show_results_names: bool = False,
         show_groups: bool = False,
         embed: bool = False,
+        show_hidden: bool = False,
         **kwargs,
     ) -> None:
         """
@@ -2278,6 +2279,7 @@ class ParserElement(ABC):
         - ``show_results_names`` - bool flag whether diagram should show annotations for
           defined results names
         - ``show_groups`` - bool flag whether groups should be highlighted with an unlabeled surrounding box
+        - ``show_hidden`` - bool flag to show diagram elements for internal elements that are usually hidden
         - ``embed`` - bool flag whether generated HTML should omit <HEAD>, <BODY>, and <DOCTYPE> tags to embed
           the resulting HTML in an enclosing HTML source
         - ``head`` - str containing additional HTML to insert into the <HEAD> section of the generated code;
@@ -2303,6 +2305,7 @@ class ParserElement(ABC):
             vertical=vertical,
             show_results_names=show_results_names,
             show_groups=show_groups,
+            show_hidden=show_hidden,
             diagram_kwargs=kwargs,
         )
         if not isinstance(output_html, (str, Path)):
@@ -3830,6 +3833,7 @@ class Tag(Token):
         self.tag_name = tag_name
         self.tag_value = value
         self.add_parse_action(self._add_tag)
+        self.show_in_diagram = False
 
     def _add_tag(self, tokens: ParseResults):
         tokens[self.tag_name] = self.tag_value
