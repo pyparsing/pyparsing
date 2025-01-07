@@ -117,7 +117,7 @@ New / Enhanced Examples
   Robert Nystrom's "Crafting Interpreters" (http://craftinginterpreters.com/).
 
 - Added ``complex_chemical_formulas.py`` example, to add parsing capability for
-  formulas such as "3(Câ‚†Hâ‚…OH)â‚‚".
+  formulas such as "Ba(BrO₃)₂·H₂O".
 
 - Updated ``tag_emitter.py`` to use new ``Tag`` class, introduced in pyparsing
   3.1.3.
