@@ -246,7 +246,7 @@ class _ParseActionIndexError(Exception):
     ParserElement parseImpl methods.
     """
 
-    def __init__(self, msg: str, exc: BaseException):
+    def __init__(self, msg: str, exc: BaseException) -> None:
         self.msg: str = msg
         self.exc: BaseException = exc
 
@@ -454,7 +454,7 @@ class ParserElement(ABC):
         debug_match: typing.Optional[DebugSuccessAction]
         debug_fail: typing.Optional[DebugExceptionAction]
 
-    def __init__(self, savelist: bool = False):
+    def __init__(self, savelist: bool = False) -> None:
         self.parseAction: list[ParseAction] = list()
         self.failAction: typing.Optional[ParseFailAction] = None
         self.customName: str = None  # type: ignore[assignment]
@@ -2355,7 +2355,7 @@ class ParserElement(ABC):
 class _PendingSkip(ParserElement):
     # internal placeholder class to hold a place were '...' is added to a parser element,
     # once another ParserElement is added, this placeholder will be replaced with a SkipTo
-    def __init__(self, expr: ParserElement, must_skip: bool = False):
+    def __init__(self, expr: ParserElement, must_skip: bool = False) -> None:
         super().__init__()
         self.anchor = expr
         self.must_skip = must_skip
@@ -2398,7 +2398,7 @@ class Token(ParserElement):
     matching patterns.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__(savelist=False)
 
     def _generateDefaultName(self) -> str:
@@ -2410,7 +2410,7 @@ class NoMatch(Token):
     A token that will never match.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
         self.mayReturnEmpty = True
         self.mayIndexError = False
@@ -2452,7 +2452,7 @@ class Literal(Token):
     def __getnewargs__(self):
         return (self.match,)
 
-    def __init__(self, match_string: str = "", *, matchString: str = ""):
+    def __init__(self, match_string: str = "", *, matchString: str = "") -> None:
         super().__init__()
         match_string = matchString or match_string
         self.match = match_string
@@ -2478,7 +2478,7 @@ class Empty(Literal):
     An empty token, will always match.
     """
 
-    def __init__(self, match_string="", *, matchString=""):
+    def __init__(self, match_string="", *, matchString="") -> None:
         super().__init__("")
         self.mayReturnEmpty = True
         self.mayIndexError = False
@@ -2537,7 +2537,7 @@ class Keyword(Token):
         *,
         matchString: str = "",
         identChars: typing.Optional[str] = None,
-    ):
+    ) -> None:
         super().__init__()
         identChars = identChars or ident_chars
         if identChars is None:
@@ -2631,7 +2631,7 @@ class CaselessLiteral(Literal):
     (Contrast with example for :class:`CaselessKeyword`.)
     """
 
-    def __init__(self, match_string: str = "", *, matchString: str = ""):
+    def __init__(self, match_string: str = "", *, matchString: str = "") -> None:
         match_string = matchString or match_string
         super().__init__(match_string.upper())
         # Preserve the defining literal.
@@ -2663,7 +2663,7 @@ class CaselessKeyword(Keyword):
         *,
         matchString: str = "",
         identChars: typing.Optional[str] = None,
-    ):
+    ) -> None:
         identChars = identChars or ident_chars
         match_string = matchString or match_string
         super().__init__(match_string, identChars, caseless=True)
@@ -2711,7 +2711,7 @@ class CloseMatch(Token):
         *,
         maxMismatches: int = 1,
         caseless=False,
-    ):
+    ) -> None:
         maxMismatches = max_mismatches if max_mismatches is not None else maxMismatches
         super().__init__()
         self.match_string = match_string
@@ -2837,7 +2837,7 @@ class Word(Token):
         bodyChars: typing.Optional[str] = None,
         asKeyword: bool = False,
         excludeChars: typing.Optional[str] = None,
-    ):
+    ) -> None:
         initChars = initChars or init_chars
         bodyChars = bodyChars or body_chars
         asKeyword = asKeyword or as_keyword
@@ -3021,7 +3021,7 @@ class Char(Word):
         *,
         asKeyword: bool = False,
         excludeChars: typing.Optional[str] = None,
-    ):
+    ) -> None:
         asKeyword = asKeyword or as_keyword
         excludeChars = excludeChars or exclude_chars
         super().__init__(
@@ -3063,7 +3063,7 @@ class Regex(Token):
         *,
         asGroupList: bool = False,
         asMatch: bool = False,
-    ):
+    ) -> None:
         """The parameters ``pattern`` and ``flags`` are passed
         to the ``re.compile()`` function as-is. See the Python
         `re module <https://docs.python.org/3/library/re.html>`_ module for an
@@ -3261,7 +3261,7 @@ class QuotedString(Token):
         unquoteResults: bool = True,
         endQuoteChar: typing.Optional[str] = None,
         convertWhitespaceEscapes: bool = True,
-    ):
+    ) -> None:
         super().__init__()
         esc_char = escChar or esc_char
         esc_quote = escQuote or esc_quote
@@ -3468,7 +3468,7 @@ class CharsNotIn(Token):
         exact: int = 0,
         *,
         notChars: str = "",
-    ):
+    ) -> None:
         super().__init__()
         self.skipWhitespace = False
         self.notChars = not_chars or notChars
@@ -3555,7 +3555,7 @@ class White(Token):
         "\u3000": "<IDEOGRAPHIC_SPACE>",
     }
 
-    def __init__(self, ws: str = " \t\r\n", min: int = 1, max: int = 0, exact: int = 0):
+    def __init__(self, ws: str = " \t\r\n", min: int = 1, max: int = 0, exact: int = 0) -> None:
         super().__init__()
         self.matchWhite = ws
         self.set_whitespace_chars(
@@ -3597,7 +3597,7 @@ class White(Token):
 
 
 class PositionToken(Token):
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
         self.mayReturnEmpty = True
         self.mayIndexError = False
@@ -3608,7 +3608,7 @@ class GoToColumn(PositionToken):
     tabular report scraping.
     """
 
-    def __init__(self, colno: int):
+    def __init__(self, colno: int) -> None:
         super().__init__()
         self.col = colno
 
@@ -3660,7 +3660,7 @@ class LineStart(PositionToken):
 
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
         self.leave_whitespace()
         self.orig_whiteChars = set() | self.whiteChars
@@ -3691,7 +3691,7 @@ class LineEnd(PositionToken):
     parse string
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
         self.whiteChars.discard("\n")
         self.set_whitespace_chars(self.whiteChars, copy_defaults=False)
@@ -3714,7 +3714,7 @@ class StringStart(PositionToken):
     string
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
         self.set_name("start of text")
 
@@ -3731,7 +3731,7 @@ class StringEnd(PositionToken):
     Matches if current position is at the end of the parse string
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
         self.set_name("end of text")
 
@@ -3756,7 +3756,7 @@ class WordStart(PositionToken):
     a line.
     """
 
-    def __init__(self, word_chars: str = printables, *, wordChars: str = printables):
+    def __init__(self, word_chars: str = printables, *, wordChars: str = printables) -> None:
         wordChars = word_chars if wordChars == printables else wordChars
         super().__init__()
         self.wordChars = set(wordChars)
@@ -3781,7 +3781,7 @@ class WordEnd(PositionToken):
     of a line.
     """
 
-    def __init__(self, word_chars: str = printables, *, wordChars: str = printables):
+    def __init__(self, word_chars: str = printables, *, wordChars: str = printables) -> None:
         wordChars = word_chars if wordChars == printables else wordChars
         super().__init__()
         self.wordChars = set(wordChars)
@@ -3825,7 +3825,7 @@ class Tag(Token):
         - enthusiastic: True
     """
 
-    def __init__(self, tag_name: str, value: Any = True):
+    def __init__(self, tag_name: str, value: Any = True) -> None:
         super().__init__()
         self.mayReturnEmpty = True
         self.mayIndexError = False
@@ -3847,7 +3847,7 @@ class ParseExpression(ParserElement):
     post-processing parsed tokens.
     """
 
-    def __init__(self, exprs: typing.Iterable[ParserElement], savelist: bool = False):
+    def __init__(self, exprs: typing.Iterable[ParserElement], savelist: bool = False) -> None:
         super().__init__(savelist)
         self.exprs: list[ParserElement]
         if isinstance(exprs, _generatorType):
@@ -4032,7 +4032,7 @@ class And(ParseExpression):
     """
 
     class _ErrorStop(Empty):
-        def __init__(self, *args, **kwargs):
+        def __init__(self, *args, **kwargs) -> None:
             super().__init__(*args, **kwargs)
             self.leave_whitespace()
 
@@ -4043,7 +4043,7 @@ class And(ParseExpression):
         self,
         exprs_arg: typing.Iterable[Union[ParserElement, str]],
         savelist: bool = True,
-    ):
+    ) -> None:
         # instantiate exprs as a list, converting strs to ParserElements
         exprs: list[ParserElement] = [
             self._literalStringClass(e) if isinstance(e, str) else e for e in exprs_arg
@@ -4199,7 +4199,7 @@ class Or(ParseExpression):
         [['123'], ['3.1416'], ['789']]
     """
 
-    def __init__(self, exprs: typing.Iterable[ParserElement], savelist: bool = False):
+    def __init__(self, exprs: typing.Iterable[ParserElement], savelist: bool = False) -> None:
         super().__init__(exprs, savelist)
         if self.exprs:
             self.mayReturnEmpty = any(e.mayReturnEmpty for e in self.exprs)
@@ -4355,7 +4355,7 @@ class MatchFirst(ParseExpression):
         print(number.search_string("123 3.1416 789")) #  Better -> [['123'], ['3.1416'], ['789']]
     """
 
-    def __init__(self, exprs: typing.Iterable[ParserElement], savelist: bool = False):
+    def __init__(self, exprs: typing.Iterable[ParserElement], savelist: bool = False) -> None:
         super().__init__(exprs, savelist)
         if self.exprs:
             self.mayReturnEmpty = any(e.mayReturnEmpty for e in self.exprs)
@@ -4503,7 +4503,7 @@ class Each(ParseExpression):
         - size: 20
     """
 
-    def __init__(self, exprs: typing.Iterable[ParserElement], savelist: bool = True):
+    def __init__(self, exprs: typing.Iterable[ParserElement], savelist: bool = True) -> None:
         super().__init__(exprs, savelist)
         if self.exprs:
             self.mayReturnEmpty = all(e.mayReturnEmpty for e in self.exprs)
@@ -4624,7 +4624,7 @@ class ParseElementEnhance(ParserElement):
     post-processing parsed tokens.
     """
 
-    def __init__(self, expr: Union[ParserElement, str], savelist: bool = False):
+    def __init__(self, expr: Union[ParserElement, str], savelist: bool = False) -> None:
         super().__init__(savelist)
         if isinstance(expr, str_type):
             expr_str = typing.cast(str, expr)
@@ -4736,20 +4736,20 @@ class IndentedBlock(ParseElementEnhance):
     """
 
     class _Indent(Empty):
-        def __init__(self, ref_col: int):
+        def __init__(self, ref_col: int) -> None:
             super().__init__()
             self.errmsg = f"expected indent at column {ref_col}"
             self.add_condition(lambda s, l, t: col(l, s) == ref_col)
 
     class _IndentGreater(Empty):
-        def __init__(self, ref_col: int):
+        def __init__(self, ref_col: int) -> None:
             super().__init__()
             self.errmsg = f"expected indent at column greater than {ref_col}"
             self.add_condition(lambda s, l, t: col(l, s) > ref_col)
 
     def __init__(
         self, expr: ParserElement, *, recursive: bool = False, grouped: bool = True
-    ):
+    ) -> None:
         super().__init__(expr, savelist=True)
         # if recursive:
         #     raise NotImplementedError("IndentedBlock with recursive is not implemented")
@@ -4804,7 +4804,7 @@ class AtStringStart(ParseElementEnhance):
         # raises ParseException
     """
 
-    def __init__(self, expr: Union[ParserElement, str]):
+    def __init__(self, expr: Union[ParserElement, str]) -> None:
         super().__init__(expr)
         self.callPreparse = False
 
@@ -4837,7 +4837,7 @@ class AtLineStart(ParseElementEnhance):
 
     """
 
-    def __init__(self, expr: Union[ParserElement, str]):
+    def __init__(self, expr: Union[ParserElement, str]) -> None:
         super().__init__(expr)
         self.callPreparse = False
 
@@ -4870,7 +4870,7 @@ class FollowedBy(ParseElementEnhance):
         [['shape', 'SQUARE'], ['color', 'BLACK'], ['posn', 'upper left']]
     """
 
-    def __init__(self, expr: Union[ParserElement, str]):
+    def __init__(self, expr: Union[ParserElement, str]) -> None:
         super().__init__(expr)
         self.mayReturnEmpty = True
 
@@ -4913,7 +4913,7 @@ class PrecededBy(ParseElementEnhance):
 
     """
 
-    def __init__(self, expr: Union[ParserElement, str], retreat: int = 0):
+    def __init__(self, expr: Union[ParserElement, str], retreat: int = 0) -> None:
         super().__init__(expr)
         self.expr = self.expr().leave_whitespace()
         self.mayReturnEmpty = True
@@ -5031,7 +5031,7 @@ class NotAny(ParseElementEnhance):
         integer = Word(nums) + ~Char(".")
     """
 
-    def __init__(self, expr: Union[ParserElement, str]):
+    def __init__(self, expr: Union[ParserElement, str]) -> None:
         super().__init__(expr)
         # do NOT use self.leave_whitespace(), don't want to propagate to exprs
         # self.leave_whitespace()
@@ -5056,7 +5056,7 @@ class _MultipleMatch(ParseElementEnhance):
         stop_on: typing.Optional[Union[ParserElement, str]] = None,
         *,
         stopOn: typing.Optional[Union[ParserElement, str]] = None,
-    ):
+    ) -> None:
         super().__init__(expr)
         stopOn = stopOn or stop_on
         self.saveAsList = True
@@ -5177,7 +5177,7 @@ class ZeroOrMore(_MultipleMatch):
         stop_on: typing.Optional[Union[ParserElement, str]] = None,
         *,
         stopOn: typing.Optional[Union[ParserElement, str]] = None,
-    ):
+    ) -> None:
         super().__init__(expr, stopOn=stopOn or stop_on)
         self.mayReturnEmpty = True
 
@@ -5201,7 +5201,7 @@ class DelimitedList(ParseElementEnhance):
         max: typing.Optional[int] = None,
         *,
         allow_trailing_delim: bool = False,
-    ):
+    ) -> None:
         """Helper to define a delimited list of expressions - the delimiter
         defaults to ','. By default, the list elements and delimiters can
         have intervening whitespace, and comments, but this can be
@@ -5308,7 +5308,7 @@ class Opt(ParseElementEnhance):
 
     def __init__(
         self, expr: Union[ParserElement, str], default: Any = __optionalNotMatched
-    ):
+    ) -> None:
         super().__init__(expr, savelist=False)
         self.saveAsList = self.expr.saveAsList
         self.defaultValue = default
@@ -5413,7 +5413,7 @@ class SkipTo(ParseElementEnhance):
         fail_on: typing.Optional[Union[ParserElement, str]] = None,
         *,
         failOn: typing.Optional[Union[ParserElement, str]] = None,
-    ):
+    ) -> None:
         super().__init__(other)
         failOn = failOn or fail_on
         self.ignoreExpr = ignore
@@ -5524,7 +5524,7 @@ class Forward(ParseElementEnhance):
     parser created using ``Forward``.
     """
 
-    def __init__(self, other: typing.Optional[Union[ParserElement, str]] = None):
+    def __init__(self, other: typing.Optional[Union[ParserElement, str]] = None) -> None:
         self.caller_frame = traceback.extract_stack(limit=2)[0]
         super().__init__(other, savelist=False)  # type: ignore[arg-type]
         self.lshift_line = None
@@ -5764,7 +5764,7 @@ class TokenConverter(ParseElementEnhance):
     Abstract subclass of :class:`ParseElementEnhance`, for converting parsed results.
     """
 
-    def __init__(self, expr: Union[ParserElement, str], savelist=False):
+    def __init__(self, expr: Union[ParserElement, str], savelist=False) -> None:
         super().__init__(expr)  # , savelist)
         self.saveAsList = False
 
@@ -5795,7 +5795,7 @@ class Combine(TokenConverter):
         adjacent: bool = True,
         *,
         joinString: typing.Optional[str] = None,
-    ):
+    ) -> None:
         super().__init__(expr)
         joinString = joinString if joinString is not None else join_string
         # suppress whitespace-stripping in contained parse expressions, but re-enable it on the Combine itself
@@ -5847,7 +5847,7 @@ class Group(TokenConverter):
         # -> ['fn', ['a', 'b', '100']]
     """
 
-    def __init__(self, expr: ParserElement, aslist: bool = False):
+    def __init__(self, expr: ParserElement, aslist: bool = False) -> None:
         super().__init__(expr)
         self.saveAsList = True
         self._asPythonList = aslist
@@ -5905,7 +5905,7 @@ class Dict(TokenConverter):
     See more examples at :class:`ParseResults` of accessing fields by results name.
     """
 
-    def __init__(self, expr: ParserElement, asdict: bool = False):
+    def __init__(self, expr: ParserElement, asdict: bool = False) -> None:
         super().__init__(expr)
         self.saveAsList = True
         self._asPythonDict = asdict
@@ -5981,7 +5981,7 @@ class Suppress(TokenConverter):
     (See also :class:`DelimitedList`.)
     """
 
-    def __init__(self, expr: Union[ParserElement, str], savelist: bool = False):
+    def __init__(self, expr: Union[ParserElement, str], savelist: bool = False) -> None:
         if expr is ...:
             expr = _PendingSkip(NoMatch())
         super().__init__(expr)

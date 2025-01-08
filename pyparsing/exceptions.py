@@ -52,7 +52,7 @@ class ParseBaseException(Exception):
         loc: int = 0,
         msg: typing.Optional[str] = None,
         elem=None,
-    ):
+    ) -> None:
         if msg is None:
             msg, pstr = pstr, ""
 
@@ -306,7 +306,7 @@ class RecursiveGrammarException(Exception):
     Deprecated: only used by deprecated method ParserElement.validate.
     """
 
-    def __init__(self, parseElementList):
+    def __init__(self, parseElementList) -> None:
         self.parseElementTrace = parseElementList
 
     def __str__(self) -> str:
