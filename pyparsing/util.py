@@ -193,7 +193,7 @@ class _GroupConsecutive:
             (3, iter(['p', 'q', 'r', 's']))
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.prev = 0
         self.counter = itertools.count()
         self.value = -1

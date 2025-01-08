@@ -120,7 +120,7 @@ class EachItem(railroad.Group):
 
     all_label = "[ALL]"
 
-    def __init__(self, *items):
+    def __init__(self, *items) -> None:
         choice_item = railroad.Choice(len(items) - 1, *items)
         one_or_more_item = railroad.OneOrMore(item=choice_item)
         super().__init__(one_or_more_item, label=self.all_label)
@@ -131,7 +131,7 @@ class AnnotatedItem(railroad.Group):
     Simple subclass of Group that creates an annotation label
     """
 
-    def __init__(self, label: str, item):
+    def __init__(self, label: str, item) -> None:
         super().__init__(item=item, label=f"[{label}]" if label else "")
 
 
@@ -144,7 +144,7 @@ class EditablePartial(Generic[T]):
     # We need this here because the railroad constructors actually transform the data, so can't be called until the
     # entire tree is assembled
 
-    def __init__(self, func: Callable[..., T], args: list, kwargs: dict):
+    def __init__(self, func: Callable[..., T], args: list, kwargs: dict) -> None:
         self.func = func
         self.args = args
         self.kwargs = kwargs
@@ -352,7 +352,7 @@ class ConverterState:
     Stores some state that persists between recursions into the element tree
     """
 
-    def __init__(self, diagram_kwargs: typing.Optional[dict] = None):
+    def __init__(self, diagram_kwargs: typing.Optional[dict] = None) -> None:
         #: A dictionary mapping ParserElements to state relating to them
         self._element_diagram_states: dict[int, ElementState] = {}
         #: A dictionary mapping ParserElement IDs to subdiagrams generated from them
