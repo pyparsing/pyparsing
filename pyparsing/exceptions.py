@@ -272,12 +272,11 @@ class ParseException(ParseBaseException):
         try:
             integer.parse_string("ABC")
         except ParseException as pe:
-            print(pe)
-            print(f"column: {pe.column}")
+            print(pe, f"column: {pe.column}")
 
     prints::
 
-       Expected integer (at char 0), (line:1, col:1) column: 1
+       Expected integer, found 'ABC'  (at char 0), (line:1, col:1) column: 1
 
     """
 
