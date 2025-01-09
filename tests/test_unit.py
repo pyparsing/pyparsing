@@ -5364,7 +5364,7 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
     def testNestedExpressions3(self):
 
         prior_ws_chars = pp.ParserElement.DEFAULT_WHITE_CHARS
-        with resetting(pp.ParserElement, "DEFAULT_WHITE_CHARS"):
+        with ppt.reset_pyparsing_context():
             pp.ParserElement.set_default_whitespace_chars('')
 
             input_str = dedent(
@@ -5399,6 +5399,7 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             ]
             self.assertEqual(nested_result, expected_result)
 
+        # make sure things have been put back properly
         self.assertEqual(pp.ParserElement.DEFAULT_WHITE_CHARS, prior_ws_chars)
 
     def testWordMinMaxArgs(self):
