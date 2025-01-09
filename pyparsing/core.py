@@ -3555,7 +3555,9 @@ class White(Token):
         "\u3000": "<IDEOGRAPHIC_SPACE>",
     }
 
-    def __init__(self, ws: str = " \t\r\n", min: int = 1, max: int = 0, exact: int = 0) -> None:
+    def __init__(
+        self, ws: str = " \t\r\n", min: int = 1, max: int = 0, exact: int = 0
+    ) -> None:
         super().__init__()
         self.matchWhite = ws
         self.set_whitespace_chars(
@@ -3756,7 +3758,9 @@ class WordStart(PositionToken):
     a line.
     """
 
-    def __init__(self, word_chars: str = printables, *, wordChars: str = printables) -> None:
+    def __init__(
+        self, word_chars: str = printables, *, wordChars: str = printables
+    ) -> None:
         wordChars = word_chars if wordChars == printables else wordChars
         super().__init__()
         self.wordChars = set(wordChars)
@@ -3781,7 +3785,9 @@ class WordEnd(PositionToken):
     of a line.
     """
 
-    def __init__(self, word_chars: str = printables, *, wordChars: str = printables) -> None:
+    def __init__(
+        self, word_chars: str = printables, *, wordChars: str = printables
+    ) -> None:
         wordChars = word_chars if wordChars == printables else wordChars
         super().__init__()
         self.wordChars = set(wordChars)
@@ -3847,7 +3853,9 @@ class ParseExpression(ParserElement):
     post-processing parsed tokens.
     """
 
-    def __init__(self, exprs: typing.Iterable[ParserElement], savelist: bool = False) -> None:
+    def __init__(
+        self, exprs: typing.Iterable[ParserElement], savelist: bool = False
+    ) -> None:
         super().__init__(savelist)
         self.exprs: list[ParserElement]
         if isinstance(exprs, _generatorType):
@@ -4199,7 +4207,9 @@ class Or(ParseExpression):
         [['123'], ['3.1416'], ['789']]
     """
 
-    def __init__(self, exprs: typing.Iterable[ParserElement], savelist: bool = False) -> None:
+    def __init__(
+        self, exprs: typing.Iterable[ParserElement], savelist: bool = False
+    ) -> None:
         super().__init__(exprs, savelist)
         if self.exprs:
             self.mayReturnEmpty = any(e.mayReturnEmpty for e in self.exprs)
@@ -4355,7 +4365,9 @@ class MatchFirst(ParseExpression):
         print(number.search_string("123 3.1416 789")) #  Better -> [['123'], ['3.1416'], ['789']]
     """
 
-    def __init__(self, exprs: typing.Iterable[ParserElement], savelist: bool = False) -> None:
+    def __init__(
+        self, exprs: typing.Iterable[ParserElement], savelist: bool = False
+    ) -> None:
         super().__init__(exprs, savelist)
         if self.exprs:
             self.mayReturnEmpty = any(e.mayReturnEmpty for e in self.exprs)
@@ -4503,7 +4515,9 @@ class Each(ParseExpression):
         - size: 20
     """
 
-    def __init__(self, exprs: typing.Iterable[ParserElement], savelist: bool = True) -> None:
+    def __init__(
+        self, exprs: typing.Iterable[ParserElement], savelist: bool = True
+    ) -> None:
         super().__init__(exprs, savelist)
         if self.exprs:
             self.mayReturnEmpty = all(e.mayReturnEmpty for e in self.exprs)
@@ -5524,7 +5538,9 @@ class Forward(ParseElementEnhance):
     parser created using ``Forward``.
     """
 
-    def __init__(self, other: typing.Optional[Union[ParserElement, str]] = None) -> None:
+    def __init__(
+        self, other: typing.Optional[Union[ParserElement, str]] = None
+    ) -> None:
         self.caller_frame = traceback.extract_stack(limit=2)[0]
         super().__init__(other, savelist=False)  # type: ignore[arg-type]
         self.lshift_line = None
