@@ -411,13 +411,16 @@ def locatedExpr(expr: ParserElement) -> ParserElement:
     )
 
 
+_NO_IGNORE_EXPR_GIVEN = NoMatch()
+
+
 def nested_expr(
     opener: Union[str, ParserElement] = "(",
     closer: Union[str, ParserElement] = ")",
     content: typing.Optional[ParserElement] = None,
-    ignore_expr: ParserElement = quoted_string(),
+    ignore_expr: ParserElement = _NO_IGNORE_EXPR_GIVEN,
     *,
-    ignoreExpr: ParserElement = quoted_string(),
+    ignoreExpr: ParserElement = _NO_IGNORE_EXPR_GIVEN,
 ) -> ParserElement:
     """Helper method for defining nested lists enclosed in opening and
     closing delimiters (``"("`` and ``")"`` are the default).
@@ -487,7 +490,10 @@ def nested_expr(
         dec_to_hex (int) args: [['char', 'hchar']]
     """
     if ignoreExpr != ignore_expr:
-        ignoreExpr = ignore_expr if ignoreExpr == quoted_string() else ignoreExpr
+        ignoreExpr = ignore_expr if ignoreExpr is _NO_IGNORE_EXPR_GIVEN else ignoreExpr
+    if ignoreExpr is _NO_IGNORE_EXPR_GIVEN:
+        ignoreExpr = quoted_string()
+
     if opener == closer:
         raise ValueError("opening and closing strings cannot be the same")
     if content is None:
@@ -504,11 +510,11 @@ def nested_expr(
                                 exact=1,
                             )
                         )
-                    ).set_parse_action(lambda t: t[0].strip())
+                    )
                 else:
                     content = empty.copy() + CharsNotIn(
                         opener + closer + ParserElement.DEFAULT_WHITE_CHARS
-                    ).set_parse_action(lambda t: t[0].strip())
+                    )
             else:
                 if ignoreExpr is not None:
                     content = Combine(
@@ -518,7 +524,7 @@ def nested_expr(
                             + ~Literal(closer)
                             + CharsNotIn(ParserElement.DEFAULT_WHITE_CHARS, exact=1)
                         )
-                    ).set_parse_action(lambda t: t[0].strip())
+                    )
                 else:
                     content = Combine(
                         OneOrMore(
@@ -526,11 +532,16 @@ def nested_expr(
                             + ~Literal(closer)
                             + CharsNotIn(ParserElement.DEFAULT_WHITE_CHARS, exact=1)
                         )
-                    ).set_parse_action(lambda t: t[0].strip())
+                    )
         else:
             raise ValueError(
                 "opening and closing arguments must be strings if no content expression is given"
             )
+    if ParserElement.DEFAULT_WHITE_CHARS:
+        content.set_parse_action(
+            lambda t: t[0].strip(ParserElement.DEFAULT_WHITE_CHARS)
+        )
+
     ret = Forward()
     if ignoreExpr is not None:
         ret <<= Group(
