@@ -33,8 +33,8 @@ LBRACK, RBRACK, LBRACE, RBRACE, LPAR, RPAR, DASH, STAR, EQ, SEMI = pp.Suppress.u
     "[]{}()-*=;"
 )
 
-integer = pp.common.integer
-meta_identifier = pp.common.identifier
+integer = pp.common.integer()
+meta_identifier = pp.common.identifier()
 terminal_string = pp.Regex(
     r'"[^"]*"'
     r"|"
@@ -76,7 +76,6 @@ def do_meta_identifier(toks):
     if toks[0] in symbol_table:
         return symbol_table[toks[0]]
     else:
-        forward_count.value += 1
         symbol_table[toks[0]] = pp.Forward()
         return symbol_table[toks[0]]
 
@@ -142,7 +141,6 @@ def do_definitions_list(toks):
 def do_syntax_rule(toks):
     # meta_identifier = definitions_list ;
     assert toks[0].expr is None, "Duplicate definition"
-    forward_count.value -= 1
     toks[0] <<= toks[1]
     return [toks[0]]
 
@@ -152,12 +150,6 @@ def do_syntax():
     return symbol_table
 
 
-symbol_table: dict[str, pp.Forward] = {}
-
-class forward_count:
-    pass
-forward_count.value = 0
-
 for name in all_names:
     expr = vars()[name]
     action = vars()["do_" + name]
@@ -166,17 +158,22 @@ for name in all_names:
     # expr.setDebug()
 
 
-def parse(ebnf, given_table=None):
+symbol_table: dict[str, pp.Forward] = {}
+
+
+def parse(ebnf, given_table=None, *, enable_debug=False):
     given_table = given_table or {}
     symbol_table.clear()
     symbol_table.update(given_table)
-    forward_count.value = 0
     table = syntax.parse_string(ebnf, parse_all=True)[0]
-    # assert forward_count.value == 0, "Missing definition"
-    for name in table:
-        expr = table[name]
+    missing_definitions = [
+        k for k, v in table.items()
+        if k not in given_table and v.expr is None
+    ]
+    assert not missing_definitions, f"Missing definitions for {missing_definitions}"
+    for name, expr in table.items():
         expr.set_name(name)
-        # expr.set_debug()
+        expr.set_debug(enable_debug)
     return table
 
 

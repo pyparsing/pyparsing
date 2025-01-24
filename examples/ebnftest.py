@@ -37,13 +37,14 @@ grammar = """
     *)
 """
 
-table: dict[str, pp.ParserElement] = {}
-# table['character'] = Char(printables)
-# table['letter'] = Char(alphas + '_')
-# table['digit'] = Char(nums)
-table["terminal_string"] = pp.sgl_quoted_string | pp.dbl_quoted_string
-table["meta_identifier"] = pp.Word(pp.alphas + "_", pp.alphas + "_" + pp.nums)
-table["integer"] = pp.common.integer
+table: dict[str, pp.ParserElement] = {
+    # "character": pp.Char(pp.printables),
+    # "letter": pp.Char(pp.alphas + '_'),
+    # "digit": pp.Char(nums),
+    "terminal_string": pp.sgl_quoted_string | pp.dbl_quoted_string,
+    "meta_identifier": pp.Word(pp.alphas + "_", pp.alphas + "_" + pp.nums),
+    "integer": pp.common.integer,
+}
 
 print("Parsing EBNF grammar with EBNF parser...")
 parsers = ebnf.parse(grammar, table)

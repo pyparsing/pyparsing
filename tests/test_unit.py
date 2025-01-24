@@ -995,6 +995,27 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             "failed to tokenize grammar correctly",
         )
 
+    def testParseEBNFmissingDefinitions(self):
+        """
+        Test detection of missing definitions in EBNF
+        """
+        from examples import ebnf
+
+        grammar = """
+            (*
+            EBNF for number_words.py
+            *)
+            number = [thousands, [and]], [hundreds, [and]], [one_to_99];
+        """
+
+        with self.assertRaisesRegex(
+            AssertionError,
+            r"Missing definitions for \['thousands', 'and', 'hundreds', 'one_to_99']"
+        ):
+            ebnf.parse(grammar)
+
+
+
     def testParseIDL(self):
         from examples import idlParse
 
