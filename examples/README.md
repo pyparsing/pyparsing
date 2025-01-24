@@ -69,12 +69,15 @@ categories (several examples include supporting railroad diagrams):
   * rosetta code
     * [rosettacode.py](./rosettacode.py) [(diagram)](./rosettacode_diagram.html)
 ## Domain Specific Language parsers
-  * adventureEngine
+  * adventureEngine - interactive fiction parser and game runner
     * [adventureEngine.py](./adventureEngine.py) [(diagram)](./adventure_game_parser_diagram.html)
-  * pgn
+  * pgn - Chess notation parser
     * [pgn.py](./pgn.py)
-  * TAP
+  * TAP - Test results parser
     * [TAP.py](./TAP.py) [(diagram)](./TAP_diagram.html)
+  * EBNF - Extended Backus-Naur Format parser (and compiler to a running pyparsing parser)
+    * [ebnf.py](./ebnf.py) [(diagram)](./ebnf_diagram.html)
+    * [ebnf_number_words.py](./ebnf_number_words.py) [(diagram)](./ebnf_number_parser_diagram.html)
 ## Search and query language parsers
   * basic search
     * [searchparser.py](./searchparser.py) [demo](./searchParserAppDemo.py)

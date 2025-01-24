@@ -33,6 +33,10 @@ Version 3.2.2 - under development
   these internal elements will be included. (You can see this in the tag_metadata.py
   script in the examples directory.)
 
+- Fixed bug in number_words.py example. Also added ebnf_number_words.py to demonstrate
+  using the ebnf.py EBNF parser generator to build a similar parser directly from
+  EBNF.
+
 - Added support for Python 3.14.
 
 

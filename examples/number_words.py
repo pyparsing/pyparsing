@@ -12,22 +12,22 @@
 #
 #
 #  BNF:
-"""
-    optional_and ::= ["and" | "-"]
-    optional_dash ::= ["-"]
-    units ::= one | two | three | ... | nine
-    teens ::= ten | teens_only
-    tens ::= twenty | thirty | ... | ninety
-    one_to_99 ::= units | teens | (tens [optional_dash units])
-    teens_only ::= eleven | twelve | ... | nineteen
-    hundreds ::= (units | teens_only | tens optional_dash units) "hundred"
-    thousands ::= one_to_99 "thousand"
+#    optional_and ::= ["and" | "-"]
+#    optional_dash ::= ["-"]
+#    units ::= "one" | "two" | "three" | ... | "nine"
+#    ten ::= "ten"
+#    tens ::= "twenty" | "thirty" | ... | "ninety"
+#    one_to_99 ::= units | ten | teens | (tens [optional_dash units])
+#    teens ::= "eleven" | "twelve" | ... | "nineteen"
+#    hundreds ::= (units | teens | tens optional_dash units) "hundred"
+#    thousands ::= one_to_99 "thousand"
+#
+#    # number from 1-999,999
+#    number ::= [thousands [optional_and]] [hundreds[optional_and]] one_to_99
+#               | [thousands [optional_and]] hundreds
+#               | thousands
+#
 
-    # number from 1-999,999
-    number ::= [thousands [optional_and]] [hundreds[optional_and]] one_to_99
-               | [thousands [optional_and]] hundreds
-               | thousands
-"""
 import pyparsing as pp
 from operator import mul
 
@@ -70,24 +70,26 @@ opt_dash = pp.Opt(pp.Suppress("-")).set_name("'-'")
 opt_and = pp.Opt((pp.CaselessKeyword("and") | "-").suppress()).set_name("'and/-'")
 
 units = define_numeric_word_range("one two three four five six seven eight nine", 1, 9)
-teens_only = define_numeric_word_range(
+teens = define_numeric_word_range(
     "eleven twelve thirteen fourteen fifteen sixteen seventeen eighteen nineteen",
     11,
     19,
 )
 ten = define_numeric_word_range("ten", 10)
-teens = ten | teens_only
 
 tens = define_numeric_word_range(
     "twenty thirty forty fifty sixty seventy eighty ninety", 20, 90, 10
 )
-one_to_99 = (units | teens | (tens + pp.Opt(opt_dash + units))).set_name("1-99")
-one_to_99.add_parse_action(sum)
 
 hundred = define_numeric_word_range("hundred", 100)
 thousand = define_numeric_word_range("thousand", 1000)
 
-hundreds = (units | teens_only | (tens + opt_dash + units)) + hundred
+one_to_99_except_tens = (units | teens | (tens + opt_dash + units)).set_name("1-99 except tens")
+one_to_99_except_tens.add_parse_action(sum)
+one_to_99 = (one_to_99_except_tens | ten | tens).set_name("1-99")
+one_to_99.add_parse_action(sum)
+
+hundreds = one_to_99_except_tens + hundred
 hundreds.set_name("100s")
 
 one_to_999 = (
@@ -128,6 +130,9 @@ if __name__ == "__main__":
         two hundred
         twelve hundred
         one hundred and eleven
+        seven thousand and six
+        twenty five hundred
+        twenty five hundred and one
         ninety nine thousand nine hundred and ninety nine
         nine hundred thousand nine hundred and ninety nine
         nine hundred and ninety nine thousand nine hundred and ninety nine
