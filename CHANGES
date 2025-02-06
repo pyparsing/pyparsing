@@ -37,6 +37,9 @@ Version 3.2.2 - under development
   using the ebnf.py EBNF parser generator to build a similar parser directly from
   EBNF.
 
+- Fixed syntax warning raised in bigquery_view_parser.py, invalid escape sequence "\s".
+  Reported by sameer-google, nice catch! (Issue #598)
+
 - Added support for Python 3.14.
 
 

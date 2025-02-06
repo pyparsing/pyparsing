@@ -1709,7 +1709,7 @@ if __name__ == "__main__":
             ],
         ],
         [
-            """\
+            r"""
             SELECT
               /* Replace white spaces in the title with underscores. */
               REGEXP_REPLACE(title, r'\s+', '_') AS regexp_title, revisions
