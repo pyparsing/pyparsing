@@ -205,6 +205,7 @@ def one_of(
             stacklevel=2,
         )
 
+    parse_element_class: type[ParserElement]
     if caseless:
         is_equal = lambda a, b: a.upper() == b.upper()
         masks = lambda a, b: b.upper().startswith(a.upper())

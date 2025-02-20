@@ -5088,9 +5088,10 @@ class _MultipleMatch(ParseElementEnhance):
     def parseImpl(self, instring, loc, do_actions=True) -> ParseImplReturnType:
         self_expr_parse = self.expr._parse
         self_skip_ignorables = self._skipIgnorables
-        check_ender = self.not_ender is not None
-        if check_ender:
+        check_ender = False
+        if self.not_ender is not None:
             try_not_ender = self.not_ender.try_parse
+            check_ender = True
 
         # must be at least one (but first see if we are the stopOn sentinel;
         # if so, fail)
