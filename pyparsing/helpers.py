@@ -408,7 +408,7 @@ def locatedExpr(expr: ParserElement) -> ParserElement:
     return Group(
         locator("locn_start")
         + expr("value")
-        + locator.copy().leaveWhitespace()("locn_end")
+        + locator.copy().leave_whitespace()("locn_end")
     )
 
 
@@ -888,7 +888,7 @@ def infix_notation(
             else:
                 matchExpr.set_parse_action(pa)
 
-        thisExpr <<= (matchExpr | lastExpr).setName(term_name)
+        thisExpr <<= (matchExpr | lastExpr).set_name(term_name)
         lastExpr = thisExpr
 
     ret <<= lastExpr

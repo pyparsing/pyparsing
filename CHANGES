@@ -27,6 +27,13 @@ Devin J. Pohly in structuring the code to enable this peaceful transition.)
 ===========================================================================================
 
 
+Version 3.3.0 - under development
+---------------------------------
+- Pre-PEP8 names are now getting deprecated. If you are using any of the old names
+  (like `parseString`, `setResultsName`, etc.), you will start to see `DeprecationWarning`
+  messages.
+
+
 Version 3.2.2 - under development
 ---------------------------------
 - Release of `cvt_pyparsing_pep8_names.py` conversion utility to upgrade pyparsing-based
@@ -48,7 +55,7 @@ Version 3.2.2 - under development
   elements that are used internally by pyparsing, but are not part of the actual
   parser grammar. For instance, the `Tag` class can insert values into the parsed
   results but it does not actually parse any input, so by default it is not included
-  in a railroad diagram. By calling `create_diagram` with `show_hidden` = `True`,
+  in a railroad diagram. By calling `create_diagram` with `show_hidden = True`,
   these internal elements will be included. (You can see this in the tag_metadata.py
   script in the examples directory.)
 
@@ -73,7 +80,7 @@ Version 3.2.1 - December, 2024
   diagramming.
 
 - Improved performance of `cpp_style_comment`, `c_style_comment`, `common.fnumber`
-  and `common.ieee_float` Regex expressions. PRs submitted by Gabriel Gerlero,
+  and `common.ieee_float` `Regex` expressions. PRs submitted by Gabriel Gerlero,
   nice work, thanks!
 
 - Add missing type annotations to `match_only_at_col`, `replace_with`, `remove_quotes`,
@@ -81,7 +88,7 @@ Version 3.2.1 - December, 2024
 
 - Added generated diagrams for many of the examples.
 
-- Replaced old examples/0README.html file with examples/README.md file.
+- Replaced old `examples/0README.html` file with `examples/README.md` file.
 
 
 Version 3.2.0 - October, 2024
@@ -156,7 +163,7 @@ Version 3.2.0 - October, 2024
       where some diagram elements were just empty blocks. Fix submitted by RoDuth,
       thanks a ton!
 
-    - Fixed railroad diagrams that get generated with a parser containing a Regex element
+    - Fixed railroad diagrams that get generated with a parser containing a `Regex` element
       defined using a verbose pattern - the pattern gets flattened and comments removed
       before creating the corresponding diagram element.
 
@@ -1372,7 +1379,7 @@ Version 3.0.0a1 - April, 2020
   preceding or trailing keyword character. Surfaced while
   working with metaperl on issue #201.
 
-- Enhanced the Regex class to be compatible with re's compiled with the
+- Enhanced the `Regex` class to be compatible with re's compiled with the
   re-equivalent regex module. Individual expressions can be built with
   regex compiled expressions using:
 
@@ -1409,7 +1416,7 @@ Version 3.0.0a1 - April, 2020
   types of nested indented blocks with different indent values,
   but sharing the same indent stack, submitted by renzbagaporo.
 
-- Fixed bug in Each when using Regex, when Regex expression would
+- Fixed bug in `Each` when using `Regex`, when `Regex` expression would
   get parsed twice; issue #183 submitted by scauligi, thanks!
 
 - `BigQueryViewParser.py` added to examples directory, PR submitted
@@ -1425,7 +1432,7 @@ Version 3.0.0a1 - April, 2020
 - Fixed bug in regex definitions for real and sci_real expressions in
   pyparsing_common. Issue #194, reported by Michael Wayne Goodman, thanks!
 
-- Fixed `FutureWarning` raised beginning in Python 3.7 for Regex expressions
+- Fixed `FutureWarning` raised beginning in Python 3.7 for `Regex` expressions
   containing '[' within a regex set.
 
 - Minor reformatting of output from `runTests` to make embedded
@@ -1442,7 +1449,7 @@ Version 3.0.0a1 - April, 2020
 Version 2.4.7 - April, 2020
 ---------------------------
 - Backport of selected fixes from 3.0.0 work:
-  . Each bug with Regex expressions
+  . Each bug with `Regex` expressions
   . And expressions not properly constructing with generator
   . Traceback abbreviation
   . Bug in delta_time example
@@ -1509,7 +1516,7 @@ Version 2.4.3 - November, 2019
 - Backports from pyparsing 3.0.0:
   . __diag__.enable_all_warnings()
   . Fixed bug in PrecededBy which caused infinite recursion, issue #127
-  . support for using regex-compiled RE to construct Regex expressions
+  . support for using regex-compiled RE to construct `Regex` expressions
 
 
 Version 2.4.2 - July, 2019
@@ -2178,13 +2185,13 @@ Version 2.2.2 - September, 2018
   Primary intent is more to be instructional than actually rigorous
   testing. Complex tests can still be added in the unitTests.py file.
 
-- New features added to the Regex class:
+- New features added to the `Regex` class:
   - optional asGroupList parameter, returns all the capture groups as
     a list
   - optional asMatch parameter, returns the raw re.match result
   - new sub(repl) method, which adds a parse action calling
     re.sub(pattern, repl, parsed_result). Simplifies creating
-    Regex expressions to be used with transformString. Like re.sub,
+    `Regex` expressions to be used with transformString. Like re.sub,
     repl may be an ordinary string (similar to using pyparsing's
     replaceWith), or may contain references to capture groups by group
     number, or may be a callable that takes an re match group and
@@ -3000,7 +3007,7 @@ Version 1.5.3 - June, 2010
 - Added better support for summing ParseResults, see the new example,
   parseResultsSumExample.py.
 
-- Added support for composing a Regex using a compiled RE object;
+- Added support for composing a `Regex` using a compiled RE object;
   thanks to my new colleague, Mike Thornton!
 
 - In version 1.5.2, I changed the way exceptions are raised in order
@@ -3900,7 +3907,7 @@ Version 1.4.1 - February, 2006
 
 Version 1.4 - January 18, 2006
 ------------------------------
-- Added Regex class, to permit definition of complex embedded expressions
+- Added `Regex` class, to permit definition of complex embedded expressions
   using regular expressions. (Enhancement provided by John Beisley, great
   job!)
 

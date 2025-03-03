@@ -20,7 +20,7 @@ from pyparsing import (
     ParserElement,
 )
 
-ParserElement.enablePackrat()
+ParserElement.enable_packrat()
 
 
 class EvalConstant:
@@ -149,7 +149,7 @@ plusop = one_of("+ -")
 expop = Literal("**")
 
 # use parse actions to attach EvalXXX constructors to sub-expressions
-operand.setParseAction(EvalConstant)
+operand.set_parse_action(EvalConstant)
 arith_expr = infix_notation(
     operand,
     [
@@ -254,7 +254,7 @@ for t in rules:
 EvalConstant.vars_ = vars_
 failed = 0
 for test, expected in tests:
-    ret = comp_expr.parseString(test)[0]
+    ret = comp_expr.parse_string(test)[0]
     parsedvalue = ret.eval()
     print(test, expected, parsedvalue)
     if abs(parsedvalue - expected) > 1e-6:

@@ -92,7 +92,7 @@ class pyparsing_test:
             ParserElement.verbose_stacktrace = self._save_context["verbose_stacktrace"]
 
             Keyword.DEFAULT_KEYWORD_CHARS = self._save_context["default_keyword_chars"]
-            ParserElement.inlineLiteralsUsing(
+            ParserElement.inline_literals_using(
                 self._save_context["literal_string_class"]
             )
 

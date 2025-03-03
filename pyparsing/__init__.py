@@ -120,8 +120,8 @@ class version_info(NamedTuple):
         return f"{__name__}.{type(self).__name__}({', '.join('{}={!r}'.format(*nv) for nv in zip(self._fields, self))})"
 
 
-__version_info__ = version_info(3, 2, 2, "final", 1)
-__version_time__ = "09 Jan 2025 04:49 UTC"
+__version_info__ = version_info(3, 3, 0, "final", 1)
+__version_time__ = "03 Mar 2025 07:20 UTC"
 __version__ = __version_info__.__version__
 __versionTime__ = __version_time__
 __author__ = "Paul McGuire <ptmcg.gm+pyparsing@gmail.com>"
@@ -156,6 +156,7 @@ core_builtin_exprs += common_builtin_exprs + helper_builtin_exprs
 
 __all__ = [
     "__version__",
+    "__version_info__",
     "__version_time__",
     "__author__",
     "__compat__",

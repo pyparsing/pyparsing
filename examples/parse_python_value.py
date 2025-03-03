@@ -25,8 +25,8 @@ list_str = pp.Forward().set_name("list_expr")
 set_str = pp.Forward().set_name("set_expr")
 dict_str = pp.Forward().set_name("dict_expr")
 
-quoted_str = pp.quotedString().add_parse_action(lambda t: t[0][1:-1])
-bool_literal = pp.oneOf("True False", as_keyword=True).add_parse_action(convert_bool)
+quoted_str = pp.quoted_string().add_parse_action(lambda t: t[0][1:-1])
+bool_literal = pp.one_of("True False", as_keyword=True).add_parse_action(convert_bool)
 none_literal = pp.Keyword("None").add_parse_action(pp.replace_with(None))
 
 list_item = (

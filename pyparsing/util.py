@@ -359,8 +359,6 @@ def make_compressed_re(
 
 
 def replaced_by_pep8(compat_name: str, fn: C) -> C:
-    # In a future version, uncomment the code in the internal _inner() functions
-    # to begin emitting DeprecationWarnings.
 
     # Unwrap staticmethod/classmethod
     fn = getattr(fn, "__func__", fn)
@@ -371,18 +369,18 @@ def replaced_by_pep8(compat_name: str, fn: C) -> C:
 
         @wraps(fn)
         def _inner(self, *args, **kwargs):
-            # warnings.warn(
-            #     f"Deprecated - use {fn.__name__}", DeprecationWarning, stacklevel=2
-            # )
+            warnings.warn(
+                f"{compat_name} deprecated - use {fn.__name__}", DeprecationWarning, stacklevel=2
+            )
             return fn(self, *args, **kwargs)
 
     else:
 
         @wraps(fn)
         def _inner(*args, **kwargs):
-            # warnings.warn(
-            #     f"Deprecated - use {fn.__name__}", DeprecationWarning, stacklevel=2
-            # )
+            warnings.warn(
+                f"{compat_name} deprecated - use {fn.__name__}", DeprecationWarning, stacklevel=2
+            )
             return fn(*args, **kwargs)
 
     _inner.__doc__ = f"""Deprecated - use :class:`{fn.__name__}`"""

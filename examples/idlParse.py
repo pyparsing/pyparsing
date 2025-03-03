@@ -12,14 +12,14 @@ from pyparsing import (
     OneOrMore,
     ZeroOrMore,
     Forward,
-    delimitedList,
+    DelimitedList,
     Group,
     Optional,
     alphas,
-    restOfLine,
-    cStyleComment,
+    rest_of_line,
+    c_style_comment,
     alphanums,
-    quotedString,
+    quoted_string,
     ParseException,
     Keyword,
     Regex,
@@ -103,12 +103,12 @@ def CORBA_IDL_BNF():
             TRUE typedef unsigned union void wchar wstring""".split(),
         )
 
-        identifier = Word(alphas, alphanums + "_").setName("identifier")
+        identifier = Word(alphas, alphanums + "_").set_name("identifier")
 
-        real = Regex(r"[+-]?\d+\.\d*([Ee][+-]?\d+)?").setName("real")
-        integer = Regex(r"0x[0-9a-fA-F]+|[+-]?\d+").setName("int")
+        real = Regex(r"[+-]?\d+\.\d*([Ee][+-]?\d+)?").set_name("real")
+        integer = Regex(r"0x[0-9a-fA-F]+|[+-]?\d+").set_name("int")
 
-        udTypeName = delimitedList(identifier, "::", combine=True).setName("udType")
+        udTypeName = DelimitedList(identifier, "::", combine=True).set_name("udType")
         typeName = (
             any_
             | boolean_
@@ -123,53 +123,53 @@ def CORBA_IDL_BNF():
             | wchar_
             | wstring_
             | udTypeName
-        ).setName("type")
-        sequenceDef = Forward().setName("seq")
+        ).set_name("type")
+        sequenceDef = Forward().set_name("seq")
         sequenceDef << Group(sequence_ + langle + (sequenceDef | typeName) + rangle)
         typeDef = sequenceDef | (typeName + Optional(lbrack + integer + rbrack))
-        typedefDef = Group(typedef_ + typeDef + identifier + semi).setName("typedef")
+        typedefDef = Group(typedef_ + typeDef + identifier + semi).set_name("typedef")
 
-        moduleDef = Forward().setName("moduleDef")
+        moduleDef = Forward().set_name("moduleDef")
         constDef = Group(
             const_
             + typeDef
             + identifier
             + equals
-            + (real | integer | quotedString)
+            + (real | integer | quoted_string)
             + semi
-        ).setName(
+        ).set_name(
             "constDef"
-        )  # | quotedString )
+        )  # | quoted_string )
         exceptionItem = Group(typeDef + identifier + semi)
         exceptionDef = (
             exception_ + identifier + lbrace + ZeroOrMore(exceptionItem) + rbrace + semi
-        ).setName("exceptionDef")
+        ).set_name("exceptionDef")
         attributeDef = Optional(readonly_) + attribute_ + typeDef + identifier + semi
-        paramlist = delimitedList(
+        paramlist = DelimitedList(
             Group((inout_ | in_ | out_) + typeName + identifier)
-        ).setName("paramlist")
+        ).set_name("paramlist")
         operationDef = (
             (void_ ^ typeDef)
             + identifier
             + lparen
             + Optional(paramlist)
             + rparen
-            + Optional(raises_ + lparen + Group(delimitedList(typeName)) + rparen)
+            + Optional(raises_ + lparen + Group(DelimitedList(typeName)) + rparen)
             + semi
-        ).setName("operationDef")
+        ).set_name("operationDef")
         interfaceItem = constDef | exceptionDef | attributeDef | operationDef
         interfaceDef = Group(
             interface_
             + identifier
-            + Optional(colon + delimitedList(typeName))
+            + Optional(colon + DelimitedList(typeName))
             + lbrace
             + ZeroOrMore(interfaceItem)
             + rbrace
             + semi
-        ).setName("interfaceDef")
+        ).set_name("interfaceDef")
         moduleItem = (
             interfaceDef | exceptionDef | constDef | typedefDef | moduleDef
-        ).setName("moduleItem")
+        ).set_name("moduleItem")
         (
             moduleDef
             << module_ + identifier + lbrace + ZeroOrMore(moduleItem) + rbrace + semi
@@ -177,9 +177,9 @@ def CORBA_IDL_BNF():
 
         bnf = moduleDef | OneOrMore(moduleItem)
 
-        singleLineComment = "//" + restOfLine
+        singleLineComment = "//" + rest_of_line
         bnf.ignore(singleLineComment)
-        bnf.ignore(cStyleComment)
+        bnf.ignore(c_style_comment)
 
     return bnf
 
@@ -193,12 +193,12 @@ if __name__ == "__main__":
         print(strng)
         try:
             bnf = CORBA_IDL_BNF()
-            tokens = bnf.parseString(strng)
+            tokens = bnf.parse_string(strng)
             print("tokens = ")
-            pprint.pprint(tokens.asList())
+            pprint.pprint(tokens.as_list())
             imgname = "idlParse%02d.bmp" % testnum
             testnum += 1
-            # ~ tree2image.str2image( str(tokens.asList()), imgname )
+            # ~ tree2image.str2image( str(tokens.as_list()), imgname )
         except ParseException as err:
             print(err.line)
             print(" " * (err.column - 1) + "^")

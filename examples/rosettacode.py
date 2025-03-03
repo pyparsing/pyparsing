@@ -50,7 +50,7 @@ string = pp.QuotedString('"', convertWhitespaceEscapes=False).set_name("quoted s
 char = pp.Regex(r"'\\?.'")
 
 # fmt: off
-expr = pp.infixNotation(
+expr = pp.infix_notation(
     (identifier | integer | char).set_name("arith_operand"),
     [
         (pp.one_of("+ - !"), 1, pp.OpAssoc.RIGHT,),
@@ -86,7 +86,7 @@ stmt <<= (
 ).set_name("statement")
 
 program = stmt[...]
-program.ignore(pp.cppStyleComment)
+program.ignore(pp.cpp_style_comment)
 pp.autoname_elements()
 
 tests = [
