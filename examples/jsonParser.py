@@ -38,7 +38,7 @@ from pyparsing import pyparsing_common as ppc
 
 
 def make_keyword(kwd_str, kwd_value):
-    return pp.Keyword(kwd_str).setParseAction(pp.replaceWith(kwd_value))
+    return pp.Keyword(kwd_str).set_parse_action(pp.replace_with(kwd_value))
 
 
 # set to False to return ParseResults
@@ -50,36 +50,36 @@ NULL = make_keyword("null", None)
 
 LBRACK, RBRACK, LBRACE, RBRACE, COLON = map(pp.Suppress, "[]{}:")
 
-jsonString = pp.dblQuotedString().setParseAction(pp.removeQuotes)
-jsonNumber = ppc.number().setName("jsonNumber")
+jsonString = pp.dbl_quoted_string().set_parse_action(pp.remove_quotes)
+jsonNumber = ppc.number().set_name("jsonNumber")
 
-jsonObject = pp.Forward().setName("jsonObject")
-jsonValue = pp.Forward().setName("jsonValue")
+jsonObject = pp.Forward().set_name("jsonObject")
+jsonValue = pp.Forward().set_name("jsonValue")
 
-jsonElements = pp.delimitedList(jsonValue).setName(None)
+jsonElements = pp.DelimitedList(jsonValue).set_name(None)
 # jsonArray = pp.Group(LBRACK + pp.Optional(jsonElements, []) + RBRACK)
 # jsonValue << (
 #     jsonString | jsonNumber | pp.Group(jsonObject) | jsonArray | TRUE | FALSE | NULL
 # )
-# memberDef = pp.Group(jsonString + COLON + jsonValue).setName("jsonMember")
+# memberDef = pp.Group(jsonString + COLON + jsonValue).set_name("jsonMember")
 
 jsonArray = pp.Group(
     LBRACK + pp.Optional(jsonElements) + RBRACK, aslist=RETURN_PYTHON_COLLECTIONS
-).setName("jsonArray")
+).set_name("jsonArray")
 
 jsonValue << (jsonString | jsonNumber | jsonObject | jsonArray | TRUE | FALSE | NULL)
 
 memberDef = pp.Group(
     jsonString + COLON + jsonValue, aslist=RETURN_PYTHON_COLLECTIONS
-).setName("jsonMember")
+).set_name("jsonMember")
 
-jsonMembers = pp.delimitedList(memberDef).setName(None)
+jsonMembers = pp.DelimitedList(memberDef).set_name(None)
 # jsonObject << pp.Dict(LBRACE + pp.Optional(jsonMembers) + RBRACE)
 jsonObject << pp.Dict(
     LBRACE + pp.Optional(jsonMembers) + RBRACE, asdict=RETURN_PYTHON_COLLECTIONS
 )
 
-jsonComment = pp.cppStyleComment
+jsonComment = pp.cpp_style_comment
 jsonObject.ignore(jsonComment)
 
 
@@ -115,7 +115,7 @@ if __name__ == "__main__":
     }
     """
 
-    results = jsonObject.parseString(testdata)
+    results = jsonObject.parse_string(testdata)
 
     results.pprint()
     if RETURN_PYTHON_COLLECTIONS:

@@ -5,6 +5,7 @@ import copy
 import re
 import sys
 import typing
+import warnings
 from functools import cached_property
 
 from .unicode import pyparsing_unicode as ppu
@@ -182,10 +183,12 @@ class ParseBaseException(Exception):
     # pre-PEP8 compatibility
     @property
     def parserElement(self):
+        warnings.warn("parserElement is deprecated, use parser_element", DeprecationWarning)
         return self.parser_element
 
     @parserElement.setter
     def parserElement(self, elem):
+        warnings.warn("parserElement is deprecated, use parser_element", DeprecationWarning)
         self.parser_element = elem
 
     def copy(self):

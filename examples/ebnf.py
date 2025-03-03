@@ -61,7 +61,7 @@ syntax_rule = meta_identifier + EQ + definitions_list + SEMI
 ebnfComment = (
     ("(*" + (pp.CharsNotIn("*") | ("*" + ~pp.Literal(")")))[...] + "*)")
     .streamline()
-    .setName("ebnfComment")
+    .set_name("ebnfComment")
 )
 
 syntax = syntax_rule[1, ...]
@@ -119,7 +119,7 @@ def do_syntactic_term(toks):
 
 
 def do_single_definition(toks):
-    toks = toks.asList()
+    toks = toks.as_list()
     if len(toks) > 1:
         # syntactic_term , syntactic_term , ...
         return pp.And(toks)
@@ -129,7 +129,7 @@ def do_single_definition(toks):
 
 
 def do_definitions_list(toks):
-    toks = toks.asList()
+    toks = toks.as_list()
     if len(toks) > 1:
         # single_definition | single_definition | ...
         return pp.Or(toks)
@@ -155,7 +155,7 @@ for name in all_names:
     action = vars()["do_" + name]
     expr.set_name(name)
     expr.add_parse_action(action)
-    # expr.setDebug()
+    # expr.set_debug()
 
 
 symbol_table: dict[str, pp.Forward] = {}

@@ -15,7 +15,7 @@ from pyparsing import (
     Optional,
     printables,
     ParseException,
-    restOfLine,
+    rest_of_line,
     empty,
 )
 import pprint
@@ -35,18 +35,18 @@ def inifile_BNF():
         equals = Literal("=").suppress()
         semi = Literal(";")
 
-        comment = semi + Optional(restOfLine)
+        comment = semi + Optional(rest_of_line)
 
         nonrbrack = "".join([c for c in printables if c != "]"]) + " \t"
         nonequals = "".join([c for c in printables if c != "="]) + " \t"
 
         sectionDef = lbrack + Word(nonrbrack) + rbrack
-        keyDef = ~lbrack + Word(nonequals) + equals + empty + restOfLine
+        keyDef = ~lbrack + Word(nonequals) + equals + empty + rest_of_line
         # strip any leading or trailing blanks from key
         def stripKey(tokens):
             tokens[0] = tokens[0].strip()
 
-        keyDef.setParseAction(stripKey)
+        keyDef.set_parse_action(stripKey)
 
         # using Dict will allow retrieval of named data fields as attributes of the parsed results
         inibnf = Dict(ZeroOrMore(Group(sectionDef + Dict(ZeroOrMore(Group(keyDef))))))
@@ -65,8 +65,8 @@ def test(strng):
         iniFile = open(strng)
         iniData = "".join(iniFile.readlines())
         bnf = inifile_BNF()
-        tokens = bnf.parseString(iniData)
-        pp.pprint(tokens.asList())
+        tokens = bnf.parse_string(iniData)
+        pp.pprint(tokens.as_list())
 
     except ParseException as err:
         print(err.line)

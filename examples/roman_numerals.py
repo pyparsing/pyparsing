@@ -106,7 +106,7 @@ def main():
                 f"incorrect value for {s} ({tokens[0]}), expected {expected_value}"
             )
 
-    success1, _ = roman_numeral.runTests(
+    success1, _ = roman_numeral.run_tests(
         """\
         XVI
         XXXIX
@@ -123,7 +123,7 @@ def main():
     assert success1, "failed to parse one or more legal Roman numerals"
 
     print("\nRun failure tests")
-    success2, _ = roman_numeral.runTests(
+    success2, _ = roman_numeral.run_tests(
         """\
         # too many X's
         XXXX

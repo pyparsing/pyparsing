@@ -1271,7 +1271,7 @@ class ParserElement(ABC):
         else:
             preparseFn = self.preParse
         parseFn = self._parse
-        ParserElement.resetCache()
+        ParserElement.reset_cache()
         matches = 0
         try:
             while loc <= instrlen and matches < maxMatches:
@@ -5461,7 +5461,7 @@ class SkipTo(ParseElementEnhance):
         instrlen = len(instring)
         self_expr_parse = self.expr._parse
         self_failOn_canParseNext = (
-            self.failOn.canParseNext if self.failOn is not None else None
+            self.failOn.can_parse_next if self.failOn is not None else None
         )
         ignorer_try_parse = self.ignorer.try_parse if self.ignorer.ignoreExprs else None
 

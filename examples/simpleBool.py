@@ -15,9 +15,9 @@
 #
 from typing import Callable, Iterable
 
-from pyparsing import infixNotation, opAssoc, Keyword, Word, alphas, ParserElement
+from pyparsing import infix_notation, OpAssoc, Keyword, Word, alphas, ParserElement
 
-ParserElement.enablePackrat()
+ParserElement.enable_packrat()
 
 
 # define classes to be built at parse time, as each matching
@@ -85,18 +85,18 @@ NOT = Keyword("not")
 AND = Keyword("and")
 OR = Keyword("or")
 boolOperand = TRUE | FALSE | Word(alphas, max=1)
-boolOperand.setParseAction(BoolOperand).setName("bool_operand")
+boolOperand.set_parse_action(BoolOperand).set_name("bool_operand")
 
 # define expression, based on expression operand and
 # list of operations in precedence order
-boolExpr = infixNotation(
+boolExpr = infix_notation(
     boolOperand,
     [
-        (NOT, 1, opAssoc.RIGHT, BoolNot),
-        (AND, 2, opAssoc.LEFT, BoolAnd),
-        (OR, 2, opAssoc.LEFT, BoolOr),
+        (NOT, 1, OpAssoc.RIGHT, BoolNot),
+        (AND, 2, OpAssoc.LEFT, BoolAnd),
+        (OR, 2, OpAssoc.LEFT, BoolOr),
     ],
-).setName("boolean_expression")
+).set_name("boolean_expression")
 
 
 if __name__ == "__main__":
@@ -123,6 +123,6 @@ if __name__ == "__main__":
     print("r =", r)
     print()
     for test_string, expected in tests:
-        res = boolExpr.parseString(test_string)[0]
+        res = boolExpr.parse_string(test_string)[0]
         success = "PASS" if bool(res) == expected else "FAIL"
         print(test_string, "\n", res, "=", bool(res), "\n", success, "\n")
