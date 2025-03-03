@@ -183,12 +183,20 @@ class ParseBaseException(Exception):
     # pre-PEP8 compatibility
     @property
     def parserElement(self):
-        warnings.warn("parserElement is deprecated, use parser_element", DeprecationWarning)
+        warnings.warn(
+            "parserElement is deprecated, use parser_element",
+            DeprecationWarning,
+            stacklevel=2,
+        )
         return self.parser_element
 
     @parserElement.setter
     def parserElement(self, elem):
-        warnings.warn("parserElement is deprecated, use parser_element", DeprecationWarning)
+        warnings.warn(
+            "parserElement is deprecated, use parser_element",
+            DeprecationWarning,
+            stacklevel=2,
+        )
         self.parser_element = elem
 
     def copy(self):
