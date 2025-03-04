@@ -11,19 +11,24 @@ until some time in 2025. So there is plenty of time to convert existing parsers 
 the new function names before the old functions are completely removed. (Big help from
 Devin J. Pohly in structuring the code to enable this peaceful transition.)
 
-
-Version 3.2.2 - under development
----------------------------------
-- In preparation for version 3.3.0 release, which will begin emitting `DeprecationWarnings`
-  for pyparsing methods that have been renamed to PEP8-compliant names, I have added
-  a utility for finding and replacing the old method names with the new names. This utility
-  is located at `pyparsing/tools/cvt_pep8_names.py`. This script will scan all Python files
-  specified on the command line, and will replace all occurrences of the old method names
-  with the new PEP8-compliant names, updating the files in place.
+===========================================================================================
+  In preparation for version 3.3.0 release, which will begin emitting `DeprecationWarnings`
+  for pyparsing methods that have been renamed to PEP8-compliant names, I have added in
+  pyparsing 3.2.2 a utility for finding and replacing the old method names with the new
+  names. This utility is located at `pyparsing/tools/cvt_pep8_names.py`. This script will
+  scan all Python files specified on the command line, and will replace all occurrences of
+  the old method names with the new PEP8-compliant names, updating the files in place.
 
   Here is an example that converts all the files in the pyparsing `/examples` directory:
 
-      python -m pyparsing.tools.cvt_pyparsing_pep8_names .\examples\*.py
+      python -m pyparsing.tools.cvt_pyparsing_pep8_names examples/*.py
+
+  The new names are compatible with pyparsing versions 3.0.0 and later.
+===========================================================================================
+
+
+Version 3.2.2 - under development
+---------------------------------
 
 - Fixed bug in `nested_expr` where nested contents were stripped of whitespace when
   the default whitespace characters were cleared (raised in this StackOverflow
