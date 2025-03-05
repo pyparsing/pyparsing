@@ -7,7 +7,7 @@ RELEASE PLANNING NOTES:
 In the pyparsing release 3.3.0, use of many of the pre-PEP8 methods (such as
 `ParserElement.parseString`) will start to raise `DeprecationWarnings`. I plan to
 completely drop the pre-PEP8 methods in pyparsing 4.0, though we won't see that release
-until some time in 2025. So there is plenty of time to convert existing parsers to
+until some time in 2026. So there is plenty of time to convert existing parsers to
 the new function names before the old functions are completely removed. (Big help from
 Devin J. Pohly in structuring the code to enable this peaceful transition.)
 
@@ -29,6 +29,9 @@ Devin J. Pohly in structuring the code to enable this peaceful transition.)
 
 Version 3.2.2 - under development
 ---------------------------------
+- Release of `cvt_pyparsing_pep8_names.py` conversion utility to upgrade pyparsing-based
+  programs and libraries that use legacy camelCase names to use the new PEP8-compliant
+  snake_case method names.
 
 - Fixed bug in `nested_expr` where nested contents were stripped of whitespace when
   the default whitespace characters were cleared (raised in this StackOverflow
