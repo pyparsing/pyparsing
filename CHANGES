@@ -29,9 +29,11 @@ Devin J. Pohly in structuring the code to enable this peaceful transition.)
 
 Version 3.2.2 - under development
 ---------------------------------
-- Release of `cvt_pyparsing_pep8_names.py` conversion utility to upgrade pyparsing-based
+- Released `cvt_pyparsing_pep8_names.py` conversion utility to upgrade pyparsing-based
   programs and libraries that use legacy camelCase names to use the new PEP8-compliant
-  snake_case method names.
+  snake_case method names. The converter can also be imported into other scripts as
+
+        from pyparsing.tools.cvt_pyparsing_pep8_names import pep8_converter
 
 - Fixed bug in `nested_expr` where nested contents were stripped of whitespace when
   the default whitespace characters were cleared (raised in this StackOverflow
@@ -44,7 +46,7 @@ Version 3.2.2 - under development
 - Added return type annotation of "-> None" for all `__init__()` methods, to satisfy
   `mypy --strict` type checking. PR submitted by FeRD, thank you!
 
-- Added optional argument `show_hidden` to create_diagram` to show
+- Added optional argument `show_hidden` to `create_diagram` to show
   elements that are used internally by pyparsing, but are not part of the actual
   parser grammar. For instance, the `Tag` class can insert values into the parsed
   results but it does not actually parse any input, so by default it is not included
@@ -52,11 +54,11 @@ Version 3.2.2 - under development
   these internal elements will be included. (You can see this in the tag_metadata.py
   script in the examples directory.)
 
-- Fixed bug in number_words.py example. Also added ebnf_number_words.py to demonstrate
-  using the ebnf.py EBNF parser generator to build a similar parser directly from
+- Fixed bug in `number_words.py` example. Also added `ebnf_number_words.py` to demonstrate
+  using the `ebnf.py` EBNF parser generator to build a similar parser directly from
   EBNF.
 
-- Fixed syntax warning raised in bigquery_view_parser.py, invalid escape sequence "\s".
+- Fixed syntax warning raised in `bigquery_view_parser.py`, invalid escape sequence "\s".
   Reported by sameer-google, nice catch! (Issue #598)
 
 - Added support for Python 3.14.
@@ -81,7 +83,7 @@ Version 3.2.1 - December, 2024
 
 - Added generated diagrams for many of the examples.
 
-- Replaced old examples/0README.html file with examples/README.md file.
+- Replaced old `examples/0README.html` file with `examples/README.md` file.
 
 
 Version 3.2.0 - October, 2024
