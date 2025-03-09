@@ -21,7 +21,7 @@ Devin J. Pohly in structuring the code to enable this peaceful transition.)
 
   Here is an example that converts all the files in the pyparsing `/examples` directory:
 
-      python -m pyparsing.tools.cvt_pyparsing_pep8_names examples/*.py
+      python -m pyparsing.tools.cvt_pyparsing_pep8_names -u examples/*.py
 
   The new names are compatible with pyparsing versions 3.0.0 and later.
 ===========================================================================================
