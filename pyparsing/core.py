@@ -5677,7 +5677,7 @@ class Forward(ParseElementEnhance):
                     try:
                         new_loc, new_peek = super().parseImpl(instring, loc, False)
                     except ParseException:
-                        # we failed before getting any match – do not hide the error
+                        # we failed before getting any match - do not hide the error
                         if isinstance(prev_peek, Exception):
                             raise
                         new_loc, new_peek = prev_loc, prev_peek
