@@ -151,6 +151,8 @@ class TestCase(unittest.TestCase):
                     self.fail(f"{msg}: {e}")
                 else:
                     raise
+            finally:
+                warnings.simplefilter("default")
 
 
 class Test01_PyparsingTestInit(TestCase):
@@ -1206,6 +1208,21 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             ],
             servers,
             "failed scanString()",
+        )
+
+        servers = [
+            srvr.ipAddr
+            for srvr, startloc, endloc in timeServerPattern.scanString(testdata, maxMatches=3)
+        ]
+
+        self.assertEqual(
+            [
+                "129.6.15.28",
+                "129.6.15.29",
+                "132.163.4.101",
+            ],
+            servers,
+            "failed scanString() with maxMatches=3",
         )
 
         # test for stringEnd detection in scanString
