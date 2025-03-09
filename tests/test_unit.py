@@ -151,7 +151,8 @@ class TestCase(unittest.TestCase):
                     self.fail(f"{msg}: {e}")
                 else:
                     raise
-
+            finally:
+                warnings.simplefilter("default")
 
 class Test01_PyparsingTestInit(TestCase):
     def runTest(self):
@@ -1206,6 +1207,21 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             ],
             servers,
             "failed scan_string()",
+        )
+
+        servers = [
+            srvr.ipAddr
+            for srvr, startloc, endloc in timeServerPattern.scanString(testdata, maxMatches=3)
+        ]
+
+        self.assertEqual(
+            [
+                "129.6.15.28",
+                "129.6.15.29",
+                "132.163.4.101",
+            ],
+            servers,
+            "failed scanString() with maxMatches=3",
         )
 
         # test for stringEnd detection in scan_string
@@ -9048,7 +9064,7 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
         ):
             base = pp.Forward()
             try:
-                print(base.parse_string("x", parseAll=True))
+                print(base.parse_string("x", parse_all=True))
             except ParseException as pe:
                 pass
 
@@ -9062,7 +9078,7 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
                 msg="failed to warn when parsing using an empty Forward expression",
             ):
                 try:
-                    print(base.parse_string("x", parseAll=True))
+                    print(base.parse_string("x", parse_all=True))
                 except ParseException as pe:
                     pass
 
@@ -9072,7 +9088,7 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             ):
                 base.suppress_warning(pp.Diagnostics.warn_on_parse_using_empty_Forward)
                 try:
-                    print(base.parse_string("x", parseAll=True))
+                    print(base.parse_string("x", parse_all=True))
                 except ParseException as pe:
                     pass
 

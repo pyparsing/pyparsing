@@ -12,6 +12,7 @@ from .unicode import pyparsing_unicode as ppu
 from .util import (
     _collapse_string_to_ranges,
     col,
+    deprecate_argument,
     line,
     lineno,
     replaced_by_pep8,
@@ -213,12 +214,14 @@ class ParseBaseException(Exception):
         return str(self)
 
     def mark_input_line(
-        self, marker_string: typing.Optional[str] = None, *, markerString: str = ">!<"
+        self, marker_string: typing.Optional[str] = None, **kwargs
     ) -> str:
         """
         Extracts the exception line from the input string, and marks
         the location of the exception with a special symbol.
         """
+        markerString: str = deprecate_argument(kwargs, "markerString", ">!<")
+
         markerString = marker_string if marker_string is not None else markerString
         line_str = self.line
         line_column = self.column - 1

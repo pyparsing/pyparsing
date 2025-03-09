@@ -1,10 +1,11 @@
 # util.py
 import contextlib
+import re
 from functools import lru_cache, wraps
 import inspect
 import itertools
 import types
-from typing import Callable, Union, Iterable, TypeVar, cast
+from typing import Callable, Union, Iterable, TypeVar, cast, Any
 import warnings
 
 _bslash = chr(92)
@@ -370,7 +371,7 @@ def replaced_by_pep8(compat_name: str, fn: C) -> C:
         @wraps(fn)
         def _inner(self, *args, **kwargs):
             warnings.warn(
-                f"{compat_name} deprecated - use {fn.__name__}",
+                f"{compat_name!r} deprecated - use {fn.__name__!r}",
                 DeprecationWarning,
                 stacklevel=2,
             )
@@ -381,7 +382,7 @@ def replaced_by_pep8(compat_name: str, fn: C) -> C:
         @wraps(fn)
         def _inner(*args, **kwargs):
             warnings.warn(
-                f"{compat_name} deprecated - use {fn.__name__}",
+                f"{compat_name!r} deprecated - use {fn.__name__!r}",
                 DeprecationWarning,
                 stacklevel=2,
             )
@@ -398,3 +399,24 @@ def replaced_by_pep8(compat_name: str, fn: C) -> C:
         _inner.__kwdefaults__ = None  # type: ignore [attr-defined]
     _inner.__qualname__ = fn.__qualname__
     return cast(C, _inner)
+
+
+def deprecate_argument(
+    kwargs: dict[str, Any], arg_name: str, default_value=None, *, new_name: str = ""
+) -> Any:
+
+    def to_pep8_name(s: str, _re_sub_pattern = re.compile(r"([a-z])([A-Z])")) -> str:
+        s = _re_sub_pattern.sub(r"\1_\2", s)
+        return s.lower()
+
+    if arg_name in kwargs:
+        new_name = new_name or to_pep8_name(arg_name)
+        warnings.warn(
+            f"{arg_name!r} argument is deprecated, use {new_name!r}",
+            category=DeprecationWarning,
+            stacklevel=3,
+        )
+    else:
+        kwargs[arg_name] = default_value
+
+    return kwargs[arg_name]

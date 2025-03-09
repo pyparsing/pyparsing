@@ -22,8 +22,7 @@ from .util import (
 def counted_array(
     expr: ParserElement,
     int_expr: typing.Optional[ParserElement] = None,
-    *,
-    intExpr: typing.Optional[ParserElement] = None,
+    **kwargs
 ) -> ParserElement:
     """Helper to define a counted list of expressions.
 
@@ -60,6 +59,8 @@ def counted_array(
         # - items: ['True', 'True', 'False']
         # - type: 'bool'
     """
+    intExpr: typing.Optional[ParserElement] = deprecate_argument(kwargs, "intExpr", None)
+
     intExpr = intExpr or int_expr
     array_expr = Forward()
 
@@ -155,9 +156,7 @@ def one_of(
     caseless: bool = False,
     use_regex: bool = True,
     as_keyword: bool = False,
-    *,
-    useRegex: bool = True,
-    asKeyword: bool = False,
+    **kwargs
 ) -> ParserElement:
     """Helper to quickly define a set of alternative :class:`Literal` s,
     and makes sure to do longest-first testing when there is a conflict,
@@ -191,6 +190,9 @@ def one_of(
 
         [['B', '=', '12'], ['AA', '=', '23'], ['B', '<=', 'AA'], ['AA', '>', '12']]
     """
+    useRegex: bool = deprecate_argument(kwargs, "useRegex", True)
+    asKeyword: bool = deprecate_argument(kwargs, "asKeyword", False)
+
     asKeyword = asKeyword or as_keyword
     useRegex = useRegex and use_regex
 
@@ -318,7 +320,7 @@ def dict_of(key: ParserElement, value: ParserElement) -> Dict:
 
 
 def original_text_for(
-    expr: ParserElement, as_string: bool = True, *, asString: bool = True
+    expr: ParserElement, as_string: bool = True, **kwargs
 ) -> ParserElement:
     """Helper to return the original, untokenized text for a given
     expression.  Useful to restore the parsed fields of an HTML start
@@ -351,6 +353,8 @@ def original_text_for(
         ['<b> bold <i>text</i> </b>']
         ['<i>text</i>']
     """
+    asString: bool = deprecate_argument(kwargs, "asString", True)
+
     asString = asString and as_string
 
     locMarker = Empty().set_parse_action(lambda s, loc, t: loc)
@@ -420,8 +424,7 @@ def nested_expr(
     closer: Union[str, ParserElement] = ")",
     content: typing.Optional[ParserElement] = None,
     ignore_expr: ParserElement = _NO_IGNORE_EXPR_GIVEN,
-    *,
-    ignoreExpr: ParserElement = _NO_IGNORE_EXPR_GIVEN,
+    **kwargs
 ) -> ParserElement:
     """Helper method for defining nested lists enclosed in opening and
     closing delimiters (``"("`` and ``")"`` are the default).
@@ -490,6 +493,8 @@ def nested_expr(
         is_odd (int) args: [['int', 'x']]
         dec_to_hex (int) args: [['char', 'hchar']]
     """
+    ignoreExpr: ParserElement = deprecate_argument(kwargs, "ignoreExpr", _NO_IGNORE_EXPR_GIVEN)
+
     if ignoreExpr != ignore_expr:
         ignoreExpr = ignore_expr if ignoreExpr is _NO_IGNORE_EXPR_GIVEN else ignoreExpr
     if ignoreExpr is _NO_IGNORE_EXPR_GIVEN:
