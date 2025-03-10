@@ -108,4 +108,4 @@ if __name__ == "__main__":
             except Exception as e:
                 print(f"Failed to convert {filename}: {type(e).__name__}: {e}")
 
-    exit(exit_status)
+    sys.exit(exit_status)
