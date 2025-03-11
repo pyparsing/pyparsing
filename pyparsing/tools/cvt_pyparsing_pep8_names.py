@@ -63,7 +63,10 @@ if __name__ == "__main__":
         )
     )
     argparser.add_argument("--verbose", "-v", action="store_true", help="Show unified diff for each source file")
+    argparser.add_argument("-vv", action="store_true", dest="verbose2", help="Show unified diff for each source file, plus names of scanned files with no changes")
     argparser.add_argument("--update", "-u", action="store_true", help="Update source files in-place")
+    argparser.add_argument("--encoding", type=str, default="utf-8", help="Encoding of source files (default: utf-8)")
+    argparser.add_argument("--exit-zero-even-if-changed", "-exit0", action="store_true", help="Exit with status code 0 even if changes were made")
     argparser.add_argument("source_filename", nargs="+", help="Source filenames or filename patterns of Python files to be converted")
     args = argparser.parse_args()
 
@@ -74,7 +77,7 @@ if __name__ == "__main__":
         diff = difflib.unified_diff(
             original.splitlines(), modified.splitlines(), lineterm=""
         )
-        sys.stdout.writelines(f"{d}\n" for d in diff)
+        sys.stdout.writelines(f"{diff_line}\n" for diff_line in diff)
 
     exit_status = 0
 
@@ -85,14 +88,14 @@ if __name__ == "__main__":
                 continue
 
             try:
-                original_contents = Path(filename).read_text(encoding="utf-8")
+                original_contents = Path(filename).read_text(encoding=args.encoding)
                 modified_contents = pep8_converter.transform_string(
                     original_contents
                 )
 
                 if modified_contents != original_contents:
                     if args.update:
-                        Path(filename).write_text(modified_contents, encoding="utf-8")
+                        Path(filename).write_text(modified_contents, encoding=args.encoding)
                         print(f"Converted {filename}")
                     else:
                         print(f"Found required changes in {filename}")
@@ -103,9 +106,11 @@ if __name__ == "__main__":
 
                     exit_status = 1
 
-                elif args.verbose:
-                    print(f"No required changes in {filename}\n")
+                else:
+                    if args.verbose2:
+                        print(f"No required changes in {filename}")
+
             except Exception as e:
                 print(f"Failed to convert {filename}: {type(e).__name__}: {e}")
 
-    sys.exit(exit_status)
+    sys.exit(exit_status if not args.exit_zero_even_if_changed else 0)
