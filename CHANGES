@@ -12,19 +12,36 @@ the new function names before the old functions are completely removed. (Big hel
 Devin J. Pohly in structuring the code to enable this peaceful transition.)
 
 ===========================================================================================
-  In preparation for version 3.3.0 release, which will begin emitting `DeprecationWarnings`
-  for pyparsing methods that have been renamed to PEP8-compliant names, I have added in
-  pyparsing 3.2.2 a utility for finding and replacing the old method names with the new
-  names. This utility is located at `pyparsing/tools/cvt_pep8_names.py`. This script will
-  scan all Python files specified on the command line, and will replace all occurrences of
-  the old method names with the new PEP8-compliant names, updating the files in place.
+ The version 3.3.0 release will begin emitting `DeprecationWarnings` for pyparsing methods
+ that have been renamed to PEP8-compliant names (introduced in pyparsing 3.0.0, in August,
+ 2021, with legacy names retained as aliases). In preparation, I have added in pyparsing
+ 3.2.2 a utility for finding and replacing the legacy method names with the new names.
+ This utility is located at `pyparsing/tools/cvt_pep8_names.py`. This script will scan all
+ Python files specified on the command line, and if the `-u` option is selected, will
+ replace all occurrences of the old method names with the new PEP8-compliant names,
+ updating the files in place.
 
-  Here is an example that converts all the files in the pyparsing `/examples` directory:
+ Here is an example that converts all the files in the pyparsing `/examples` directory:
 
       python -m pyparsing.tools.cvt_pyparsing_pep8_names -u examples/*.py
 
-  The new names are compatible with pyparsing versions 3.0.0 and later.
+ The new names are compatible with pyparsing versions 3.0.0 and later.
 ===========================================================================================
+
+
+Required Python versions by pyparsing version
+---------------------------------------------
+
++--------------------------------------------------+-------------------+
+| pyparsing version                                | Required Python   |
++==================================================+===================+
+| 3.3.0 and later                                  | 3.9 or later      |
+| 3.2.0 - 3.2.2                                    | 3.9 or later      |
+| 3.0.8 - 3.1.4                                    | 3.6.8 or later    |
+| 3.0.0 - 3.0.7 (these versions are discouraged)   | 3.6 or later      |
+| 2.4.7                                            | 2.7 or later      |
+| 1.5.7                                            | 2.6 - 2.7         |
++--------------------------------------------------+-------------------+
 
 
 Version 3.2.2 - under development
