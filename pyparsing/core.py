@@ -3123,23 +3123,27 @@ class Regex(Token):
 
         try:
             self._re = re.compile(self.pattern, self.flags)
-            return self._re
         except re.error:
             raise ValueError(f"invalid pattern ({self.pattern!r}) passed to Regex")
+        else:
+            self.mayReturnEmpty = self.re.match("", pos=0) is not None
+            return self._re
 
     @cached_property
     def re_match(self) -> Callable[[str, int], Any]:
         return self.re.match
-
-    @cached_property
-    def mayReturnEmpty(self) -> bool:  # type: ignore[override]
-        return self.re_match("", 0) is not None
 
     def _generateDefaultName(self) -> str:
         unescaped = repr(self.pattern).replace("\\\\", "\\")
         return f"Re:({unescaped})"
 
     def parseImpl(self, instring, loc, do_actions=True) -> ParseImplReturnType:
+        # explicit check for matching past the length of the string;
+        # this is done because the re module will not complain about
+        # a match with `pos > len(instring)`, it will just return ""
+        if loc > len(instring) and self.mayReturnEmpty:
+            raise ParseException(instring, loc, self.errmsg, self)
+
         result = self.re_match(instring, loc)
         if not result:
             raise ParseException(instring, loc, self.errmsg, self)
@@ -3154,6 +3158,9 @@ class Regex(Token):
         return loc, ret
 
     def parseImplAsGroupList(self, instring, loc, do_actions=True):
+        if loc > len(instring) and self.mayReturnEmpty:
+            raise ParseException(instring, loc, self.errmsg, self)
+
         result = self.re_match(instring, loc)
         if not result:
             raise ParseException(instring, loc, self.errmsg, self)
@@ -3163,6 +3170,9 @@ class Regex(Token):
         return loc, ret
 
     def parseImplAsMatch(self, instring, loc, do_actions=True):
+        if loc > len(instring) and self.mayReturnEmpty:
+            raise ParseException(instring, loc, self.errmsg, self)
+
         result = self.re_match(instring, loc)
         if not result:
             raise ParseException(instring, loc, self.errmsg, self)

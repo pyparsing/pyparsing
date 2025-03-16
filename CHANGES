@@ -57,6 +57,12 @@ Version 3.2.2 - under development
   question https://stackoverflow.com/questions/79327649 by Ben Alan). Also addressed
   bug in resolving PEP8 compliant argument name and legacy argument name.
 
+- Fixed bug in `rest_of_line` and the underlying `Regex` class, in which matching a
+  pattern that could match an empty string (such as `".*"` or `"[A-Z]*"` would not raise
+  a `ParseException` at or beyond the end of the input string. This could cause an
+  infinite parsing loop when parsing `rest_of_line` at the end of the input string.
+  Reported by user Kylotan, thanks! (Issue #593)
+
 - Better exception message for `MatchFirst` and `Or` expressions, showing all alternatives
   rather than just the first one. Fixes Issue #592, reported by Focke, thanks!
 
