@@ -12,19 +12,36 @@ the new function names before the old functions are completely removed. (Big hel
 Devin J. Pohly in structuring the code to enable this peaceful transition.)
 
 ===========================================================================================
-  In preparation for version 3.3.0 release, which will begin emitting `DeprecationWarnings`
-  for pyparsing methods that have been renamed to PEP8-compliant names, I have added in
-  pyparsing 3.2.2 a utility for finding and replacing the old method names with the new
-  names. This utility is located at `pyparsing/tools/cvt_pep8_names.py`. This script will
-  scan all Python files specified on the command line, and will replace all occurrences of
-  the old method names with the new PEP8-compliant names, updating the files in place.
+ The version 3.3.0 release will begin emitting `DeprecationWarnings` for pyparsing methods
+ that have been renamed to PEP8-compliant names (introduced in pyparsing 3.0.0, in August,
+ 2021, with legacy names retained as aliases). In preparation, I have added in pyparsing
+ 3.2.2 a utility for finding and replacing the legacy method names with the new names.
+ This utility is located at `pyparsing/tools/cvt_pep8_names.py`. This script will scan all
+ Python files specified on the command line, and if the `-u` option is selected, will
+ replace all occurrences of the old method names with the new PEP8-compliant names,
+ updating the files in place.
 
-  Here is an example that converts all the files in the pyparsing `/examples` directory:
+ Here is an example that converts all the files in the pyparsing `/examples` directory:
 
-      python -m pyparsing.tools.cvt_pyparsing_pep8_names examples/*.py
+      python -m pyparsing.tools.cvt_pyparsing_pep8_names -u examples/*.py
 
-  The new names are compatible with pyparsing versions 3.0.0 and later.
+ The new names are compatible with pyparsing versions 3.0.0 and later.
 ===========================================================================================
+
+
+Required Python versions by pyparsing version
+---------------------------------------------
+
++--------------------------------------------------+-------------------+
+| pyparsing version                                | Required Python   |
++==================================================+===================+
+| 3.3.0 and later                                  | 3.9 or later      |
+| 3.2.0 - 3.2.2                                    | 3.9 or later      |
+| 3.0.8 - 3.1.4                                    | 3.6.8 or later    |
+| 3.0.0 - 3.0.7 (these versions are discouraged)   | 3.6 or later      |
+| 2.4.7                                            | 2.7 or later      |
+| 1.5.7                                            | 2.6 - 2.7         |
++--------------------------------------------------+-------------------+
 
 
 Version 3.3.0 - under development
@@ -36,14 +53,22 @@ Version 3.3.0 - under development
 
 Version 3.2.2 - under development
 ---------------------------------
-- Release of `cvt_pyparsing_pep8_names.py` conversion utility to upgrade pyparsing-based
+- Released `cvt_pyparsing_pep8_names.py` conversion utility to upgrade pyparsing-based
   programs and libraries that use legacy camelCase names to use the new PEP8-compliant
-  snake_case method names.
+  snake_case method names. The converter can also be imported into other scripts as
+
+        from pyparsing.tools.cvt_pyparsing_pep8_names import pep8_converter
 
 - Fixed bug in `nested_expr` where nested contents were stripped of whitespace when
   the default whitespace characters were cleared (raised in this StackOverflow
   question https://stackoverflow.com/questions/79327649 by Ben Alan). Also addressed
   bug in resolving PEP8 compliant argument name and legacy argument name.
+
+- Fixed bug in `rest_of_line` and the underlying `Regex` class, in which matching a
+  pattern that could match an empty string (such as `".*"` or `"[A-Z]*"` would not raise
+  a `ParseException` at or beyond the end of the input string. This could cause an
+  infinite parsing loop when parsing `rest_of_line` at the end of the input string.
+  Reported by user Kylotan, thanks! (Issue #593)
 
 - Better exception message for `MatchFirst` and `Or` expressions, showing all alternatives
   rather than just the first one. Fixes Issue #592, reported by Focke, thanks!
@@ -51,7 +76,7 @@ Version 3.2.2 - under development
 - Added return type annotation of "-> None" for all `__init__()` methods, to satisfy
   `mypy --strict` type checking. PR submitted by FeRD, thank you!
 
-- Added optional argument `show_hidden` to create_diagram` to show
+- Added optional argument `show_hidden` to `create_diagram` to show
   elements that are used internally by pyparsing, but are not part of the actual
   parser grammar. For instance, the `Tag` class can insert values into the parsed
   results but it does not actually parse any input, so by default it is not included
@@ -59,11 +84,11 @@ Version 3.2.2 - under development
   these internal elements will be included. (You can see this in the tag_metadata.py
   script in the examples directory.)
 
-- Fixed bug in number_words.py example. Also added ebnf_number_words.py to demonstrate
-  using the ebnf.py EBNF parser generator to build a similar parser directly from
+- Fixed bug in `number_words.py` example. Also added `ebnf_number_words.py` to demonstrate
+  using the `ebnf.py` EBNF parser generator to build a similar parser directly from
   EBNF.
 
-- Fixed syntax warning raised in bigquery_view_parser.py, invalid escape sequence "\s".
+- Fixed syntax warning raised in `bigquery_view_parser.py`, invalid escape sequence "\s".
   Reported by sameer-google, nice catch! (Issue #598)
 
 - Added support for Python 3.14.

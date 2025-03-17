@@ -154,6 +154,7 @@ class TestCase(unittest.TestCase):
             finally:
                 warnings.simplefilter("default")
 
+
 class Test01_PyparsingTestInit(TestCase):
     def runTest(self):
         print(
@@ -2453,7 +2454,7 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             Dot &longrightarrow; &dot;
             """
         )
-        transformer = pp.common_html_entity.add_parse_action(pp.replace_html_entity)
+        transformer = pp.common_html_entity().add_parse_action(pp.replace_html_entity)
         transformed = transformer.transform_string(html_source)
         print(transformed)
 
@@ -4207,6 +4208,38 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
                 + td_end.suppress()
             )
 
+    def testRegexDeferredCompile(self):
+        """test deferred compilation of Regex patterns"""
+        re_expr = pp.Regex(r"[A-Z]*")
+        self.assertIsNone(re_expr._may_return_empty, "failed to initialize _may_return_empty flag to None")
+        self.assertEqual(re_expr._re, None)
+
+        compiled = re_expr.re
+        self.assertTrue(re_expr._may_return_empty, "failed to set _may_return_empty flag to True")
+        self.assertEqual(re_expr._re, compiled)
+
+        non_empty_re_expr = pp.Regex(r"[A-Z]+")
+        self.assertIsNone(non_empty_re_expr._may_return_empty, "failed to initialize _may_return_empty flag to None")
+        self.assertEqual(non_empty_re_expr._re, None)
+
+        compiled = non_empty_re_expr.re
+        self.assertFalse(non_empty_re_expr._may_return_empty, "failed to set _may_return_empty flag to False")
+        self.assertEqual(non_empty_re_expr._re, compiled)
+
+    def testRegexDeferredCompileCommonHtmlEntity(self):
+        # this is the most important expression to defer, because it takes a long time to compile
+        perf_test_common_html_entity = pp.common_html_entity()
+
+        # force internal var to None, to simulate a fresh instance
+        perf_test_common_html_entity._re = None
+
+        # just how long does this take anyway?
+        from time import perf_counter
+        start = perf_counter()
+        perf_test_common_html_entity.re  # noqa
+        elapsed = perf_counter() - start
+        print(f"elapsed time to compile common_html_entity: {elapsed:.4f} sec")
+
     def testParseUsingRegex(self):
         signedInt = pp.Regex(r"[-+][0-9]+")
         unsignedInt = pp.Regex(r"[0-9]+")
@@ -4224,6 +4257,7 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
                         print(
                             f"\tproduced {repr(result[0])} instead of {repr(expectedString)}"
                         )
+                        return False
                     return True
                 except pp.ParseException:
                     print(f"{expression!r} incorrectly failed to match {instring!r}")
@@ -4238,73 +4272,56 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             return False
 
         # These should fail
-        self.assertTrue(
-            testMatch(signedInt, "1234 foo", False), "Re: (1) passed, expected fail"
-        )
-        self.assertTrue(
-            testMatch(signedInt, "    +foo", False), "Re: (2) passed, expected fail"
-        )
-        self.assertTrue(
-            testMatch(unsignedInt, "abc", False), "Re: (3) passed, expected fail"
-        )
-        self.assertTrue(
-            testMatch(unsignedInt, "+123 foo", False), "Re: (4) passed, expected fail"
-        )
-        self.assertTrue(
-            testMatch(simpleString, "foo", False), "Re: (5) passed, expected fail"
-        )
-        self.assertTrue(
-            testMatch(simpleString, "\"foo bar'", False),
-            "Re: (6) passed, expected fail",
-        )
-        self.assertTrue(
-            testMatch(simpleString, "'foo bar\"", False),
-            "Re: (7) passed, expected fail",
-        )
+        for i, (test_expr, test_string) in enumerate(
+            [
+                (signedInt, "1234 foo"),
+                (signedInt, "    +foo"),
+                (unsignedInt, "abc"),
+                (unsignedInt, "+123 foo"),
+                (simpleString, "foo"),
+                (simpleString, "\"foo bar'"),
+                (simpleString, "'foo bar\""),
+                (compiledRE, "blah"),
+            ],
+            start = 1
+        ):
+            with self.subTest(test_expr=test_expr, test_string=test_string):
+                self.assertTrue(
+                    testMatch(
+                        test_expr,
+                        test_string,
+                        False,
+                    ),
+                    f"Re: ({i}) passed, expected fail",
+                )
 
         # These should pass
-        self.assertTrue(
-            testMatch(signedInt, "   +123", True, "+123"),
-            "Re: (8) failed, expected pass",
-        )
-        self.assertTrue(
-            testMatch(signedInt, "+123", True, "+123"), "Re: (9) failed, expected pass"
-        )
-        self.assertTrue(
-            testMatch(signedInt, "+123 foo", True, "+123"),
-            "Re: (10) failed, expected pass",
-        )
-        self.assertTrue(
-            testMatch(signedInt, "-0 foo", True, "-0"), "Re: (11) failed, expected pass"
-        )
-        self.assertTrue(
-            testMatch(unsignedInt, "123 foo", True, "123"),
-            "Re: (12) failed, expected pass",
-        )
-        self.assertTrue(
-            testMatch(unsignedInt, "0 foo", True, "0"), "Re: (13) failed, expected pass"
-        )
-        self.assertTrue(
-            testMatch(simpleString, '"foo"', True, '"foo"'),
-            "Re: (14) failed, expected pass",
-        )
-        self.assertTrue(
-            testMatch(simpleString, "'foo bar' baz", True, "'foo bar'"),
-            "Re: (15) failed, expected pass",
-        )
+        for i, (test_expr, test_string, expected_match) in enumerate(
+            [
+                (signedInt, "   +123", "+123"),
+                (signedInt, "+123", "+123"),
+                (signedInt, "+123 foo", "+123"),
+                (signedInt, "-0 foo", "-0"),
+                (unsignedInt, "123 foo", "123"),
+                (unsignedInt, "0 foo", "0"),
+                (simpleString, '"foo"', '"foo"'),
+                (simpleString, "'foo bar' baz", "'foo bar'"),
+                (compiledRE, "BLAH", "BLAH"),
+                (namedGrouping, '"foo bar" baz', '"foo bar"'),
+            ],
+            start = i + 1
+        ):
+            with self.subTest(test_expr=test_expr, test_string=test_string):
+                self.assertTrue(
+                    testMatch(
+                        test_expr,
+                        test_string,
+                        True,
+                        expected_match,
+                    ),
+                    f"Re: ({i}) failed, expected pass",
+                )
 
-        self.assertTrue(
-            testMatch(compiledRE, "blah", False), "Re: (16) passed, expected fail"
-        )
-        self.assertTrue(
-            testMatch(compiledRE, "BLAH", True, "BLAH"),
-            "Re: (17) failed, expected pass",
-        )
-
-        self.assertTrue(
-            testMatch(namedGrouping, '"foo bar" baz', True, '"foo bar"'),
-            "Re: (16) failed, expected pass",
-        )
         ret = namedGrouping.parse_string('"zork" blah', parseAll=False)
         print(ret)
         print(list(ret.items()))
@@ -4329,7 +4346,7 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
         with self.assertRaises(
             ValueError, msg="failed to warn empty string passed to Regex"
         ):
-            pp.Regex("").re
+            pp.Regex("").re  # noqa
 
     def testRegexAsType(self):
         test_str = "sldkjfj 123 456 lsdfkj"
@@ -4424,6 +4441,13 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
 
         with self.assertRaises(TypeError, msg="issue with Regex of type int"):
             expr = pp.Regex(12)
+
+    def testRegexLoopPastEndOfString(self):
+        """test Regex matching after end of string"""
+        NL = pp.LineEnd().suppress()
+        empty_line = pp.rest_of_line() + NL
+        result = empty_line[1, 10].parse_string("\n\n")
+        self.assertEqual(3, len(result))
 
     def testPrecededBy(self):
         num = pp.Word(pp.nums).set_parse_action(lambda t: int(t[0]))
