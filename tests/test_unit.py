@@ -2454,7 +2454,7 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             Dot &longrightarrow; &dot;
             """
         )
-        transformer = pp.common_html_entity.add_parse_action(pp.replace_html_entity)
+        transformer = pp.common_html_entity().add_parse_action(pp.replace_html_entity)
         transformed = transformer.transform_string(html_source)
         print(transformed)
 
@@ -4211,12 +4211,34 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
     def testRegexDeferredCompile(self):
         """test deferred compilation of Regex patterns"""
         re_expr = pp.Regex(r"[A-Z]*")
-        self.assertFalse(re_expr.mayReturnEmpty, "failed to initialize mayReturnEmpty flag to False")
+        self.assertIsNone(re_expr._may_return_empty, "failed to initialize _may_return_empty flag to None")
         self.assertEqual(re_expr._re, None)
 
         compiled = re_expr.re
-        self.assertTrue(re_expr.mayReturnEmpty, "failed to set mayReturnEmpty flag to True")
+        self.assertTrue(re_expr._may_return_empty, "failed to set _may_return_empty flag to True")
         self.assertEqual(re_expr._re, compiled)
+
+        non_empty_re_expr = pp.Regex(r"[A-Z]+")
+        self.assertIsNone(non_empty_re_expr._may_return_empty, "failed to initialize _may_return_empty flag to None")
+        self.assertEqual(non_empty_re_expr._re, None)
+
+        compiled = non_empty_re_expr.re
+        self.assertFalse(non_empty_re_expr._may_return_empty, "failed to set _may_return_empty flag to False")
+        self.assertEqual(non_empty_re_expr._re, compiled)
+
+    def testRegexDeferredCompileCommonHtmlEntity(self):
+        # this is the most important expression to defer, because it takes a long time to compile
+        perf_test_common_html_entity = pp.common_html_entity()
+
+        # force internal var to None, to simulate a fresh instance
+        perf_test_common_html_entity._re = None
+
+        # just how long does this take anyway?
+        from time import perf_counter
+        start = perf_counter()
+        perf_test_common_html_entity.re  # noqa
+        elapsed = perf_counter() - start
+        print(f"elapsed time to compile common_html_entity: {elapsed:.4f} sec")
 
     def testParseUsingRegex(self):
         signedInt = pp.Regex(r"[-+][0-9]+")

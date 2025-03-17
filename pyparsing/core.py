@@ -465,7 +465,7 @@ class ParserElement(ABC):
         self.whiteChars = set(ParserElement.DEFAULT_WHITE_CHARS)
         self.copyDefaultWhiteChars = True
         # used when checking for left-recursion
-        self.mayReturnEmpty = False
+        self._may_return_empty = False
         self.keepTabs = False
         self.ignoreExprs: list[ParserElement] = list()
         self.debug = False
@@ -482,6 +482,14 @@ class ParserElement(ABC):
         self.callDuringTry = False
         self.suppress_warnings_: list[Diagnostics] = []
         self.show_in_diagram = True
+
+    @property
+    def mayReturnEmpty(self):
+        return self._may_return_empty
+
+    @mayReturnEmpty.setter
+    def mayReturnEmpty(self, value):
+        self._may_return_empty = value
 
     def suppress_warning(self, warning_type: Diagnostics) -> ParserElement:
         """
@@ -2412,7 +2420,7 @@ class NoMatch(Token):
 
     def __init__(self) -> None:
         super().__init__()
-        self.mayReturnEmpty = True
+        self._may_return_empty = True
         self.mayIndexError = False
         self.errmsg = "Unmatchable token"
 
@@ -2459,7 +2467,7 @@ class Literal(Token):
         self.matchLen = len(match_string)
         self.firstMatchChar = match_string[:1]
         self.errmsg = f"Expected {self.name}"
-        self.mayReturnEmpty = False
+        self._may_return_empty = False
         self.mayIndexError = False
 
     def _generateDefaultName(self) -> str:
@@ -2480,7 +2488,7 @@ class Empty(Literal):
 
     def __init__(self, match_string="", *, matchString="") -> None:
         super().__init__("")
-        self.mayReturnEmpty = True
+        self._may_return_empty = True
         self.mayIndexError = False
 
     def _generateDefaultName(self) -> str:
@@ -2549,7 +2557,7 @@ class Keyword(Token):
         if not self.firstMatchChar:
             raise ValueError("null string passed to Keyword; use Empty() instead")
         self.errmsg = f"Expected {type(self).__name__} {self.name}"
-        self.mayReturnEmpty = False
+        self._may_return_empty = False
         self.mayIndexError = False
         self.caseless = caseless
         if caseless:
@@ -2719,7 +2727,7 @@ class CloseMatch(Token):
         self.errmsg = f"Expected {self.match_string!r} (with up to {self.maxMismatches} mismatches)"
         self.caseless = caseless
         self.mayIndexError = False
-        self.mayReturnEmpty = False
+        self._may_return_empty = False
 
     def _generateDefaultName(self) -> str:
         return f"{type(self).__name__}:{self.match_string!r}"
@@ -3078,15 +3086,18 @@ class Regex(Token):
                 raise ValueError("null string passed to Regex; use Empty() instead")
 
             self._re = None
+            self._may_return_empty = None  # type: ignore [assignment]
             self.reString = self.pattern = pattern
 
         elif hasattr(pattern, "pattern") and hasattr(pattern, "match"):
             self._re = pattern
+            self._may_return_empty = None  # type: ignore [assignment]
             self.pattern = self.reString = pattern.pattern
 
         elif callable(pattern):
             # defer creating this pattern until we really need it
             self.pattern = pattern
+            self._may_return_empty = None  # type: ignore [assignment]
             self._re = None
 
         else:
@@ -3126,12 +3137,23 @@ class Regex(Token):
         except re.error:
             raise ValueError(f"invalid pattern ({self.pattern!r}) passed to Regex")
         else:
-            self.mayReturnEmpty = self.re.match("", pos=0) is not None
+            self._may_return_empty = self.re.match("", pos=0) is not None
             return self._re
 
     @cached_property
     def re_match(self) -> Callable[[str, int], Any]:
         return self.re.match
+
+    @property
+    def mayReturnEmpty(self):
+        if self._may_return_empty is None:
+            # force compile of regex pattern, to set may_return_empty flag
+            self.re  # noqa
+        return self._may_return_empty
+
+    @mayReturnEmpty.setter
+    def mayReturnEmpty(self, value):
+        self._may_return_empty = value
 
     def _generateDefaultName(self) -> str:
         unescaped = repr(self.pattern).replace("\\\\", "\\")
@@ -3375,7 +3397,7 @@ class QuotedString(Token):
 
         self.errmsg = f"Expected {self.name}"
         self.mayIndexError = False
-        self.mayReturnEmpty = True
+        self._may_return_empty = True
 
     def _generateDefaultName(self) -> str:
         if self.quote_char == self.end_quote_char and isinstance(
@@ -3502,7 +3524,7 @@ class CharsNotIn(Token):
             self.minLen = exact
 
         self.errmsg = f"Expected {self.name}"
-        self.mayReturnEmpty = self.minLen == 0
+        self._may_return_empty = self.minLen == 0
         self.mayIndexError = False
 
     def _generateDefaultName(self) -> str:
@@ -3575,7 +3597,7 @@ class White(Token):
             copy_defaults=True,
         )
         # self.leave_whitespace()
-        self.mayReturnEmpty = True
+        self._may_return_empty = True
         self.errmsg = f"Expected {self.name}"
 
         self.minLen = min
@@ -3611,7 +3633,7 @@ class White(Token):
 class PositionToken(Token):
     def __init__(self) -> None:
         super().__init__()
-        self.mayReturnEmpty = True
+        self._may_return_empty = True
         self.mayIndexError = False
 
 
@@ -3843,7 +3865,7 @@ class Tag(Token):
 
     def __init__(self, tag_name: str, value: Any = True) -> None:
         super().__init__()
-        self.mayReturnEmpty = True
+        self._may_return_empty = True
         self.mayIndexError = False
         self.leave_whitespace()
         self.tag_name = tag_name
@@ -3961,7 +3983,7 @@ class ParseExpression(ParserElement):
             ):
                 self.exprs = other.exprs[:] + [self.exprs[1]]
                 self._defaultName = None
-                self.mayReturnEmpty |= other.mayReturnEmpty
+                self._may_return_empty |= other.mayReturnEmpty
                 self.mayIndexError |= other.mayIndexError
 
             other = self.exprs[-1]
@@ -3973,7 +3995,7 @@ class ParseExpression(ParserElement):
             ):
                 self.exprs = self.exprs[:-1] + other.exprs[:]
                 self._defaultName = None
-                self.mayReturnEmpty |= other.mayReturnEmpty
+                self._may_return_empty |= other.mayReturnEmpty
                 self.mayIndexError |= other.mayIndexError
 
         self.errmsg = f"Expected {self}"
@@ -4085,7 +4107,7 @@ class And(ParseExpression):
 
         super().__init__(exprs, savelist)
         if self.exprs:
-            self.mayReturnEmpty = all(e.mayReturnEmpty for e in self.exprs)
+            self._may_return_empty = all(e.mayReturnEmpty for e in self.exprs)
             if not isinstance(self.exprs[0], White):
                 self.set_whitespace_chars(
                     self.exprs[0].whiteChars,
@@ -4095,7 +4117,7 @@ class And(ParseExpression):
             else:
                 self.skipWhitespace = False
         else:
-            self.mayReturnEmpty = True
+            self._may_return_empty = True
         self.callPreparse = True
 
     def streamline(self) -> ParserElement:
@@ -4145,7 +4167,7 @@ class And(ParseExpression):
                     break
                 cur = typing.cast(ParserElement, next_first)
 
-        self.mayReturnEmpty = all(e.mayReturnEmpty for e in self.exprs)
+        self._may_return_empty = all(e.mayReturnEmpty for e in self.exprs)
         return self
 
     def parseImpl(self, instring, loc, do_actions=True):
@@ -4222,15 +4244,15 @@ class Or(ParseExpression):
     ) -> None:
         super().__init__(exprs, savelist)
         if self.exprs:
-            self.mayReturnEmpty = any(e.mayReturnEmpty for e in self.exprs)
+            self._may_return_empty = any(e.mayReturnEmpty for e in self.exprs)
             self.skipWhitespace = all(e.skipWhitespace for e in self.exprs)
         else:
-            self.mayReturnEmpty = True
+            self._may_return_empty = True
 
     def streamline(self) -> ParserElement:
         super().streamline()
         if self.exprs:
-            self.mayReturnEmpty = any(e.mayReturnEmpty for e in self.exprs)
+            self._may_return_empty = any(e.mayReturnEmpty for e in self.exprs)
             self.saveAsList = any(e.saveAsList for e in self.exprs)
             self.skipWhitespace = all(
                 e.skipWhitespace and not isinstance(e, White) for e in self.exprs
@@ -4380,10 +4402,10 @@ class MatchFirst(ParseExpression):
     ) -> None:
         super().__init__(exprs, savelist)
         if self.exprs:
-            self.mayReturnEmpty = any(e.mayReturnEmpty for e in self.exprs)
+            self._may_return_empty = any(e.mayReturnEmpty for e in self.exprs)
             self.skipWhitespace = all(e.skipWhitespace for e in self.exprs)
         else:
-            self.mayReturnEmpty = True
+            self._may_return_empty = True
 
     def streamline(self) -> ParserElement:
         if self.streamlined:
@@ -4392,13 +4414,13 @@ class MatchFirst(ParseExpression):
         super().streamline()
         if self.exprs:
             self.saveAsList = any(e.saveAsList for e in self.exprs)
-            self.mayReturnEmpty = any(e.mayReturnEmpty for e in self.exprs)
+            self._may_return_empty = any(e.mayReturnEmpty for e in self.exprs)
             self.skipWhitespace = all(
                 e.skipWhitespace and not isinstance(e, White) for e in self.exprs
             )
         else:
             self.saveAsList = False
-            self.mayReturnEmpty = True
+            self._may_return_empty = True
         return self
 
     def parseImpl(self, instring, loc, do_actions=True) -> ParseImplReturnType:
@@ -4530,9 +4552,9 @@ class Each(ParseExpression):
     ) -> None:
         super().__init__(exprs, savelist)
         if self.exprs:
-            self.mayReturnEmpty = all(e.mayReturnEmpty for e in self.exprs)
+            self._may_return_empty = all(e.mayReturnEmpty for e in self.exprs)
         else:
-            self.mayReturnEmpty = True
+            self._may_return_empty = True
         self.skipWhitespace = True
         self.initExprGroups = True
         self.saveAsList = True
@@ -4547,9 +4569,9 @@ class Each(ParseExpression):
     def streamline(self) -> ParserElement:
         super().streamline()
         if self.exprs:
-            self.mayReturnEmpty = all(e.mayReturnEmpty for e in self.exprs)
+            self._may_return_empty = all(e.mayReturnEmpty for e in self.exprs)
         else:
-            self.mayReturnEmpty = True
+            self._may_return_empty = True
         return self
 
     def parseImpl(self, instring, loc, do_actions=True) -> ParseImplReturnType:
@@ -4662,7 +4684,7 @@ class ParseElementEnhance(ParserElement):
         self.expr = expr
         if expr is not None:
             self.mayIndexError = expr.mayIndexError
-            self.mayReturnEmpty = expr.mayReturnEmpty
+            self._may_return_empty = expr.mayReturnEmpty
             self.set_whitespace_chars(
                 expr.whiteChars, copy_defaults=expr.copyDefaultWhiteChars
             )
@@ -4896,7 +4918,7 @@ class FollowedBy(ParseElementEnhance):
 
     def __init__(self, expr: Union[ParserElement, str]) -> None:
         super().__init__(expr)
-        self.mayReturnEmpty = True
+        self._may_return_empty = True
 
     def parseImpl(self, instring, loc, do_actions=True) -> ParseImplReturnType:
         # by using self._expr.parse and deleting the contents of the returned ParseResults list
@@ -4940,7 +4962,7 @@ class PrecededBy(ParseElementEnhance):
     def __init__(self, expr: Union[ParserElement, str], retreat: int = 0) -> None:
         super().__init__(expr)
         self.expr = self.expr().leave_whitespace()
-        self.mayReturnEmpty = True
+        self._may_return_empty = True
         self.mayIndexError = False
         self.exact = False
         if isinstance(expr, str_type):
@@ -5061,7 +5083,7 @@ class NotAny(ParseElementEnhance):
         # self.leave_whitespace()
         self.skipWhitespace = False
 
-        self.mayReturnEmpty = True
+        self._may_return_empty = True
         self.errmsg = f"Found unwanted token, {self.expr}"
 
     def parseImpl(self, instring, loc, do_actions=True) -> ParseImplReturnType:
@@ -5204,7 +5226,7 @@ class ZeroOrMore(_MultipleMatch):
         stopOn: typing.Optional[Union[ParserElement, str]] = None,
     ) -> None:
         super().__init__(expr, stopOn=stopOn or stop_on)
-        self.mayReturnEmpty = True
+        self._may_return_empty = True
 
     def parseImpl(self, instring, loc, do_actions=True) -> ParseImplReturnType:
         try:
@@ -5337,7 +5359,7 @@ class Opt(ParseElementEnhance):
         super().__init__(expr, savelist=False)
         self.saveAsList = self.expr.saveAsList
         self.defaultValue = default
-        self.mayReturnEmpty = True
+        self._may_return_empty = True
 
     def parseImpl(self, instring, loc, do_actions=True) -> ParseImplReturnType:
         self_expr = self.expr
@@ -5442,7 +5464,7 @@ class SkipTo(ParseElementEnhance):
         super().__init__(other)
         failOn = failOn or fail_on
         self.ignoreExpr = ignore
-        self.mayReturnEmpty = True
+        self._may_return_empty = True
         self.mayIndexError = False
         self.includeMatch = include
         self.saveAsList = False
@@ -5568,7 +5590,7 @@ class Forward(ParseElementEnhance):
         self.expr = other
         self.streamlined = other.streamlined
         self.mayIndexError = self.expr.mayIndexError
-        self.mayReturnEmpty = self.expr.mayReturnEmpty
+        self._may_return_empty = self.expr.mayReturnEmpty
         self.set_whitespace_chars(
             self.expr.whiteChars, copy_defaults=self.expr.copyDefaultWhiteChars
         )

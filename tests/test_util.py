@@ -182,7 +182,7 @@ def test_html_entities() -> None:
     test_string = " ".join(entity_strings)
 
     # verify that all are parsed
-    parsed = common_html_entity[...].parse_string(test_string, parse_all=True)
+    parsed = common_html_entity()[...].parse_string(test_string, parse_all=True)
     assert len(parsed) == len(html.entities.html5)
 
 
