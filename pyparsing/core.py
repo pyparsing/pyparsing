@@ -38,7 +38,6 @@ from .util import (
     __config_flags,
     _collapse_string_to_ranges,
     _escape_regex_range_chars,
-    _bslash,
     _flatten,
     LRUMemo as _LRUMemo,
     UnboundedMemo as _UnboundedMemo,
@@ -5767,14 +5766,15 @@ class Forward(ParseElementEnhance):
         self._defaultName = ": ..."
 
         # Use the string representation of main expression.
-        retString = "..."
         try:
             if self.expr is not None:
                 retString = str(self.expr)[:1000]
             else:
                 retString = "None"
-        finally:
-            return f"{type(self).__name__}: {retString}"
+        except Exception:
+            retString = "..."
+
+        return f"{type(self).__name__}: {retString}"
 
     def copy(self) -> ParserElement:
         if self.expr is not None:
