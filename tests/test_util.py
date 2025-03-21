@@ -195,3 +195,50 @@ def test_make_compressed_re() -> None:
         print(i, make_compressed_re(words, max_level=i))
         regex = re.compile(make_compressed_re(words, max_level=i) + "$")
         assert all(regex.match(wd) for wd in words)
+
+def test_make_compressed_re_bad_input():
+    from pyparsing.util import make_compressed_re
+
+    with pytest.raises(ValueError):
+        make_compressed_re([])
+
+    with pytest.raises(ValueError):
+        make_compressed_re(["a", "", "b", "c"])
+
+    # handle duplicate input strings
+    assert make_compressed_re(["a", "b", "c"]) == make_compressed_re(["a", "b", "c", "a"])
+
+
+def test_make_compressed_re_random():
+    import itertools
+    import re
+    from pyparsing.util import make_compressed_re
+
+    def generate_random_word(max_length: int) -> str:
+        import random
+        import string
+        length = random.randint(1, max_length)
+        return ''.join(random.choice(string.ascii_lowercase + ".*? ") for _ in range(length))
+
+    def generate_word_lists(num_lists: int, num_words: int, word_length: int) -> Iterable[list[str]]:
+        yield from (
+            [generate_random_word(word_length) for _ in range(num_words)]
+            for _ in range(num_lists)
+        )
+
+    for word_length, list_length in itertools.product(range(3, 9), range(1, 32)):
+        for word_list in generate_word_lists(100, list_length, word_length):
+            regex_pattern = make_compressed_re(word_list)
+            try:
+                regex = re.compile(f"^({regex_pattern})$")
+            except Exception as e:
+                assert False, f"Failed to compile {word_list} to regex pattern {regex_pattern!r}: {e}"
+
+            for word in word_list:
+                assert regex.match(word), f"Regex {regex_pattern!r} did not match word: {word}"
+
+            # Check that the regex does not match a random word not in the list
+            random_word = generate_random_word(word_length)
+            while random_word in word_list:
+                random_word = generate_random_word(word_length)
+            assert regex.match(random_word) is None, f"Regex {regex_pattern!r} incorrectly matched word: {random_word!r}"
