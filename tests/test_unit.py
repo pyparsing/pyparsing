@@ -6449,8 +6449,8 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
         arith_expr = pp.infixNotation(
             pp.Word(pp.nums),
             [
-                (pp.oneOf("* /"), 2, pp.opAssoc.LEFT),
-                (pp.oneOf("+ -"), 2, pp.opAssoc.LEFT),
+                (pp.oneOf("* /").set_name("* | /"), 2, pp.opAssoc.LEFT),
+                (pp.oneOf("+ -").set_name("+ | -"), 2, pp.opAssoc.LEFT),
             ],
         )
         arith_expr2 = pp.infixNotation(
@@ -8965,6 +8965,10 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
 
         expr = pp.oneOf("a abbb abb b abb")
         assert expr.pattern == "abbb|abb|a|b"
+
+        # make sure regex-unsafe characters are properly escaped
+        expr = pp.oneOf("a+ b* c? () +a *b ?c")
+        assert expr.pattern == r"a\+|b\*|c\?|\(\)|\+a|\*b|\?c"
 
     def testOneOfKeywords(self):
         literal_expr = pp.oneOf("a b c")

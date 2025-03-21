@@ -68,6 +68,9 @@ Version 3.2.2 - under development
   diagram `examples/complex_chemical_formulas_diagram.html`. Properly escapes characters
   like "." and "*" that have special meaning in regular expressions.
 
+- Fixed bug in `one_of()` to properly escape characters that are regular expression markers
+  (such as '*', '+', '?', etc.) before building the internal regex.
+
 - Better exception message for `MatchFirst` and `Or` expressions, showing all alternatives
   rather than just the first one. Fixes Issue #592, reported by Focke, thanks!
 

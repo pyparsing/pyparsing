@@ -256,7 +256,7 @@ def one_of(
             if asKeyword:
                 patt = rf"\b(?:{patt})\b"
 
-            ret = Regex(patt, flags=re_flags).set_name(" | ".join(symbols))
+            ret = Regex(patt, flags=re_flags).set_name(" | ".join(re.escape(s) for s in symbols))
 
             if caseless:
                 # add parse action to return symbols as specified, not in random
