@@ -35,7 +35,6 @@ Required Python versions by pyparsing version
 +--------------------------------------------------+-------------------+
 | pyparsing version                                | Required Python   |
 +==================================================+===================+
-| 3.3.0 and later                                  | 3.9 or later      |
 | 3.2.0 - 3.2.2                                    | 3.9 or later      |
 | 3.0.8 - 3.1.4                                    | 3.6.8 or later    |
 | 3.0.0 - 3.0.7 (these versions are discouraged)   | 3.6 or later      |
@@ -44,8 +43,8 @@ Required Python versions by pyparsing version
 +--------------------------------------------------+-------------------+
 
 
-Version 3.2.2 - under development
----------------------------------
+Version 3.2.2 - March, 2025
+---------------------------
 - Released `cvt_pyparsing_pep8_names.py` conversion utility to upgrade pyparsing-based
   programs and libraries that use legacy camelCase names to use the new PEP8-compliant
   snake_case method names. The converter can also be imported into other scripts as
