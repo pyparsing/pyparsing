@@ -205,15 +205,12 @@ def one_of(
             stacklevel=2,
         )
 
-    parse_element_class: type[ParserElement]
     if caseless:
         is_equal = lambda a, b: a.upper() == b.upper()
         masks = lambda a, b: b.upper().startswith(a.upper())
-        parse_element_class = CaselessKeyword if asKeyword else CaselessLiteral
     else:
         is_equal = operator.eq
         masks = lambda a, b: b.startswith(a)
-        parse_element_class = Keyword if asKeyword else Literal
 
     symbols: list[str]
     if isinstance(strs, str_type):
@@ -256,7 +253,8 @@ def one_of(
             if asKeyword:
                 patt = rf"\b(?:{patt})\b"
 
-            ret = Regex(patt, flags=re_flags).set_name(" | ".join(re.escape(s) for s in symbols))
+            ret = Regex(patt, flags=re_flags)
+            ret.set_name(" | ".join(re.escape(s) for s in symbols))
 
             if caseless:
                 # add parse action to return symbols as specified, not in random
@@ -271,7 +269,15 @@ def one_of(
                 "Exception creating Regex for one_of, building MatchFirst", stacklevel=2
             )
 
-    # last resort, just use MatchFirst
+    # last resort, just use MatchFirst of Token class corresponding to caseless
+    # and asKeyword settings
+    CASELESS = KEYWORD = True
+    parse_element_class = {
+        (CASELESS, KEYWORD): CaselessKeyword,
+        (CASELESS, not KEYWORD): CaselessLiteral,
+        (not CASELESS, KEYWORD): Keyword,
+        (not CASELESS, not KEYWORD): Literal,
+    }[(caseless, asKeyword)]
     return MatchFirst(parse_element_class(sym) for sym in symbols).set_name(
         " | ".join(symbols)
     )

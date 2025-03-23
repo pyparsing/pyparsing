@@ -6157,6 +6157,7 @@ def srange(s: str) -> str:
     - any combination of the above (``'aeiouy'``,
       ``'a-zA-Z0-9_$'``, etc.)
     """
+
     def _expanded(p):
         if isinstance(p, ParseResults):
             yield from (chr(c) for c in range(ord(p[0]), ord(p[1]) + 1))
@@ -6165,11 +6166,7 @@ def srange(s: str) -> str:
 
     try:
         return "".join(
-            [
-                c
-                for part in _reBracketExpr.parse_string(s).body
-                for c in _expanded(part)
-            ]
+            [c for part in _reBracketExpr.parse_string(s).body for c in _expanded(part)]
         )
     except Exception as e:
         return ""
