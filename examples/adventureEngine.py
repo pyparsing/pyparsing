@@ -454,7 +454,7 @@ class Parser:
         quitVerb = pp.one_of("QUIT Q", caseless=True)
         lookVerb = pp.one_of("LOOK L", caseless=True)
         doorsVerb = pp.CaselessLiteral("DOORS")
-        helpVerb = pp.one_of("H HELP ?", caseless=True)
+        helpVerb = pp.one_of("H HELP ?", caseless=True).set_name("HELP | H | ?")
 
         itemRef = pp.OneOrMore(pp.Word(pp.alphas)).set_parse_action(self.validate_item_name).setName("item_ref")
         nDir = pp.one_of("N NORTH", caseless=True).set_parse_action(pp.replace_with("N"))
@@ -512,7 +512,12 @@ class Parser:
         )("command").set_name("command")
 
         with contextlib.suppress(Exception):
-            parser.create_diagram("adventure_game_parser_diagram.html", vertical=2, show_groups=True)
+            parser.create_diagram(
+                "adventure_game_parser_diagram.html",
+                vertical=3,
+                show_groups=True,
+                show_results_names=True
+            )
 
         return parser
 
