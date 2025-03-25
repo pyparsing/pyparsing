@@ -5463,6 +5463,28 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
         # make sure things have been put back properly
         self.assertEqual(pp.ParserElement.DEFAULT_WHITE_CHARS, prior_ws_chars)
 
+    def testNestedExpressions4(self):
+        allowed = pp.alphas
+        plot_options_short = pp.nestedExpr('[',
+                                           ']',
+                                           content=pp.OneOrMore(pp.Word(allowed) ^ pp.quotedString)
+                                           ).setResultsName('plot_options')
+
+        self.assertParseAndCheckList(
+            plot_options_short,
+            "[slkjdfl sldjf [lsdf'lsdf']]",
+            [['slkjdfl', 'sldjf', ['lsdf', "'lsdf'"]]]
+        )
+
+    def testNestedExpressionDoesNotOverwriteParseActions(self):
+        content = pp.Word(pp.nums + " ")
+
+        content.add_parse_action(lambda t: None)
+        orig_pa = content.parseAction[0]
+
+        expr = pp.nested_expr(content=content)
+        assert content.parseAction[0] is orig_pa
+
     def testWordMinMaxArgs(self):
         parsers = [
             "A" + pp.Word(pp.nums),
@@ -6449,8 +6471,8 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
         arith_expr = pp.infix_notation(
             pp.Word(pp.nums),
             [
-                (pp.one_of("* /"), 2, pp.opAssoc.LEFT),
-                (pp.one_of("+ -"), 2, pp.opAssoc.LEFT),
+                (pp.one_of("* /").set_name("* | /"), 2, pp.opAssoc.LEFT),
+                (pp.one_of("+ -").set_name("+ | -"), 2, pp.opAssoc.LEFT),
             ],
         )
         arith_expr2 = pp.infix_notation(
@@ -8965,6 +8987,10 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
 
         expr = pp.one_of("a abbb abb b abb")
         assert expr.pattern == "abbb|abb|a|b"
+
+        # make sure regex-unsafe characters are properly escaped
+        expr = pp.oneOf("a+ b* c? () +a *b ?c")
+        assert expr.pattern == r"a\+|b\*|c\?|\(\)|\+a|\*b|\?c"
 
     def testOneOfKeywords(self):
         literal_expr = pp.one_of("a b c")

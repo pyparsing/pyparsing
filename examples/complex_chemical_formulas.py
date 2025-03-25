@@ -46,7 +46,8 @@ table_of_elements: dict[str, float] = {
 #  - subcript_int - an integer made up of subscript digits
 #  (a normal integer definition uses the one defined in pyparsing.common)
 #
-element = pp.one_of(table_of_elements).set_name("element")
+# element = pp.one_of(table_of_elements).set_name("element")
+element = pp.Regex(pp.util.make_compressed_re(table_of_elements)).set_name("element")
 element.add_parse_action(lambda t: Counter([t[0]]))
 
 subscript_digits = "₀₁₂₃₄₅₆₇₈₉"

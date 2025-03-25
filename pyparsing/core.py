@@ -38,7 +38,6 @@ from .util import (
     __config_flags,
     _collapse_string_to_ranges,
     _escape_regex_range_chars,
-    _bslash,
     _flatten,
     LRUMemo as _LRUMemo,
     UnboundedMemo as _UnboundedMemo,
@@ -5802,17 +5801,20 @@ class Forward(ParseElementEnhance):
 
     def _generateDefaultName(self) -> str:
         # Avoid infinite recursion by setting a temporary _defaultName
+        save_default_name = self._defaultName
         self._defaultName = ": ..."
 
         # Use the string representation of main expression.
-        retString = "..."
         try:
             if self.expr is not None:
-                retString = str(self.expr)[:1000]
+                ret_string = str(self.expr)[:1000]
             else:
-                retString = "None"
-        finally:
-            return f"{type(self).__name__}: {retString}"
+                ret_string = "None"
+        except Exception:
+            ret_string = "..."
+
+        self._defaultName = save_default_name
+        return f"{type(self).__name__}: {ret_string}"
 
     def copy(self) -> ParserElement:
         if self.expr is not None:
@@ -6193,13 +6195,17 @@ def srange(s: str) -> str:
     - any combination of the above (``'aeiouy'``,
       ``'a-zA-Z0-9_$'``, etc.)
     """
-    _expanded = lambda p: (
-        p
-        if not isinstance(p, ParseResults)
-        else "".join(chr(c) for c in range(ord(p[0]), ord(p[1]) + 1))
-    )
+
+    def _expanded(p):
+        if isinstance(p, ParseResults):
+            yield from (chr(c) for c in range(ord(p[0]), ord(p[1]) + 1))
+        else:
+            yield p
+
     try:
-        return "".join(_expanded(part) for part in _reBracketExpr.parse_string(s).body)
+        return "".join(
+            [c for part in _reBracketExpr.parse_string(s).body for c in _expanded(part)]
+        )
     except Exception as e:
         return ""
 

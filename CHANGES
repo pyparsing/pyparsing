@@ -36,7 +36,7 @@ Required Python versions by pyparsing version
 | pyparsing version                                | Required Python   |
 +==================================================+===================+
 | 3.3.0 and later                                  | 3.9 or later      |
-| 3.2.0 - 3.2.2                                    | 3.9 or later      |
+| 3.2.0 - 3.2.3                                    | 3.9 or later      |
 | 3.0.8 - 3.1.4                                    | 3.6.8 or later    |
 | 3.0.0 - 3.0.7 (these versions are discouraged)   | 3.6 or later      |
 | 2.4.7                                            | 2.7 or later      |
@@ -51,8 +51,16 @@ Version 3.3.0 - under development
   messages.
 
 
-Version 3.2.2 - under development
----------------------------------
+Version 3.2.3 - March, 2025
+---------------------------
+- Fixed bug released in 3.2.2 in which `nested_expr` could overwrite parse actions
+  for defined content, and could truncate list of items within a nested list.
+  Fixes Issue #600, reported by hoxbro and luisglft, with helpful diag logs and
+  repro code.
+
+
+Version 3.2.2 - March, 2025
+---------------------------
 - Released `cvt_pyparsing_pep8_names.py` conversion utility to upgrade pyparsing-based
   programs and libraries that use legacy camelCase names to use the new PEP8-compliant
   snake_case method names. The converter can also be imported into other scripts as
@@ -69,6 +77,14 @@ Version 3.2.2 - under development
   a `ParseException` at or beyond the end of the input string. This could cause an
   infinite parsing loop when parsing `rest_of_line` at the end of the input string.
   Reported by user Kylotan, thanks! (Issue #593)
+
+- Enhancements and extra input validation for `pyparsing.util.make_compressed_re` - see
+  usage in `examples/complex_chemical_formulas.py` and result in the generated railroad
+  diagram `examples/complex_chemical_formulas_diagram.html`. Properly escapes characters
+  like "." and "*" that have special meaning in regular expressions.
+
+- Fixed bug in `one_of()` to properly escape characters that are regular expression markers
+  (such as '*', '+', '?', etc.) before building the internal regex.
 
 - Better exception message for `MatchFirst` and `Or` expressions, showing all alternatives
   rather than just the first one. Fixes Issue #592, reported by Focke, thanks!
