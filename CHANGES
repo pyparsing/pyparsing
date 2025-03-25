@@ -35,15 +35,20 @@ Required Python versions by pyparsing version
 +--------------------------------------------------+-------------------+
 | pyparsing version                                | Required Python   |
 +==================================================+===================+
-| 3.2.0 - 3.2.2                                    | 3.9 or later      |
+| 3.2.0 - later                                    | 3.9 or later      |
 | 3.0.8 - 3.1.4                                    | 3.6.8 or later    |
 | 3.0.0 - 3.0.7 (these versions are discouraged)   | 3.6 or later      |
 | 2.4.7                                            | 2.7 or later      |
 | 1.5.7                                            | 2.6 - 2.7         |
 +--------------------------------------------------+-------------------+
 
-Version 3.2.3 - under development
----------------------------------
+
+Version 3.2.3 - March, 2025
+---------------------------
+- Fixed bug released in 3.2.2 in which `nested_expr` could overwrite parse actions
+  for defined content, and could truncate list of items within a nested list.
+  Fixes Issue #600, reported by hoxbro and luisglft, with helpful diag logs and
+  repro code.
 
 
 Version 3.2.2 - March, 2025

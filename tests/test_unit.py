@@ -5463,6 +5463,28 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
         # make sure things have been put back properly
         self.assertEqual(pp.ParserElement.DEFAULT_WHITE_CHARS, prior_ws_chars)
 
+    def testNestedExpressions4(self):
+        allowed = pp.alphas
+        plot_options_short = pp.nestedExpr('[',
+                                           ']',
+                                           content=pp.OneOrMore(pp.Word(allowed) ^ pp.quotedString)
+                                           ).setResultsName('plot_options')
+
+        self.assertParseAndCheckList(
+            plot_options_short,
+            "[slkjdfl sldjf [lsdf'lsdf']]",
+            [['slkjdfl', 'sldjf', ['lsdf', "'lsdf'"]]]
+        )
+
+    def testNestedExpressionDoesNotOverwriteParseActions(self):
+        content = pp.Word(pp.nums + " ")
+
+        content.add_parse_action(lambda t: None)
+        orig_pa = content.parseAction[0]
+
+        expr = pp.nested_expr(content=content)
+        assert content.parseAction[0] is orig_pa
+
     def testWordMinMaxArgs(self):
         parsers = [
             "A" + pp.Word(pp.nums),
