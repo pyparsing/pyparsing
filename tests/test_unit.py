@@ -5485,6 +5485,111 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
         expr = pp.nested_expr(content=content)
         assert content.parseAction[0] is orig_pa
 
+    def testNestedExpressionRandom(self):
+        import random
+
+        word_chars = pp.alphanums
+
+        def get_random_character(_charset=word_chars + "               "):
+            return random.choice(_charset)
+
+        def create_random_quoted_string():
+            quote_char = random.choice(('"', "'"))
+            yield quote_char
+            yield from (get_random_character() for _ in range(random.randint(0, 12)))
+            yield quote_char
+
+        def create_random_nested_expression():
+            yield "["
+
+            if random.random() < 0.25:
+                yield from create_random_quoted_string()
+
+            for _ in range(random.randint(0, 16)):
+                rnd = random.random()
+                if rnd < 0.25:
+                    yield from create_random_quoted_string()
+                elif rnd < 0.3:
+                    yield from create_random_nested_expression()
+                else:
+                    yield from (get_random_character() for _ in range(random.randint(1, 4)))
+
+            if random.random() < 0.25:
+                yield from create_random_quoted_string()
+
+            yield "]"
+
+        num_reps=150
+
+        # simulate nested_expr
+        LBRACK, RBRACK = pp.Suppress.using_each("[]")
+        wd = pp.Word(word_chars)
+        qs = pp.quoted_string()
+        ls = pp.Forward()
+        ls <<= pp.Group(LBRACK + (qs | ls | wd)[...] + RBRACK)
+
+        def crack_nested_string(s) -> list:
+            return ls.parse_string(s, parse_all=True).as_list()
+
+        expr = pp.nested_expr('[', ']')
+        for _ in range(num_reps):
+            nested_str = ''.join(create_random_nested_expression())
+            # print(nested_str)
+            cracked_result = crack_nested_string(nested_str)
+            self.assertParseAndCheckList(
+                expr,
+                nested_str,
+                cracked_result,
+                f"Failed: {nested_str}, expected {cracked_result}",
+                verbose = False,
+            )
+
+        # test multi-character nesting delimiters
+        expr = pp.nested_expr('<<', '>>')
+        for _ in range(num_reps):
+            nested_str = ''.join(create_random_nested_expression())
+            # print(nested_str)
+            cracked_result = crack_nested_string(nested_str)
+            nested_str = nested_str.replace("[", "<<").replace("]", ">>")
+            self.assertParseAndCheckList(
+                expr,
+                nested_str,
+                cracked_result,
+                f"Failed: {nested_str}, expected {cracked_result}",
+                verbose = False,
+            )
+
+        # test with no ignore_expr (no quoted string handling)
+        expr = pp.nested_expr('[', ']', ignore_expr=None)
+        for _ in range(num_reps):
+            nested_str = ''.join(create_random_nested_expression())
+            nested_str = nested_str.replace('"', "").replace("'", "")
+            # print(nested_str)
+            cracked_result = crack_nested_string(nested_str)
+            self.assertParseAndCheckList(
+                expr,
+                nested_str,
+                cracked_result,
+                f"Failed: {nested_str}, expected {cracked_result}",
+                verbose = False,
+            )
+
+        # test multi-character nesting delimiters, with no ignore_expr
+        expr = pp.nested_expr('<<', '>>', ignore_expr=None)
+        for _ in range(num_reps):
+            nested_str = ''.join(create_random_nested_expression())
+            nested_str = nested_str.replace('"', "").replace("'", "")
+            # print(nested_str)
+            cracked_result = crack_nested_string(nested_str)
+            nested_str = nested_str.replace("[", "<<").replace("]", ">>")
+            self.assertParseAndCheckList(
+                expr,
+                nested_str,
+                cracked_result,
+                f"Failed: {nested_str}, expected {cracked_result}",
+                verbose=False,
+            )
+
     def testWordMinMaxArgs(self):
         parsers = [
             "A" + pp.Word(pp.nums),
