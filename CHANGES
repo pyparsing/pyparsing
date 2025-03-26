@@ -43,6 +43,11 @@ Required Python versions by pyparsing version
 +--------------------------------------------------+-------------------+
 
 
+Version 3.2.4 - under development
+---------------------------------
+- TBD
+
+
 Version 3.2.3 - March, 2025
 ---------------------------
 - Fixed bug released in 3.2.2 in which `nested_expr` could overwrite parse actions
