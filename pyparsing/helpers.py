@@ -427,9 +427,9 @@ def nested_expr(
     opener: Union[str, ParserElement] = "(",
     closer: Union[str, ParserElement] = ")",
     content: typing.Optional[ParserElement] = None,
-    ignore_expr: ParserElement = _NO_IGNORE_EXPR_GIVEN,
+    ignore_expr: typing.Optional[ParserElement] = _NO_IGNORE_EXPR_GIVEN,
     *,
-    ignoreExpr: ParserElement = _NO_IGNORE_EXPR_GIVEN,
+    ignoreExpr: typing.Optional[ParserElement] = _NO_IGNORE_EXPR_GIVEN,
 ) -> ParserElement:
     """Helper method for defining nested lists enclosed in opening and
     closing delimiters (``"("`` and ``")"`` are the default).
