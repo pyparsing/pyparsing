@@ -6,14 +6,13 @@ build-backend = "flit_core.buildapi"
 name = "pyparsing"
 authors = [{name = "Paul McGuire", email = "ptmcg.gm+pyparsing@gmail.com"}]
 readme = "README.rst"
-license = {file = "LICENSE"}
+license = "MIT"
 dynamic = ["version", "description"]
 requires-python = ">=3.9"
 classifiers = [
     "Development Status :: 5 - Production/Stable",
     "Intended Audience :: Developers",
     "Intended Audience :: Information Technology",
-    "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
     "Programming Language :: Python",
     "Programming Language :: Python :: 3",
