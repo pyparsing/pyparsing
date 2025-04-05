@@ -45,7 +45,8 @@ Required Python versions by pyparsing version
 
 Version 3.2.4 - under development
 ---------------------------------
-- TBD
+- Fixed type annotation for `replace_with`, to accept `Any` type. Fixes Issue #602,
+  reported by esquonk.
 
 
 Version 3.2.3 - March, 2025
