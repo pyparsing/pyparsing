@@ -48,6 +48,9 @@ Version 3.2.4 - under development
 - Fixed type annotation for `replace_with`, to accept `Any` type. Fixes Issue #602,
   reported by esquonk.
 
+- Added locking around potential race condition in `ParserElement.reset_cache`, as
+  well as other cache-related methods. Fixes Issue #604, reported by CarlosDescalziIM.
+
 
 Version 3.2.3 - March, 2025
 ---------------------------

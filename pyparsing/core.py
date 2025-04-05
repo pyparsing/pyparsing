@@ -1029,12 +1029,14 @@ class ParserElement(ABC):
 
     @staticmethod
     def reset_cache() -> None:
-        ParserElement.packrat_cache.clear()
-        ParserElement.packrat_cache_stats[:] = [0] * len(
-            ParserElement.packrat_cache_stats
-        )
-        ParserElement.recursion_memos.clear()
+        with ParserElement.packrat_cache_lock:
+            ParserElement.packrat_cache.clear()
+            ParserElement.packrat_cache_stats[:] = [0] * len(
+                ParserElement.packrat_cache_stats
+            )
+            ParserElement.recursion_memos.clear()
 
+    # class attributes to keep caching status
     _packratEnabled = False
     _left_recursion_enabled = False
 
@@ -1047,10 +1049,11 @@ class ParserElement(ABC):
         This makes it safe to call before activating Packrat nor Left Recursion
         to clear any previous settings.
         """
-        ParserElement.reset_cache()
-        ParserElement._left_recursion_enabled = False
-        ParserElement._packratEnabled = False
-        ParserElement._parse = ParserElement._parseNoCache
+        with ParserElement.packrat_cache_lock:
+            ParserElement.reset_cache()
+            ParserElement._left_recursion_enabled = False
+            ParserElement._packratEnabled = False
+            ParserElement._parse = ParserElement._parseNoCache
 
     @staticmethod
     def enable_left_recursion(
@@ -1088,17 +1091,18 @@ class ParserElement(ABC):
         thus the two cannot be used together. Use ``force=True`` to disable any
         previous, conflicting settings.
         """
-        if force:
-            ParserElement.disable_memoization()
-        elif ParserElement._packratEnabled:
-            raise RuntimeError("Packrat and Bounded Recursion are not compatible")
-        if cache_size_limit is None:
-            ParserElement.recursion_memos = _UnboundedMemo()
-        elif cache_size_limit > 0:
-            ParserElement.recursion_memos = _LRUMemo(capacity=cache_size_limit)  # type: ignore[assignment]
-        else:
-            raise NotImplementedError(f"Memo size of {cache_size_limit}")
-        ParserElement._left_recursion_enabled = True
+        with ParserElement.packrat_cache_lock:
+            if force:
+                ParserElement.disable_memoization()
+            elif ParserElement._packratEnabled:
+                raise RuntimeError("Packrat and Bounded Recursion are not compatible")
+            if cache_size_limit is None:
+                ParserElement.recursion_memos = _UnboundedMemo()
+            elif cache_size_limit > 0:
+                ParserElement.recursion_memos = _LRUMemo(capacity=cache_size_limit)  # type: ignore[assignment]
+            else:
+                raise NotImplementedError(f"Memo size of {cache_size_limit}")
+            ParserElement._left_recursion_enabled = True
 
     @staticmethod
     def enable_packrat(
@@ -1134,20 +1138,21 @@ class ParserElement(ABC):
         thus the two cannot be used together. Use ``force=True`` to disable any
         previous, conflicting settings.
         """
-        if force:
-            ParserElement.disable_memoization()
-        elif ParserElement._left_recursion_enabled:
-            raise RuntimeError("Packrat and Bounded Recursion are not compatible")
+        with ParserElement.packrat_cache_lock:
+            if force:
+                ParserElement.disable_memoization()
+            elif ParserElement._left_recursion_enabled:
+                raise RuntimeError("Packrat and Bounded Recursion are not compatible")
 
-        if ParserElement._packratEnabled:
-            return
+            if ParserElement._packratEnabled:
+                return
 
-        ParserElement._packratEnabled = True
-        if cache_size_limit is None:
-            ParserElement.packrat_cache = _UnboundedCache()
-        else:
-            ParserElement.packrat_cache = _FifoCache(cache_size_limit)
-        ParserElement._parse = ParserElement._parseCache
+            ParserElement._packratEnabled = True
+            if cache_size_limit is None:
+                ParserElement.packrat_cache = _UnboundedCache()
+            else:
+                ParserElement.packrat_cache = _FifoCache(cache_size_limit)
+            ParserElement._parse = ParserElement._parseCache
 
     def parse_string(
         self, instring: str, parse_all: bool = False, *, parseAll: bool = False
