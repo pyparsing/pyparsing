@@ -3263,6 +3263,9 @@ class QuotedString(Token):
       (``'\t'``, ``'\n'``, etc.) to actual whitespace
       (default= ``True``)
 
+    .. caution:: ``convert_whitespace_escapes`` has no effect if
+       ``unquote_results`` is ``False``.
+
     Example::
 
         qs = QuotedString('"')
