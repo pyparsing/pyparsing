@@ -3052,6 +3052,11 @@ class Regex(Token):
     (such as the ``regex`` module), you can do so by building your ``Regex`` object with
     a compiled RE that was compiled using ``regex``.
 
+    The parameters ``pattern`` and ``flags`` are passed
+    to the ``re.compile()`` function as-is. See the Python
+    `re module <https://docs.python.org/3/library/re.html>`_ module for an
+    explanation of the acceptable patterns and flags.
+
     Example::
 
         realnum = Regex(r"[+-]?\d+\.\d*")
@@ -3076,11 +3081,6 @@ class Regex(Token):
         asGroupList: bool = False,
         asMatch: bool = False,
     ) -> None:
-        """The parameters ``pattern`` and ``flags`` are passed
-        to the ``re.compile()`` function as-is. See the Python
-        `re module <https://docs.python.org/3/library/re.html>`_ module for an
-        explanation of the acceptable patterns and flags.
-        """
         super().__init__()
         asGroupList = asGroupList or as_group_list
         asMatch = asMatch or as_match
@@ -5246,6 +5246,24 @@ class ZeroOrMore(_MultipleMatch):
 
 
 class DelimitedList(ParseElementEnhance):
+    """Helper to define a delimited list of expressions - the delimiter
+    defaults to ','. By default, the list elements and delimiters can
+    have intervening whitespace, and comments, but this can be
+    overridden by passing ``combine=True`` in the constructor. If
+    ``combine`` is set to ``True``, the matching tokens are
+    returned as a single token string, with the delimiters included;
+    otherwise, the matching tokens are returned as a list of tokens,
+    with the delimiters suppressed.
+
+    If ``allow_trailing_delim`` is set to True, then the list may end with
+    a delimiter.
+
+    Example::
+
+        DelimitedList(Word(alphas)).parse_string("aa,bb,cc") # -> ['aa', 'bb', 'cc']
+        DelimitedList(Word(hexnums), delim=':', combine=True).parse_string("AA:BB:CC:DD:EE") # -> ['AA:BB:CC:DD:EE']
+    """
+
     def __init__(
         self,
         expr: Union[str, ParserElement],
@@ -5256,23 +5274,6 @@ class DelimitedList(ParseElementEnhance):
         *,
         allow_trailing_delim: bool = False,
     ) -> None:
-        """Helper to define a delimited list of expressions - the delimiter
-        defaults to ','. By default, the list elements and delimiters can
-        have intervening whitespace, and comments, but this can be
-        overridden by passing ``combine=True`` in the constructor. If
-        ``combine`` is set to ``True``, the matching tokens are
-        returned as a single token string, with the delimiters included;
-        otherwise, the matching tokens are returned as a list of tokens,
-        with the delimiters suppressed.
-
-        If ``allow_trailing_delim`` is set to True, then the list may end with
-        a delimiter.
-
-        Example::
-
-            DelimitedList(Word(alphas)).parse_string("aa,bb,cc") # -> ['aa', 'bb', 'cc']
-            DelimitedList(Word(hexnums), delim=':', combine=True).parse_string("AA:BB:CC:DD:EE") # -> ['AA:BB:CC:DD:EE']
-        """
         if isinstance(expr, str_type):
             expr = ParserElement._literalStringClass(expr)
         expr = typing.cast(ParserElement, expr)
