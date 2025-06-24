@@ -522,6 +522,9 @@ class ParseResults:
             # Use as_list() to create an actual list
             result_list = result.as_list()
             print(type(result_list), result_list) # -> <class 'list'> ['sldkj', 'lsdkj', 'sldkj']
+
+        .. versionchanged:: 3.2.0
+           New ``flatten`` argument.
         """
 
         def flattened(pr):

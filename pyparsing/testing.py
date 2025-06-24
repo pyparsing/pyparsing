@@ -283,6 +283,9 @@ class pyparsing_test:
                               labeled based at 0 (default=True)
 
         :return: str - input string with leading line numbers and column number headers
+
+        .. versionchanged:: 3.2.0
+           New ``indent`` and ``base_1`` arguments.
         """
         if expand_tabs:
             s = s.expandtabs()
