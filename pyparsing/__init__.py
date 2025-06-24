@@ -23,15 +23,15 @@
 #
 
 __doc__ = """
-pyparsing module - Classes and methods to define and execute parsing grammars
-=============================================================================
+pyparsing - Classes and methods to define and execute parsing grammars
+======================================================================
 
-The pyparsing module is an alternative approach to creating and
-executing simple grammars, vs. the traditional lex/yacc approach, or the
-use of regular expressions.  With pyparsing, you don't need to learn
-a new syntax for defining grammars or matching expressions - the parsing
-module provides a library of classes that you use to construct the
-grammar directly in Python.
+Pyparsing is an alternative approach to creating and executing simple
+grammars, vs. the traditional lex/yacc approach, or the use of regular
+expressions.  With pyparsing, you don't need to learn a new syntax for
+defining grammars or matching expressions - the parsing module provides
+a library of classes that you use to construct the grammar directly in
+Python.
 
 Here is a program to parse "Hello, World!" (or any greeting of the form
 ``"<salutation>, <addressee>!"``), built up using :class:`Word`,
@@ -69,8 +69,8 @@ vexing when writing text parsers:
   - embedded comments
 
 
-Getting Started -
------------------
+Getting Started
+---------------
 Visit the classes :class:`ParserElement` and :class:`ParseResults` to
 see the base classes that most other pyparsing
 classes inherit from. Use the docstrings for examples of how to:
