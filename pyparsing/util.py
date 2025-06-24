@@ -425,7 +425,10 @@ def replaced_by_pep8(compat_name: str, fn: C) -> C:
             # )
             return fn(*args, **kwargs)
 
-    _inner.__doc__ = f"""Deprecated - use :class:`{fn.__name__}`"""
+    _inner.__doc__ = f"""
+        .. deprecated:: 3.0.0
+           Use :class:`{fn.__name__}` instead
+        """
     _inner.__name__ = compat_name
     _inner.__annotations__ = fn.__annotations__
     if isinstance(fn, types.FunctionType):
