@@ -587,6 +587,8 @@ class ParseResults:
     def deepcopy(self) -> ParseResults:
         """
         Returns a new deep copy of a :class:`ParseResults` object.
+
+        .. versionadded:: 3.1.0
         """
         ret = self.copy()
         # replace values with copies if they are of known mutable types

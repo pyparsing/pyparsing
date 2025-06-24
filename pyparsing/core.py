@@ -445,6 +445,7 @@ class ParserElement(ABC):
 
             LPAR, RPAR, LBRACE, RBRACE, SEMI = Suppress.using_each("(){};")
 
+        .. versionadded:: 3.1.0
         """
         yield from (cls(obj, **class_kwargs) for obj in seq)
 
@@ -1606,6 +1607,9 @@ class ParserElement(ABC):
     def __or__(self, other) -> ParserElement:
         """
         Implementation of ``|`` operator - returns :class:`MatchFirst`
+
+        .. versionchanged:: 3.1.0
+           Support ``expr | ""`` as a synonym for ``Optional(expr)``.
         """
         if other is Ellipsis:
             return _PendingSkip(self, must_skip=True)
@@ -1704,6 +1708,8 @@ class ParserElement(ABC):
         - ``expr[...: end_expr]`` and ``expr[0, ...: end_expr]`` are equivalent to ``ZeroOrMore(expr, stop_on=end_expr)``
         - ``expr[1, ...: end_expr]`` is equivalent to ``OneOrMore(expr, stop_on=end_expr)``
 
+        .. versionchanged:: 3.1.0
+           Support for slice notation.
         """
 
         stop_on_defined = False
@@ -1896,6 +1902,9 @@ class ParserElement(ABC):
         message is shown. Also note the use of :class:`set_name` to assign a human-readable name to the expression,
         which makes debugging and exception messages easier to understand - for instance, the default
         name created for the :class:`Word` expression without calling ``set_name`` is ``"W:(A-Za-z)"``.
+
+        .. versionchanged:: 3.1.0
+           ``recurse`` argument added.
         """
         if recurse:
             for expr in self.visit_all():
@@ -1940,6 +1949,9 @@ class ParserElement(ABC):
 
             integer.set_name("integer")
             integer.parse_string("ABC")  # -> Exception: Expected integer (at char 0), (line:1, col:1)
+        
+        .. versionchanged:: 3.1.0
+           Accept ``None`` as the ``name`` argument.
         """
         self.customName = name  # type: ignore[assignment]
         self.errmsg = f"Expected {str(self)}"
@@ -2305,6 +2317,9 @@ class ParserElement(ABC):
 
         Additional diagram-formatting keyword arguments can also be included;
         see railroad.Diagram class.
+
+        .. versionchanged:: 3.1.0
+           ``embed`` argument added.
         """
 
         try:
@@ -2837,6 +2852,12 @@ class Word(Token):
 
         # any string of non-whitespace characters, except for ','
         csv_value = Word(printables, exclude_chars=",")
+
+    :raises ValueError: If ``min`` and ``max`` are both specified
+                        and the test ``min <= max`` fails.
+
+    .. versionchanged:: 3.1.0
+       Raises :exc:`ValueError` if ``min`` > ``max``.
     """
 
     def __init__(
@@ -3872,6 +3893,8 @@ class Tag(Token):
 
         ['Hello,', 'World', '!']
         - enthusiastic: True
+
+    .. versionadded:: 3.1.0
     """
 
     def __init__(self, tag_name: str, value: Any = True) -> None:
@@ -5266,6 +5289,8 @@ class DelimitedList(ParseElementEnhance):
 
         DelimitedList(Word(alphas)).parse_string("aa,bb,cc") # -> ['aa', 'bb', 'cc']
         DelimitedList(Word(hexnums), delim=':', combine=True).parse_string("AA:BB:CC:DD:EE") # -> ['AA:BB:CC:DD:EE']
+
+    .. versionadded:: 3.1.0
     """
 
     def __init__(
@@ -6069,6 +6094,7 @@ class Suppress(TokenConverter):
         return self
 
 
+# XXX: Example needs to be re-done for updated output
 def trace_parse_action(f: ParseAction) -> ParseAction:
     """Decorator for debugging parse actions.
 
@@ -6093,6 +6119,9 @@ def trace_parse_action(f: ParseAction) -> ParseAction:
         >>entering remove_duplicate_chars(line: 'slkdjs sld sldd sdlf sdljf', 0, (['slkdjs', 'sld', 'sldd', 'sdlf', 'sdljf'], {}))
         <<leaving remove_duplicate_chars (ret: 'dfjkls')
         ['dfjkls']
+
+    .. versionchanged:: 3.1.0
+       Exception type added to output
     """
     f = _trim_arity(f)
 
@@ -6268,6 +6297,8 @@ quoted_string = Combine(
     )
 ).set_name("quoted string using single or double quotes")
 
+# XXX: Is there some way to make this show up in API docs?
+# .. versionadded:: 3.1.0
 python_quoted_string = Combine(
     (Regex(r'"""(?:[^"\\]|""(?!")|"(?!"")|\\.)*', flags=re.MULTILINE) + '"""').set_name(
         "multiline double quoted string"
