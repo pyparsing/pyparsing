@@ -2834,7 +2834,7 @@ class Word(Token):
     - :class:`printables` (any non-whitespace character)
 
     ``alphas``, ``nums``, and ``printables`` are also defined in several
-    Unicode sets - see :class:`pyparsing_unicode``.
+    Unicode sets - see :class:`pyparsing_unicode`.
 
     Example::
 
