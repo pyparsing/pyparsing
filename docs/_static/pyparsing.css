@@ -1,0 +1,44 @@
+/* Deprecated get a red border spanning the entire length of the doc
+ * (class, function, etc.), and the message itself has a faint red
+ * background shading, but no border. */
+dl.py:where(.class,.exception,.method,.function):has(> dd > div.deprecated)
+{
+    margin-inline-start: -0.6rem;
+    border-inline-start: 0.4rem solid #f00;
+    padding: 0 0.6rem 0 0.2rem;
+}
+
+span.deprecated {
+  background-color: #fee;
+  font-weight: bold;
+  text-decoration: #f00 underline;
+  padding: 0 0.5rem;
+}
+
+/* Added and changed get a blue or orange (respectively) border next to
+ * the message only, plus a light background shade of the same color
+ * (again, only on the message, not the rest of the doc). */
+div.versionadded, div.versionchanged
+{
+    border-inline-start: 0.4rem solid transparent;
+}
+
+div.versionchanged p,
+div.versionadded p,
+span.versionmodified {
+  line-height: initial;
+  padding-bottom: 0.2rem;
+  padding-top: 0.2rem;
+}
+span.versionmodified {
+  padding-inline-start: 0.5rem;
+  padding-inline-end: 0.2rem;
+  margin-inline-end: 0.5rem;
+  line-height: 130%;
+}
+
+div.versionadded { border-color: #2d67f3; }
+div.versionadded span.added { background-color: #d1e5ff; }
+
+div.versionchanged { border-color: #ff9800; }
+div.versionchanged span.changed { background-color: #ffddac; }
