@@ -1979,7 +1979,11 @@ class ParserElement(ABC):
 
     def validate(self, validateTrace=None) -> None:
         """
+        .. deprecated:: 3.0.0
+           Do not use to check for left recursion.
+
         Check defined expressions for valid structure, check for infinite recursive definitions.
+
         """
         warnings.warn(
             "ParserElement.validate() is deprecated, and should not be used to check for left recursion",

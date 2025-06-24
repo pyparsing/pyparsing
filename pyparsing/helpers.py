@@ -385,7 +385,9 @@ def ungroup(expr: ParserElement) -> ParserElement:
 
 def locatedExpr(expr: ParserElement) -> ParserElement:
     """
-    (DEPRECATED - future code should use the :class:`Located` class)
+    .. deprecated:: 3.0.0
+       Use the :class:`Located` class instead.
+
     Helper to decorate a returned token with its starting and ending
     locations in the input string.
 
@@ -914,7 +916,9 @@ def infix_notation(
 
 def indentedBlock(blockStatementExpr, indentStack, indent=True, backup_stacks=[]):
     """
-    (DEPRECATED - use :class:`IndentedBlock` class instead)
+    .. deprecated:: 3.0.0
+       Use the :class:`IndentedBlock` class instead.
+
     Helper method for defining space-delimited indentation blocks,
     such as those used to define block statements in Python source code.
 
@@ -1096,7 +1100,10 @@ def delimited_list(
     *,
     allow_trailing_delim: bool = False,
 ) -> ParserElement:
-    """(DEPRECATED - use :class:`DelimitedList` class)"""
+    """
+    .. deprecated:: 3.1.0
+       Use the :class:`DelimitedList` class instead.
+    """
     return DelimitedList(
         expr, delim, combine, min, max, allow_trailing_delim=allow_trailing_delim
     )
