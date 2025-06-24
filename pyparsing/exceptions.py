@@ -192,10 +192,20 @@ class ParseBaseException(Exception):
         return copy.copy(self)
 
     def formatted_message(self) -> str:
+        """
+        Output the formatted exception message.
+        Can be overridden to customize the message formatting or contents.
+
+        .. versionadded:: 3.2.0
+        """
         found_phrase = f", found {self.found}" if self.found else ""
         return f"{self.msg}{found_phrase}  (at char {self.loc}), (line:{self.lineno}, col:{self.column})"
 
     def __str__(self) -> str:
+        """
+        .. versionchanged:: 3.2.0
+           Now uses :meth:`formatted_message` to format message.
+        """
         return self.formatted_message()
 
     def __repr__(self):
