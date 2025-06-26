@@ -51,6 +51,9 @@ Version 3.2.4 - under development
 - Added locking around potential race condition in `ParserElement.reset_cache`, as
   well as other cache-related methods. Fixes Issue #604, reported by CarlosDescalziIM.
 
+- Substantial update to docstrings and doc generation in preparation for 3.3.0,
+  great effort by FeRD, thanks!
+
 
 Version 3.2.3 - March, 2025
 ---------------------------
