@@ -525,6 +525,9 @@ class ParseResults:
             # Use as_list() to create an actual list
             result_list = result.as_list()
             print(type(result_list), result_list) # -> <class 'list'> ['sldkj', 'lsdkj', 'sldkj']
+
+        .. versionchanged:: 3.2.0
+           New ``flatten`` argument.
         """
 
         def flattened(pr):
@@ -590,6 +593,8 @@ class ParseResults:
     def deepcopy(self) -> ParseResults:
         """
         Returns a new deep copy of a :class:`ParseResults` object.
+
+        .. versionadded:: 3.1.0
         """
         ret = self.copy()
         # replace values with copies if they are of known mutable types
@@ -807,12 +812,17 @@ class ParseResults:
             ret = cls([ret], name=name)
         return ret
 
+    # XXX: These docstrings don't show up in the documentation
+    #      (asList.__doc__ is the same as as_list.__doc__)
     asList = as_list
-    """Deprecated - use :class:`as_list`"""
+    """.. deprecated:: 3.0.0
+          use :class:`as_list`"""
     asDict = as_dict
-    """Deprecated - use :class:`as_dict`"""
+    """.. deprecated:: 3.0.0
+          use :class:`as_dict`"""
     getName = get_name
-    """Deprecated - use :class:`get_name`"""
+    """.. deprecated:: 3.0.0
+          use :class:`get_name`"""
 
 
 MutableMapping.register(ParseResults)

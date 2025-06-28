@@ -446,6 +446,7 @@ class ParserElement(ABC):
 
             LPAR, RPAR, LBRACE, RBRACE, SEMI = Suppress.using_each("(){};")
 
+        .. versionadded:: 3.1.0
         """
         yield from (cls(obj, **class_kwargs) for obj in seq)
 
@@ -1619,6 +1620,9 @@ class ParserElement(ABC):
     def __or__(self, other) -> ParserElement:
         """
         Implementation of ``|`` operator - returns :class:`MatchFirst`
+
+        .. versionchanged:: 3.1.0
+           Support ``expr | ""`` as a synonym for ``Optional(expr)``.
         """
         if other is Ellipsis:
             return _PendingSkip(self, must_skip=True)
@@ -1717,6 +1721,8 @@ class ParserElement(ABC):
         - ``expr[...: end_expr]`` and ``expr[0, ...: end_expr]`` are equivalent to ``ZeroOrMore(expr, stop_on=end_expr)``
         - ``expr[1, ...: end_expr]`` is equivalent to ``OneOrMore(expr, stop_on=end_expr)``
 
+        .. versionchanged:: 3.1.0
+           Support for slice notation.
         """
 
         stop_on_defined = False
@@ -1909,6 +1915,9 @@ class ParserElement(ABC):
         message is shown. Also note the use of :class:`set_name` to assign a human-readable name to the expression,
         which makes debugging and exception messages easier to understand - for instance, the default
         name created for the :class:`Word` expression without calling ``set_name`` is ``"W:(A-Za-z)"``.
+
+        .. versionchanged:: 3.1.0
+           ``recurse`` argument added.
         """
         if recurse:
             for expr in self.visit_all():
@@ -1953,6 +1962,9 @@ class ParserElement(ABC):
 
             integer.set_name("integer")
             integer.parse_string("ABC")  # -> Exception: Expected integer (at char 0), (line:1, col:1)
+        
+        .. versionchanged:: 3.1.0
+           Accept ``None`` as the ``name`` argument.
         """
         self.customName = name  # type: ignore[assignment]
         self.errmsg = f"Expected {str(self)}"
@@ -1992,7 +2004,11 @@ class ParserElement(ABC):
 
     def validate(self, validateTrace=None) -> None:
         """
+        .. deprecated:: 3.0.0
+           Do not use to check for left recursion.
+
         Check defined expressions for valid structure, check for infinite recursive definitions.
+
         """
         warnings.warn(
             "ParserElement.validate() is deprecated, and should not be used to check for left recursion",
@@ -2317,6 +2333,9 @@ class ParserElement(ABC):
 
         Additional diagram-formatting keyword arguments can also be included;
         see railroad.Diagram class.
+
+        .. versionchanged:: 3.1.0
+           ``embed`` argument added.
         """
 
         try:
@@ -2841,7 +2860,7 @@ class Word(Token):
     - :class:`printables` (any non-whitespace character)
 
     ``alphas``, ``nums``, and ``printables`` are also defined in several
-    Unicode sets - see :class:`pyparsing_unicode``.
+    Unicode sets - see :class:`pyparsing_unicode`.
 
     Example::
 
@@ -2859,6 +2878,12 @@ class Word(Token):
 
         # any string of non-whitespace characters, except for ','
         csv_value = Word(printables, exclude_chars=",")
+
+    :raises ValueError: If ``min`` and ``max`` are both specified
+                        and the test ``min <= max`` fails.
+
+    .. versionchanged:: 3.1.0
+       Raises :exc:`ValueError` if ``min`` > ``max``.
     """
 
     def __init__(
@@ -3080,6 +3105,11 @@ class Regex(Token):
     (such as the ``regex`` module), you can do so by building your ``Regex`` object with
     a compiled RE that was compiled using ``regex``.
 
+    The parameters ``pattern`` and ``flags`` are passed
+    to the ``re.compile()`` function as-is. See the Python
+    `re module <https://docs.python.org/3/library/re.html>`_ module for an
+    explanation of the acceptable patterns and flags.
+
     Example::
 
         realnum = Regex(r"[+-]?\d+\.\d*")
@@ -3102,11 +3132,6 @@ class Regex(Token):
         as_match: bool = False,
         **kwargs
     ) -> None:
-        """The parameters ``pattern`` and ``flags`` are passed
-        to the ``re.compile()`` function as-is. See the Python
-        `re module <https://docs.python.org/3/library/re.html>`_ module for an
-        explanation of the acceptable patterns and flags.
-        """
         super().__init__()
         asGroupList: bool = deprecate_argument(kwargs, "asGroupList", False)
         asMatch: bool = deprecate_argument(kwargs, "asMatch", False)
@@ -3291,6 +3316,9 @@ class QuotedString(Token):
     - ``convert_whitespace_escapes`` - convert escaped whitespace
       (``'\t'``, ``'\n'``, etc.) to actual whitespace
       (default= ``True``)
+
+    .. caution:: ``convert_whitespace_escapes`` has no effect if
+       ``unquote_results`` is ``False``.
 
     Example::
 
@@ -3900,6 +3928,8 @@ class Tag(Token):
 
         ['Hello,', 'World', '!']
         - enthusiastic: True
+
+    .. versionadded:: 3.1.0
     """
 
     def __init__(self, tag_name: str, value: Any = True) -> None:
@@ -5280,6 +5310,26 @@ class ZeroOrMore(_MultipleMatch):
 
 
 class DelimitedList(ParseElementEnhance):
+    """Helper to define a delimited list of expressions - the delimiter
+    defaults to ','. By default, the list elements and delimiters can
+    have intervening whitespace, and comments, but this can be
+    overridden by passing ``combine=True`` in the constructor. If
+    ``combine`` is set to ``True``, the matching tokens are
+    returned as a single token string, with the delimiters included;
+    otherwise, the matching tokens are returned as a list of tokens,
+    with the delimiters suppressed.
+
+    If ``allow_trailing_delim`` is set to True, then the list may end with
+    a delimiter.
+
+    Example::
+
+        DelimitedList(Word(alphas)).parse_string("aa,bb,cc") # -> ['aa', 'bb', 'cc']
+        DelimitedList(Word(hexnums), delim=':', combine=True).parse_string("AA:BB:CC:DD:EE") # -> ['AA:BB:CC:DD:EE']
+
+    .. versionadded:: 3.1.0
+    """
+
     def __init__(
         self,
         expr: Union[str, ParserElement],
@@ -5290,23 +5340,6 @@ class DelimitedList(ParseElementEnhance):
         *,
         allow_trailing_delim: bool = False,
     ) -> None:
-        """Helper to define a delimited list of expressions - the delimiter
-        defaults to ','. By default, the list elements and delimiters can
-        have intervening whitespace, and comments, but this can be
-        overridden by passing ``combine=True`` in the constructor. If
-        ``combine`` is set to ``True``, the matching tokens are
-        returned as a single token string, with the delimiters included;
-        otherwise, the matching tokens are returned as a list of tokens,
-        with the delimiters suppressed.
-
-        If ``allow_trailing_delim`` is set to True, then the list may end with
-        a delimiter.
-
-        Example::
-
-            DelimitedList(Word(alphas)).parse_string("aa,bb,cc") # -> ['aa', 'bb', 'cc']
-            DelimitedList(Word(hexnums), delim=':', combine=True).parse_string("AA:BB:CC:DD:EE") # -> ['AA:BB:CC:DD:EE']
-        """
         if isinstance(expr, str_type):
             expr = ParserElement._literalStringClass(expr)
         expr = typing.cast(ParserElement, expr)
@@ -6099,6 +6132,7 @@ class Suppress(TokenConverter):
         return self
 
 
+# XXX: Example needs to be re-done for updated output
 def trace_parse_action(f: ParseAction) -> ParseAction:
     """Decorator for debugging parse actions.
 
@@ -6123,6 +6157,9 @@ def trace_parse_action(f: ParseAction) -> ParseAction:
         >>entering remove_duplicate_chars(line: 'slkdjs sld sldd sdlf sdljf', 0, (['slkdjs', 'sld', 'sldd', 'sdlf', 'sdljf'], {}))
         <<leaving remove_duplicate_chars (ret: 'dfjkls')
         ['dfjkls']
+
+    .. versionchanged:: 3.1.0
+       Exception type added to output
     """
     f = _trim_arity(f)
 
@@ -6298,6 +6335,8 @@ quoted_string = Combine(
     )
 ).set_name("quoted string using single or double quotes")
 
+# XXX: Is there some way to make this show up in API docs?
+# .. versionadded:: 3.1.0
 python_quoted_string = Combine(
     (Regex(r'"""(?:[^"\\]|""(?!")|"(?!"")|\\.)*', flags=re.MULTILINE) + '"""').set_name(
         "multiline double quoted string"

@@ -19,8 +19,6 @@ Using the pyparsing module
     expressions, processing custom application language commands, or
     extracting data from formatted reports.
 
-.. sectnum::    :depth: 4
-
 .. contents::   :depth: 4
 
 Note: While this content is still valid, there are more detailed

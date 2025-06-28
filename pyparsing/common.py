@@ -414,7 +414,12 @@ class pyparsing_common:
         r"(#(?P<fragment>\S*))?" +
         r")"
     ).set_name("url")
-    """URL (http/https/ftp scheme)"""
+    """
+    URL (http/https/ftp scheme)
+    
+    .. versionchanged:: 3.1.0
+       ``url`` named group added
+    """
     # fmt: on
 
     # pre-PEP8 compatibility names

@@ -9,8 +9,6 @@ What's New in Pyparsing 3.1.0
 :abstract: This document summarizes the changes made
     in the 3.1.x releases of pyparsing.
 
-.. sectnum::    :depth: 4
-
 .. contents::   :depth: 4
 
 

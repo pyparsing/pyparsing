@@ -9,8 +9,6 @@ What's New in Pyparsing 3.2.0
 :abstract: This document summarizes the changes made
     in the 3.2.x releases of pyparsing.
 
-.. sectnum::    :depth: 4
-
 .. contents::   :depth: 4
 
 
@@ -96,7 +94,7 @@ Additional API changes
   return the parsed values in a flattened list.
 
 - Added ``indent`` and ``base_1`` arguments to ``pyparsing.testing.with_line_numbers``. When
-  using ``with_line_numbers`` inside a parse action, set ``base_1``=False, since the
+  using ``with_line_numbers`` inside a parse action, set ``base_1`` =False, since the
   reported ``loc`` value is 0-based. ``indent`` can be a leading string (typically of
   spaces or tabs) to indent the numbered string passed to ``with_line_numbers``.
 

@@ -87,6 +87,10 @@ html_theme = "classic"
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ["_static"]
 
+html_css_files = {
+    "pyparsing.css": "*",
+}
+
 # Custom sidebar templates, must be a dictionary that maps document names
 # to template names.
 #
@@ -181,4 +185,18 @@ epub_copyright = copyright
 epub_exclude_files = ["search.html"]
 
 
+# -- Domain configuration ----------------------------------------------------
+
+python_use_unqualified_type_names = True
+python_display_short_literal_types = True
+python_maximum_signature_line_length = 100
+add_module_names = False
+toc_object_entries_show_parents = 'hide'
+
 # -- Extension configuration -------------------------------------------------
+autodoc_class_signature = 'mixed'
+autodoc_mock_imports = ['railroad']
+autodoc_preserve_defaults = True
+autodoc_default_options = {
+    'class-doc-from': 'both',
+}

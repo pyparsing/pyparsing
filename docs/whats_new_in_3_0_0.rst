@@ -10,8 +10,6 @@ What's New in Pyparsing 3.0.0
     in the 3.0.0 release of pyparsing.
     (Updated to reflect changes up to 3.0.10)
 
-.. sectnum::    :depth: 4
-
 .. contents::   :depth: 4
 
 

@@ -69,8 +69,8 @@ vexing when writing text parsers:
   - embedded comments
 
 
-Getting Started -
------------------
+Getting Started
+---------------
 Visit the classes :class:`ParserElement` and :class:`ParseResults` to
 see the base classes that most other pyparsing
 classes inherit from. Use the docstrings for examples of how to:
@@ -121,7 +121,7 @@ class version_info(NamedTuple):
 
 
 __version_info__ = version_info(3, 3, 0, "final", 1)
-__version_time__ = "05 Apr 2025 07:44 UTC"
+__version_time__ = "26 Jun 2025 05:34 UTC"
 __version__ = __version_info__.__version__
 __versionTime__ = __version_time__
 __author__ = "Paul McGuire <ptmcg.gm+pyparsing@gmail.com>"
