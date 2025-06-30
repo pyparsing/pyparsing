@@ -3878,7 +3878,7 @@ class Tag(Token):
 
     Example::
 
-        end_punc = "." | ("!" + Tag("enthusiastic")))
+        end_punc = "." | ("!" + Tag("enthusiastic"))
         greeting = "Hello," + Word(alphas) + end_punc
 
         result = greeting.parse_string("Hello, World.")
