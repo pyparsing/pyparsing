@@ -909,17 +909,21 @@ class ParseResults:
             ret = cls([ret], name=name)
         return ret
 
-    # XXX: These docstrings don't show up in the documentation
-    #      (asList.__doc__ is the same as as_list.__doc__)
     asList = as_list
-    """.. deprecated:: 3.0.0
-          use :class:`as_list`"""
+    """
+    .. deprecated:: 3.0.0
+       use :class:`as_list`
+    """
     asDict = as_dict
-    """.. deprecated:: 3.0.0
-          use :class:`as_dict`"""
+    """
+    .. deprecated:: 3.0.0
+       use :class:`as_dict`
+    """
     getName = get_name
-    """.. deprecated:: 3.0.0
-          use :class:`get_name`"""
+    """
+    .. deprecated:: 3.0.0
+       use :class:`get_name`
+    """
 
 
 MutableMapping.register(ParseResults)
