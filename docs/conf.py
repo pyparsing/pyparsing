@@ -41,6 +41,7 @@ release = pyparsing_version
 # ones.
 extensions = [
     "sphinx.ext.autodoc",
+    "sphinx.ext.doctest",
     "myst_parser",
 ]
 
@@ -204,5 +205,16 @@ autodoc_preserve_defaults = True
 autodoc_default_options = {
     'class-doc-from': 'both',
 }
+
+doctest_global_setup = '''
+import string
+import pprint
+import pyparsing
+import pyparsing.common
+ppc = pyparsing.common
+ppu = pyparsing.unicode
+import pyparsing as pp
+from pyparsing import *
+'''
 
 myst_heading_anchors = 3
