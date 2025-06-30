@@ -27,43 +27,45 @@ New Features
   The ``Tag`` element also accepts an optional ``value`` parameter, defaulting to ``True``.
   See the new ``tag_metadata.py`` example in the ``examples`` directory.
 
-  Example::
+  Example:
 
-        # add tag indicating mood
-        end_punc = "." | ("!" + Tag("enthusiastic"))
-        greeting = "Hello" + Word(alphas) + end_punc
+  .. doctest::
 
-        result = greeting.parse_string("Hello World.")
-        print(result.dump())
+     >>> # add tag indicating mood
+     >>> end_punc = "." | ("!" + Tag("enthusiastic"))
+     >>> greeting = "Hello" + Word(alphas) + end_punc
 
-        result = greeting.parse_string("Hello World!")
-        print(result.dump())
+     >>> result = greeting.parse_string("Hello World.")
+     >>> print(result.dump())
+     ['Hello', 'World', '.']
 
-  prints::
-
-        ['Hello', 'World', '.']
-
-        ['Hello', 'World', '!']
-        - enthusiastic: True
+     >>> result = greeting.parse_string("Hello World!")
+     >>> print(result.dump())
+     ['Hello', 'World', '!']
+     - enthusiastic: True
 
 - Extended ``expr[]`` notation for repetition of ``expr`` to accept a
   slice, where the slice's stop value indicates a ``stop_on``
-  expression::
+  expression:
 
-      test = "BEGIN aaa bbb ccc END"
-      BEGIN, END = Keyword.using_each("BEGIN END".split())
-      body_word = Word(alphas)
+  .. testcode::
 
-      # new slice syntax support
-      expr = BEGIN + Group(body_word[...:END]) + END
-      # equivalent to
-      # expr = BEGIN + Group(ZeroOrMore(body_word, stop_on=END)) + END
+     test = "BEGIN aaa bbb ccc END"
+     BEGIN, END = Keyword.using_each("BEGIN END".split())
+     body_word = Word(alphas)
 
-      print(expr.parse_string(test))
+     # new slice syntax support
+     expr = BEGIN + Group(body_word[...:END]) + END
+     # equivalent to
+     # BEGIN + Group(ZeroOrMore(body_word, stop_on=END)) + END
 
-  Prints::
+     print(expr.parse_string(test))
 
-      ['BEGIN', ['aaa', 'bbb', 'ccc'], 'END']
+  Prints:
+
+  .. testoutput::
+
+     ['BEGIN', ['aaa', 'bbb', 'ccc'], 'END']
 
 - Added new class method ``ParserElement.using_each``, to simplify code
   that creates a sequence of ``Literals``, ``Keywords``, or other ``ParserElement``
@@ -81,7 +83,9 @@ New Features
   ``using_each`` will also accept optional keyword args, which it will
   pass through to the class initializer. Here is an expression for
   single-letter variable names that might be used in an algebraic
-  expression::
+  expression:
+
+  .. testcode::
 
       algebra_var = MatchFirst(
           Char.using_each(string.ascii_lowercase, as_keyword=True)
@@ -105,13 +109,17 @@ API Changes
 ===========
 - ``Optional(expr)`` may now be written as ``expr | ""``
 
-  This will make this code::
+  This will make this code:
 
-      "{" + Optional(Literal("A") | Literal("a")) + "}"
+  .. testcode::
 
-  writable as::
+     "{" + Optional(Literal("A") | Literal("a")) + "}"
 
-      "{" + (Literal("A") | Literal("a") | "") + "}"
+  writable as:
+
+  .. testcode::
+
+     "{" + (Literal("A") | Literal("a") | "") + "}"
 
   Some related changes implemented as part of this work:
   - ``Literal("")`` now internally generates an ``Empty()`` (and no longer raises an exception)
@@ -119,16 +127,20 @@ API Changes
 
 - Added new class property ``identifier`` to all Unicode set classes in ``pyparsing.unicode``,
   using the class's values for ``cls.identchars`` and ``cls.identbodychars``. Now Unicode-aware
-  parsers that formerly wrote::
+  parsers that formerly wrote:
 
-      ppu = pyparsing.unicode
-      ident = Word(ppu.Greek.identchars, ppu.Greek.identbodychars)
+  .. testcode::
 
-  can now write::
+     ppu = pyparsing.unicode
+     ident = Word(ppu.Greek.identchars, ppu.Greek.identbodychars)
 
-      ident = ppu.Greek.identifier
-      # or
-      # ident = ppu.Ελληνικά.identifier
+  can now write:
+
+  .. testcode::
+
+     ident = ppu.Greek.identifier
+     # or
+     ident = ppu.Ελληνικά.identifier
 
 - Added bool ``embed`` argument to ``ParserElement.create_diagram()``.
   When passed as True, the resulting diagram will omit the ``<DOCTYPE>``,
@@ -209,11 +221,14 @@ Fixed Bugs
   when specifying ``exact`` argument.
 
 - Fixed bug when parse actions returned an empty string for an expression that
-  had a results name, that the results name was not saved. That is::
+  had a results name, that the results name was not saved. That is:
 
-      expr = Literal("X").add_parse_action(lambda tokens: "")("value")
-      result = expr.parse_string("X")
-      print(result["value"])
+  .. doctest::
+
+     >>> expr = Literal("X").add_parse_action(lambda tokens: "")("value")
+     >>> result = expr.parse_string("X")
+     >>> result["value"]
+     ''
 
   would raise a ``KeyError``. Now empty strings will be saved with the associated
   results name.
