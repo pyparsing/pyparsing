@@ -224,6 +224,8 @@ autodoc_default_options = {
     'class-doc-from': 'both',
 }
 
+import doctest
+
 doctest_global_setup = '''
 import string
 import pprint
@@ -234,5 +236,12 @@ ppu = pyparsing.unicode
 import pyparsing as pp
 from pyparsing import *
 '''
+
+doctest_default_flags = (
+    doctest.ELLIPSIS
+    | doctest.IGNORE_EXCEPTION_DETAIL
+    | doctest.DONT_ACCEPT_TRUE_FOR_1
+    | doctest.REPORT_NDIFF
+)
 
 myst_heading_anchors = 3
