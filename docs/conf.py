@@ -227,6 +227,7 @@ autodoc_default_options = {
 import doctest
 
 doctest_global_setup = '''
+import math
 import string
 import pprint
 import pyparsing
