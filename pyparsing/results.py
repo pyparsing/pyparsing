@@ -467,7 +467,7 @@ class ParseResults:
 
     def extend(self, itemseq):
         """
-        Add sequence of elements to end of ``ParseResults`` list of elements.
+        Add sequence of elements to end of :class:`ParseResults` list of elements.
 
         Example:
 
@@ -574,7 +574,7 @@ class ParseResults:
     def as_list(self, *, flatten: bool = False) -> list:
         """
         Returns the parse results as a nested list of matching tokens, all converted to strings.
-        If flatten is True, all the nesting levels in the returned list are collapsed.
+        If ``flatten`` is True, all the nesting levels in the returned list are collapsed.
 
         Example:
 
@@ -662,10 +662,10 @@ class ParseResults:
 
     def copy(self) -> ParseResults:
         """
-        Returns a new shallow copy of a :class:`ParseResults` object. `ParseResults`
-        items contained within the source are shared with the copy. Use
-        :class:`ParseResults.deepcopy()` to create a copy with its own separate
-        content values.
+        Returns a new shallow copy of a :class:`ParseResults` object.
+        :class:`ParseResults` items contained within the source are
+        shared with the copy. Use :meth:`ParseResults.deepcopy` to
+        create a copy with its own separate content values.
         """
         ret = ParseResults(self._toklist)
         ret._tokdict = self._tokdict.copy()
@@ -699,8 +699,10 @@ class ParseResults:
 
     def get_name(self) -> str | None:
         r"""
-        Returns the results name for this token expression. Useful when several
-        different expressions might match at a particular location.
+        Returns the results name for this token expression.
+
+        Useful when several different expressions might match
+        at a particular location.
 
         Example:
 
@@ -885,9 +887,9 @@ class ParseResults:
     @classmethod
     def from_dict(cls, other, name=None) -> ParseResults:
         """
-        Helper classmethod to construct a ``ParseResults`` from a ``dict``, preserving the
+        Helper classmethod to construct a :class:`ParseResults` from a ``dict``, preserving the
         name-value relations as results names. If an optional ``name`` argument is
-        given, a nested ``ParseResults`` will be returned.
+        given, a nested :class:`ParseResults` will be returned.
         """
 
         def is_iterable(obj):
@@ -912,17 +914,17 @@ class ParseResults:
     asList = as_list
     """
     .. deprecated:: 3.0.0
-       use :class:`as_list`
+       use :meth:`as_list`
     """
     asDict = as_dict
     """
     .. deprecated:: 3.0.0
-       use :class:`as_dict`
+       use :meth:`as_dict`
     """
     getName = get_name
     """
     .. deprecated:: 3.0.0
-       use :class:`get_name`
+       use :meth:`get_name`
     """
 
 
