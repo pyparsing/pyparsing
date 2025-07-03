@@ -37,6 +37,14 @@ span.versionmodified {
   line-height: 130%;
 }
 
+div.versionchanged p,
+div.versionadded p {
+  padding-inline-start: 0.5rem;
+}
+span.versionmodified {
+  margin-inline-start: -0.5rem; /* Make up for padding above */
+}
+
 div.versionadded { border-color: #2d67f3; }
 div.versionadded span.added { background-color: #d1e5ff; }
 
