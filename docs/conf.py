@@ -11,6 +11,7 @@
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #
+import doctest
 import os
 import sys
 
@@ -222,9 +223,9 @@ autodoc_mock_imports = ['railroad']
 autodoc_preserve_defaults = True
 autodoc_default_options = {
     'class-doc-from': 'both',
+    'undoc-members': True,
+    'show-inheritance': True,
 }
-
-import doctest
 
 doctest_global_setup = '''
 import math
@@ -234,6 +235,7 @@ import pyparsing
 import pyparsing.common
 ppc = pyparsing.common
 ppu = pyparsing.unicode
+import pyparsing.util
 import pyparsing as pp
 from pyparsing import *
 '''
