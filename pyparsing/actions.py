@@ -60,7 +60,7 @@ def replace_with(repl_str: Any) -> ParseAction:
     """
     Helper method for common parse actions that simply return
     a literal value.  Especially useful when used with
-    :class:`transform_string<ParserElement.transform_string>` ().
+    :meth:`~ParserElement.transform_string`.
 
     Example:
 
@@ -77,10 +77,11 @@ def replace_with(repl_str: Any) -> ParseAction:
 
 
 def remove_quotes(s: str, l: int, t: ParseResults) -> Any:
-    """
+    r"""
     Helper parse action for removing quotation marks from parsed
     quoted strings, that use a single character for quoting. For parsing
-    strings that may have multiple characters, use the QuotedString class.
+    strings that may have multiple characters, use the :class:`QuotedString`
+    class.
 
     Example:
 
