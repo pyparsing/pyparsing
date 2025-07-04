@@ -4,7 +4,7 @@ pyparsing API
 
 .. automodule:: pyparsing
     :members:
-    :special-members: __add__,__sub__,__div__,__mul__,__and__,__or__,__xor__,__call__,__weakref__,__str__
+    :special-members: __add__,__sub__,__div__,__mul__,__and__,__or__,__xor__,__lshift__,__invert__,__call__,__getitem__,__str__
     :exclude-members: __init__,__repl__,parseImpl,parseImpl_regex,parseImplAsGroupList,parseImplAsMatch,postParse,preParse
 
 Module ``pyparsing.diagram``
@@ -20,4 +20,3 @@ Module ``pyparsing.diagram``
    :hidden:
 
    self
-
