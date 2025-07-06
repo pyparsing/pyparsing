@@ -1,4 +1,4 @@
-# CONTRIBUTING
+# Contributing to Pyparsing
 
 Thank you for your interest in working on pyparsing! Pyparsing has become a popular module for creating simple
 text parsing and data scraping applications. It has been incorporated in several widely-used packages, and is
