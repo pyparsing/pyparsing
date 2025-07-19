@@ -2978,6 +2978,11 @@ class Word(Token):
                 self.re_match = self.re.match
                 self.parseImpl = self.parseImpl_regex  # type: ignore[method-assign]
 
+    def copy(self) -> Word:
+        ret: Word = cast(Word, super().copy())
+        ret.parseImpl = ret.parseImpl_regex  # type: ignore[method-assign]
+        return ret
+
     def _generateDefaultName(self) -> str:
         def charsAsStr(s):
             max_repr_len = 16

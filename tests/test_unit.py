@@ -7866,6 +7866,29 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
         lit3 = lit2.ignore_whitespace().copy()
         self.assertTrue(lit3.skipWhitespace)
 
+    def testWordParseImpl(self):
+        ppc = pp.common
+        ppu = pp.unicode
+        ident_exprs = [
+            ppc.identifier,
+            pp.Word(pp.alphas),
+            pp.Literal("identifier"),
+            pp.Regex(r"[a-zA-Z_][a-zA-Z0-9_]*"),
+            ppu.BMP.identifier,
+            pp.Char(pp.alphas),
+            pp.Keyword("identifier"),
+        ]
+        for ident in ident_exprs:
+            with self.subTest(msg=f"Using expression type {type(ident).__name__}"):
+                custom_id = ident().set_name("standard identifier").copy().set_name("custom identifier")
+                with self.assertRaisesParseException(expected_msg="Expected custom identifier"):
+                    custom_id.parse_string("1", parse_all=True)
+
+        with self.subTest(msg="Using integer"):
+            custom_int = ppc.integer().set_name("standard integer").copy().set_name("custom integer")
+            with self.assertRaisesParseException(expected_msg="Expected custom integer"):
+                custom_int.parse_string("z", parse_all=True)
+
     def testLiteralVsKeyword(self):
         integer = ppc.integer
         literal_expr = integer + pp.Literal("start") + integer
