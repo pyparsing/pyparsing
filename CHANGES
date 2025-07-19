@@ -47,7 +47,8 @@ Version 3.2.4 - under development
 ---------------------------------
 - Fixed bug when using a copy of a Word expression (either by using the explicit
   copy() method, or attaching a results name), and setting a new expression name,
-  a raised ParseException still used the original expression name. Reported by
+  a raised ParseException still used the original expression name. Also affected
+  Regex expressions with as_match or as_group_list = True. Reported by
   Waqas Ilyas, in Issue #612 - good catch!
 
 - Fixed type annotation for `replace_with`, to accept `Any` type. Fixes Issue #602,

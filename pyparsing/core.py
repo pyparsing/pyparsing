@@ -3151,6 +3151,14 @@ class Regex(Token):
         if self.asMatch:
             self.parseImpl = self.parseImplAsMatch  # type: ignore [method-assign]
 
+    def copy(self):
+        ret: Regex = cast(Regex, super().copy())
+        if self.asGroupList:
+            ret.parseImpl = ret.parseImplAsGroupList
+        if self.asMatch:
+            ret.parseImpl = ret.parseImplAsMatch
+        return ret
+
     @cached_property
     def re(self) -> re.Pattern:
         if self._re:

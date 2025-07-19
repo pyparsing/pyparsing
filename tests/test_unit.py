@@ -7874,6 +7874,8 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             pp.Word(pp.alphas),
             pp.Literal("identifier"),
             pp.Regex(r"[a-zA-Z_][a-zA-Z0-9_]*"),
+            pp.Regex(r"[a-zA-Z_][a-zA-Z0-9_]*", as_match=True),
+            pp.Regex(r"[a-zA-Z_][a-zA-Z0-9_]*", as_group_list=True),
             ppu.BMP.identifier,
             pp.Char(pp.alphas),
             pp.Keyword("identifier"),
