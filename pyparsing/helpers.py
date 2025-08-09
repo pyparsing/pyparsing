@@ -254,7 +254,7 @@ def one_of(
                 patt = rf"\b(?:{patt})\b"
 
             ret = Regex(patt, flags=re_flags)
-            ret.set_name(" | ".join(re.escape(s) for s in symbols))
+            ret.set_name(" | ".join(repr(s) for s in symbols))
 
             if caseless:
                 # add parse action to return symbols as specified, not in random
@@ -817,7 +817,7 @@ def infix_notation(
     if isinstance(rpar, str):
         rpar = Suppress(rpar)
 
-    nested_expr = (lpar + ret + rpar).set_name(f"nested_{base_expr.name}")
+    nested_expr = (lpar + ret + rpar).set_name(f"nested_{base_expr.name}_expression")
 
     # if lpar and rpar are not suppressed, wrap in group
     if not (isinstance(lpar, Suppress) and isinstance(rpar, Suppress)):

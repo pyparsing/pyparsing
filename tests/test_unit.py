@@ -6613,14 +6613,14 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
         expected = map(
             str.strip,
             """\
-            a | b | c
-            d | e | f
-            {a | b | c | d | e | f}
+            'a' | 'b' | 'c'
+            'd' | 'e' | 'f'
+            {'a' | 'b' | 'c' | 'd' | 'e' | 'f'}
             W:(0-9)_expression
             + | - operations
             W:(0-9)_expression
             ?: operations
-            Forward: {a | b | c [{d | e | f : ...}]...}
+            Forward: {'a' | 'b' | 'c' [{'d' | 'e' | 'f' : ...}]...}
             int [, int]...
             (len) int...
             nested () expression
@@ -6631,13 +6631,14 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
         )
 
         for t, e in zip(tests, expected):
-            tname = str(t)
-            print(tname)
-            self.assertEqual(
-                e,
-                tname,
-                f"expression name mismatch, expected {e} got {tname}",
-            )
+            with self.subTest("set_name", t=t, e=e):
+                tname = str(t)
+                print(tname)
+                self.assertEqual(
+                    e,
+                    tname,
+                    f"expression name mismatch, expected {e} got {tname}",
+                )
 
     def testTrimArityExceptionMasking(self):
         invalid_message = "<lambda>() missing 1 required positional argument: 't'"
