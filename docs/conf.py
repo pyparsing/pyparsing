@@ -1,19 +1,20 @@
-#
-# Configuration file for the Sphinx documentation builder.
-#
+"""Configuration file for the Sphinx documentation builder."""
+
 # This file does only contain a selection of the most common options. For a
 # full list see the documentation:
 # https://www.sphinx-doc.org/en/master/usage/configuration.html
 
-# -- Path setup --------------------------------------------------------------
+# pylint: disable=all
 
+import doctest
+import os
+import sys
+
+# -- Path setup --------------------------------------------------------------
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #
-import os
-import sys
-
 sys.path.insert(0, os.path.abspath(".."))
 
 from pyparsing import __version__ as pyparsing_version
@@ -41,6 +42,7 @@ release = pyparsing_version
 # ones.
 extensions = [
     "sphinx.ext.autodoc",
+    "sphinx.ext.doctest",
     "myst_parser",
 ]
 
@@ -78,13 +80,16 @@ pygments_style = "sphinx"
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
-html_theme = "classic"
+html_theme = "alabaster"
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
 # documentation.
 #
-# html_theme_options = {}
+html_theme_options = {
+    'github_user': 'pyparsing',
+    'github_repo': 'pyparsing',
+}
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
@@ -103,7 +108,22 @@ html_css_files = {
 # default: ``['localtoc.html', 'relations.html', 'sourcelink.html',
 # 'searchbox.html']``.
 #
-# html_sidebars = {}
+html_sidebars = {
+    '**': [
+        'about.html',
+        'searchfield.html',
+        'navigation.html',
+        'relations.html',
+        'donate.html',
+    ],
+    'pyparsing': [
+        'about.html',
+        'searchfield.html',
+        'localtoc.html',
+        'relations.html',
+        'donate.html',
+    ],
+}
 
 
 # -- Options for HTMLHelp output ---------------------------------------------
@@ -203,6 +223,28 @@ autodoc_mock_imports = ['railroad']
 autodoc_preserve_defaults = True
 autodoc_default_options = {
     'class-doc-from': 'both',
+    'undoc-members': True,
+    'show-inheritance': True,
 }
+
+doctest_global_setup = '''
+import math
+import string
+import pprint
+import pyparsing
+import pyparsing.common
+ppc = pyparsing.common
+ppu = pyparsing.unicode
+import pyparsing.util
+import pyparsing as pp
+from pyparsing import *
+'''
+
+doctest_default_flags = (
+    doctest.ELLIPSIS
+    | doctest.IGNORE_EXCEPTION_DETAIL
+    | doctest.DONT_ACCEPT_TRUE_FOR_1
+    | doctest.REPORT_NDIFF
+)
 
 myst_heading_anchors = 3

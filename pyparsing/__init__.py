@@ -37,7 +37,9 @@ Here is a program to parse "Hello, World!" (or any greeting of the form
 ``"<salutation>, <addressee>!"``), built up using :class:`Word`,
 :class:`Literal`, and :class:`And` elements
 (the :meth:`'+'<ParserElement.__add__>` operators create :class:`And` expressions,
-and the strings are auto-converted to :class:`Literal` expressions)::
+and the strings are auto-converted to :class:`Literal` expressions):
+
+.. testcode::
 
     from pyparsing import Word, alphas
 
@@ -47,7 +49,9 @@ and the strings are auto-converted to :class:`Literal` expressions)::
     hello = "Hello, World!"
     print(hello, "->", greet.parse_string(hello))
 
-The program outputs the following::
+The program outputs the following:
+
+.. testoutput::
 
     Hello, World! -> ['Hello', ',', 'World', '!']
 

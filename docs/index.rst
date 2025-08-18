@@ -18,6 +18,7 @@ Release v\ |version|
    whats_new_in_3_0_0
    pyparsing
    CONTRIBUTING
+   Writing_Doctests
    CODE_OF_CONDUCT
 
 
