@@ -43,12 +43,18 @@ Required Python versions by pyparsing version
 +--------------------------------------------------+-------------------+
 
 
-Version 3.2.4 - under development
----------------------------------
-- Fixed bug when using a copy of a Word expression (either by using the explicit
-  copy() method, or attaching a results name), and setting a new expression name,
-  a raised ParseException still used the original expression name. Also affected
-  Regex expressions with as_match or as_group_list = True. Reported by
+Version 3.2.4 - September, 2025
+-------------------------------
+- Barring any catastrophic bugs in this release, this will be the last release in
+  the 3.2.x line. The next release, 3.3.0, will begin emitting `DeprecationWarnings`
+  when the pre-PEP8 methods are used (see header notes above for more information,
+  including available automation for converting any existing code using
+  pyparsing with the old names).
+
+- Fixed bug when using a copy of a `Word` expression (either by using the explicit
+  `copy()` method, or attaching a results name), and setting a new expression name,
+  a raised `ParseException` still used the original expression name. Also affected
+  `Regex` expressions with `as_match` or `as_group_list` = True. Reported by
   Waqas Ilyas, in Issue #612 - good catch!
 
 - Fixed type annotation for `replace_with`, to accept `Any` type. Fixes Issue #602,
@@ -57,11 +63,11 @@ Version 3.2.4 - under development
 - Added locking around potential race condition in `ParserElement.reset_cache`, as
   well as other cache-related methods. Fixes Issue #604, reported by CarlosDescalziIM.
 
-- Some minor reformatting of auto-generated expression names in `one_of` and
-  `infix_notation`, for improved railroad diagram labeling.
-
 - Substantial update to docstrings and doc generation in preparation for 3.3.0,
   great effort by FeRD, thanks!
+
+- Notable addition by FeRD to convert docstring examples to work with doctest! This
+  was long overdue, thanks so much!
 
 
 Version 3.2.3 - March, 2025
