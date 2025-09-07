@@ -3990,8 +3990,8 @@ class LineStart(PositionToken):
         test = '''\
         AAA this line
         AAA and this line
-          AAA but not this one
-        B AAA and definitely not this one
+          AAA and even this line
+        B AAA but definitely not this line
         '''
 
         for t in (LineStart() + 'AAA' + rest_of_line).search_string(test):
@@ -4003,6 +4003,7 @@ class LineStart(PositionToken):
 
         ['AAA', ' this line']
         ['AAA', ' and this line']
+        ['AAA', ' and even this line']
 
     """
 
