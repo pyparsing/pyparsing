@@ -313,6 +313,7 @@ from pyparsing.actions import (
     matchOnlyAtCol,
 )
 from pyparsing.helpers import make_html_tags
+from pyparsing.results import ParseResults
 
 
 def test_replaceWith_emits_DeprecationWarning():
@@ -363,3 +364,12 @@ def test_matchOnlyAtCol_emits_DeprecationWarning():
     # number starts at column 3 (1-based): two leading spaces
     res = parser.parse_string("  123")
     assert res[0] == "123"
+
+
+def test_ParseResults_asList_kwarg_emits_DeprecationWarning():
+    # Using deprecated 'asList' kwarg in ParseResults constructor should warn
+    with pytest.warns(DeprecationWarning, match="'asList' argument is deprecated, use 'as_list'"):
+        pr = ParseResults([["a", "b"]], "items", asList=True)
+    # Ensure behavior: named entry is preserved as a nested ParseResults containing the list
+    assert isinstance(pr["items"], ParseResults)
+    assert pr["items"].as_list() == ["a", "b"]
