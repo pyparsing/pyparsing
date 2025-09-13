@@ -2,6 +2,9 @@
 from .core import *
 from .helpers import DelimitedList, any_open_tag, any_close_tag
 from datetime import datetime
+import sys
+
+PY_310 = sys.version_info >= (3, 10)
 
 
 # some other useful expressions - using lower-case class name since we are really using this as a namespace
@@ -198,7 +201,10 @@ class pyparsing_common:
         """
         return [float(tt) for tt in t]
 
-    integer = Word(nums).set_name("integer").set_parse_action(convert_to_integer)
+    integer = Word(nums).set_name("integer").set_parse_action(
+        convert_to_integer if PY_310 else
+        lambda t: [int(tt) for tt in t]  # type: ignore[misc]
+    )
     """expression that parses an unsigned integer, returns an int"""
 
     hex_integer = (
@@ -209,14 +215,23 @@ class pyparsing_common:
     signed_integer = (
         Regex(r"[+-]?\d+")
         .set_name("signed integer")
-        .set_parse_action(convert_to_integer)
+        .set_parse_action(
+            convert_to_integer if PY_310 else
+            lambda t: [int(tt) for tt in t]  # type: ignore[misc]
+        )
     )
     """expression that parses an integer with optional leading sign, returns an int"""
 
     fraction = (
-        signed_integer().set_parse_action(convert_to_float)
+        signed_integer().set_parse_action(
+            convert_to_float if PY_310 else
+            lambda t: [float(tt) for tt in t]  # type: ignore[misc]
+        )
         + "/"
-        + signed_integer().set_parse_action(convert_to_float)
+        + signed_integer().set_parse_action(
+            convert_to_float if PY_310 else
+            lambda t: [float(tt) for tt in t]  # type: ignore[misc]
+    )
     ).set_name("fraction")
     """fractional expression of an integer divided by an integer, returns a float"""
     fraction.add_parse_action(lambda tt: tt[0] / tt[-1])
@@ -230,14 +245,20 @@ class pyparsing_common:
     real = (
         Regex(r"[+-]?(?:\d+\.\d*|\.\d+)")
         .set_name("real number")
-        .set_parse_action(convert_to_float)
+        .set_parse_action(
+            convert_to_float if PY_310 else
+            lambda t: [float(tt) for tt in t]  # type: ignore[misc]
+        )
     )
     """expression that parses a floating point number and returns a float"""
 
     sci_real = (
         Regex(r"[+-]?(?:\d+(?:[eE][+-]?\d+)|(?:\d+\.\d*|\.\d+)(?:[eE][+-]?\d+)?)")
         .set_name("real number with scientific notation")
-        .set_parse_action(convert_to_float)
+        .set_parse_action(
+            convert_to_float if PY_310 else
+            lambda t: [float(tt) for tt in t]  # type: ignore[misc]
+        )
     )
     """expression that parses a floating point number with optional
     scientific notation and returns a float"""
@@ -249,14 +270,20 @@ class pyparsing_common:
     fnumber = (
         Regex(r"[+-]?\d+\.?\d*(?:[eE][+-]?\d+)?")
         .set_name("fnumber")
-        .set_parse_action(convert_to_float)
+        .set_parse_action(
+            convert_to_float if PY_310 else
+            lambda t: [float(tt) for tt in t]  # type: ignore[misc]
+        )
     )
     """any int or real number, returned as float"""
 
     ieee_float = (
         Regex(r"(?i:[+-]?(?:(?:\d+\.?\d*(?:e[+-]?\d+)?)|nan|inf(?:inity)?))")
         .set_name("ieee_float")
-        .set_parse_action(convert_to_float)
+        .set_parse_action(
+            convert_to_float if PY_310 else
+            lambda t: [float(tt) for tt in t]  # type: ignore[misc]
+        )
     )
     """any floating-point literal (int, real number, infinity, or NaN), returned as float"""
 
