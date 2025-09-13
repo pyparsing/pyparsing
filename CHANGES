@@ -50,6 +50,18 @@ Version 3.3.0 - under development
   (like `parseString`, `setResultsName`, etc.), you will start to see `DeprecationWarning`
   messages.
 
+- Deprecated `indentedBlock`, when converted using the `cvt_pyparsing_pep8_names`
+  utility, will emit UserWarnings that additional code changes will be required.
+  This is because the new `IndentedBlock` class no longer requires the calling code
+  to supply an indent stack.
+
+- Deprecated `locatedExpr`, when converted using the `cvt_pyparsing_pep8_names`
+  utility, will emit UserWarnings that additional code changes may be required.
+  The new `Located` class removes the extra grouping level of the parsed values.
+  (If the original `locatedExpr` parser was defined with a results name, then
+  the extra grouping is retained, so that the results name nesting works properly;
+  in this case, no code changes would be required.)
+
 
 Version 3.2.4 - September, 2025
 -------------------------------
