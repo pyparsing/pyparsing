@@ -204,7 +204,7 @@ class ParseResults:
     def __init__(
         self, toklist=None, name=None, aslist=True, modal=True, isinstance=isinstance, **kwargs
     ) -> None:
-        asList = deprecate_argument(kwargs, "asList", True)
+        asList = deprecate_argument(kwargs, "asList", True, new_name="aslist")
 
         asList = asList and aslist
         self._tokdict: dict[str, _ParseResultsWithOffset]
@@ -909,7 +909,7 @@ class ParseResults:
             if isinstance(v, Mapping):
                 ret += cls.from_dict(v, name=k)
             else:
-                ret += cls([v], name=k, asList=is_iterable(v))
+                ret += cls([v], name=k, aslist=is_iterable(v))
         if name is not None:
             ret = cls([ret], name=name)
         return ret
