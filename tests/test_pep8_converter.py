@@ -1,18 +1,20 @@
 from pyparsing.tools.cvt_pyparsing_pep8_names import (
-    pep8_converter, pre_pep8_arg_names, pre_pep8_method_names, special_changes
+    pep8_converter, pre_pep8_arg_names, pre_pep8_method_names, special_changes, special_changes_arg_names
 )
 import pytest
 
 
 def test_conversion_composed():
-    orig = ("\n".join(
-        f"{method_name}()"
-        for method_name in sorted(pre_pep8_method_names) + list(special_changes)
-    ) + "\n"
-    + "\n".join(
-        f"fn(100, {arg_name}=True)"
-        for arg_name in sorted(pre_pep8_arg_names)
-    ))
+    orig = (
+        "\n".join(
+            f"{method_name}()"
+            for method_name in sorted(pre_pep8_method_names) + list(special_changes)
+        ) + "\n"
+        + "\n".join(
+            f"fn(100, {arg_name}=True)"
+            for arg_name in sorted(pre_pep8_arg_names) + list(special_changes_arg_names)
+        )
+    )
     expected = """\
 add_condition()
 add_parse_action()
@@ -40,14 +42,12 @@ enable_packrat()
 get_name()
 html_comment()
 ignore_whitespace()
-indented_block()
 infix_notation()
 inline_literals_using()
 java_style_comment()
 leave_whitespace()
 line_end()
 line_start()
-located_expr()
 match_only_at_col()
 match_previous_expr()
 match_previous_literal()
@@ -95,6 +95,8 @@ make_html_tags()
 make_xml_tags()
 common_html_entity()
 strip_html_tags()
+IndentedBlock()
+Located()
 fn(100, as_group_list=True)
 fn(100, as_keyword=True)
 fn(100, as_match=True)
@@ -128,7 +130,9 @@ fn(100, quote_char=True)
 fn(100, stop_on=True)
 fn(100, unquote_results=True)
 fn(100, use_regex=True)
-fn(100, word_chars=True)"""
+fn(100, word_chars=True)
+fn(100, aslist=True)
+""".rstrip()
     converted = pep8_converter.transform_string(orig)
     assert converted == expected
 
