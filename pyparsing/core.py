@@ -2449,7 +2449,7 @@ class ParserElement(ABC):
             try:
                 # convert newline marks to actual newlines, and strip leading BOM if present
                 t = NL.transform_string(t.lstrip(BOM))
-                result = self.parse_string(t, parse_all=parseAll)
+                result = self.parse_string(t, parse_all=parse_all)
             except ParseBaseException as pe:
                 fatal = "(FATAL) " if isinstance(pe, ParseFatalException) else ""
                 out.append(pe.explain())
@@ -2830,7 +2830,11 @@ class Keyword(Token):
         if caseless:
             self.caselessmatch = match_string.upper()
             identChars = identChars.upper()
-        self.identChars = set(identChars)
+        self.ident_chars = set(identChars)
+
+    @property
+    def identChars(self):
+        return self.ident_chars
 
     def _generateDefaultName(self) -> str:
         return repr(self.match)
@@ -3164,7 +3168,7 @@ class Word(Token):
             initChars_set -= excludeChars_set
             if bodyChars:
                 bodyChars = "".join(set(bodyChars) - excludeChars_set)
-        self.initChars = initChars_set
+        self.init_chars = initChars_set
         self.initCharsOrig = "".join(sorted(initChars_set))
 
         if bodyChars:
@@ -3250,6 +3254,10 @@ class Word(Token):
             else:
                 self.re_match = self.re.match
                 self.parseImpl = self.parseImpl_regex  # type: ignore[method-assign]
+
+    @property
+    def initChars(self):
+        return self.init_chars
 
     def copy(self) -> Word:
         ret: Word = cast(Word, super().copy())
@@ -5494,11 +5502,13 @@ class _MultipleMatch(ParseElementEnhance):
             ender = self._literalStringClass(ender)
         self.stopOn(ender)
 
-    def stopOn(self, ender) -> ParserElement:
+    def stop_on(self, ender) -> ParserElement:
         if isinstance(ender, str_type):
             ender = self._literalStringClass(ender)
         self.not_ender = ~ender if ender is not None else None
         return self
+
+    stopOn = stop_on
 
     def parseImpl(self, instring, loc, do_actions=True) -> ParseImplReturnType:
         self_expr_parse = self.expr._parse
