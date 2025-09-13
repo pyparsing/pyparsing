@@ -1,7 +1,7 @@
 import pytest
 import warnings
 
-from pyparsing import Word, nums, ParserElement, original_text_for
+from pyparsing import Word, nums, ParserElement, original_text_for, sgl_quoted_string
 
 
 def test_parseString_emits_DeprecationWarning_simple():
@@ -138,7 +138,7 @@ def test_runTests_emits_DeprecationWarning(capsys):
 
 
 # --- helpers.py compatibility function aliases ---
-from pyparsing import alphas, alphanums
+from pyparsing import alphas
 from pyparsing.helpers import (
     countedArray,
     matchPreviousLiteral,
@@ -301,3 +301,65 @@ def test_nested_expr_ignoreExpr_kwarg_emits_DeprecationWarning():
         expr = nested_expr_pep8("(", ")", content=Word(alphas), ignoreExpr=None)
         res = expr.parse_string("(a(b)c)")
         assert res.as_list() == [["a", ["b"], "c"]]
+
+
+# --- actions.py compatibility function aliases ---
+from pyparsing import quoted_string
+from pyparsing.actions import (
+    replaceWith,
+    removeQuotes,
+    withAttribute,
+    withClass,
+    matchOnlyAtCol,
+)
+from pyparsing.helpers import make_html_tags
+
+
+def test_replaceWith_emits_DeprecationWarning():
+    # replaceWith should warn and still function as a parse action factory
+    from pyparsing import Word, nums
+
+    parser = Word(nums)
+    with pytest.warns(DeprecationWarning, match="'replaceWith' deprecated - use 'replace_with'"):
+        parser = parser.set_parse_action(replaceWith(0))
+    assert parser.parse_string("123").as_list() == [0]
+
+
+def test_removeQuotes_emits_DeprecationWarning():
+    # removeQuotes should warn and strip quotes from quoted_string
+    from pyparsing import Regex
+    qs = Regex(r"'[^']*'")
+    with pytest.warns(DeprecationWarning, match="'removeQuotes' deprecated - use 'remove_quotes'"):
+        parser = qs.set_parse_action(removeQuotes)
+        res = parser.parse_string("'abc'")
+    assert res[0] == "abc"
+
+
+def test_withAttribute_emits_DeprecationWarning():
+    # withAttribute should warn and validate attribute presence/value
+    div, div_end = make_html_tags("div")
+    with pytest.warns(DeprecationWarning, match="'withAttribute' deprecated - use 'with_attribute'"):
+        start = div().set_parse_action(withAttribute(type="grid"))
+    # Parse succeeds when attribute matches
+    res = start.parse_string('<div type="grid">')
+    assert res.type == "grid"
+
+
+def test_withClass_emits_DeprecationWarning():
+    div, _ = make_html_tags("div")
+    with pytest.warns(DeprecationWarning, match="'withClass' deprecated - use 'with_class'"):
+        start = div().set_parse_action(withClass("grid"))
+    res = start.parse_string('<div class="grid">')
+    assert res.tag == "div"
+    assert res["class"] == "grid"
+
+
+def test_matchOnlyAtCol_emits_DeprecationWarning():
+    from pyparsing import Word, nums
+
+    parser = Word(nums)
+    with pytest.warns(DeprecationWarning, match="'matchOnlyAtCol' deprecated - use 'match_only_at_col'"):
+        parser.add_parse_action(matchOnlyAtCol(3))
+    # number starts at column 3 (1-based): two leading spaces
+    res = parser.parse_string("  123")
+    assert res[0] == "123"
