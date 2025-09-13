@@ -123,7 +123,7 @@ def match_previous_literal(expr: ParserElement) -> ParserElement:
         tflat = _flatten(t.as_list())
         rep << And(Literal(tt) for tt in tflat)
 
-    expr.add_parse_action(copy_token_to_repeater, callDuringTry=True)
+    expr.add_parse_action(copy_token_to_repeater, call_during_try=True)
     rep.set_name("(prev) " + str(expr))
     return rep
 
@@ -159,9 +159,9 @@ def match_previous_expr(expr: ParserElement) -> ParserElement:
                     s, l, f"Expected {matchTokens}, found{theseTokens}"
                 )
 
-        rep.set_parse_action(must_match_these_tokens, callDuringTry=True)
+        rep.set_parse_action(must_match_these_tokens, call_during_try=True)
 
-    expr.add_parse_action(copy_token_to_repeater, callDuringTry=True)
+    expr.add_parse_action(copy_token_to_repeater, call_during_try=True)
     rep.set_name("(prev) " + str(expr))
     return rep
 

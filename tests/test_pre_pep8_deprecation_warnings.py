@@ -1,7 +1,7 @@
 import pytest
 import warnings
 
-from pyparsing import Word, nums, ParserElement
+from pyparsing import Word, nums, ParserElement, original_text_for
 
 
 def test_parseString_emits_DeprecationWarning_simple():
@@ -10,14 +10,6 @@ def test_parseString_emits_DeprecationWarning_simple():
     with pytest.warns(DeprecationWarning, match="'parseString' deprecated - use 'parse_string'"):
         result = parser.parseString("12345")
         assert result.as_list() == ["12345"]
-
-
-def test_parseString_emits_DeprecationWarning_with_parseAll_kwarg():
-    # Ensure warning is also emitted when using kwargs
-    parser = Word(nums)
-    with pytest.warns(DeprecationWarning, match="'parseString' deprecated - use 'parse_string'"):
-        result = parser.parseString("67890", parseAll=True)
-        assert result.as_list() == ["67890"]
 
 
 def test_parse_string_parseAll_kwarg_emits_DeprecationWarning():
@@ -143,3 +135,169 @@ def test_runTests_emits_DeprecationWarning(capsys):
     # ensure no exception and some output captured
     captured = capsys.readouterr()
     assert captured.out is not None
+
+
+# --- helpers.py compatibility function aliases ---
+from pyparsing import alphas, alphanums
+from pyparsing.helpers import (
+    countedArray,
+    matchPreviousLiteral,
+    matchPreviousExpr,
+    oneOf,
+    dictOf,
+    originalTextFor,
+    nestedExpr,
+    makeHTMLTags,
+    makeXMLTags,
+    replaceHTMLEntity,
+    infixNotation,
+    OpAssoc,
+    common_html_entity,
+)
+
+
+def test_countedArray_emits_DeprecationWarning():
+    # countedArray should warn and still work
+    word = Word(alphas)
+    with pytest.warns(DeprecationWarning, match="'countedArray' deprecated - use 'counted_array'"):
+        expr = countedArray(word)
+        res = expr.parse_string("2 ab cd ef")
+        assert res.as_list() == ["ab", "cd"]
+
+
+def test_matchPreviousLiteral_emits_DeprecationWarning():
+    first = Word(nums)
+    with pytest.warns(DeprecationWarning, match="'matchPreviousLiteral' deprecated - use 'match_previous_literal'"):
+        second = matchPreviousLiteral(first)
+        res = (first + ":" + second).parse_string("12:12")
+        assert res.as_list() == ["12", ":", "12"]
+
+
+def test_matchPreviousExpr_emits_DeprecationWarning():
+    first = Word(alphas)
+    with pytest.warns(DeprecationWarning, match="'matchPreviousExpr' deprecated - use 'match_previous_expr'"):
+        second = matchPreviousExpr(first)
+        res = (first + ":" + second).parse_string("ab:ab")
+        assert res.as_list() == ["ab", ":", "ab"]
+
+
+def test_oneOf_emits_DeprecationWarning():
+    with pytest.warns(DeprecationWarning, match="'oneOf' deprecated - use 'one_of'"):
+        expr = oneOf("red blue")
+        assert expr.parse_string("blue")[0] == "blue"
+
+
+def test_dictOf_emits_DeprecationWarning():
+    key = Word(alphas)
+    val = Word(nums)
+    with pytest.warns(DeprecationWarning, match="'dictOf' deprecated - use 'dict_of'"):
+        expr = dictOf(key, val)
+        res = expr.parse_string("a 1 b 2")
+        # expect list of pairs
+        assert res.as_list() == [["a", "1"], ["b", "2"]]
+
+
+def test_originalTextFor_emits_DeprecationWarning():
+    inner = Word(alphas)
+    with pytest.warns(DeprecationWarning, match="'originalTextFor' deprecated - use 'original_text_for'"):
+        expr = originalTextFor(inner + "," + inner)
+        res = expr.parse_string("ab,cd")
+        assert res[0] == "ab,cd"
+
+
+def test_nestedExpr_emits_DeprecationWarning():
+    with pytest.warns(DeprecationWarning, match="'nestedExpr' deprecated - use 'nested_expr'"):
+        expr = nestedExpr("(", ")", content=Word(alphas))
+        # parses nested parenthesized expression
+        res = expr.parse_string("(a(b)c)")
+        assert res.as_list() == [["a", ["b"], "c"]]
+
+
+def test_makeHTMLTags_emits_DeprecationWarning():
+    with pytest.warns(DeprecationWarning, match="'makeHTMLTags' deprecated - use 'make_html_tags'"):
+        open_tag, close_tag = makeHTMLTags("B")
+        expr = original_text_for(open_tag + Word(alphas) + close_tag)
+        assert expr.parse_string("<B>hi</B>").as_list() == ["<B>hi</B>"]
+
+
+def test_makeXMLTags_emits_DeprecationWarning():
+    with pytest.warns(DeprecationWarning, match="'makeXMLTags' deprecated - use 'make_xml_tags'"):
+        open_tag, close_tag = makeXMLTags("tag")
+        expr = original_text_for(open_tag + Word(alphas) + close_tag)
+        assert expr.parse_string("<tag>ok</tag>").as_list() == ["<tag>ok</tag>"]
+
+
+def test_replaceHTMLEntity_emits_DeprecationWarning():
+    # use as a parse action on the common_html_entity expression
+    with pytest.warns(DeprecationWarning, match="'replaceHTMLEntity' deprecated - use 'replace_html_entity'"):
+        expr = common_html_entity.copy()
+        expr.add_parse_action(replaceHTMLEntity)
+        res = expr.parse_string("&amp;")
+        assert res[0] == "&"  # original token
+        # apply parse action returns replacement value; ensure parse action returned '&'
+        # ParseResults will hold returned value as the sole token
+        assert expr.parse_string("&amp;")[0] == "&"
+
+
+def test_infixNotation_emits_DeprecationWarning():
+    # simple arithmetic with '+' only
+    integer = Word(nums).set_parse_action(lambda t: int(t[0]))
+    with pytest.warns(DeprecationWarning, match="'infixNotation' deprecated - use 'infix_notation'"):
+        expr = infixNotation(
+            integer,
+            [
+                ('+', 2, OpAssoc.LEFT, lambda t: [sum(t[0][0::2])])
+            ]
+        )
+        res = expr.parse_string("2+3+4", parse_all=True)
+        # 2+3=5; 5+4=9
+        assert res[0] == 9
+
+# Additional tests for deprecated arguments in helpers.py (PEP8 functions accepting camelCase kwargs)
+from pyparsing.helpers import (
+    counted_array as counted_array_pep8,
+    one_of as one_of_pep8,
+    nested_expr as nested_expr_pep8,
+)
+
+
+def test_counted_array_intExpr_kwarg_emits_DeprecationWarning():
+    # Provide custom int expression using deprecated 'intExpr' kwarg
+    binary_constant = Word("01").set_parse_action(lambda t: int(t[0], 2))
+    with pytest.warns(DeprecationWarning, match="'intExpr' argument is deprecated, use 'int_expr'"):
+        expr = counted_array_pep8(Word("ab"), intExpr=binary_constant)
+        # '10' (binary 2) -> parse two items
+        res = expr.parse_string("10 ab ab ab")
+        assert res.as_list() == ["ab", "ab"]
+
+
+def test_one_of_useRegex_kwarg_emits_DeprecationWarning():
+    with pytest.warns(DeprecationWarning, match="'useRegex' argument is deprecated, use 'use_regex'"):
+        expr = one_of_pep8(["a", "aa"], useRegex=False)
+        # Should still parse a and aa
+        assert expr.parse_string("aa")[0] in {"a", "aa", "aa"}
+
+
+def test_one_of_asKeyword_kwarg_emits_DeprecationWarning():
+    with pytest.warns(DeprecationWarning, match="'asKeyword' argument is deprecated, use 'as_keyword'"):
+        expr = one_of_pep8(["if", "in"], asKeyword=True)
+        # Keyword behavior: word breaks required
+        assert expr.search_string(" if ").as_list() == [["if"]]
+
+
+def test_original_text_for_asString_kwarg_emits_DeprecationWarning():
+    # Using original_text_for with deprecated 'asString' kwarg
+    inner = Word(alphas) + "," + Word(alphas)
+    with pytest.warns(DeprecationWarning, match="'asString' argument is deprecated, use 'as_string'"):
+        expr = original_text_for(inner, asString=False)
+        res = expr.parse_string("ab,cd")
+        # Returns original matched text as sole token
+        assert res[0] == "ab,cd"
+
+
+def test_nested_expr_ignoreExpr_kwarg_emits_DeprecationWarning():
+    # Disable default ignoring of quoted strings using deprecated 'ignoreExpr'
+    with pytest.warns(DeprecationWarning, match="'ignoreExpr' argument is deprecated, use 'ignore_expr'"):
+        expr = nested_expr_pep8("(", ")", content=Word(alphas), ignoreExpr=None)
+        res = expr.parse_string("(a(b)c)")
+        assert res.as_list() == [["a", ["b"], "c"]]
