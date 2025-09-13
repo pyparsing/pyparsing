@@ -36,7 +36,7 @@ Required Python versions by pyparsing version
 | pyparsing version                                | Required Python   |
 +==================================================+===================+
 | 3.3.0 and later                                  | 3.9 or later      |
-| 3.2.0 - 3.2.3                                    | 3.9 or later      |
+| 3.2.0 - 3.2.4                                    | 3.9 or later      |
 | 3.0.8 - 3.1.4                                    | 3.6.8 or later    |
 | 3.0.0 - 3.0.7 (these versions are discouraged)   | 3.6 or later      |
 | 2.4.7                                            | 2.7 or later      |
@@ -51,8 +51,20 @@ Version 3.3.0 - under development
   messages.
 
 
-Version 3.2.4 - under development
----------------------------------
+Version 3.2.4 - September, 2025
+-------------------------------
+- Barring any catastrophic bugs in this release, this will be the last release in
+  the 3.2.x line. The next release, 3.3.0, will begin emitting `DeprecationWarnings`
+  when the pre-PEP8 methods are used (see header notes above for more information,
+  including available automation for converting any existing code using
+  pyparsing with the old names).
+
+- Fixed bug when using a copy of a `Word` expression (either by using the explicit
+  `copy()` method, or attaching a results name), and setting a new expression name,
+  a raised `ParseException` still used the original expression name. Also affected
+  `Regex` expressions with `as_match` or `as_group_list` = True. Reported by
+  Waqas Ilyas, in Issue #612 - good catch!
+
 - Fixed type annotation for `replace_with`, to accept `Any` type. Fixes Issue #602,
   reported by esquonk.
 
@@ -61,6 +73,9 @@ Version 3.2.4 - under development
 
 - Substantial update to docstrings and doc generation in preparation for 3.3.0,
   great effort by FeRD, thanks!
+
+- Notable addition by FeRD to convert docstring examples to work with doctest! This
+  was long overdue, thanks so much!
 
 
 Version 3.2.3 - March, 2025
@@ -276,7 +291,7 @@ Version 3.1.3 - August, 2024
   Example:
 
         # add tag indicating mood
-        end_punc = "." | ("!" + Tag("enthusiastic")))
+        end_punc = "." | ("!" + Tag("enthusiastic"))
         greeting = "Hello" + Word(alphas) + end_punc
 
         result = greeting.parse_string("Hello World.")
