@@ -368,7 +368,7 @@ def test_matchOnlyAtCol_emits_DeprecationWarning():
 
 def test_ParseResults_asList_kwarg_emits_DeprecationWarning():
     # Using deprecated 'asList' kwarg in ParseResults constructor should warn
-    with pytest.warns(DeprecationWarning, match="'asList' argument is deprecated, use 'as_list'"):
+    with pytest.warns(DeprecationWarning, match="'asList' argument is deprecated, use 'aslist'"):
         pr = ParseResults([["a", "b"]], "items", asList=True)
     # Ensure behavior: named entry is preserved as a nested ParseResults containing the list
     assert isinstance(pr["items"], ParseResults)
