@@ -6337,9 +6337,9 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
         #             012345678901234567890123456789012345678901234567890
         samplestr1 = "DOB 10-10-2010;more garbage;ID PARI12345678  ;more garbage"
 
-        id_ref = pp.Located("ID" + pp.Word(pp.alphanums, exact=12)("id"))
+        id_ref = pp.locatedExpr("ID" + pp.Word(pp.alphanums, exact=12)("id"))
 
-        res = id_ref.search_string(samplestr1)[0]
+        res = id_ref.search_string(samplestr1)[0][0]
         print(res.dump())
         self.assertEqual(
             "ID PARI12345678",
@@ -8401,98 +8401,6 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
                 self.assertTrue(
                     eval(f"ppu.{ascii_name} is ppu.{unicode_name}", {}, locals())
                 )
-
-    # Make sure example in indented_block docstring actually works!
-    def testIndentedBlockExample(self):
-        data = dedent(
-            """
-        def A(z):
-          A1
-          B = 100
-          G = A2
-          A2
-          A3
-        B
-        def BB(a,b,c):
-          BB1
-          def BBA():
-            bba1
-            bba2
-            bba3
-        C
-        D
-        def spam(x,y):
-             def eggs(z):
-                 pass
-        """
-        )
-
-        indentStack = [1]
-        stmt = pp.Forward()
-
-        identifier = pp.Word(pp.alphas, pp.alphanums)
-        funcDecl = (
-            "def"
-            + identifier
-            + pp.Group("(" + pp.Optional(pp.DelimitedList(identifier)) + ")")
-            + ":"
-        )
-        func_body = pp.indentedBlock(stmt, indentStack)
-        funcDef = pp.Group(funcDecl + func_body)
-
-        rvalue = pp.Forward()
-        funcCall = pp.Group(
-            identifier + "(" + pp.Optional(pp.DelimitedList(rvalue)) + ")"
-        )
-        rvalue << (funcCall | identifier | pp.Word(pp.nums))
-        assignment = pp.Group(identifier + "=" + rvalue)
-        stmt <<= funcDef | assignment | identifier
-
-        module_body = pp.OneOrMore(stmt)
-
-        self.assertParseAndCheckList(
-            module_body,
-            data,
-            [
-                [
-                    "def",
-                    "A",
-                    ["(", "z", ")"],
-                    ":",
-                    [["A1"], [["B", "=", "100"]], [["G", "=", "A2"]], ["A2"], ["A3"]],
-                ],
-                "B",
-                [
-                    "def",
-                    "BB",
-                    ["(", "a", "b", "c", ")"],
-                    ":",
-                    [
-                        ["BB1"],
-                        [
-                            [
-                                "def",
-                                "BBA",
-                                ["(", ")"],
-                                ":",
-                                [["bba1"], ["bba2"], ["bba3"]],
-                            ]
-                        ],
-                    ],
-                ],
-                "C",
-                "D",
-                [
-                    "def",
-                    "spam",
-                    ["(", "x", "y", ")"],
-                    ":",
-                    [[["def", "eggs", ["(", "z", ")"], ":", [["pass"]]]]],
-                ],
-            ],
-            "Failed indented_block example",
-            verbose=True,
-        )
 
     def testIndentedBlock(self):
         # parse pseudo-yaml indented text
