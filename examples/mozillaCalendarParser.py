@@ -37,18 +37,18 @@ ALARM = Literal("VALARM").suppress()
 
 # TOKENS
 
-CALPROP = one_of("VERSION PRODID METHOD", asKeyword=True)
-ALMPROP = one_of("TRIGGER", asKeyword=True)
+CALPROP = one_of("VERSION PRODID METHOD", as_keyword=True)
+ALMPROP = one_of("TRIGGER", as_keyword=True)
 EVTPROP = one_of(
     """X-MOZILLA-RECUR-DEFAULT-INTERVAL
        X-MOZILLA-RECUR-DEFAULT-UNITS
-       UID DTSTAMP LAST-MODIFIED X RRULE EXDATE""", asKeyword=True
+       UID DTSTAMP LAST-MODIFIED X RRULE EXDATE""", as_keyword=True
 )
 
 valuestr = Word(valstr).set_name("valuestr")
 propval = valuestr
 typeval = valuestr
-typename = one_of("VALUE MEMBER FREQ UNTIL INTERVAL", asKeyword=True)
+typename = one_of("VALUE MEMBER FREQ UNTIL INTERVAL", as_keyword=True)
 
 proptype = Group(SEMI + typename + EQ + typeval).set_name("proptype").suppress()
 

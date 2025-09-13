@@ -46,7 +46,7 @@ WHILE, IF, PRINT, PUTC, ELSE = pp.Keyword.using_each(
 any_keyword = pp.MatchFirst((WHILE, IF, PRINT, PUTC, ELSE))
 identifier = pp.Combine(~any_keyword + pp.pyparsing_common.identifier.set_name("ident_name")).set_name("identifier")
 integer = pp.pyparsing_common.integer
-string = pp.QuotedString('"', convertWhitespaceEscapes=False).set_name("quoted string")
+string = pp.QuotedString('"', convert_whitespace_escapes=False).set_name("quoted string")
 char = pp.Regex(r"'\\?.'")
 
 # fmt: off

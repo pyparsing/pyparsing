@@ -11,7 +11,7 @@ pp.ParserElement.enable_packrat()
 
 EQ, LPAR, RPAR, COLON, COMMA = pp.Suppress.using_each("=():,")
 EXCL, DOLLAR = pp.Literal.using_each("!$")
-sheet_ref = pp.Word(pp.alphas, pp.alphanums) | pp.QuotedString("'", escQuote="''")
+sheet_ref = pp.Word(pp.alphas, pp.alphanums) | pp.QuotedString("'", esc_quote="''")
 col_ref = pp.Opt(DOLLAR) + pp.Word(pp.alphas, max=2)
 row_ref = pp.Opt(DOLLAR) + pp.Word(pp.nums)
 cell_ref = pp.Combine(

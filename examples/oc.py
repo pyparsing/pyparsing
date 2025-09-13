@@ -201,7 +201,7 @@ def main():
     }
     """
 
-    ast = program.parse_string(test, parseAll=True)
+    ast = program.parse_string(test, parse_all=True)
     ast.pprint()
 
 
