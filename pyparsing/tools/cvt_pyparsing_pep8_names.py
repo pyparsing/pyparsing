@@ -53,7 +53,7 @@ def update_special_changes(s, l, t):
         warnings.warn(
             "Conversion of 'indentedBlock' to new 'IndentedBlock'"
             " requires added code changes to remove 'indentStack' argument\n"
-            f"  {pp.line(l, s)}",
+            f"  {pp.lineno(l, s)}: {pp.line(l, s)}",
             stacklevel=2,
         )
     elif t[0] == "locatedExpr":
@@ -61,7 +61,7 @@ def update_special_changes(s, l, t):
             "Conversion of 'locatedExpr' to new 'Located'"
             " may require added code changes - Located does not automatically"
             " group parsed elements\n"
-            f"  {pp.line(l, s)}",
+            f"  {pp.lineno(l, s)}: {pp.line(l, s)}",
             stacklevel=2,
         )
     return special_changes[t[0]]
