@@ -555,7 +555,7 @@ def nested_expr(
     ignoreExpr: ParserElement = deprecate_argument(kwargs, "ignoreExpr", _NO_IGNORE_EXPR_GIVEN)
 
     if ignoreExpr != ignore_expr:
-        ignoreExpr = ignore_expr if ignoreExpr is _NO_IGNORE_EXPR_GIVEN else ignoreExpr
+        ignoreExpr = ignore_expr if ignoreExpr is _NO_IGNORE_EXPR_GIVEN else ignoreExpr  # type: ignore [assignment]
 
     if ignoreExpr is _NO_IGNORE_EXPR_GIVEN:
         ignoreExpr = quoted_string()

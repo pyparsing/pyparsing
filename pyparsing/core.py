@@ -3429,12 +3429,12 @@ class Regex(Token):
         if self.asMatch:
             self.parseImpl = self.parseImplAsMatch  # type: ignore [method-assign]
 
-    def copy(self):
+    def copy(self) -> Regex:
         ret: Regex = cast(Regex, super().copy())
         if self.asGroupList:
-            ret.parseImpl = ret.parseImplAsGroupList
+            ret.parseImpl = ret.parseImplAsGroupList  # type: ignore [method-assign]
         if self.asMatch:
-            ret.parseImpl = ret.parseImplAsMatch
+            ret.parseImpl = ret.parseImplAsMatch  # type: ignore [method-assign]
         return ret
 
     @cached_property
