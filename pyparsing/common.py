@@ -184,15 +184,17 @@ class pyparsing_common:
         [UUID('12345678-1234-5678-1234-567812345678')]
     """
 
-    convert_to_integer = token_map(int)
-    """
-    Parse action for converting parsed integers to Python int
-    """
+    def convert_to_integer(_, __, t):
+        """
+        Parse action for converting parsed integers to Python int
+        """
+        return [int(tt) for tt in t]
 
-    convert_to_float = token_map(float)
-    """
-    Parse action for converting parsed numbers to Python float
-    """
+    def convert_to_float(_, __, t):
+        """
+        Parse action for converting parsed numbers to Python float
+        """
+        return [float(tt) for tt in t]
 
     integer = Word(nums).set_name("integer").set_parse_action(convert_to_integer)
     """expression that parses an unsigned integer, returns an int"""
@@ -406,11 +408,15 @@ class pyparsing_common:
     ).set_name("comma separated list")
     """Predefined expression of 1 or more printable words or quoted strings, separated by commas."""
 
-    upcase_tokens = staticmethod(token_map(lambda t: t.upper()))
-    """Parse action to convert tokens to upper case."""
+    @staticmethod
+    def upcase_tokens(s, l, t):
+        """Parse action to convert tokens to upper case."""
+        return [tt.upper() for tt in t]
 
-    downcase_tokens = staticmethod(token_map(lambda t: t.lower()))
-    """Parse action to convert tokens to lower case."""
+    @staticmethod
+    def downcase_tokens(s, l, t):
+        """Parse action to convert tokens to lower case."""
+        return [tt.lower() for tt in t]
 
     # fmt: off
     url = Regex(

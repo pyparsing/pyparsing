@@ -373,3 +373,65 @@ def test_ParseResults_asList_kwarg_emits_DeprecationWarning():
     # Ensure behavior: named entry is preserved as a nested ParseResults containing the list
     assert isinstance(pr["items"], ParseResults)
     assert pr["items"].as_list() == ["a", "b"]
+
+
+# --- common.py compatibility methods (deprecated camelCase) ---
+import pyparsing as pp
+from datetime import date, datetime as dt
+
+
+def test_common_convertToInteger_emits_DeprecationWarning():
+    # convertToInteger is a parse action alias; warning emitted when action runs
+    parser = Word(nums).set_parse_action(pp.common.convertToInteger)
+    with pytest.warns(DeprecationWarning, match="'convertToInteger' deprecated - use 'convert_to_integer'"):
+        res = parser.parse_string("1234")
+    assert res[0] == 1234
+
+
+def test_common_convertToFloat_emits_DeprecationWarning():
+    parser = Word("0123456789.").set_parse_action(pp.common.convertToFloat)
+    with pytest.warns(DeprecationWarning, match="'convertToFloat' deprecated - use 'convert_to_float'"):
+        res = parser.parse_string("3.14")
+    assert isinstance(res[0], float)
+    assert abs(res[0] - 3.14) < 1e-8
+
+
+def test_common_convertToDate_emits_DeprecationWarning():
+    # convertToDate is a factory; warning emitted when called
+    with pytest.warns(DeprecationWarning, match="'convertToDate' deprecated - use 'convert_to_date'"):
+        pa = pp.common.convertToDate()
+    expr = pp.common.iso8601_date.copy().set_parse_action(pa)
+    res = expr.parse_string("1999-12-31")
+    assert res[0] == date(1999, 12, 31)
+
+
+def test_common_convertToDatetime_emits_DeprecationWarning():
+    with pytest.warns(DeprecationWarning, match="'convertToDatetime' deprecated - use 'convert_to_datetime'"):
+        pa = pp.common.convertToDatetime()
+    expr = pp.common.iso8601_datetime.copy().set_parse_action(pa)
+    res = expr.parse_string("1999-12-31T23:59:59.999")
+    assert res[0] == dt(1999, 12, 31, 23, 59, 59, 999000)
+
+
+def test_common_stripHTMLTags_emits_DeprecationWarning():
+    # Use stripHTMLTags as a parse action on some HTML content
+    td, td_end = pp.helpers.make_html_tags("td")
+    body = pp.SkipTo(td_end).set_parse_action(pp.common.stripHTMLTags)("body")
+    expr = td + body + td_end
+    with pytest.warns(DeprecationWarning, match="'stripHTMLTags' deprecated - use 'strip_html_tags'"):
+        res = expr.parse_string('<td>Click <a href="https://example.com">here</a></td>')
+    assert res.body == "Click here"
+
+
+def test_common_upcaseTokens_emits_DeprecationWarning():
+    parser = Word("abc").set_parse_action(pp.common.upcaseTokens)
+    with pytest.warns(DeprecationWarning, match="'upcaseTokens' deprecated - use 'upcase_tokens'"):
+        res = parser.parse_string("abca")
+    assert res[0] == "ABCA"
+
+
+def test_common_downcaseTokens_emits_DeprecationWarning():
+    parser = Word("ABC").set_parse_action(pp.common.downcaseTokens)
+    with pytest.warns(DeprecationWarning, match="'downcaseTokens' deprecated - use 'downcase_tokens'"):
+        res = parser.parse_string("ABCA")
+    assert res[0] == "abca"
