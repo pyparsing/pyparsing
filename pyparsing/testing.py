@@ -174,7 +174,7 @@ class pyparsing_test:
             Convenience wrapper assert to test a parser element and input string, and assert that
             the resulting :meth:`ParseResults.as_dict` is equal to the ``expected_dict``.
             """
-            result = expr.parse_string(test_string, parseAll=True)
+            result = expr.parse_string(test_string, parse_all=True)
             if verbose:
                 print(result.dump())
             else:
