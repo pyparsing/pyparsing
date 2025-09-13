@@ -442,23 +442,6 @@ def locatedExpr(expr: ParserElement) -> ParserElement:
 
     Be careful if the input text contains ``<TAB>`` characters, you
     may want to call :meth:`ParserElement.parse_with_tabs`
-
-    Example:
-
-    .. testcode::
-
-       wd = Word(alphas)
-       res = locatedExpr(wd).search_string("ljsdf123lksdjjf123lkkjj1222")
-       for match in res:
-           print(match)
-
-    prints:
-
-    .. testoutput::
-
-       [[0, 'ljsdf', 5]]
-       [[8, 'lksdjjf', 15]]
-       [[18, 'lkkjj', 23]]
     """
     locator = Empty().set_parse_action(lambda ss, ll, tt: ll)
     return Group(

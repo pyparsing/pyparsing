@@ -5,10 +5,15 @@ import pytest
 
 
 def test_conversion_composed():
+    # testing for these in their own test cases below
+    special_changes_copy = {**special_changes}
+    special_changes_copy.pop("indentedBlock")
+    special_changes_copy.pop("locatedExpr")
+
     orig = (
         "\n".join(
             f"{method_name}()"
-            for method_name in sorted(pre_pep8_method_names) + list(special_changes)
+            for method_name in sorted(pre_pep8_method_names) + list(special_changes_copy)
         ) + "\n"
         + "\n".join(
             f"fn(100, {arg_name}=True)"
@@ -95,8 +100,6 @@ make_html_tags()
 make_xml_tags()
 common_html_entity()
 strip_html_tags()
-IndentedBlock()
-Located()
 fn(100, as_group_list=True)
 fn(100, as_keyword=True)
 fn(100, as_match=True)
@@ -633,3 +636,43 @@ def test_conversion_examples():
 
     if failed:
         raise AssertionError(f"Failed to convert some original code ({failed} lines)")
+
+def test_conversion_warnings_for_indentedBlock():
+    source = """
+        parser = pp.indentedBlock(expr, indent, backup_stacks)
+    """
+    with pytest.warns(
+            UserWarning,
+            match=(
+                "Conversion of 'indentedBlock' to new 'IndentedBlock' requires added code changes"
+                " to remove 'indentStack' argument"
+                "\n"
+                r"  2:         parser = pp.indentedBlock\(expr, indent, backup_stacks\)"
+            )
+    ):
+        res = pep8_converter.transform_string(source)
+
+    print(res)
+    expected = source.replace("indentedBlock", "IndentedBlock")
+    print(expected)
+    assert res == expected
+
+def test_conversion_warnings_for_locatedExpr():
+    source = """
+        parser = pp.locatedExpr(expr)
+    """
+    with pytest.warns(
+            UserWarning,
+            match=(
+                "Conversion of 'locatedExpr' to new 'Located' may require added"
+                " code changes - Located does not automatically group parsed elements"
+                "\n"
+                r"  2:         parser = pp.locatedExpr\(expr\)"
+            )
+    ):
+        res = pep8_converter.transform_string(source)
+
+    print(res)
+    expected = source.replace("locatedExpr", "Located")
+    print(expected)
+    assert res == expected
