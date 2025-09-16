@@ -3226,7 +3226,9 @@ class Word(Token):
 
     def copy(self) -> Word:
         ret: Word = cast(Word, super().copy())
-        ret.parseImpl = ret.parseImpl_regex  # type: ignore[method-assign]
+        if hasattr(self, "re_match"):
+            ret.re_match = self.re_match
+            ret.parseImpl = ret.parseImpl_regex  # type: ignore[method-assign]
         return ret
 
     def _generateDefaultName(self) -> str:

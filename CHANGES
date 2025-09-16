@@ -44,6 +44,11 @@ Required Python versions by pyparsing version
 
 Version 3.2.5 - September, 2025
 -------------------------------
+- JINX! Well, 3.2.4 had a bug for `Word` expressions that include a space
+  character, if that expression was then copied, either directly with .copy() or
+  by adding a results name, or including in another construct (like `DelimitedList`)
+  that makes a copy internally. Issue #618, reported by mstinberg, among others -
+  thanks, and sorry for the inconvenience.
 
 
 Version 3.2.4 - September, 2025

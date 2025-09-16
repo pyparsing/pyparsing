@@ -7892,6 +7892,17 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             with self.assertRaisesParseException(expected_msg="Expected custom integer"):
                 custom_int.parse_string("z", parse_all=True)
 
+    def testWordCopyWhenWordCharsIncludeSpace(self):
+        word_with_space = pp.Word(pp.alphas + " ")
+        word_with_space.parse_string("ABC")
+        word_with_space.copy().parse_string("ABC")
+
+    def testWordCopyWhenWordCharsIncludeSpace2(self):
+        element = pp.QuotedString('"') | pp.Combine(pp.Word(' abcdefghijklmnopqrstuvwxyz'))
+        element.parse_string("abc")
+        element_list = pp.DelimitedList(element)
+        element_list.parse_string("abc")
+
     def testLiteralVsKeyword(self):
         integer = ppc.integer
         literal_expr = integer + pp.Literal("start") + integer
