@@ -7893,15 +7893,26 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
                 custom_int.parse_string("z", parse_all=True)
 
     def testWordCopyWhenWordCharsIncludeSpace(self):
+        # Issue #618 - with copy()
         word_with_space = pp.Word(pp.alphas + " ")
         word_with_space.parse_string("ABC")
+        # no longer raises exception
         word_with_space.copy().parse_string("ABC")
 
     def testWordCopyWhenWordCharsIncludeSpace2(self):
+        # Issue #618 - with DelimitedList()
         element = pp.QuotedString('"') | pp.Combine(pp.Word(' abcdefghijklmnopqrstuvwxyz'))
         element.parse_string("abc")
         element_list = pp.DelimitedList(element)
+        # no longer raises exception
         element_list.parse_string("abc")
+
+    def testWordCopyWhenWordCharsIncludeSpace3(self):
+        # Issue #618 - with results name
+        word_with_space = pp.Word(pp.alphas + " ")
+        word_with_space.parse_string("ABC")
+        # no longer raises exception
+        word_with_space("trouble").parse_string("ABC")
 
     def testLiteralVsKeyword(self):
         integer = ppc.integer
