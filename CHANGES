@@ -63,7 +63,16 @@ Version 3.3.0 - under development
   in this case, no code changes would be required.)
 
 
-Version 3.2.4 - September, 2025
+Version 3.2.5 - September, 2025
+-------------------------------
+- JINX! Well, 3.2.4 had a bug for `Word` expressions that include a space
+  character, if that expression was then copied, either directly with .copy() or
+  by adding a results name, or including in another construct (like `DelimitedList`)
+  that makes a copy internally. Issue #618, reported by mstinberg, among others -
+  thanks, and sorry for the inconvenience.
+
+
+  Version 3.2.4 - September, 2025
 -------------------------------
 - Barring any catastrophic bugs in this release, this will be the last release in
   the 3.2.x line. The next release, 3.3.0, will begin emitting `DeprecationWarnings`
