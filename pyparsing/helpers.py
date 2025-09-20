@@ -429,7 +429,8 @@ def ungroup(expr: ParserElement) -> ParserElement:
 def locatedExpr(expr: ParserElement) -> ParserElement:
     """
     .. deprecated:: 3.0.0
-       Use the :class:`Located` class instead.
+       Use the :class:`Located` class instead. Note that `Located`
+       returns results with one less grouping level.
 
     Helper to decorate a returned token with its starting and ending
     locations in the input string.
@@ -443,6 +444,12 @@ def locatedExpr(expr: ParserElement) -> ParserElement:
     Be careful if the input text contains ``<TAB>`` characters, you
     may want to call :meth:`ParserElement.parse_with_tabs`
     """
+    warnings.warn(
+        f"{'locatedExpr'!r} deprecated - use {'Located'!r}",
+        DeprecationWarning,
+        stacklevel=2,
+    )
+
     locator = Empty().set_parse_action(lambda ss, ll, tt: ll)
     return Group(
         locator("locn_start")
@@ -967,7 +974,8 @@ def infix_notation(
 def indentedBlock(blockStatementExpr, indentStack, indent=True, backup_stacks=[]):
     """
     .. deprecated:: 3.0.0
-       Use the :class:`IndentedBlock` class instead.
+       Use the :class:`IndentedBlock` class instead. Note that `IndentedBlock`
+       has a difference method signature.
 
     Helper method for defining space-delimited indentation blocks,
     such as those used to define block statements in Python source code.
@@ -1054,6 +1062,12 @@ def indentedBlock(blockStatementExpr, indentStack, indent=True, backup_stacks=[]
          ':',
          [[['def', 'eggs', ['(', 'z', ')'], ':', [['pass']]]]]]]
     """
+    warnings.warn(
+        f"{'indentedBlock'!r} deprecated - use {'IndentedBlock'!r}",
+        DeprecationWarning,
+        stacklevel=2,
+    )
+
     backup_stacks.append(indentStack[:])
 
     def reset_stack():

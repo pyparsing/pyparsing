@@ -6337,7 +6337,8 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
         #             012345678901234567890123456789012345678901234567890
         samplestr1 = "DOB 10-10-2010;more garbage;ID PARI12345678  ;more garbage"
 
-        id_ref = pp.locatedExpr("ID" + pp.Word(pp.alphanums, exact=12)("id"))
+        with self.assertWarns(DeprecationWarning):
+            id_ref = pp.locatedExpr("ID" + pp.Word(pp.alphanums, exact=12)("id"))
 
         res = id_ref.search_string(samplestr1)[0][0]
         print(res.dump())
@@ -6737,7 +6738,7 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
                 expr, test, f"Did not successfully stop on ending expression {ender!r}"
             )
 
-            expr = BEGIN + body_word[1, ...].stop_on(ender) + END
+            expr = BEGIN + body_word[1, ...].stopOn(ender) + END
             self.assertParseAndCheckList(
                 expr,
                 test,
@@ -6786,7 +6787,7 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
                 f"Did not successfully stop on ending expression {ender!r}",
             )
 
-            expr = BEGIN + body_word[...].stop_on(ender) + END
+            expr = BEGIN + body_word[...].stopOn(ender) + END
             self.assertParseAndCheckList(
                 expr,
                 test,
@@ -8409,10 +8410,10 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
         stack = [1]
         key = ppc.identifier
         value = pp.Forward()
-        key_value = key + EQ + value
-        compound_value = pp.Dict(pp.ungroup(pp.indentedBlock(key_value, stack)))
+        key_value = pp.Group(key + EQ + value)
+        compound_value = pp.Dict(pp.ungroup(pp.IndentedBlock(key_value, grouped=True)))
         value <<= ppc.integer | pp.QuotedString("'") | compound_value
-        parser = pp.Dict(pp.OneOrMore(pp.Group(key_value)))
+        parser = pp.Dict(pp.OneOrMore(key_value))
 
         text = """
             a = 100
@@ -8440,7 +8441,7 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
         key = pp.Word(pp.alphas, pp.alphanums) + pp.Suppress(":")
         stmt = pp.Forward()
 
-        suite = pp.indentedBlock(stmt, indent_stack)
+        suite = pp.IndentedBlock(stmt, grouped=True)
         body = key + suite
 
         pattern = (
@@ -8456,10 +8457,10 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
 
         key.set_parse_action(key_parse_action)
         header = pp.Suppress("[") + pp.Literal("test") + pp.Suppress("]")
-        content = header - pp.OneOrMore(pp.indentedBlock(body, indent_stack, False))
+        content = header - pp.OneOrMore(pp.IndentedBlock(body))
 
         contents = pp.Forward()
-        suites = pp.indentedBlock(content, indent_stack)
+        suites = pp.IndentedBlock(content)
 
         extra = pp.Literal("extra") + pp.Suppress(":") - suites
         contents <<= content | extra
@@ -8484,7 +8485,7 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
         )
 
         success, _ = parser.run_tests([sample])
-        self.assertTrue(success, "Failed indentedBlock test for issue #87")
+        self.assertTrue(success, "Failed IndentedBlock test for issue #87")
 
         sample2 = dedent(
             """
@@ -8531,8 +8532,8 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             """
             stack = [1]
             block = pp.Forward()
-            body = pp.indentedBlock(
-                pp.Literal("A") ^ block, indentStack=stack, indent=True
+            body = pp.IndentedBlock(
+                pp.Literal("A") ^ block
             )
             block <<= pp.Literal("block:") + body
             return block
