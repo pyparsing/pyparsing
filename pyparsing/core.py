@@ -512,11 +512,19 @@ class ParserElement(ABC):
         self.show_in_diagram: bool = True
 
     @property
-    def mayReturnEmpty(self):
+    def mayReturnEmpty(self) -> bool:
+        """
+           .. deprecated:: 3.3.0
+           use _may_return_empty instead.
+        """
         return self._may_return_empty
 
     @mayReturnEmpty.setter
-    def mayReturnEmpty(self, value):
+    def mayReturnEmpty(self, value) -> None:
+        """
+           .. deprecated:: 3.3.0
+           use _may_return_empty instead.
+        """
         self._may_return_empty = value
 
     def suppress_warning(self, warning_type: Diagnostics) -> ParserElement:
@@ -1112,6 +1120,9 @@ class ParserElement(ABC):
 
     @staticmethod
     def reset_cache() -> None:
+        """
+        Clears caches used by packrat and left-recursion.
+        """
         with ParserElement.packrat_cache_lock:
             ParserElement.packrat_cache.clear()
             ParserElement.packrat_cache_stats[:] = [0] * len(
@@ -2150,7 +2161,9 @@ class ParserElement(ABC):
 
     @property
     def name(self) -> str:
-        # This will use a user-defined name if available, but otherwise defaults back to the auto-generated name
+        """
+        Returns a user-defined name if available, but otherwise defaults back to the auto-generated name
+        """
         return self.customName if self.customName is not None else self.default_name
 
     @name.setter
@@ -2833,7 +2846,13 @@ class Keyword(Token):
         self.ident_chars = set(identChars)
 
     @property
-    def identChars(self):
+    def identChars(self) -> set[str]:
+        """
+        .. deprecated:: 3.3.0
+           use ident_chars instead.
+
+        Property returning the characters being used as keyword characters for this expression.
+        """
         return self.ident_chars
 
     def _generateDefaultName(self) -> str:
@@ -3256,10 +3275,23 @@ class Word(Token):
                 self.parseImpl = self.parseImpl_regex  # type: ignore[method-assign]
 
     @property
-    def initChars(self):
-        return self.init_chars
+    def initChars(self) -> set[str]:
+        """
+        .. deprecated:: 3.3.0
+           use `init_chars` instead.
+
+        Property returning the initial chars to be used when matching this
+        Word expression. If no body chars were specified, the initial characters
+        will also be the body characters.
+        """
+        return set(self.init_chars)
 
     def copy(self) -> Word:
+        """
+        Returns a copy of this expression.
+
+        Generally only used internally by pyparsing.
+        """
         ret: Word = cast(Word, super().copy())
         if hasattr(self, "re_match"):
             ret.re_match = self.re_match
@@ -3440,6 +3472,11 @@ class Regex(Token):
             self.parseImpl = self.parseImplAsMatch  # type: ignore [method-assign]
 
     def copy(self) -> Regex:
+        """
+        Returns a copy of this expression.
+
+        Generally only used internally by pyparsing.
+        """
         ret: Regex = cast(Regex, super().copy())
         if self.asGroupList:
             ret.parseImpl = ret.parseImplAsGroupList  # type: ignore [method-assign]
@@ -3449,6 +3486,11 @@ class Regex(Token):
 
     @cached_property
     def re(self) -> re.Pattern:
+        """
+        Property returning the compiled regular expression for this Regex.
+
+        Generally only used internally by pyparsing.
+        """
         if self._re:
             return self._re
 
@@ -4021,8 +4063,8 @@ class GoToColumn(PositionToken):
 
 
 class LineStart(PositionToken):
-    r"""Matches if current position is at the beginning of a line within
-    the parse string
+    r"""Matches if current position is at the logical beginning of a line (after skipping whitespace)
+    within the parse string
 
     Example:
 
@@ -4275,6 +4317,9 @@ class ParseExpression(ParserElement):
         return self.exprs[:]
 
     def append(self, other) -> ParserElement:
+        """
+        Add an expression to the list of expressions related to this ParseExpression instance.
+        """
         self.exprs.append(other)
         self._defaultName = None
         return self
@@ -4294,7 +4339,7 @@ class ParseExpression(ParserElement):
 
     def ignore_whitespace(self, recursive: bool = True) -> ParserElement:
         """
-        Extends ``ignore_whitespace`` defined in base class, and also invokes ``leave_whitespace`` on
+        Extends ``ignore_whitespace`` defined in base class, and also invokes ``ignore_whitespace`` on
            all contained expressions.
         """
         super().ignore_whitespace(recursive)
@@ -4305,6 +4350,11 @@ class ParseExpression(ParserElement):
         return self
 
     def ignore(self, other) -> ParserElement:
+        """
+        Define expression to be ignored (e.g., comments) while doing pattern
+        matching; may be called repeatedly, to define multiple comment or other
+        ignorable patterns.
+        """
         if isinstance(other, Suppress):
             if other not in self.ignoreExprs:
                 super().ignore(other)
@@ -4372,6 +4422,11 @@ class ParseExpression(ParserElement):
         self._checkRecursion([])
 
     def copy(self) -> ParserElement:
+        """
+        Returns a copy of this expression.
+
+        Generally only used internally by pyparsing.
+        """
         ret = super().copy()
         ret = typing.cast(ParseExpression, ret)
         ret.exprs = [e.copy() for e in self.exprs]
@@ -4481,6 +4536,25 @@ class And(ParseExpression):
         self.callPreparse = True
 
     def streamline(self) -> ParserElement:
+        """
+        Collapse `And` expressions  like `And(And(And(A, B), C), D)`
+        to `And(A, B, C, D)`.
+
+        .. doctest::
+
+            >>> expr = Word("A") + Word("B") + Word("C") + Word("D")
+            >>> # Using '+' operator creates nested And expression
+            >>> expr
+            {{{W:(A) W:(B)} W:(C)} W:(D)}
+            >>> # streamline simplifies to a single And with multiple expressions
+            >>> expr.streamline()
+            {W:(A) W:(B) W:(C) W:(D)}
+
+        Guards against collapsing out expressions that have special features,
+        such as results names or parse actions.
+
+        Resolves pending Skip commands defined using `...` terms.
+        """
         # collapse any _PendingSkip's
         if self.exprs and any(
             isinstance(e, ParseExpression)
@@ -5089,6 +5163,10 @@ class ParseElementEnhance(ParserElement):
             raise
 
     def leave_whitespace(self, recursive: bool = True) -> ParserElement:
+        """
+        Extends ``leave_whitespace`` defined in base class, and also invokes ``leave_whitespace`` on
+           the contained expression.
+        """
         super().leave_whitespace(recursive)
 
         if recursive:
@@ -5098,6 +5176,10 @@ class ParseElementEnhance(ParserElement):
         return self
 
     def ignore_whitespace(self, recursive: bool = True) -> ParserElement:
+        """
+        Extends ``ignore_whitespace`` defined in base class, and also invokes ``ignore_whitespace`` on
+           the contained expression.
+        """
         super().ignore_whitespace(recursive)
 
         if recursive:
@@ -5107,6 +5189,11 @@ class ParseElementEnhance(ParserElement):
         return self
 
     def ignore(self, other) -> ParserElement:
+        """
+        Define expression to be ignored (e.g., comments) while doing pattern
+        matching; may be called repeatedly, to define multiple comment or other
+        ignorable patterns.
+        """
         if not isinstance(other, Suppress) or other not in self.ignoreExprs:
             super().ignore(other)
             if self.expr is not None:
@@ -5154,6 +5241,67 @@ class IndentedBlock(ParseElementEnhance):
     """
     Expression to match one or more expressions at a given indentation level.
     Useful for parsing text where structure is implied by indentation (like Python source code).
+
+    Example:
+
+    .. testcode::
+
+        '''
+        BNF:
+        statement ::= assignment_stmt | if_stmt
+        assignment_stmt ::= identifier '=' rvalue
+        rvalue ::= identifier | integer
+        if_stmt ::= 'if' bool_condition block
+        block ::= ([indent] statement)...
+        identifier ::= [A..Za..z]
+        integer ::= [0..9]...
+        bool_condition ::= 'TRUE' | 'FALSE'
+        '''
+
+        IF, TRUE, FALSE = Keyword.using_each("IF TRUE FALSE".split())
+
+        statement = Forward()
+        identifier = Char(alphas)
+        integer = Word(nums).add_parse_action(lambda t: int(t[0]))
+        rvalue = identifier | integer
+        assignment_stmt = identifier + "=" + rvalue
+
+        if_stmt = IF + (TRUE | FALSE) + IndentedBlock(statement)
+
+        statement <<= Group(assignment_stmt | if_stmt)
+
+        result = if_stmt.parse_string('''
+            IF TRUE
+                a = 1000
+                b = 2000
+                IF FALSE
+                    z = 100
+        ''')
+        print(result.dump())
+
+    .. testoutput::
+
+        ['IF', 'TRUE', [['a', '=', 1000], ['b', '=', 2000], ['IF', 'FALSE', [['z', '=', 100]]]]]
+        [0]:
+          IF
+        [1]:
+          TRUE
+        [2]:
+          [['a', '=', 1000], ['b', '=', 2000], ['IF', 'FALSE', [['z', '=', 100]]]]
+          [0]:
+            ['a', '=', 1000]
+          [1]:
+            ['b', '=', 2000]
+          [2]:
+            ['IF', 'FALSE', [['z', '=', 100]]]
+            [0]:
+              IF
+            [1]:
+              FALSE
+            [2]:
+              [['z', '=', 100]]
+              [0]:
+                ['z', '=', 100]
     """
 
     class _Indent(Empty):
@@ -5916,6 +6064,11 @@ class SkipTo(ParseElementEnhance):
             self.ignorer.ignore(self.ignoreExpr)
 
     def ignore(self, expr):
+        """
+        Define expression to be ignored (e.g., comments) while doing pattern
+        matching; may be called repeatedly, to define multiple comment or other
+        ignorable patterns.
+        """
         super().ignore(expr)
         self._update_ignorer()
 
@@ -6167,10 +6320,16 @@ class Forward(ParseElementEnhance):
                     prev_loc, prev_peek = memo[peek_key] = new_loc, new_peek
 
     def leave_whitespace(self, recursive: bool = True) -> ParserElement:
+        """
+        Extends ``leave_whitespace`` defined in base class.
+        """
         self.skipWhitespace = False
         return self
 
     def ignore_whitespace(self, recursive: bool = True) -> ParserElement:
+        """
+        Extends ``ignore_whitespace`` defined in base class.
+        """
         self.skipWhitespace = True
         return self
 
@@ -6214,6 +6373,11 @@ class Forward(ParseElementEnhance):
         return f"{type(self).__name__}: {ret_string}"
 
     def copy(self) -> ParserElement:
+        """
+        Returns a copy of this expression.
+
+        Generally only used internally by pyparsing.
+        """
         if self.expr is not None:
             return super().copy()
         else:
@@ -6302,6 +6466,11 @@ class Combine(TokenConverter):
         self.callPreparse = True
 
     def ignore(self, other) -> ParserElement:
+        """
+        Define expression to be ignored (e.g., comments) while doing pattern
+        matching; may be called repeatedly, to define multiple comment or other
+        ignorable patterns.
+        """
         if self.adjacent:
             ParserElement.ignore(self, other)
         else:

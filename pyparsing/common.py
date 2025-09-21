@@ -205,12 +205,12 @@ class pyparsing_common:
         convert_to_integer if PY_310 else
         lambda t: [int(tt) for tt in t]  # type: ignore[misc]
     )
-    """expression that parses an unsigned integer, returns an int"""
+    """expression that parses an unsigned integer, converts to an int"""
 
     hex_integer = (
         Word(hexnums).set_name("hex integer").set_parse_action(token_map(int, 16))
     )
-    """expression that parses a hexadecimal integer, returns an int"""
+    """expression that parses a hexadecimal integer, converts to an int"""
 
     signed_integer = (
         Regex(r"[+-]?\d+")
@@ -220,7 +220,7 @@ class pyparsing_common:
             lambda t: [int(tt) for tt in t]  # type: ignore[misc]
         )
     )
-    """expression that parses an integer with optional leading sign, returns an int"""
+    """expression that parses an integer with optional leading sign, converts to an int"""
 
     fraction = (
         signed_integer().set_parse_action(
@@ -233,13 +233,13 @@ class pyparsing_common:
             lambda t: [float(tt) for tt in t]  # type: ignore[misc]
     )
     ).set_name("fraction")
-    """fractional expression of an integer divided by an integer, returns a float"""
+    """fractional expression of an integer divided by an integer, converts to a float"""
     fraction.add_parse_action(lambda tt: tt[0] / tt[-1])
 
     mixed_integer = (
         fraction | signed_integer + Opt(Opt("-").suppress() + fraction)
     ).set_name("fraction or mixed integer-fraction")
-    """mixed integer of the form 'integer - fraction', with optional leading integer, returns float"""
+    """mixed integer of the form 'integer - fraction', with optional leading integer, converts to a float"""
     mixed_integer.add_parse_action(sum)
 
     real = (
@@ -250,7 +250,7 @@ class pyparsing_common:
             lambda t: [float(tt) for tt in t]  # type: ignore[misc]
         )
     )
-    """expression that parses a floating point number and returns a float"""
+    """expression that parses a floating point number, converts to a float"""
 
     sci_real = (
         Regex(r"[+-]?(?:\d+(?:[eE][+-]?\d+)|(?:\d+\.\d*|\.\d+)(?:[eE][+-]?\d+)?)")
@@ -261,11 +261,11 @@ class pyparsing_common:
         )
     )
     """expression that parses a floating point number with optional
-    scientific notation and returns a float"""
+    scientific notation, converts to a float"""
 
     # streamlining this expression makes the docs nicer-looking
     number = (sci_real | real | signed_integer).set_name("number").streamline()
-    """any numeric expression, returns the corresponding Python type"""
+    """any numeric expression, converts to the corresponding Python type"""
 
     fnumber = (
         Regex(r"[+-]?\d+\.?\d*(?:[eE][+-]?\d+)?")
@@ -275,7 +275,7 @@ class pyparsing_common:
             lambda t: [float(tt) for tt in t]  # type: ignore[misc]
         )
     )
-    """any int or real number, returned as float"""
+    """any int or real number, always converts to a float"""
 
     ieee_float = (
         Regex(r"(?i:[+-]?(?:(?:\d+\.?\d*(?:e[+-]?\d+)?)|nan|inf(?:inity)?))")
@@ -285,7 +285,7 @@ class pyparsing_common:
             lambda t: [float(tt) for tt in t]  # type: ignore[misc]
         )
     )
-    """any floating-point literal (int, real number, infinity, or NaN), returned as float"""
+    """any floating-point literal (int, real number, infinity, or NaN), converts to a float"""
 
     identifier = Word(identchars, identbodychars).set_name("identifier")
     """typical code identifier (leading alpha or '_', followed by 0 or more alphas, nums, or '_')"""
