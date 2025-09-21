@@ -53,7 +53,7 @@ If you have an example you wish to submit, please follow these guidelines.
   ppu = pp.pyparsing_unicode
   ```
 
-- Submitted examples _must_ be Python 3.6.8 or later compatible.
+- Submitted examples _must_ be Python 3.9 or later compatible.
   (It is acceptable if examples use Python features added after 3.6)
 
 - Where possible use operators to create composite parse expressions:
@@ -124,9 +124,11 @@ These coding styles are encouraged whether submitting code for core pyparsing or
   Continuation lines for expressions in `()`'s should start with the continuing operator:
 
   ```python
-  really_long_line = (something
-                      + some_other_long_thing
-                      + even_another_long_thing)
+  really_long_line = (
+      something
+      + some_other_long_thing
+      + even_another_long_thing
+  )
   ```
 
 - Maximum line length is 120 characters. (Black will override this.)
