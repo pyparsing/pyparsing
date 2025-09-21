@@ -62,6 +62,9 @@ Version 3.3.0 - under development
   the extra grouping is retained, so that the results name nesting works properly;
   in this case, no code changes would be required.)
 
+- Added exception handling when calling formatted_message(), so that `str(exception)`
+  always returns at least _something_.
+
 
 Version 3.2.5 - September, 2025
 -------------------------------

@@ -218,7 +218,13 @@ class ParseBaseException(Exception):
         .. versionchanged:: 3.2.0
            Now uses :meth:`formatted_message` to format message.
         """
-        return self.formatted_message()
+        try:
+            return self.formatted_message()
+        except Exception as ex:
+            return (
+                f"{type(self).__name__}: {self.msg}"
+                f" ({type(ex).__name__}: {ex} while formatting message)"
+            )
 
     def __repr__(self):
         return str(self)
