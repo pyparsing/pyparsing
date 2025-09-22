@@ -1620,19 +1620,23 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
         print(
             "testing catastrophic RE backtracking in implementation of quoted string parsers"
         )
+        repeat = 5000
         for expr, test_string in [
-            (pp.dbl_quoted_string, '"' + "\\xff" * 500),
-            (pp.sgl_quoted_string, "'" + "\\xff" * 500),
-            (pp.quoted_string, '"' + "\\xff" * 500),
-            (pp.quoted_string, "'" + "\\xff" * 500),
-            (pp.QuotedString('"'), '"' + "\\xff" * 500),
-            (pp.QuotedString("'"), "'" + "\\xff" * 500),
+            (pp.dblQuotedString, '"' + "\xff" * repeat),
+            (pp.sglQuotedString, "'" + "\xff" * repeat),
+            (pp.quotedString, '"' + "\xff" * repeat),
+            (pp.quotedString, "'" + "\xff" * repeat),
+            (pp.QuotedString('"'), '"' + "\xff" * repeat),
+            (pp.QuotedString("'"), "'" + "\xff" * repeat),
         ]:
-            with self.subTest("Test catastrophic RE backtracking", expr=expr):
-                try:
-                    expr.parse_string(test_string)
-                except pp.ParseException:
-                    continue
+            test_string_label = f"{test_string[:2]}..."
+            with self.subTest(expr=expr, test_string=repr(test_string_label)):
+                # parse a valid quoted string
+                expr.parse_string(test_string + test_string[0], parse_all=True)
+
+                # try to parse a quoted string with no trailing quote
+                with self.assertRaisesParseException():
+                    expr.parse_string(test_string, parse_all=True)
 
     def testReCatastrophicBacktrackingInCommentParsers(self):
         print(
