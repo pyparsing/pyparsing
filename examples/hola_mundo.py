@@ -22,7 +22,7 @@ saludo = Word(alphas) + "," + Word(alphas) + one_of("! . ?")
 tokens = saludo.parse_string("Hola, Mundo !")
 
 # Ahora parseamos una cadena, "Hola, Mundo!",
-# el metodo parseString, nos devuelve una lista con los tokens
+# el metodo parse_string, nos devuelve una lista con los tokens
 # encontrados, en caso de no haber errores...
 for i, token in enumerate(tokens):
     print(f"Token {i} -> {token}")
@@ -40,12 +40,12 @@ tokens = saludo.parse_string("Hasta mañana, Mundo !")
 for i, token in enumerate(tokens):
     print(f"Token {i} -> {token}")
 
-# Ahora parseamos algunas cadenas, usando el metodo runTests
+# Ahora parseamos algunas cadenas, usando el metodo run_tests
 saludo.run_tests("""\
         Hola, Mundo!
         Hasta mañana, Mundo !
     """,
-    fullDump=False,
+    full_dump=False,
 )
 
 # Por supuesto, se pueden "reutilizar" gramáticas, por ejemplo:

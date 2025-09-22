@@ -117,7 +117,7 @@ namelist = pp.DelimitedList(name)
 number = ppc.number
 
 # does not parse levels
-multiline_string = pp.QuotedString("[[", endQuoteChar="]]", multiline=True)
+multiline_string = pp.QuotedString("[[", end_quote_char="]]", multiline=True)
 string = pp.QuotedString("'") | pp.QuotedString('"') | multiline_string
 
 exp = pp.Forward()
@@ -198,18 +198,18 @@ exp_atom = (
 exp <<= pp.infix_notation(
     exp_atom,
     [
-        ("^", 2, pp.opAssoc.LEFT),
-        ((NOT | pp.oneOf("# - ~")).set_name("not op"), 1, pp.opAssoc.RIGHT),
-        (pp.oneOf("* / // %"), 2, pp.opAssoc.LEFT),
-        (pp.oneOf("+ -"), 2, pp.opAssoc.LEFT),
-        ("..", 2, pp.opAssoc.LEFT),
-        (pp.oneOf("<< >>"), 2, pp.opAssoc.LEFT),
-        ("&", 2, pp.opAssoc.LEFT),
-        ("~", 2, pp.opAssoc.LEFT),
-        ("|", 2, pp.opAssoc.LEFT),
-        (pp.oneOf("< > <= >= ~= =="), 2, pp.opAssoc.LEFT),
-        (AND, 2, pp.opAssoc.LEFT),
-        (OR, 2, pp.opAssoc.LEFT),
+        ("^", 2, pp.OpAssoc.LEFT),
+        ((NOT | pp.one_of("# - ~")).set_name("not op"), 1, pp.OpAssoc.RIGHT),
+        (pp.one_of("* / // %"), 2, pp.OpAssoc.LEFT),
+        (pp.one_of("+ -"), 2, pp.OpAssoc.LEFT),
+        ("..", 2, pp.OpAssoc.LEFT),
+        (pp.one_of("<< >>"), 2, pp.OpAssoc.LEFT),
+        ("&", 2, pp.OpAssoc.LEFT),
+        ("~", 2, pp.OpAssoc.LEFT),
+        ("|", 2, pp.OpAssoc.LEFT),
+        (pp.one_of("< > <= >= ~= =="), 2, pp.OpAssoc.LEFT),
+        (AND, 2, pp.OpAssoc.LEFT),
+        (OR, 2, pp.OpAssoc.LEFT),
     ],
 ).set_name("exp")
 
@@ -291,7 +291,7 @@ if __name__ == "__main__":
     """
 
     try:
-        result = lua_script.parseString(sample)
+        result = lua_script.parse_string(sample)
         result.pprint()
     except pp.ParseException as pe:
         print(pe.explain())

@@ -31,7 +31,7 @@ from pyparsing import (
     srange,
 )
 
-ParserElement.enablePackrat()
+ParserElement.enable_packrat()
 
 
 class CharacterRangeEmitter:
@@ -244,7 +244,7 @@ def invert(regex):
         for s in invert(r"[A-Z]{3}\d{3}"):
             print s
     """
-    invre = GroupEmitter(parser().parseString(regex)).make_generator()
+    invre = GroupEmitter(parser().parse_string(regex)).make_generator()
     return invre()
 
 

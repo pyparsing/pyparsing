@@ -8,26 +8,7 @@ In the pyparsing release 3.3.0, use of many of the pre-PEP8 methods (such as
 `ParserElement.parseString`) will start to raise `DeprecationWarnings`. I plan to
 completely drop the pre-PEP8 methods in pyparsing 4.0, though we won't see that release
 until some time later in 2026. So there is plenty of time to convert existing parsers to
-the new function names before the old functions are completely removed. (Big help from
-Devin J. Pohly in structuring the code to enable this peaceful transition.)
-
-===========================================================================================
- The version 3.3.0 release will begin emitting `DeprecationWarnings` for pyparsing methods
- that have been renamed to PEP8-compliant names (introduced in pyparsing 3.0.0, in August,
- 2021, with legacy names retained as aliases). In preparation, I have added in pyparsing
- 3.2.2 a utility for finding and replacing the legacy method names with the new names.
- This utility is located at `pyparsing/tools/cvt_pep8_names.py`. This script will scan all
- Python files specified on the command line, and if the `-u` option is selected, will
- replace all occurrences of the old method names with the new PEP8-compliant names,
- updating the files in place.
-
- Here is an example that converts all the files in the pyparsing `/examples` directory:
-
-      python -m pyparsing.tools.cvt_pyparsing_pep8_names -u examples/*.py
-
- The new names are compatible with pyparsing versions 3.0.0 and later.
-===========================================================================================
-
+the new function names before the legacy functions are completely removed.
 
 Required Python versions by pyparsing version
 ---------------------------------------------
@@ -46,14 +27,28 @@ Required Python versions by pyparsing version
 
 Version 3.3.0 - under development
 ---------------------------------
-- Pre-PEP8 names are now getting deprecated. If you are using any of the old names
-  (like `parseString`, `setResultsName`, etc.), you will start to see `DeprecationWarning`
-  messages.
+===========================================================================================
+ The version 3.3.0 release will begin emitting `DeprecationWarnings` for pyparsing methods
+ that have been renamed to PEP8-compliant names (introduced in pyparsing 3.0.0, in August,
+ 2021, with legacy names retained as aliases). In preparation, I added in pyparsing
+ 3.2.2 a utility for finding and replacing the legacy method names with the new names.
+ This utility is located at `pyparsing/tools/cvt_pep8_names.py`. This script will scan all
+ Python files specified on the command line, and if the `-u` option is selected, will
+ replace all occurrences of the old method names with the new PEP8-compliant names,
+ updating the files in place.
+
+ Here is an example that converts all the files in the pyparsing `/examples` directory:
+
+      python -m pyparsing.tools.cvt_pyparsing_pep8_names -u examples/*.py
+
+ The new names are compatible with pyparsing versions 3.0.0 and later.
+===========================================================================================
 
 - Deprecated `indentedBlock`, when converted using the `cvt_pyparsing_pep8_names`
-  utility, will emit UserWarnings that additional code changes will be required.
+  utility, will emit `UserWarnings` that additional code changes will be required.
   This is because the new `IndentedBlock` class no longer requires the calling code
-  to supply an indent stack.
+  to supply an indent stack, while adding support for nested indentation levels
+  and grouping.
 
 - Deprecated `locatedExpr`, when converted using the `cvt_pyparsing_pep8_names`
   utility, will emit UserWarnings that additional code changes may be required.
@@ -62,7 +57,10 @@ Version 3.3.0 - under development
   the extra grouping is retained, so that the results name nesting works properly;
   in this case, no code changes would be required.)
 
-- Added exception handling when calling formatted_message(), so that `str(exception)`
+- Updated all examples and test cases to use PEP8 names (unless the test case is specifically
+  designed to test behavior of a legacy method). Added railroad diagrams for some examples.
+
+- Added exception handling when calling `formatted_message()`, so that `str(exception)`
   always returns at least _something_.
 
 
@@ -70,7 +68,7 @@ Version 3.2.5 - September, 2025
 -------------------------------
 - JINX! Well, 3.2.4 had a bug for `Word` expressions that include a space
   character, if that expression was then copied, either directly with .copy() or
-  by adding a results name, or including in another construct (like `DelimitedList`)
+  by adding a results name, or included in another construct (like `DelimitedList`)
   that makes a copy internally. Issue #618, reported by mstinberg, among others -
   thanks, and sorry for the inconvenience.
 

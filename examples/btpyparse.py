@@ -49,9 +49,9 @@ def bracketed(expr):
 
 # Define parser components for strings (the hard bit)
 chars_no_curly = Regex(r"[^{}]+")
-chars_no_curly.leaveWhitespace()
+chars_no_curly.leave_whitespace()
 chars_no_quotecurly = Regex(r'[^"{}]+')
-chars_no_quotecurly.leaveWhitespace()
+chars_no_quotecurly.leave_whitespace()
 # Curly string is some stuff without curlies, or nested curly sequences
 curly_string = Forward()
 curly_item = Group(curly_string) | chars_no_curly
@@ -74,12 +74,12 @@ any_name = Regex("[^\\s\"#%'(),={}]+")
 not_digname = Regex("[^\\d\\s\"#%'(),={}][^\\s\"#%'(),={}]*")
 
 # Comment comments out to end of line
-comment = AT + CaselessLiteral("comment") + Regex(r"[\s{(].*").leaveWhitespace()
+comment = AT + CaselessLiteral("comment") + Regex(r"[\s{(].*").leave_whitespace()
 
 # The name types with their digiteyness
-not_dig_lower = not_digname.copy().setParseAction(lambda t: t[0].lower())
+not_dig_lower = not_digname.copy().set_parse_action(lambda t: t[0].lower())
 macro_def = not_dig_lower.copy()
-macro_ref = not_dig_lower.copy().setParseAction(lambda t: Macro(t[0].lower()))
+macro_ref = not_dig_lower.copy().set_parse_action(lambda t: Macro(t[0].lower()))
 field_name = not_dig_lower.copy()
 # Spaces in names mean they cannot clash with field names
 entry_type = not_dig_lower("entry_type")
@@ -103,7 +103,7 @@ macro_contents = macro_def + EQUALS + field_value
 macro = AT + CaselessLiteral("string") + bracketed(macro_contents)
 
 # Implicit comments
-icomment = SkipTo("@").setParseAction(lambda t: t.insert(0, "icomment"))
+icomment = SkipTo("@").set_parse_action(lambda t: t.insert(0, "icomment"))
 
 # entries are last in the list (other than the fallback) because they have
 # arbitrary start patterns that would match comments, preamble or macro
@@ -114,7 +114,7 @@ bibfile = ZeroOrMore(definitions)
 
 
 def parse_str(str):
-    return bibfile.parseString(str)
+    return bibfile.parse_string(str)
 
 
 if __name__ == "__main__":

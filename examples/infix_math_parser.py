@@ -29,7 +29,7 @@ from pyparsing import (
 )
 
 # Enable Packrat for better performance in recursive parsing
-ParserElement.enablePackrat(None)
+ParserElement.enable_packrat(None)
 
 
 class InfixExpressionParser:

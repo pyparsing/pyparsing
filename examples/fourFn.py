@@ -166,7 +166,7 @@ if __name__ == "__main__":
     def test(s, expected):
         exprStack[:] = []
         try:
-            results = BNF().parseString(s, parseAll=True)
+            results = BNF().parse_string(s, parse_all=True)
             val = evaluate_stack(exprStack[:])
         except ParseException as pe:
             print(s, "failed parse:", str(pe))

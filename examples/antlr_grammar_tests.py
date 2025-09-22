@@ -14,7 +14,7 @@ class Test(unittest.TestCase):
         text = """options {
                             language = Python;
                         }"""
-        antlr_grammar.optionsSpec.parseString(text)  # @UndefinedVariable
+        antlr_grammar.optionsSpec.parse_string(text)  # @UndefinedVariable
 
     def testTokensSpec(self):
         text = """tokens {
@@ -23,23 +23,23 @@ class Test(unittest.TestCase):
                             MULT    = '*' ;
                             DIV    = '/' ;
                         }"""
-        antlr_grammar.tokensSpec.parseString(text)  # @UndefinedVariable
+        antlr_grammar.tokensSpec.parse_string(text)  # @UndefinedVariable
 
     def testBlock(self):
         text = """( PLUS | MINUS )"""
-        antlr_grammar.block.parseString(text)  # @UndefinedVariable
+        antlr_grammar.block.parse_string(text)  # @UndefinedVariable
 
     def testRule(self):
         text = """expr    : term ( ( PLUS | MINUS )  term )* ;"""
-        antlr_grammar.rule.parseString(text)  # @UndefinedVariable
+        antlr_grammar.rule.parse_string(text)  # @UndefinedVariable
 
     def testLexerRule(self):
         text = """fragment DIGIT    : '0'..'9' ;"""
-        antlr_grammar.rule.parseString(text)  # @UndefinedVariable
+        antlr_grammar.rule.parse_string(text)  # @UndefinedVariable
 
     def testLexerRule2(self):
         text = """WHITESPACE : ( '\t' | ' ' | '\r' | '\n'| '\u000C' )+     { $channel = HIDDEN; } ;"""
-        # antlr_grammar.rule.parseString(text) #@UndefinedVariable
+        # antlr_grammar.rule.parse_string(text) #@UndefinedVariable
 
     def testGrammar(self):
         text = """grammar SimpleCalc;
@@ -75,13 +75,13 @@ NUMBER    : (DIGIT)+ ;
 /* WHITESPACE : ( '\t' | ' ' | '\r' | '\n'| '\u000C' )+     { $channel = HIDDEN; } ; */
 
 fragment DIGIT    : '0'..'9' ;"""
-        antlrGrammarTree = antlr_grammar.grammarDef.parseString(
+        antlrGrammarTree = antlr_grammar.grammarDef.parse_string(
             text
         )  # @UndefinedVariable
         pyparsingRules = antlr_grammar.antlrConverter(antlrGrammarTree)
         pyparsingRule = pyparsingRules["expr"]
-        pyparsingTree = pyparsingRule.parseString("2 - 5 * 42 + 7 / 25")
-        pyparsingTreeList = pyparsingTree.asList()
+        pyparsingTree = pyparsingRule.parse_string("2 - 5 * 42 + 7 / 25")
+        pyparsingTreeList = pyparsingTree.as_list()
         print(pyparsingTreeList)
         self.assertEqual(
             pyparsingTreeList,

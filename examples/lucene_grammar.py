@@ -355,7 +355,7 @@ def main():
         """
 
     success1, _ = expression.run_tests(tests)
-    success2, _ = expression.run_tests(failtests, failureTests=True)
+    success2, _ = expression.run_tests(failtests, failure_tests=True)
 
     print("\n")
     print(f"Success tests: {'OK' if success1 else 'FAIL'}")

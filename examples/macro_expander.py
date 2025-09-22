@@ -17,7 +17,7 @@ import pyparsing as pp
 # define the structure of a macro definition (the empty term is used
 # to advance to the next non-whitespace character)
 identifier = pp.common.identifier
-macro_def = "#def" + identifier("macro") + pp.empty + pp.restOfLine("value")
+macro_def = "#def" + identifier("macro") + pp.empty + pp.rest_of_line("value")
 
 # define a placeholder for defined macros - initially nothing
 macro_expr = pp.Forward()
@@ -48,7 +48,7 @@ macro_def.set_parse_action(process_macro_defn)
 macro_expander = macro_expr | macro_def
 
 
-# test macro substitution using transformString
+# test macro substitution using transform_string
 test_string = """
     #def A 100
     #def ALEN A+1

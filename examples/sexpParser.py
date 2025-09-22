@@ -169,7 +169,7 @@ def main():
         test_fn for testname, test_fn in local_vars if testname.startswith("test")
     ]
 
-    sexp.run_tests(alltests, fullDump=False)
+    sexp.run_tests(alltests, full_dump=False)
 
 
 if __name__ == "__main__":

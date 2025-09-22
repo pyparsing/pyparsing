@@ -11,9 +11,9 @@ from pyparsing import (
     alphas,
     alphanums,
     Combine,
-    oneOf,
+    one_of,
     Optional,
-    delimitedList,
+    DelimitedList,
     Group,
     Keyword,
 )
@@ -24,12 +24,12 @@ testdata = """
   """
 
 ident = Word(alphas, alphanums + "_")
-vartype = Combine(oneOf("float double int char") + Optional(Word("*")), adjacent=False)
-arglist = delimitedList(Group(vartype("type") + ident("name")))
+vartype = Combine(one_of("float double int char") + Optional(Word("*")), adjacent=False)
+arglist = DelimitedList(Group(vartype("type") + ident("name")))
 
 functionCall = Keyword("int") + ident("name") + "(" + arglist("args") + ")" + ";"
 
-for fn, s, e in functionCall.scanString(testdata):
+for fn, s, e in functionCall.scan_string(testdata):
     print(fn.name)
     for a in fn.args:
         print(" - %(name)s (%(type)s)" % a)

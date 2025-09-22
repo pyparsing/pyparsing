@@ -9,7 +9,7 @@
 # define class hierarchy of Shape classes, with polymorphic area method
 class Shape:
     def __init__(self, tokens):
-        self.__dict__.update(tokens.asDict())
+        self.__dict__.update(tokens.as_dict())
 
     def area(self):
         raise NotImplemented()
@@ -52,15 +52,15 @@ rectDefn = (
 )
 circleDefn = "C" + number("centerx") + number("centery") + number("diameter")
 
-squareDefn.setParseAction(Square)
-rectDefn.setParseAction(Rectangle)
+squareDefn.set_parse_action(Square)
+rectDefn.set_parse_action(Rectangle)
 
 
 def computeRadius(tokens):
     tokens["radius"] = tokens.diameter / 2.0
 
 
-circleDefn.setParseAction(computeRadius, Circle)
+circleDefn.set_parse_action(computeRadius, Circle)
 
 shapeExpr = squareDefn | rectDefn | circleDefn
 
@@ -70,7 +70,7 @@ R 10 10 20 50
 S -1 5 10""".splitlines()
 
 for t in tests:
-    shape = shapeExpr.parseString(t)[0]
+    shape = shapeExpr.parse_string(t)[0]
     print(shape)
     print("Area:", shape.area())
     print()

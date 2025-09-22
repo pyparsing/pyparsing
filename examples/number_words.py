@@ -141,5 +141,5 @@ if __name__ == "__main__":
         # invalid
         twenty hundred
         """,
-        postParse=lambda _, s: "{:,}".format(s[0]),
+        post_parse=lambda _, s: "{:,}".format(s[0]),
     )

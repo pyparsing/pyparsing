@@ -22,4 +22,4 @@ testData = [
     "",
 ]
 
-ppc.comma_separated_list.runTests(testData)
+ppc.comma_separated_list.run_tests(testData)

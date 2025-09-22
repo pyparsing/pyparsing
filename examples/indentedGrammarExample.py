@@ -5,7 +5,7 @@
 # A sample of a pyparsing grammar using indentation for
 # grouping (like Python does).
 #
-# Updated to use indentedBlock helper method.
+# Updated to use IndentedBlock helper method.
 #
 
 from pyparsing import *
@@ -38,12 +38,12 @@ suite = IndentedBlock(stmt)
 
 identifier = Word(alphas, alphanums)
 funcDecl = (
-    "def" + identifier + Group("(" + Optional(delimitedList(identifier)) + ")") + ":"
+    "def" + identifier + Group("(" + Optional(DelimitedList(identifier)) + ")") + ":"
 )
 funcDef = Group(funcDecl + suite)
 
 rvalue = Forward()
-funcCall = Group(identifier + "(" + Optional(delimitedList(rvalue)) + ")")
+funcCall = Group(identifier + "(" + Optional(DelimitedList(rvalue)) + ")")
 rvalue << (funcCall | identifier | Word(nums))
 assignment = Group(identifier + "=" + rvalue)
 stmt << (funcDef | assignment | identifier)
@@ -51,5 +51,5 @@ stmt << (funcDef | assignment | identifier)
 module_body = OneOrMore(stmt)
 
 print(data)
-parseTree = module_body.parseString(data)
+parseTree = module_body.parse_string(data)
 parseTree.pprint()

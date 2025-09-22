@@ -81,7 +81,7 @@ from pyparsing import (
     Combine,
     alphas,
     nums,
-    restOfLine,
+    rest_of_line,
     alphanums,
     dbl_quoted_string,
     empty,
@@ -91,7 +91,7 @@ from pyparsing import (
     FollowedBy,
     ParserElement,
     Regex,
-    cppStyleComment,
+    cpp_style_comment,
 )
 import pyparsing
 
@@ -124,7 +124,7 @@ def make_verilog_bnf():
                 " nounconnected_drive celldefine endcelldefine",
                 as_keyword=True,
             )
-            + restOfLine
+            + rest_of_line
         ).set_name("compilerDirective")
 
         # primitives
@@ -148,8 +148,8 @@ def make_verilog_bnf():
             rf"\.?[{identLead}][{identBody}]*(\.[{identLead}][{identBody}]*)*"
         ).set_name("baseIdent")
         identifier2 = (
-            Regex(r"\\\S+").setParseAction(lambda t: t[0][1:]).set_name("escapedIdent")
-        )  # .setDebug()
+            Regex(r"\\\S+").set_parse_action(lambda t: t[0][1:]).set_name("escapedIdent")
+        )  # .set_debug()
         identifier = identifier1 | identifier2
         assert identifier2 == r"\abc"
 
@@ -157,7 +157,7 @@ def make_verilog_bnf():
         base = Regex("'[bBoOdDhH]").set_name("base")
         basedNumber = Combine(
             (Word(nums + "_") | "") + base + Word(hexnums + "xXzZ"),
-            joinString=" ",
+            join_string=" ",
             adjacent=False,
         ).set_name("basedNumber")
         # number = ( basedNumber | Combine( Word( "+-"+spacedNums, spacedNums ) +
@@ -182,7 +182,7 @@ def make_verilog_bnf():
         primary = (
             number
             | (LPAR + mintypmaxExpr + RPAR)
-            | (LPAR + Group(expr) + RPAR).set_name("nestedExpr")
+            | (LPAR + Group(expr) + RPAR).set_name("nested_expr")
             | multiConcat
             | concat
             | dbl_quoted_string
@@ -265,8 +265,8 @@ def make_verilog_bnf():
             | (LPAR + Group(DelimitedList(mintypmaxExpr | expr)) + RPAR)  # identifier |
         ).set_name(
             "delayArg"
-        )  # .setDebug()
-        delay = Group("#" + delayArg).set_name("delay")  # .setDebug()
+        )  # .set_debug()
+        delay = Group("#" + delayArg).set_name("delay")  # .set_debug()
         delayOrEventControl = delay | eventControl
 
         assgnmt = Group(lvalue + EQ + (delayOrEventControl | "") + expr).set_name(
@@ -315,7 +315,7 @@ def make_verilog_bnf():
             parameterDecl | regDecl | integerDecl | realDecl | timeDecl | eventDecl
         )
 
-        stmt = Forward().set_name("stmt")  # .setDebug()
+        stmt = Forward().set_name("stmt")  # .set_debug()
         stmtOrNull = stmt | SEMI
         caseItem = (DelimitedList(expr) + COLON + stmtOrNull) | (
             default + Optional(":") + stmtOrNull
@@ -486,7 +486,7 @@ def make_verilog_bnf():
         )
         namedPortConnection = Group(DOT + identifier + LPAR + expr + RPAR).set_name(
             "namedPortConnection"
-        )  # .setDebug()
+        )  # .set_debug()
         # assert r".\abc (abc )" == namedPortConnection
         modulePortConnection = expr | empty
         inst_args = Group(
@@ -496,7 +496,7 @@ def make_verilog_bnf():
         ).set_name("inst_args")
         moduleInstance = Group(Group(identifier + (range_ | "")) + inst_args).set_name(
             "moduleInstance"
-        )  # .setDebug()
+        )  # .set_debug()
 
         moduleInstantiation = Group(
             identifier
@@ -820,7 +820,7 @@ def make_verilog_bnf():
             moduleHdr + Group(moduleItem[...:endmodule]) + endmodule
         ).set_name(
             "module"
-        )  # .setDebug()
+        )  # .set_debug()
 
         udpDecl = outputDecl | inputDecl | regDecl
         # udpInitVal = one_of("1'b0 1'b1 1'bx 1'bX 1'B0 1'B1 1'Bx 1'BX 1 0 x X")
@@ -868,7 +868,7 @@ def make_verilog_bnf():
 
         verilogbnf = (module_expr | udp)[1, ...] + StringEnd()
 
-        verilogbnf.ignore(cppStyleComment)
+        verilogbnf.ignore(cpp_style_comment)
         verilogbnf.ignore(compilerDirective)
 
     return verilogbnf

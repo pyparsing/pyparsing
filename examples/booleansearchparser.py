@@ -260,7 +260,7 @@ class BooleanSearchParser:
         return self.GetWordWildcard(argument[0], method="startswith")
 
     def evaluate(self, argument):
-        return self._methods[argument.getName()](argument)
+        return self._methods[argument.get_name()](argument)
 
     def Parse(self, query):
         return self.evaluate(self._parser(query)[0])

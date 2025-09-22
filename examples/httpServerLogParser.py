@@ -26,13 +26,13 @@ Client Software
 from pyparsing import (
     alphas,
     nums,
-    dblQuotedString,
+    dbl_quoted_string,
     Combine,
     Word,
     Group,
-    delimitedList,
+    DelimitedList,
     Suppress,
-    removeQuotes,
+    remove_quotes,
 )
 import string
 
@@ -49,7 +49,7 @@ def getLogLineBNF():
 
     if logLineBNF is None:
         integer = Word(nums)
-        ipAddress = delimitedList(integer, ".", combine=True)
+        ipAddress = DelimitedList(integer, ".", combine=True)
 
         timeZoneOffset = Word("+-", nums)
         month = Word(string.ascii_uppercase, string.ascii_lowercase, exact=3)
@@ -73,15 +73,15 @@ def getLogLineBNF():
         )
 
         logLineBNF = (
-            ipAddress.setResultsName("ipAddr")
+            ipAddress.set_results_name("ipAddr")
             + Suppress("-")
-            + ("-" | Word(alphas + nums + "@._")).setResultsName("auth")
-            + serverDateTime.setResultsName("timestamp")
-            + dblQuotedString.setResultsName("cmd").setParseAction(getCmdFields)
-            + (integer | "-").setResultsName("statusCode")
-            + (integer | "-").setResultsName("numBytesSent")
-            + dblQuotedString.setResultsName("referrer").setParseAction(removeQuotes)
-            + dblQuotedString.setResultsName("clientSfw").setParseAction(removeQuotes)
+            + ("-" | Word(alphas + nums + "@._")).set_results_name("auth")
+            + serverDateTime.set_results_name("timestamp")
+            + dbl_quoted_string.set_results_name("cmd").set_parse_action(getCmdFields)
+            + (integer | "-").set_results_name("statusCode")
+            + (integer | "-").set_results_name("numBytesSent")
+            + dbl_quoted_string.set_results_name("referrer").set_parse_action(remove_quotes)
+            + dbl_quoted_string.set_results_name("clientSfw").set_parse_action(remove_quotes)
         )
     return logLineBNF
 
@@ -95,7 +95,7 @@ testdata = """
 for line in testdata.split("\n"):
     if not line:
         continue
-    fields = getLogLineBNF().parseString(line)
+    fields = getLogLineBNF().parse_string(line)
     print(fields.dump())
     # ~ print repr(fields)
     # ~ for k in fields.keys():

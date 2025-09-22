@@ -177,7 +177,7 @@ class Atom(SemanticGroup):
 def makeGroupObject(cls):
     def groupAction(s, l, t):
         try:
-            return cls(t[0].asList())
+            return cls(t[0].as_list())
         except Exception:
             return cls(t)
 
@@ -195,31 +195,31 @@ ALT_OP = Suppress("|")
 # bnf grammar
 ident = Word(alphanums + "_")
 bnfToken = Word(alphanums + "_") + ~FollowedBy(":")
-repSymbol = oneOf("* +")
+repSymbol = one_of("* +")
 bnfExpr = Forward()
-optionalTerm = Group(LBRACK + bnfExpr + RBRACK).setParseAction(
+optionalTerm = Group(LBRACK + bnfExpr + RBRACK).set_parse_action(
     makeGroupObject(OptionalGroup)
 )
 bnfTerm = (
-    (bnfToken | quotedString | optionalTerm | (LPAREN + bnfExpr + RPAREN))
+    (bnfToken | quoted_string | optionalTerm | (LPAREN + bnfExpr + RPAREN))
     + Optional(repSymbol)
-).setParseAction(makeGroupObject(Atom))
-andList = Group(bnfTerm + OneOrMore(bnfTerm)).setParseAction(makeGroupObject(AndList))
+).set_parse_action(makeGroupObject(Atom))
+andList = Group(bnfTerm + OneOrMore(bnfTerm)).set_parse_action(makeGroupObject(AndList))
 bnfFactor = andList | bnfTerm
-orList = Group(bnfFactor + OneOrMore(ALT_OP + bnfFactor)).setParseAction(
+orList = Group(bnfFactor + OneOrMore(ALT_OP + bnfFactor)).set_parse_action(
     makeGroupObject(OrList)
 )
 bnfExpr << (orList | bnfFactor)
 bnfLine = ident + COLON + bnfExpr
 
-bnfComment = "#" + restOfLine
+bnfComment = "#" + rest_of_line
 
 # build return tokens as a dictionary
 bnf = Dict(OneOrMore(Group(bnfLine)))
 bnf.ignore(bnfComment)
 
 # bnf is defined, parse the grammar text
-bnfDefs = bnf.parseString(grammar)
+bnfDefs = bnf.parse_string(grammar)
 
 # correct answer is 78
 expected = 78

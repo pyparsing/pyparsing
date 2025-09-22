@@ -9,7 +9,7 @@
 #
 # Copyright 2004, by Alberto Santini http://www.albertosantini.it/chess/
 #
-from pyparsing import alphanums, nums, quotedString
+from pyparsing import alphanums, nums, quoted_string
 from pyparsing import (
     Combine,
     Forward,
@@ -26,7 +26,7 @@ from pyparsing import ParseException
 # define pgn grammar
 #
 
-tag = Suppress("[") + Word(alphanums) + quotedString + Suppress("]")
+tag = Suppress("[") + Word(alphanums) + quoted_string + Suppress("]")
 comment = Suppress("{") + Word(alphanums + " ") + Suppress("}")
 
 dot = Literal(".")

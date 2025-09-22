@@ -30,7 +30,7 @@ def extract_text_and_url(t):
     return (t[0].text, t[0].href)
 
 
-link.addParseAction(extract_text_and_url)
+link.add_parse_action(extract_text_and_url)
 
 
 # method to create table rows of header and data tags
@@ -65,7 +65,7 @@ with urllib.request.urlopen(
 ) as page:
     page_html = page.read().decode()
 
-tz_table = html_table.searchString(page_html)[0]
+tz_table = html_table.search_string(page_html)[0]
 
 # convert rows to dicts
 rows = [dict(zip(tz_table.headers[0], row)) for row in tz_table.rows]

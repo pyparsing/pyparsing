@@ -228,7 +228,7 @@ if __name__ == '__main__':
             "decaf_parser_diagram.html", vertical=2, show_groups=True
         )
 
-    stmt.runTests("""\
+    stmt.run_tests("""\
         sin(30);
         a = 1;
         b = 1 + 1;

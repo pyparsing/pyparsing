@@ -456,7 +456,7 @@ class Parser:
         doorsVerb = pp.CaselessLiteral("DOORS")
         helpVerb = pp.one_of("H HELP ?", caseless=True).set_name("HELP | H | ?")
 
-        itemRef = pp.OneOrMore(pp.Word(pp.alphas)).set_parse_action(self.validate_item_name).setName("item_ref")
+        itemRef = pp.OneOrMore(pp.Word(pp.alphas)).set_parse_action(self.validate_item_name).set_name("item_ref")
         nDir = pp.one_of("N NORTH", caseless=True).set_parse_action(pp.replace_with("N"))
         sDir = pp.one_of("S SOUTH", caseless=True).set_parse_action(pp.replace_with("S"))
         eDir = pp.one_of("E EAST", caseless=True).set_parse_action(pp.replace_with("E"))
@@ -478,7 +478,7 @@ class Parser:
         quitCommand = quitVerb
         lookCommand = lookVerb
         examineCommand = pp.one_of("EXAMINE EX X", caseless=True) + itemRef("item")
-        doorsCommand = doorsVerb.setName("DOORS")
+        doorsCommand = doorsVerb.set_name("DOORS")
         helpCommand = helpVerb
 
         # attach command classes to expressions
