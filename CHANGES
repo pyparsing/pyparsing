@@ -63,6 +63,12 @@ Version 3.3.0 - under development
 - Added exception handling when calling `formatted_message()`, so that `str(exception)`
   always returns at least _something_.
 
+- All unit tests pass with Python 3.14, including 3.14t. This does _not_ necessarily
+  mean that pyparsing is now thread-safe, just that when run in the free-threaded
+  interpreter, there were no errors. None of the unit tests try to do any parsing
+  with multiple threads - they test the basic functionality of the library, under various
+  versions of packrat and left-recursive parsing.
+
 
 Version 3.2.5 - September, 2025
 -------------------------------
