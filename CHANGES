@@ -69,6 +69,11 @@ Version 3.3.0 - under development
   with multiple threads - they test the basic functionality of the library, under various
   versions of packrat and left-recursive parsing.
 
+- Added AI instructions so that AI agents can be prompted with best practices
+  for generating parsers using pyparsing code. These instructions are in the
+  `ai/best_practices.md` file, and can be accessed programmatically by calling
+  `pyparsing.show_best_practices()`
+
 
 Version 3.2.5 - September, 2025
 -------------------------------

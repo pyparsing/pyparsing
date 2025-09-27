@@ -20,6 +20,7 @@ from io import StringIO
 from textwrap import dedent
 from typing import Any
 import unittest
+from unittest.mock import patch, mock_open
 
 import pyparsing as pp
 from examples.jsonParser import jsonObject
@@ -11223,6 +11224,35 @@ class Test11_LR1_Recursion(ppt.TestParseResultsAsserts, TestCase):
             expr.parse_string(".abcabaabc", parse_all=True),
             expected_list=[".", "abc", "ab", "a", "abc"],
         )
+
+
+class TestShowBestPractices(unittest.TestCase):
+    def test_loads_markdown_file(self):
+        # Mock the file read to simulate the Markdown content
+        mock_content = "## Test Best Practices\n- Example guideline"
+        mock_file = mock_open(read_data=mock_content)
+
+        with patch("importlib.resources.files") as mock_files:
+            # mock path.open() to use our mock_file
+            mock_path = mock_files.return_value.joinpath.return_value
+            mock_path.open = mock_file
+
+            result = pp.show_best_practices(file=None)
+
+        self.assertEqual(result, mock_content)
+
+    def test_fallback_when_file_missing(self):
+        # Patch files().joinpath().open to raise FileNotFoundError
+        with patch("importlib.resources.files") as mock_files:
+            mock_path = mock_files.return_value.joinpath.return_value
+            mock_path.open.side_effect = FileNotFoundError
+
+            result = pp.show_best_practices(file=None)
+
+        self.assertIn("## Planning", result)  # Fallback contains "Planning" section
+        self.assertIn("## Implementing", result)
+        self.assertIn("## Testing", result)
+        self.assertIn("## Debugging", result)
 
 
 # force clear of packrat parsing flags before saving contexts

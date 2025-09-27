@@ -45,6 +45,7 @@ include = [
     "CODE_OF_CONDUCT.rst",
     "CONTRIBUTING.md",
     "LICENSE",
+    "ai/best_practices.md",
     "docs",
     "examples",
     "tests",

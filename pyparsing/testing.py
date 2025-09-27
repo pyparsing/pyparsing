@@ -3,6 +3,7 @@
 from contextlib import contextmanager
 import re
 import typing
+import unittest
 
 
 from .core import (
@@ -136,7 +137,7 @@ class pyparsing_test:
         def __exit__(self, *args):
             self.restore()
 
-    class TestParseResultsAsserts:
+    class TestParseResultsAsserts(unittest.TestCase):
         """
         A mixin class to add parse results assertion methods to normal unittest.TestCase classes.
         """
