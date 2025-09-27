@@ -20,9 +20,7 @@ from .util import (
 # global helpers
 #
 def counted_array(
-    expr: ParserElement,
-    int_expr: typing.Optional[ParserElement] = None,
-    **kwargs
+    expr: ParserElement, int_expr: typing.Optional[ParserElement] = None, **kwargs
 ) -> ParserElement:
     """Helper to define a counted list of expressions.
 
@@ -70,7 +68,9 @@ def counted_array(
          - items: ['True', 'True', 'False']
          - type: 'bool'
     """
-    intExpr: typing.Optional[ParserElement] = deprecate_argument(kwargs, "intExpr", None)
+    intExpr: typing.Optional[ParserElement] = deprecate_argument(
+        kwargs, "intExpr", None
+    )
 
     intExpr = intExpr or int_expr
     array_expr = Forward()
@@ -171,7 +171,7 @@ def one_of(
     caseless: bool = False,
     use_regex: bool = True,
     as_keyword: bool = False,
-    **kwargs
+    **kwargs,
 ) -> ParserElement:
     """Helper to quickly define a set of alternative :class:`Literal` s,
     and makes sure to do longest-first testing when there is a conflict,
@@ -187,7 +187,7 @@ def one_of(
        ``as_keyword=True``, or if creating a :class:`Regex` raises an exception)
     :param as_keyword: bool - enforce :class:`Keyword`-style matching on the
        generated expressions
-    
+
     Parameters ``asKeyword`` and ``useRegex`` are retained for pre-PEP8
     compatibility, but will be removed in a future release.
 
@@ -318,7 +318,7 @@ def dict_of(key: ParserElement, value: ParserElement) -> Dict:
     .. doctest::
 
        >>> text = "shape: SQUARE posn: upper left color: light blue texture: burlap"
-       
+
        >>> data_word = Word(alphas)
        >>> label = data_word + FollowedBy(':')
        >>> attr_expr = (
@@ -468,7 +468,7 @@ def nested_expr(
     closer: Union[str, ParserElement] = ")",
     content: typing.Optional[ParserElement] = None,
     ignore_expr: typing.Optional[ParserElement] = _NO_IGNORE_EXPR_GIVEN,
-    **kwargs
+    **kwargs,
 ) -> ParserElement:
     """Helper method for defining nested lists enclosed in opening and
     closing delimiters (``"("`` and ``")"`` are the default).
@@ -542,7 +542,9 @@ def nested_expr(
        is_odd (int) args: [['int', 'x']]
        dec_to_hex (int) args: [['char', 'hchar']]
     """
-    ignoreExpr: ParserElement = deprecate_argument(kwargs, "ignoreExpr", _NO_IGNORE_EXPR_GIVEN)
+    ignoreExpr: ParserElement = deprecate_argument(
+        kwargs, "ignoreExpr", _NO_IGNORE_EXPR_GIVEN
+    )
 
     if ignoreExpr != ignore_expr:
         ignoreExpr = ignore_expr if ignoreExpr is _NO_IGNORE_EXPR_GIVEN else ignoreExpr  # type: ignore [assignment]

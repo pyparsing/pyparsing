@@ -514,16 +514,16 @@ class ParserElement(ABC):
     @property
     def mayReturnEmpty(self) -> bool:
         """
-           .. deprecated:: 3.3.0
-           use _may_return_empty instead.
+        .. deprecated:: 3.3.0
+        use _may_return_empty instead.
         """
         return self._may_return_empty
 
     @mayReturnEmpty.setter
     def mayReturnEmpty(self, value) -> None:
         """
-           .. deprecated:: 3.3.0
-           use _may_return_empty instead.
+        .. deprecated:: 3.3.0
+        use _may_return_empty instead.
         """
         self._may_return_empty = value
 
@@ -677,7 +677,9 @@ class ParserElement(ABC):
             self._parse = self._parse._originalParseMethod  # type: ignore [method-assign]
         return self
 
-    def set_parse_action(self, *fns: ParseAction, call_during_try: bool = False, **kwargs: Any) -> ParserElement:
+    def set_parse_action(
+        self, *fns: ParseAction, call_during_try: bool = False, **kwargs: Any
+    ) -> ParserElement:
         """
         Define one or more actions to perform when successfully matching parse element definition.
 
@@ -758,7 +760,7 @@ class ParserElement(ABC):
         .. testcode::
 
             print(date_str.parse_string("1999/12/31"))
-            
+
         prints:
 
         .. testoutput::
@@ -791,7 +793,9 @@ class ParserElement(ABC):
 
         return self
 
-    def add_parse_action(self, *fns: ParseAction, call_during_try: bool = False, **kwargs: Any) -> ParserElement:
+    def add_parse_action(
+        self, *fns: ParseAction, call_during_try: bool = False, **kwargs: Any
+    ) -> ParserElement:
         """
         Add one or more parse actions to expression's list of parse actions. See :class:`set_parse_action`.
 
@@ -803,7 +807,9 @@ class ParserElement(ABC):
         self.callDuringTry = self.callDuringTry or callDuringTry or call_during_try
         return self
 
-    def add_condition(self, *fns: ParseCondition, call_during_try: bool = False, **kwargs: Any) -> ParserElement:
+    def add_condition(
+        self, *fns: ParseCondition, call_during_try: bool = False, **kwargs: Any
+    ) -> ParserElement:
         """Add a boolean predicate function to expression's list of parse actions. See
         :class:`set_parse_action` for function call signatures. Unlike ``set_parse_action``,
         functions passed to ``add_condition`` need to return boolean success/fail of the condition.
@@ -1343,7 +1349,7 @@ class ParserElement(ABC):
         always_skip_whitespace=True,
         *,
         debug: bool = False,
-        **kwargs
+        **kwargs,
     ) -> Generator[tuple[ParseResults, int, int], None, None]:
         """
         Scan the input string for expression matches.  Each match will return the
@@ -1546,7 +1552,7 @@ class ParserElement(ABC):
                         instring,
                         max_matches=max_matches,
                         always_skip_whitespace=False,
-                        debug=debug
+                        debug=debug,
                     )
                 ]
             )
@@ -2009,7 +2015,7 @@ class ParserElement(ABC):
 
         :param start_action: method to be called when an expression is about to be parsed;
                              should have the signature::
-                             
+
                                  fn(input_string: str,
                                     location: int,
                                     expression: ParserElement,
@@ -2017,7 +2023,7 @@ class ParserElement(ABC):
 
         :param success_action: method to be called when an expression has successfully parsed;
                                should have the signature::
-                               
+
                                    fn(input_string: str,
                                       start_location: int,
                                       end_location: int,
@@ -2027,7 +2033,7 @@ class ParserElement(ABC):
 
         :param exception_action: method to be called when expression fails to parse;
                                  should have the signature::
-                                 
+
                                    fn(input_string: str,
                                       location: int,
                                       expression: ParserElement,
@@ -2147,7 +2153,7 @@ class ParserElement(ABC):
             >>> integer.parse_string("ABC")
             Traceback (most recent call last):
             ParseException: Expected integer (at char 0), (line:1, col:1)
-        
+
         .. versionchanged:: 3.1.0
            Accept ``None`` as the ``name`` argument.
         """
@@ -2209,7 +2215,7 @@ class ParserElement(ABC):
         file_or_filename: Union[str, Path, TextIO],
         encoding: str = "utf-8",
         parse_all: bool = False,
-        **kwargs
+        **kwargs,
     ) -> ParseResults:
         """
         Execute the parse expression on the given file or filename.
@@ -2247,9 +2253,7 @@ class ParserElement(ABC):
     def __hash__(self):
         return id(self)
 
-    def matches(
-        self, test_string: str, parse_all: bool = True, **kwargs
-    ) -> bool:
+    def matches(self, test_string: str, parse_all: bool = True, **kwargs) -> bool:
         """
         Method for quick testing of a parser against a test string. Good for simple
         inline microtests of sub expressions while building up larger parser.
@@ -2821,7 +2825,7 @@ class Keyword(Token):
         match_string: str = "",
         ident_chars: typing.Optional[str] = None,
         caseless: bool = False,
-        **kwargs
+        **kwargs,
     ) -> None:
         matchString = deprecate_argument(kwargs, "matchString", "")
         identChars = deprecate_argument(kwargs, "identChars", None)
@@ -2961,13 +2965,12 @@ class CaselessKeyword(Keyword):
     """
 
     def __init__(
-        self,
-        match_string: str = "",
-        ident_chars: typing.Optional[str] = None,
-        **kwargs
+        self, match_string: str = "", ident_chars: typing.Optional[str] = None, **kwargs
     ) -> None:
         matchString: str = deprecate_argument(kwargs, "matchString", "")
-        identChars: typing.Optional[str] = deprecate_argument(kwargs, "identChars", None)
+        identChars: typing.Optional[str] = deprecate_argument(
+            kwargs, "identChars", None
+        )
 
         identChars = identChars or ident_chars
         match_string = matchString or match_string
@@ -3028,7 +3031,7 @@ class CloseMatch(Token):
         max_mismatches: typing.Optional[int] = None,
         *,
         caseless=False,
-        **kwargs
+        **kwargs,
     ) -> None:
         maxMismatches: int = deprecate_argument(kwargs, "maxMismatches", 1)
 
@@ -3164,12 +3167,14 @@ class Word(Token):
         exact: int = 0,
         as_keyword: bool = False,
         exclude_chars: typing.Optional[str] = None,
-        **kwargs
+        **kwargs,
     ) -> None:
         initChars: typing.Optional[str] = deprecate_argument(kwargs, "initChars", None)
         bodyChars: typing.Optional[str] = deprecate_argument(kwargs, "bodyChars", None)
         asKeyword: bool = deprecate_argument(kwargs, "asKeyword", False)
-        excludeChars: typing.Optional[str] = deprecate_argument(kwargs, "excludeChars", None)
+        excludeChars: typing.Optional[str] = deprecate_argument(
+            kwargs, "excludeChars", None
+        )
 
         initChars = initChars or init_chars
         bodyChars = bodyChars or body_chars
@@ -3375,10 +3380,12 @@ class Char(Word):
         charset: str,
         as_keyword: bool = False,
         exclude_chars: typing.Optional[str] = None,
-        **kwargs
+        **kwargs,
     ) -> None:
         asKeyword: bool = deprecate_argument(kwargs, "asKeyword", False)
-        excludeChars: typing.Optional[str] = deprecate_argument(kwargs, "excludeChars", None)
+        excludeChars: typing.Optional[str] = deprecate_argument(
+            kwargs, "excludeChars", None
+        )
 
         asKeyword = asKeyword or as_keyword
         excludeChars = excludeChars or exclude_chars
@@ -3426,7 +3433,7 @@ class Regex(Token):
         flags: Union[re.RegexFlag, int] = 0,
         as_group_list: bool = False,
         as_match: bool = False,
-        **kwargs
+        **kwargs,
     ) -> None:
         super().__init__()
         asGroupList: bool = deprecate_argument(kwargs, "asGroupList", False)
@@ -3667,15 +3674,19 @@ class QuotedString(Token):
         unquote_results: bool = True,
         end_quote_char: typing.Optional[str] = None,
         convert_whitespace_escapes: bool = True,
-        **kwargs
+        **kwargs,
     ) -> None:
         super().__init__()
         quoteChar: str = deprecate_argument(kwargs, "quoteChar", "")
         escChar: str = deprecate_argument(kwargs, "escChar", None)
         escQuote: str = deprecate_argument(kwargs, "escQuote", None)
         unquoteResults: bool = deprecate_argument(kwargs, "unquoteResults", True)
-        endQuoteChar: typing.Optional[str] = deprecate_argument(kwargs, "endQuoteChar", None)
-        convertWhitespaceEscapes: bool = deprecate_argument(kwargs, "convertWhitespaceEscapes", True)
+        endQuoteChar: typing.Optional[str] = deprecate_argument(
+            kwargs, "endQuoteChar", None
+        )
+        convertWhitespaceEscapes: bool = deprecate_argument(
+            kwargs, "convertWhitespaceEscapes", True
+        )
 
         esc_char = escChar or esc_char
         esc_quote = escQuote or esc_quote
@@ -3883,12 +3894,7 @@ class CharsNotIn(Token):
     """
 
     def __init__(
-        self,
-        not_chars: str = "",
-        min: int = 1,
-        max: int = 0,
-        exact: int = 0,
-        **kwargs
+        self, not_chars: str = "", min: int = 1, max: int = 0, exact: int = 0, **kwargs
     ) -> None:
         super().__init__()
         notChars: str = deprecate_argument(kwargs, "notChars", "")
@@ -3958,9 +3964,9 @@ class White(Token):
         "\n": "<LF>",
         "\r": "<CR>",
         "\f": "<FF>",
-        "\u00A0": "<NBSP>",
+        "\u00a0": "<NBSP>",
         "\u1680": "<OGHAM_SPACE_MARK>",
-        "\u180E": "<MONGOLIAN_VOWEL_SEPARATOR>",
+        "\u180e": "<MONGOLIAN_VOWEL_SEPARATOR>",
         "\u2000": "<EN_QUAD>",
         "\u2001": "<EM_QUAD>",
         "\u2002": "<EN_SPACE>",
@@ -3971,10 +3977,10 @@ class White(Token):
         "\u2007": "<FIGURE_SPACE>",
         "\u2008": "<PUNCTUATION_SPACE>",
         "\u2009": "<THIN_SPACE>",
-        "\u200A": "<HAIR_SPACE>",
-        "\u200B": "<ZERO_WIDTH_SPACE>",
-        "\u202F": "<NNBSP>",
-        "\u205F": "<MMSP>",
+        "\u200a": "<HAIR_SPACE>",
+        "\u200b": "<ZERO_WIDTH_SPACE>",
+        "\u202f": "<NNBSP>",
+        "\u205f": "<MMSP>",
         "\u3000": "<IDEOGRAPHIC_SPACE>",
     }
 
@@ -4186,9 +4192,7 @@ class WordStart(PositionToken):
     a line.
     """
 
-    def __init__(
-        self, word_chars: str = printables, **kwargs
-    ) -> None:
+    def __init__(self, word_chars: str = printables, **kwargs) -> None:
         wordChars: str = deprecate_argument(kwargs, "wordChars", printables)
 
         wordChars = word_chars if wordChars == printables else wordChars
@@ -4215,9 +4219,7 @@ class WordEnd(PositionToken):
     of a line.
     """
 
-    def __init__(
-        self, word_chars: str = printables, **kwargs
-    ) -> None:
+    def __init__(self, word_chars: str = printables, **kwargs) -> None:
         wordChars: str = deprecate_argument(kwargs, "wordChars", printables)
 
         wordChars = word_chars if wordChars == printables else wordChars
@@ -5640,9 +5642,11 @@ class _MultipleMatch(ParseElementEnhance):
         self,
         expr: Union[str, ParserElement],
         stop_on: typing.Optional[Union[ParserElement, str]] = None,
-        **kwargs
+        **kwargs,
     ) -> None:
-        stopOn: typing.Optional[Union[ParserElement, str]] = deprecate_argument(kwargs, "stopOn", None)
+        stopOn: typing.Optional[Union[ParserElement, str]] = deprecate_argument(
+            kwargs, "stopOn", None
+        )
 
         super().__init__(expr)
         stopOn = stopOn or stop_on
@@ -5778,7 +5782,7 @@ class ZeroOrMore(_MultipleMatch):
         self,
         expr: Union[str, ParserElement],
         stop_on: typing.Optional[Union[ParserElement, str]] = None,
-        **kwargs
+        **kwargs,
     ) -> None:
         stopOn: Union[ParserElement, str] = deprecate_argument(kwargs, "stopOn", None)
 
@@ -6036,9 +6040,11 @@ class SkipTo(ParseElementEnhance):
         include: bool = False,
         ignore: typing.Optional[Union[ParserElement, str]] = None,
         fail_on: typing.Optional[Union[ParserElement, str]] = None,
-        **kwargs
+        **kwargs,
     ) -> None:
-        failOn: typing.Optional[Union[ParserElement, str]] = deprecate_argument(kwargs, "failOn", None)
+        failOn: typing.Optional[Union[ParserElement, str]] = deprecate_argument(
+            kwargs, "failOn", None
+        )
 
         super().__init__(other)
         failOn = failOn or fail_on

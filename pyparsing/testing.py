@@ -294,7 +294,7 @@ class pyparsing_test:
         :param mark_spaces: special character to display in place of spaces
         :param mark_control: convert non-printing control characters to a placeholding
                              character; valid values:
-                                 
+
                              - ``"unicode"`` - replaces control chars with Unicode symbols, such as "␍" and "␊"
                              - any single character string - replace control characters with given string
                              - ``None`` (default) - string is displayed as-is

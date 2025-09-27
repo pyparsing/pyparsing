@@ -186,7 +186,7 @@ class _GroupConsecutive:
     """
     Used as a callable `key` for itertools.groupby to group
     characters that are consecutive:
-    
+
     .. testcode::
 
        from itertools import groupby
@@ -466,7 +466,7 @@ def deprecate_argument(
     kwargs: dict[str, Any], arg_name: str, default_value=None, *, new_name: str = ""
 ) -> Any:
 
-    def to_pep8_name(s: str, _re_sub_pattern = re.compile(r"([a-z])([A-Z])")) -> str:
+    def to_pep8_name(s: str, _re_sub_pattern=re.compile(r"([a-z])([A-Z])")) -> str:
         s = _re_sub_pattern.sub(r"\1_\2", s)
         return s.lower()
 
