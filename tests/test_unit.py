@@ -21,6 +21,7 @@ from textwrap import dedent
 from typing import Any
 import unittest
 from unittest.mock import patch, mock_open
+import subprocess
 
 import pyparsing as pp
 from examples.jsonParser import jsonObject
@@ -11254,10 +11255,25 @@ class TestShowBestPractices(unittest.TestCase):
         self.assertIn("## Testing", result)
         self.assertIn("## Debugging", result)
 
+    def test_cli_invocation_with_module_flag(self):
+        # Invoke the CLI the same way a user or AI would:
+        #     python -m pyparsing.show_best_practices
+        cmd = [sys.executable, "-m", "pyparsing.ai.show_best_practices"]
+        subproc = subprocess.run(cmd, capture_output=True, text=True)
+
+        self.assertEqual(subproc.returncode, 0, msg=f"stderr: {subproc.stderr}")
+
+        subproc_stdout = subproc.stdout
+        # Should print the best practices markdown (either from file or fallback)
+        self.assertIn("## Planning", subproc_stdout)
+        self.assertIn("## Implementing", subproc_stdout)
+        self.assertIn("## Testing", subproc_stdout)
+        self.assertIn("## Debugging", subproc_stdout)
+
 
 # force clear of packrat parsing flags before saving contexts
 pp.ParserElement._packratEnabled = False
-pp.ParserElement._parse = pp.ParserElement._parseNoCache
+pp.ParserElement._parse = pp.ParserElement._parseNoCache  # noqa
 
 Test02_WithoutPackrat.suite_context = ppt.reset_pyparsing_context().save()
 Test02_WithoutPackrat.save_suite_context = ppt.reset_pyparsing_context().save()

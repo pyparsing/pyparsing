@@ -152,8 +152,8 @@ class version_info(NamedTuple):
         return f"{__name__}.{type(self).__name__}({', '.join('{}={!r}'.format(*nv) for nv in zip(self._fields, self))})"
 
 
-__version_info__ = version_info(3, 3, 0, "final", 1)
-__version_time__ = "27 Sep 2025 07:02 UTC"
+__version_info__ = version_info(3, 3, 0, "alpha", 1)
+__version_time__ = "27 Sep 2025 18:20 UTC"
 __version__ = __version_info__.__version__
 __versionTime__ = __version_time__
 __author__ = "Paul McGuire <ptmcg.gm+pyparsing@gmail.com>"
@@ -218,13 +218,23 @@ _FALLBACK_BEST_PRACTICES = """
 """
 # fmt: on
 
-def show_best_practices(file = sys.stdout) -> str:
+def show_best_practices(file = sys.stdout) -> Union[str, None]:
     """
     Load and return the project's best practices.
 
-    Example:
+    Example::
+
         >>> import pyparsing as pp
         >>> pp.show_best_practices()
+        <!--
+        This file contains instructions for best practices for developing parsers with pyparsing, and can be used by AI agents
+        when generating Python code using pyparsing.
+        -->
+        ...
+
+    This can also be run from the command line::
+
+        python -m pyparsing.ai.show_best_practices
     """
     try:
         path = resources.files(__package__).joinpath("ai/best_practices.md")
@@ -234,7 +244,11 @@ def show_best_practices(file = sys.stdout) -> str:
         content = _FALLBACK_BEST_PRACTICES
 
     if file is not None:
+        # just print out the content, no need to return it
         print(content, file=file)
+        return None
+
+    # no output file was specified, return the content as a string
     return content
 
 

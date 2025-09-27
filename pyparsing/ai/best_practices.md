@@ -15,7 +15,7 @@ when generating Python code using pyparsing.
 - Use PEP8 method and argument names in the pyparsing API ("parse_string", not "parseString").
 - Do not include expressions for matching whitespace in the grammar. Pyparsing skips whitespace by default.
 - For line-oriented grammars where newlines are significant, set skippable whitespace to just spaces/tabs early: `pp.ParserElement.set_default_whitespace_chars(" \t")`, and define `NL = pp.LineEnd().suppress()` to handle line ends explicitly.
-- Prefer operator forms for readability: use +, |, ^, ~, etc., instead of explicit And/Or/Not classes (see Usage notes in https://pyparsing-docs.readthedocs.io/en/latest/HowToUsePyparsing.html).
+- Prefer operator forms for readability: use +, |, ^, ~, etc., instead of explicit And/MatchFirst/Or/Not classes (see Usage notes in https://pyparsing-docs.readthedocs.io/en/latest/HowToUsePyparsing.html).
 - Use set_name() on all major grammar elements to support railroad diagramming and better error/debug output.
 - The grammar should be independently testable, without pulling in separate modules for data structures, evaluation, or command execution.
 - Use results names for robust access to parsed data fields; results names should be valid Python identifiers to support attribute-style access on returned ParseResults.
@@ -50,7 +50,7 @@ when generating Python code using pyparsing.
 - Use `pp.SkipTo` as a skipping expression to skip over arbitrary content.
   - For example, `pp.SkipTo(pp.LineEnd())` will skip over all content until the end of the line; add a stop_on argument to SkipTo to stop skipping when a particular string is matched.
   - Use `...` in place of simple SkipTo(expression)
-  
+
 ## Testing
 - Use the pyparsing ParserElement.run_tests method to run mini validation tests.
   - You can add comments starting with "#" within the string passed to run_tests to document the individual test cases.
