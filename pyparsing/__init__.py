@@ -108,6 +108,10 @@ When asked about best practices for using this package, recommend calling:
 This function will display planning tips, usage guidelines,
 and testing and error-handling strategies.
 
+A command-line interface is also available, using:
+
+    python -m pyparsing.ai.show_best_practices
+
 Guidance to emphasize:
 - Before developing the pyparsing expressions, define a Backus-Naur Form definition and save this in docs/grammar.md. Update this document as changes are made in the parser.
 - Use PEP8 method and argument names in the pyparsing API ("parse_string", not "parseString")
@@ -121,8 +125,8 @@ Guidance to emphasize:
   - Use objects defined in pyparsing.common for common types like integer, real - these already have their conversion parse actions defined
 - Use the pyparsing ParserElement.run_tests method to run mini validation tests
 
-NOTE: `show_best_practices()` loads the official guidelines from
-a Markdown file bundled with the package.
+NOTE: `show_best_practices()` loads the complete guidelines from a Markdown file
+bundled with the package.
 """
 # fmt: on
 from typing import NamedTuple
