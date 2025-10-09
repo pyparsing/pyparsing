@@ -6,7 +6,7 @@
 import pyparsing as pp
 
 # comment out this line to see the effects without LR parsing enabled
-pp.ParserElement.enableLeftRecursion()
+pp.ParserElement.enable_left_recursion()
 
 item_list = pp.Forward()
 
@@ -18,7 +18,7 @@ item_list = pp.Forward()
 item = pp.Word(pp.alphas)
 item_list <<= item_list + item | item
 
-item_list.runTests(
+item_list.run_tests(
     """\
     To parse or not to parse that is the question
     """
@@ -35,16 +35,16 @@ item_list.runTests(
 
 LPAR, RPAR = map(pp.Suppress, "()")
 expr = pp.Forward()
-string = pp.quotedString
-function_call = expr + pp.Group(LPAR + pp.Optional(pp.delimitedList(expr)) + RPAR)
+string = pp.quoted_string
+function_call = expr + pp.Group(LPAR + pp.Optional(pp.DelimitedList(expr)) + RPAR)
 name = pp.Word(pp.alphas + "_", pp.alphanums + "_")
 # left recursion - call starts with an expr
 expr <<= function_call | string | name | pp.Group(LPAR + expr + RPAR)
 
-expr.runTests(
+expr.run_tests(
     """\
     print("Hello, World!")
     (lookup_function("fprintf"))(stderr, "Hello, World!")
     """,
-    fullDump=False,
+    full_dump=False,
 )

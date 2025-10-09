@@ -23,11 +23,11 @@ identifier = Word(alphas)
 classIdent = identifier("classname")  # note that this also makes a copy of identifier
 classHead = "class" + classIdent
 classBody = "..."
-classEnd = "end" + matchPreviousLiteral(classIdent) + ";"
+classEnd = "end" + match_previous_literal(classIdent) + ";"
 classDefn = classHead + classBody + classEnd
 
 # use this form to catch syntax error
 # classDefn = classHead + classBody - classEnd
 
-for tokens in classDefn.searchString(src):
+for tokens in classDefn.search_string(src):
     print(tokens.classname)

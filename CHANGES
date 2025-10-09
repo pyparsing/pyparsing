@@ -7,14 +7,30 @@ RELEASE PLANNING NOTES:
 In the pyparsing release 3.3.0, use of many of the pre-PEP8 methods (such as
 `ParserElement.parseString`) will start to raise `DeprecationWarnings`. I plan to
 completely drop the pre-PEP8 methods in pyparsing 4.0, though we won't see that release
-until some time in 2026. So there is plenty of time to convert existing parsers to
-the new function names before the old functions are completely removed. (Big help from
-Devin J. Pohly in structuring the code to enable this peaceful transition.)
+until some time later in 2026. So there is plenty of time to convert existing parsers to
+the new function names before the legacy functions are completely removed.
 
+Required Python versions by pyparsing version
+---------------------------------------------
+
++--------------------------------------------------+-------------------+
+| pyparsing version                                | Required Python   |
++==================================================+===================+
+| 3.3.0 and later                                  | 3.9 or later      |
+| 3.2.0 - 3.2.4                                    | 3.9 or later      |
+| 3.0.8 - 3.1.4                                    | 3.6.8 or later    |
+| 3.0.0 - 3.0.7 (these versions are discouraged)   | 3.6 or later      |
+| 2.4.7                                            | 2.7 or later      |
+| 1.5.7                                            | 2.6 - 2.7         |
++--------------------------------------------------+-------------------+
+
+
+Version 3.3.0 - under development
+---------------------------------
 ===========================================================================================
  The version 3.3.0 release will begin emitting `DeprecationWarnings` for pyparsing methods
  that have been renamed to PEP8-compliant names (introduced in pyparsing 3.0.0, in August,
- 2021, with legacy names retained as aliases). In preparation, I have added in pyparsing
+ 2021, with legacy names retained as aliases). In preparation, I added in pyparsing
  3.2.2 a utility for finding and replacing the legacy method names with the new names.
  This utility is located at `pyparsing/tools/cvt_pep8_names.py`. This script will scan all
  Python files specified on the command line, and if the `-u` option is selected, will
@@ -28,19 +44,45 @@ Devin J. Pohly in structuring the code to enable this peaceful transition.)
  The new names are compatible with pyparsing versions 3.0.0 and later.
 ===========================================================================================
 
+- Deprecated `indentedBlock`, when converted using the `cvt_pyparsing_pep8_names`
+  utility, will emit `UserWarnings` that additional code changes will be required.
+  This is because the new `IndentedBlock` class no longer requires the calling code
+  to supply an indent stack, while adding support for nested indentation levels
+  and grouping.
 
-Required Python versions by pyparsing version
----------------------------------------------
+- Deprecated `locatedExpr`, when converted using the `cvt_pyparsing_pep8_names`
+  utility, will emit UserWarnings that additional code changes may be required.
+  The new `Located` class removes the extra grouping level of the parsed values.
+  (If the original `locatedExpr` parser was defined with a results name, then
+  the extra grouping is retained, so that the results name nesting works properly;
+  in this case, no code changes would be required.)
 
-+--------------------------------------------------+-------------------+
-| pyparsing version                                | Required Python   |
-+==================================================+===================+
-| 3.2.0 - later                                    | 3.9 or later      |
-| 3.0.8 - 3.1.4                                    | 3.6.8 or later    |
-| 3.0.0 - 3.0.7 (these versions are discouraged)   | 3.6 or later      |
-| 2.4.7                                            | 2.7 or later      |
-| 1.5.7                                            | 2.6 - 2.7         |
-+--------------------------------------------------+-------------------+
+- Updated all examples and test cases to use PEP8 names (unless the test case is specifically
+  designed to test behavior of a legacy method). Added railroad diagrams for some examples.
+
+- Added exception handling when calling `formatted_message()`, so that `str(exception)`
+  always returns at least _something_.
+
+- All unit tests pass with Python 3.14, including 3.14t. This does _not_ necessarily
+  mean that pyparsing is now thread-safe, just that when run in the free-threaded
+  interpreter, there were no errors. None of the unit tests try to do any parsing
+  with multiple threads - they test the basic functionality of the library, under various
+  versions of packrat and left-recursive parsing.
+
+- Added AI instructions so that AI agents can be prompted with best practices
+  for generating parsers using pyparsing code. These instructions are in the
+  `ai/best_practices.md` file, and can be accessed programmatically by calling
+  `pyparsing.show_best_practices()` or running `python -m pyparsing.ai.show_best_practices`
+  from the command line, after installing the `pyparsing` package.
+
+
+Version 3.2.5 - September, 2025
+-------------------------------
+- JINX! Well, 3.2.4 had a bug for `Word` expressions that include a space
+  character, if that expression was then copied, either directly with .copy() or
+  by adding a results name, or included in another construct (like `DelimitedList`)
+  that makes a copy internally. Issue #618, reported by mstinberg, among others -
+  thanks, and sorry for the inconvenience.
 
 Version 3.2.5 - September, 2025
 -------------------------------
@@ -123,7 +165,7 @@ Version 3.2.2 - March, 2025
   elements that are used internally by pyparsing, but are not part of the actual
   parser grammar. For instance, the `Tag` class can insert values into the parsed
   results but it does not actually parse any input, so by default it is not included
-  in a railroad diagram. By calling `create_diagram` with `show_hidden` = `True`,
+  in a railroad diagram. By calling `create_diagram` with `show_hidden = True`,
   these internal elements will be included. (You can see this in the tag_metadata.py
   script in the examples directory.)
 
@@ -148,7 +190,7 @@ Version 3.2.1 - December, 2024
   diagramming.
 
 - Improved performance of `cpp_style_comment`, `c_style_comment`, `common.fnumber`
-  and `common.ieee_float` Regex expressions. PRs submitted by Gabriel Gerlero,
+  and `common.ieee_float` `Regex` expressions. PRs submitted by Gabriel Gerlero,
   nice work, thanks!
 
 - Add missing type annotations to `match_only_at_col`, `replace_with`, `remove_quotes`,
@@ -231,7 +273,7 @@ Version 3.2.0 - October, 2024
       where some diagram elements were just empty blocks. Fix submitted by RoDuth,
       thanks a ton!
 
-    - Fixed railroad diagrams that get generated with a parser containing a Regex element
+    - Fixed railroad diagrams that get generated with a parser containing a `Regex` element
       defined using a verbose pattern - the pattern gets flattened and comments removed
       before creating the corresponding diagram element.
 
@@ -1447,7 +1489,7 @@ Version 3.0.0a1 - April, 2020
   preceding or trailing keyword character. Surfaced while
   working with metaperl on issue #201.
 
-- Enhanced the Regex class to be compatible with re's compiled with the
+- Enhanced the `Regex` class to be compatible with re's compiled with the
   re-equivalent regex module. Individual expressions can be built with
   regex compiled expressions using:
 
@@ -1484,7 +1526,7 @@ Version 3.0.0a1 - April, 2020
   types of nested indented blocks with different indent values,
   but sharing the same indent stack, submitted by renzbagaporo.
 
-- Fixed bug in Each when using Regex, when Regex expression would
+- Fixed bug in `Each` when using `Regex`, when `Regex` expression would
   get parsed twice; issue #183 submitted by scauligi, thanks!
 
 - `BigQueryViewParser.py` added to examples directory, PR submitted
@@ -1500,7 +1542,7 @@ Version 3.0.0a1 - April, 2020
 - Fixed bug in regex definitions for real and sci_real expressions in
   pyparsing_common. Issue #194, reported by Michael Wayne Goodman, thanks!
 
-- Fixed `FutureWarning` raised beginning in Python 3.7 for Regex expressions
+- Fixed `FutureWarning` raised beginning in Python 3.7 for `Regex` expressions
   containing '[' within a regex set.
 
 - Minor reformatting of output from `runTests` to make embedded
@@ -1517,7 +1559,7 @@ Version 3.0.0a1 - April, 2020
 Version 2.4.7 - April, 2020
 ---------------------------
 - Backport of selected fixes from 3.0.0 work:
-  . Each bug with Regex expressions
+  . Each bug with `Regex` expressions
   . And expressions not properly constructing with generator
   . Traceback abbreviation
   . Bug in delta_time example
@@ -1584,7 +1626,7 @@ Version 2.4.3 - November, 2019
 - Backports from pyparsing 3.0.0:
   . __diag__.enable_all_warnings()
   . Fixed bug in PrecededBy which caused infinite recursion, issue #127
-  . support for using regex-compiled RE to construct Regex expressions
+  . support for using regex-compiled RE to construct `Regex` expressions
 
 
 Version 2.4.2 - July, 2019
@@ -2253,13 +2295,13 @@ Version 2.2.2 - September, 2018
   Primary intent is more to be instructional than actually rigorous
   testing. Complex tests can still be added in the unitTests.py file.
 
-- New features added to the Regex class:
+- New features added to the `Regex` class:
   - optional asGroupList parameter, returns all the capture groups as
     a list
   - optional asMatch parameter, returns the raw re.match result
   - new sub(repl) method, which adds a parse action calling
     re.sub(pattern, repl, parsed_result). Simplifies creating
-    Regex expressions to be used with transformString. Like re.sub,
+    `Regex` expressions to be used with transformString. Like re.sub,
     repl may be an ordinary string (similar to using pyparsing's
     replaceWith), or may contain references to capture groups by group
     number, or may be a callable that takes an re match group and
@@ -3075,7 +3117,7 @@ Version 1.5.3 - June, 2010
 - Added better support for summing ParseResults, see the new example,
   parseResultsSumExample.py.
 
-- Added support for composing a Regex using a compiled RE object;
+- Added support for composing a `Regex` using a compiled RE object;
   thanks to my new colleague, Mike Thornton!
 
 - In version 1.5.2, I changed the way exceptions are raised in order
@@ -3975,7 +4017,7 @@ Version 1.4.1 - February, 2006
 
 Version 1.4 - January 18, 2006
 ------------------------------
-- Added Regex class, to permit definition of complex embedded expressions
+- Added `Regex` class, to permit definition of complex embedded expressions
   using regular expressions. (Enhancement provided by John Beisley, great
   job!)
 

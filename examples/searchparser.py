@@ -66,7 +66,7 @@ from pyparsing import (
     Forward,
     Suppress,
     OneOrMore,
-    oneOf,
+    one_of,
 )
 
 
@@ -100,22 +100,22 @@ class SearchQueryParser:
         """
         operatorOr = Forward()
 
-        operatorWord = Group(Combine(Word(alphanums) + Suppress("*"))).setResultsName(
+        operatorWord = Group(Combine(Word(alphanums) + Suppress("*"))).set_results_name(
             "wordwildcard"
-        ) | Group(Word(alphanums)).setResultsName("word")
+        ) | Group(Word(alphanums)).set_results_name("word")
 
         operatorQuotesContent = Forward()
         operatorQuotesContent << ((operatorWord + operatorQuotesContent) | operatorWord)
 
         operatorQuotes = (
-            Group(Suppress('"') + operatorQuotesContent + Suppress('"')).setResultsName(
+            Group(Suppress('"') + operatorQuotesContent + Suppress('"')).set_results_name(
                 "quotes"
             )
             | operatorWord
         )
 
         operatorParenthesis = (
-            Group(Suppress("(") + operatorOr + Suppress(")")).setResultsName(
+            Group(Suppress("(") + operatorOr + Suppress(")")).set_results_name(
                 "parenthesis"
             )
             | operatorQuotes
@@ -123,7 +123,7 @@ class SearchQueryParser:
 
         operatorNot = Forward()
         operatorNot << (
-            Group(Suppress(Keyword("not", caseless=True)) + operatorNot).setResultsName(
+            Group(Suppress(Keyword("not", caseless=True)) + operatorNot).set_results_name(
                 "not"
             )
             | operatorParenthesis
@@ -133,21 +133,21 @@ class SearchQueryParser:
         operatorAnd << (
             Group(
                 operatorNot + Suppress(Keyword("and", caseless=True)) + operatorAnd
-            ).setResultsName("and")
+            ).set_results_name("and")
             | Group(
-                operatorNot + OneOrMore(~oneOf("and or") + operatorAnd)
-            ).setResultsName("and")
+                operatorNot + OneOrMore(~one_of("and or") + operatorAnd)
+            ).set_results_name("and")
             | operatorNot
         )
 
         operatorOr << (
             Group(
                 operatorAnd + Suppress(Keyword("or", caseless=True)) + operatorOr
-            ).setResultsName("or")
+            ).set_results_name("or")
             | operatorAnd
         )
 
-        return operatorOr.parseString
+        return operatorOr.parse_string
 
     def evaluateAnd(self, argument):
         return self.evaluate(argument[0]).intersection(self.evaluate(argument[1]))
@@ -185,7 +185,7 @@ class SearchQueryParser:
         return self.GetWordWildcard(argument[0])
 
     def evaluate(self, argument):
-        return self._methods[argument.getName()](argument)
+        return self._methods[argument.get_name()](argument)
 
     def Parse(self, query):
         # print self._parser(query)[0]

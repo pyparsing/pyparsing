@@ -1,7 +1,7 @@
 #
 # scanExamples.py
 #
-#  Illustration of using pyparsing's scanString,transformString, and searchString methods
+#  Illustration of using pyparsing's scan_string,transform_string, and search_string methods
 #
 # Copyright (c) 2004, 2006 Paul McGuire
 #
@@ -10,11 +10,11 @@ from pyparsing import (
     alphas,
     alphanums,
     Literal,
-    restOfLine,
+    rest_of_line,
     OneOrMore,
     empty,
     Suppress,
-    replaceWith,
+    replace_with,
 )
 
 # simulate some C++ code
@@ -36,18 +36,18 @@ print("----------------------")
 ident = Word(alphas, alphanums + "_")
 macroDef = (
     Literal("#define")
-    + ident.setResultsName("name")
+    + ident.set_results_name("name")
     + "="
-    + restOfLine.setResultsName("value")
+    + rest_of_line.set_results_name("value")
 )
-for t, s, e in macroDef.scanString(testData):
+for t, s, e in macroDef.scan_string(testData):
     print(t.name, ":", t.value)
 
 # or a quick way to make a dictionary of the names and values
 # (return only key and value tokens, and construct dict from key-value pairs)
-# - empty ahead of restOfLine advances past leading whitespace, does implicit lstrip during parsing
-macroDef = Suppress("#define") + ident + Suppress("=") + empty + restOfLine
-macros = dict(list(macroDef.searchString(testData)))
+# - empty ahead of rest_of_line advances past leading whitespace, does implicit lstrip during parsing
+macroDef = Suppress("#define") + ident + Suppress("=") + empty + rest_of_line
+macros = dict(list(macroDef.search_string(testData)))
 print("macros =", macros)
 print()
 
@@ -58,10 +58,10 @@ print("----------------------")
 
 # convert C++ namespaces to mangled C-compatible names
 scopedIdent = ident + OneOrMore(Literal("::").suppress() + ident)
-scopedIdent.setParseAction(lambda t: "_".join(t))
+scopedIdent.set_parse_action(lambda t: "_".join(t))
 
 print("(replace namespace-scoped names with C-compatible names)")
-print(scopedIdent.transformString(testData))
+print(scopedIdent.transform_string(testData))
 
 
 # or a crude pre-processor (use parse actions to replace matching text)
@@ -70,21 +70,21 @@ def substituteMacro(s, l, t):
         return macros[t[0]]
 
 
-ident.setParseAction(substituteMacro)
+ident.set_parse_action(substituteMacro)
 ident.ignore(macroDef)
 
 print("(simulate #define pre-processor)")
-print(ident.transformString(testData))
+print(ident.transform_string(testData))
 
 
 #################
 print("Example of a stripper")
 print("----------------------")
 
-from pyparsing import dblQuotedString, LineStart
+from pyparsing import dbl_quoted_string, LineStart
 
 # remove all string macro definitions (after extracting to a string resource table?)
-stringMacroDef = Literal("#define") + ident + "=" + dblQuotedString + LineStart()
-stringMacroDef.setParseAction(replaceWith(""))
+stringMacroDef = Literal("#define") + ident + "=" + dbl_quoted_string + LineStart()
+stringMacroDef.set_parse_action(replace_with(""))
 
-print(stringMacroDef.transformString(testData))
+print(stringMacroDef.transform_string(testData))

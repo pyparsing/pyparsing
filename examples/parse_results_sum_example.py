@@ -1,7 +1,7 @@
 #
 # parseResultsSumExample.py
 #
-# Sample script showing the value in merging ParseResults retrieved by searchString,
+# Sample script showing the value in merging ParseResults retrieved by search_string,
 # using Python's builtin sum() method
 #
 samplestr1 = "garbage;DOB 10-10-2010;more garbage\nID PARI12345678;more garbage"

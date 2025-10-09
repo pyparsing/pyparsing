@@ -72,7 +72,7 @@ The following is a description of the OC grammar:
 
 from pyparsing import *
 
-ParserElement.enablePackrat()
+ParserElement.enable_packrat()
 
 LPAR, RPAR, LBRACK, RBRACK, LBRACE, RBRACE, SEMI, COMMA = map(Suppress, "()[]{};,")
 INT, CHAR, WHILE, DO, IF, ELSE, RETURN = map(
@@ -82,25 +82,25 @@ INT, CHAR, WHILE, DO, IF, ELSE, RETURN = map(
 NAME = Word(alphas + "_", alphanums + "_")
 integer = Regex(r"[+-]?\d+")
 char = Regex(r"'.'")
-string_ = dblQuotedString
+string_ = dbl_quoted_string
 
 TYPE = Group((INT | CHAR) + ZeroOrMore("*"))
 expr = Forward()
-func_call = Group(NAME + LPAR + Group(Optional(delimitedList(expr))) + RPAR)
+func_call = Group(NAME + LPAR + Group(Optional(DelimitedList(expr))) + RPAR)
 operand = func_call | NAME | integer | char | string_
-expr <<= infixNotation(
+expr <<= infix_notation(
     operand,
     [
-        (oneOf("! - *"), 1, opAssoc.RIGHT),
-        (oneOf("++ --"), 1, opAssoc.RIGHT),
-        (oneOf("++ --"), 1, opAssoc.LEFT),
-        (oneOf("* / %"), 2, opAssoc.LEFT),
-        (oneOf("+ -"), 2, opAssoc.LEFT),
-        (oneOf("< == > <= >= !="), 2, opAssoc.LEFT),
-        (Regex(r"(?<!=)=(?!=)"), 2, opAssoc.LEFT),
+        (one_of("! - *"), 1, OpAssoc.RIGHT),
+        (one_of("++ --"), 1, OpAssoc.RIGHT),
+        (one_of("++ --"), 1, OpAssoc.LEFT),
+        (one_of("* / %"), 2, OpAssoc.LEFT),
+        (one_of("+ -"), 2, OpAssoc.LEFT),
+        (one_of("< == > <= >= !="), 2, OpAssoc.LEFT),
+        (Regex(r"(?<!=)=(?!=)"), 2, OpAssoc.LEFT),
     ],
 ) + Optional(
-    LBRACK + expr + RBRACK | LPAR + Group(Optional(delimitedList(expr))) + RPAR
+    LBRACK + expr + RBRACK | LPAR + Group(Optional(DelimitedList(expr))) + RPAR
 )
 
 stmt = Forward()
@@ -128,7 +128,7 @@ fundecl = Group(
     TYPE
     + NAME
     + LPAR
-    + Optional(Group(delimitedList(arg)))
+    + Optional(Group(DelimitedList(arg)))
     + RPAR
     + LBRACE
     + Group(body)
@@ -137,7 +137,7 @@ fundecl = Group(
 decl = fundecl | vardecl
 program = ZeroOrMore(decl)
 
-program.ignore(cStyleComment)
+program.ignore(c_style_comment)
 
 # set parser element names
 for vname in (
@@ -145,11 +145,11 @@ for vname in (
     "NAME fundecl vardecl program arg body stmt".split()
 ):
     v = vars()[vname]
-    v.setName(vname)
+    v.set_name(vname)
 
 # ~ for vname in "fundecl stmt".split():
 # ~ v = vars()[vname]
-# ~ v.setDebug()
+# ~ v.set_debug()
 
 
 def main():
@@ -201,7 +201,7 @@ def main():
     }
     """
 
-    ast = program.parseString(test, parseAll=True)
+    ast = program.parse_string(test, parse_all=True)
     ast.pprint()
 
 

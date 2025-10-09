@@ -58,13 +58,13 @@ call = primary + (
 arith_expression = pp.infix_notation(
     (call | primary).set_name("arith_operand"),
     [
-        (pp.one_of("! -"), 1, pp.opAssoc.RIGHT),
-        (pp.one_of("/ *"), 2, pp.opAssoc.LEFT),
-        (pp.one_of("- +"), 2, pp.opAssoc.LEFT),
-        (pp.one_of("> >= < <="), 2, pp.opAssoc.LEFT),
-        (pp.one_of("!= =="), 2, pp.opAssoc.LEFT),
-        (AND, 2, pp.opAssoc.LEFT),
-        (OR, 2, pp.opAssoc.LEFT),
+        (pp.one_of("! -"), 1, pp.OpAssoc.RIGHT),
+        (pp.one_of("/ *"), 2, pp.OpAssoc.LEFT),
+        (pp.one_of("- +"), 2, pp.OpAssoc.LEFT),
+        (pp.one_of("> >= < <="), 2, pp.OpAssoc.LEFT),
+        (pp.one_of("!= =="), 2, pp.OpAssoc.LEFT),
+        (AND, 2, pp.OpAssoc.LEFT),
+        (OR, 2, pp.OpAssoc.LEFT),
     ]
 )
 assignment = pp.Forward()

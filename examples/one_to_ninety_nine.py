@@ -20,11 +20,14 @@ import pyparsing as pp
 
 
 def define_numeric_word_range(
-    names: str, from_: int, to_: int, step: int = 1
+    names: str, *, from_: int, to_: int, step: int = 1
 ) -> pp.MatchFirst:
     """
     Compose a MatchFirst of CaselessKeywords, given their names and values,
-    which when parsed, are converted to their value
+    which when parsed, are converted to their value.
+
+    Using a keyword class ensures that the names are matched as keywords,
+    so that "six" does not match the leading "six" in "sixteen" or "sixty".
     """
 
     def define_numeric_word(nm: str, val: int):
@@ -38,15 +41,15 @@ def define_numeric_word_range(
 
 
 units = define_numeric_word_range(
-    "one two three four five six seven eight nine", 1, 9
+    "one two three four five six seven eight nine", from_=1, to_=9
 ).set_name("units")
 teens = define_numeric_word_range(
     "ten eleven twelve thirteen fourteen fifteen sixteen seventeen eighteen nineteen",
-    10,
-    19,
+    from_=10,
+    to_=19,
 ).set_name("teens")
 tens = define_numeric_word_range(
-    "twenty thirty forty fifty sixty seventy eighty ninety", 20, 90, step=10
+    "twenty thirty forty fifty sixty seventy eighty ninety", from_=20, to_=90, step=10
 ).set_name("tens")
 
 opt_dash = pp.Opt(pp.Suppress("-"))
@@ -63,7 +66,9 @@ if __name__ == "__main__":
     numeric_expression.run_tests(
         """
         one
-        seven
+        six
+        sixteen
+        sixty-six
         twelve
         twenty six
         forty-two

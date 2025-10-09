@@ -41,7 +41,7 @@ LPAR, RPAR, COLON, EQ = map(pp.Suppress, "():=")
 def_ = pp.Keyword("𒁴𒈫", ident_chars=Cuneiform.identbodychars).set_name("def")
 any_keyword = def_
 ident = (~any_keyword) + pp.Word(
-    Cuneiform.identchars, Cuneiform.identbodychars, asKeyword=True
+    Cuneiform.identchars, Cuneiform.identbodychars, as_keyword=True
 )
 str_expr = pp.infix_notation(
     pp.QuotedString('"') | pp.common.integer,
@@ -75,7 +75,7 @@ cuneiform_hello_world = r"""
     𒄑𒉿𒅔𒋫(𒀁)
 
 𒀄𒂖𒆷𒁎()"""
-script.parseString(cuneiform_hello_world).pprint(width=40)
+script.parse_string(cuneiform_hello_world).pprint(width=40)
 
 
 # use transform_string to convert keywords and builtins to runnable Python

@@ -6,7 +6,7 @@ build-backend = "flit_core.buildapi"
 name = "pyparsing"
 authors = [{name = "Paul McGuire", email = "ptmcg.gm+pyparsing@gmail.com"}]
 readme = "README.rst"
-license = "MIT"
+license = { text = "MIT License" }
 dynamic = ["version", "description"]
 requires-python = ">=3.9"
 classifiers = [
@@ -45,6 +45,7 @@ include = [
     "CODE_OF_CONDUCT.rst",
     "CONTRIBUTING.md",
     "LICENSE",
+    "ai/best_practices.md",
     "docs",
     "examples",
     "tests",

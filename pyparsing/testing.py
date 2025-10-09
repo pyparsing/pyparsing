@@ -3,6 +3,7 @@
 from contextlib import contextmanager
 import re
 import typing
+import unittest
 
 
 from .core import (
@@ -105,7 +106,7 @@ class pyparsing_test:
             ParserElement.verbose_stacktrace = self._save_context["verbose_stacktrace"]
 
             Keyword.DEFAULT_KEYWORD_CHARS = self._save_context["default_keyword_chars"]
-            ParserElement.inlineLiteralsUsing(
+            ParserElement.inline_literals_using(
                 self._save_context["literal_string_class"]
             )
 
@@ -136,7 +137,7 @@ class pyparsing_test:
         def __exit__(self, *args):
             self.restore()
 
-    class TestParseResultsAsserts:
+    class TestParseResultsAsserts(unittest.TestCase):
         """
         A mixin class to add parse results assertion methods to normal unittest.TestCase classes.
         """
@@ -174,7 +175,7 @@ class pyparsing_test:
             Convenience wrapper assert to test a parser element and input string, and assert that
             the resulting :meth:`ParseResults.as_dict` is equal to the ``expected_dict``.
             """
-            result = expr.parse_string(test_string, parseAll=True)
+            result = expr.parse_string(test_string, parse_all=True)
             if verbose:
                 print(result.dump())
             else:
@@ -294,7 +295,7 @@ class pyparsing_test:
         :param mark_spaces: special character to display in place of spaces
         :param mark_control: convert non-printing control characters to a placeholding
                              character; valid values:
-                                 
+
                              - ``"unicode"`` - replaces control chars with Unicode symbols, such as "␍" and "␊"
                              - any single character string - replace control characters with given string
                              - ``None`` (default) - string is displayed as-is

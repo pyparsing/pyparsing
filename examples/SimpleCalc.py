@@ -57,7 +57,7 @@ from fourFn import BNF, exprStack, evaluate_stack
 #         return float( op )
 
 arithExpr = BNF()
-ident = Word(alphas, alphanums).setName("identifier")
+ident = Word(alphas, alphanums).set_name("identifier")
 assignment = ident("varname") + "=" + arithExpr
 pattern = assignment | arithExpr
 
@@ -81,7 +81,7 @@ if __name__ == "__main__":
         if input_string != "":
             # try parsing the input string
             try:
-                L = pattern.parseString(input_string, parseAll=True)
+                L = pattern.parse_string(input_string, parse_all=True)
             except ParseException as err:
                 L = ["Parse Failure", input_string, (str(err), err.line, err.column)]
 

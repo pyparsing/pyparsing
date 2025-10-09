@@ -5,7 +5,7 @@ pyparsing API
 .. automodule:: pyparsing
     :members:
     :special-members: __add__,__sub__,__div__,__mul__,__and__,__or__,__xor__,__lshift__,__invert__,__call__,__getitem__,__str__
-    :exclude-members: __init__,__repl__,parseImpl,parseImpl_regex,parseImplAsGroupList,parseImplAsMatch,postParse,preParse
+    :exclude-members: __init__,__repl__,parseImpl,parseImpl_regex,parseImplAsGroupList,parseImplAsMatch,postParse,preParse,streamline,recurse,try_parse,can_parse_next,default_name,mayReturnEmpty
 
 Module ``pyparsing.diagram``
 ----------------------------

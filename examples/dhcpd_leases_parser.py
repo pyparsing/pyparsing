@@ -56,7 +56,7 @@ yyyymmdd = Combine(
     (Word(nums, exact=4) | Word(nums, exact=2)) + ("/" + Word(nums, exact=2)) * 2
 )
 hhmmss = Combine(Word(nums, exact=2) + (":" + Word(nums, exact=2)) * 2)
-dateRef = oneOf(list("0123456"))("weekday") + yyyymmdd("date") + hhmmss("time")
+dateRef = one_of(list("0123456"))("weekday") + yyyymmdd("date") + hhmmss("time")
 
 
 def utcToLocalTime(tokens):
@@ -70,7 +70,7 @@ def utcToLocalTime(tokens):
     del tokens["time"]
 
 
-dateRef.setParseAction(utcToLocalTime)
+dateRef.set_parse_action(utcToLocalTime)
 
 startsStmt = "starts" + dateRef + SEMI
 endsStmt = "ends" + (dateRef | "never") + SEMI
@@ -91,7 +91,7 @@ leaseDef = (
     + RBRACE
 )
 
-for lease in leaseDef.searchString(sample):
+for lease in leaseDef.search_string(sample):
     print(lease.dump())
     print(lease.ipaddress, "->", lease.hardware.mac)
     print()

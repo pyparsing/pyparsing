@@ -1905,7 +1905,7 @@ s = """
 
 from jsonParser import jsonObject
 
-data = jsonObject.parseString(s)[0]
+data = jsonObject.parse_string(s)[0]
 
 # from pprint import pprint
 # pprint(data)

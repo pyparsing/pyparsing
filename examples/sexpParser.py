@@ -60,32 +60,32 @@ def verify_length(s, l, t):
 
 # define punctuation literals
 LPAR, RPAR, LBRK, RBRK, LBRC, RBRC, VBAR, COLON = (
-    pp.Suppress(c).setName(c) for c in "()[]{}|:"
+    pp.Suppress(c).set_name(c) for c in "()[]{}|:"
 )
 
-decimal = pp.Regex(r"-?0|[1-9]\d*").setParseAction(lambda t: int(t[0]))
-hexadecimal = ("#" + pp.Word(pp.hexnums)[1, ...] + "#").setParseAction(
+decimal = pp.Regex(r"-?0|[1-9]\d*").set_parse_action(lambda t: int(t[0]))
+hexadecimal = ("#" + pp.Word(pp.hexnums)[1, ...] + "#").set_parse_action(
     lambda t: int("".join(t[1:-1]), 16)
 )
 bytes = pp.Word(pp.printables)
-raw = pp.Group(decimal("len") + COLON + bytes).setParseAction(verify_length)
+raw = pp.Group(decimal("len") + COLON + bytes).set_parse_action(verify_length)
 base64_ = pp.Group(
     pp.Optional(decimal | hexadecimal, default=None)("len")
     + VBAR
-    + pp.Word(pp.alphanums + "+/=")[1, ...].setParseAction(
+    + pp.Word(pp.alphanums + "+/=")[1, ...].set_parse_action(
         lambda t: b64decode("".join(t))
     )
     + VBAR
-).setParseAction(verify_length)
+).set_parse_action(verify_length)
 
-real = pp.Regex(r"[+-]?\d+\.\d*([eE][+-]?\d+)?").setParseAction(
+real = pp.Regex(r"[+-]?\d+\.\d*([eE][+-]?\d+)?").set_parse_action(
     lambda tokens: float(tokens[0])
 )
 token = pp.Word(pp.alphanums + "-./_:*+=!<>")
 qString = pp.Group(
     pp.Optional(decimal, default=None)("len")
-    + pp.dblQuotedString.setParseAction(pp.removeQuotes)
-).setParseAction(verify_length)
+    + pp.dbl_quoted_string.set_parse_action(pp.remove_quotes)
+).set_parse_action(verify_length)
 
 simpleString = real | base64_ | raw | decimal | token | hexadecimal | qString
 
@@ -169,7 +169,7 @@ def main():
         test_fn for testname, test_fn in local_vars if testname.startswith("test")
     ]
 
-    sexp.runTests(alltests, fullDump=False)
+    sexp.run_tests(alltests, full_dump=False)
 
 
 if __name__ == "__main__":

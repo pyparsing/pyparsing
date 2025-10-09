@@ -11,14 +11,14 @@ from pathlib import Path
 # parser elements to be used to assemble into #include parser
 SEMI = pp.Suppress(";")
 INCLUDE = pp.Keyword("#include")
-quoted_string = pp.quotedString.addParseAction(pp.removeQuotes)
-file_ref = quoted_string | pp.Word(pp.printables, excludeChars=";")
+quoted_string = pp.quoted_string.add_parse_action(pp.remove_quotes)
+file_ref = quoted_string | pp.Word(pp.printables, exclude_chars=";")
 
 # parser for parsing "#include xyz.dat;" directives
 include_directive = INCLUDE + file_ref("include_file_name") + SEMI
 
 # add parse action that will recursively pull in included files - when
-# using transformString, the value returned from the parse action will replace
+# using transform_string, the value returned from the parse action will replace
 # the text matched by the attached expression
 seen = set()
 
@@ -34,7 +34,7 @@ def read_include_contents(s, l, t):
         return (
             include_echo
             + "\n"
-            + include_directive.transformString(included_file_contents)
+            + include_directive.transform_string(included_file_contents)
         )
     else:
         lead = " " * (pp.col(l, s) - 1)
@@ -43,7 +43,7 @@ def read_include_contents(s, l, t):
 
 # attach include processing method as parse action (parse-time callback)
 # to include_directive expression
-include_directive.addParseAction(read_include_contents)
+include_directive.add_parse_action(read_include_contents)
 
 
 if __name__ == "__main__":
@@ -80,7 +80,7 @@ if __name__ == "__main__":
         """
     )
 
-    # use include_directive.transformString to perform includes
+    # use include_directive.transform_string to perform includes
 
     # read contents of original file
     initial_file = Path("a.txt").read_text()
@@ -90,7 +90,7 @@ if __name__ == "__main__":
     print("-----------------")
 
     # expand includes in source file (and any included files) and print the result
-    expanded_source = include_directive.transformString(initial_file)
+    expanded_source = include_directive.transform_string(initial_file)
     print(expanded_source)
 
     # clean up

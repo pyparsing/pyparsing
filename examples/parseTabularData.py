@@ -2,7 +2,7 @@
 # parseTabularData.py
 #
 # Example of parsing data that is formatted in a tabular listing, with
-# potential for missing values. Uses new addCondition method on
+# potential for missing values. Uses new add_condition method on
 # ParserElements.
 #
 # Copyright 2015, Paul McGuire
@@ -29,14 +29,14 @@ def tableValue(expr, colstart, colend):
     empty_cell_is_zero = False
     if empty_cell_is_zero:
         return Optional(
-            expr.copy().addCondition(
+            expr.copy().add_condition(
                 mustMatchCols(colstart, colend), message="text not in expected columns"
             ),
             default=0,
         )
     else:
         return Optional(
-            expr.copy().addCondition(
+            expr.copy().add_condition(
                 mustMatchCols(colstart, colend), message="text not in expected columns"
             )
         )
@@ -44,7 +44,7 @@ def tableValue(expr, colstart, colend):
 
 # define the grammar for this simple table
 colorname = Word(alphas)
-integer = Word(nums).setParseAction(lambda t: int(t[0])).setName("integer")
+integer = Word(nums).set_parse_action(lambda t: int(t[0])).set_name("integer")
 row = (
     colorname("name")
     + tableValue(integer, 11, 12)("S")
@@ -55,5 +55,5 @@ row = (
 # parse the sample text - skip over the header and counter lines
 for line in table.splitlines()[3:]:
     print(line)
-    print(row.parseString(line).dump())
+    print(row.parse_string(line).dump())
     print("")

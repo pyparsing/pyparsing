@@ -25,7 +25,7 @@ data = """\
 integer = ppc.integer
 group = pp.Group(pp.Char(pp.alphas) + pp.Group(pp.IndentedBlock(integer)))
 
-print(group[...].parseString(data).dump())
+print(group[...].parse_string(data).dump())
 
 # example of a recursive IndentedBlock
 
@@ -50,5 +50,5 @@ data = """\
 group = pp.Forward()
 group <<= pp.Group(pp.Char(pp.alphas) + pp.Group(pp.IndentedBlock(integer | group)))
 
-print("using searchString")
-print(sum(group.searchString(data)).dump())
+print("using search_string")
+print(sum(group.search_string(data)).dump())

@@ -1,18 +1,25 @@
 from pyparsing.tools.cvt_pyparsing_pep8_names import (
-    pep8_converter, pre_pep8_arg_names, pre_pep8_method_names, special_changes
+    pep8_converter, pre_pep8_arg_names, pre_pep8_method_names, special_changes, special_changes_arg_names
 )
 import pytest
 
 
 def test_conversion_composed():
-    orig = ("\n".join(
-        f"{method_name}()"
-        for method_name in sorted(pre_pep8_method_names) + list(special_changes)
-    ) + "\n"
-    + "\n".join(
-        f"fn(100, {arg_name}=True)"
-        for arg_name in sorted(pre_pep8_arg_names)
-    ))
+    # testing for these in their own test cases below
+    special_changes_copy = {**special_changes}
+    special_changes_copy.pop("indentedBlock")
+    special_changes_copy.pop("locatedExpr")
+
+    orig = (
+        "\n".join(
+            f"{method_name}()"
+            for method_name in sorted(pre_pep8_method_names) + list(special_changes_copy)
+        ) + "\n"
+        + "\n".join(
+            f"fn(100, {arg_name}=True)"
+            for arg_name in sorted(pre_pep8_arg_names) + list(special_changes_arg_names)
+        )
+    )
     expected = """\
 add_condition()
 add_parse_action()
@@ -40,14 +47,12 @@ enable_packrat()
 get_name()
 html_comment()
 ignore_whitespace()
-indented_block()
 infix_notation()
 inline_literals_using()
 java_style_comment()
 leave_whitespace()
 line_end()
 line_start()
-located_expr()
 match_only_at_col()
 match_previous_expr()
 match_previous_literal()
@@ -128,7 +133,9 @@ fn(100, quote_char=True)
 fn(100, stop_on=True)
 fn(100, unquote_results=True)
 fn(100, use_regex=True)
-fn(100, word_chars=True)"""
+fn(100, word_chars=True)
+fn(100, aslist=True)
+""".rstrip()
     converted = pep8_converter.transform_string(orig)
     assert converted == expected
 
@@ -629,3 +636,43 @@ def test_conversion_examples():
 
     if failed:
         raise AssertionError(f"Failed to convert some original code ({failed} lines)")
+
+def test_conversion_warnings_for_indentedBlock():
+    source = """
+        parser = pp.indentedBlock(expr, indent, backup_stacks)
+    """
+    with pytest.warns(
+            UserWarning,
+            match=(
+                "Conversion of 'indentedBlock' to new 'IndentedBlock' requires added code changes"
+                " to remove 'indentStack' argument"
+                "\n"
+                r"  2:         parser = pp.indentedBlock\(expr, indent, backup_stacks\)"
+            )
+    ):
+        res = pep8_converter.transform_string(source)
+
+    print(res)
+    expected = source.replace("indentedBlock", "IndentedBlock")
+    print(expected)
+    assert res == expected
+
+def test_conversion_warnings_for_locatedExpr():
+    source = """
+        parser = pp.locatedExpr(expr)
+    """
+    with pytest.warns(
+            UserWarning,
+            match=(
+                "Conversion of 'locatedExpr' to new 'Located' may require added"
+                " code changes - Located does not automatically group parsed elements"
+                "\n"
+                r"  2:         parser = pp.locatedExpr\(expr\)"
+            )
+    ):
+        res = pep8_converter.transform_string(source)
+
+    print(res)
+    expected = source.replace("locatedExpr", "Located")
+    print(expected)
+    assert res == expected

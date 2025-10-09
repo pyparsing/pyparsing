@@ -1,6 +1,6 @@
 from pyparsing import (
     Optional,
-    oneOf,
+    one_of,
     Literal,
     Word,
     printables,
@@ -37,44 +37,44 @@ ALARM = Literal("VALARM").suppress()
 
 # TOKENS
 
-CALPROP = oneOf("VERSION PRODID METHOD", asKeyword=True)
-ALMPROP = oneOf("TRIGGER", asKeyword=True)
-EVTPROP = oneOf(
+CALPROP = one_of("VERSION PRODID METHOD", as_keyword=True)
+ALMPROP = one_of("TRIGGER", as_keyword=True)
+EVTPROP = one_of(
     """X-MOZILLA-RECUR-DEFAULT-INTERVAL
        X-MOZILLA-RECUR-DEFAULT-UNITS
-       UID DTSTAMP LAST-MODIFIED X RRULE EXDATE""", asKeyword=True
+       UID DTSTAMP LAST-MODIFIED X RRULE EXDATE""", as_keyword=True
 )
 
-valuestr = Word(valstr).setName("valuestr")
+valuestr = Word(valstr).set_name("valuestr")
 propval = valuestr
 typeval = valuestr
-typename = oneOf("VALUE MEMBER FREQ UNTIL INTERVAL", asKeyword=True)
+typename = one_of("VALUE MEMBER FREQ UNTIL INTERVAL", as_keyword=True)
 
-proptype = Group(SEMI + typename + EQ + typeval).setName("proptype").suppress()
+proptype = Group(SEMI + typename + EQ + typeval).set_name("proptype").suppress()
 
 calprop = Group(CALPROP + ZeroOrMore(proptype) + COLON + propval)
 almprop = Group(ALMPROP + ZeroOrMore(proptype) + COLON + propval)
 evtprop = (
     Group(EVTPROP + ZeroOrMore(proptype) + COLON + propval).suppress()
-    | "CATEGORIES" + COLON + propval.setResultsName("categories")
-    | "CLASS" + COLON + propval.setResultsName("class")
-    | "DESCRIPTION" + COLON + propval.setResultsName("description")
-    | "DTSTART" + proptype + COLON + propval.setResultsName("begin")
-    | "DTEND" + proptype + COLON + propval.setResultsName("end")
-    | "LOCATION" + COLON + propval.setResultsName("location")
-    | "PRIORITY" + COLON + propval.setResultsName("priority")
-    | "STATUS" + COLON + propval.setResultsName("status")
-    | "SUMMARY" + COLON + propval.setResultsName("summary")
-    | "URL" + COLON + propval.setResultsName("url")
-).setName("evtprop")
-calprops = Group(OneOrMore(calprop)).setName("calprops").suppress()
+    | "CATEGORIES" + COLON + propval.set_results_name("categories")
+    | "CLASS" + COLON + propval.set_results_name("class")
+    | "DESCRIPTION" + COLON + propval.set_results_name("description")
+    | "DTSTART" + proptype + COLON + propval.set_results_name("begin")
+    | "DTEND" + proptype + COLON + propval.set_results_name("end")
+    | "LOCATION" + COLON + propval.set_results_name("location")
+    | "PRIORITY" + COLON + propval.set_results_name("priority")
+    | "STATUS" + COLON + propval.set_results_name("status")
+    | "SUMMARY" + COLON + propval.set_results_name("summary")
+    | "URL" + COLON + propval.set_results_name("url")
+).set_name("evtprop")
+calprops = Group(OneOrMore(calprop)).set_name("calprops").suppress()
 evtprops = Group(OneOrMore(evtprop))
-almprops = Group(OneOrMore(almprop)).setName("almprops").suppress()
+almprops = Group(OneOrMore(almprop)).set_name("almprops").suppress()
 
-alarm = (BEGIN + ALARM + almprops + END + ALARM).setName("alarm")
-event = (BEGIN + EVENT + evtprops + Optional(alarm) + END + EVENT).setName("event")
+alarm = (BEGIN + ALARM + almprops + END + ALARM).set_name("alarm")
+event = (BEGIN + EVENT + evtprops + Optional(alarm) + END + EVENT).set_name("event")
 events = Group(OneOrMore(event))
-calendar = (BEGIN + CALENDAR + calprops + ZeroOrMore(event) + END + CALENDAR).setName("calendar")
+calendar = (BEGIN + CALENDAR + calprops + ZeroOrMore(event) + END + CALENDAR).set_name("calendar")
 calendars = OneOrMore(calendar)
 
 
@@ -86,11 +86,11 @@ def gotEvent(s, loc, toks):
         print(event.dump())
 
 
-event.setParseAction(gotEvent)
+event.set_parse_action(gotEvent)
 
 
 # MAIN PROGRAM
 
 if __name__ == "__main__":
 
-    calendars.parseFile("mozilla.ics")
+    calendars.parse_file("mozilla.ics")

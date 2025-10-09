@@ -1,10 +1,10 @@
 =============================
-What's New in Pyparsing 3.2.0
+What's New in Pyparsing 3.2.x
 =============================
 
 :author: Paul McGuire
 
-:date: October, 2024
+:date: September, 2025
 
 :abstract: This document summarizes the changes made
     in the 3.2.x releases of pyparsing.
@@ -15,7 +15,7 @@ What's New in Pyparsing 3.2.0
 Supported Python versions
 =========================
 
-- Added support for Python 3.13.
+- Added support for Python 3.13 and 3.14.
 
 - Python versions before 3.9 are no longer supported.
   Removed legacy Py2.x support and other deprecated features. Pyparsing
@@ -56,9 +56,30 @@ New Features
 - Fixed the displayed output of ``Regex`` terms to deduplicate repeated backslashes,
   for easier reading in debugging, printing, and railroad diagrams.
 
-- Fixed railroad diagrams that get generated with a parser containing a Regex element
-  defined using a verbose pattern - the pattern gets flattened and comments removed
-  before creating the corresponding diagram element.
+- Railroad diagramming improvements
+
+  - Updated generated railroad diagrams to make non-terminal elements links to their related
+    sub-diagrams. This *greatly* improves navigation of the diagram, especially for
+    large, complex parsers.
+
+  - Fixed railroad diagrams that get generated with a parser containing a `Regex` element
+    defined using a verbose pattern - the pattern gets flattened and comments removed
+    before creating the corresponding diagram element.
+
+  - Added optional argument `show_hidden` to `ParserElement.create_diagram()` to show
+    elements that are used internally by pyparsing, but are not part of the actual
+    parser grammar. For instance, the `Tag` class can insert values into the parsed
+    results but it does not actually parse any input, so by default it is not included
+    in a railroad diagram. By calling `create_diagram()` with `show_hidden = True`,
+    these internal elements will be included. (You can see this in the tag_metadata.py
+    script in the examples directory.)
+
+  - Fixed the displayed output of `Regex` terms to deduplicate repeated backslashes,
+    for easier reading in debugging, printing, and railroad diagrams.
+
+  - Simplified railroad diagrams emitted for parsers using `infix_notation()`, by hiding
+    lookahead terms. Renamed internally generated expressions for clarity, and improved
+    diagramming.
 
 
 API Changes

@@ -23,7 +23,7 @@ expression = pp.Forward().set_name("query expression")
 valid_word = pp.Regex(
     r'([a-zA-Z0-9_.-]|\\\\|\\([+\-!(){}\[\]^"~*?:]|\|\||&&))'
     r'([a-zA-Z0-9*_+.-]|\\\\|\\([+\-!(){}\[\]^"~*?:]|\|\||&&)|\*|\?)*'
-).setName("word")
+).set_name("word")
 valid_word.set_parse_action(
     lambda t: t[0].replace("\\\\", chr(127)).replace("\\", "").replace(chr(127), "\\")
 )
@@ -54,14 +54,14 @@ term <<= (
 )
 term.set_parse_action(lambda t: [t] if "field" in t or "boost" in t else None)
 
-expression <<= pp.infixNotation(
+expression <<= pp.infix_notation(
     term,
     [
         (required_modifier | prohibit_modifier, 1, pp.OpAssoc.RIGHT),
         ((not_ | "!").set_parse_action(lambda: "NOT"), 1, pp.OpAssoc.RIGHT),
         ((and_ | "&&").set_parse_action(lambda: "AND"), 2, pp.OpAssoc.LEFT),
         (
-            pp.Opt(or_ | "||").setName("or").set_parse_action(lambda: "OR"),
+            pp.Opt(or_ | "||").set_name("or").set_parse_action(lambda: "OR"),
             2,
             pp.OpAssoc.LEFT,
         ),
@@ -354,8 +354,8 @@ def main():
         [ a\ TO a* ]
         """
 
-    success1, _ = expression.runTests(tests)
-    success2, _ = expression.runTests(failtests, failureTests=True)
+    success1, _ = expression.run_tests(tests)
+    success2, _ = expression.run_tests(failtests, failure_tests=True)
 
     print("\n")
     print(f"Success tests: {'OK' if success1 else 'FAIL'}")

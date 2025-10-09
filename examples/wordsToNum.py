@@ -10,7 +10,7 @@ from functools import reduce
 
 def make_literal_converter(s, val):
     ret = pp.CaselessLiteral(s)
-    return ret.set_parse_action(pp.replaceWith(val))
+    return ret.set_parse_action(pp.replace_with(val))
 
 
 unit_definitions = {
@@ -90,7 +90,7 @@ numPart = (
 num_words = (
     (numPart + pp.Optional(mag)).set_parse_action(wordprod)[1, ...]
 ).set_parse_action(sum)
-num_words.setName("num word parser")
+num_words.set_name("num word parser")
 
 num_words.ignore(pp.Literal("-"))
 num_words.ignore(pp.CaselessLiteral("and"))
@@ -128,6 +128,6 @@ def verify_result(t):
         t["pass"] = t.result == t.expected
 
 
-test_expr.addParseAction(verify_result)
+test_expr.add_parse_action(verify_result)
 
-test_expr.runTests(tests)
+test_expr.run_tests(tests)

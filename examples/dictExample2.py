@@ -14,7 +14,7 @@ from pyparsing import (
     ZeroOrMore,
     alphas,
     nums,
-    delimitedList,
+    DelimitedList,
     pyparsing_common as ppc,
 )
 
@@ -36,16 +36,16 @@ number = ppc.integer
 vert = Literal("|").suppress()
 
 rowDelim = ("+" + ZeroOrMore(underline + "+")).suppress()
-columnHeader = Group(vert + vert + delimitedList(Word(alphas + nums), "|") + vert)
+columnHeader = Group(vert + vert + DelimitedList(Word(alphas + nums), "|") + vert)
 
 heading = rowDelim + columnHeader("columns") + rowDelim
-rowData = Group(vert + Word(alphas) + vert + delimitedList(number, "|") + vert)
+rowData = Group(vert + Word(alphas) + vert + DelimitedList(number, "|") + vert)
 trailing = rowDelim
 
 datatable = heading + Dict(ZeroOrMore(rowData)) + trailing
 
 # now parse data and print results
-data = datatable.parseString(testData)
+data = datatable.parse_string(testData)
 print(data.dump())
 print("data keys=", list(data.keys()))
 print("data['min']=", data["min"])

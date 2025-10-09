@@ -2,7 +2,7 @@
 # simpleArith.py
 #
 # Example of defining an arithmetic expression parser using
-# the infixNotation helper method in pyparsing.
+# the infix_notation helper method in pyparsing.
 #
 # Copyright 2006, by Paul McGuire
 #
@@ -11,7 +11,7 @@ from pyparsing import *
 
 ppc = pyparsing_common
 
-ParserElement.enablePackrat()
+ParserElement.enable_packrat()
 sys.setrecursionlimit(3000)
 
 integer = ppc.integer
@@ -19,16 +19,16 @@ variable = Word(alphas, exact=1)
 operand = integer | variable
 
 expop = Literal("^")
-signop = oneOf("+ -")
-multop = oneOf("* /")
-plusop = oneOf("+ -")
+signop = one_of("+ -")
+multop = one_of("* /")
+plusop = one_of("+ -")
 factop = Literal("!")
 
-# To use the infixNotation helper:
+# To use the infix_notation helper:
 #   1.  Define the "atom" operand term of the grammar.
 #       For this simple grammar, the smallest operand is either
 #       an integer or a variable.  This will be the first argument
-#       to the infixNotation method.
+#       to the infix_notation method.
 #   2.  Define a list of tuples for each level of operator
 #       precedence.  Each tuple is of the form
 #       (opExpr, numTerms, rightLeftAssoc, parseAction), where
@@ -38,24 +38,24 @@ factop = Literal("!")
 #          be 1 or 2)
 #       - rightLeftAssoc is the indicator whether the operator is
 #          right or left associative, using the pyparsing-defined
-#          constants opAssoc.RIGHT and opAssoc.LEFT.
+#          constants OpAssoc.RIGHT and OpAssoc.LEFT.
 #       - parseAction is the parse action to be associated with
 #          expressions matching this operator expression (the
 #          parse action tuple member may be omitted)
-#   3.  Call infixNotation passing the operand expression and
+#   3.  Call infix_notation passing the operand expression and
 #       the operator precedence list, and save the returned value
 #       as the generated pyparsing expression.  You can then use
 #       this expression to parse input strings, or incorporate it
 #       into a larger, more complex grammar.
 #
-expr = infixNotation(
+expr = infix_notation(
     operand,
     [
-        (factop, 1, opAssoc.LEFT),
-        (expop, 2, opAssoc.RIGHT),
-        (signop, 1, opAssoc.RIGHT),
-        (multop, 2, opAssoc.LEFT),
-        (plusop, 2, opAssoc.LEFT),
+        (factop, 1, OpAssoc.LEFT),
+        (expop, 2, OpAssoc.RIGHT),
+        (signop, 1, OpAssoc.RIGHT),
+        (multop, 2, OpAssoc.LEFT),
+        (plusop, 2, OpAssoc.LEFT),
     ],
 )
 
@@ -77,5 +77,5 @@ test = [
 ]
 for t in test:
     print(t)
-    print(expr.parseString(t))
+    print(expr.parse_string(t))
     print("")

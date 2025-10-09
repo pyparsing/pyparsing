@@ -148,7 +148,7 @@ for fntd in fn_typedefs:
 
 # scan input header text, and keep running list of user-defined types
 for fn, _, _ in (
-    cStyleComment.suppress() | fn_typedef.suppress() | func_def
+    c_style_comment.suppress() | fn_typedef.suppress() | func_def
 ).scan_string(c_header):
     if not fn:
         continue
@@ -195,7 +195,7 @@ for fn in functions:
         print(f"# warning - {prefix} takes variable argument list")
         del fn.fn_args[-1]
 
-    if fn.fn_args.asList() != [["void"]]:
+    if fn.fn_args.as_list() != [["void"]]:
         print(
             "{}.argtypes = ({},)".format(
                 prefix, ",".join(typeAsCtypes(a.argtype) for a in fn.fn_args)

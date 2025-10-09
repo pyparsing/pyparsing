@@ -21,7 +21,7 @@ from pyparsing import (
     ParseException,
     CaselessKeyword,
     Suppress,
-    delimitedList,
+    DelimitedList,
 )
 import math
 import operator
@@ -66,7 +66,7 @@ def BNF():
         #                    Optional("." + Optional(Word(nums))) +
         #                    Optional(e + Word("+-"+nums, nums)))
         # or use provided pyparsing_common.number, but convert back to str:
-        # fnumber = ppc.number().addParseAction(lambda t: str(t[0]))
+        # fnumber = ppc.number().add_parse_action(lambda t: str(t[0]))
         fnumber = Regex(r"[+-]?\d+(?:\.\d*)?(?:[eE][+-]?\d+)?")
         ident = Word(alphas, alphanums + "_$")
 
@@ -77,30 +77,30 @@ def BNF():
         expop = Literal("^")
 
         expr = Forward()
-        expr_list = delimitedList(Group(expr))
+        expr_list = DelimitedList(Group(expr))
         # add parse action that replaces the function identifier with a (name, number of args) tuple
         def insert_fn_argcount_tuple(t):
             fn = t.pop(0)
             num_args = len(t[0])
             t.insert(0, (fn, num_args))
 
-        fn_call = (ident + lpar - Group(expr_list) + rpar).setParseAction(
+        fn_call = (ident + lpar - Group(expr_list) + rpar).set_parse_action(
             insert_fn_argcount_tuple
         )
         atom = (
             addop[...]
             + (
-                (fn_call | pi | e | fnumber | ident).setParseAction(push_first)
+                (fn_call | pi | e | fnumber | ident).set_parse_action(push_first)
                 | Group(lpar + expr + rpar)
             )
-        ).setParseAction(push_unary_minus)
+        ).set_parse_action(push_unary_minus)
 
         # by defining exponentiation as "atom [ ^ factor ]..." instead of "atom [ ^ atom ]...", we get right-to-left
         # exponents, instead of left-to-right that is, 2^3^2 = 2^(3^2), not (2^3)^2.
         factor = Forward()
-        factor <<= atom + (expop + factor).setParseAction(push_first)[...]
-        term = factor + (multop + factor).setParseAction(push_first)[...]
-        expr <<= term + (addop + term).setParseAction(push_first)[...]
+        factor <<= atom + (expop + factor).set_parse_action(push_first)[...]
+        term = factor + (multop + factor).set_parse_action(push_first)[...]
+        expr <<= term + (addop + term).set_parse_action(push_first)[...]
         bnf = expr
     return bnf
 
@@ -166,7 +166,7 @@ if __name__ == "__main__":
     def test(s, expected):
         exprStack[:] = []
         try:
-            results = BNF().parseString(s, parseAll=True)
+            results = BNF().parse_string(s, parse_all=True)
             val = evaluate_stack(exprStack[:])
         except ParseException as pe:
             print(s, "failed parse:", str(pe))

@@ -70,12 +70,12 @@ class PyparsingExpressionTestCase(ppt.TestParseResultsAsserts, unittest.TestCase
                             expected_list=test_spec.expected_list,
                             expected_dict=test_spec.expected_dict,
                         )
-                    elif test_spec.parse_fn == "transformString":
+                    elif test_spec.parse_fn == "transform_string":
                         print(subtest_result)
                         # compare results against given list and/or dict
                         if test_spec.expected_list is not None:
                             self.assertEqual([subtest_result], test_spec.expected_list)
-                    elif test_spec.parse_fn == "searchString":
+                    elif test_spec.parse_fn == "search_string":
                         print(subtest_result)
                         # compare results against given list and/or dict
                         if test_spec.expected_list is not None:
@@ -333,7 +333,7 @@ class TestGroups(PyparsingExpressionTestCase):
                     + EQ
                     + (
                         pp.pyparsing_common.number
-                        | pp.oneOf("True False")
+                        | pp.one_of("True False")
                         | pp.QuotedString("'")
                     )
                 )[...]
@@ -368,7 +368,7 @@ class TestParseAction(PyparsingExpressionTestCase):
         ),
         PyparsingTest(
             desc="Match with numeric string converted to int",
-            expr=pp.Word("0123456789").addParseAction(lambda t: int(t[0])),
+            expr=pp.Word("0123456789").add_parse_action(lambda t: int(t[0])),
             text="12345",
             expected_list=[12345],  # note - result is type int, not str
         ),
@@ -382,7 +382,7 @@ class TestParseAction(PyparsingExpressionTestCase):
             expected_list=[datetime(2018, 9, 20, 3, 53, 48, tzinfo=timezone.utc)],
         ),
         PyparsingTest(
-            desc="Use tokenMap for parse actions that operate on a single-length token",
+            desc="Use token_map for parse actions that operate on a single-length token",
             expr=pp.Word(pp.nums).add_parse_action(
                 pp.token_map(int),
                 pp.token_map(lambda t: datetime.fromtimestamp(t, timezone.utc)),
@@ -420,7 +420,7 @@ class TestResultsModifyingParseAction(PyparsingExpressionTestCase):
     tests = [
         PyparsingTest(
             desc="A parse action that adds new key-values",
-            expr=pp.pyparsing_common.integer[...].addParseAction(
+            expr=pp.pyparsing_common.integer[...].add_parse_action(
                 compute_stats_parse_action
             ),
             text="27 1 14 22 89",
@@ -446,7 +446,7 @@ class TestParseCondition(PyparsingExpressionTestCase):
     tests = [
         PyparsingTest(
             desc="Define a condition to only match numeric values that are multiples of 7",
-            expr=pp.Word(pp.nums).addCondition(lambda t: int(t[0]) % 7 == 0)[...],
+            expr=pp.Word(pp.nums).add_condition(lambda t: int(t[0]) % 7 == 0)[...],
             text="14 35 77 12 28",
             expected_list=["14", "35", "77"],
         ),
@@ -478,7 +478,7 @@ class TestTransformStringUsingParseActions(PyparsingExpressionTestCase):
 
     tests = [
         PyparsingTest(
-            desc="Use transformString to convert simple markup to HTML",
+            desc="Use transform_string to convert simple markup to HTML",
             expr=(
                 pp.one_of(markup_convert_map)("markup_symbol")
                 + "("
@@ -489,7 +489,7 @@ class TestTransformStringUsingParseActions(PyparsingExpressionTestCase):
             expected_list=[
                 "Show in <B>bold</B>, <U>underscore</U>, or <I>italic</I> type"
             ],
-            parse_fn="transformString",
+            parse_fn="transform_string",
         ),
     ]
 
@@ -676,7 +676,7 @@ class TestWhitespaceMethods(PyparsingExpressionTestCase):
         #         "If we leave whitespace on the parent, this whitespace-dependent"
         #         " grammar will succeed, even if the children themselves skip whitespace"
         #     ),
-        #     expr=pp.Optional(pp.Literal(" foo").ignoreWhitespace()).leaveWhitespace(
+        #     expr=pp.Optional(pp.Literal(" foo").ignore_whitespace()).leave_whitespace(
         #         recursive=False
         #     ),
         #     text=" foo",

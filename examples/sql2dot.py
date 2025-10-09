@@ -50,13 +50,13 @@ alter table only student_registrations
 from pyparsing import (
     Literal,
     Word,
-    delimitedList,
+    DelimitedList,
     alphas,
     alphanums,
     OneOrMore,
     ZeroOrMore,
     CharsNotIn,
-    replaceWith,
+    replace_with,
 )
 
 skobki = "(" + ZeroOrMore(CharsNotIn(")")) + ")"
@@ -67,23 +67,23 @@ def field_act(s, loc, tok):
     return ("<" + tok[0] + "> " + " ".join(tok)).replace('"', '\\"')
 
 
-field_def.setParseAction(field_act)
+field_def.set_parse_action(field_act)
 
-field_list_def = delimitedList(field_def)
+field_list_def = DelimitedList(field_def)
 
 
 def field_list_act(toks):
     return " | ".join(toks)
 
 
-field_list_def.setParseAction(field_list_act)
+field_list_def.set_parse_action(field_list_act)
 
 create_table_def = (
     Literal("CREATE")
     + "TABLE"
-    + Word(alphas, alphanums + "_").setResultsName("tablename")
+    + Word(alphas, alphanums + "_").set_results_name("tablename")
     + "("
-    + field_list_def.setResultsName("columns")
+    + field_list_def.set_results_name("columns")
     + ")"
     + ";"
 )
@@ -96,25 +96,25 @@ def create_table_act(toks):
     )
 
 
-create_table_def.setParseAction(create_table_act)
+create_table_def.set_parse_action(create_table_act)
 
 add_fkey_def = (
     Literal("ALTER")
     + "TABLE"
     + "ONLY"
-    + Word(alphanums + "_").setResultsName("fromtable")
+    + Word(alphanums + "_").set_results_name("fromtable")
     + "ADD"
     + "CONSTRAINT"
     + Word(alphanums + "_")
     + "FOREIGN"
     + "KEY"
     + "("
-    + Word(alphanums + "_").setResultsName("fromcolumn")
+    + Word(alphanums + "_").set_results_name("fromcolumn")
     + ")"
     + "REFERENCES"
-    + Word(alphanums + "_").setResultsName("totable")
+    + Word(alphanums + "_").set_results_name("totable")
     + "("
-    + Word(alphanums + "_").setResultsName("tocolumn")
+    + Word(alphanums + "_").set_results_name("tocolumn")
     + ")"
     + ";"
 )
@@ -124,18 +124,18 @@ def add_fkey_act(toks):
     return """ "%(fromtable)s":%(fromcolumn)s -> "%(totable)s":%(tocolumn)s """ % toks
 
 
-add_fkey_def.setParseAction(add_fkey_act)
+add_fkey_def.set_parse_action(add_fkey_act)
 
 other_statement_def = OneOrMore(CharsNotIn(";")) + ";"
-other_statement_def.setParseAction(replaceWith(""))
+other_statement_def.set_parse_action(replace_with(""))
 comment_def = "--" + ZeroOrMore(CharsNotIn("\n"))
-comment_def.setParseAction(replaceWith(""))
+comment_def.set_parse_action(replace_with(""))
 
 statement_def = comment_def | create_table_def | add_fkey_def | other_statement_def
 defs = OneOrMore(statement_def)
 
 print("""digraph g { graph [ rankdir = "LR" ]; """)
-for i in defs.parseString(sampleSQL):
+for i in defs.parse_string(sampleSQL):
     if i != "":
         print(i)
 print("}")

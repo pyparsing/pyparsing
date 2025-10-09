@@ -17,7 +17,7 @@ from pyparsing import (
     Opt,
     DelimitedList,
     rest_of_line,
-    quotedString,
+    quoted_string,
     Dict,
     Keyword,
 )
@@ -96,17 +96,17 @@ serviceDefn = (
     SERVICE_ - ident("serviceName") + LBRACE + Group(methodDefn)[...] + RBRACE
 )
 
-syntaxDefn = SYNTAX_ + EQ - quotedString("syntaxString") + SEMI
+syntaxDefn = SYNTAX_ + EQ - quoted_string("syntaxString") + SEMI
 
 # packageDirective ::= 'package' ident [ '.' ident]* ';'
 packageDirective = Group(PACKAGE_ - DelimitedList(ident, ".", combine=True) + SEMI)
 
 comment = "//" + rest_of_line
 
-importDirective = IMPORT_ - quotedString("importFileSpec") + SEMI
+importDirective = IMPORT_ - quoted_string("importFileSpec") + SEMI
 
 optionDirective = (
-    OPTION_ - ident("optionName") + EQ + quotedString("optionValue") + SEMI
+    OPTION_ - ident("optionName") + EQ + quoted_string("optionValue") + SEMI
 )
 
 topLevelStatement = Group(

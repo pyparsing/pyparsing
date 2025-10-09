@@ -131,15 +131,15 @@ expop = Literal("^")
 assignop = Literal("=")
 
 expr = Forward()
-atom = (e | floatnumber | integer | ident).setParseAction(_pushFirst) | (
+atom = (e | floatnumber | integer | ident).set_parse_action(_pushFirst) | (
     lpar + expr.suppress() + rpar
 )
 factor = Forward()
-factor << atom + ZeroOrMore((expop + factor).setParseAction(_pushFirst))
+factor << atom + ZeroOrMore((expop + factor).set_parse_action(_pushFirst))
 
-term = factor + ZeroOrMore((multop + factor).setParseAction(_pushFirst))
-expr << term + ZeroOrMore((addop + term).setParseAction(_pushFirst))
-equation = (ident + assignop).setParseAction(_assignVar) + expr + StringEnd()
+term = factor + ZeroOrMore((multop + factor).set_parse_action(_pushFirst))
+expr << term + ZeroOrMore((addop + term).set_parse_action(_pushFirst))
+equation = (ident + assignop).set_parse_action(_assignVar) + expr + StringEnd()
 
 # End of grammar definition
 # -----------------------------------------------------------------------------
@@ -321,7 +321,7 @@ def parse(input_string):
     if input_string != "":
         # try parsing the input string
         try:
-            L = equation.parseString(input_string)
+            L = equation.parse_string(input_string)
         except ParseException as err:
             print("Parse Failure", file=sys.stderr)
             print(err.line, file=sys.stderr)
@@ -517,7 +517,7 @@ def test():
             all_passed[0] = all_passed[0] and this_test_passed
             print("\n" + name)
 
-    equation.runTests((t[1] for t in testcases), postParse=post_test)
+    equation.run_tests((t[1] for t in testcases), post_parse=post_test)
 
     ##TODO: Write testcases with invalid expressions and test that the expected
     ## exceptions are raised.

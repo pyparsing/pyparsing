@@ -46,11 +46,11 @@ WHILE, IF, PRINT, PUTC, ELSE = pp.Keyword.using_each(
 any_keyword = pp.MatchFirst((WHILE, IF, PRINT, PUTC, ELSE))
 identifier = pp.Combine(~any_keyword + pp.pyparsing_common.identifier.set_name("ident_name")).set_name("identifier")
 integer = pp.pyparsing_common.integer
-string = pp.QuotedString('"', convertWhitespaceEscapes=False).set_name("quoted string")
+string = pp.QuotedString('"', convert_whitespace_escapes=False).set_name("quoted string")
 char = pp.Regex(r"'\\?.'")
 
 # fmt: off
-expr = pp.infixNotation(
+expr = pp.infix_notation(
     (identifier | integer | char).set_name("arith_operand"),
     [
         (pp.one_of("+ - !"), 1, pp.OpAssoc.RIGHT,),
@@ -86,7 +86,7 @@ stmt <<= (
 ).set_name("statement")
 
 program = stmt[...]
-program.ignore(pp.cppStyleComment)
+program.ignore(pp.cpp_style_comment)
 pp.autoname_elements()
 
 tests = [

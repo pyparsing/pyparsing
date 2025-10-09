@@ -27,7 +27,7 @@ heading = (
 vert = pp.Literal("|").suppress()
 number = pp.Word(pp.nums)
 rowData = pp.Group(
-    vert + pp.Word(pp.alphas) + vert + pp.delimitedList(number, "|") + vert
+    vert + pp.Word(pp.alphas) + vert + pp.DelimitedList(number, "|") + vert
 )
 trailing = pp.Literal(
     "+-------+------+------+------+------+------+------+------+------+"
@@ -36,10 +36,10 @@ trailing = pp.Literal(
 datatable = heading + pp.Dict(pp.ZeroOrMore(rowData)) + trailing
 
 # now parse data and print results
-data = datatable.parseString(testData)
+data = datatable.parse_string(testData)
 print(data)
 
-# shortcut for import pprint; pprint.pprint(data.asList())
+# shortcut for import pprint; pprint.pprint(data.as_list())
 data.pprint()
 
 # access all data keys

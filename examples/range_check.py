@@ -3,7 +3,7 @@
 #   A sample program showing how parse actions can convert parsed
 # strings into a data type or object, and to validate the parsed value.
 #
-# Updated to use new addCondition method and expr() copy.
+# Updated to use new add_condition method and expr() copy.
 #
 # Copyright 2011,2015 Paul T. McGuire
 #
@@ -54,7 +54,7 @@ integer.set_parse_action(lambda t: int(t[0]))
 
 month = ranged_value(integer, 1, 12, "month")
 day = ranged_value(integer, 1, 31, "day")
-year = ranged_value(integer, 2000, None, "year")
+year = ranged_value(integer, 1900, None, "year")
 
 SLASH = pp.Suppress("/")
 date_expr = year("year") + SLASH + month("month") + pp.Opt(SLASH + day("day"))
@@ -64,7 +64,7 @@ date_expr.set_name("date")
 date_expr.set_parse_action(lambda t: date(t.year, t.month, t.day or 1))
 
 # add range checking on dates
-min_date = date(2002, 1, 1)
+min_date = date(2000, 1, 1)
 max_date = date.today()
 range_checked_date_expr = ranged_value(date_expr, min_date, max_date, "date")
 
@@ -79,6 +79,9 @@ success_valid_tests, _ = range_checked_date_expr.run_tests(
     # leap day
     2004/2/29
 
+    # also a leap day (year divisible by 100 is not leap year, but divisible by 400 is!)
+    2000/2/29
+
     # default day of month to 1
     2004/2
     """
@@ -88,13 +91,16 @@ success_valid_tests, _ = range_checked_date_expr.run_tests(
 success_invalid_tests, _ = range_checked_date_expr.run_tests(
     """
     # all values are in range, but date is too early
-    2001/1/1
+    1999/1/1
 
     # not a leap day
     2005/2/29
 
-    # year number is < 2000
-    1999/12/31
+    # also not a leap day (year divisible by 100, but not by 400)
+    1900/2/29
+
+    # year number is < 1900
+    1899/12/31
 
     # bad year field
     XXXX/1/1

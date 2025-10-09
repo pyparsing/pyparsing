@@ -5,7 +5,7 @@
 # copyright 2006, Paul McGuire
 #
 
-from pyparsing import oneOf, OneOrMore, printables, StringEnd
+from pyparsing import one_of, OneOrMore, printables, StringEnd
 
 test = "The quick brown fox named 'Aloysius' lives at 123 Main Street (and jumps over lazy dogs in his spare time)."
 nonAlphas = [c for c in printables if not c.isalpha()]
@@ -16,12 +16,12 @@ print("")
 
 print("Define grammar using normal results names")
 print("(only last matching symbol is saved)")
-vowels = oneOf(list("aeiouy"), caseless=True)("vowels")
-cons = oneOf(list("bcdfghjklmnpqrstvwxz"), caseless=True)("cons")
-other = oneOf(nonAlphas)("others")
+vowels = one_of(list("aeiouy"), caseless=True)("vowels")
+cons = one_of(list("bcdfghjklmnpqrstvwxz"), caseless=True)("cons")
+other = one_of(nonAlphas)("others")
 letters = OneOrMore(cons | vowels | other) + StringEnd()
 
-results = letters.parseString(test)
+results = letters.parse_string(test)
 print(results)
 print(results.vowels)
 print(results.cons)
@@ -29,15 +29,15 @@ print(results.others)
 print("")
 
 
-print("Define grammar using results names, with listAllMatches=True")
+print("Define grammar using results names, with list_all_matches=True")
 print("(all matching symbols are saved)")
-vowels = oneOf(list("aeiouy"), caseless=True)("vowels*")
-cons = oneOf(list("bcdfghjklmnpqrstvwxz"), caseless=True)("cons*")
-other = oneOf(nonAlphas)("others*")
+vowels = one_of(list("aeiouy"), caseless=True)("vowels*")
+cons = one_of(list("bcdfghjklmnpqrstvwxz"), caseless=True)("cons*")
+other = one_of(nonAlphas)("others*")
 
 letters = OneOrMore(cons | vowels | other)
 
-results = letters.parseString(test, parseAll=True)
+results = letters.parse_string(test, parse_all=True)
 print(results)
 print(sorted(set(results)))
 print("")

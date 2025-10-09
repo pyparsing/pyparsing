@@ -4,7 +4,7 @@ from collections import Counter
 import pprint
 from urllib.request import urlopen
 
-from pyparsing import makeHTMLTags, pyparsing_common as ppc, FollowedBy, trace_parse_action
+from pyparsing import make_html_tags, pyparsing_common as ppc, FollowedBy, trace_parse_action
 
 # Define the pyparsing grammar for a URL, that is:
 #    URLlink ::= <a href= URL>linkText</a>
@@ -12,7 +12,7 @@ from pyparsing import makeHTMLTags, pyparsing_common as ppc, FollowedBy, trace_p
 # Note that whitespace may appear just about anywhere in the link.  Note also
 # that it is not necessary to explicitly show this in the pyparsing grammar; by default,
 # pyparsing skips over whitespace between tokens.
-linkOpenTag, linkCloseTag = makeHTMLTags("a")
+linkOpenTag, linkCloseTag = make_html_tags("a")
 link = linkOpenTag + linkOpenTag.tag_body("body") + linkCloseTag.suppress()
 
 
@@ -34,15 +34,15 @@ link.add_parse_action(expand_relative_url)
 with urlopen("https://www.cnn.com/") as serverListPage:
     htmlText = serverListPage.read().decode()
 
-# scanString is a generator that loops through the input htmlText, and for each
+# scan_string is a generator that loops through the input htmlText, and for each
 # match yields the tokens and start and end locations (for this application, we are
 # not interested in the start and end values).
-for toks, strt, end in link.scanString(htmlText):
+for toks, strt, end in link.scan_string(htmlText):
     print(toks.startA.href, "->", toks.body)
 
 # Create dictionary with a dict comprehension, assembled from each pair of tokens returned
 # from a matched URL.
-links = {toks.body: toks.href for toks, _, _ in link.scanString(htmlText)}
+links = {toks.body: toks.href for toks, _, _ in link.scan_string(htmlText)}
 pprint.pprint(links)
 
 # Parse the urls in the links using pyparsing_common.url, and tally up all
@@ -51,7 +51,7 @@ domains = Counter()
 for url in links.values():
 
     print(url)
-    parsed = ppc.url.parseString(url)
+    parsed = ppc.url.parse_string(url)
 
     # print parsed fields for each new url
     if parsed.host not in domains:

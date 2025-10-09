@@ -1,8 +1,8 @@
 #
-#  withAttribute.py
+#  with_attribute.py
 #  Copyright, 2007 - Paul McGuire
 #
-#  Simple example of using withAttribute parse action helper
+#  Simple example of using with_attribute parse action helper
 #  to define
 #
 import pyparsing as pp
@@ -13,14 +13,14 @@ data = """\
     <td align=right width=80><font size=2 face="New Times Roman,Times,Serif">&nbsp;51.950&nbsp;</font></td>
     """
 
-td, tdEnd = pp.makeHTMLTags("TD")
-font, fontEnd = pp.makeHTMLTags("FONT")
+td, tdEnd = pp.make_html_tags("TD")
+font, fontEnd = pp.make_html_tags("FONT")
 realNum = pp.pyparsing_common.real
 NBSP = pp.Literal("&nbsp;")
 patt = td + font + NBSP + realNum("value") + NBSP + fontEnd + tdEnd
 
-# always use addParseAction when adding withAttribute as a parse action to a start tag
-td.addParseAction(pp.withAttribute(align="right", width="80"))
+# always use add_parse_action when adding with_attribute as a parse action to a start tag
+td.add_parse_action(pp.with_attribute(align="right", width="80"))
 
-for s in patt.searchString(data):
+for s in patt.search_string(data):
     print(s.value)
