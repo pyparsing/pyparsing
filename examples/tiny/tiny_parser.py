@@ -51,26 +51,20 @@ expr = pp.Forward().set_name("expr")
 statement = pp.Forward().set_name("statement")
 stmt_seq = pp.Forward().set_name("stmt_seq")
 
-# Factors and arithmetic
-atom = (
-    (LPAREN + expr + RPAREN)("group")
-    | number
-    | identifier
-).set_name("atom")
-
+# Operators and expressions (using infix_notation)
 multop = pp.one_of("* /").set_name("mulop")
 addop = pp.one_of("+ -").set_name("addop")
 relop = pp.one_of("< <= = >= > <>").set_name("relop")
 
-term = pp.Group(atom + pp.ZeroOrMore(multop("op") + atom("rhs")))("term").set_name("term")
-
-simple_expr = pp.Group(term + pp.ZeroOrMore(addop("op") + term("rhs")))(
-    "simple_expr"
-).set_name("simple_expr")
-
-expr <<= pp.Group(
-    simple_expr("lhs") + pp.Optional(relop("op") + simple_expr("rhs"))
-)("expr")
+expr <<= pp.infix_notation(
+    (number | identifier),
+    [
+        (addop, 1, pp.OpAssoc.RIGHT),  # unary +/-
+        (multop, 2, pp.OpAssoc.LEFT),  # * /
+        (addop, 2, pp.OpAssoc.LEFT),   # + -
+        (relop, 2, pp.OpAssoc.LEFT),   # relational operators
+    ],
+).set_name("expr")
 
 # Statements
 assign_stmt = (
@@ -139,6 +133,9 @@ program = pp.Group(pp.Group(stmt_list)("stmts"))("program")
 
 # Ignore comments at the program level
 program.ignore(comment)
+
+# Create railroad diagram for the TINY grammar
+program.create_diagram('tiny_parser_diagram.html')
 
 
 def parse_tiny(text: str, parse_all: bool = True) -> pp.ParseResults:

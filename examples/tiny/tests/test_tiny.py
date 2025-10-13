@@ -34,8 +34,8 @@ def test_repeat_until_with_comment():
     rpt = res.program.stmts[0]
     assert rpt.type == "repeat_stmt"
     assert len(rpt.body) == 2
-    # condition contains a relop
-    assert rpt.cond[0].op == "="
+    # condition contains a relop; infix_notation flattens to [lhs, op, rhs]
+    assert rpt.cond[1] == "="
 
 
 def test_parse_all_required():
