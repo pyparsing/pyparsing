@@ -4,34 +4,39 @@ import pytest
 from examples.tiny.tiny_parser import parse_tiny
 
 
-def test_parse_assign_read_write():
-    src = "read x; y := 42; write y"
+def test_parse_assign_read_write_in_main():
+    src = "int main(){ read x; y := 42; write y; return 0; }"
     res = parse_tiny(src)
-    # program holds a list of statements under 'stmts'
     assert "program" in res
-    stmts = res.program.stmts
-    assert len(stmts) == 3
+    main = res.program.main
+    stmts = main.body.stmts
+    assert len(stmts) == 4
     assert stmts[0].type == "read_stmt"
     assert stmts[1].type == "assign_stmt"
-    assert stmts[1].target.id == "y"
+    assert stmts[1].target == "y"
     assert stmts[2].type == "write_stmt"
+    assert stmts[3].type == "return_stmt"
 
 
-def test_parse_if_then_else():
-    src = "if x < 10 then y := y + 1; write y else read x; write x end"
+def test_parse_if_then_elseif_else():
+    src = (
+        "int main(){ if x < 10 then y := y + 1; write y elseif x = 0 then write 0 else read x end; return 0; }"
+    )
     res = parse_tiny(src)
-    ifres = res.program.stmts[0]
+    ifres = res.program.main.body.stmts[0]
     assert ifres.type == "if_stmt"
     assert hasattr(ifres, "cond")
     assert len(ifres.then) == 2
-    else_len = len(ifres["else"]) if "else" in ifres else 0
-    assert else_len == 2
+    # optional elseif list
+    assert "elseif" in ifres
+    # else block exists with 1 statement
+    assert len(ifres["else"]) == 1
 
 
-def test_repeat_until_with_comment():
-    src = "repeat {loop} x := x - 1; write x until x = 0"
+def test_repeat_until_with_c_style_comment():
+    src = "int main(){ repeat /*loop*/ x := x - 1; write x until x = 0; return 0; }"
     res = parse_tiny(src)
-    rpt = res.program.stmts[0]
+    rpt = res.program.main.body.stmts[0]
     assert rpt.type == "repeat_stmt"
     assert len(rpt.body) == 2
     # condition contains a relop; infix_notation flattens to [lhs, op, rhs]
@@ -41,4 +46,4 @@ def test_repeat_until_with_comment():
 def test_parse_all_required():
     # extra trailing garbage should fail when parse_all=True
     with pytest.raises(pp.ParseException):
-        parse_tiny("read x $$$", parse_all=True)
+        parse_tiny("int main(){ read x; return 0; } $$$", parse_all=True)

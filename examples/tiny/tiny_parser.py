@@ -1,12 +1,18 @@
 """
-TINY language parser (initial scaffold)
+TINY language parser (expanded grammar with types, functions, and control flow)
 
-This module defines a pyparsing grammar for a classic instructional subset of the
-TINY language. It follows pyparsing best practices (see `python -m pyparsing.ai.show_best_practices`).
+This module defines a pyparsing grammar for an expanded instructional subset of the
+TINY language, including declarations, functions, and boolean conditions.
 
 Usage
-- Programmatic: from tiny_parser import parse_tiny; parse_tiny(source)
-- CLI tests: python -m examples.tiny.tiny_parser
+- Programmatic:
+
+    from examples.tiny.tiny_parser import parse_tiny
+    parse_tiny(source)
+
+- CLI tests:
+
+    python -m examples.tiny.tiny_parser
 
 The grammar is defined to be independent of any evaluation/model logic. Results
 are structured using names and Groups to support later processing.
@@ -18,124 +24,197 @@ import pyparsing as pp
 # Best practice for recursive grammars: enable packrat for performance
 pp.ParserElement.enable_packrat()
 
-
-
-# For TINY, whitespace is not line-significant; keep default whitespace
-# Define comment syntax: { ... }
-LBRACE, RBRACE, LPAREN, RPAREN, SEMI = pp.Suppress.using_each("{}();")
-ASSIGN = pp.Suppress(":=")
-
-comment = pp.nested_expr(opener="{", closer="}")
-comment.set_name("comment")
-
-# We'll ignore comments everywhere
-
-# Keywords and identifiers
+# Shorthand
 ppc = pp.common
 
-IF, THEN, ELSE, END, REPEAT, UNTIL, READ, WRITE = pp.Keyword.using_each(
-    ["if", "then", "else", "end", "repeat", "until", "read", "write"]
+# Punctuation
+LPAREN, RPAREN, LBRACE, RBRACE, COMMA, SEMI = pp.Suppress.using_each("(){},;")
+ASSIGN = pp.Suppress(":=")
+
+# Comments (C-style /* ... */)
+comment = pp.c_style_comment
+
+# Keywords
+(
+    IF, THEN, ELSE, ELSEIF, END, REPEAT, UNTIL, READ, WRITE, RETURN, ENDL,
+    INT, FLOAT, STRING, MAIN,
+) = pp.Keyword.using_each(
+    """
+    if then else elseif end repeat until read write return endl
+    int float string main
+    """.split()
 )
 
-ident_start = pp.alphas + "_"
-ident_body = pp.alphanums + "_"
-ident_word = pp.Word(ident_start, ident_body)("id").set_name("identifier")
+RESERVED = pp.MatchFirst(
+    [
+        IF, THEN, ELSE, ELSEIF, END, REPEAT, UNTIL, READ, WRITE, RETURN, ENDL,
+        INT, FLOAT, STRING, MAIN,
+    ]
+).set_name("RESERVED")
 
-# Prevent keywords from being matched as identifiers, and wrap as named Group
-identifier = pp.Group(~pp.MatchFirst([IF, THEN, ELSE, END, REPEAT, UNTIL, READ, WRITE]) + ident_word)("Identifier")
+# Identifiers
+ident = pp.Word(pp.alphas, pp.alphanums + "_")
+Identifier = pp.Combine(~RESERVED + ident).set_name("identifier")
+FunctionName = Identifier
 
-number = ppc.integer("int").set_name("Integer")
+# Literals
+number = ppc.fnumber.set_name("Number")
+string_lit = pp.QuotedString('"', esc_char="\\", unquote_results=True).set_name("String")
 
-# Forward declarations for recursive parts
+# Forward declarations
 expr = pp.Forward().set_name("expr")
+term = pp.Forward().set_name("term")
 statement = pp.Forward().set_name("statement")
 stmt_seq = pp.Forward().set_name("stmt_seq")
+condition_stmt = pp.Forward().set_name("condition_stmt")
 
-# Operators and expressions (using infix_notation)
-multop = pp.one_of("* /").set_name("mulop")
-addop = pp.one_of("+ -").set_name("addop")
-relop = pp.one_of("< <= = >= > <>").set_name("relop")
+# Function call: name '(' [Identifier (',' Identifier)*] ')'
+function_call = pp.Group(
+    pp.Tag("type", "func_call")
+    + FunctionName("name")
+    + LPAREN
+    + pp.Optional(pp.DelimitedList(expr, COMMA))("args")
+    + RPAREN
+).set_name("function_call")
 
-expr <<= pp.infix_notation(
-    (number | identifier),
+# Term: number | Identifier | func_call | '(' expr ')'
+term <<= (
+        number | string_lit | function_call | Identifier #| pp.Group(LPAREN + expr + RPAREN)
+).set_name("term")
+
+# Operators
+mulop = pp.one_of("* /")
+addop = pp.one_of("+ -")
+relop = pp.one_of("< > = <>")
+andop = pp.Literal("&&")
+orop = pp.Literal("||")
+
+# Arithmetic and relational expression (Equation/Expression)
+# Build arithmetic first, then allow relational comparisons
+arith = pp.infix_notation(
+    term,
     [
-        (addop, 1, pp.OpAssoc.RIGHT),  # unary +/-
-        (multop, 2, pp.OpAssoc.LEFT),  # * /
-        (addop, 2, pp.OpAssoc.LEFT),   # + -
-        (relop, 2, pp.OpAssoc.LEFT),   # relational operators
+        (addop, 1, pp.OpAssoc.RIGHT),
+        (mulop, 2, pp.OpAssoc.LEFT),
+        (addop, 2, pp.OpAssoc.LEFT),
     ],
-).set_name("expr")
-
-# Statements
-assign_stmt = (
-    pp.Group(
-        pp.Tag("type", "assign_stmt")
-        + identifier("target")
-        + ASSIGN
-        + expr("value")
-    )
-    .set_name("assign_stmt")
+)
+rel_expr = pp.infix_notation(
+    arith,
+    [
+        (relop, 2, pp.OpAssoc.LEFT),
+    ],
 )
 
-# Explicit Forwards for blocks used in control-flow statements
-then_block = pp.Forward().set_name("then_block")
-else_block = pp.Forward().set_name("else_block")
-body_block = pp.Forward().set_name("body_block")
-
-if_stmt = (
-    pp.Group(
-        pp.Tag("type", "if_stmt")
-        + pp.Suppress(IF)
-        + expr("cond")
-        + pp.Suppress(THEN)
-        + then_block("then")
-        + pp.Optional(pp.Suppress(ELSE) + else_block("else"))
-        + pp.Suppress(END)
-    )
-    .set_name("if_stmt")
-)
-repeat_stmt = (
-    pp.Group(
-        pp.Tag("type", "repeat_stmt")
-        + pp.Suppress(REPEAT)
-        + body_block("body")
-        + pp.Suppress(UNTIL)
-        + expr("cond")
-    )
-    .set_name("repeat_stmt")
+# Condition statement with boolean operators
+condition_stmt <<= pp.infix_notation(
+    rel_expr,
+    [
+        (andop, 2, pp.OpAssoc.LEFT),
+        (orop, 2, pp.OpAssoc.LEFT),
+    ],
 )
 
-read_stmt = (
-    pp.Group(pp.Tag("type", "read_stmt") + pp.Suppress(READ) + identifier("var"))
-    .set_name("read_stmt")
-)
-write_stmt = (
-    pp.Group(pp.Tag("type", "write_stmt") + pp.Suppress(WRITE) + expr("expr"))
-    .set_name("write_stmt")
-)
+# Expression may be string, number, term/equation, or function call
+expr <<= rel_expr
 
-# Now that we used placeholders inside if/repeat, define stmt and stmt_seq
-statement <<= pp.MatchFirst([assign_stmt, if_stmt, repeat_stmt, read_stmt, write_stmt])
+# Datatypes
+Datatype = pp.MatchFirst([INT, FLOAT, STRING]).set_name("Datatype")
+
+# Declarations: Datatype id (:= expr)? (',' id (:= expr)?)*
+init_opt = pp.Optional(ASSIGN + expr("init"))
+var_decl = pp.Group(Identifier("name") + init_opt)
+Declaration_Statement = pp.Group(
+    pp.Tag("type", "decl_stmt")
+    + Datatype("datatype")
+    + pp.DelimitedList(var_decl, COMMA)("decls")
+).set_name("Declaration_Statement")
+
+# Assignment
+Assignment_Statement = pp.Group(
+    pp.Tag("type", "assign_stmt") + Identifier("target") + ASSIGN + expr("value")
+).set_name("Assignment_Statement")
+
+# Read/Write
+Read_Statement = pp.Group(
+    pp.Tag("type", "read_stmt") + READ.suppress() + Identifier("var")
+).set_name("Read_Statement")
+Write_Statement = pp.Group(
+    pp.Tag("type", "write_stmt")
+    + WRITE.suppress()
+    + (ENDL.copy().set_parse_action(lambda: "endl") | expr("expr"))
+).set_name("Write_Statement")
+
+# Return
+Return_Statement = pp.Group(
+    pp.Tag("type", "return_stmt") + RETURN.suppress() + expr("expr")
+).set_name("Return_Statement")
+
+# If / ElseIf / Else
+If_Statement = pp.Group(
+    pp.Tag("type", "if_stmt")
+    + IF.suppress()
+    + condition_stmt("cond")
+    + THEN.suppress()
+    + stmt_seq("then")
+    + pp.ZeroOrMore(
+        pp.Group(ELSEIF.suppress() + condition_stmt("cond") + THEN.suppress() + stmt_seq("then"))
+    )("elseif")
+    + pp.Optional(ELSE.suppress() + stmt_seq("else"))
+    + END.suppress()
+).set_name("If_Statement")
+
+# Repeat Until
+Repeat_Statement = pp.Group(
+    pp.Tag("type", "repeat_stmt")
+    + REPEAT.suppress()
+    + stmt_seq("body")
+    + UNTIL.suppress()
+    + condition_stmt("cond")
+).set_name("Repeat_Statement")
+
+# Statement list and statement choices
+statement <<= pp.MatchFirst(
+    [
+        Declaration_Statement,
+        Assignment_Statement,
+        If_Statement,
+        Repeat_Statement,
+        Read_Statement,
+        Write_Statement,
+        Return_Statement,
+        function_call,  # allow bare function calls as statements
+    ]
+)
 
 stmt_list = pp.DelimitedList(statement, delim=SEMI, allow_trailing_delim=True)
-stmt_seq_def = pp.Group(stmt_list)("stmts").set_name("stmt_seq")
+stmt_seq <<= stmt_list("stmts")
 
-# Assign the blocks
-then_block <<= stmt_seq_def
-else_block <<= stmt_seq_def
-body_block <<= stmt_seq_def
+# Parameters and functions
+Parameter = pp.Group(Datatype("type") + Identifier("name"))
+Param_List = pp.Optional(pp.Group(pp.DelimitedList(Parameter, COMMA)))
+Function_Declaration = pp.Group(
+    Datatype("return_type") + FunctionName("name") + LPAREN + Param_List("parameters") + RPAREN
+).set_name("Function_Declaration")
+Function_Body = pp.Group(
+    LBRACE + stmt_seq("stmts") + RBRACE
+).set_name("Function_Body")
+Function_Definition = pp.Group(Function_Declaration("decl") + Function_Body("body")).set_name("Function_Definition")
 
-stmt_seq <<= stmt_seq_def
+Main_Function = pp.Group(
+    Datatype("return_type") + MAIN.suppress() + LPAREN + RPAREN + Function_Body("body")
+)
 
-# Top-level program
-# Wrap stmt_list in an inner Group named 'stmts', then wrap with outer Group named 'program'
-program = pp.Group(pp.Group(stmt_list)("stmts"))("program")
+# Program: {Function_Statement} Main_Function
+Program = pp.Group(
+    pp.Group(pp.ZeroOrMore(Function_Definition))("functions") + Main_Function("main")
+)("program").set_name("program")
 
-# Ignore comments at the program level
-program.ignore(comment)
+# Ignore comments globally
+Program.ignore(comment)
 
-# Create railroad diagram for the TINY grammar
-program.create_diagram('tiny_parser_diagram.html')
+# Optional: generate diagram
+# Program.create_diagram('tiny_parser_diagram.html')
 
 
 def parse_tiny(text: str, parse_all: bool = True) -> pp.ParseResults:
@@ -145,25 +224,32 @@ def parse_tiny(text: str, parse_all: bool = True) -> pp.ParseResults:
         text: Source code to parse.
         parse_all: If True, require full string to be consumed.
     """
-    return program.parse_string(text, parse_all=parse_all)
+    return Program.parse_string(text, parse_all=parse_all)
 
 
 def _mini_tests() -> None:
-    # Pass a list of test strings to run_tests so that multi-line cases (like
-    # the repeat-until block) are treated as a single test case.
-    tests = [
-        # Assignment, read, write
-        "read x; y := 42; write y",
-        # if/else
-        "if x < 10 then y := y + 1; write y else read x; write x end",
-        # repeat until (multi-line test case)
-        r"""
-repeat {loop}
-    x := x - 1; write x
-until x = 0
-""",
+    statement_tests = """\
+        # Declarations with assignments
+        int x; float y:=2.5, z; string s:="Hello";
+
+        # Assignment, read, write with endl
+        read x; x := 42; write endl; write x;
+
+        # If / elseif / else with boolean conditions
+        if x < 10 && x > 1 then y := y + 1; write y elseif x = 0 then write 0 else read x end;
+        
+        if x < 10 then y := y + 1; write y elseif x = 0 then write 0 else read x end;
+
+        # Repeat until
+        repeat x := x - 1; write x until x = 0
+    """
+    stmt_list.run_tests(statement_tests, parse_all=True, full_dump=False)
+
+    program_tests = [
+        # Function with params and return, and main
+        'int sum(int a, int b){ write a; return a + b; } int main(){ int r; r := sum(2,3); write r; return 0; }',
     ]
-    program.run_tests(tests, parse_all=True)
+    Program.run_tests(program_tests, parse_all=True, full_dump=True)
 
 
 if __name__ == "__main__":
