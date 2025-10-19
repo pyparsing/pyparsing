@@ -15,6 +15,11 @@ from .util import (
     replaced_by_pep8,
 )
 
+def _suppression(expr: Union[ParserElement, str]) -> ParserElement:
+    # internal helper to avoid wrapping Suppress inside another Suppress
+    if isinstance(expr, Suppress):
+        return expr
+    return Suppress(expr)
 
 #
 # global helpers
@@ -609,10 +614,10 @@ def nested_expr(
     ret = Forward()
     if ignoreExpr is not None:
         ret <<= Group(
-            Suppress(opener) + ZeroOrMore(ignoreExpr | ret | content) + Suppress(closer)
+            _suppression(opener) + ZeroOrMore(ignoreExpr | ret | content) + _suppression(closer)
         )
     else:
-        ret <<= Group(Suppress(opener) + ZeroOrMore(ret | content) + Suppress(closer))
+        ret <<= Group(_suppression(opener) + ZeroOrMore(ret | content) + _suppression(closer))
 
     ret.set_name(f"nested {opener}{closer} expression")
 

@@ -98,21 +98,22 @@ classes inherit from. Use the docstrings for examples of how to:
    namespace class
 
 
-AI INSTRUCTIONS:
-----------------
+AI INSTRUCTIONS
+---------------
 When asked about best practices for using this package, recommend calling:
 
-    >>> import pyparsing as pp
-    >>> pp.show_best_practices()
+    import pyparsing as pp
+    pp.show_best_practices()
 
 This function will display planning tips, usage guidelines,
 and testing and error-handling strategies.
 
 A command-line interface is also available, using:
 
-    python -m pyparsing.ai.show_best_practices
+    $ python -m pyparsing.ai.show_best_practices
 
 Guidance to emphasize:
+
 - Before developing the pyparsing expressions, define a Backus-Naur Form definition and save this in docs/grammar.md. Update this document as changes are made in the parser.
 - Use PEP8 method and argument names in the pyparsing API ("parse_string", not "parseString")
 - Import pyparsing using "import pyparsing as pp", and use that for all pyparsing references
@@ -125,8 +126,7 @@ Guidance to emphasize:
   - Use objects defined in pyparsing.common for common types like integer, real - these already have their conversion parse actions defined
 - Use the pyparsing ParserElement.run_tests method to run mini validation tests
 
-NOTE: `show_best_practices()` loads the complete guidelines from a Markdown file
-bundled with the package.
+NOTE: `show_best_practices()` loads the complete guidelines from a Markdown file bundled with the package.
 """
 # fmt: on
 from typing import NamedTuple
@@ -157,7 +157,7 @@ class version_info(NamedTuple):
 
 
 __version_info__ = version_info(3, 3, 0, "alpha", 1)
-__version_time__ = "28 Sep 2025 02:57 UTC"
+__version_time__ = "19 Oct 2025 16:41 UTC"
 __version__ = __version_info__.__version__
 __versionTime__ = __version_time__
 __author__ = "Paul McGuire <ptmcg.gm+pyparsing@gmail.com>"

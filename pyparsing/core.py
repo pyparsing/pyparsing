@@ -5850,7 +5850,7 @@ class DelimitedList(ParseElementEnhance):
         self.delim = delim
         self.combine = combine
         if not combine:
-            self.delim = Suppress(delim)
+            self.delim = Suppress(delim) if not isinstance(delim, Suppress) else delim
         self.min = min or 1
         self.max = max
         self.allow_trailing_delim = allow_trailing_delim
