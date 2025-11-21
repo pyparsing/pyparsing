@@ -51,7 +51,7 @@ Version 3.3.0 - under development
   and grouping.
 
 - Deprecated `locatedExpr`, when converted using the `cvt_pyparsing_pep8_names`
-  utility, will emit UserWarnings that additional code changes may be required.
+  utility, will emit `UserWarnings` that additional code changes may be required.
   The new `Located` class removes the extra grouping level of the parsed values.
   (If the original `locatedExpr` parser was defined with a results name, then
   the extra grouping is retained, so that the results name nesting works properly;
@@ -78,19 +78,12 @@ Version 3.3.0 - under development
 - Added test in `DelimitedList` and `nested_expr` which auto-suppress delimiting commas to
   avoid wrapping in a `Suppress` if delimiter is already a `Suppress`.
 
-Version 3.2.5 - September, 2025
--------------------------------
-- JINX! Well, 3.2.4 had a bug for `Word` expressions that include a space
-  character, if that expression was then copied, either directly with .copy() or
-  by adding a results name, or included in another construct (like `DelimitedList`)
-  that makes a copy internally. Issue #618, reported by mstinberg, among others -
-  thanks, and sorry for the inconvenience.
 
 Version 3.2.5 - September, 2025
 -------------------------------
 - JINX! Well, 3.2.4 had a bug for `Word` expressions that include a space
   character, if that expression was then copied, either directly with .copy() or
-  by adding a results name, or including in another construct (like `DelimitedList`)
+  by adding a results name, or included in another construct (like `DelimitedList`)
   that makes a copy internally. Issue #618, reported by mstinberg, among others -
   thanks, and sorry for the inconvenience.
 
