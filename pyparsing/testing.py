@@ -356,18 +356,20 @@ class pyparsing_test:
         lineno_width = len(str(end_line))
         max_line_len = max(len(line) for line in s_lines)
         lead = indent + " " * (lineno_width + 1)
+
         if max_line_len >= 99:
             header0 = (
                 lead
                 + ("" if base_1 else " ")
                 + "".join(
                     f"{' ' * 99}{(i + 1) % 100}"
-                    for i in range(1 if base_1 else 0, max(max_line_len // 100, 1))
+                    for i in range(max(max_line_len // 100, 1))
                 )
                 + "\n"
             )
         else:
             header0 = ""
+
         header1 = (
             ("" if base_1 else " ")
             + lead
@@ -379,7 +381,8 @@ class pyparsing_test:
             lead + ("" if base_1 else "0") + digits * (-(-max_line_len // 10)) + "\n"
         )
         return (
-            header1
+            header0
+            + header1
             + header2
             + "\n".join(
                 f"{indent}{i:{lineno_width}d}:{line}{eol_mark}"
