@@ -13,6 +13,7 @@ How to use from Python
     print(result.dump())
 
 Grammar outline: see grammar.md
+
 Best practices: python -m pyparsing.ai.show_best_practices
 
 Reference
