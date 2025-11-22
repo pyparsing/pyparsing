@@ -128,26 +128,32 @@ Declaration_Statement = pp.Group(
     pp.Tag("type", "decl_stmt")
     + Datatype("datatype")
     + pp.DelimitedList(var_decl, COMMA)("decls")
+    + SEMI
 ).set_name("Declaration_Statement")
 
 # Assignment
 Assignment_Statement = pp.Group(
-    pp.Tag("type", "assign_stmt") + Identifier("target") + ASSIGN + expr("value")
+    pp.Tag("type", "assign_stmt")
+    + Identifier("target")
+    + ASSIGN
+    + expr("value")
+    + SEMI
 ).set_name("Assignment_Statement")
 
 # Read/Write
 Read_Statement = pp.Group(
-    pp.Tag("type", "read_stmt") + READ.suppress() + Identifier("var")
+    pp.Tag("type", "read_stmt") + READ.suppress() + Identifier("var") + SEMI
 ).set_name("Read_Statement")
 Write_Statement = pp.Group(
     pp.Tag("type", "write_stmt")
     + WRITE.suppress()
     + (ENDL.copy().set_parse_action(lambda: "endl") | expr("expr"))
+    + SEMI
 ).set_name("Write_Statement")
 
 # Return
 Return_Statement = pp.Group(
-    pp.Tag("type", "return_stmt") + RETURN.suppress() + expr("expr")
+    pp.Tag("type", "return_stmt") + RETURN.suppress() + expr("expr") + SEMI
 ).set_name("Return_Statement")
 
 # If / ElseIf / Else
@@ -174,6 +180,14 @@ Repeat_Statement = pp.Group(
 ).set_name("Repeat_Statement")
 
 # Statement list and statement choices
+Function_Call_Statement = (
+    pp.Group(
+        pp.Tag("type", "call_stmt")
+        + function_call
+        + SEMI
+    ).set_name("Function_Call_Statement")
+)
+
 statement <<= pp.MatchFirst(
     [
         Declaration_Statement,
@@ -183,17 +197,18 @@ statement <<= pp.MatchFirst(
         Read_Statement,
         Write_Statement,
         Return_Statement,
-        function_call,  # allow bare function calls as statements
+        Function_Call_Statement,
     ]
 )
 
-stmt_list = pp.DelimitedList(statement, delim=SEMI, allow_trailing_delim=True)
+stmt_list = pp.OneOrMore(statement)
 stmt_seq <<= stmt_list("stmts")
 
 # Parameters and functions
 Parameter = pp.Group(Datatype("type") + Identifier("name"))
 Param_List = pp.Optional(pp.Group(pp.DelimitedList(Parameter, COMMA)))
 Function_Declaration = pp.Group(
+    pp.Tag("type", "func_decl") +
     Datatype("return_type") + FunctionName("name") + LPAREN + Param_List("parameters") + RPAREN
 ).set_name("Function_Declaration")
 Function_Body = pp.Group(
@@ -202,6 +217,7 @@ Function_Body = pp.Group(
 Function_Definition = pp.Group(Function_Declaration("decl") + Function_Body("body")).set_name("Function_Definition")
 
 Main_Function = pp.Group(
+    pp.Tag("type", "main_decl") +
     Datatype("return_type") + MAIN.suppress() + LPAREN + RPAREN + Function_Body("body")
 )
 
@@ -236,12 +252,12 @@ def _mini_tests() -> None:
         read x; x := 42; write endl; write x;
 
         # If / elseif / else with boolean conditions
-        if x < 10 && x > 1 then y := y + 1; write y elseif x = 0 then write 0 else read x end;
+        if x < 10 && x > 1 then y := y + 1; write y; elseif x = 0 then write 0; else read x; end
         
-        if x < 10 then y := y + 1; write y elseif x = 0 then write 0 else read x end;
+        if x < 10 then y := y + 1; write y; elseif x = 0 then write 0; else read x; end
 
         # Repeat until
-        repeat x := x - 1; write x until x = 0
+        repeat x := x - 1; write x; until x = 0
     """
     stmt_list.run_tests(statement_tests, parse_all=True, full_dump=False)
 
