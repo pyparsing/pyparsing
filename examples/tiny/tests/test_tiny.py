@@ -20,7 +20,7 @@ def test_parse_assign_read_write_in_main():
 
 def test_parse_if_then_elseif_else():
     src = (
-        "int main(){ if x < 10 then y := y + 1; write y elseif x = 0 then write 0 else read x end; return 0; }"
+        "int main(){ if x < 10 then y := y + 1; write y; elseif x = 0 then write 0; else read x; end return 0; }"
     )
     res = parse_tiny(src)
     ifres = res.program.main.body.stmts[0]
@@ -34,7 +34,7 @@ def test_parse_if_then_elseif_else():
 
 
 def test_repeat_until_with_c_style_comment():
-    src = "int main(){ repeat /*loop*/ x := x - 1; write x until x = 0; return 0; }"
+    src = "int main(){ repeat /*loop*/ x := x - 1; write x; until x = 0 return 0; }"
     res = parse_tiny(src)
     rpt = res.program.main.body.stmts[0]
     assert rpt.type == "repeat_stmt"

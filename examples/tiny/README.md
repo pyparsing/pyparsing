@@ -14,3 +14,6 @@ How to use from Python
 
 Grammar outline: see grammar.md
 Best practices: python -m pyparsing.ai.show_best_practices
+
+Reference
+- TINY language definition: https://a7medayman6.github.io/Tiny-Compiler/Language-Description.html
