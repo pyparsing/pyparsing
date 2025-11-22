@@ -340,15 +340,15 @@ class pyparsing_test:
         if start_line is None:
             start_line = 0
         if end_line is None:
-            end_line = len(s)
-        end_line = min(end_line, len(s))
+            end_line = len(s.splitlines())
+        end_line = min(end_line, len(s.splitlines()))
         start_line = min(max(0, start_line), end_line)
 
         if mark_control != "unicode":
-            s_lines = s.splitlines()[start_line - base_1 : end_line]
+            s_lines = s.splitlines()[max(start_line - base_1, 0) : end_line]
         else:
             s_lines = [
-                line + "␊" for line in s.split("␊")[start_line - base_1 : end_line]
+                line + "␊" for line in s.split("␊")[max(start_line - base_1, 0) : end_line]
             ]
         if not s_lines:
             return ""
