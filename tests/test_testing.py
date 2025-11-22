@@ -28,7 +28,6 @@ TAB = chr(9)
 
         # simple call to with_line_numbers with line longer than 99 chars
         ("abcdefghij" * 11, {},
-         textwrap.indent(
          textwrap.dedent(
              """\
                                                                                                        1
@@ -36,7 +35,7 @@ TAB = chr(9)
     12345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890
   1:abcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghij|
              """),
-          "  ")),
+        ),
 
         # add indent = "...."
         ("abcd", {"indent": "...."},
@@ -50,14 +49,12 @@ TAB = chr(9)
 
         # show control characters as ?
         ("ab\tc\ad", {"mark_control": "?"},
-         textwrap.indent(
          textwrap.dedent(
              f"""\
                         1         2
                12345678901234567890
              1:ab      c?d|
              """)
-         , " "),
         ),
 
         # show control characters as ?
@@ -72,14 +69,12 @@ TAB = chr(9)
 
         # show control characters as unicode
         ("ab\tc\ad", {"mark_control": "unicode"},
-         textwrap.indent(
          textwrap.dedent(
              f"""\
                         1         2
                12345678901234567890
              1:ab␠␠␠␠␠␠c␇d␊
              """)
-         , " "),
          ),
 
         # show space characters as "`"
