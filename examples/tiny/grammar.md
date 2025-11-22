@@ -1,38 +1,78 @@
-# TINY language grammar (initial BNF outline)
+# TINY language grammar (current parser outline)
 
-This file captures the evolving BNF for the TINY language parser we are building with pyparsing.
-We start with a classic educational subset of TINY often used in compiler courses.
+This document reflects the current definitions in `examples/tiny/tiny_parser.py`.
 
 Notes
-- Terminals in single quotes.
-- Whitespace is insignificant except inside quoted strings; comments are in braces `{ ... }`.
-- Statements are separated by semicolons `;`. Newlines are not significant.
+- Terminals appear in single quotes.
+- Whitespace is insignificant except inside quoted strings.
+- Comments use C-style block comments `/* ... */` and are ignored globally.
+- Simple statements are terminated with a trailing semicolon `;`. Control-flow
+  statements (`if ... end`, `repeat ... until ...`) do not end with a semicolon.
 
-Program
-- program := stmt_seq
+Lexical tokens
+- punctuation: `'(' ')' '{' '}' ',' ';' ':='`
+- keywords (reserved): `if then else elseif end repeat until read write return endl int float string main`
+- identifier: a letter followed by letters, digits, or `_`, but not a reserved word
+- number: integer or floating point
+- string: double-quoted with `\` as escape, for example: `"hello"`
+
+Program structure
+- Program := { FunctionDefinition } MainFunction
+- MainFunction := Datatype 'main' '(' ')' FunctionBody
+- FunctionDefinition := FunctionDeclaration FunctionBody
+- FunctionDeclaration := Datatype FunctionName '(' [ Parameter { ',' Parameter } ] ')'
+- FunctionBody := '{' StmtSeq '}'
+- Datatype := 'int' | 'float' | 'string'
 
 Statements
-- stmt_seq := statement { ';' statement }
-- statement := assign_stmt | if_stmt | repeat_stmt | read_stmt | write_stmt
-- assign_stmt := identifier ':=' expr
-- if_stmt := 'if' expr 'then' stmt_seq [ 'else' stmt_seq ] 'end'
-- repeat_stmt := 'repeat' stmt_seq 'until' expr
-- read_stmt := 'read' identifier
-- write_stmt := 'write' expr
+- StmtSeq := one-or-more Statement
+- Statement :=
+  - DeclarationStatement
+  - AssignmentStatement
+  - ReadStatement
+  - WriteStatement
+  - ReturnStatement
+  - FunctionCallStatement
+  - IfStatement
+  - RepeatStatement
+
+Simple statements (each ends with `;`)
+- DeclarationStatement := Datatype VarDecl { ',' VarDecl } ';'
+  - VarDecl := identifier [ ':=' Expr ]
+- AssignmentStatement := identifier ':=' Expr ';'
+- ReadStatement := 'read' identifier ';'
+- WriteStatement := 'write' ( 'endl' | Expr ) ';'
+- ReturnStatement := 'return' Expr ';'
+- FunctionCallStatement := FunctionCall ';'
+
+Control flow (no trailing semicolon)
+- IfStatement := 'if' Condition 'then' StmtSeq { ElseIfBlock } [ 'else' StmtSeq ] 'end'
+  - ElseIfBlock := 'elseif' Condition 'then' StmtSeq
+- RepeatStatement := 'repeat' StmtSeq 'until' Condition
 
 Expressions
-- expr := simple_expr [ relop simple_expr ]
-- relop := '<' | '=' | '>' | '<=' | '>=' | '<>'
-- simple_expr := term { addop term }
-- addop := '+' | '-'
-- term := factor { mulop factor }
-- mulop := '*' | '/'
-- factor := '(' expr ')' | number | identifier
+- Expr := RelExpr
+- RelExpr := Arith { RelOp Arith }
+- RelOp := '<' | '>' | '=' | '<>'
+- Condition := RelExpr { '&&' RelExpr | '||' RelExpr }
+- Arith :=
+  - Right-assoc prefix `+` on a single operand
+  - Then left-assoc `*` `/`
+  - Then left-assoc `+` `-`
+  (This mirrors the `infix_notation` levels in the parser.)
+- Term := number | string | FunctionCall | identifier
+- FunctionCall := FunctionName '(' [ Expr { ',' Expr } ] ')'
 
-Lexical
-- identifier := letter { letter | digit }
-- number := digit { digit }
-- comment := '{' ... '}'  (may span multiple characters, not nested)
-- keywords := 'if' | 'then' | 'else' | 'end' | 'repeat' | 'until' | 'read' | 'write'
+Additional notes
+- The special literal `endl` may be used only in `write` statements (as modeled by the parser), or a general expression can be written instead.
+- Comments `/* ... */` may appear between tokens anywhere a statement or expression is allowed; they are ignored by the parser.
 
-This BNF is a starting point; refine as the implementation details evolve.
+Examples
+- Declaration and assignment
+  - `int x; float y := 2.5, z; string s := "Hello";`
+- If/elseif/else (no semicolons after blocks)
+  - `if x < 10 then y := y + 1; write y; elseif x = 0 then write 0; else read x; end`
+- Repeat/until (no semicolon after `until` line)
+  - `repeat x := x - 1; write x; until x = 0`
+- Functions and main
+  - `int sum(int a, int b){ write a; return a + b; } int main(){ int r; r := sum(2,3); write r; return 0; }`
