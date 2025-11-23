@@ -75,6 +75,15 @@ Version 3.3.0 - under development
   `pyparsing.show_best_practices()` or running `python -m pyparsing.ai.show_best_practices`
   from the command line, after installing the `pyparsing` package.
 
+- Implemented a TINY language parser/interpreter using pyparsing, in the `examples/tiny`
+  directory. This is a little tutorial language that I used to demonstrate how to use pyparsing to
+  build a simple interpreter, following a recommended parser+AST+engine+run structure.
+  The docs sub-directory also includes transcripts of the AI session used to create the
+  parser and the interpreter.
+
+- Fixed minor formatting bugs in pyparsing.testing.with_line_numbers, found during development
+  of the TINY language example.
+
 - Added test in `DelimitedList` and `nested_expr` which auto-suppress delimiting commas to
   avoid wrapping in a `Suppress` if delimiter is already a `Suppress`.
 
