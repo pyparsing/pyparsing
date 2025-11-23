@@ -294,13 +294,32 @@ class TinyEngine:
             return v != ""
         return bool(v)
 
-    def _to_number(self, v: object) -> float:
+    def _to_number(self, v: object) -> int | float:
+        """Return a numeric value for v following Tiny semantics.
+
+        Rules:
+        - If v is already an int or float, return it unchanged (no float coercion).
+        - If v is a string, treat it as a variable name; fetch its current value
+          from the environment. If that value is int or float, return it; otherwise
+          raise TypeError.
+        - For all other types, raise TypeError.
+        """
+        # Already numeric: return as-is (do not coerce int->float)
         if isinstance(v, (int, float)):
-            return float(v)
-        try:
-            return float(str(v))
-        except Exception as exc:
-            raise TypeError(f"Expected numeric, got {v!r}") from exc
+            return v
+
+        # If it's a string, interpret as variable name and resolve
+        if isinstance(v, str):
+            try:
+                val = self.get_var(v)
+            except NameError as exc:
+                raise TypeError(f"Expected numeric variable name, got undefined identifier {v!r}") from exc
+            if isinstance(val, (int, float)):
+                return val
+            raise TypeError(f"Variable {v!r} is not numeric: {val!r}")
+
+        # Anything else is not acceptable as a numeric
+        raise TypeError(f"Expected numeric, got {v!r}")
 
     def _apply_op(self, lhs: object, op: str, rhs: object) -> object:
         # Boolean ops
