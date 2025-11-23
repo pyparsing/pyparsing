@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import pytest
 
 from examples.tiny.tiny_parser import parse_tiny

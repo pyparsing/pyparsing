@@ -10,10 +10,11 @@ skeletal on purpose and currently just wrap the original `ParseResults`.
 """
 from __future__ import annotations
 
+from abc import ABC
 import pyparsing as pp
 
 
-class TinyNode:
+class TinyNode(ABC):
     """Abstract base for all executable TINY AST node classes.
 
     Subclasses must define a class-level `statement_type` that matches the
@@ -42,24 +43,13 @@ class TinyNode:
                 return sub
         return None
 
-    @classmethod
-    def is_implemented(cls) -> bool:
-        """Return True if this class overrides TinyNode.execute.
-
-        A node class is considered implemented when it defines its own
-        execute() method. If the execute attribute on the class is the same
-        function object as TinyNode.execute, then it is not yet implemented.
-        """
-        return cls.execute is not TinyNode.execute
-
-    # Execution interface (default: do nothing)
+    # Execution interface (must be overridden by subclasses)
     def execute(self, engine: "TinyEngine") -> object | None:  # noqa: F821 - forward ref
         """Execute this node against the given engine.
 
-        Base implementation does nothing and returns None. Subclasses override
-        to provide behavior.
+        TinyNode is an abstract base; subclasses must implement this method.
         """
-        return None
+        raise NotImplementedError(f"execute() not implemented for {type(self).__name__}")
 
 
 # --- Skeletal TinyNode subclasses for statements ---

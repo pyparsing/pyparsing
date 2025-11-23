@@ -305,3 +305,20 @@ Actions taken:
   - Finds the inner `func_call` group, evaluates its `args` with `engine.eval_expr`, and calls `engine.call_function(name, arg_values)`.
   - Ignores any returned value and returns `None` as expected for a statement.
 - Left tests unchanged; future tests can exercise statement-style calls using existing function support in the engine.
+
+---
+
+#### Entry 24 — User Instruction
+Instruction:
+```
+Remove is_implemented from TinyNode, was never used
+```
+
+Plan:
+- Remove the `is_implemented` classmethod from `examples/tiny/tiny_ast.py`'s `TinyNode` since it is unused. ✓
+- Search codebase references to `is_implemented` to confirm no usages (recent context indicates none). ✓
+- Update this transcript with the instruction, plan, and actions. ✓
+
+Actions taken:
+- Edited `examples/tiny/tiny_ast.py` to delete the entire `TinyNode.is_implemented` classmethod.
+- Verified recent files and tests do not reference `is_implemented`; no further changes required.
