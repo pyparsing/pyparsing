@@ -213,6 +213,34 @@ class ReturnStmtNode(TinyNode):
 class CallStmtNode(TinyNode):
     statement_type = "call_stmt"
 
+    def execute(self, engine: "TinyEngine") -> object | None:  # noqa: F821 - forward ref
+        """Execute a statement-style function call.
+
+        Grammar shape (see tiny_parser.py):
+          call_stmt -> Group(Tag("type","call_stmt") + function_call + ';')
+          function_call -> Group(Tag("type","func_call") + name + '(' args? ')')
+
+        We locate the nested `func_call` group, evaluate each argument using
+        the engine, and invoke the function via `engine.call_function(...)`.
+        Statement-form calls ignore any returned value.
+        """
+        func_group: pp.ParseResults | None = None
+        for item in self.parsed:
+            if isinstance(item, pp.ParseResults) and "type" in item and item["type"] == "func_call":  # type: ignore[index]
+                func_group = item
+                break
+
+        if func_group is None:
+            # Nothing to do if the structure is unexpected
+            return None
+
+        name = str(func_group.name) if "name" in func_group else ""
+        raw_args = (func_group.get("args", []) or [])
+        arg_values = [engine.eval_expr(arg) for arg in raw_args]
+        # Invoke the function; ignore the returned value in statement context
+        _ = engine.call_function(name, arg_values)
+        return None
+
 
 __all__ = [
     "TinyNode",

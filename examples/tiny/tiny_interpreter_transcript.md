@@ -258,3 +258,50 @@ Actions taken:
 - Edited `examples/tiny/tiny_engine.py`:
   - Rewrote `_to_number` to return `int | float` and to return numeric inputs unchanged, resolve strings as identifiers via `get_var`, and raise `TypeError` for non-numeric or unresolved identifiers.
   - Removed previous generic `float(str(v))` coercion path to avoid unintended conversions.
+
+  ---
+
+  #### Entry 22 — User Instruction
+  Instruction:
+  ```
+  Implement function calls in TinyEngine.eval_expr
+  ```
+
+  Plan:
+  - Inspect how functions are parsed and registered: function definitions are stored as `ParseResults` with `decl` (name, return_type, parameters) and `body.stmts`, and they are registered into the engine in `tiny_run.py`. ✓
+  - Add a reusable function invocation path in the engine so both expression `func_call` and a future `CallStmtNode.execute` can use it: *
+    - In `eval_expr`, when encountering a `ParseResults` with `type == 'func_call'`, evaluate arguments left-to-right and delegate to a new `engine.call_function(name, args)` method. *
+    - Implement `call_function(name, args)` to look up the function, push a new frame, bind parameters by declaring them with their declared types and the coerced argument values, execute the body statements one by one (building each as a `TinyNode` and calling `execute(engine)`), return on `ReturnStmtNode` or any non-`None` result, and finally pop the frame. If no explicit return occurs, return the default value for the declared return type. *
+    - Provide a small helper `_build_stmt_node(stmt_group)` that maps a statement `ParseResults` group to its `TinyNode` subclass instance via `TinyNode.from_statement_type`. *
+  - Keep existing identifier/number/string handling and operator semantics intact. ✓
+  - Do not implement `CallStmtNode.execute` yet; ensure the engine API is ready to be reused there. ✓
+
+  Actions taken:
+  - Edited `examples/tiny/tiny_engine.py`:
+    - Imported `TinyNode` and `ReturnStmtNode` from `tiny_ast`.
+    - In `eval_expr`, added handling for `func_call` to evaluate argument expressions and call `self.call_function(name, arg_values)`.
+    - Implemented `_build_stmt_node` helper for converting statement groups into `TinyNode` instances.
+    - Added `call_function(name, args)` implementing function invocation: lookup, frame push, parameter binding with type coercion, sequential execution of body statements with early-return propagation, default return value when necessary, and frame pop in a `finally` block.
+  - No changes to the parser or AST node classes were required in this step; `CallStmtNode` can later call `engine.call_function(...)` to share this logic.
+
+---
+
+#### Entry 23 — User Instruction
+Instruction:
+```
+Implement CallStmtNode.execute
+```
+
+Plan:
+- Confirm parser shape for `call_stmt`: it wraps a nested `function_call` group carrying `type == 'func_call'`, `name`, and optional `args`. ✓
+- Implement `CallStmtNode.execute(engine)` in `examples/tiny/tiny_ast.py` to:
+  - Locate the nested `func_call` group.
+  - Evaluate each argument via `engine.eval_expr`.
+  - Invoke `engine.call_function(name, arg_values)` and ignore the return value (statement context). ✓
+- Update this running transcript with instruction, plan, and actions. ✓
+
+Actions taken:
+- Implemented `CallStmtNode.execute` in `examples/tiny/tiny_ast.py`:
+  - Finds the inner `func_call` group, evaluates its `args` with `engine.eval_expr`, and calls `engine.call_function(name, arg_values)`.
+  - Ignores any returned value and returns `None` as expected for a statement.
+- Left tests unchanged; future tests can exercise statement-style calls using existing function support in the engine.

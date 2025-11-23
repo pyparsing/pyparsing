@@ -11,6 +11,7 @@ frame being the last element.
 from __future__ import annotations
 
 import pyparsing as pp
+from .tiny_ast import TinyNode, ReturnStmtNode
 
 
 class TinyFrame:
@@ -218,9 +219,8 @@ class TinyEngine:
             # Function call group
             if "type" in expr and expr["type"] == "func_call":  # type: ignore[index]
                 name = expr["name"]
-                args = [self.eval_expr(arg) for arg in (expr.get("args", []) or [])]
-                # Placeholder: when functions are implemented, use registry
-                raise NotImplementedError(f"Function calls not implemented: {name}({', '.join(map(str, args))})")
+                arg_values = [self.eval_expr(arg) for arg in (expr.get("args", []) or [])]
+                return self.call_function(name, arg_values)
 
             # Infix notation yields list-like tokens
             tokens = list(expr)
@@ -252,6 +252,80 @@ class TinyEngine:
 
         # Fallback
         return expr
+
+    # ----- Functions API (execution helper to share with CallStmtNode) -----
+    def _build_stmt_node(self, stmt_group: pp.ParseResults) -> TinyNode | None:
+        """Convert a statement ParseResults group into a TinyNode instance, if supported."""
+        try:
+            stype = stmt_group["type"]
+        except Exception:
+            return None
+        node_cls = TinyNode.from_statement_type(stype)  # type: ignore[arg-type]
+        if node_cls is None:
+            return None
+        return node_cls(stmt_group)
+
+    def call_function(self, name: str, args: list[object]) -> object | None:
+        """Call a user-defined function by name with already-evaluated arguments.
+
+        This method is used by expression evaluation (for `func_call` terms) and
+        can be reused by `CallStmtNode.execute` to perform statement-style calls.
+        """
+        fn = self.get_function(name)
+        if fn is None:
+            raise NameError(f"Undefined function: {name}")
+
+        # If a TinyNode was registered (e.g., main as a node), execute it directly.
+        if isinstance(fn, TinyNode):
+            return fn.execute(self)
+
+        # Expect pyparsing Function_Definition group: decl + body
+        if not isinstance(fn, pp.ParseResults):
+            raise TypeError(f"Unsupported function object for {name!r}: {type(fn).__name__}")
+
+        # Extract signature and body
+        try:
+            decl = fn.decl
+            body = fn.body
+            return_type = str(decl.return_type) if "return_type" in decl else "int"
+            params = decl.get("parameters")
+            param_list = list(params[0]) if params else []
+        except Exception as exc:
+            raise TypeError(f"Malformed function definition for {name!r}") from exc
+
+        # Arity check
+        if len(args) != len(param_list):
+            raise TypeError(f"Function {name} expects {len(param_list)} args, got {len(args)}")
+
+        # New frame for function locals
+        self.push_frame()
+        try:
+            # Bind parameters in order
+            for (param, value) in zip(param_list, args):
+                # Each param is a group with fields: type, name
+                ptype = str(param.type) if "type" in param else "int"
+                pname = str(param.name) if "name" in param else None
+                if pname is None:
+                    raise TypeError(f"Invalid parameter in function {name}")
+                # Coerce to declared parameter type on declaration
+                self.declare_var(pname, ptype, value)
+
+            # Execute function body statements until a return
+            stmts = body.stmts if hasattr(body, "stmts") else []
+            for stmt in stmts:
+                if not isinstance(stmt, pp.ParseResults):
+                    continue
+                node = self._build_stmt_node(stmt)
+                if node is None:
+                    continue
+                result = node.execute(self)
+                if isinstance(node, ReturnStmtNode) or result is not None:
+                    return result
+
+            # No explicit return encountered: return default for the declared type
+            return self._default_for(return_type)
+        finally:
+            self.pop_frame()
 
     # ----- Helpers -----
     def _default_for(self, dtype: str) -> object:
