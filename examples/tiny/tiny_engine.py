@@ -64,22 +64,41 @@ class TinyEngine:
     """
 
     def __init__(self) -> None:
-        # Stack of frames (last is current), and I/O buffers
-        self._frames: list[TinyFrame] = [TinyFrame()]
+        # Dedicated program-level globals and function registry
+        self._globals: TinyFrame = TinyFrame()
+        self._functions: dict[str, object] = {}
+
+        # Stack of frames (last is current); empty until main/function entry
+        self._frames: list[TinyFrame] = []
         self._in: list[str] = []
         self._out: list[str] = []
+
+    # ----- Program-level registry (globals/functions) -----
+    def register_function(self, name: str, fn: object) -> None:
+        """Register a program-level function definition by name.
+
+        The concrete callable/object shape is intentionally unspecified for now;
+        later, this may point to a node representing a function body or a Python
+        callable adapter.
+        """
+        self._functions[name] = fn
+
+    def get_function(self, name: str) -> object | None:
+        return self._functions.get(name)
 
     # ----- Frame management -----
     @property
     def current_frame(self) -> TinyFrame:
+        if not self._frames:
+            raise RuntimeError("No current frame: push_frame() must be called before using locals")
         return self._frames[-1]
 
     def push_frame(self) -> None:
         self._frames.append(TinyFrame())
 
     def pop_frame(self) -> None:
-        if len(self._frames) == 1:
-            raise RuntimeError("Cannot pop the global frame")
+        if not self._frames:
+            raise RuntimeError("No frame to pop")
         self._frames.pop()
 
     # ----- I/O API -----
@@ -92,9 +111,10 @@ class TinyEngine:
         if data:
             self._in.extend(data.split())
 
-    def output_text(self) -> str:
-        """Return the current output as a single string."""
-        return "".join(self._out)
+    def output_text(self) -> None:
+        """Print the current buffered output and clear the buffer."""
+        print("".join(self._out), end="")
+        self._out.clear()
 
     # Optional helpers for potential node use
     def _write(self, s: str) -> None:
@@ -120,31 +140,58 @@ class TinyEngine:
         value = self._coerce(init_value, dtype) if init_value is not None else self._default_for(dtype)
         self.current_frame.declare(name, dtype, value)
 
+    # Globals API
+    def declare_global_var(self, name: str, dtype: str, init_value: object | None = None) -> None:
+        if dtype not in {"int", "float", "string"}:
+            raise TypeError(f"Unsupported datatype: {dtype}")
+        if name in self._globals:
+            raise NameError(f"Global already declared: {name}")
+        value = self._coerce(init_value, dtype) if init_value is not None else self._default_for(dtype)
+        self._globals.declare(name, dtype, value)
+
+    def assign_global_var(self, name: str, value: object) -> None:
+        if name not in self._globals:
+            # If not declared, infer type and declare
+            inferred = self._infer_type_from_value(value)
+            self.declare_global_var(name, inferred, value)
+            return
+        dtype = self._globals.get_type(name)
+        self._globals.set(name, self._coerce(value, dtype))
+
     def assign_var(self, name: str, value: object) -> None:
         """Assign to an existing variable; if undeclared, declare using inferred type."""
         if isinstance(value, (list, tuple)) or hasattr(value, "__class__") and value.__class__.__name__ == "ParseResults":
             # Late evaluation if a parse tree is passed accidentally
             value = self.eval_expr(value)  # type: ignore[arg-type]
 
-        # Find the nearest frame containing the variable; otherwise declare in current frame
+        # Find the nearest frame containing the variable; fall back to globals; otherwise declare local
         frame = self._find_frame_for_var(name)
-        if frame is None:
-            inferred = self._infer_type_from_value(value)
-            self.declare_var(name, inferred, value)
+        if frame is not None:
+            dtype = frame.get_type(name)
+            frame.set(name, self._coerce(value, dtype))
             return
-        dtype = frame.get_type(name)
-        frame.set(name, self._coerce(value, dtype))
+        if name in self._globals:
+            dtype = self._globals.get_type(name)
+            self._globals.set(name, self._coerce(value, dtype))
+            return
+        # Not found anywhere; declare locally with inferred type
+        inferred = self._infer_type_from_value(value)
+        self.declare_var(name, inferred, value)
 
     def get_var(self, name: str) -> object:
         frame = self._find_frame_for_var(name)
-        if frame is None:
-            raise NameError(f"Variable not declared: {name}")
-        return frame.get(name)
+        if frame is not None:
+            return frame.get(name)
+        if name in self._globals:
+            return self._globals.get(name)
+        raise NameError(f"Variable not declared: {name}")
 
     def _find_frame_for_var(self, name: str) -> TinyFrame | None:
         for fr in reversed(self._frames):
             if name in fr:
                 return fr
+        if name in self._globals:
+            return self._globals
         return None
 
     # ----- Expression Evaluation -----
@@ -162,6 +209,8 @@ class TinyEngine:
                 fr = self._find_frame_for_var(expr)
                 if fr is not None:
                     return fr.get(expr)
+                if expr in self._globals:
+                    return self._globals.get(expr)
             return expr
 
         # ParseResults cases
@@ -170,6 +219,7 @@ class TinyEngine:
             if "type" in expr and expr["type"] == "func_call":  # type: ignore[index]
                 name = expr["name"]
                 args = [self.eval_expr(arg) for arg in (expr.get("args", []) or [])]
+                # Placeholder: when functions are implemented, use registry
                 raise NotImplementedError(f"Function calls not implemented: {name}({', '.join(map(str, args))})")
 
             # Infix notation yields list-like tokens

@@ -42,11 +42,55 @@ class TinyNode:
                 return sub
         return None
 
+    @classmethod
+    def is_implemented(cls) -> bool:
+        """Return True if this class overrides TinyNode.execute.
+
+        A node class is considered implemented when it defines its own
+        execute() method. If the execute attribute on the class is the same
+        function object as TinyNode.execute, then it is not yet implemented.
+        """
+        return cls.execute is not TinyNode.execute
+
+    # Execution interface (default: do nothing)
+    def execute(self, engine: "TinyEngine") -> object | None:  # noqa: F821 - forward ref
+        """Execute this node against the given engine.
+
+        Base implementation does nothing and returns None. Subclasses override
+        to provide behavior.
+        """
+        return None
+
 
 # --- Skeletal TinyNode subclasses for statements ---
 
 class MainDeclNode(TinyNode):
     statement_type = "main_decl"
+
+    def execute(self, engine: "TinyEngine") -> object | None:  # noqa: F821 - forward ref
+        # Main body: push a new frame for main's locals
+        engine.push_frame()
+        try:
+            body = self.parsed.body
+            stmts = body.stmts if hasattr(body, "stmts") else []
+
+            for stmt in stmts:
+                # Convert ParseResults to appropriate node if possible
+                if isinstance(stmt, pp.ParseResults) and "type" in stmt:
+                    node_cls = TinyNode.from_statement_type(stmt["type"])  # type: ignore[index]
+                    node = node_cls(stmt) if node_cls is not None else None
+                else:
+                    node = None
+
+                if node is not None:
+                    result = node.execute(engine)
+                    # Stop execution on explicit return (signaled by ReturnStmtNode or non-None)
+                    if isinstance(node, ReturnStmtNode) or result is not None:
+                        return result
+                # Unknown or non-executable statement types are ignored for now
+            return None
+        finally:
+            engine.pop_frame()
 
 
 class DeclStmtNode(TinyNode):
@@ -72,9 +116,26 @@ class ReadStmtNode(TinyNode):
 class WriteStmtNode(TinyNode):
     statement_type = "write_stmt"
 
+    def execute(self, engine: "TinyEngine") -> object | None:  # noqa: F821 - forward ref
+        # Two forms: write endl;  OR  write expr;
+        if "expr" in self.parsed:
+            val = engine.eval_expr(self.parsed.expr)
+            engine._write(str(val))
+        else:
+            # expect a literal token 'endl' in the parsed group
+            # if not present, treat as a newline anyway
+            engine._writeln()
+        # Flush output buffer after each write statement per spec
+        engine.output_text()
+        return None
+
 
 class ReturnStmtNode(TinyNode):
     statement_type = "return_stmt"
+
+    def execute(self, engine: "TinyEngine") -> object | None:  # noqa: F821 - forward ref
+        value = engine.eval_expr(self.parsed.expr) if "expr" in self.parsed else None
+        return value
 
 
 class CallStmtNode(TinyNode):

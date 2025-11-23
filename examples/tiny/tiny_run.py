@@ -67,14 +67,44 @@ def main(argv: list[str] | None = None) -> int:
         # Pretty-print the primary structure for inspection
         print(parsed.dump())
 
-    # Convert to TinyNode hierarchy (no-ops for now until subclasses exist)
-    program_ast = _build_nodes(parsed)
+    # Instantiate the engine that will hold globals, functions, and frames
+    engine = TinyEngine()
 
-    # Placeholder execution behavior: just acknowledge successful parsing.
-    # Execution will be implemented once concrete TinyNode subclasses exist.
-    main_func = parsed.program.main
-    stmt_count = len(main_func.body.stmts) if hasattr(main_func.body, "stmts") else 0
-    print(f"Parsed TINY program successfully. Statements in main: {stmt_count}")
+    # Build nodes where applicable and register top-level items
+    program = parsed.program
+
+    # Register all top-level function definitions (store raw definitions for now)
+    if "functions" in program:
+        for fdef in program.functions:
+            try:
+                fname = fdef.decl.name
+            except Exception:
+                continue
+            engine.register_function(fname, fdef)
+
+    # Register any top-level globals if they exist (grammar may not provide these)
+    if "globals" in program:
+        for g in program.globals:
+            try:
+                dtype = str(g.datatype)
+                # Handle one or more variable declarations in a decl stmt
+                decls = g.decls if hasattr(g, "decls") else []
+                for d in decls:
+                    name = d.name
+                    init_val = d.get("init") if isinstance(d, pp.ParseResults) else None
+                    engine.declare_global_var(name, dtype, init_val)
+            except Exception:
+                # Best-effort: skip malformed/unsupported global forms
+                continue
+
+    # Build AST node for main() and register it as a function
+    main_group = program.main
+    main_node = _build_nodes(main_group)
+    engine.register_function("main", main_node)
+
+    # Execute main if it is a TinyNode with an execute() method
+    if isinstance(main_node, TinyNode):
+        _ = main_node.execute(engine)
 
     return 0
 
