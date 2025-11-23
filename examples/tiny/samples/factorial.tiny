@@ -1,4 +1,6 @@
-/* Sample program in Tiny language – computes factorial*/
+/* Sample program in Tiny language – computes factorial
+   from https://a7medayman6.github.io/Tiny-Compiler/
+*/
 int main()
 {
     int x;
@@ -14,6 +16,8 @@ int main()
         write fact; /*output factorial of x*/
     elseif x = 0 then
         write 1;
+    else
+        write "Error: x must be >= 0";
     end
     return 0;
 }

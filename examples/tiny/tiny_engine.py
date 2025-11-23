@@ -345,18 +345,17 @@ class TinyEngine:
 
     def _coerce(self, value: object, dtype: str) -> object:
         if dtype == "int":
-            if isinstance(value, str) and value.strip().isdigit():
-                return int(value)
-            if isinstance(value, (int, float)):
-                return int(value)
-            raise TypeError(f"Cannot coerce {value!r} to int")
-        if dtype == "float":
-            if isinstance(value, (int, float)):
-                return float(value)
             try:
-                return float(str(value))
-            except Exception as exc:
-                raise TypeError(f"Cannot coerce {value!r} to float") from exc
+                return int(value)
+            except ValueError:
+                raise TypeError(f"Cannot coerce {value!r} to int") from None
+
+        if dtype == "float":
+            try:
+                return float(value)
+            except ValueError:
+                raise TypeError(f"Cannot coerce {value!r} to float") from None
+
         if dtype == "string":
             return str(value)
         raise TypeError(f"Unsupported datatype: {dtype}")
