@@ -66,28 +66,37 @@ class TinyNode:
 
 class MainDeclNode(TinyNode):
     statement_type = "main_decl"
+    
+    def __init__(self, parsed: pp.ParseResults):
+        super().__init__(parsed)
+        # Pre-build contained statement nodes for the main body
+        self.statements: list[TinyNode] = []
+        self.build_contained_statements()
+
+    def build_contained_statements(self) -> None:
+        """Convert parsed body statements to TinyNode instances.
+
+        This runs once at construction so that execute() only iterates nodes.
+        """
+        body = self.parsed.body
+        stmts = body.stmts if hasattr(body, "stmts") else []
+        built: list[TinyNode] = []
+        for stmt in stmts:
+            if isinstance(stmt, pp.ParseResults) and "type" in stmt:
+                node_cls = TinyNode.from_statement_type(stmt["type"])  # type: ignore[index]
+                if node_cls is not None:
+                    built.append(node_cls(stmt))
+        self.statements = built
 
     def execute(self, engine: "TinyEngine") -> object | None:  # noqa: F821 - forward ref
         # Main body: push a new frame for main's locals
         engine.push_frame()
         try:
-            body = self.parsed.body
-            stmts = body.stmts if hasattr(body, "stmts") else []
-
-            for stmt in stmts:
-                # Convert ParseResults to appropriate node if possible
-                if isinstance(stmt, pp.ParseResults) and "type" in stmt:
-                    node_cls = TinyNode.from_statement_type(stmt["type"])  # type: ignore[index]
-                    node = node_cls(stmt) if node_cls is not None else None
-                else:
-                    node = None
-
-                if node is not None:
-                    result = node.execute(engine)
-                    # Stop execution on explicit return (signaled by ReturnStmtNode or non-None)
-                    if isinstance(node, ReturnStmtNode) or result is not None:
-                        return result
-                # Unknown or non-executable statement types are ignored for now
+            for node in self.statements:
+                result = node.execute(engine)
+                # Stop execution on explicit return (signaled by ReturnStmtNode or non-None)
+                if isinstance(node, ReturnStmtNode) or result is not None:
+                    return result
             return None
         finally:
             engine.pop_frame()
@@ -96,9 +105,33 @@ class MainDeclNode(TinyNode):
 class DeclStmtNode(TinyNode):
     statement_type = "decl_stmt"
 
+    def execute(self, engine: "TinyEngine") -> object | None:  # noqa: F821 - forward ref
+        """Declare one or more variables, with optional initializers.
+
+        Grammar provides:
+          - `datatype`: one of 'int' | 'float' | 'string'
+          - `decls`: a list of groups each with `name` and optional `init` expression
+        """
+        dtype = str(self.parsed.datatype) if "datatype" in self.parsed else "int"
+        decls = self.parsed.decls if "decls" in self.parsed else []
+        for d in decls:
+            if not isinstance(d, pp.ParseResults):
+                continue
+            name = d.get("name")
+            init_val = engine.eval_expr(d.init) if "init" in d else None  # type: ignore[attr-defined]
+            engine.declare_var(name, dtype, init_val)
+        return None
+
 
 class AssignStmtNode(TinyNode):
     statement_type = "assign_stmt"
+
+    def execute(self, engine: "TinyEngine") -> object | None:  # noqa: F821 - forward ref
+        # Evaluate RHS expression and assign to the target identifier
+        target = self.parsed.target
+        value = engine.eval_expr(self.parsed.value)
+        engine.assign_var(target, value)
+        return None
 
 
 class IfStmtNode(TinyNode):
@@ -107,6 +140,35 @@ class IfStmtNode(TinyNode):
 
 class RepeatStmtNode(TinyNode):
     statement_type = "repeat_stmt"
+
+    def __init__(self, parsed: pp.ParseResults):
+        super().__init__(parsed)
+        self.statements: list[TinyNode] = []
+        self.build_contained_statements()
+
+    def build_contained_statements(self) -> None:
+        """Pre-build TinyNode children for the repeat body statements."""
+        stmts = self.parsed
+        built: list[TinyNode] = []
+        for stmt in stmts:
+            if isinstance(stmt, pp.ParseResults) and "type" in stmt:
+                node_cls = TinyNode.from_statement_type(stmt["type"])  # type: ignore[index]
+                if node_cls is not None:
+                    built.append(node_cls(stmt))
+        self.statements = built
+
+    def execute(self, engine: "TinyEngine") -> object | None:  # noqa: F821 - forward ref
+        # Repeat-Until is a do-while: execute body, then check condition; stop when condition is true
+        while True:
+            for node in self.statements:
+                result = node.execute(engine)
+                if isinstance(node, ReturnStmtNode) or result is not None:
+                    return result
+            # Evaluate loop condition after executing the body
+            cond_val = engine.eval_expr(self.parsed.cond) if "cond" in self.parsed else False
+            if bool(cond_val):
+                break
+        return None
 
 
 class ReadStmtNode(TinyNode):

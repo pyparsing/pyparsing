@@ -15,6 +15,24 @@ Actions taken:
 
 ---
 
+#### Entry 18 — User Instruction
+Instruction:
+```
+Implement DeclStmtNode (which may also include an assignment portion).
+```
+
+Plan:
+- Review the grammar for `decl_stmt` to confirm fields: `datatype` and a list `decls`, where each decl group has `name` and optional `init` expression. ✓
+- Implement `DeclStmtNode.execute(engine)` in `examples/tiny/tiny_ast.py`:
+  - Determine `dtype = str(self.parsed.datatype)`.
+  - Iterate `self.parsed.decls`; for each decl, evaluate `init` with `engine.eval_expr` if present, then call `engine.declare_var(name, dtype, init_val)`. ✓
+- Keep return value `None` and avoid adding new scope (declarations occur in current frame). ✓
+- Update this transcript entry with actions taken. ✓
+
+Actions taken:
+- Implemented `DeclStmtNode.execute` in `examples/tiny/tiny_ast.py` to declare one or more variables with optional initializers, using the engine for expression evaluation and declaration into the current frame.
+- No changes to other nodes or engine were required.
+
 #### Entry 14 — User Instruction
 Instruction:
 ```
@@ -129,3 +147,71 @@ Actions taken:
 - Edited `examples/tiny/tiny_ast.py`: in `WriteStmtNode.execute`, added a call to `engine.output_text()` after `_write`/`_writeln` to flush output immediately.
 - Edited `examples/tiny/tiny_engine.py`: changed `output_text` to `print("".join(self._out), end="")` and then `self._out.clear()`; updated signature to return `None`.
 - Searched current usages; no part of the codebase relied on the previous return value of `output_text`.
+
+#### Entry 15 — User Instruction
+Instruction:
+```
+Refactor MainDeclNode.execute() to remove the conversion from ParseResults to AST nodes. Instead, this conversion should be done in a build_contained_statements() method that is called from __init__() after calling super().__init__. build_contained_statements() will iterate over the statements in the parsed body, and create a list of statement nodes. Then execute() merely has to iterate over those nodes and call execute on each one. If those nodes themselves contain a body of statements, then building that AST node will in turn recursively build AST node lists - this will be the case for the main, function, repeat, and if statements.
+```
+
+Plan:
+- In `examples/tiny/tiny_ast.py`, update `MainDeclNode` to pre-build its contained statements:
+  - Add `__init__` that calls `super().__init__(parsed)` then `self.build_contained_statements()`.
+  - Implement `build_contained_statements()` to iterate `self.parsed.body.stmts`, resolve each via `TinyNode.from_statement_type`, and instantiate nodes into `self.statements: list[TinyNode]`.
+- Refactor `MainDeclNode.execute()` to only iterate over `self.statements`, executing each node and stopping on `ReturnStmtNode` or non-None result; keep frame push/pop with `finally`.
+- Keep type annotations in Python 3.12+ style; avoid import cycles by using forward ref for `TinyEngine`.
+- Append this entry to the transcript.
+
+Actions taken:
+- Edited `examples/tiny/tiny_ast.py`:
+  - Added `__init__` and `build_contained_statements()` to `MainDeclNode` to construct `self.statements` at initialization.
+  - Simplified `MainDeclNode.execute()` to iterate over prebuilt `self.statements` and execute them, preserving early return behavior and frame management.
+- No changes were required in other files.
+
+---
+
+#### Entry 16 — User Instruction
+Instruction:
+```
+Implement AssignStmtNode.execute() method and RepeatStmtNode.build_contained_statements() and .execute() methods
+```
+
+Plan:
+- In `examples/tiny/tiny_ast.py`, implement `AssignStmtNode.execute(engine)` to evaluate the RHS using `engine.eval_expr(self.parsed.value)` and assign it to `self.parsed.target` via `engine.assign_var(...)`. ✓
+- Implement `RepeatStmtNode` to pre-build its body statements:
+  - Add `__init__` that calls `super().__init__(parsed)` then `build_contained_statements()`. ✓
+  - Implement `build_contained_statements()` to iterate `self.parsed.body.stmts`, map each to a `TinyNode` subclass, and store in `self.statements: list[TinyNode]`. ✓
+- Implement `RepeatStmtNode.execute(engine)` with do-while semantics:
+  - Execute all body statements in order; if any returns a non-None result or is a `ReturnStmtNode`, propagate that result immediately (to allow function returns inside loops). ✓
+  - After each body execution, evaluate `self.parsed.cond` with `engine.eval_expr`; break the loop when the condition is truthy. ✓
+- Do not push/pop frames in `RepeatStmtNode` (no new scope). ✓
+- Update the running transcript with this entry. ✓
+
+Actions taken:
+- Edited `examples/tiny/tiny_ast.py`:
+  - Implemented `AssignStmtNode.execute` to evaluate and assign the RHS to the target variable via the engine.
+  - Added `__init__`, `build_contained_statements`, and `execute` to `RepeatStmtNode` to pre-build its body and run it with repeat-until semantics, including early return propagation.
+- Updated `examples/tiny/tiny_interpreter_transcript.md` with this plan and the actions performed.
+
+---
+
+#### Entry 17 — User Instruction
+Instruction:
+```
+TinyEngine._to_number() must be modified:
+- do not convert v to float if v is an int or float
+- if v is a string, get the value of the variable v; return that value if int or float, otherwise raise TypeError
+```
+
+Plan:
+- Update `_to_number` in `examples/tiny/tiny_engine.py` to conform to the specified behavior:
+  - If `v` is `int` or `float`, return `v` unchanged. ✓
+  - If `v` is `str`, resolve it as a variable name using existing lookup (`get_var`). If the value is numeric, return it; otherwise raise `TypeError`. ✓
+  - For any other type, raise `TypeError`. ✓
+- Ensure arithmetic and relational operations that use `_to_number` continue to work without further changes. ✓
+- Append this entry to the transcript. ✓
+
+Actions taken:
+- Edited `examples/tiny/tiny_engine.py`:
+  - Rewrote `_to_number` to return `int | float` and to return numeric inputs unchanged, resolve strings as identifiers via `get_var`, and raise `TypeError` for non-numeric or unresolved identifiers.
+  - Removed previous generic `float(str(v))` coercion path to avoid unintended conversions.
