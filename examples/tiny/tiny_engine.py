@@ -13,6 +13,20 @@ from __future__ import annotations
 import pyparsing as pp
 from .tiny_ast import TinyNode, ReturnStmtNode, ReturnPropagate
 
+import operator
+
+_op_map = {
+    "+": operator.add,
+    "-": operator.sub,
+    "*": operator.mul,
+    "/": operator.truediv,
+    "=": operator.eq,
+    "<>": operator.ne,
+    "<": operator.lt,
+    ">": operator.gt,
+    "<=": operator.le,
+    ">=": operator.ge,
+}
 
 class TinyFrame:
     """A single stack frame holding local variables and their types.
@@ -411,31 +425,11 @@ class TinyEngine:
             if isinstance(lhs, (int, float)) or isinstance(rhs, (int, float)):
                 lnum = self._to_number(lhs)
                 rnum = self._to_number(rhs)
-                if op == "<":
-                    return lnum < rnum
-                if op == ">":
-                    return lnum > rnum
-                if op == "=":
-                    return lnum == rnum
-                if op == "<=":
-                    return lnum <= rnum
-                if op == ">=":
-                    return lnum >= rnum
-                return lnum != rnum  # "<>"
+                return _op_map[op](lnum, rnum)
             else:
                 lstr = str(lhs)
                 rstr = str(rhs)
-                if op == "<":
-                    return lstr < rstr
-                if op == ">":
-                    return lstr > rstr
-                if op == "=":
-                    return lstr == rstr
-                if op == "<=":
-                    return lstr <= rstr
-                if op == ">=":
-                    return lstr >= rstr
-                return lstr != rstr
+                return _op_map[op](lstr, rstr)
 
         # Arithmetic ops
         if op in {"+", "-", "*", "/"}:
@@ -445,13 +439,6 @@ class TinyEngine:
             # Numeric operations
             lnum = self._to_number(lhs)
             rnum = self._to_number(rhs)
-            if op == "+":
-                return lnum + rnum
-            if op == "-":
-                return lnum - rnum
-            if op == "*":
-                return lnum * rnum
-            # '/'
-            return lnum / rnum
+            return _op_map[op](lnum, rnum)
 
         raise NotImplementedError(f"Operator not implemented: {op}")

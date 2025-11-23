@@ -67,7 +67,7 @@ expr = pp.Forward().set_name("expr")
 term = pp.Forward().set_name("term")
 statement = pp.Forward().set_name("statement")
 stmt_seq = pp.Forward().set_name("stmt_seq")
-condition_stmt = pp.Forward().set_name("condition_stmt")
+bool_expr = pp.Forward().set_name("condition_stmt")
 
 # Function call: name '(' [Identifier (',' Identifier)*] ')'
 function_call = pp.Group(
@@ -108,7 +108,7 @@ rel_expr = pp.infix_notation(
 )
 
 # Condition statement with boolean operators
-condition_stmt <<= pp.infix_notation(
+bool_expr <<= pp.infix_notation(
     rel_expr,
     [
         (andop, 2, pp.OpAssoc.LEFT),
@@ -117,7 +117,8 @@ condition_stmt <<= pp.infix_notation(
 )
 
 # Expression may be string, number, term/equation, or function call
-expr <<= rel_expr
+expr <<= bool_expr
+
 
 # Datatypes
 Datatype = pp.MatchFirst([INT, FLOAT, STRING]).set_name("Datatype")
@@ -161,13 +162,13 @@ Return_Statement = pp.Group(
 If_Statement = pp.Group(
     pp.Tag("type", "if_stmt")
     + IF.suppress()
-    + condition_stmt("cond")
+    + bool_expr("cond")
     + THEN.suppress()
     - pp.Group(stmt_seq)("then")
     + pp.ZeroOrMore(
         pp.Group(
             ELSEIF.suppress()
-            - condition_stmt("cond")
+            - bool_expr("cond")
             + THEN.suppress()
             + pp.Group(stmt_seq)("then"))
     )("elseif")
@@ -181,7 +182,7 @@ Repeat_Statement = pp.Group(
     + REPEAT.suppress()
     - stmt_seq("body")
     + UNTIL.suppress()
-    + condition_stmt("cond")
+    + bool_expr("cond")
 ).set_name("Repeat_Statement")
 
 # Statement list and statement choices
@@ -263,6 +264,8 @@ def _mini_tests() -> None:
 
         # Repeat until
         repeat x := x - 1; write x; until x = 0
+        
+        write x > 2 && x < 10;
     """
     stmt_list.run_tests(statement_tests, parse_all=True, full_dump=False)
 

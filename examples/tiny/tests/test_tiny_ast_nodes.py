@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+import textwrap
+
+import pyparsing as pp
 import pytest
 
 from examples.tiny.tiny_parser import parse_tiny
@@ -12,7 +15,12 @@ def _run_main_and_capture(src: str, capsys: pytest.CaptureFixture[str]) -> tuple
 
     Returns (return_value, stdout_text).
     """
-    parsed = parse_tiny(src, parse_all=True)
+    try:
+        parsed = parse_tiny(src, parse_all=True)
+    except pp.ParseException as pe:
+        print(pe.explain())
+        raise
+
     main_group = parsed.program.main
     # Build a MainDeclNode via the registry
     node_cls = TinyNode.from_statement_type(main_group["type"])  # type: ignore[index]
@@ -322,3 +330,91 @@ def test_return_inside_if_else_branch(capsys: pytest.CaptureFixture[str]) -> Non
     ret, out = _run_main_and_capture(src, capsys)
     assert out == "else\n"
     assert ret == 3
+
+
+def test_all_operations_arith_string_boolean(capsys: pytest.CaptureFixture[str]) -> None:
+    """Exercise arithmetic, string, relational, and boolean operators.
+
+    Verifies:
+    - Arithmetic: +, -, *, /, unary +/-
+    - String concatenation with '+'
+    - Relational: <, >, =, <>, >=, <= (numeric and string comparisons)
+    - Boolean: &&, || with correct precedence relative to relational
+    """
+    src = (
+        """\
+        int main(){
+            /* arithmetic */
+            write 1 + 2; write endl;         /* 3 */
+            write 5 - 3; write endl;         /* 2 */
+            write 2 * 4; write endl;         /* 8 */
+            write 5 / 2; write endl;         /* 2.5 */
+            write -5; write endl;            /* -5 */
+            write +5; write endl;            /* 5 */
+
+            /* string concatenation */
+            write "Hello " + "World"; write endl;  /* Hello World */
+
+            /* relational numeric */
+            write 1 < 2; write endl;         /* True */
+            write 3 > 4; write endl;         /* False */
+            write 5 = 5; write endl;         /* True */
+            write 5 <> 6; write endl;        /* True */
+            write 3 >= 3; write endl;        /* True */
+            write 2 <= 1; write endl;        /* False */
+
+            /* relational string (lexicographic) */
+            write "a" < "b"; write endl;     /* True */
+            write "b" > "a"; write endl;     /* True */
+            write "x" = "x"; write endl;     /* True */
+            write "a" <> "b"; write endl;    /* True */
+            write "a" <= "a"; write endl;    /* True */
+            write "aa" >= "ab"; write endl;  /* False */
+
+            /* boolean ops (with relational sub-exprs) */
+            write 1 && 0; write endl;        /* False */
+            write 1 || 0; write endl;        /* True */
+            write 0 || 0; write endl;        /* False */
+            write 1 < 2 && 2 < 3; write endl;  /* True */
+            write 1 < 2 && 2 > 3 || 1; write endl;  /* True (and before or) */
+
+            return 0;
+        }
+        """
+    )
+
+    ret, out = _run_main_and_capture(src, capsys)
+
+    expected = (
+        textwrap.dedent(
+        """\
+        3
+        2
+        8
+        2.5
+        -5
+        5
+        Hello World
+        True
+        False
+        True
+        True
+        True
+        False
+        True
+        True
+        True
+        True
+        True
+        False
+        False
+        True
+        False
+        True
+        True
+        """
+        )
+    )
+    # Normalize potential trailing spaces/newlines
+    assert out == expected
+    assert ret == 0
