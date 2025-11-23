@@ -403,7 +403,7 @@ class TinyEngine:
             return lv and rv if op == "&&" else lv or rv
 
         # Relational ops
-        if op in {"<", ">", "=", "<>"}:
+        if op in {"<", ">", "=", "<>", ">=", "<="}:
             # Numeric compare if both numeric-like; else string compare
             if isinstance(lhs, (int, float)) or isinstance(rhs, (int, float)):
                 lnum = self._to_number(lhs)
@@ -414,6 +414,10 @@ class TinyEngine:
                     return lnum > rnum
                 if op == "=":
                     return lnum == rnum
+                if op == "<=":
+                    return lnum <= rnum
+                if op == ">=":
+                    return lnum >= rnum
                 return lnum != rnum  # "<>"
             else:
                 lstr = str(lhs)
@@ -424,6 +428,10 @@ class TinyEngine:
                     return lstr > rstr
                 if op == "=":
                     return lstr == rstr
+                if op == "<=":
+                    return lstr <= rstr
+                if op == ">=":
+                    return lstr >= rstr
                 return lstr != rstr
 
         # Arithmetic ops

@@ -86,7 +86,7 @@ term <<= (
 # Operators
 mulop = pp.one_of("* /")
 addop = pp.one_of("+ -")
-relop = pp.one_of("< > = <>")
+relop = pp.one_of("< > = <> >= <=")
 andop = pp.Literal("&&")
 orop = pp.Literal("||")
 
@@ -163,11 +163,15 @@ If_Statement = pp.Group(
     + IF.suppress()
     + condition_stmt("cond")
     + THEN.suppress()
-    + stmt_seq("then")
+    + pp.Group(stmt_seq)("then")
     + pp.ZeroOrMore(
-        pp.Group(ELSEIF.suppress() + condition_stmt("cond") + THEN.suppress() + stmt_seq("then"))
+        pp.Group(
+            ELSEIF.suppress()
+            + condition_stmt("cond")
+            + THEN.suppress()
+            + pp.Group(stmt_seq)("then"))
     )("elseif")
-    + pp.Optional(ELSE.suppress() + stmt_seq("else"))
+    + pp.Optional(ELSE.suppress() + pp.Group(stmt_seq)("else"))
     + END.suppress()
 ).set_name("If_Statement")
 

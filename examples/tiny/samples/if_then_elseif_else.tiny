@@ -1,0 +1,17 @@
+int main(){
+    int x := 3;
+    repeat
+        if x = 1 then
+            write "one";
+        elseif x = 2 then
+            write "two";
+        elseif x = 3 then
+            write "three";
+        else
+            write "other";
+        end
+        write endl;
+        x := x-1;
+    until x < 0
+    return 0;
+}

@@ -3,6 +3,7 @@ int main()
 {
     int x;
     read x; /*input an integer*/
+
     if x > 0 /*don’t compute if x <= 0 */
     then
         int fact := 1;
@@ -11,6 +12,8 @@ int main()
             x := x - 1;
         until x = 0
         write fact; /*output factorial of x*/
+    elseif x = 0 then
+        write 1;
     end
     return 0;
 }

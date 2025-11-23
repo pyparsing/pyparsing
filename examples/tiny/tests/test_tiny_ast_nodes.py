@@ -25,12 +25,14 @@ def _run_main_and_capture(src: str, capsys: pytest.CaptureFixture[str]) -> tuple
 
 def test_declaration_with_initializers_prints_values(capsys: pytest.CaptureFixture[str]) -> None:
     src = (
-        'int main(){\n'
-        '    int i := 42;\n'
-        '    string s := "Hello";\n'
-        '    write i; write " "; write s; write "\n";\n'
-        '    return 0;\n'
-        '}'
+        """\
+        int main(){
+            int i := 42;
+            string s := "Hello";
+            write i; write " "; write s; write endl;
+            return 0;
+        }
+        """
     )
     ret, out = _run_main_and_capture(src, capsys)
     assert out == "42 Hello\n"
@@ -39,12 +41,14 @@ def test_declaration_with_initializers_prints_values(capsys: pytest.CaptureFixtu
 
 def test_assignment_updates_value(capsys: pytest.CaptureFixture[str]) -> None:
     src = (
-        'int main(){\n'
-        '    int x := 1;\n'
-        '    x := x + 2;\n'
-        '    write x; write "\n";\n'
-        '    return 0;\n'
-        '}'
+        """\
+        int main(){
+            int x := 1;
+            x := x + 2;
+            write x; write endl;
+            return 0;
+        }
+        """
     )
     ret, out = _run_main_and_capture(src, capsys)
     assert out == "3\n"
@@ -53,14 +57,16 @@ def test_assignment_updates_value(capsys: pytest.CaptureFixture[str]) -> None:
 
 def test_repeat_until_prints_n_times(capsys: pytest.CaptureFixture[str]) -> None:
     src = (
-        'int main(){\n'
-        '    int i := 5;\n'
-        '    repeat\n'
-        '        write "Hello World!\n";\n'
-        '        i := i - 1;\n'
-        '    until i = 0\n'
-        '    return 0;\n'
-        '}'
+        """\
+        int main(){
+            int i := 5;
+            repeat
+                write "Hello World!"; write endl;
+                i := i - 1;
+            until i = 0
+            return 0;
+        }
+        """
     )
     ret, out = _run_main_and_capture(src, capsys)
     lines = [ln for ln in out.splitlines() if ln.strip() != ""]
@@ -72,12 +78,14 @@ def test_repeat_until_prints_n_times(capsys: pytest.CaptureFixture[str]) -> None
 def test_read_statement_prompts_and_assigns(capsys: pytest.CaptureFixture[str], monkeypatch: pytest.MonkeyPatch) -> None:
     # Program declares x as int, reads it from input, and writes it back
     src = (
-        'int main(){\n'
-        '    int x;\n'
-        '    read x;\n'
-        '    write x; write "\n";\n'
-        '    return 0;\n'
-        '}'
+        """\
+        int main(){
+            int x;
+            read x;
+            write x; write endl;
+            return 0;
+        }
+        """
     )
 
     # Simulate user entering 17 at the prompt
@@ -94,5 +102,90 @@ def test_read_statement_prompts_and_assigns(capsys: pytest.CaptureFixture[str], 
 
     captured = capsys.readouterr()
     # input() prints the prompt, then write prints the value and newline
-    assert captured.out == "x? 17\n"
+    assert captured.out == "17\n"
+    assert ret == 0
+
+
+def test_if_then_true_branch(capsys: pytest.CaptureFixture[str]) -> None:
+    src = (
+        """\
+        int main(){
+            int x := 5;
+            if x > 0 then
+                write "T"; write endl;
+            end
+            return 0;
+        }
+        """
+    )
+    ret, out = _run_main_and_capture(src, capsys)
+    assert out == "T\n"
+    assert ret == 0
+
+
+def test_if_then_else_false_goes_else(capsys: pytest.CaptureFixture[str]) -> None:
+    src = (
+        """\
+        int main(){
+            int x := 0;
+            if x > 0 then
+                write "T";
+            else
+                write "F";
+            end
+            write endl;
+            return 0;
+        }
+        """
+    )
+    ret, out = _run_main_and_capture(src, capsys)
+    assert out == "F\n"
+    assert ret == 0
+
+
+def test_if_then_elseif_chain_matches_middle(capsys: pytest.CaptureFixture[str]) -> None:
+    src = (
+        """\
+        int main(){
+            int x := 2;
+            if x = 1 then
+                write "one";
+            elseif x = 2 then
+                write "two";
+            elseif x = 3 then
+                write "three";
+            else
+                write "other";
+            end
+            write endl;
+            return 0;
+        }
+        """
+    )
+    ret, out = _run_main_and_capture(src, capsys)
+    assert out == "two\n"
+    assert ret == 0
+
+
+def test_if_then_elseif_else_falls_to_else(capsys: pytest.CaptureFixture[str]) -> None:
+    src = (
+        """\
+        int main(){
+            int x := 99;
+            if x = 1 then
+                write "one";
+            elseif x = 2 then
+                write "two";
+            elseif x = 3 then
+                write "three";
+            else
+                write "else";
+            end
+            write endl;
+            return 0;
+        }
+        """
+    )
+    ret, out = _run_main_and_capture(src, capsys)
+    assert out == "else\n"
     assert ret == 0

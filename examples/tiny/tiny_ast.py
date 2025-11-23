@@ -137,6 +137,90 @@ class AssignStmtNode(TinyNode):
 class IfStmtNode(TinyNode):
     statement_type = "if_stmt"
 
+    def __init__(self, parsed: pp.ParseResults):
+        super().__init__(parsed)
+        # Pre-built branches
+        self.then_statements: list[TinyNode] = []
+        self.elseif_branches: list[tuple[object, list[TinyNode]]] = []  # (cond, statements)
+        self.else_statements: list[TinyNode] = []
+        self.build_contained_statements()
+
+    def build_contained_statements(self) -> None:
+        """Build TinyNode children for then/elseif/else branches.
+
+        The parsed shape (see tiny_parser.If_Statement):
+          - cond: condition expression for the initial if
+          - then: stmt_seq("then") with .stmts
+          - elseif: ZeroOrMore(Group(cond + THEN + stmt_seq("then"))) (optional)
+          - else: Optional(stmt_seq("else")) (optional)
+        """
+        # then branch
+        then_seq = self.parsed.then if "then" in self.parsed else []
+        then_stmts = then_seq
+        built_then: list[TinyNode] = []
+        for stmt in then_stmts:
+            if isinstance(stmt, pp.ParseResults) and "type" in stmt:
+                node_cls = TinyNode.from_statement_type(stmt["type"])  # type: ignore[index]
+                if node_cls is not None:
+                    built_then.append(node_cls(stmt))
+        self.then_statements = built_then
+
+        # elseif branches
+        built_elseif: list[tuple[object, list[TinyNode]]] = []
+        if "elseif" in self.parsed:
+            for br in self.parsed["elseif"]:
+                if not isinstance(br, pp.ParseResults):
+                    continue
+                cond = br.get("cond")
+                seq = br.get("then", [])
+                seq_stmts = getattr(seq, "stmts", seq)
+                branch_nodes: list[TinyNode] = []
+                for stmt in seq_stmts:
+                    if isinstance(stmt, pp.ParseResults) and "type" in stmt:
+                        node_cls = TinyNode.from_statement_type(stmt["type"])  # type: ignore[index]
+                        if node_cls is not None:
+                            branch_nodes.append(node_cls(stmt))
+                built_elseif.append((cond, branch_nodes))
+        self.elseif_branches = built_elseif
+
+        # else branch
+        if "else" in self.parsed:
+            else_seq = self.parsed["else"]
+            else_stmts = else_seq  # getattr(else_seq, "stmts", else_seq)
+            built_else: list[TinyNode] = []
+            for stmt in else_stmts:
+                if isinstance(stmt, pp.ParseResults) and "type" in stmt:
+                    node_cls = TinyNode.from_statement_type(stmt["type"])  # type: ignore[index]
+                    if node_cls is not None:
+                        built_else.append(node_cls(stmt))
+            self.else_statements = built_else
+        else:
+            self.else_statements = []
+
+    def _exec_block(self, engine: "TinyEngine", nodes: list[TinyNode]) -> object | None:  # noqa: F821
+        for node in nodes:
+            result = node.execute(engine)
+            if isinstance(node, ReturnStmtNode) or result is not None:
+                return result
+        return None
+
+    def execute(self, engine: "TinyEngine") -> object | None:  # noqa: F821 - forward ref
+        # Evaluate main condition
+        cond_val = engine.eval_expr(self.parsed.cond) if "cond" in self.parsed else False
+        if bool(cond_val):
+            return self._exec_block(engine, self.then_statements)
+
+        # Elseif branches in order
+        for cond, nodes in self.elseif_branches:
+            if bool(engine.eval_expr(cond)):
+                return self._exec_block(engine, nodes)
+
+        # Else branch if present
+        if self.else_statements:
+            return self._exec_block(engine, self.else_statements)
+
+        return None
+
 
 class RepeatStmtNode(TinyNode):
     statement_type = "repeat_stmt"

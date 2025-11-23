@@ -1,0 +1,12 @@
+int say_hello(string name)
+{
+    write "Hello " + name + "!\n";
+}
+
+int main()
+{
+    string name;
+    read name;
+    say_hello(name);
+    return 0;
+}
