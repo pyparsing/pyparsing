@@ -58,7 +58,8 @@ Identifier = pp.Combine(~RESERVED + ident).set_name("identifier")
 FunctionName = Identifier
 
 # Literals
-number = ppc.fnumber.set_name("Number")
+# Use ppc.number to auto-convert to Python int/float during parsing
+number = ppc.number.set_name("Number")
 string_lit = pp.QuotedString('"', esc_char="\\", unquote_results=True).set_name("String")
 
 # Forward declarations
@@ -264,6 +265,7 @@ def _mini_tests() -> None:
     program_tests = [
         # Function with params and return, and main
         'int sum(int a, int b){ write a; return a + b; } int main(){ int r; r := sum(2,3); write r; return 0; }',
+        'int main(){ write "Hello, World!"; return 0; }',
     ]
     Program.run_tests(program_tests, parse_all=True, full_dump=True)
 
