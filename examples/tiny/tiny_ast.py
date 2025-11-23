@@ -84,10 +84,9 @@ class MainDeclNode(TinyNode):
         try:
             for node in self.statements:
                 result = node.execute(engine)
-                # Stop execution on explicit return (signaled by ReturnStmtNode or non-None)
-                if isinstance(node, ReturnStmtNode) or result is not None:
-                    return result
             return None
+        except ReturnPropagate as rp:
+            return rp.value
         finally:
             engine.pop_frame()
 
@@ -251,7 +250,7 @@ class ReadStmtNode(TinyNode):
     def execute(self, engine: "TinyEngine") -> object | None:  # noqa: F821 - forward ref
         # Grammar: read <Identifier>;
         # Prompt the user and assign the entered text to the variable.
-        var_name = str(self.parsed.var) if "var" in self.parsed else ""
+        var_name = self.parsed.var
         # Use Python input() to prompt and read
         user_in = input(f"{var_name}? ")
         # Let the engine handle typing/coercion based on prior declaration
@@ -275,13 +274,19 @@ class WriteStmtNode(TinyNode):
         engine.output_text()
         return None
 
+class ReturnPropagate(Exception):
+    """Using exception mechanism to propagate return value from within
+    nested statements within a function.
+    """
+    def __init__(self, value):
+        self.value = value
 
 class ReturnStmtNode(TinyNode):
     statement_type = "return_stmt"
 
     def execute(self, engine: "TinyEngine") -> object | None:  # noqa: F821 - forward ref
         value = engine.eval_expr(self.parsed.expr) if "expr" in self.parsed else None
-        return value
+        raise ReturnPropagate(value)
 
 
 class CallStmtNode(TinyNode):

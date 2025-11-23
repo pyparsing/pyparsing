@@ -11,7 +11,7 @@ frame being the last element.
 from __future__ import annotations
 
 import pyparsing as pp
-from .tiny_ast import TinyNode, ReturnStmtNode
+from .tiny_ast import TinyNode, ReturnStmtNode, ReturnPropagate
 
 
 class TinyFrame:
@@ -277,7 +277,10 @@ class TinyEngine:
 
         # If a TinyNode was registered (e.g., main as a node), execute it directly.
         if isinstance(fn, TinyNode):
-            return fn.execute(self)
+            try:
+                fn.execute(self)
+            except ReturnPropagate as rp:
+                return rp.value
 
         # Expect pyparsing Function_Definition group: decl + body
         if not isinstance(fn, pp.ParseResults):
@@ -318,14 +321,15 @@ class TinyEngine:
                 node = self._build_stmt_node(stmt)
                 if node is None:
                     continue
-                result = node.execute(self)
-                if isinstance(node, ReturnStmtNode) or result is not None:
-                    return result
-
+                return_value = node.execute(self)
             # No explicit return encountered: return default for the declared type
             return self._default_for(return_type)
+        except ReturnPropagate as rp:
+            return_value = rp.value
         finally:
             self.pop_frame()
+
+        return return_value
 
     # ----- Helpers -----
     def _default_for(self, dtype: str) -> object:
