@@ -15,6 +15,27 @@ Actions taken:
 
 ---
 
+#### Entry 19 — User Instruction
+Instruction:
+```
+Open a new file in tests/test_tiny_ast_nodes.py, with unit tests for the Declaration, Assignment, and Repeat statements. Use pytest form, not unittest.
+```
+
+Plan:
+- Create `tests/test_tiny_ast_nodes.py` with pytest-based tests covering:
+  - Declaration statements with optional initializers (verify values via output).
+  - Assignment statements updating an existing variable (including expression evaluation).
+  - Repeat-until loop printing a message N times while decrementing a counter. ✓
+- Each test will:
+  - Parse a small Tiny program with `parse_tiny`.
+  - Build the `MainDeclNode` via `TinyNode.from_statement_type` and execute with `TinyEngine`.
+  - Capture stdout using `capsys` and assert expected text and return value. ✓
+- Ensure tests rely on existing interpreter behavior without modifying engine/AST logic. ✓
+
+Actions taken:
+- Added new file `tests/test_tiny_ast_nodes.py` with three tests: declarations with initializers, assignment update, and a repeat-until loop that prints a fixed number of lines.
+- Tests build and execute the main AST node and assert both stdout and the `return` value.
+
 #### Entry 18 — User Instruction
 Instruction:
 ```
