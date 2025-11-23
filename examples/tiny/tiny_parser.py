@@ -137,24 +137,24 @@ Assignment_Statement = pp.Group(
     pp.Tag("type", "assign_stmt")
     + Identifier("target")
     + ASSIGN
-    + expr("value")
+    - expr("value")
     + SEMI
 ).set_name("Assignment_Statement")
 
 # Read/Write
 Read_Statement = pp.Group(
-    pp.Tag("type", "read_stmt") + READ.suppress() + Identifier("var") + SEMI
+    pp.Tag("type", "read_stmt") + READ.suppress() - Identifier("var") + SEMI
 ).set_name("Read_Statement")
 Write_Statement = pp.Group(
     pp.Tag("type", "write_stmt")
     + WRITE.suppress()
-    + (ENDL.copy().set_parse_action(lambda: "endl") | expr("expr"))
+    - (ENDL.copy().set_parse_action(lambda: "endl") | expr("expr"))
     + SEMI
 ).set_name("Write_Statement")
 
 # Return
 Return_Statement = pp.Group(
-    pp.Tag("type", "return_stmt") + RETURN.suppress() + expr("expr") + SEMI
+    pp.Tag("type", "return_stmt") + RETURN.suppress() - expr("expr") + SEMI
 ).set_name("Return_Statement")
 
 # If / ElseIf / Else
@@ -163,15 +163,15 @@ If_Statement = pp.Group(
     + IF.suppress()
     + condition_stmt("cond")
     + THEN.suppress()
-    + pp.Group(stmt_seq)("then")
+    - pp.Group(stmt_seq)("then")
     + pp.ZeroOrMore(
         pp.Group(
             ELSEIF.suppress()
-            + condition_stmt("cond")
+            - condition_stmt("cond")
             + THEN.suppress()
             + pp.Group(stmt_seq)("then"))
     )("elseif")
-    + pp.Optional(ELSE.suppress() + pp.Group(stmt_seq)("else"))
+    + pp.Optional(ELSE.suppress() - pp.Group(stmt_seq)("else"))
     + END.suppress()
 ).set_name("If_Statement")
 
@@ -179,7 +179,7 @@ If_Statement = pp.Group(
 Repeat_Statement = pp.Group(
     pp.Tag("type", "repeat_stmt")
     + REPEAT.suppress()
-    + stmt_seq("body")
+    - stmt_seq("body")
     + UNTIL.suppress()
     + condition_stmt("cond")
 ).set_name("Repeat_Statement")
