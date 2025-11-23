@@ -191,3 +191,96 @@ def test_if_then_elseif_else_falls_to_else(capsys: pytest.CaptureFixture[str]) -
     ret, out = _run_main_and_capture(src, capsys)
     assert out == "else\n"
     assert ret == 0
+
+
+def test_return_inside_repeat_exits_function(capsys: pytest.CaptureFixture[str]) -> None:
+    # Return from within a repeat loop body should exit the function immediately
+    src = (
+        """\
+        int main(){
+            int i := 1;
+            repeat
+                write "before"; write endl;
+                return 7;
+                write "after"; write endl;
+            until i = 0
+            write "unreached"; write endl;
+            return 0;
+        }
+        """
+    )
+    ret, out = _run_main_and_capture(src, capsys)
+    # Expect only the text before the return and the function to return 7
+    assert out == "before\n"
+    assert ret == 7
+
+
+def test_return_inside_if_then_branch(capsys: pytest.CaptureFixture[str]) -> None:
+    # Return inside the 'then' branch should exit the function
+    src = (
+        """\
+        int main(){
+            int x := 1;
+            if x = 1 then
+                write "T"; write endl;
+                return 1;
+                write "after-then"; write endl;
+            end
+            write "unreached"; write endl;
+            return 0;
+        }
+        """
+    )
+    ret, out = _run_main_and_capture(src, capsys)
+    assert out == "T\n"
+    assert ret == 1
+
+
+def test_return_inside_if_elseif_branch(capsys: pytest.CaptureFixture[str]) -> None:
+    # Return inside an elseif branch should exit the function
+    src = (
+        """\
+        int main(){
+            int x := 2;
+            if x = 1 then
+                write "one"; write endl;
+            elseif x = 2 then
+                write "two"; write endl;
+                return 2;
+                write "after-elseif"; write endl;
+            else
+                write "else"; write endl;
+            end
+            write "unreached"; write endl;
+            return 0;
+        }
+        """
+    )
+    ret, out = _run_main_and_capture(src, capsys)
+    assert out == "two\n"
+    assert ret == 2
+
+
+def test_return_inside_if_else_branch(capsys: pytest.CaptureFixture[str]) -> None:
+    # Return inside the else branch should exit the function
+    src = (
+        """\
+        int main(){
+            int x := 99;
+            if x = 1 then
+                write "one"; write endl;
+            elseif x = 2 then
+                write "two"; write endl;
+            else
+                write "else"; write endl;
+                return 3;
+                write "after-else"; write endl;
+            end
+            write "unreached"; write endl;
+            return 0;
+        }
+        """
+    )
+    ret, out = _run_main_and_capture(src, capsys)
+    assert out == "else\n"
+    assert ret == 3
