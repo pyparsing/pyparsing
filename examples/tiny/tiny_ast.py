@@ -174,6 +174,16 @@ class RepeatStmtNode(TinyNode):
 class ReadStmtNode(TinyNode):
     statement_type = "read_stmt"
 
+    def execute(self, engine: "TinyEngine") -> object | None:  # noqa: F821 - forward ref
+        # Grammar: read <Identifier>;
+        # Prompt the user and assign the entered text to the variable.
+        var_name = str(self.parsed.var) if "var" in self.parsed else ""
+        # Use Python input() to prompt and read
+        user_in = input(f"{var_name}? ")
+        # Let the engine handle typing/coercion based on prior declaration
+        engine.assign_var(var_name, user_in)
+        return None
+
 
 class WriteStmtNode(TinyNode):
     statement_type = "write_stmt"

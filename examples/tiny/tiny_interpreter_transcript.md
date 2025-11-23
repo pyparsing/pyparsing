@@ -97,6 +97,28 @@ Actions taken:
 
 ---
 
+#### Entry 20 — User Instruction
+Instruction:
+```
+Implement ReadStmtNode that will execute "read x" by using a Python input(f"x? ") statement. Add unit test for this class to test_tiny_ast_nodes.py
+```
+
+Plan:
+- Implement `ReadStmtNode.execute(engine)` in `examples/tiny/tiny_ast.py`:
+  - Extract the identifier name from `self.parsed.var`.
+  - Prompt and read input using Python `input(f"{name}? ")`.
+  - Assign the entered string to the variable via `engine.assign_var(name, value)` so the engine applies type-aware coercion based on any prior declaration. ✓
+- Add a pytest in `tests/test_tiny_ast_nodes.py`:
+  - Program: `int x; read x; write x; newline; return 0;`.
+  - Monkeypatch `builtins.input` to return `"17"`.
+  - Execute main via `TinyEngine`, capture stdout, and assert output equals `"x? 17\n"` and return value is `0`. ✓
+- Keep other files unchanged; do not implement broader function-call input handling. ✓
+
+Actions taken:
+- Edited `examples/tiny/tiny_ast.py` to add `ReadStmtNode.execute` that prompts with `input(f"{var}? ")` and assigns the value using `engine.assign_var`.
+- Updated `tests/test_tiny_ast_nodes.py` to add `test_read_statement_prompts_and_assigns`, monkeypatching `builtins.input` to simulate user entry and asserting the combined prompt and output.
+- No changes required to the parser or engine; existing coercion logic converts the string `"17"` to an int for a previously-declared `int x`.
+
 #### Entry 11 — User Instruction
 Instruction:
 ```
