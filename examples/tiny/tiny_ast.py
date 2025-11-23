@@ -21,7 +21,7 @@ class TinyNode(ABC):
     `type` tag emitted by the parser for that statement.
     """
 
-    statement_type: str | None = None
+    statement_type: str = ""
 
     def __init__(self, parsed: pp.ParseResults):
         self.parsed: pp.ParseResults = parsed
@@ -39,7 +39,7 @@ class TinyNode(ABC):
         this could be expanded to recurse.
         """
         for sub in cls.__subclasses__():
-            if getattr(sub, "statement_type", None) == type_name:
+            if sub.statement_type == type_name:
                 return sub
         return None
 
@@ -101,8 +101,8 @@ class DeclStmtNode(TinyNode):
           - `datatype`: one of 'int' | 'float' | 'string'
           - `decls`: a list of groups each with `name` and optional `init` expression
         """
-        dtype = str(self.parsed.datatype) if "datatype" in self.parsed else "int"
-        decls = self.parsed.decls if "decls" in self.parsed else []
+        dtype = self.parsed.datatype or "int"
+        decls = self.parsed.decls or []
         for d in decls:
             if not isinstance(d, pp.ParseResults):
                 continue
@@ -160,9 +160,9 @@ class IfStmtNode(TinyNode):
             for br in self.parsed["elseif"]:
                 if not isinstance(br, pp.ParseResults):
                     continue
-                cond = br.get("cond")
-                seq = br.get("then", [])
-                seq_stmts = getattr(seq, "stmts", seq)
+                cond = br.cond
+                seq = br.then
+                seq_stmts = seq
                 branch_nodes: list[TinyNode] = []
                 for stmt in seq_stmts:
                     if isinstance(stmt, pp.ParseResults) and "type" in stmt:
@@ -175,7 +175,7 @@ class IfStmtNode(TinyNode):
         # else branch
         if "else" in self.parsed:
             else_seq = self.parsed["else"]
-            else_stmts = else_seq  # getattr(else_seq, "stmts", else_seq)
+            else_stmts = else_seq
             built_else: list[TinyNode] = []
             for stmt in else_stmts:
                 if isinstance(stmt, pp.ParseResults) and "type" in stmt:
@@ -189,8 +189,6 @@ class IfStmtNode(TinyNode):
     def _exec_block(self, engine: "TinyEngine", nodes: list[TinyNode]) -> object | None:  # noqa: F821
         for node in nodes:
             result = node.execute(engine)
-            if isinstance(node, ReturnStmtNode) or result is not None:
-                return result
         return None
 
     def execute(self, engine: "TinyEngine") -> object | None:  # noqa: F821 - forward ref
@@ -313,8 +311,8 @@ class CallStmtNode(TinyNode):
             # Nothing to do if the structure is unexpected
             return None
 
-        name = str(func_group.name) if "name" in func_group else ""
-        raw_args = (func_group.get("args", []) or [])
+        name = func_group.name
+        raw_args = func_group.args or []
         arg_values = [engine.eval_expr(arg) for arg in raw_args]
         # Invoke the function; ignore the returned value in statement context
         _ = engine.call_function(name, arg_values)

@@ -218,7 +218,7 @@ class TinyEngine:
         if isinstance(expr, pp.ParseResults):
             # Function call group
             if "type" in expr and expr["type"] == "func_call":  # type: ignore[index]
-                name = expr["name"]
+                name = expr.name
                 arg_values = [self.eval_expr(arg) for arg in (expr.get("args", []) or [])]
                 return self.call_function(name, arg_values)
 
@@ -290,8 +290,8 @@ class TinyEngine:
         try:
             decl = fn.decl
             body = fn.body
-            return_type = str(decl.return_type) if "return_type" in decl else "int"
-            params = decl.get("parameters")
+            return_type = decl.return_type or "int"
+            params = decl.parameters
             param_list = list(params[0]) if params else []
         except Exception as exc:
             raise TypeError(f"Malformed function definition for {name!r}") from exc
@@ -306,8 +306,8 @@ class TinyEngine:
             # Bind parameters in order
             for (param, value) in zip(param_list, args):
                 # Each param is a group with fields: type, name
-                ptype = str(param.type) if "type" in param else "int"
-                pname = str(param.name) if "name" in param else None
+                ptype = param.type or "int"
+                pname = param.name or None
                 if pname is None:
                     raise TypeError(f"Invalid parameter in function {name}")
                 # Coerce to declared parameter type on declaration
@@ -321,7 +321,7 @@ class TinyEngine:
                 node = self._build_stmt_node(stmt)
                 if node is None:
                     continue
-                return_value = node.execute(self)
+                node.execute(self)
             # No explicit return encountered: return default for the declared type
             return self._default_for(return_type)
         except ReturnPropagate as rp:
