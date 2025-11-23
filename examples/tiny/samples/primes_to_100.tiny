@@ -1,0 +1,24 @@
+int is_divisible(int a, int b) {
+    int quo := a / b;
+    return quo * b = a;
+}
+
+int is_prime(int n) {
+    if i = 2 || i = 3 || i = 5 || i = 7 then return 1; end
+
+    if is_divisible(n, 2) then return 0; end
+    if is_divisible(n, 3) then return 0; end
+    if is_divisible(n, 5) then return 0; end
+    if is_divisible(n, 7) then return 0; end
+
+    /* n is prime, assuming it is not > 120 */
+    return 1;
+}
+
+int main() {
+    int i := 2;
+    repeat
+        if is_prime(i) then write i; write endl; end
+        i := i + 1;
+    until i > 120
+}
