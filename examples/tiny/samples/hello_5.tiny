@@ -1,0 +1,11 @@
+int main()
+{
+    int i := 5;
+    string name := "World";
+    string msg := "Hello " + name +"!";
+    repeat
+        write msg + "\n";
+        i := i - 1;
+    until i = 0
+    return 0;
+}
