@@ -115,6 +115,54 @@ class MainDeclNode(TinyNode):
 
 
 @dataclass
+class FunctionDeclStmtNode(TinyNode):
+    """Node representing a function declaration/definition.
+
+    This node accepts parser groups tagged with type 'func_decl'. It will
+    initialize its `statements` from an associated function body group if
+    available. The body is expected under either `parsed.Function_Body.stmts`
+    or `parsed.body.stmts`, depending on how the upstream parser groups were
+    provided by the caller.
+
+    Note: `statement_type` remains a class variable and is not a dataclass
+    instance field.
+    """
+
+    # Keep as class variable; do not include as dataclass field
+    statement_type: ClassVar[str] = "func_decl"
+
+    # Prebuilt function body statements (if a body was provided)
+    statements: list[TinyNode] = field(default_factory=list)
+
+    @classmethod
+    def from_parsed(cls, parsed: pp.ParseResults) -> "FunctionDeclStmtNode":
+        # Locate a function body group in common shapes
+        body_group: pp.ParseResults | None = parsed.body or None
+
+        built: list[TinyNode] = []
+        if body_group is not None:
+            raw_stmts = body_group.stmts or []
+            for stmt in raw_stmts:
+                if isinstance(stmt, pp.ParseResults) and "type" in stmt:
+                    node_cls = TinyNode.from_statement_type(stmt["type"])  # type: ignore[index]
+                    if node_cls is not None:
+                        built.append(node_cls.from_parsed(stmt))  # type: ignore[arg-type]
+        return cls(statements=built)
+
+    def execute(self, engine: "TinyEngine") -> object | None:  # noqa: F821 - forward ref
+        # Execute the function body in a new local frame. If no body is present,
+        # this is effectively a no-op that returns None.
+
+        # Caller should have already created a frame and populated parameters as vars
+        try:
+            for node in self.statements:
+                node.execute(engine)
+            return None
+        except ReturnPropagate as rp:
+            return rp.value
+
+
+@dataclass
 class DeclStmtNode(TinyNode):
     # ClassVar so dataclass does not treat this as a field
     statement_type: ClassVar[str] = "decl_stmt"
@@ -360,6 +408,7 @@ class CallStmtNode(TinyNode):
 __all__ = [
     "TinyNode",
     "MainDeclNode",
+    "FunctionDeclStmtNode",
     "DeclStmtNode",
     "AssignStmtNode",
     "IfStmtNode",

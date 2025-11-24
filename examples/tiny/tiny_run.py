@@ -20,7 +20,7 @@ import sys
 import pyparsing as pp
 
 from .tiny_parser import parse_tiny
-from .tiny_ast import TinyNode
+from .tiny_ast import TinyNode, FunctionDeclStmtNode
 from .tiny_engine import TinyEngine
 
 
@@ -38,7 +38,7 @@ def _build_nodes(parsed: pp.ParseResults):
     if isinstance(parsed, pp.ParseResults) and "type" in parsed:
         node_cls = TinyNode.from_statement_type(parsed["type"])  # type: ignore[index]
         if node_cls is not None:
-            return node_cls(parsed)
+            return node_cls.from_parsed(parsed)  # type: ignore[arg-type]
         # Fall through if no subclass yet
     return parsed
 
@@ -73,14 +73,29 @@ def main(argv: list[str] | None = None) -> int:
     # Build nodes where applicable and register top-level items
     program = parsed.program
 
-    # Register all top-level function definitions (store raw definitions for now)
+    # Register all top-level function definitions: build function nodes and signatures
     if "functions" in program:
         for fdef in program.functions:
             try:
-                fname = fdef.decl.name
+                decl = fdef.decl
+                fname = decl.name
+                return_type = decl.return_type or "int"
+                params_group = decl.parameters
+                param_list = list(params_group[0]) if params_group else []
+                params: list[tuple[str, str]] = []
+                for p in param_list:
+                    ptype = p.type or "int"
+                    pname = p.name
+                    params.append((ptype, pname))
+                # Build a function node with a prebuilt body
+                fn_node = FunctionDeclStmtNode.from_parsed(fdef)
             except Exception:
+                # Skip malformed definitions
                 continue
-            engine.register_function(fname, fdef)
+
+            # Register signature and node for runtime use
+            engine.register_function_signature(fname, return_type, params)
+            engine.register_function(fname, fn_node)
 
     # Register any top-level globals if they exist (grammar may not provide these)
     if "globals" in program:

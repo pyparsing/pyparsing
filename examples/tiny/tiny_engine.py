@@ -83,6 +83,10 @@ class TinyEngine:
         self._globals: TinyFrame = TinyFrame()
         self._functions: dict[str, object] = {}
 
+        # Function signatures: name -> (return_type, [(ptype, pname), ...])
+        # Used when functions are registered as AST nodes to bind parameters
+        self._function_sigs: dict[str, tuple[str, list[tuple[str, str]]]] = {}
+
         # Stack of frames (last is current); empty until main/function entry
         self._frames: list[TinyFrame] = []
         self._in: list[str] = []
@@ -100,6 +104,13 @@ class TinyEngine:
 
     def get_function(self, name: str) -> object | None:
         return self._functions.get(name)
+
+    def register_function_signature(self, name: str, return_type: str, params: list[tuple[str, str]]) -> None:
+        """Register or update a function's signature metadata.
+
+        params: list of (ptype, pname)
+        """
+        self._function_sigs[name] = (return_type, params)
 
     # ----- Frame management -----
     @property
@@ -268,18 +279,6 @@ class TinyEngine:
         return expr
 
     # ----- Functions API (execution helper to share with CallStmtNode) -----
-    def _build_stmt_node(self, stmt_group: pp.ParseResults) -> TinyNode | None:
-        """Convert a statement ParseResults group into a TinyNode instance, if supported."""
-        try:
-            stype = stmt_group["type"]
-        except Exception:
-            return None
-        node_cls = TinyNode.from_statement_type(stype)  # type: ignore[arg-type]
-        if node_cls is None:
-            return None
-        # All TinyNode subclasses implement from_parsed
-        return node_cls.from_parsed(stmt_group)  # type: ignore[return-value]
-
     def call_function(self, name: str, args: list[object]) -> object | None:
         """Call a user-defined function by name with already-evaluated arguments.
 
@@ -290,61 +289,26 @@ class TinyEngine:
         if fn is None:
             raise NameError(f"Undefined function: {name}")
 
-        # If a TinyNode was registered (e.g., main as a node), execute it directly.
+        # If a TinyNode was registered (recommended path), look up its signature and execute
         if isinstance(fn, TinyNode):
+            if name not in self._function_sigs:
+                raise TypeError(f"Missing signature for function {name!r}")
+            return_type, params = self._function_sigs[name]
+            if len(args) != len(params):
+                raise TypeError(f"Function {name} expects {len(params)} args, got {len(args)}")
+
+            self.push_frame()
             try:
-                fn.execute(self)
-            except ReturnPropagate as rp:
-                return rp.value
+                # Bind parameters in order
+                for (ptype, pname), value in zip(params, args):
+                    self.declare_var(pname, ptype or "int", value)
 
-        # Expect pyparsing Function_Definition group: decl + body
-        if not isinstance(fn, pp.ParseResults):
-            raise TypeError(f"Unsupported function object for {name!r}: {type(fn).__name__}")
+                # Execute body node; catch return propagation
+                return fn.execute(self)
+            finally:
+                self.pop_frame()
 
-        # Extract signature and body
-        try:
-            decl = fn.decl
-            body = fn.body
-            return_type = decl.return_type or "int"
-            params = decl.parameters
-            param_list = list(params[0]) if params else []
-        except Exception as exc:
-            raise TypeError(f"Malformed function definition for {name!r}") from exc
-
-        # Arity check
-        if len(args) != len(param_list):
-            raise TypeError(f"Function {name} expects {len(param_list)} args, got {len(args)}")
-
-        # New frame for function locals
-        self.push_frame()
-        try:
-            # Bind parameters in order
-            for (param, value) in zip(param_list, args):
-                # Each param is a group with fields: type, name
-                ptype = param.type or "int"
-                pname = param.name or None
-                if pname is None:
-                    raise TypeError(f"Invalid parameter in function {name}")
-                # Coerce to declared parameter type on declaration
-                self.declare_var(pname, ptype, value)
-
-            # Execute function body statements until a return
-            stmts = body.stmts if hasattr(body, "stmts") else []
-            for stmt in stmts:
-                if not isinstance(stmt, pp.ParseResults):
-                    continue
-                node = self._build_stmt_node(stmt)
-                if node is None:
-                    continue
-                node.execute(self)
-            # No explicit return encountered: return default for the declared type
-            return self._default_for(return_type)
-        except ReturnPropagate as rp:
-            return_value = rp.value
-        finally:
-            self.pop_frame()
-
-        return return_value
+        raise TypeError(f"Unsupported function object for {name!r}: {type(fn).__name__}")
 
     # ----- Helpers -----
     def _default_for(self, dtype: str) -> object:
