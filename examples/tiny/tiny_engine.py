@@ -274,26 +274,22 @@ class TinyEngine:
         if fn is None:
             raise NameError(f"Undefined function: {name}")
 
-        # If a TinyNode was registered (recommended path), look up its signature and execute
-        if isinstance(fn, TinyNode):
-            if name not in self._function_sigs:
-                raise TypeError(f"Missing signature for function {name!r}")
-            return_type, params = self._function_sigs[name]
-            if len(args) != len(params):
-                raise TypeError(f"Function {name} expects {len(params)} args, got {len(args)}")
+        if name not in self._function_sigs:
+            raise TypeError(f"Missing signature for function {name!r}")
+        return_type, params = self._function_sigs[name]
+        if len(args) != len(params):
+            raise TypeError(f"Function {name} expects {len(params)} args, got {len(args)}")
 
-            self.push_frame()
-            try:
-                # Bind parameters in order
-                for (ptype, pname), value in zip(params, args):
-                    self.declare_var(pname, ptype or "int", value)
+        self.push_frame()
+        try:
+            # Bind parameters in order
+            for (ptype, pname), value in zip(params, args):
+                self.declare_var(pname, ptype or "int", value)
 
-                # Execute body node; catch return propagation
-                return fn.execute(self)
-            finally:
-                self.pop_frame()
-
-        raise TypeError(f"Unsupported function object for {name!r}: {type(fn).__name__}")
+            # Execute body node; catch return propagation
+            return fn.execute(self)
+        finally:
+            self.pop_frame()
 
     # ----- Helpers -----
     def _default_for(self, dtype: str) -> object:
