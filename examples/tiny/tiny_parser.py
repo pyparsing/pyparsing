@@ -212,15 +212,20 @@ stmt_seq <<= stmt_list("stmts")
 
 # Parameters and functions
 Parameter = pp.Group(Datatype("type") + Identifier("name"))
-Param_List = pp.Optional(pp.Group(pp.DelimitedList(Parameter, COMMA)))
+Param_List = pp.Group(pp.DelimitedList(Parameter, COMMA))
 Function_Declaration = pp.Group(
-    pp.Tag("type", "func_decl") +
-    Datatype("return_type") + FunctionName("name") + LPAREN + Param_List("parameters") + RPAREN
+    Datatype("return_type")
+    + FunctionName("name")
+    + LPAREN + pp.Optional(Param_List)("parameters") + RPAREN
 ).set_name("Function_Declaration")
 Function_Body = pp.Group(
     LBRACE + stmt_seq("stmts") + RBRACE
 ).set_name("Function_Body")
-Function_Definition = pp.Group(Function_Declaration("decl") + Function_Body("body")).set_name("Function_Definition")
+Function_Definition = pp.Group(
+    pp.Tag("type", "func_decl")
+    + Function_Declaration("decl")
+    + Function_Body("body")
+).set_name("Function_Definition")
 
 Main_Function = pp.Group(
     pp.Tag("type", "main_decl") +

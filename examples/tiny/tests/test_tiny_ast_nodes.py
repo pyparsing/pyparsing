@@ -73,7 +73,10 @@ def test_function_with_no_parameters_call_via_expr(capsys: pytest.CaptureFixture
     # Register top-level functions with the engine
     engine = TinyEngine()
     for fdef in parsed.program.functions:
-        engine.register_function(fdef.decl.name, fdef)
+        node_cls = TinyNode.from_statement_type(fdef.type)
+        fn_node = node_cls.from_parsed(fdef)
+        engine.register_function(fdef.decl.name, fn_node)
+        engine.register_function_signature(fdef.decl.name, fdef.decl.return_type, fdef.decl.parameters)
 
     # Build and execute main
     main_group = parsed.program.main
