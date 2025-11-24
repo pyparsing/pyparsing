@@ -20,27 +20,8 @@ import sys
 import pyparsing as pp
 
 from .tiny_parser import parse_tiny
-from .tiny_ast import TinyNode, FunctionDeclStmtNode
+from .tiny_ast import TinyNode
 from .tiny_engine import TinyEngine
-
-
-
-
-def _build_nodes(parsed: pp.ParseResults):
-    """Scaffold for converting ParseResults to TinyNode instances.
-
-    Since concrete TinyNode subclasses are not implemented yet, this function
-    currently returns the original ParseResults. Once subclasses are added,
-    this function will detect `type` tags on statement groups and instantiate
-    the appropriate TinyNode subclass via `TinyNode.from_statement_type`.
-    """
-    # Minimal activation: wrap known statement groups into TinyNode subclasses
-    if isinstance(parsed, pp.ParseResults) and "type" in parsed:
-        node_cls = TinyNode.from_statement_type(parsed["type"])  # type: ignore[index]
-        if node_cls is not None:
-            return node_cls.from_parsed(parsed)  # type: ignore[arg-type]
-        # Fall through if no subclass yet
-    return parsed
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -88,7 +69,8 @@ def main(argv: list[str] | None = None) -> int:
                     pname = p.name
                     params.append((ptype, pname))
                 # Build a function node with a prebuilt body
-                fn_node = FunctionDeclStmtNode.from_parsed(fdef)
+                fn_node_class = TinyNode.from_statement_type(fdef.type)
+                fn_node = fn_node_class.from_parsed(fdef)
             except Exception:
                 # Skip malformed definitions
                 continue
@@ -114,7 +96,8 @@ def main(argv: list[str] | None = None) -> int:
 
     # Build AST node for main() and register it as a function
     main_group = program.main
-    main_node = _build_nodes(main_group)
+    main_node_class = TinyNode.from_statement_type(main_group["type"])
+    main_node = main_node_class.from_parsed(main_group)
     engine.register_function("main", main_node)
 
     # Execute main if it is a TinyNode with an execute() method
