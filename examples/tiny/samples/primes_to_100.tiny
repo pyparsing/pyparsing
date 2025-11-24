@@ -4,7 +4,7 @@ int is_divisible(int a, int b) {
 }
 
 int is_prime(int n) {
-    if i = 2 || i = 3 || i = 5 || i = 7 then return 1; end
+    if n = 2 || n = 3 || n = 5 || n = 7 then return 1; end
 
     if is_divisible(n, 2) then return 0; end
     if is_divisible(n, 3) then return 0; end

@@ -191,8 +191,8 @@ class TinyEngine:
             value = self.eval_expr(value)  # type: ignore[arg-type]
 
         # Find the nearest frame containing the variable; fall back to globals; otherwise declare local
-        frame = self._find_frame_for_var(name)
-        if frame is not None:
+        frame = self.current_frame
+        if name in frame:
             dtype = frame.get_type(name)
             frame.set(name, self._coerce(value, dtype))
             return
@@ -205,20 +205,12 @@ class TinyEngine:
         self.declare_var(name, inferred, value)
 
     def get_var(self, name: str) -> object:
-        frame = self._find_frame_for_var(name)
-        if frame is not None:
+        frame = self.current_frame
+        if name in frame:
             return frame.get(name)
         if name in self._globals:
             return self._globals.get(name)
         raise NameError(f"Variable not declared: {name}")
-
-    def _find_frame_for_var(self, name: str) -> TinyFrame | None:
-        for fr in reversed(self._frames):
-            if name in fr:
-                return fr
-        if name in self._globals:
-            return self._globals
-        return None
 
     # ----- Expression Evaluation -----
     def eval_expr(self, expr: object) -> object:
@@ -232,8 +224,8 @@ class TinyEngine:
         if isinstance(expr, (int, float, str)):
             # Identifier lookup: if a bare string matches a var name, read its value
             if isinstance(expr, str):
-                fr = self._find_frame_for_var(expr)
-                if fr is not None:
+                fr = self.current_frame
+                if expr in fr:
                     return fr.get(expr)
                 if expr in self._globals:
                     return self._globals.get(expr)
