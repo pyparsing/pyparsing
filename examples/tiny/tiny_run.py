@@ -5,10 +5,6 @@ This module currently provides:
 - main(): CLI entry point that reads a .tiny source file, parses it using the
   TINY grammar, and prepares for conversion to TinyNode-based AST.
 
-Note: Subclasses of TinyNode for concrete statement types are intentionally
-not implemented yet. The conversion logic is scaffolded and will activate once
-those subclasses are added, using each subclass's `statement_type` marker.
-
 Usage:
     python -m examples.tiny.tiny_run path/to/program.tiny [--dump]
 """
@@ -54,6 +50,20 @@ def main(argv: list[str] | None = None) -> int:
     # Build nodes where applicable and register top-level items
     program = parsed.program
 
+    initialize_engine(engine, program)
+
+    # Execute scripts "main" function
+    main_node = engine.get_function("main")
+
+    try:
+        main_node.execute(engine)
+    finally:
+        if sys.exc_info()[0] is not None:
+            return 1
+        return 0
+
+
+def initialize_engine(engine: TinyEngine, program: ParseResults | str | Any) -> TinyNode:
     # Register all top-level function definitions: build function nodes and signatures
     if "functions" in program:
         for fdef in program.functions:
@@ -68,12 +78,13 @@ def main(argv: list[str] | None = None) -> int:
                     ptype = p.type or "int"
                     pname = p.name
                     params.append((ptype, pname))
-                # Build a function node with a prebuilt body
-                fn_node_class = TinyNode.from_statement_type(fdef.type)
-                fn_node = fn_node_class.from_parsed(fdef)
             except Exception:
                 # Skip malformed definitions
                 continue
+
+            # Build a function node with a prebuilt body
+            fn_node_class = TinyNode.from_statement_type(fdef.type)
+            fn_node = fn_node_class.from_parsed(fdef)
 
             # Register signature and node for runtime use
             engine.register_function_signature(fname, return_type, params)
@@ -100,11 +111,7 @@ def main(argv: list[str] | None = None) -> int:
     main_node = main_node_class.from_parsed(main_group)
     engine.register_function("main", main_node)
 
-    # Execute main if it is a TinyNode with an execute() method
-    if isinstance(main_node, TinyNode):
-        _ = main_node.execute(engine)
-
-    return 0
+    return main_node
 
 
 if __name__ == "__main__":

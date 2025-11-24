@@ -75,7 +75,6 @@ class TinyEngine:
     Notes:
     - Types supported: int, float, string. Numeric operations promote to float when needed.
     - Boolean context: 0 or empty string is False; anything else is True.
-    - Function calls (`func_call`) are recognized but not implemented yet.
     """
 
     def __init__(self) -> None:
