@@ -10,7 +10,9 @@ skeletal on purpose and currently just wrap the original `ParseResults`.
 """
 from __future__ import annotations
 
-from abc import ABC
+from abc import ABC, abstractmethod
+from dataclasses import dataclass, field
+from typing import Optional, List, Tuple, ClassVar
 import pyparsing as pp
 
 
@@ -21,7 +23,9 @@ class TinyNode(ABC):
     `type` tag emitted by the parser for that statement.
     """
 
-    statement_type: str = ""
+    # Note: keep `statement_type` as a class variable. For dataclass subclasses,
+    # this must not become an instance field. Use ClassVar to make intent explicit.
+    statement_type: ClassVar[str] = ""
 
     def __init__(self, parsed: pp.ParseResults):
         self.parsed: pp.ParseResults = parsed
@@ -51,17 +55,34 @@ class TinyNode(ABC):
         """
         raise NotImplementedError(f"execute() not implemented for {type(self).__name__}")
 
+    # All subclasses must provide a uniform factory for construction
+    @classmethod
+    @abstractmethod
+    def from_parsed(cls, parsed: pp.ParseResults) -> "TinyNode":
+        """Construct an instance from a parser `ParseResults` group."""
+        raise NotImplementedError
+
 
 # --- Skeletal TinyNode subclasses for statements ---
 
+@dataclass(init=False)
 class MainDeclNode(TinyNode):
-    statement_type = "main_decl"
-    
+    # Keep as class variable; not a dataclass field
+    statement_type: ClassVar[str] = "main_decl"
+
+    # Prebuilt main-body statements
+    statements: list[TinyNode] = field(default_factory=list)
+
     def __init__(self, parsed: pp.ParseResults):
         super().__init__(parsed)
         # Pre-build contained statement nodes for the main body
-        self.statements: list[TinyNode] = []
+        self.statements = []
         self.build_contained_statements()
+
+    @classmethod
+    def from_parsed(cls, parsed: pp.ParseResults) -> "MainDeclNode":
+        # Maintain compatibility with engine/builders expecting factory constructors
+        return cls(parsed)
 
     def build_contained_statements(self) -> None:
         """Convert parsed body statements to TinyNode instances.
@@ -75,7 +96,8 @@ class MainDeclNode(TinyNode):
             if isinstance(stmt, pp.ParseResults) and "type" in stmt:
                 node_cls = TinyNode.from_statement_type(stmt["type"])  # type: ignore[index]
                 if node_cls is not None:
-                    built.append(node_cls(stmt))
+                    # All subclasses are guaranteed to implement from_parsed
+                    built.append(node_cls.from_parsed(stmt))  # type: ignore[arg-type]
         self.statements = built
 
     def execute(self, engine: "TinyEngine") -> object | None:  # noqa: F821 - forward ref
@@ -83,7 +105,8 @@ class MainDeclNode(TinyNode):
         engine.push_frame()
         try:
             for node in self.statements:
-                result = node.execute(engine)
+                # Return statements propagate via exception
+                node.execute(engine)
             return None
         except ReturnPropagate as rp:
             return rp.value
@@ -91,184 +114,196 @@ class MainDeclNode(TinyNode):
             engine.pop_frame()
 
 
+@dataclass
 class DeclStmtNode(TinyNode):
-    statement_type = "decl_stmt"
+    # ClassVar so dataclass does not treat this as a field
+    statement_type: ClassVar[str] = "decl_stmt"
 
-    def execute(self, engine: "TinyEngine") -> object | None:  # noqa: F821 - forward ref
-        """Declare one or more variables, with optional initializers.
+    dtype: str = "int"
+    # list of (name, init_expr | None)
+    decls: List[Tuple[str, Optional[object]]] = field(default_factory=list)
 
-        Grammar provides:
-          - `datatype`: one of 'int' | 'float' | 'string'
-          - `decls`: a list of groups each with `name` and optional `init` expression
-        """
-        dtype = self.parsed.datatype or "int"
-        decls = self.parsed.decls or []
-        for d in decls:
+    @classmethod
+    def from_parsed(cls, parsed: pp.ParseResults) -> "DeclStmtNode":
+        dtype = parsed.datatype or "int"
+        items: List[Tuple[str, Optional[object]]] = []
+        for d in (parsed.decls or []):
             if not isinstance(d, pp.ParseResults):
                 continue
             name = d.get("name")
-            init_val = engine.eval_expr(d.init) if "init" in d else None  # type: ignore[attr-defined]
-            engine.declare_var(name, dtype, init_val)
-        return None
-
-
-class AssignStmtNode(TinyNode):
-    statement_type = "assign_stmt"
+            init_expr = d.init if "init" in d else None  # type: ignore[attr-defined]
+            items.append((name, init_expr))
+        return cls(dtype=dtype, decls=items)
 
     def execute(self, engine: "TinyEngine") -> object | None:  # noqa: F821 - forward ref
-        # Evaluate RHS expression and assign to the target identifier
-        target = self.parsed.target
-        value = engine.eval_expr(self.parsed.value)
-        engine.assign_var(target, value)
+        for name, init_expr in self.decls:
+            init_val = engine.eval_expr(init_expr) if init_expr is not None else None
+            engine.declare_var(name, self.dtype, init_val)
         return None
 
 
+@dataclass
+class AssignStmtNode(TinyNode):
+    # ClassVar so dataclass does not treat this as a field
+    statement_type: ClassVar[str] = "assign_stmt"
+
+    target: str = ""
+    expr: object = None
+
+    @classmethod
+    def from_parsed(cls, parsed: pp.ParseResults) -> "AssignStmtNode":
+        return cls(target=parsed.target, expr=parsed.value)
+
+    def execute(self, engine: "TinyEngine") -> object | None:  # noqa: F821 - forward ref
+        value = engine.eval_expr(self.expr)
+        engine.assign_var(self.target, value)
+        return None
+
+
+@dataclass
 class IfStmtNode(TinyNode):
-    statement_type = "if_stmt"
+    # Keep as class variable; not a dataclass field
+    statement_type: ClassVar[str] = "if_stmt"
 
-    def __init__(self, parsed: pp.ParseResults):
-        super().__init__(parsed)
-        # Pre-built branches
-        self.then_statements: list[TinyNode] = []
-        self.elseif_branches: list[tuple[object, list[TinyNode]]] = []  # (cond, statements)
-        self.else_statements: list[TinyNode] = []
-        self.build_contained_statements()
+    # Explicit fields for condition and branches
+    cond: object | None = None
+    then_statements: list[TinyNode] = field(default_factory=list)
+    elseif_branches: list[tuple[object, list[TinyNode]]] = field(default_factory=list)
+    else_statements: list[TinyNode] = field(default_factory=list)
 
-    def build_contained_statements(self) -> None:
-        """Build TinyNode children for then/elseif/else branches.
+    @classmethod
+    def from_parsed(cls, parsed: pp.ParseResults) -> "IfStmtNode":
+        # Initial condition (defined by the parser for if-statements)
+        cond_expr = parsed.cond if "cond" in parsed else None
 
-        The parsed shape (see tiny_parser.If_Statement):
-          - cond: condition expression for the initial if
-          - then: stmt_seq("then") with .stmts
-          - elseif: ZeroOrMore(Group(cond + THEN + stmt_seq("then"))) (optional)
-          - else: Optional(stmt_seq("else")) (optional)
-        """
-        # then branch
-        then_seq = self.parsed.then if "then" in self.parsed else []
-        then_stmts = then_seq
+        # Build THEN branch nodes
         built_then: list[TinyNode] = []
-        for stmt in then_stmts:
+        then_seq = parsed.then if "then" in parsed else []
+        for stmt in then_seq:
             if isinstance(stmt, pp.ParseResults) and "type" in stmt:
                 node_cls = TinyNode.from_statement_type(stmt["type"])  # type: ignore[index]
                 if node_cls is not None:
-                    built_then.append(node_cls(stmt))
-        self.then_statements = built_then
+                    built_then.append(node_cls.from_parsed(stmt))  # type: ignore[arg-type]
 
-        # elseif branches
+        # Build ELSEIF branches
         built_elseif: list[tuple[object, list[TinyNode]]] = []
-        if "elseif" in self.parsed:
-            for br in self.parsed["elseif"]:
+        if "elseif" in parsed:
+            for br in parsed["elseif"]:
                 if not isinstance(br, pp.ParseResults):
                     continue
-                cond = br.cond
-                seq = br.then
-                seq_stmts = seq
                 branch_nodes: list[TinyNode] = []
-                for stmt in seq_stmts:
+                for stmt in br.then:
                     if isinstance(stmt, pp.ParseResults) and "type" in stmt:
                         node_cls = TinyNode.from_statement_type(stmt["type"])  # type: ignore[index]
                         if node_cls is not None:
-                            branch_nodes.append(node_cls(stmt))
-                built_elseif.append((cond, branch_nodes))
-        self.elseif_branches = built_elseif
+                            branch_nodes.append(node_cls.from_parsed(stmt))  # type: ignore[arg-type]
+                built_elseif.append((br.cond, branch_nodes))
 
-        # else branch
-        if "else" in self.parsed:
-            else_seq = self.parsed["else"]
-            else_stmts = else_seq
-            built_else: list[TinyNode] = []
-            for stmt in else_stmts:
+        # Build ELSE branch
+        built_else: list[TinyNode] = []
+        if "else" in parsed:
+            for stmt in parsed["else"]:
                 if isinstance(stmt, pp.ParseResults) and "type" in stmt:
                     node_cls = TinyNode.from_statement_type(stmt["type"])  # type: ignore[index]
                     if node_cls is not None:
-                        built_else.append(node_cls(stmt))
-            self.else_statements = built_else
-        else:
-            self.else_statements = []
+                        built_else.append(node_cls.from_parsed(stmt))  # type: ignore[arg-type]
 
-    def _exec_block(self, engine: "TinyEngine", nodes: list[TinyNode]) -> object | None:  # noqa: F821
-        for node in nodes:
-            result = node.execute(engine)
-        return None
+        return cls(cond=cond_expr, then_statements=built_then, elseif_branches=built_elseif, else_statements=built_else)
 
     def execute(self, engine: "TinyEngine") -> object | None:  # noqa: F821 - forward ref
         # Evaluate main condition
-        cond_val = engine.eval_expr(self.parsed.cond) if "cond" in self.parsed else False
-        if bool(cond_val):
-            return self._exec_block(engine, self.then_statements)
+        if self.cond is not None and bool(engine.eval_expr(self.cond)):
+            for node in self.then_statements:
+                node.execute(engine)
+            return None
 
         # Elseif branches in order
         for cond, nodes in self.elseif_branches:
             if bool(engine.eval_expr(cond)):
-                return self._exec_block(engine, nodes)
+                for node in nodes:
+                    node.execute(engine)
+                return None
 
         # Else branch if present
-        if self.else_statements:
-            return self._exec_block(engine, self.else_statements)
-
+        for node in self.else_statements:
+            node.execute(engine)
         return None
 
 
+@dataclass
 class RepeatStmtNode(TinyNode):
-    statement_type = "repeat_stmt"
+    # ClassVar so dataclass does not treat this as a field
+    statement_type: ClassVar[str] = "repeat_stmt"
 
-    def __init__(self, parsed: pp.ParseResults):
-        super().__init__(parsed)
-        self.statements: list[TinyNode] = []
-        self.build_contained_statements()
+    # Body statements for the repeat block
+    statements: list[TinyNode] = field(default_factory=list)
+    # Until condition expression evaluated after each iteration
+    cond: object | None = None
 
-    def build_contained_statements(self) -> None:
-        """Pre-build TinyNode children for the repeat body statements."""
-        stmts = self.parsed
+    @classmethod
+    def from_parsed(cls, parsed: pp.ParseResults) -> "RepeatStmtNode":
+        # Build child statement nodes from the parsed body sequence
         built: list[TinyNode] = []
-        for stmt in stmts:
+        for stmt in parsed:
             if isinstance(stmt, pp.ParseResults) and "type" in stmt:
                 node_cls = TinyNode.from_statement_type(stmt["type"])  # type: ignore[index]
                 if node_cls is not None:
-                    built.append(node_cls(stmt))
-        self.statements = built
+                    built.append(node_cls.from_parsed(stmt))  # type: ignore[arg-type]
+        # Condition is mandatory in the parser's definition of repeat-until
+        cond_expr = parsed.cond
+        return cls(statements=built, cond=cond_expr)
 
     def execute(self, engine: "TinyEngine") -> object | None:  # noqa: F821 - forward ref
         # Repeat-Until is a do-while: execute body, then check condition; stop when condition is true
         while True:
             for node in self.statements:
-                result = node.execute(engine)
-                if isinstance(node, ReturnStmtNode) or result is not None:
-                    return result
+                # Return statements now propagate via exception; no need to inspect results
+                node.execute(engine)
             # Evaluate loop condition after executing the body
-            cond_val = engine.eval_expr(self.parsed.cond) if "cond" in self.parsed else False
+            cond_val = engine.eval_expr(self.cond) if self.cond is not None else False
             if bool(cond_val):
                 break
         return None
 
 
+@dataclass
 class ReadStmtNode(TinyNode):
-    statement_type = "read_stmt"
+    # ClassVar so dataclass does not treat this as a field
+    statement_type: ClassVar[str] = "read_stmt"
+
+    var_name: str = ""
+
+    @classmethod
+    def from_parsed(cls, parsed: pp.ParseResults) -> "ReadStmtNode":
+        return cls(var_name=getattr(parsed, "var", ""))
 
     def execute(self, engine: "TinyEngine") -> object | None:  # noqa: F821 - forward ref
-        # Grammar: read <Identifier>;
-        # Prompt the user and assign the entered text to the variable.
-        var_name = self.parsed.var
-        # Use Python input() to prompt and read
-        user_in = input(f"{var_name}? ")
-        # Let the engine handle typing/coercion based on prior declaration
-        engine.assign_var(var_name, user_in)
+        user_in = input(f"{self.var_name}? ")
+        engine.assign_var(self.var_name, user_in)
         return None
 
 
+@dataclass
 class WriteStmtNode(TinyNode):
-    statement_type = "write_stmt"
+    # ClassVar so dataclass does not treat this as a field
+    statement_type: ClassVar[str] = "write_stmt"
+
+    expr: Optional[object] = None
+    is_endl: bool = False
+
+    @classmethod
+    def from_parsed(cls, parsed: pp.ParseResults) -> "WriteStmtNode":
+        if "expr" in parsed:
+            return cls(expr=parsed.expr, is_endl=False)
+        # expect literal endl otherwise
+        return cls(expr=None, is_endl=True)
 
     def execute(self, engine: "TinyEngine") -> object | None:  # noqa: F821 - forward ref
-        # Two forms: write endl;  OR  write expr;
-        if "expr" in self.parsed:
-            val = engine.eval_expr(self.parsed.expr)
-            engine._write(str(val))
-        else:
-            # expect a literal token 'endl' in the parsed group
-            # if not present, treat as a newline anyway
+        if self.is_endl or self.expr is None:
             engine._writeln()
-        # Flush output buffer after each write statement per spec
+        else:
+            val = engine.eval_expr(self.expr)
+            engine._write(str(val))
         engine.output_text()
         return None
 
@@ -279,43 +314,46 @@ class ReturnPropagate(Exception):
     def __init__(self, value):
         self.value = value
 
+@dataclass
 class ReturnStmtNode(TinyNode):
-    statement_type = "return_stmt"
+    # ClassVar so dataclass does not treat this as a field
+    statement_type: ClassVar[str] = "return_stmt"
+
+    expr: Optional[object] = None
+
+    @classmethod
+    def from_parsed(cls, parsed: pp.ParseResults) -> "ReturnStmtNode":
+        return cls(expr=parsed.expr if "expr" in parsed else None)
 
     def execute(self, engine: "TinyEngine") -> object | None:  # noqa: F821 - forward ref
-        value = engine.eval_expr(self.parsed.expr) if "expr" in self.parsed else None
+        value = engine.eval_expr(self.expr) if self.expr is not None else None
         raise ReturnPropagate(value)
 
 
+@dataclass
 class CallStmtNode(TinyNode):
-    statement_type = "call_stmt"
+    # ClassVar so dataclass does not treat this as a field
+    statement_type: ClassVar[str] = "call_stmt"
 
-    def execute(self, engine: "TinyEngine") -> object | None:  # noqa: F821 - forward ref
-        """Execute a statement-style function call.
+    name: str = ""
+    args: List[object] = field(default_factory=list)
 
-        Grammar shape (see tiny_parser.py):
-          call_stmt -> Group(Tag("type","call_stmt") + function_call + ';')
-          function_call -> Group(Tag("type","func_call") + name + '(' args? ')')
-
-        We locate the nested `func_call` group, evaluate each argument using
-        the engine, and invoke the function via `engine.call_function(...)`.
-        Statement-form calls ignore any returned value.
-        """
+    @classmethod
+    def from_parsed(cls, parsed: pp.ParseResults) -> "CallStmtNode":
         func_group: pp.ParseResults | None = None
-        for item in self.parsed:
+        for item in parsed:
             if isinstance(item, pp.ParseResults) and "type" in item and item["type"] == "func_call":  # type: ignore[index]
                 func_group = item
                 break
-
         if func_group is None:
-            # Nothing to do if the structure is unexpected
-            return None
-
+            return cls(name="", args=[])
         name = func_group.name
         raw_args = func_group.args or []
-        arg_values = [engine.eval_expr(arg) for arg in raw_args]
-        # Invoke the function; ignore the returned value in statement context
-        _ = engine.call_function(name, arg_values)
+        return cls(name=name, args=list(raw_args))
+
+    def execute(self, engine: "TinyEngine") -> object | None:  # noqa: F821 - forward ref
+        arg_values = [engine.eval_expr(arg) for arg in self.args]
+        _ = engine.call_function(self.name, arg_values)
         return None
 
 

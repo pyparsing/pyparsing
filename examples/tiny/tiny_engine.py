@@ -277,7 +277,8 @@ class TinyEngine:
         node_cls = TinyNode.from_statement_type(stype)  # type: ignore[arg-type]
         if node_cls is None:
             return None
-        return node_cls(stmt_group)
+        # All TinyNode subclasses implement from_parsed
+        return node_cls.from_parsed(stmt_group)  # type: ignore[return-value]
 
     def call_function(self, name: str, args: list[object]) -> object | None:
         """Call a user-defined function by name with already-evaluated arguments.
