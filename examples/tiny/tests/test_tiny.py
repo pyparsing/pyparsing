@@ -46,4 +46,4 @@ def test_repeat_until_with_c_style_comment():
 def test_parse_all_required():
     # extra trailing garbage should fail when parse_all=True
     with pytest.raises(pp.ParseException):
-        parse_tiny("int main(){ read x; return 0; } $$$", parse_all=True)
+        parse_tiny("int main(){ read x; return 0; } $$$")

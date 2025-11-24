@@ -1,5 +1,8 @@
 """
-TINY interpreter scaffold built on top of the TINY parser.
+TINY interpreter scaffold built using:
+- parser defined in tiny_parser.py
+- executable statement AST classes defined in tiny_ast.py
+- execution engine defined in tiny_engine.py
 
 This module currently provides:
 - main(): CLI entry point that reads a .tiny source file, parses it using the
@@ -34,36 +37,32 @@ def main(argv: list[str] | None = None) -> int:
         return 2
 
     try:
-        parsed = parse_tiny(source_text, parse_all=True)
+        parsed = parse_tiny(source_text)
     except pp.ParseBaseException as exc:
         # Print helpful location info
-        print(f"Parse error at line {exc.lineno}, col {exc.column}: {exc}", file=sys.stderr)
+        error_line = exc.lineno
+        fragment = "\n".join(source_text.splitlines()[error_line - 3 : error_line + 1])
+        print(fragment)
+        print(exc.explain(depth=0))
         return 3
 
     if args.dump:
         # Pretty-print the primary structure for inspection
         print(parsed.dump())
+        exit()
 
     # Instantiate the engine that will hold globals, functions, and frames
     engine = TinyEngine()
 
-    # Build nodes where applicable and register top-level items
-    program = parsed.program
-
-    initialize_engine(engine, program)
+    # initialize engine with parsed globals
+    initialize_engine(engine, parsed.program)
 
     # Execute scripts "main" function
     main_node = engine.get_function("main")
-
-    try:
-        main_node.execute(engine)
-    finally:
-        if sys.exc_info()[0] is not None:
-            return 1
-        return 0
+    main_node.execute(engine)
 
 
-def initialize_engine(engine: TinyEngine, program: ParseResults | str | Any) -> TinyNode:
+def initialize_engine(engine: TinyEngine, program: pp.ParseResults):
     # Register all top-level function definitions: build function nodes and signatures
     if "functions" in program:
         for fdef in program.functions:
@@ -110,8 +109,6 @@ def initialize_engine(engine: TinyEngine, program: ParseResults | str | Any) -> 
     main_node_class = TinyNode.from_statement_type(main_group["type"])
     main_node = main_node_class.from_parsed(main_group)
     engine.register_function("main", main_node)
-
-    return main_node
 
 
 if __name__ == "__main__":

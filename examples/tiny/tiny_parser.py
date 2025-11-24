@@ -16,6 +16,9 @@ Usage
 
 The grammar is defined to be independent of any evaluation/model logic. Results
 are structured using names and Groups to support later processing.
+
+Grammar definitions are based on the Tiny Language Reference:
+https://github.com/a7medayman6/Tiny-Compiler/blob/master/Language-Description.md
 """
 from __future__ import annotations
 
@@ -180,7 +183,7 @@ If_Statement = pp.Group(
 Repeat_Statement = pp.Group(
     pp.Tag("type", "repeat_stmt")
     + REPEAT.suppress()
-    - stmt_seq("body")
+    - pp.Group(stmt_seq)("body")
     + UNTIL.suppress()
     + bool_expr("cond")
 ).set_name("Repeat_Statement")
@@ -207,8 +210,7 @@ statement <<= pp.MatchFirst(
     ]
 )
 
-stmt_list = pp.OneOrMore(statement)
-stmt_seq <<= stmt_list("stmts")
+stmt_seq <<= pp.OneOrMore(statement)
 
 # Parameters and functions
 Parameter = pp.Group(Datatype("type") + Identifier("name"))
@@ -219,7 +221,7 @@ Function_Declaration = pp.Group(
     + LPAREN + pp.Optional(Param_List, default=[])("parameters") + RPAREN
 ).set_name("Function_Declaration")
 Function_Body = pp.Group(
-    LBRACE + stmt_seq("stmts") + RBRACE
+    LBRACE + pp.Group(stmt_seq)("stmts") + RBRACE
 ).set_name("Function_Body")
 Function_Definition = pp.Group(
     pp.Tag("type", "func_decl")
@@ -241,17 +243,20 @@ Program = pp.Group(
 Program.ignore(comment)
 
 # Optional: generate diagram
-# Program.create_diagram('tiny_parser_diagram.html')
+# Program.create_diagram('tiny_parser_diagram.html', show_results_names=True)
 
 
-def parse_tiny(text: str, parse_all: bool = True) -> pp.ParseResults:
+def parse_tiny(text: str) -> pp.ParseResults:
     """Parse a TINY source string and return structured ParseResults.
 
     Args:
         text: Source code to parse.
-        parse_all: If True, require full string to be consumed.
     """
-    return Program.parse_string(text, parse_all=parse_all)
+    try:
+        return Program.parse_string(text, parse_all=True)
+    except pp.ParseException as err:
+        print(err.explain())
+        raise
 
 
 def _mini_tests() -> None:
@@ -272,7 +277,7 @@ def _mini_tests() -> None:
         
         write x > 2 && x < 10;
     """
-    stmt_list.run_tests(statement_tests, parse_all=True, full_dump=False)
+    stmt_seq.run_tests(statement_tests, parse_all=True, full_dump=False)
 
     program_tests = [
         # Function with params and return, and main

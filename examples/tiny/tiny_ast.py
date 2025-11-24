@@ -1,12 +1,12 @@
 """
-Executable Tiny AST types (skeletal).
+Executable Tiny AST types.
 
-This module defines the abstract base class `TinyNode` and skeletal subclasses
-for the statement types produced by `examples.tiny.tiny_parser`.
+This module defines the abstract base class `TinyNode` and statement-type-specific
+subclasses for the statement types produced by `examples.tiny.tiny_parser`.
 
 Each subclass sets a class-level `statement_type` that matches the value used
-by the parser's `pp.Tag("type", ...)` for that construct. Implementations are
-skeletal on purpose and currently just wrap the original `ParseResults`.
+by the parser's `pp.Tag("type", ...)` for that construct. This associates the
+parsed results for a statement to the corresponding `TinyNode` subclass.
 """
 from __future__ import annotations
 
@@ -19,8 +19,36 @@ import pyparsing as pp
 class TinyNode(ABC):
     """Abstract base for all executable TINY AST node classes.
 
-    Subclasses must define a class-level `statement_type` that matches the
-    `type` tag emitted by the parser for that statement.
+    Purpose
+    - Each concrete subclass represents one statement form produced by
+      `examples.tiny.tiny_parser`.
+    - Subclasses must define a class-level `statement_type` whose value matches
+      the parser's `pp.Tag("type", ...)` for that construct.
+
+    Lifecycle and required methods
+    - `from_parsed(parsed: pp.ParseResults) -> TinyNode`
+      Factory that constructs an instance from a parser group. Implementations
+      should normalize the raw `ParseResults` into explicit dataclass fields and
+      eagerly prebuild any child statement nodes. After construction, runtime
+      execution should not need to reach back into `self.parsed` except for
+      debugging. This separation keeps execution independent of the parser's
+      internal token structure and avoids pervasive `hasattr`/`in` checks.
+
+    - `execute(engine: TinyEngine) -> object | None`
+      Execute this node against the provided runtime engine. Implementations
+      perform side effects via the engine (variable declaration/assignment,
+      I/O writes, control flow) and return a value when appropriate:
+        * Most statement nodes return `None`.
+        * `ReturnStmtNode` signals control flow by raising `ReturnPropagate`;
+          callers (such as function or main bodies) catch this to retrieve the
+          value. Other nodes should rely on this mechanism and not special-case
+          return handling.
+
+    Notes
+    - Keep `statement_type` as a class variable (see below) so it is not treated
+      as a dataclass field in subclasses.
+    - Subclasses may keep a reference to the original `parsed` group for
+      diagnostics, but business logic should use their explicit fields.
     """
 
     # Note: keep `statement_type` as a class variable. For dataclass subclasses,
@@ -39,35 +67,43 @@ class TinyNode(ABC):
     def from_statement_type(cls, type_name: str) -> type[TinyNode] | None:
         """Return the TinyNode subclass matching `type_name`.
 
-        Iterates over direct subclasses. If deeper hierarchies are created,
-        this could be expanded to recurse.
+        Iterates over direct subclasses. If deeper inheritance hierarchies are created,
+        this needs to be expanded to recurse.
         """
         for sub in cls.__subclasses__():
             if sub.statement_type == type_name:
                 return sub
         return None
 
+    # All subclasses must provide a uniform factory for construction
+    @classmethod
+    @abstractmethod
+    def from_parsed(cls, parsed: pp.ParseResults) -> TinyNode:
+        """Construct an instance from a parser `ParseResults` group."""
+        raise NotImplementedError
+
     # Execution interface (must be overridden by subclasses)
     def execute(self, engine: "TinyEngine") -> object | None:  # noqa: F821 - forward ref
         """Execute this node against the given engine.
 
-        TinyNode is an abstract base; subclasses must implement this method.
+        Subclasses must implement this method.
         """
         raise NotImplementedError(f"execute() not implemented for {type(self).__name__}")
-
-    # All subclasses must provide a uniform factory for construction
-    @classmethod
-    @abstractmethod
-    def from_parsed(cls, parsed: pp.ParseResults) -> "TinyNode":
-        """Construct an instance from a parser `ParseResults` group."""
-        raise NotImplementedError
 
 
 # --- Skeletal TinyNode subclasses for statements ---
 
 @dataclass(init=False)
 class MainDeclNode(TinyNode):
-    # Keep as class variable; not a dataclass field
+    """Dataclass node representing the `main` function body.
+
+    - Prebuilds and stores the list of child statement nodes under
+      `statements` at construction time.
+    - Execution pushes a new frame, executes each statement in order, and
+      returns the value propagated by a `return` (via `ReturnPropagate`),
+      or `None` if no return occurs.
+    - Construct using `from_parsed(parsed)` or the legacy `__init__(parsed)`.
+    """
     statement_type: ClassVar[str] = "main_decl"
 
     # Prebuilt main-body statements
@@ -80,7 +116,7 @@ class MainDeclNode(TinyNode):
         self.build_contained_statements()
 
     @classmethod
-    def from_parsed(cls, parsed: pp.ParseResults) -> "MainDeclNode":
+    def from_parsed(cls, parsed: pp.ParseResults) -> MainDeclNode:
         # Maintain compatibility with engine/builders expecting factory constructors
         return cls(parsed)
 
@@ -100,14 +136,14 @@ class MainDeclNode(TinyNode):
                     built.append(node_cls.from_parsed(stmt))  # type: ignore[arg-type]
         self.statements = built
 
-    def execute(self, engine: "TinyEngine") -> object | None:  # noqa: F821 - forward ref
+    def execute(self, engine: "TinyEngine") -> int:  # noqa: F821 - forward ref
         # Main body: push a new frame for main's locals
         engine.push_frame()
         try:
             for node in self.statements:
                 # Return statements propagate via exception
                 node.execute(engine)
-            return None
+            return 0
         except ReturnPropagate as rp:
             return rp.value
         finally:
@@ -123,12 +159,7 @@ class FunctionDeclStmtNode(TinyNode):
     available. The body is expected under either `parsed.Function_Body.stmts`
     or `parsed.body.stmts`, depending on how the upstream parser groups were
     provided by the caller.
-
-    Note: `statement_type` remains a class variable and is not a dataclass
-    instance field.
     """
-
-    # Keep as class variable; do not include as dataclass field
     statement_type: ClassVar[str] = "func_decl"
 
     # Prebuilt function body statements (if a body was provided)
@@ -136,7 +167,7 @@ class FunctionDeclStmtNode(TinyNode):
     statements: list[TinyNode] = field(default_factory=list)
 
     @classmethod
-    def from_parsed(cls, parsed: pp.ParseResults) -> "FunctionDeclStmtNode":
+    def from_parsed(cls, parsed: pp.ParseResults) -> FunctionDeclStmtNode:
         fn_name = parsed.decl.name
 
         # Locate a function body group in common shapes
@@ -166,7 +197,17 @@ class FunctionDeclStmtNode(TinyNode):
 
 @dataclass
 class DeclStmtNode(TinyNode):
-    # ClassVar so dataclass does not treat this as a field
+    """Declaration statement node.
+
+    Represents one declaration statement possibly declaring multiple
+    identifiers with optional initializers, for example:
+
+        int x := 1, y, z := 2;
+
+    Fields:
+    - dtype: declared datatype ("int", "float", or "string").
+    - decls: list of (name, init_expr | None).
+    """
     statement_type: ClassVar[str] = "decl_stmt"
 
     dtype: str = "int"
@@ -174,7 +215,7 @@ class DeclStmtNode(TinyNode):
     decls: List[Tuple[str, Optional[object]]] = field(default_factory=list)
 
     @classmethod
-    def from_parsed(cls, parsed: pp.ParseResults) -> "DeclStmtNode":
+    def from_parsed(cls, parsed: pp.ParseResults) -> DeclStmtNode:
         dtype = parsed.datatype or "int"
         items: List[Tuple[str, Optional[object]]] = []
         for d in (parsed.decls or []):
@@ -194,14 +235,18 @@ class DeclStmtNode(TinyNode):
 
 @dataclass
 class AssignStmtNode(TinyNode):
-    # ClassVar so dataclass does not treat this as a field
+    """Assignment statement node.
+
+    Holds a target variable name and an expression to evaluate and assign.
+    Example: `x := x + 1;`.
+    """
     statement_type: ClassVar[str] = "assign_stmt"
 
     target: str = ""
     expr: object = None
 
     @classmethod
-    def from_parsed(cls, parsed: pp.ParseResults) -> "AssignStmtNode":
+    def from_parsed(cls, parsed: pp.ParseResults) -> AssignStmtNode:
         return cls(target=parsed.target, expr=parsed.value)
 
     def execute(self, engine: "TinyEngine") -> object | None:  # noqa: F821 - forward ref
@@ -212,7 +257,13 @@ class AssignStmtNode(TinyNode):
 
 @dataclass
 class IfStmtNode(TinyNode):
-    # Keep as class variable; not a dataclass field
+    """If/ElseIf/Else control-flow node.
+
+    Captures the main condition, then-branch statements, zero or more
+    `elseif` branches as (condition, statements) pairs, and an optional
+    `else` statements list. Execution evaluates conditions in order and
+    executes the first matching branch.
+    """
     statement_type: ClassVar[str] = "if_stmt"
 
     # Explicit fields for condition and branches
@@ -222,7 +273,7 @@ class IfStmtNode(TinyNode):
     else_statements: list[TinyNode] = field(default_factory=list)
 
     @classmethod
-    def from_parsed(cls, parsed: pp.ParseResults) -> "IfStmtNode":
+    def from_parsed(cls, parsed: pp.ParseResults) -> IfStmtNode:
         # Initial condition (defined by the parser for if-statements)
         cond_expr = parsed.cond if "cond" in parsed else None
 
@@ -282,7 +333,11 @@ class IfStmtNode(TinyNode):
 
 @dataclass
 class RepeatStmtNode(TinyNode):
-    # ClassVar so dataclass does not treat this as a field
+    """Repeat-Until loop node (do-while semantics).
+
+    Executes the body statements at least once, then evaluates the `cond`
+    expression after each iteration, terminating when it evaluates to true.
+    """
     statement_type: ClassVar[str] = "repeat_stmt"
 
     # Body statements for the repeat block
@@ -291,17 +346,17 @@ class RepeatStmtNode(TinyNode):
     cond: object | None = None
 
     @classmethod
-    def from_parsed(cls, parsed: pp.ParseResults) -> "RepeatStmtNode":
+    def from_parsed(cls, parsed: pp.ParseResults) -> RepeatStmtNode:
         # Build child statement nodes from the parsed body sequence
-        built: list[TinyNode] = []
-        for stmt in parsed:
+        statement_nodes: list[TinyNode] = []
+        for stmt in parsed.body:
             if isinstance(stmt, pp.ParseResults) and "type" in stmt:
                 node_cls = TinyNode.from_statement_type(stmt["type"])  # type: ignore[index]
                 if node_cls is not None:
-                    built.append(node_cls.from_parsed(stmt))  # type: ignore[arg-type]
+                    statement_nodes.append(node_cls.from_parsed(stmt))  # type: ignore[arg-type]
         # Condition is mandatory in the parser's definition of repeat-until
         cond_expr = parsed.cond
-        return cls(statements=built, cond=cond_expr)
+        return cls(statements=statement_nodes, cond=cond_expr)
 
     def execute(self, engine: "TinyEngine") -> object | None:  # noqa: F821 - forward ref
         # Repeat-Until is a do-while: execute body, then check condition; stop when condition is true
@@ -318,13 +373,17 @@ class RepeatStmtNode(TinyNode):
 
 @dataclass
 class ReadStmtNode(TinyNode):
-    # ClassVar so dataclass does not treat this as a field
+    """Read (input) statement node.
+
+    Prompts for a token and assigns it (as a string) to the given variable
+    name in the current frame.
+    """
     statement_type: ClassVar[str] = "read_stmt"
 
     var_name: str = ""
 
     @classmethod
-    def from_parsed(cls, parsed: pp.ParseResults) -> "ReadStmtNode":
+    def from_parsed(cls, parsed: pp.ParseResults) -> ReadStmtNode:
         return cls(var_name=getattr(parsed, "var", ""))
 
     def execute(self, engine: "TinyEngine") -> object | None:  # noqa: F821 - forward ref
@@ -335,14 +394,18 @@ class ReadStmtNode(TinyNode):
 
 @dataclass
 class WriteStmtNode(TinyNode):
-    # ClassVar so dataclass does not treat this as a field
+    """Write (output) statement node.
+
+    Writes the evaluated expression value, or a newline if `is_endl` is true
+    or `expr` is None. Output is buffered in the engine and flushed per call.
+    """
     statement_type: ClassVar[str] = "write_stmt"
 
     expr: Optional[object] = None
     is_endl: bool = False
 
     @classmethod
-    def from_parsed(cls, parsed: pp.ParseResults) -> "WriteStmtNode":
+    def from_parsed(cls, parsed: pp.ParseResults) -> WriteStmtNode:
         if "expr" in parsed:
             return cls(expr=parsed.expr, is_endl=False)
         # expect literal endl otherwise
@@ -366,13 +429,17 @@ class ReturnPropagate(Exception):
 
 @dataclass
 class ReturnStmtNode(TinyNode):
-    # ClassVar so dataclass does not treat this as a field
+    """Return statement node.
+
+    Evaluates the optional expression and raises `ReturnPropagate` to unwind
+    to the nearest function/main boundary with the computed value (or None).
+    """
     statement_type: ClassVar[str] = "return_stmt"
 
     expr: Optional[object] = None
 
     @classmethod
-    def from_parsed(cls, parsed: pp.ParseResults) -> "ReturnStmtNode":
+    def from_parsed(cls, parsed: pp.ParseResults) -> ReturnStmtNode:
         return cls(expr=parsed.expr if "expr" in parsed else None)
 
     def execute(self, engine: "TinyEngine") -> object | None:  # noqa: F821 - forward ref
@@ -382,14 +449,19 @@ class ReturnStmtNode(TinyNode):
 
 @dataclass
 class CallStmtNode(TinyNode):
-    # ClassVar so dataclass does not treat this as a field
+    """Statement form of a function call.
+
+    Holds the function name and argument expressions; on execution the
+    arguments are evaluated and `TinyEngine.call_function` is invoked. The
+    return value (if any) is ignored in statement context.
+    """
     statement_type: ClassVar[str] = "call_stmt"
 
     name: str = ""
     args: List[object] = field(default_factory=list)
 
     @classmethod
-    def from_parsed(cls, parsed: pp.ParseResults) -> "CallStmtNode":
+    def from_parsed(cls, parsed: pp.ParseResults) -> CallStmtNode:
         func_group: pp.ParseResults | None = None
         for item in parsed:
             if isinstance(item, pp.ParseResults) and "type" in item and item["type"] == "func_call":  # type: ignore[index]

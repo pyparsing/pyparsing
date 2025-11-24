@@ -1,8 +1,8 @@
 """
 TinyEngine: runtime support for executing TINY AST nodes.
 
-This module exposes the `TinyEngine` class, moved out of `tiny_run.py` to keep
-runtime concerns separate from the CLI and parsing scaffold.
+This module exposes the `TinyEngine` class, which maintains a program-level
+variable environment and provides helpers used by executing TINY AST nodes.
 
 It also defines `TinyFrame`, which represents a single stack frame for local
 variables. `TinyEngine` maintains a stack (list) of frames, with the current
@@ -11,7 +11,7 @@ frame being the last element.
 from __future__ import annotations
 
 import pyparsing as pp
-from .tiny_ast import TinyNode, ReturnStmtNode, ReturnPropagate
+from .tiny_ast import TinyNode
 
 import operator
 
@@ -26,41 +26,39 @@ _op_map = {
     ">": operator.gt,
     "<=": operator.le,
     ">=": operator.ge,
+    "&&": operator.and_,
+    "||": operator.or_,
 }
 
 class TinyFrame:
     """A single stack frame holding local variables and their types.
 
-    Variables in TINY are stored per-frame; lookups search from the top frame
-    downward to the bottom (global) frame.
+    Variables in TINY are stored per-frame; lookups search the current
+    frame first, then the global frame.
     """
 
     def __init__(self) -> None:
-        self._vars: dict[str, object] = {}
-        self._types: dict[str, str] = {}  # 'int' | 'float' | 'string'
+        # maintain mapping of name -> var definitions
+        self._vars: dict[str, list] = {}
 
     def __contains__(self, name: str) -> bool:  # allow `name in frame`
-        return name in self._vars
-
-    def has(self, name: str) -> bool:
         return name in self._vars
 
     def declare(self, name: str, dtype: str, value: object) -> None:
         if name in self._vars:
             raise NameError(f"Variable already declared in frame: {name}")
-        self._vars[name] = value
-        self._types[name] = dtype
+        self._vars[name] = [dtype, value]
 
     def set(self, name: str, value: object) -> None:
         if name not in self._vars:
             raise NameError(f"Variable not declared in this frame: {name}")
-        self._vars[name] = value
+        self._vars[name][1] = value
 
     def get(self, name: str) -> object:
-        return self._vars[name]
+        return self._vars[name][1]
 
     def get_type(self, name: str) -> str:
-        return self._types[name]
+        return self._vars[name][0]
 
 
 class TinyEngine:
@@ -69,6 +67,7 @@ class TinyEngine:
     Responsibilities:
     - Manage I/O buffers (text-based input and output)
     - Maintain a simple variable environment (name -> value, with optional type)
+    - Maintain a stack of frames (local variables) to scope variables defined in functions
     - Provide helpers for declaring and assigning variables
     - Evaluate parser expression trees produced by `tiny_parser`
 
@@ -285,7 +284,7 @@ class TinyEngine:
             for (ptype, pname), value in zip(params, args):
                 self.declare_var(pname, ptype or "int", value)
 
-            # Execute body node; catch return propagation
+            # Execute body node
             return fn.execute(self)
         finally:
             self.pop_frame()
@@ -323,13 +322,6 @@ class TinyEngine:
             return str(value)
         raise TypeError(f"Unsupported datatype: {dtype}")
 
-    def _truthy(self, v: object) -> bool:
-        if isinstance(v, (int, float)):
-            return v != 0
-        if isinstance(v, str):
-            return v != ""
-        return bool(v)
-
     def _to_number(self, v: object) -> int | float:
         """Return a numeric value for v following Tiny semantics.
 
@@ -360,9 +352,9 @@ class TinyEngine:
     def _apply_op(self, lhs: object, op: str, rhs: object) -> object:
         # Boolean ops
         if op in {"&&", "||"}:
-            lv = self._truthy(lhs)
-            rv = self._truthy(rhs)
-            return lv and rv if op == "&&" else lv or rv
+            lv = bool(lhs)
+            rv = bool(rhs)
+            return _op_map[op](lv, rv)
 
         # Relational ops
         if op in {"<", ">", "=", "<>", ">=", "<="}:
@@ -381,9 +373,10 @@ class TinyEngine:
             # String concatenation when both are strings and op '+'
             if op == "+" and isinstance(lhs, str) and isinstance(rhs, str):
                 return lhs + rhs
+
             # Numeric operations
             lnum = self._to_number(lhs)
             rnum = self._to_number(rhs)
             return _op_map[op](lnum, rnum)
 
-        raise NotImplementedError(f"Operator not implemented: {op}")
+        raise NotImplementedError(f"Operator not implemented: {op!r}")

@@ -16,7 +16,7 @@ def _run_main_and_capture(src: str, capsys: pytest.CaptureFixture[str]) -> tuple
     Returns (return_value, stdout_text).
     """
     try:
-        parsed = parse_tiny(src, parse_all=True)
+        parsed = parse_tiny(src)
     except pp.ParseException as pe:
         print(pe.explain())
         raise
@@ -68,7 +68,7 @@ def test_function_with_no_parameters_call_via_expr(capsys: pytest.CaptureFixture
         """
     )
 
-    parsed = parse_tiny(src, parse_all=True)
+    parsed = parse_tiny(src)
 
     # Register top-level functions with the engine
     engine = TinyEngine()
@@ -142,7 +142,7 @@ def test_read_statement_prompts_and_assigns(capsys: pytest.CaptureFixture[str], 
     # Simulate user entering 17 at the prompt
     monkeypatch.setattr("builtins.input", lambda prompt="": "17")
 
-    parsed = parse_tiny(src, parse_all=True)
+    parsed = parse_tiny(src)
     main_group = parsed.program.main
     node_cls = TinyNode.from_statement_type(main_group["type"])  # type: ignore[index]
     assert node_cls is not None

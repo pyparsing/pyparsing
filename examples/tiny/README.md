@@ -5,11 +5,8 @@ This folder contains a complete pyparsing parser/interpreter for the educational
 ## Running the interpreter
 
 After cloning the repo and establishing a virtual environment, cd to the project top-level
-directory and run:
-
-    python -m examples.tiny.tiny_run samples/hello.tiny
-
-to run the basic "Hello, World!" program. The `samples` directory contains several other
+directory and run `python -m examples.tiny.tiny_run samples/hello.tiny` to run the basic 
+"Hello, World!" program. The `samples` directory contains several other
 illustrative scripts, using the TINY language.
 
 ## Project Structure
@@ -41,7 +38,7 @@ illustrative scripts, using the TINY language.
 
 ## How to run quick self-tests of the parser itself
 
-- python -m examples.tiny.tiny_parser
+- Run simple tests of the parser using `python -m examples.tiny.tiny_parser`
 
 ## How to use from Python
 
