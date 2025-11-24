@@ -132,22 +132,24 @@ class FunctionDeclStmtNode(TinyNode):
     statement_type: ClassVar[str] = "func_decl"
 
     # Prebuilt function body statements (if a body was provided)
+    name: str
     statements: list[TinyNode] = field(default_factory=list)
 
     @classmethod
     def from_parsed(cls, parsed: pp.ParseResults) -> "FunctionDeclStmtNode":
+        fn_name = parsed.decl.name
+
         # Locate a function body group in common shapes
-        body_group: pp.ParseResults | None = parsed.body or None
+        body_group: pp.ParseResults = parsed.body
 
         built: list[TinyNode] = []
-        if body_group is not None:
+        if body_group:
             raw_stmts = body_group.stmts or []
             for stmt in raw_stmts:
-                if isinstance(stmt, pp.ParseResults) and "type" in stmt:
-                    node_cls = TinyNode.from_statement_type(stmt["type"])  # type: ignore[index]
-                    if node_cls is not None:
-                        built.append(node_cls.from_parsed(stmt))  # type: ignore[arg-type]
-        return cls(statements=built)
+                node_cls = TinyNode.from_statement_type(stmt["type"])  # type: ignore[index]
+                if node_cls is not None:
+                    built.append(node_cls.from_parsed(stmt))  # type: ignore[arg-type]
+        return cls(name=fn_name, statements=built)
 
     def execute(self, engine: "TinyEngine") -> object | None:  # noqa: F821 - forward ref
         # Execute the function body in a new local frame. If no body is present,
