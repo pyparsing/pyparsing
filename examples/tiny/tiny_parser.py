@@ -216,7 +216,7 @@ Param_List = pp.Group(pp.DelimitedList(Parameter, COMMA))
 Function_Declaration = pp.Group(
     Datatype("return_type")
     + FunctionName("name")
-    + LPAREN + pp.Optional(Param_List)("parameters") + RPAREN
+    + LPAREN + pp.Optional(Param_List, default=[])("parameters") + RPAREN
 ).set_name("Function_Declaration")
 Function_Body = pp.Group(
     LBRACE + stmt_seq("stmts") + RBRACE

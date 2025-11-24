@@ -81,7 +81,7 @@ class TinyEngine:
     def __init__(self) -> None:
         # Dedicated program-level globals and function registry
         self._globals: TinyFrame = TinyFrame()
-        self._functions: dict[str, object] = {}
+        self._functions: dict[str, TinyNode] = {}
 
         # Function signatures: name -> (return_type, [(ptype, pname), ...])
         # Used when functions are registered as AST nodes to bind parameters
@@ -93,7 +93,7 @@ class TinyEngine:
         self._out: list[str] = []
 
     # ----- Program-level registry (globals/functions) -----
-    def register_function(self, name: str, fn: object) -> None:
+    def register_function(self, name: str, fn: TinyNode) -> None:
         """Register a program-level function definition by name.
 
         The concrete callable/object shape is intentionally unspecified for now;
@@ -102,7 +102,7 @@ class TinyEngine:
         """
         self._functions[name] = fn
 
-    def get_function(self, name: str) -> object | None:
+    def get_function(self, name: str) -> TinyNode | None:
         return self._functions.get(name)
 
     def register_function_signature(self, name: str, return_type: str, params: list[tuple[str, str]]) -> None:
