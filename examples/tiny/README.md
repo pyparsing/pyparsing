@@ -1,12 +1,24 @@
 # TINY parser and interpreter (pyparsing)
 
-This folder contains a minimal pyparsing parser/interpreter for the educational TINY language.
+This folder contains a complete pyparsing parser/interpreter for the educational TINY language.
+
+## Running the interpreter
+
+After cloning the repo and establishing a virtual environment, cd to the project top-level
+directory and run:
+
+    python -m examples.tiny.tiny_run samples/hello.tiny
+
+to run the basic "Hello, World!" program. The `samples` directory contains several other
+illustrative scripts, using the TINY language.
 
 ## Project Structure
 
 - tiny_parser.py
   - Defines the TINY language grammar using pyparsing and exposes `parse_tiny(text)` to parse source into `ParseResults`.
   - Independent of execution; focused purely on syntax and result structuring.
+  - Allows for testing the parser in isolation from any integration or implementation
+    components.
 
 - tiny_ast.py
   - Declares the abstract base `TinyNode` and node subclasses for each TINY statement type (for example: `main_decl`, `decl_stmt`, `assign_stmt`, `if_stmt`, `repeat_stmt`, `read_stmt`, `write_stmt`, `return_stmt`, `call_stmt`).
@@ -27,7 +39,8 @@ This folder contains a minimal pyparsing parser/interpreter for the educational 
 - tests/ and examples/tiny/tests/
   - Pytest-based tests that exercise the parser and AST/engine execution.
 
-## How to run quick self-tests
+## How to run quick self-tests of the parser itself
+
 - python -m examples.tiny.tiny_parser
 
 ## How to use from Python
@@ -37,7 +50,7 @@ This folder contains a minimal pyparsing parser/interpreter for the educational 
     result = parse_tiny(src)
     print(result.dump())
 
-Grammar outline: see docs/grammar.md
+Grammar outline: see `docs/grammar.md` and `docs/tiny_parser_diagram.html`
 
 Pyparsing best practices were used to prompt the AI on preferred usages of pyparsing. Accessible using the command `python -m pyparsing.ai.show_best_practices`
 
