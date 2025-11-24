@@ -95,10 +95,6 @@ class TinyEngine:
     # ----- Program-level registry (globals/functions) -----
     def register_function(self, name: str, fn: TinyNode) -> None:
         """Register a program-level function definition by name.
-
-        The concrete callable/object shape is intentionally unspecified for now;
-        later, this may point to a node representing a function body or a Python
-        callable adapter.
         """
         self._functions[name] = fn
 
@@ -148,9 +144,6 @@ class TinyEngine:
 
     def _writeln(self) -> None:
         self._out.append("\n")
-
-    def _read_token(self) -> str | None:
-        return self._in.pop(0) if self._in else None
 
     # ----- Variables API -----
     def declare_var(self, name: str, dtype: str, init_value: object | None = None) -> None:
