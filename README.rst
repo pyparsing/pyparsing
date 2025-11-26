@@ -80,6 +80,13 @@ History
 
 See `CHANGES <https://github.com/pyparsing/pyparsing/blob/master/CHANGES>`__ file.
 
+
+Performance benchmarks
+======================
+
+For usage instructions and details on the performance benchmark suite, see
+``tests/README.md`` in this repository.
+
 .. |Build Status| image:: https://github.com/pyparsing/pyparsing/actions/workflows/ci.yml/badge.svg
    :target: https://github.com/pyparsing/pyparsing/actions/workflows/ci.yml
 
