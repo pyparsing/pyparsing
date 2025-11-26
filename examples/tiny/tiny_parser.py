@@ -132,7 +132,7 @@ var_decl = pp.Group(Identifier("name") + init_opt)
 Declaration_Statement = pp.Group(
     pp.Tag("type", "decl_stmt")
     + Datatype("datatype")
-    + pp.DelimitedList(var_decl, COMMA)("decls")
+    - pp.DelimitedList(var_decl, COMMA)("decls")
     + SEMI
 ).set_name("Declaration_Statement")
 
@@ -218,7 +218,7 @@ Param_List = pp.Group(pp.DelimitedList(Parameter, COMMA))
 Function_Declaration = pp.Group(
     Datatype("return_type")
     + FunctionName("name")
-    + LPAREN + pp.Optional(Param_List, default=[])("parameters") + RPAREN
+    + LPAREN - pp.Optional(Param_List, default=[])("parameters") + RPAREN
 ).set_name("Function_Declaration")
 Function_Body = pp.Group(
     LBRACE + pp.Group(stmt_seq)("stmts") + RBRACE
@@ -226,12 +226,12 @@ Function_Body = pp.Group(
 Function_Definition = pp.Group(
     pp.Tag("type", "func_decl")
     + Function_Declaration("decl")
-    + Function_Body("body")
+    - Function_Body("body")
 ).set_name("Function_Definition")
 
 Main_Function = pp.Group(
     pp.Tag("type", "main_decl") +
-    Datatype("return_type") + MAIN.suppress() + LPAREN + RPAREN + Function_Body("body")
+    Datatype("return_type") + MAIN.suppress() + LPAREN + RPAREN - Function_Body("body")
 )
 
 # Program: {Function_Statement} Main_Function
