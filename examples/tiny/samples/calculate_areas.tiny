@@ -1,0 +1,103 @@
+/* Compute the area of a selected shape in TINY.
+   Interaction:
+   - First, prompt for the shape type: enter one of "s", "c", "r", or "t"
+     for square, circle, rectangle, or triangle, respectively.
+   - Then, prompt only for the dimensions required for that shape.
+   - All dimensions must be integers > 0 (non-positive values are rejected).
+   - The program prints the area for the selected shape and exits.
+*/
+
+float area_square(float side) {
+    return side * side;
+}
+
+float area_circle(float radius) {
+    float pi := 3.141592653589793;
+    return pi * radius * radius;
+}
+
+float area_rectangle(float width, float height) {
+    return width * height;
+}
+
+float area_triangle(float base, float height) {
+    return 0.5 * base * height;
+}
+
+int main() {
+    string shape;
+
+    /* Prompt for shape type */
+    write "Enter shape (s=square, c=circle, r=rectangle, t=triangle): ";
+    read shape;
+
+    /* Square */
+    if shape = "s" then
+        int side;
+        write "Enter side (integer > 0): ";
+        read side;
+        if side <= 0 then
+            write "Error: side must be an integer > 0"; write endl;
+            return 1;
+        end
+        write "Square area: "; write area_square(side); write endl;
+        return 0;
+    end
+
+    /* Circle */
+    if shape = "c" then
+        int radius;
+        write "Enter radius (integer > 0): ";
+        read radius;
+        if radius <= 0 then
+            write "Error: radius must be an integer > 0"; write endl;
+            return 1;
+        end
+        write "Circle area: "; write area_circle(radius); write endl;
+        return 0;
+    end
+
+    /* Rectangle */
+    if shape = "r" then
+        int width;
+        int height;
+        write "Enter width (integer > 0): ";
+        read width;
+        if width <= 0 then
+            write "Error: width must be an integer > 0"; write endl;
+            return 1;
+        end
+        write "Enter height (integer > 0): ";
+        read height;
+        if height <= 0 then
+            write "Error: height must be an integer > 0"; write endl;
+            return 1;
+        end
+        write "Rectangle area: "; write area_rectangle(width, height); write endl;
+        return 0;
+    end
+
+    /* Triangle */
+    if shape = "t" then
+        int base;
+        int height;
+        write "Enter base (integer > 0): ";
+        read base;
+        if base <= 0 then
+            write "Error: base must be an integer > 0"; write endl;
+            return 1;
+        end
+        write "Enter height (integer > 0): ";
+        read height;
+        if height <= 0 then
+            write "Error: height must be an integer > 0"; write endl;
+            return 1;
+        end
+        write "Triangle area: "; write area_triangle(base, height); write endl;
+        return 0;
+    end
+
+    /* Unknown shape */
+    write "Error: unknown shape; enter one of s, c, r, t"; write endl;
+    return 1;
+}
