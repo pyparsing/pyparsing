@@ -136,6 +136,7 @@ celerybeat-schedule
 # Environments
 .env
 .venv
+.venv-perf*
 env/
 venv/
 ENV/
@@ -161,3 +162,4 @@ venv.bak/
 .DS_Store
 
 examples/verilog/
+/perf_pyparsing.csv
