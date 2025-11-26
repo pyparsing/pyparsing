@@ -40,9 +40,18 @@ def main(argv: list[str] | None = None) -> int:
         parsed = parse_tiny(source_text)
     except pp.ParseBaseException as exc:
         # Print helpful location info
-        error_line = exc.lineno
-        fragment = "\n".join(source_text.splitlines()[error_line - 3 : error_line + 1])
+        error_lineno = exc.lineno
+        lineno_len = len(str(error_lineno + 1))
+        *prelude, error_line, postlude = source_text.splitlines()[max(error_lineno - 3, 0) : error_lineno + 1]
+        fragment = "\n".join(
+            [
+            *(f"{prelineno:>{lineno_len}}:  {line}" for prelineno, line in enumerate(prelude, start = error_lineno - len(prelude))),
+            f"{error_lineno:>{lineno_len}}: >{error_line}",
+            f"{error_lineno + 1:>{lineno_len}}:  {postlude}",
+            ]
+        )
         print(fragment)
+        print()
         print(exc.explain(depth=0))
         return 3
 
