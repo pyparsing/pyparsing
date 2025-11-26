@@ -13,6 +13,7 @@ Release v\ |version|
    :maxdepth: 2
 
    HowToUsePyparsing
+   whats_new_in_3_3
    whats_new_in_3_2
    whats_new_in_3_1
    whats_new_in_3_0_0
