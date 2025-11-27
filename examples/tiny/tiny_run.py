@@ -42,7 +42,9 @@ def main(argv: list[str] | None = None) -> int:
         # Print helpful location info
         error_lineno = exc.lineno
         lineno_len = len(str(error_lineno + 1))
-        *prelude, error_line, postlude = source_text.splitlines()[max(error_lineno - 3, 0) : error_lineno + 1]
+        # add an extra line to guard against failing to unpack if the error is on the last line
+        source_lines = source_text.splitlines() + [""]
+        *prelude, error_line, postlude = source_lines[max(error_lineno - 3, 0) : error_lineno + 1]
         fragment = "\n".join(
             [
             *(f"{prelineno:>{lineno_len}}:  {line}" for prelineno, line in enumerate(prelude, start = error_lineno - len(prelude))),
