@@ -1,0 +1,180 @@
+/*
+Implement some basic math functions.
+*/
+
+/* basic arithmetic and algebra */
+int factorial(int n) {
+    int prod := 1;
+    repeat
+        prod := prod * n;
+        n := n - 1;
+    until n <= 1
+    return prod;
+}
+
+float pow(float x, int y) {
+    if x = 0 then return 0; end
+    if x = 1 || y = 0 then return 1; end
+
+    float result := 1;
+    repeat
+        result := result * x;
+        y := y - 1;
+    until y = 0
+
+    return result;
+}
+
+float abs(float a) {
+    if a < 0 then return -a; end
+    return a;
+}
+
+int sgn(float x) {
+    if x > 0 then return 1; end
+    if x < 0 then return -1; end
+    return 0;
+}
+
+float round(float a, int n) {
+    int mag := 1;
+    if n > 0 then
+        repeat
+            mag := mag * 10;
+            n := n - 1;
+        until n = 0
+    end
+    int trunc := a * mag + 0.5;
+    return trunc / mag;
+}
+
+int div(int a, int b) {
+    int quo := a / b;
+    return quo;
+}
+
+int mod(int a, int b) {
+    int quo := a / b;
+    return a - quo * b;
+}
+
+float sqrt(float a) {
+    float eps := 0.0000001;
+    float y := a / 2.0;
+    repeat
+        if abs(y * y - a) < eps then return y; end
+        y := (y + a / y) / 2;
+    until 0
+    write endl;
+}
+
+float hypot(float x, float y) {
+    return sqrt(x * x + y * y);
+}
+
+/* Some trig functions */
+
+float pi() { return 3.14159265358979323846; }
+float rad(float deg) { return deg * pi() / 180.0; }
+float deg(float rad) { return rad * 180.0 / pi(); }
+
+float sin(float rad_) {
+    /* Taylor series expansion of sin(x) */
+    float x := rad_;
+    int mult := 1;
+    float sum := x;
+    int n := 1;
+    int exponent := 1;
+    repeat
+        n := n + 1;
+        mult := -mult;
+        exponent := exponent + 2;
+        sum := sum + mult * (pow(x, exponent) / factorial(exponent));
+    until n > 10
+    return sum;
+}
+
+float cos(float rad_) {
+    /* Taylor series expansion of cos(x) */
+    float sum := 1;
+    int n := 1;
+    int exponent := 0;
+    int mult := 1;
+    repeat
+        n := n + 1;
+        mult := -mult;
+        exponent := exponent + 2;
+        sum := sum + mult * pow(rad_, exponent) / factorial(exponent);
+    until n > 10
+    return sum;
+}
+
+float tan(float rad_) {
+    float num := sin(rad_);
+    float den := cos(rad_);
+    /* Avoid division by zero, just return a really big number */
+    if abs(den) < 0.00000001 then den := sgn(den) * 0.00000001; end
+    return sin(rad_) / cos(rad_);
+}
+
+float exp(float x) {
+    /* Taylor series expansion of exp(x) */
+    float sum := 1.0;
+    int n := 0;
+    if x > 0 then
+        repeat
+            n := n + 1;
+            sum := sum + pow(x, n) / factorial(n);
+        until n > 10
+    end
+    return sum;
+}
+
+int main() {
+    int i := 1;
+    repeat
+        write i;
+        write " ";
+        write round(sqrt(i), 4);
+        write endl;
+        i := i + 1;
+    until i > 10
+
+
+    int a:= 0;
+    int b;
+    repeat
+        a := a + 1;
+        b := 0;
+        repeat
+            b := b + 1;
+            write a;
+            write " ";
+            write b;
+            write " ";
+            write round(hypot(a, b), 3);
+            write endl;
+        until b = 10
+    until a = 10
+
+    write rad(180); write endl;
+    write deg(pi()); write endl;
+
+    write sin(rad(30)); write endl;
+    write sin(rad(90)); write endl;
+    write cos(rad(60)); write endl;
+    write cos(rad(90)); write endl;
+    write cos(rad(180)); write endl;
+    write tan(rad(45)); write endl;
+    write tan(0); write endl;
+    write tan(pi() / 2); write endl;
+
+    write pow(10, 0); write endl;
+    write pow(10, 1); write endl;
+    write pow(10, 2); write endl;
+
+    write exp(0); write endl;
+    write exp(1); write endl;
+
+    return 0;
+}
