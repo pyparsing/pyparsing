@@ -255,8 +255,11 @@ Program = pp.Group(
     pp.Group(pp.ZeroOrMore(Function_Definition))("functions") + Main_Function("main")
 )("program").set_name("program")
 
-# Ignore comments globally
+# Ignore comments globally (for full program parsing) and in interactive elements
 Program.ignore(comment)
+stmt_seq.ignore(comment)
+Function_Definition.ignore(comment)
+statement.ignore(comment)
 
 # Optional: generate diagram
 # Program.create_diagram('tiny_parser_diagram.html', show_results_names=True)

@@ -24,7 +24,7 @@ from typing import Iterable
 
 import pyparsing as pp
 
-from .tiny_parser import parse_tiny, stmt_seq
+from .tiny_parser import parse_tiny, stmt_seq, Function_Definition, comment as TINY_COMMENT
 from .tiny_ast import TinyNode
 from .tiny_engine import TinyEngine, TinyFrame, __version__ as TINY_VERSION
 
@@ -161,7 +161,7 @@ def _try_execute(engine: TinyEngine, source: str) -> None:
 
 
 def repl() -> int:
-    print(f"TINY REPL v{TINY_VERSION} — enter statements; input runs when it parses. Ctrl-C to cancel current input; `quit` to exit.")
+    print(f"TINY REPL v{TINY_VERSION} — enter statements on one or more lines. Ctrl-C to cancel current input; `quit` to exit.")
     engine = TinyEngine()
     # Initialize with a single empty frame for locals
     engine.push_frame()
@@ -289,8 +289,64 @@ def repl() -> int:
         try:
             parsed = stmt_seq.parse_string(source, parse_all=True)
         except pp.ParseBaseException:
-            # Keep collecting lines until parse succeeds or user presses Ctrl-C
-            continue
+            # Try parsing a single function definition instead
+            try:
+                fdef_parsed = Function_Definition.parse_string(source, parse_all=True)
+            except pp.ParseBaseException:
+                # If the buffer contains only comments, accept and clear it
+                try:
+                    pp.OneOrMore(TINY_COMMENT).parse_string(source, parse_all=True)
+                except pp.ParseBaseException:
+                    # Keep collecting lines until parse succeeds or user presses Ctrl-C
+                    continue
+                else:
+                    buffer_lines.clear()
+                    continue
+            else:
+                # Successfully parsed a function declaration/definition typed at the prompt
+                try:
+                    fdef = fdef_parsed[0] if isinstance(fdef_parsed[0], pp.ParseResults) else fdef_parsed
+                except Exception:
+                    fdef = fdef_parsed
+
+                # Extract signature
+                try:
+                    decl = fdef.decl
+                    fname = decl.name
+                    return_type = decl.return_type or "int"
+                    params_group = decl.parameters
+                    param_list = list(params_group[0]) if params_group else []
+                    params: list[tuple[str, str]] = []
+                    for p in param_list:
+                        ptype = p.type or "int"
+                        pname = p.name
+                        params.append((ptype, pname))
+                except Exception as exc:
+                    # Malformed function declaration; report concisely unless in debug
+                    if debug:
+                        traceback.print_exc()
+                    else:
+                        print(f"{type(exc).__name__}: {exc}", file=sys.stderr)
+                    buffer_lines.clear()
+                    continue
+
+                # Build node and register (overwrite if already exists)
+                try:
+                    fn_node_class = TinyNode.from_statement_type(fdef.type)
+                    if fn_node_class is None:
+                        raise TypeError(f"Unsupported function node type: {getattr(fdef, 'type', None)!r}")
+                    fn_node = fn_node_class.from_parsed(fdef)
+                    engine.register_function_signature(fname, return_type, params)
+                    engine.register_function(fname, fn_node)
+                except Exception as exc:
+                    if debug:
+                        traceback.print_exc()
+                    else:
+                        print(f"{type(exc).__name__}: {exc}", file=sys.stderr)
+                finally:
+                    # Clear buffer and continue to next prompt
+                    buffer_lines.clear()
+                continue
 
         # Parsed successfully: execute and reset buffer
         nodes = _build_nodes_from_stmt_seq(parsed)
