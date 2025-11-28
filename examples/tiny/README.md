@@ -9,6 +9,59 @@ directory and run `python -m examples.tiny.tiny_run samples/hello.tiny` to run t
 "Hello, World!" program. The `samples` directory contains several other
 illustrative scripts, using the TINY language.
 
+## Running the REPL
+
+The TINY project also includes an interactive Read–Eval–Print Loop (REPL) for quickly
+trying out statements and functions.
+
+- Start the REPL:
+
+  ```
+  python -m examples.tiny.tiny_repl
+  ```
+
+- Enter TINY statements directly at the `>>> ` prompt. The REPL incrementally parses your
+  input and executes as soon as the current input forms a complete statement sequence.
+
+- Useful keys/behavior:
+  - Press Ctrl-C while typing to cancel the current partial input and return to a fresh prompt.
+  - Press Ctrl-C during a long-running execution to interrupt it and return to the prompt.
+  - The REPL always prints a newline after executing a statement block.
+
+- Built-in REPL commands (typed at an empty prompt):
+  - `quit` — exit the REPL
+  - `import <file>` — load function definitions from a `.tiny` file (ignores any `main()`)
+  - `reimport <file>` — same as `import`, but overwrites any previously defined functions
+  - `clear vars` — clear locally defined variables in the current frame
+  - `clear all` — reset engine state (variables and functions)
+  - `list` — show current variables and all defined function names
+  - `list vars` — show only current variables
+  - `list functions` — show only function names
+  - `help` — list all REPL commands with brief descriptions
+  - `debug on` — enable debug mode (show full Python exception tracebacks during execution)
+  - `debug off` — disable debug mode (default; suppress tracebacks and print only `Type: message`)
+
+- Example session:
+
+  ```
+  >>> list
+  [variables] (none)
+  [functions] (none)
+  >>> import examples/tiny/samples/math_functions.tiny
+  >>> int x := 5;
+  >>> write factorial(x);
+  120
+  ```
+
+- Errors and debugging:
+  - By default, non-runtime exceptions raised while executing TINY statements are shown concisely as `ExceptionType: message` without a traceback.
+  - The same concise behavior applies when importing files with `import`/`reimport` (I/O and other errors print `ExceptionType: message`).
+  - Turn on verbose debugging with `debug on` to display full Python tracebacks for exceptions during execution. Use `debug off` to return to concise error messages.
+  - In debug mode, file import errors will also show full Python tracebacks.
+
+For a fuller walkthrough of REPL features and development notes, see
+`examples/tiny/docs/tiny_repl_transcript.md`.
+
 ## Project Structure
 
 - tiny_parser.py

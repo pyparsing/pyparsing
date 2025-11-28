@@ -13,6 +13,10 @@ from __future__ import annotations
 import pyparsing as pp
 from .tiny_ast import TinyNode
 
+# Module version for TINY runtime/engine
+# Note: kept as a simple float to match request
+__version__ = 0.1
+
 import operator
 
 _op_map = {
@@ -46,12 +50,12 @@ class TinyFrame:
 
     def declare(self, name: str, dtype: str, value: object) -> None:
         if name in self._vars:
-            raise NameError(f"Variable already declared in frame: {name}")
+            raise NameError(f"Variable already declared in frame: {name!r}")
         self._vars[name] = [dtype, value]
 
     def set(self, name: str, value: object) -> None:
         if name not in self._vars:
-            raise NameError(f"Variable not declared in this frame: {name}")
+            raise NameError(f"Variable not declared: {name!r}")
         self._vars[name][1] = value
 
     def get(self, name: str) -> object:
@@ -151,18 +155,18 @@ class TinyEngine:
         """
         # Declare in the current frame only
         if dtype not in {"int", "float", "string"}:
-            raise TypeError(f"Unsupported datatype: {dtype}")
+            raise TypeError(f"Unsupported datatype: {dtype!r}")
         if name in self.current_frame:
-            raise NameError(f"Variable already declared: {name}")
+            raise NameError(f"Variable already declared: {name!r}")
         value = self._coerce(init_value, dtype) if init_value is not None else self._default_for(dtype)
         self.current_frame.declare(name, dtype, value)
 
     # Globals API
     def declare_global_var(self, name: str, dtype: str, init_value: object | None = None) -> None:
         if dtype not in {"int", "float", "string"}:
-            raise TypeError(f"Unsupported datatype: {dtype}")
+            raise TypeError(f"Unsupported datatype: {dtype!r}")
         if name in self._globals:
-            raise NameError(f"Global already declared: {name}")
+            raise NameError(f"Global already declared: {name!r}")
         value = self._coerce(init_value, dtype) if init_value is not None else self._default_for(dtype)
         self._globals.declare(name, dtype, value)
 
@@ -201,7 +205,7 @@ class TinyEngine:
             return frame.get(name)
         if name in self._globals:
             return self._globals.get(name)
-        raise NameError(f"Variable not declared: {name}")
+        raise NameError(f"Variable not declared: {name!r}")
 
     # ----- Expression Evaluation -----
     def eval_expr(self, expr: object) -> object:
@@ -270,13 +274,13 @@ class TinyEngine:
         """
         fn = self.get_function(name)
         if fn is None:
-            raise NameError(f"Undefined function: {name}")
+            raise NameError(f"Undefined function: {name!r}")
 
         if name not in self._function_sigs:
             raise TypeError(f"Missing signature for function {name!r}")
         return_type, params = self._function_sigs[name]
         if len(args) != len(params):
-            raise TypeError(f"Function {name} expects {len(params)} args, got {len(args)}")
+            raise TypeError(f"Function {name!r} expects {len(params)} args, got {len(args)}")
 
         self.push_frame()
         try:
@@ -320,7 +324,7 @@ class TinyEngine:
 
         if dtype == "string":
             return str(value)
-        raise TypeError(f"Unsupported datatype: {dtype}")
+        raise TypeError(f"Unsupported datatype: {dtype!r}")
 
     def _to_number(self, v: object) -> int | float:
         """Return a numeric value for v following Tiny semantics.
