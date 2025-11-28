@@ -55,7 +55,9 @@ int div(int a, int b) {
 
 int mod(int a, int b) {
     int quo := a / b;
-    return a - quo * b;
+    int ret := a - quo * b;
+    if ret < 0 then ret := ret + b; end
+    return ret;
 }
 
 float sqrt(float a) {
@@ -175,6 +177,12 @@ int main() {
 
     write exp(0); write endl;
     write exp(1); write endl;
+
+    i := -5;
+    repeat
+        write i; write " "; write mod(i, 3); write endl;
+        i := i + 1;
+    until i > 5
 
     return 0;
 }
