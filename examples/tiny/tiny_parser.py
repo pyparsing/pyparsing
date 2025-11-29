@@ -1,8 +1,8 @@
 """
 TINY language parser (expanded grammar with types, functions, and control flow)
 
-This module defines a pyparsing grammar for an expanded instructional subset of the
-TINY language, including declarations, functions, and boolean conditions.
+This module defines a pyparsing grammar for the instructional TINY language,
+including declarations, functions, and boolean conditions.
 
 Usage
 - Programmatic:
@@ -76,7 +76,7 @@ expr = pp.Forward().set_name("expr")
 term = pp.Forward().set_name("term")
 statement = pp.Forward().set_name("statement")
 stmt_seq = pp.Forward().set_name("stmt_seq")
-bool_expr = pp.Forward().set_name("condition_stmt")
+bool_expr = pp.Forward().set_name("bool_expr")
 
 # Function call: name '(' [Identifier (',' Identifier)*] ')'
 function_call = pp.Group(
@@ -136,8 +136,8 @@ expr <<= bool_expr
 Datatype = pp.MatchFirst([INT, FLOAT, STRING]).set_name("Datatype")
 
 # Declarations: Datatype id (:= expr)? (',' id (:= expr)?)*
-init_opt = pp.Optional(ASSIGN + expr("init"))
-var_decl = pp.Group(Identifier("name") + init_opt)
+var_init = (ASSIGN + expr("init")).set_name("var_initialization")
+var_decl = pp.Group(Identifier("name") + pp.Optional(var_init)).set_name("var_decl")
 Declaration_Statement = pp.Group(
     pp.Tag("type", "decl_stmt")
     + Datatype("datatype")
@@ -248,21 +248,21 @@ Main_Function = pp.Group(
     + LPAREN
     + RPAREN
     - Function_Body("body")
-)
+).set_name("Main_Function")
 
 # Program: {Function_Statement} Main_Function
 Program = pp.Group(
     pp.Group(pp.ZeroOrMore(Function_Definition))("functions") + Main_Function("main")
-)("program").set_name("program")
+)("program").set_name("Program")
 
 # Ignore comments globally (for full program parsing) and in interactive elements
 Program.ignore(comment)
-stmt_seq.ignore(comment)
-Function_Definition.ignore(comment)
-statement.ignore(comment)
 
 # Optional: generate diagram
-# Program.create_diagram('tiny_parser_diagram.html', show_results_names=True)
+Program.create_diagram(
+    'tiny_parser_diagram.html',
+    show_results_names=True,
+)
 
 
 def parse_tiny(text: str) -> pp.ParseResults:
