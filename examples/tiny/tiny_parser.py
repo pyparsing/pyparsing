@@ -258,12 +258,6 @@ Program = pp.Group(
 # Ignore comments globally (for full program parsing) and in interactive elements
 Program.ignore(comment)
 
-# Optional: generate diagram
-Program.create_diagram(
-    'tiny_parser_diagram.html',
-    show_results_names=True,
-)
-
 
 def parse_tiny(text: str) -> pp.ParseResults:
     """Parse a TINY source string and return structured ParseResults.
@@ -307,4 +301,11 @@ def _mini_tests() -> None:
 
 
 if __name__ == "__main__":
+
+    # Optional: generate diagram
+    # Program.create_diagram(
+    #     'tiny_parser_diagram.html',
+    #     show_results_names=True,
+    # )
+
     _mini_tests()
