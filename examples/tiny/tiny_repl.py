@@ -159,6 +159,106 @@ def _try_execute(engine: TinyEngine, source: str) -> None:
         engine.output_text()
         print()
 
+def handle_meta_command(engine: TinyEngine, cmd: str, debug:list[bool]) -> bool:
+    # normalize to lowercase, and collapse whitespace
+    lower = " ".join(cmd.lower().split())
+    line = cmd.strip()
+
+    if lower == "help":
+        print(f"TINY REPL v{TINY_VERSION}")
+        print("Commands:")
+        print("  help            - list commands and descriptions")
+        print("  quit            - exit the REPL")
+        print("  import <file>   - load functions from a .tiny file")
+        print("  reimport <file> - load functions, overwriting existing")
+        print("  clear vars      - clear current local variables")
+        print("  clear all       - reset engine state (all vars, funcs)")
+        print("  list            - list variables and functions")
+        print("  list vars       - list only current variables")
+        print("  list functions  - list defined function names")
+        print("  debug on        - show full Python tracebacks")
+        print("  debug off       - concise errors; hide tracebacks")
+        return True
+
+    if lower == "quit":
+        return True
+
+    if lower in ("list", "list vars", "list functions"):
+        # Listing helpers
+        def _print_vars() -> None:
+            frame = engine.current_frame
+            vars_dict = getattr(frame, "_vars", {})  # type: ignore[attr-defined]
+            names = sorted(vars_dict.keys())
+            if not names:
+                print("[variables] (none)")
+            else:
+                print("[variables]")
+                for name in names:
+                    dtype, value = vars_dict[name]
+                    print(f"  {name} = {value!r} : {dtype}")
+
+        def _print_functions() -> None:
+            funcs = engine.get_functions()
+            names = sorted(funcs.keys())
+            if not names:
+                print("[functions] (none)")
+            else:
+                print("[functions]")
+                sigs = engine.get_function_signatures()
+                for name in names:
+                    fn_ret_type, fn_params = sigs[name]
+                    print(f"  {fn_ret_type} {name}({', '.join(' '.join(p) for p in fn_params)})")
+
+        if lower in ("list", "list vars"):
+            _print_vars()
+        if lower in ("list", "list functions"):
+            _print_functions()
+        return True
+
+    # Debug mode commands
+    if lower == "debug on":
+        debug[0] = True
+        print("[debug: on]")
+        return True
+    if lower == "debug off":
+        debug[0] = False
+        print("[debug: off]")
+        return True
+
+    # import commands
+    if cmd.startswith("import "):
+        try:
+            _, rest = line.split(None, 1)
+        except ValueError:
+            print("usage: import <file>")
+            return True
+        _load_functions_from_file(engine, rest.strip(), overwrite=False, debug=debug[0])
+        return True
+    if line.lower().startswith("reimport "):
+        try:
+            _, rest = line.split(None, 1)
+        except ValueError:
+            print("usage: reimport <file>")
+            return True
+        _load_functions_from_file(engine, rest.strip(), overwrite=True, debug=debug[0])
+        return True
+
+    # clear/reset commands
+    if lower == "clear vars":
+        if engine._frames:  # type: ignore[attr-defined]
+            engine._frames[-1] = TinyFrame()  # type: ignore[attr-defined]
+        else:
+            engine.push_frame()
+        print("[locals cleared]")
+        return True
+
+    if lower == "clear all":
+        engine = TinyEngine()
+        engine.push_frame()
+        print("[engine reset]")
+        return True
+
+    return False
 
 def repl() -> int:
     print(f"TINY REPL v{TINY_VERSION} — enter statements on one or more lines. Ctrl-C to cancel current input; `quit` to exit.")
@@ -187,99 +287,14 @@ def repl() -> int:
         # If starting fresh, allow immediate REPL commands
         if not buffer_lines:
             cmd = line.strip()
-            lower = cmd.lower()
             if not cmd:
                 # ignore empty input
                 continue
-            if lower == "help":
-                print(f"TINY REPL v{TINY_VERSION}")
-                print("Commands:")
-                print("  help            - list commands and descriptions")
-                print("  quit            - exit the REPL")
-                print("  import <file>   - load functions from a .tiny file")
-                print("  reimport <file> - load functions, overwriting existing")
-                print("  clear vars      - clear current local variables")
-                print("  clear all       - reset engine state (all vars, funcs)")
-                print("  list            - list variables and functions")
-                print("  list vars       - list only current variables")
-                print("  list functions  - list defined function names")
-                print("  debug on        - show full Python tracebacks")
-                print("  debug off       - concise errors; hide tracebacks")
-                continue
-            if lower == "quit":
-                break
-            if lower == "list" or lower == "list vars" or lower == "list functions":
-                # Listing helpers
-                def _print_vars() -> None:
-                    frame = engine.current_frame
-                    vars_dict = getattr(frame, "_vars", {})  # type: ignore[attr-defined]
-                    names = sorted(vars_dict.keys())
-                    if not names:
-                        print("[variables] (none)")
-                    else:
-                        print("[variables]")
-                        for name in names:
-                            dtype, value = vars_dict[name]
-                            print(f"  {name} = {value!r} : {dtype}")
 
-                def _print_functions() -> None:
-                    funcs = getattr(engine, "_functions", {})  # type: ignore[attr-defined]
-                    names = sorted(funcs.keys())
-                    if not names:
-                        print("[functions] (none)")
-                    else:
-                        print("[functions]")
-                        for name in names:
-                            print(f"  {name}")
+            if handle_meta_command(engine, cmd, [debug]):
+                if cmd.strip().lower() == "quit":
+                    break
 
-                if lower == "list":
-                    _print_vars()
-                    _print_functions()
-                    continue
-                if lower == "list vars":
-                    _print_vars()
-                    continue
-                if lower == "list functions":
-                    _print_functions()
-                    continue
-
-            # Debug mode commands
-            if lower == "debug on":
-                debug = True
-                print("[debug: on]")
-                continue
-            if lower == "debug off":
-                debug = False
-                print("[debug: off]")
-                continue
-
-            if line.lower().startswith("import "):
-                try:
-                    _, rest = line.split(None, 1)
-                except ValueError:
-                    print("usage: import <file>")
-                    continue
-                _load_functions_from_file(engine, rest.strip(), overwrite=False, debug=debug)
-                continue
-            if line.lower().startswith("reimport "):
-                try:
-                    _, rest = line.split(None, 1)
-                except ValueError:
-                    print("usage: reimport <file>")
-                    continue
-                _load_functions_from_file(engine, rest.strip(), overwrite=True, debug=debug)
-                continue
-            if lower == "clear vars":
-                if engine._frames:  # type: ignore[attr-defined]
-                    engine._frames[-1] = TinyFrame()  # type: ignore[attr-defined]
-                else:
-                    engine.push_frame()
-                print("[locals cleared]")
-                continue
-            if lower == "clear all":
-                engine = TinyEngine()
-                engine.push_frame()
-                print("[engine reset]")
                 continue
 
         # Treat as part of TINY input

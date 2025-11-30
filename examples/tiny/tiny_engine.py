@@ -113,6 +113,12 @@ class TinyEngine:
         """
         self._function_sigs[name] = (return_type, params)
 
+    def get_functions(self) -> dict[str, TinyNode]:
+        return {**self._functions}
+
+    def get_function_signatures(self) -> dict[str, tuple[str, list[tuple[str, str]]]]:
+        return {**self._function_sigs}
+
     # ----- Frame management -----
     @property
     def current_frame(self) -> TinyFrame:
