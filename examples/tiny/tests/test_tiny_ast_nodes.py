@@ -76,7 +76,6 @@ def test_function_with_no_parameters_call_via_expr(capsys: pytest.CaptureFixture
         node_cls = TinyNode.from_statement_type(fdef.type)
         fn_node = node_cls.from_parsed(fdef)
         engine.register_function(fdef.decl.name, fn_node)
-        engine.register_function_signature(fdef.decl.name, fdef.decl.return_type, fdef.decl.parameters)
 
     # Build and execute main
     main_group = parsed.program.main
@@ -87,6 +86,46 @@ def test_function_with_no_parameters_call_via_expr(capsys: pytest.CaptureFixture
 
     captured = capsys.readouterr()
     assert captured.out == "Hello!\n"
+    assert ret == 0
+
+
+def test_function_with_one_parameters_call_via_expr(capsys: pytest.CaptureFixture[str]) -> None:
+    """Define a function that takes one parameters and returns a string.
+
+    The main program calls it in an expression context: write greeting();
+    Verifies that functions with empty parameter lists are parsed, registered,
+    called via eval_expr(func_call), and their return value is used.
+    """
+    src = (
+        """\
+        string greeting(string name){
+            return "Hello " + name + "!";
+        }
+        int main(){
+            write greeting("Bob"); write endl;
+            return 0;
+        }
+        """
+    )
+
+    parsed = parse_tiny(src)
+
+    # Register top-level functions with the engine
+    engine = TinyEngine()
+    for fdef in parsed.program.functions:
+        node_cls = TinyNode.from_statement_type(fdef.type)
+        fn_node = node_cls.from_parsed(fdef)
+        engine.register_function(fdef.decl.name, fn_node)
+
+    # Build and execute main
+    main_group = parsed.program.main
+    node_cls = TinyNode.from_statement_type(main_group["type"])  # type: ignore[index]
+    assert node_cls is not None
+    main_node = node_cls(main_group)
+    ret = main_node.execute(engine)
+
+    captured = capsys.readouterr()
+    assert captured.out == "Hello Bob!\n"
     assert ret == 0
 
 

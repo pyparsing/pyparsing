@@ -96,8 +96,7 @@ def initialize_engine(engine: TinyEngine, program: pp.ParseResults):
             fn_node_class = TinyNode.from_statement_type(fdef.type)
             fn_node = fn_node_class.from_parsed(fdef)
 
-            # Register signature and node for runtime use
-            engine.register_function_signature(fname, return_type, params)
+            # Register function node for runtime use
             engine.register_function(fname, fn_node)
 
     # Register any top-level globals if they exist (grammar may not provide these)

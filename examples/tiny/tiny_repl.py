@@ -128,7 +128,6 @@ def _load_functions_from_file(
             if fn_node_class is None:
                 continue
             fn_node = fn_node_class.from_parsed(fdef)
-            engine.register_function_signature(fname, return_type, params)
             engine.register_function(fname, fn_node)
 
 
@@ -351,7 +350,6 @@ def repl() -> int:
                     if fn_node_class is None:
                         raise TypeError(f"Unsupported function node type: {getattr(fdef, 'type', None)!r}")
                     fn_node = fn_node_class.from_parsed(fdef)
-                    engine.register_function_signature(fname, return_type, params)
                     engine.register_function(fname, fn_node)
                 except Exception as exc:
                     if debug:
@@ -365,8 +363,8 @@ def repl() -> int:
 
         # Parsed successfully: execute and reset buffer
         nodes = _build_nodes_from_stmt_seq(parsed)
+        echoed_any = False
         try:
-            echoed_any = False
             for node in nodes:
                 ret = node.execute(engine)
                 stype = getattr(node, "statement_type", None)

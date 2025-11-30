@@ -107,12 +107,15 @@ class MainDeclNode(TinyNode):
     statement_type: ClassVar[str] = "main_decl"
 
     # Prebuilt main-body statements
+    return_type: str = "int"
+    parameters: list[tuple[str, str]] = field(default_factory=list)
     statements: list[TinyNode] = field(default_factory=list)
 
     def __init__(self, parsed: pp.ParseResults):
         super().__init__(parsed)
         # Pre-build contained statement nodes for the main body
         self.statements = []
+        self.parameters = []
         self.build_contained_statements()
 
     @classmethod
@@ -164,23 +167,30 @@ class FunctionDeclStmtNode(TinyNode):
 
     # Prebuilt function body statements (if a body was provided)
     name: str
+    return_type: str = ""
+    parameters: list[tuple[str, str]] = field(default_factory=list)
     statements: list[TinyNode] = field(default_factory=list)
 
     @classmethod
     def from_parsed(cls, parsed: pp.ParseResults) -> FunctionDeclStmtNode:
         fn_name = parsed.decl.name
+        return_type = parsed.decl.return_type
+        if parsed.decl.parameters:
+            params = [(p.type, p.name) for p in parsed.decl.parameters[0]]
+        else:
+            params = []
 
         # Locate a function body group in common shapes
         body_group: pp.ParseResults = parsed.body
 
-        built: list[TinyNode] = []
+        statement_nodes: list[TinyNode] = []
         if body_group:
             raw_stmts = body_group.stmts or []
             for stmt in raw_stmts:
                 node_cls = TinyNode.from_statement_type(stmt["type"])  # type: ignore[index]
                 if node_cls is not None:
-                    built.append(node_cls.from_parsed(stmt))  # type: ignore[arg-type]
-        return cls(name=fn_name, statements=built)
+                    statement_nodes.append(node_cls.from_parsed(stmt))  # type: ignore[arg-type]
+        return cls(name=fn_name, return_type=return_type, parameters=params, statements=statement_nodes)
 
     def execute(self, engine: "TinyEngine") -> object | None:  # noqa: F821 - forward ref
         # Execute the function body in a new local frame. If no body is present,

@@ -100,18 +100,11 @@ class TinyEngine:
     def register_function(self, name: str, fn: TinyNode) -> None:
         """Register a program-level function definition by name."""
         self._functions[name] = fn
+        self._function_sigs[name] = (fn.return_type, fn.parameters)
+
 
     def get_function(self, name: str) -> TinyNode | None:
         return self._functions.get(name)
-
-    def register_function_signature(
-        self, name: str, return_type: str, params: list[tuple[str, str]]
-    ) -> None:
-        """Register or update a function's signature metadata.
-
-        params: list of (ptype, pname)
-        """
-        self._function_sigs[name] = (return_type, params)
 
     def get_functions(self) -> dict[str, TinyNode]:
         return {**self._functions}
