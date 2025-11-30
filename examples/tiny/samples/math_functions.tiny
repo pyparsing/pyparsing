@@ -135,8 +135,7 @@ float exp(float x) {
 int main() {
     int i := 1;
     repeat
-        write i;
-        write " ";
+        write "sqrt("; write i; write ") = =";
         write round(sqrt(i), 4);
         write endl;
         i := i + 1;
@@ -147,40 +146,38 @@ int main() {
     int b;
     repeat
         a := a + 1;
-        b := 0;
+        b := a - 1;
         repeat
             b := b + 1;
-            write a;
-            write " ";
-            write b;
-            write " ";
+            write "hypot("; write a; write ", "; write b; write ") = ";
             write round(hypot(a, b), 3);
             write endl;
-        until b = 10
+        until b >= 10
     until a = 10
 
-    write rad(180); write endl;
-    write deg(pi()); write endl;
+    write "rad(180) = "; write rad(180); write endl;
+    write "deg(pi()) = "; write deg(pi()); write endl;
 
-    write sin(rad(30)); write endl;
-    write sin(rad(90)); write endl;
-    write cos(rad(60)); write endl;
-    write cos(rad(90)); write endl;
-    write cos(rad(180)); write endl;
-    write tan(rad(45)); write endl;
-    write tan(0); write endl;
-    write tan(pi() / 2); write endl;
+    write "sin(rad(30)) = "; write sin(rad(30)); write endl;
+    write "sin(rad(90)) = "; write sin(rad(90)); write endl;
+    write "cos(rad(60)) = "; write cos(rad(60)); write endl;
+    write "cos(rad(90)) = "; write cos(rad(90)); write endl;
+    write "cos(rad(180)) = "; write cos(rad(180)); write endl;
+    write "tan(rad(45)) = "; write tan(rad(45)); write endl;
+    write "tan(0) = "; write tan(0); write endl;
+    write "tan(pi() / 2) = "; write tan(pi() / 2); write endl;
 
-    write pow(10, 0); write endl;
-    write pow(10, 1); write endl;
-    write pow(10, 2); write endl;
+    write "pow(10, 0) = "; write pow(10, 0); write endl;
+    write "pow(10, 1) = "; write pow(10, 1); write endl;
+    write "pow(10, 2) = "; write pow(10, 2); write endl;
 
-    write exp(0); write endl;
-    write exp(1); write endl;
+    write "exp(0) = "; write exp(0); write endl;
+    write "exp(1) = "; write exp(1); write endl;
 
     i := -5;
     repeat
-        write i; write " "; write mod(i, 3); write endl;
+        write "mod("; write i; write ", 3) = ";
+        write mod(i, 3); write endl;
         i := i + 1;
     until i > 5
 
