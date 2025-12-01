@@ -2045,7 +2045,7 @@ class ParserElement(ABC):
             success_action or _default_success_debug_action,  # type: ignore[truthy-function]
             exception_action or _default_exception_debug_action,  # type: ignore[truthy-function]
         )
-        self.debug = True
+        self.debug = any(self.debugActions)
         return self
 
     def set_debug(self, flag: bool = True, recurse: bool = False) -> ParserElement:
