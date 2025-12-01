@@ -11272,8 +11272,7 @@ class TestShowBestPractices(unittest.TestCase):
 
 
 # force clear of packrat parsing flags before saving contexts
-pp.ParserElement._packratEnabled = False
-pp.ParserElement._parse = pp.ParserElement._parseNoCache  # noqa
+pp.ParserElement.disable_memoization()
 
 Test02_WithoutPackrat.suite_context = ppt.reset_pyparsing_context().save()
 Test02_WithoutPackrat.save_suite_context = ppt.reset_pyparsing_context().save()
