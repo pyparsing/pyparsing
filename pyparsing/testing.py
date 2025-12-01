@@ -13,6 +13,7 @@ from .core import (
     __diag__,
     __compat__,
 )
+from . import core_builtin_exprs
 
 
 class pyparsing_test:
@@ -121,6 +122,10 @@ class pyparsing_test:
             ParserElement._left_recursion_enabled = self._save_context[
                 "recursion_enabled"
             ]
+
+            # clear debug flags on all builtins
+            for expr in core_builtin_exprs:
+                expr.set_debug(False)
 
             __compat__.collect_all_And_tokens = self._save_context["__compat__"]
 
