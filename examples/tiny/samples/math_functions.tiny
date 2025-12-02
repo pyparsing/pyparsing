@@ -92,7 +92,7 @@ float sin(float rad_) {
         mult := -mult;
         exponent := exponent + 2;
         sum := sum + mult * (pow(x, exponent) / factorial(exponent));
-    until n > 10
+    until n >= 12
     return sum;
 }
 
@@ -107,7 +107,7 @@ float cos(float rad_) {
         mult := -mult;
         exponent := exponent + 2;
         sum := sum + mult * pow(rad_, exponent) / factorial(exponent);
-    until n > 10
+    until n >= 12
     return sum;
 }
 
@@ -127,7 +127,7 @@ float exp(float x) {
         repeat
             n := n + 1;
             sum := sum + pow(x, n) / factorial(n);
-        until n > 10
+        until n >= 12
     end
     return sum;
 }
