@@ -2,6 +2,8 @@
 
 This document reflects the current definitions in `examples/tiny/tiny_parser.py`.
 
+Ref: https://github.com/a7medayman6/Tiny-Compiler/blob/master/Language-Description.md
+
 Notes
 - Terminals appear in single quotes.
 - Whitespace is insignificant except inside quoted strings.
