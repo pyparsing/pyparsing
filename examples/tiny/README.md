@@ -11,7 +11,7 @@ illustrative scripts, using the TINY language.
 
 ## Running the REPL
 
-The TINY project also includes an interactive Read–Eval–Print Loop (REPL) for quickly
+The TINY project includes an interactive Read–Eval–Print Loop (REPL) for quickly
 trying out statements and functions.
 
 - Start the REPL:
@@ -26,7 +26,6 @@ trying out statements and functions.
 - Useful keys/behavior:
   - Press Ctrl-C while typing to cancel the current partial input and return to a fresh prompt.
   - Press Ctrl-C during a long-running execution to interrupt it and return to the prompt.
-  - The REPL always prints a newline after executing a statement block.
 
 - Built-in REPL commands (typed at an empty prompt):
   - `quit` — exit the REPL
@@ -51,12 +50,36 @@ trying out statements and functions.
   >>> int x := 5;
   >>> write factorial(x);
   120
+  >>> list
+  [variables]
+    x = 5 : int
+  [functions]
+    abs(float a) : float
+    cos(float rad_) : float
+    deg(float rad) : float
+    div(int a, int b) : int
+    exp(float x) : float
+    factorial(int n) : int
+    hypot(float x, float y) : float
+    mod(int a, int b) : int
+    pi() : float
+    pow(float x, int y) : float
+    rad(float deg) : float
+    round(float a, int n) : float
+    sgn(float x) : int
+    sin(float rad_) : float
+    sqrt(float a) : float
+    tan(float rad_) : float
+  >>> quit
   ```
 
 - Errors and debugging:
-  - By default, non-runtime exceptions raised while executing TINY statements are shown concisely as `ExceptionType: message` without a traceback.
-  - The same concise behavior applies when importing files with `import`/`reimport` (I/O and other errors print `ExceptionType: message`).
-  - Turn on verbose debugging with `debug on` to display full Python tracebacks for exceptions during execution. Use `debug off` to return to concise error messages.
+  - By default, exceptions raised while executing TINY statements are shown concisely as 
+    `ExceptionType: message` without a traceback.
+  - The same concise behavior applies when importing files with `import`/`reimport` (I/O and other errors
+    print `ExceptionType: message`).
+  - Turn on verbose debugging with `debug on` to display full Python tracebacks for exceptions during execution.
+    Use `debug off` to return to concise error messages.
   - In debug mode, file import errors will also show full Python tracebacks.
 
 For a fuller walkthrough of REPL features and development notes, see
@@ -65,23 +88,33 @@ For a fuller walkthrough of REPL features and development notes, see
 ## Project Structure
 
 - tiny_parser.py
-  - Defines the TINY language grammar using pyparsing and exposes `parse_tiny(text)` to parse source into `ParseResults`.
+  - Defines the TINY language grammar using pyparsing and exposes `parse_tiny(text)` to parse source into internal
+    parser results.
+  - The parser tags each statement group with a `type` tag (for example: `main_decl`, `decl_stmt`, `assign_stmt`,
+    `if_stmt`, `repeat_stmt`, `read_stmt`, `write_stmt`, `return_stmt`, `call_stmt`), which is used in `tiny_ast.py` 
+    to instantiate the appropriate executable AST node subclass.
   - Independent of execution; focused purely on syntax and result structuring.
-  - Allows for testing the parser in isolation from any integration or implementation
-    components.
+  - Allows for testing the parser in isolation from any integration or implementation components.
 
 - tiny_ast.py
-  - Declares the abstract base `TinyNode` and node subclasses for each TINY statement type (for example: `main_decl`, `decl_stmt`, `assign_stmt`, `if_stmt`, `repeat_stmt`, `read_stmt`, `write_stmt`, `return_stmt`, `call_stmt`).
+  - Declares the abstract base `TinyNode` and node subclasses for each TINY statement type.
   - Nodes wrap parser results and implement `execute(engine)`; nodes that contain bodies pre-build their child nodes.
 
 - tiny_engine.py
-  - Implements `TinyEngine`, the runtime responsible for variable scopes (stack frames plus globals), text I/O, expression evaluation, and function invocation.
+  - Implements `TinyEngine`, the runtime responsible for variable scopes (stack frames plus globals), text I/O, 
+    expression evaluation, and function invocation.
   - Provides APIs used by AST nodes: declare/assign variables, evaluate expressions, read/write output, call functions.
 
 - tiny_run.py
   - CLI entry point to parse and run a `.tiny` program.
   - Registers top-level functions/globals, builds the `main` function node, and executes it using `TinyEngine`.
-  - Converts the parser's `ParseResults` into an executable hierarchy of `TinyNode` objects, using each statement group's `type` tag to instantiate the correct `TinyNode` subclass.
+  - Converts the parser's internal results into an executable hierarchy of `TinyNode` objects, using each statement 
+    group's `type` tag to instantiate the correct `TinyNode` subclass.
+
+- tiny_repl.py
+  - CLI entry point to start the interactive TINY REPL.
+  - Implements the REPL's command-line interface and REPL-specific logic.
+  - Uses `tiny_parser.py`, `tiny_ast.py`, and `tiny_engine.py` to parse and execute TINY statements.
 
 - samples/
   - Sample TINY programs (for example: `hello.tiny`, `hello_5.tiny`, `factorial.tiny`).
@@ -102,7 +135,8 @@ For a fuller walkthrough of REPL features and development notes, see
 
 Grammar outline: see `docs/grammar.md` and `docs/tiny_parser_diagram.html`
 
-Pyparsing best practices were used to prompt the AI on preferred usages of pyparsing. Accessible using the command `python -m pyparsing.ai.show_best_practices`
+Pyparsing best practices were used to prompt the AI on preferred usages of pyparsing. Accessible using the command 
+`python -m pyparsing.ai.show_best_practices`
 
 ## Reference
 - TINY language definition: https://a7medayman6.github.io/Tiny-Compiler/Language-Description.html

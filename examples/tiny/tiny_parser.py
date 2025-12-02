@@ -84,6 +84,8 @@ function_call = pp.Group(
     + FunctionName("name")
     + LPAREN
     + (
+        # fast evaluation of empty arg list, since it is common, and the recursive expr
+        # parser can be expensive
         RPAREN
         | pp.DelimitedList(expr)("args") + RPAREN
     )

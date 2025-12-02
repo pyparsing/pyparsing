@@ -20,7 +20,6 @@ from __future__ import annotations
 from pathlib import Path
 import sys
 import traceback
-from typing import Iterable
 
 import pyparsing as pp
 
@@ -206,7 +205,7 @@ def handle_meta_command(engine: TinyEngine, cmd: str, debug:list[bool]) -> bool:
                 sigs = engine.get_function_signatures()
                 for name in names:
                     fn_ret_type, fn_params = sigs[name]
-                    print(f"  {fn_ret_type} {name}({', '.join(' '.join(p) for p in fn_params)})")
+                    print(f"  {name}({', '.join(' '.join(p) for p in fn_params)}) : {fn_ret_type}")
 
         if lower in ("list", "list vars"):
             _print_vars()
