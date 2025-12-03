@@ -235,8 +235,6 @@ class DeclStmtNode(TinyNode):
         dtype = parsed.datatype or "int"
         items: list[tuple[str, Optional[object]]] = []
         for d in (parsed.decls or []):
-            if not isinstance(d, pp.ParseResults):
-                continue
             name = d.get("name")
             init_expr = d.init if "init" in d else None  # type: ignore[attr-defined]
             items.append((name, init_expr))
@@ -282,55 +280,37 @@ class IfStmtNode(TinyNode):
     """
     statement_type: ClassVar[str] = "if_stmt"
 
-    # Explicit fields for condition and branches
-    cond: object | None = None
-    then_statements: list[TinyNode] = field(default_factory=list)
-    elseif_branches: list[tuple[object, list[TinyNode]]] = field(default_factory=list)
-    else_statements: list[TinyNode] = field(default_factory=list)
+    # Explicit fields for all conditions and corresponding branches
+    branches: list[tuple[object, list[TinyNode]]] = field(default_factory=list)
 
     @classmethod
     def from_parsed(cls, parsed: pp.ParseResults) -> IfStmtNode:
-        # Initial condition (defined by the parser for if-statements)
-        cond_expr = parsed.cond if "cond" in parsed else None
 
-        # Build THEN branch nodes
-        built_then: list[TinyNode] = []
-        then_seq = parsed.then if "then" in parsed else []
-        built_then.extend(cls.body_statements(then_seq))
+        branches: list[tuple[object, list[TinyNode]]] = []
 
-        # Build ELSEIF branches
-        built_elseif: list[tuple[object, list[TinyNode]]] = []
-        if "elseif" in parsed:
-            for br in parsed["elseif"]:
-                if not isinstance(br, pp.ParseResults):
-                    continue
-                branch_nodes = cls.body_statements(br.then)
-                built_elseif.append((br.cond, branch_nodes))
+        # Initial if-then condition (defined by the parser for if-statements)
+        branches.append(
+            (parsed.cond, cls.body_statements(parsed.then))
+        )
 
-        # Build ELSE branch
-        built_else: list[TinyNode] = []
+        # Add ELSEIF branches
+        for br in parsed.elseif:
+            branches.append((br.cond, cls.body_statements(br.then)))
+
+        # Add ELSE branch
         if "else" in parsed:
-            built_else = cls.body_statements(parsed["else"])
+            # if there is an else and we get this far, the condition is always true
+            branches.append((1, cls.body_statements(parsed["else"])))
 
-        return cls(cond=cond_expr, then_statements=built_then, elseif_branches=built_elseif, else_statements=built_else)
+        return cls(branches=branches)
 
     def execute(self, engine: "TinyEngine") -> object | None:  # noqa: F821 - forward ref
-        # Evaluate main condition
-        if self.cond is not None and bool(engine.eval_expr(self.cond)):
-            for node in self.then_statements:
-                node.execute(engine)
-            return None
-
-        # Elseif branches in order
-        for cond, nodes in self.elseif_branches:
+        # Evaluate branches in order
+        for cond, nodes in self.branches:
             if bool(engine.eval_expr(cond)):
                 for node in nodes:
                     node.execute(engine)
-                return None
-
-        # Else branch if present
-        for node in self.else_statements:
-            node.execute(engine)
+                break
         return None
 
 
@@ -465,7 +445,7 @@ class CallStmtNode(TinyNode):
     def from_parsed(cls, parsed: pp.ParseResults) -> CallStmtNode:
         func_group: pp.ParseResults | None = None
         for item in parsed:
-            if isinstance(item, pp.ParseResults) and "type" in item and item["type"] == "func_call":  # type: ignore[index]
+            if "type" in item and item["type"] == "func_call":  # type: ignore[index]
                 func_group = item
                 break
         if func_group is None:

@@ -23,6 +23,29 @@ from .tiny_ast import TinyNode
 from .tiny_engine import TinyEngine
 
 
+def explain_parse_error(src: str, err: pp.ParseBaseException) -> str:
+    """Return a helpful, context-rich parse error string."""
+    source_lines = src.splitlines()
+    error_lineno = err.lineno
+    lineno_len = len(str(error_lineno + 1))
+
+    # Guard against last-line errors
+    if err.lineno - 1 >= len(source_lines):
+        source_lines.append("")
+
+    *prelude, error_line, postlude = source_lines[max(error_lineno - 3, 0): error_lineno + 1]
+    fragment = "\n".join(
+        [
+            *(f"{prelineno:>{lineno_len}}:  {line}" for prelineno, line in
+              enumerate(prelude, start=error_lineno - len(prelude))),
+            f"{error_lineno:>{lineno_len}}: >{error_line}",
+            f"{error_lineno + 1:>{lineno_len}}:  {postlude}",
+        ]
+    )
+
+    return fragment + "\n\n" + err.explain(depth=0)
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Run a TINY program using the TINY interpreter scaffold.")
     parser.add_argument("source", help="Path to the .tiny source file")
@@ -40,21 +63,7 @@ def main(argv: list[str] | None = None) -> int:
         parsed = parse_tiny(source_text)
     except pp.ParseBaseException as exc:
         # Print helpful location info
-        error_lineno = exc.lineno
-        lineno_len = len(str(error_lineno + 1))
-        # add an extra line to guard against failing to unpack if the error is on the last line
-        source_lines = source_text.splitlines() + [""]
-        *prelude, error_line, postlude = source_lines[max(error_lineno - 3, 0) : error_lineno + 1]
-        fragment = "\n".join(
-            [
-            *(f"{prelineno:>{lineno_len}}:  {line}" for prelineno, line in enumerate(prelude, start = error_lineno - len(prelude))),
-            f"{error_lineno:>{lineno_len}}: >{error_line}",
-            f"{error_lineno + 1:>{lineno_len}}:  {postlude}",
-            ]
-        )
-        print(fragment)
-        print()
-        print(exc.explain(depth=0))
+        print(explain_parse_error(source_text, exc))
         return 3
 
     if args.dump:
@@ -71,33 +80,19 @@ def main(argv: list[str] | None = None) -> int:
     # Execute scripts "main" function
     main_node = engine.get_function("main")
     main_node.execute(engine)
+    return 0
 
 
-def initialize_engine(engine: TinyEngine, program: pp.ParseResults):
+def initialize_engine(engine: TinyEngine, program: pp.ParseResults) -> None:
     # Register all top-level function definitions: build function nodes and signatures
     if "functions" in program:
         for fdef in program.functions:
-            try:
-                decl = fdef.decl
-                fname = decl.name
-                return_type = decl.return_type or "int"
-                params_group = decl.parameters
-                param_list = list(params_group[0]) if params_group else []
-                params: list[tuple[str, str]] = []
-                for p in param_list:
-                    ptype = p.type or "int"
-                    pname = p.name
-                    params.append((ptype, pname))
-            except Exception:
-                # Skip malformed definitions
-                continue
-
             # Build a function node with a prebuilt body
             fn_node_class = TinyNode.from_statement_type(fdef.type)
             fn_node = fn_node_class.from_parsed(fdef)
 
             # Register function node for runtime use
-            engine.register_function(fname, fn_node)
+            engine.register_function(fn_node.name, fn_node)
 
     # Register any top-level globals if they exist (grammar may not provide these)
     if "globals" in program:

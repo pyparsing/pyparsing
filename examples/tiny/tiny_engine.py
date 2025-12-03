@@ -15,8 +15,7 @@ import pyparsing as pp
 from .tiny_ast import TinyNode
 
 # Module version for TINY runtime/engine
-# Note: kept as a simple float to match request
-__version__ = 0.1
+__version__ = "0.1"
 
 import operator
 
@@ -407,9 +406,9 @@ class TinyEngine:
             # Numeric operations
             lnum = self._to_number(lhs)
             rnum = self._to_number(rhs)
+            ret = _op_map[op](lnum, rnum)
 
             # leave ints as ints
-            ret = _op_map[op](lnum, rnum)
             if op != "/" and isinstance(lnum, int) and isinstance(rnum, int):
                 ret = self._coerce(ret, "int")
             return ret

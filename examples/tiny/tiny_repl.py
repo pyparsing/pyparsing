@@ -5,12 +5,14 @@ Features
 - Starts with an empty TinyEngine and a single empty TinyFrame (locals scope).
 - Executes entered TINY statements in the context of the current frame.
 - Supports commands:
+  - `help` — display commands help
   - `quit` — exit the REPL
   - `import <file>` — parse a TINY source file and load all defined functions,
     ignoring any `main()` function present. Existing functions are left intact.
   - `reimport <file>` — same as `import`, but overwrites previously defined functions.
   - `clear vars` — clear all locally defined variables (reset current frame).
   - `clear all` — clear all variables and functions (engine reset).
+  - `list`, `list vars`, `list functions` — list defined vars and/or functions
 
 Usage:
     python -m examples.tiny.tiny_repl
@@ -26,28 +28,11 @@ import pyparsing as pp
 from .tiny_parser import parse_tiny, stmt_seq, Function_Definition, comment as TINY_COMMENT
 from .tiny_ast import TinyNode
 from .tiny_engine import TinyEngine, TinyFrame, __version__ as TINY_VERSION
+from .tiny_run import explain_parse_error
 
 
 PROMPT = ">>> "
-CONT_PROMPT = "... "
-
-
-def _explain_parse_error(src: str, err: pp.ParseBaseException) -> str:
-    """Return a helpful, context-rich parse error string."""
-    src_lines = src.splitlines()
-    # Guard against last-line errors
-    if err.lineno - 1 >= len(src_lines):
-        src_lines.append("")
-    pre_idx = max(err.lineno - 3, 0)
-    frag_lines: list[str] = []
-    width = len(str(err.lineno + 1))
-    for i in range(pre_idx, err.lineno - 1):
-        frag_lines.append(f"{i+1:>{width}}:  {src_lines[i]}")
-    current = src_lines[err.lineno - 1]
-    frag_lines.append(f"{err.lineno:>{width}}: >{current}")
-    next_line = src_lines[err.lineno] if err.lineno < len(src_lines) else ""
-    frag_lines.append(f"{err.lineno+1:>{width}}:  {next_line}")
-    return "\n".join(frag_lines) + "\n\n" + err.explain(depth=0)
+CONTINUE_PROMPT = "... "
 
 
 def _build_nodes_from_stmt_seq(parsed_seq: pp.ParseResults) -> list[TinyNode]:
@@ -82,7 +67,7 @@ def _load_functions_from_file(
         try:
             parsed = parse_tiny(source_text)
         except pp.ParseBaseException as exc:
-            msg = _explain_parse_error(source_text, exc)
+            msg = explain_parse_error(source_text, exc)
             print(msg, file=sys.stderr)
             return
     except OSError as exc:
@@ -129,33 +114,6 @@ def _load_functions_from_file(
             fn_node = fn_node_class.from_parsed(fdef)
             engine.register_function(fname, fn_node)
 
-
-def _try_execute(engine: TinyEngine, source: str) -> None:
-    """Parse and execute a TINY statement sequence against the engine.
-
-    Ctrl-C (KeyboardInterrupt) during execution interrupts the current run
-    and returns to the prompt. Any buffered output is flushed and a newline
-    is printed in all cases.
-    """
-    if not source.strip():
-        return
-    try:
-        parsed = stmt_seq.parse_string(source, parse_all=True)
-    except pp.ParseBaseException as exc:
-        print(_explain_parse_error(source, exc), file=sys.stderr)
-        return
-
-    nodes = _build_nodes_from_stmt_seq(parsed)
-    try:
-        for node in nodes:
-            node.execute(engine)
-    except KeyboardInterrupt:
-        # Interrupt execution and return to prompt
-        pass
-    finally:
-        # Always flush any buffered output and print a newline after executing
-        engine.output_text()
-        print()
 
 def handle_meta_command(engine: TinyEngine, cmd: str, debug:list[bool]) -> bool:
     # normalize to lowercase, and collapse whitespace
@@ -259,7 +217,10 @@ def handle_meta_command(engine: TinyEngine, cmd: str, debug:list[bool]) -> bool:
     return False
 
 def repl() -> int:
-    print(f"TINY REPL v{TINY_VERSION} — enter statements on one or more lines. Ctrl-C to cancel current input; `quit` to exit.")
+    print(
+        f"TINY REPL v{TINY_VERSION} — enter statements on one or more lines."
+        " Ctrl-C to cancel current input; `quit` to exit."
+    )
     engine = TinyEngine()
     # Initialize with a single empty frame for locals
     engine.push_frame()
@@ -271,7 +232,7 @@ def repl() -> int:
     while True:
         try:
             # Choose prompt based on whether we're in the middle of a statement
-            line = input(PROMPT if not buffer_lines else CONT_PROMPT)
+            line = input(PROMPT if not buffer_lines else CONTINUE_PROMPT)
         except EOFError:
             # On EOF: discard any partial input and exit
             print()
@@ -289,7 +250,9 @@ def repl() -> int:
                 # ignore empty input
                 continue
 
-            if handle_meta_command(engine, cmd, [debug]):
+            debug_ref = [debug]
+            if handle_meta_command(engine, cmd, debug_ref):
+                debug = debug_ref[0]
                 if cmd.strip().lower() == "quit":
                     break
 
@@ -322,34 +285,13 @@ def repl() -> int:
                 except Exception:
                     fdef = fdef_parsed
 
-                # Extract signature
-                try:
-                    decl = fdef.decl
-                    fname = decl.name
-                    return_type = decl.return_type or "int"
-                    params_group = decl.parameters
-                    param_list = list(params_group[0]) if params_group else []
-                    params: list[tuple[str, str]] = []
-                    for p in param_list:
-                        ptype = p.type or "int"
-                        pname = p.name
-                        params.append((ptype, pname))
-                except Exception as exc:
-                    # Malformed function declaration; report concisely unless in debug
-                    if debug:
-                        traceback.print_exc()
-                    else:
-                        print(f"{type(exc).__name__}: {exc}", file=sys.stderr)
-                    buffer_lines.clear()
-                    continue
-
                 # Build node and register (overwrite if already exists)
                 try:
                     fn_node_class = TinyNode.from_statement_type(fdef.type)
                     if fn_node_class is None:
                         raise TypeError(f"Unsupported function node type: {getattr(fdef, 'type', None)!r}")
                     fn_node = fn_node_class.from_parsed(fdef)
-                    engine.register_function(fname, fn_node)
+                    engine.register_function(fn_node.name, fn_node)
                 except Exception as exc:
                     if debug:
                         traceback.print_exc()
