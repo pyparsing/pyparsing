@@ -137,7 +137,7 @@ expr <<= bool_expr
 
 
 # Datatypes
-Datatype = pp.MatchFirst([INT, FLOAT, STRING]).set_name("Datatype")
+Datatype = (INT | FLOAT | STRING).set_name("Datatype")
 
 # Declarations: Datatype id (:= expr)? (',' id (:= expr)?)*
 var_init = (ASSIGN + expr("init")).set_name("var_initialization")
@@ -160,45 +160,45 @@ Assignment_Statement = pp.Group(
 
 # Read/Write
 Read_Statement = pp.Group(
-    pp.Tag("type", "read_stmt") + READ.suppress() - Identifier("var") + SEMI
+    pp.Tag("type", "read_stmt") + READ - Identifier("var") + SEMI
 ).set_name("Read_Statement")
 Write_Statement = pp.Group(
     pp.Tag("type", "write_stmt")
-    + WRITE.suppress()
+    + WRITE
     - (ENDL.copy().set_parse_action(lambda: "endl") | expr("expr"))
     + SEMI
 ).set_name("Write_Statement")
 
 # Return
 Return_Statement = pp.Group(
-    pp.Tag("type", "return_stmt") + RETURN.suppress() - expr("expr") + SEMI
+    pp.Tag("type", "return_stmt") + RETURN - expr("expr") - SEMI
 ).set_name("Return_Statement")
 
 # If / ElseIf / Else
 If_Statement = pp.Group(
     pp.Tag("type", "if_stmt")
-    + IF.suppress()
+    + IF
     + bool_expr("cond")
-    + THEN.suppress()
+    + THEN
     - pp.Group(stmt_seq)("then")
     + pp.ZeroOrMore(
         pp.Group(
-            ELSEIF.suppress()
+            ELSEIF
             - bool_expr("cond")
-            + THEN.suppress()
+            + THEN
             + pp.Group(stmt_seq)("then")
         )
     )("elseif")
-    + pp.Optional(ELSE.suppress() - pp.Group(stmt_seq)("else"))
-    + END.suppress()
+    + pp.Optional(ELSE - pp.Group(stmt_seq)("else"))
+    + END
 ).set_name("If_Statement")
 
 # Repeat Until
 Repeat_Statement = pp.Group(
     pp.Tag("type", "repeat_stmt")
-    + REPEAT.suppress()
+    + REPEAT
     - pp.Group(stmt_seq)("body")
-    + UNTIL.suppress()
+    + UNTIL
     + bool_expr("cond")
 ).set_name("Repeat_Statement")
 
@@ -211,17 +211,15 @@ Function_Call_Statement = (
     ).set_name("Function_Call_Statement")
 )
 
-statement <<= pp.MatchFirst(
-    [
-        Declaration_Statement,
-        Assignment_Statement,
-        If_Statement,
-        Repeat_Statement,
-        Read_Statement,
-        Write_Statement,
-        Return_Statement,
-        Function_Call_Statement,
-    ]
+statement <<= (
+    Declaration_Statement
+    | Assignment_Statement
+    | If_Statement
+    | Repeat_Statement
+    | Read_Statement
+    | Write_Statement
+    | Return_Statement
+    | Function_Call_Statement
 )
 
 stmt_seq <<= pp.OneOrMore(statement)
@@ -248,7 +246,7 @@ Function_Definition = pp.Group(
 Main_Function = pp.Group(
     pp.Tag("type", "main_decl")
     + Datatype("return_type")
-    + MAIN.suppress()
+    + MAIN
     + LPAREN
     + RPAREN
     - Function_Body("body")
@@ -259,7 +257,7 @@ Program = pp.Group(
     pp.Group(pp.ZeroOrMore(Function_Definition))("functions") + Main_Function("main")
 )("program").set_name("Program")
 
-# Ignore comments globally (for full program parsing) and in interactive elements
+# Ignore comments
 Program.ignore(comment)
 
 
@@ -307,9 +305,6 @@ def _mini_tests() -> None:
 if __name__ == "__main__":
 
     # Optional: generate diagram
-    # Program.create_diagram(
-    #     'tiny_parser_diagram.html',
-    #     show_results_names=True,
-    # )
+    # Program.create_diagram("tiny_parser_diagram.html", show_results_names=True)
 
     _mini_tests()
