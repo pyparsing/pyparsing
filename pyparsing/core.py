@@ -495,7 +495,7 @@ class ParserElement(ABC):
         # used when checking for left-recursion
         self._may_return_empty: bool = False
         self.keepTabs: bool = False
-        self.ignoreExprs: list[ParserElement] = list()
+        self.ignoreExprs: set[ParserElement] = set()
         self.debug: bool = False
         self.streamlined: bool = False
         # optimize exception handling for subclasses that don't advance parse index
@@ -603,7 +603,7 @@ class ParserElement(ABC):
         """
         cpy = copy.copy(self)
         cpy.parseAction = self.parseAction[:]
-        cpy.ignoreExprs = self.ignoreExprs[:]
+        cpy.ignoreExprs = self.ignoreExprs.copy()
         if self.copyDefaultWhiteChars:
             cpy.whiteChars = set(ParserElement.DEFAULT_WHITE_CHARS)
         return cpy
@@ -878,7 +878,7 @@ class ParserElement(ABC):
             for ignore_fn in ignore_expr_fns:
                 try:
                     while 1:
-                        loc, dummy = ignore_fn(instring, loc)
+                        loc, _ = ignore_fn(instring, loc)
                         exprsFound = True
                 except ParseException:
                     pass
@@ -1997,11 +1997,8 @@ class ParserElement(ABC):
         if isinstance(other, str_type):
             other = Suppress(other)
 
-        if isinstance(other, Suppress):
-            if other not in self.ignoreExprs:
-                self.ignoreExprs.append(other)
-        else:
-            self.ignoreExprs.append(Suppress(other.copy()))
+        if other is not self:
+            self.ignoreExprs.add(other)
         return self
 
     def set_debug_actions(
@@ -4357,15 +4354,10 @@ class ParseExpression(ParserElement):
         matching; may be called repeatedly, to define multiple comment or other
         ignorable patterns.
         """
-        if isinstance(other, Suppress):
-            if other not in self.ignoreExprs:
-                super().ignore(other)
-                for e in self.exprs:
-                    e.ignore(self.ignoreExprs[-1])
-        else:
-            super().ignore(other)
-            for e in self.exprs:
-                e.ignore(self.ignoreExprs[-1])
+        super().ignore(other)
+        for e in self.exprs:
+            if other not in e.ignoreExprs:
+                e.ignore(other)
         return self
 
     def _generateDefaultName(self) -> str:
@@ -5142,7 +5134,7 @@ class ParseElementEnhance(ParserElement):
             self.skipWhitespace = expr.skipWhitespace
             self.saveAsList = expr.saveAsList
             self.callPreparse = expr.callPreparse
-            self.ignoreExprs.extend(expr.ignoreExprs)
+            self.ignoreExprs |= expr.ignoreExprs
 
     def recurse(self) -> list[ParserElement]:
         return [self.expr] if self.expr is not None else []
@@ -5196,10 +5188,9 @@ class ParseElementEnhance(ParserElement):
         matching; may be called repeatedly, to define multiple comment or other
         ignorable patterns.
         """
-        if not isinstance(other, Suppress) or other not in self.ignoreExprs:
-            super().ignore(other)
-            if self.expr is not None:
-                self.expr.ignore(self.ignoreExprs[-1])
+        super().ignore(other)
+        if self.expr is not None:
+            self.expr.ignore(other)
 
         return self
 
@@ -6189,7 +6180,7 @@ class Forward(ParseElementEnhance):
         )
         self.skipWhitespace = self.expr.skipWhitespace
         self.saveAsList = self.expr.saveAsList
-        self.ignoreExprs.extend(self.expr.ignoreExprs)
+        self.ignoreExprs |= self.expr.ignoreExprs
         self.lshift_line = traceback.extract_stack(limit=2)[-2]  # type: ignore[assignment]
         return self
 
@@ -6480,7 +6471,8 @@ class Combine(TokenConverter):
         if self.adjacent:
             ParserElement.ignore(self, other)
         else:
-            super().ignore(other)
+            if other is not self:
+                super().ignore(other)
         return self
 
     def postParse(self, instring, loc, tokenlist):

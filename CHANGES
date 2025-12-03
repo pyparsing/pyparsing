@@ -98,6 +98,10 @@ Version 3.3.0 - under development
     (3.1.1 through 3.3.0), aggregating results into `perf_pyparsing.csv` at the repo root.
   - See `tests/README.md` for usage instructions.
 
+(added in 3.3.0 final)
+
+- Minor performance enhancement when assigning ignorable expressions using `ParserElement.ignore()`.
+
 
 Version 3.2.5 - September, 2025
 -------------------------------
