@@ -1,15 +1,16 @@
-int is_divisible(int a, int b) {
+int is_factorable_by(int a, int b) {
+    /* prime is not factorable by any number >= itself */
+    if b >= a then return 0; end
+
     int quo := a / b;
     return quo * b = a;
 }
 
 int is_prime(int n) {
-    if n = 2 || n = 3 || n = 5 || n = 7 then return 1; end
-
-    if is_divisible(n, 2) then return 0; end
-    if is_divisible(n, 3) then return 0; end
-    if is_divisible(n, 5) then return 0; end
-    if is_divisible(n, 7) then return 0; end
+    if is_factorable_by(n, 2) then return 0; end
+    if is_factorable_by(n, 3) then return 0; end
+    if is_factorable_by(n, 5) then return 0; end
+    if is_factorable_by(n, 7) then return 0; end
 
     /* n is prime, assuming it is not > 120 */
     return 1;
