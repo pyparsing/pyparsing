@@ -16,11 +16,17 @@ float pow(float x, int y) {
     if x = 0 then return 0; end
     if x = 1 || y = 0 then return 1; end
 
+    /* handle negative powers */
+    negative_pow := sgn(y) < 0;
+    y := abs(y);
+
     float result := 1;
     repeat
         result := result * x;
         y := y - 1;
     until y = 0
+
+    if negative_pow then result := 1 / result; end
 
     return result;
 }
@@ -61,13 +67,12 @@ int mod(int a, int b) {
 }
 
 float sqrt(float a) {
-    float eps := 0.0000001;
+    float eps := 0.00000000001;
     float y := a / 2.0;
     repeat
         if abs(y * y - a) < eps then return y; end
         y := (y + a / y) / 2;
     until 0
-    write endl;
 }
 
 float hypot(float x, float y) {
@@ -112,15 +117,18 @@ float cos(float rad_) {
 }
 
 float tan(float rad_) {
+    min_cos := 1e-18;
+
     float num := sin(rad_);
     float den := cos(rad_);
-    /* Avoid division by zero, just return a really big number */
-    if abs(den) < 0.00000001 then den := sgn(den) * 0.00000001; end
-    return sin(rad_) / cos(rad_);
+
+    /* Avoid division by zero */
+    if abs(den) < min_cos then den := sgn(den) * min_cos; end
+    return num / den;
 }
 
 float exp(float x) {
-    /* Taylor series expansion of exp(x) */
+    /* Taylor series expansion of eˣ */
     float sum := 1.0;
     int n := 0;
     if x > 0 then

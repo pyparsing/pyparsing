@@ -90,11 +90,9 @@ class TinyNode(ABC):
         """
         built: list[TinyNode] = []
         for stmt in stmts:
-            if isinstance(stmt, pp.ParseResults) and "type" in stmt:
-                node_cls = TinyNode.from_statement_type(stmt["type"])  # type: ignore[index]
-                if node_cls is not None:
-                    # All subclasses are guaranteed to implement from_parsed
-                    built.append(node_cls.from_parsed(stmt))  # type: ignore[arg-type]
+            node_cls = TinyNode.from_statement_type(stmt["type"])  # type: ignore[index]
+            if node_cls is not None:
+                built.append(node_cls.from_parsed(stmt))  # type: ignore[arg-type]
         return built
 
     # Execution interface (must be overridden by subclasses)

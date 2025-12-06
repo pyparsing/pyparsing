@@ -8,8 +8,7 @@ Features
   - `help` — display commands help
   - `quit` — exit the REPL
   - `import <file>` — parse a TINY source file and load all defined functions,
-    ignoring any `main()` function present. Existing functions are left intact.
-  - `reimport <file>` — same as `import`, but overwrites previously defined functions.
+    ignoring any `main()` function present.
   - `clear vars` — clear all locally defined variables (reset current frame).
   - `clear all` — clear all variables and functions (engine reset).
   - `list`, `list vars`, `list functions` — list defined vars and/or functions
@@ -22,6 +21,7 @@ from __future__ import annotations
 from pathlib import Path
 import sys
 import traceback
+from typing import Generic, TypeVar
 
 import pyparsing as pp
 
@@ -33,6 +33,19 @@ from .tiny_run import explain_parse_error
 
 PROMPT = ">>> "
 CONTINUE_PROMPT = "... "
+
+T = TypeVar("T")
+
+class byref(Generic[T]):
+    """Class to pass scalar values by reference"""
+    def __init__(self, /, value: T):
+        self._value = value
+
+    def get(self) -> T:
+        return self._value
+
+    def set(self, value: T):
+        self._value = value
 
 
 def _build_nodes_from_stmt_seq(parsed_seq: pp.ParseResults) -> list[TinyNode]:
@@ -52,7 +65,6 @@ def _load_functions_from_file(
     engine: TinyEngine,
     filepath: str | Path,
     *,
-    overwrite: bool,
     debug: bool = False,
 ) -> None:
     """Parse a .tiny file and register its function definitions into the engine.
@@ -91,20 +103,8 @@ def _load_functions_from_file(
             try:
                 decl = fdef.decl
                 fname = decl.name
-                return_type = decl.return_type or "int"
-                params_group = decl.parameters
-                param_list = list(params_group[0]) if params_group else []
-                params: list[tuple[str, str]] = []
-                for p in param_list:
-                    ptype = p.type or "int"
-                    pname = p.name
-                    params.append((ptype, pname))
             except Exception:
                 # Skip malformed definitions
-                continue
-
-            # Skip if not overwriting and function already exists
-            if not overwrite and engine.get_function(fname) is not None:
                 continue
 
             # Build function node and register signature and node
@@ -115,7 +115,7 @@ def _load_functions_from_file(
             engine.register_function(fname, fn_node)
 
 
-def handle_meta_command(engine: TinyEngine, cmd: str, debug:list[bool]) -> bool:
+def handle_meta_command(engine: TinyEngine, cmd: str, debug_ref: byref[bool]) -> bool:
     # normalize to lowercase, and collapse whitespace
     lower = " ".join(cmd.lower().split())
     line = cmd.strip()
@@ -126,7 +126,6 @@ def handle_meta_command(engine: TinyEngine, cmd: str, debug:list[bool]) -> bool:
         print("  help            - list commands and descriptions")
         print("  quit            - exit the REPL")
         print("  import <file>   - load functions from a .tiny file")
-        print("  reimport <file> - load functions, overwriting existing")
         print("  clear vars      - clear current local variables")
         print("  clear all       - reset engine state (all vars, funcs)")
         print("  list            - list variables and functions")
@@ -173,11 +172,11 @@ def handle_meta_command(engine: TinyEngine, cmd: str, debug:list[bool]) -> bool:
 
     # Debug mode commands
     if lower == "debug on":
-        debug[0] = True
+        debug_ref.set(True)
         print("[debug: on]")
         return True
     if lower == "debug off":
-        debug[0] = False
+        debug_ref.set(False)
         print("[debug: off]")
         return True
 
@@ -188,15 +187,7 @@ def handle_meta_command(engine: TinyEngine, cmd: str, debug:list[bool]) -> bool:
         except ValueError:
             print("usage: import <file>")
             return True
-        _load_functions_from_file(engine, rest.strip(), overwrite=False, debug=debug[0])
-        return True
-    if line.lower().startswith("reimport "):
-        try:
-            _, rest = line.split(None, 1)
-        except ValueError:
-            print("usage: reimport <file>")
-            return True
-        _load_functions_from_file(engine, rest.strip(), overwrite=True, debug=debug[0])
+        _load_functions_from_file(engine, rest.strip(), debug=debug_ref.get())
         return True
 
     # clear/reset commands
@@ -250,9 +241,9 @@ def repl() -> int:
                 # ignore empty input
                 continue
 
-            debug_ref = [debug]
+            debug_ref = byref(debug)
             if handle_meta_command(engine, cmd, debug_ref):
-                debug = debug_ref[0]
+                debug = debug_ref.get()
                 if cmd.strip().lower() == "quit":
                     break
 
@@ -280,10 +271,7 @@ def repl() -> int:
                     continue
             else:
                 # Successfully parsed a function declaration/definition typed at the prompt
-                try:
-                    fdef = fdef_parsed[0] if isinstance(fdef_parsed[0], pp.ParseResults) else fdef_parsed
-                except Exception:
-                    fdef = fdef_parsed
+                fdef = fdef_parsed[0]
 
                 # Build node and register (overwrite if already exists)
                 try:
