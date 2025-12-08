@@ -78,8 +78,12 @@ def main(argv: list[str] | None = None) -> int:
     initialize_engine(engine, parsed.program)
 
     # Execute scripts "main" function
-    main_node = engine.get_function("main")
-    main_node.execute(engine)
+    try:
+        main_node = engine.get_function("main")
+        main_node.execute(engine)
+    except Exception as exc:
+        print(f"{type(exc).__name__}: {exc}")
+        exit()
     return 0
 
 
@@ -117,4 +121,4 @@ def initialize_engine(engine: TinyEngine, program: pp.ParseResults) -> None:
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    main()
