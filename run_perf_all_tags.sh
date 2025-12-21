@@ -20,7 +20,7 @@ SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 REPO_DIR="$SCRIPT_DIR"
 CSV="$REPO_DIR/perf_pyparsing.csv"
 
-# pyparsing versions to test (3.1.1 through 3.3.0a2)
+# pyparsing versions to test (3.1.1 through 3.3.0)
 VERSIONS=(
   3.1.1
   3.1.2
@@ -28,6 +28,8 @@ VERSIONS=(
   3.1.4
   3.2.0
   3.2.1
+  3.2.3
+  3.2.5
   3.3.0
 )
 
