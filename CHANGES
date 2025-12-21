@@ -25,8 +25,8 @@ Required Python versions by pyparsing version
 +--------------------------------------------------+-------------------+
 
 
-Version 3.3.0 - under development
----------------------------------
+Version 3.3.0 - December, 2025
+------------------------------
 ===========================================================================================
  The version 3.3.0 release will begin emitting `DeprecationWarnings` for pyparsing methods
  that have been renamed to PEP8-compliant names (introduced in pyparsing 3.0.0, in August,
@@ -74,8 +74,6 @@ Version 3.3.0 - under development
   `ai/best_practices.md` file, and can be accessed programmatically by calling
   `pyparsing.show_best_practices()` or running `python -m pyparsing.ai.show_best_practices`
   from the command line, after installing the `pyparsing` package.
-
-(added in 3.3.0b1)
 
 - Implemented a TINY language parser/interpreter using pyparsing, in the `examples/tiny`
   directory. This is a little tutorial language that I used to demonstrate how to use pyparsing to
