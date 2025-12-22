@@ -96,6 +96,9 @@ Version 3.3.0 - December, 2025
     (3.1.1 through 3.3.0), aggregating results into `perf_pyparsing.csv` at the repo root.
   - See `tests/README.md` for usage instructions.
 
+- Used performance benchmarking to identify and revert an inefficient utility method used in
+  `transform_string` (introduced in pyparsing 3.2.0b2).
+
 
 Version 3.2.5 - September, 2025
 -------------------------------

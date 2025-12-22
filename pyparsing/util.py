@@ -312,11 +312,14 @@ def _collapse_string_to_ranges(
 
 def _flatten(ll: Iterable) -> list:
     ret = []
-    to_visit = [*ll]
-    while to_visit:
-        i = to_visit.pop(0)
-        if isinstance(i, Iterable) and not isinstance(i, str):
-            to_visit[:0] = i
+    for i in ll:
+        # Developer notes:
+        # - do not collapse this section of code, isinstance checks are done
+        # in optimal order
+        if isinstance(i, str):
+            ret.append(i)
+        elif isinstance(i, Iterable):
+            ret.extend(_flatten(i))
         else:
             ret.append(i)
     return ret
