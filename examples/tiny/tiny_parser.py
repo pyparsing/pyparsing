@@ -73,7 +73,6 @@ string_lit = pp.QuotedString('"', esc_char="\\", unquote_results=True).set_name(
 
 # Forward declarations
 expr = pp.Forward().set_name("expr")
-term = pp.Forward().set_name("term")
 statement = pp.Forward().set_name("statement")
 stmt_seq = pp.Forward().set_name("stmt_seq")
 bool_expr = pp.Forward().set_name("bool_expr")
@@ -92,11 +91,13 @@ function_call = pp.Group(
 ).set_name("function_call")
 
 # Term: number | Identifier | func_call | '(' expr ')'
-term <<= (
+term = (
     number
     | string_lit
     | function_call
-    | Identifier  # | pp.Group(LPAREN + expr + RPAREN)
+    | Identifier
+    # infix_notation will implement this internally
+    # | pp.Group(LPAREN + expr + RPAREN)
 ).set_name("term")
 
 # Operators
