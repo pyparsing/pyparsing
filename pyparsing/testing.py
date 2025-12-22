@@ -353,7 +353,8 @@ class pyparsing_test:
             s_lines = s.splitlines()[max(start_line - base_1, 0) : end_line]
         else:
             s_lines = [
-                line + "␊" for line in s.split("␊")[max(start_line - base_1, 0) : end_line]
+                line + "␊"
+                for line in s.split("␊")[max(start_line - base_1, 0) : end_line]
             ]
         if not s_lines:
             return ""
