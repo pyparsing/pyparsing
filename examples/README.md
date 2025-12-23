@@ -68,6 +68,10 @@ categories (several examples include supporting railroad diagrams):
     * [sexpParser.py](./sexpParser.py)
   * rosetta code
     * [rosettacode.py](./rosettacode.py) [(diagram)](./rosettacode_diagram.html)
+  * TINY - parser, interpreter, and REPL
+    * [README.md](./tiny/README.md)
+    * [tiny_parser.py](./tiny/tiny_parser.py) [(diagram)](./tiny/tiny_parser_diagram.html) [(PNG)](./tiny/tiny_parser_diagram.png)
+
 ## Domain Specific Language parsers
   * adventureEngine - interactive fiction parser and game runner
     * [adventureEngine.py](./adventureEngine.py) [(diagram)](./adventure_game_parser_diagram.html)
