@@ -229,6 +229,7 @@ def one_of(
             "warn_on_multiple_string_args_to_oneof:"
             " More than one string argument passed to one_of, pass"
             " choices as a list or space-delimited string",
+            PyparsingDiagnosticWarning,
             stacklevel=2,
         )
 
@@ -293,7 +294,9 @@ def one_of(
 
         except re.error:
             warnings.warn(
-                "Exception creating Regex for one_of, building MatchFirst", stacklevel=2
+                "Exception creating Regex for one_of, building MatchFirst",
+                PyparsingDiagnosticWarning,
+                stacklevel=2,
             )
 
     # last resort, just use MatchFirst of Token class corresponding to caseless
@@ -453,7 +456,7 @@ def locatedExpr(expr: ParserElement) -> ParserElement:
     """
     warnings.warn(
         f"{'locatedExpr'!r} deprecated - use {'Located'!r}",
-        DeprecationWarning,
+        PyparsingDeprecationWarning,
         stacklevel=2,
     )
 
@@ -1077,7 +1080,7 @@ def indentedBlock(blockStatementExpr, indentStack, indent=True, backup_stacks=[]
     """
     warnings.warn(
         f"{'indentedBlock'!r} deprecated - use {'IndentedBlock'!r}",
-        DeprecationWarning,
+        PyparsingDeprecationWarning,
         stacklevel=2,
     )
 

@@ -8,6 +8,7 @@ import typing
 import warnings
 from functools import cached_property
 
+from .warnings import PyparsingDeprecationWarning
 from .unicode import pyparsing_unicode as ppu
 from .util import (
     _collapse_string_to_ranges,
@@ -186,7 +187,7 @@ class ParseBaseException(Exception):
     def parserElement(self):
         warnings.warn(
             "parserElement is deprecated, use parser_element",
-            DeprecationWarning,
+            PyparsingDeprecationWarning,
             stacklevel=2,
         )
         return self.parser_element
@@ -195,7 +196,7 @@ class ParseBaseException(Exception):
     def parserElement(self, elem):
         warnings.warn(
             "parserElement is deprecated, use parser_element",
-            DeprecationWarning,
+            PyparsingDeprecationWarning,
             stacklevel=2,
         )
         self.parser_element = elem

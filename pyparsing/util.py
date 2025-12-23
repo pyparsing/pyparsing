@@ -8,6 +8,8 @@ import types
 from typing import Callable, Union, Iterable, TypeVar, cast, Any
 import warnings
 
+from .warnings import PyparsingDeprecationWarning, PyparsingDiagnosticWarning
+
 _bslash = chr(92)
 C = TypeVar("C", bound=Callable)
 
@@ -25,6 +27,7 @@ class __config_flags:
             warnings.warn(
                 f"{cls.__name__}.{dname} {cls._type_desc} is {str(getattr(cls, dname)).upper()}"
                 f" and cannot be overridden",
+                PyparsingDiagnosticWarning,
                 stacklevel=3,
             )
             return
@@ -433,7 +436,7 @@ def replaced_by_pep8(compat_name: str, fn: C) -> C:
         def _inner(self, *args, **kwargs):
             warnings.warn(
                 f"{compat_name!r} deprecated - use {fn.__name__!r}",
-                DeprecationWarning,
+                PyparsingDeprecationWarning,
                 stacklevel=2,
             )
             return fn(self, *args, **kwargs)
@@ -444,7 +447,7 @@ def replaced_by_pep8(compat_name: str, fn: C) -> C:
         def _inner(*args, **kwargs):
             warnings.warn(
                 f"{compat_name!r} deprecated - use {fn.__name__!r}",
-                DeprecationWarning,
+                PyparsingDeprecationWarning,
                 stacklevel=2,
             )
             return fn(*args, **kwargs)
@@ -477,7 +480,7 @@ def deprecate_argument(
         new_name = new_name or to_pep8_name(arg_name)
         warnings.warn(
             f"{arg_name!r} argument is deprecated, use {new_name!r}",
-            category=DeprecationWarning,
+            category=PyparsingDeprecationWarning,
             stacklevel=3,
         )
     else:

@@ -32,6 +32,7 @@ from functools import wraps
 from threading import RLock
 from pathlib import Path
 
+from .warnings import PyparsingDeprecationWarning, PyparsingDiagnosticWarning
 from .util import (
     _FifoCache,
     _UnboundedCache,
@@ -2205,7 +2206,7 @@ class ParserElement(ABC):
         """
         warnings.warn(
             "ParserElement.validate() is deprecated, and should not be used to check for left recursion",
-            DeprecationWarning,
+            PyparsingDeprecationWarning,
             stacklevel=2,
         )
         self._checkRecursion([])
@@ -4415,7 +4416,7 @@ class ParseExpression(ParserElement):
     def validate(self, validateTrace=None) -> None:
         warnings.warn(
             "ParserElement.validate() is deprecated, and should not be used to check for left recursion",
-            DeprecationWarning,
+            PyparsingDeprecationWarning,
             stacklevel=2,
         )
         tmp = (validateTrace if validateTrace is not None else [])[:] + [self]
@@ -4456,7 +4457,7 @@ class ParseExpression(ParserElement):
                     f" setting results name {name!r} on {type(self).__name__} expression"
                     f" collides with {e.resultsName!r} on contained expression"
                 )
-                warnings.warn(warning, stacklevel=3)
+                warnings.warn(warning, PyparsingDiagnosticWarning, stacklevel=3)
                 break
 
         return super()._setResultsName(name, list_all_matches)
@@ -4814,7 +4815,7 @@ class Or(ParseExpression):
                     " in prior versions only the first token was returned; enclose"
                     " contained argument in Group"
                 )
-                warnings.warn(warning, stacklevel=3)
+                warnings.warn(warning, PyparsingDiagnosticWarning, stacklevel=3)
 
         return super()._setResultsName(name, list_all_matches)
 
@@ -4926,7 +4927,7 @@ class MatchFirst(ParseExpression):
                     " in prior versions only the first token was returned; enclose"
                     " contained argument in Group"
                 )
-                warnings.warn(warning, stacklevel=3)
+                warnings.warn(warning, PyparsingDiagnosticWarning, stacklevel=3)
 
         return super()._setResultsName(name, list_all_matches)
 
@@ -5219,7 +5220,7 @@ class ParseElementEnhance(ParserElement):
     def validate(self, validateTrace=None) -> None:
         warnings.warn(
             "ParserElement.validate() is deprecated, and should not be used to check for left recursion",
-            DeprecationWarning,
+            PyparsingDeprecationWarning,
             stacklevel=2,
         )
         if validateTrace is None:
@@ -5713,7 +5714,7 @@ class _MultipleMatch(ParseElementEnhance):
                         f" setting results name {name!r} on {type(self).__name__} expression"
                         f" collides with {e.resultsName!r} on contained expression"
                     )
-                    warnings.warn(warning, stacklevel=3)
+                    warnings.warn(warning, PyparsingDiagnosticWarning, stacklevel=3)
                     break
 
         return super()._setResultsName(name, list_all_matches)
@@ -6210,6 +6211,7 @@ class Forward(ParseElementEnhance):
             warnings.warn(
                 "warn_on_match_first_with_lshift_operator:"
                 " using '<<' operator with '|' is probably an error, use '<<='",
+                PyparsingDiagnosticWarning,
                 stacklevel=2,
             )
         ret = super().__or__(other)
@@ -6254,6 +6256,7 @@ class Forward(ParseElementEnhance):
             warnings.warn(
                 "warn_on_parse_using_empty_Forward:"
                 " Forward expression was never assigned a value, will not parse any input",
+                PyparsingDiagnosticWarning,
                 stacklevel=stacklevel,
             )
         if not ParserElement._left_recursion_enabled:
@@ -6349,7 +6352,7 @@ class Forward(ParseElementEnhance):
     def validate(self, validateTrace=None) -> None:
         warnings.warn(
             "ParserElement.validate() is deprecated, and should not be used to check for left recursion",
-            DeprecationWarning,
+            PyparsingDeprecationWarning,
             stacklevel=2,
         )
         if validateTrace is None:
@@ -6403,7 +6406,7 @@ class Forward(ParseElementEnhance):
                 f" setting results name {name!r} on {type(self).__name__} expression"
                 " that has no contained expression"
             )
-            warnings.warn(warning, stacklevel=3)
+            warnings.warn(warning, PyparsingDiagnosticWarning, stacklevel=3)
         # fmt: on
 
         return super()._setResultsName(name, list_all_matches)

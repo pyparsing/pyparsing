@@ -27,7 +27,15 @@ Required Python versions by pyparsing version
 
 Version 3.3.2 - in development
 ------------------------------
-
+- Defined pyparsing-specific warning classes so that they can be selectively enabled
+  or disabled without affecting warnings raised by other libraries in the same Python
+  app:
+  - `PyparsingWarning` - base warning for all pyparsing-specific warnings (inherits
+    from `UserWarning`)
+  - `PyparsingDeprecationWarning` - warning for using deprecated features (inherits
+    from `PyparsingWarning` and `DeprecationWarning`)
+  - `PyparsingDiagnosticWarning` - warning raised when pyparsing diagnostics are
+    enabled and a diagnostic feature is used (inherits from `PyparsingWarning`)
 
 
 Version 3.3.1 - December, 2025
