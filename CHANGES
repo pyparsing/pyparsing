@@ -27,7 +27,8 @@ Required Python versions by pyparsing version
 
 Version 3.3.1 - December, 2025
 ------------------------------
-
+- Added license info to metadata, following PEP-639. Thanks to Gedalia Pasternak and
+  Marc Mueller for submitted issue and PR. Fixes #626.
 
 
 Version 3.3.0 - December, 2025
