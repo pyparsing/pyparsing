@@ -39,6 +39,8 @@ diagrams = [
 
 [project.urls]
 Homepage = "https://github.com/pyparsing/pyparsing/"
+Documentation = "https://pyparsing-docs.readthedocs.io/en/latest/"
+Source = "https://github.com/pyparsing/pyparsing.git"
 
 [tool.flit.sdist]
 include = [
