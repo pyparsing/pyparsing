@@ -4,7 +4,7 @@ What's New in Pyparsing 3.3.x
 
 :author: Paul McGuire
 
-:date: November, 2025
+:date: December, 2025
 
 :abstract: This document summarizes the changes made
     in the 3.3.x releases of pyparsing.
@@ -60,11 +60,15 @@ Planned deprecations and guidance for migration
   names were introduced in 3.0.0 (August 2021); the legacy names remain as aliases
   but are planned to be removed in pyparsing 4.0 (no earlier than 2026).
 
+- The warnings raised in pyparsing all inherit from ``PyparsingWarning``, and deprecation
+  warnings are of type ``PyparsingDeprecationWarning``, so these types can be selectively
+  enabled or disabled separately from warnings from other packages in an application.
+  Since these classes inherit from ``UserWarning`` and ``DeprecationWarning``, they can
+  also be handled as those standard types.
+
 - A utility script was added in 3.2.2 to help migrate code to PEP8-compliant
   names: ``pyparsing/tools/cvt_pyparsing_pep8_names.py``. Run it on one or more
-  files; use ``-u`` to update files in place. Example:
-
-  ::
+  files; use ``-u`` to update files in place. Example::
 
       python -m pyparsing.tools.cvt_pyparsing_pep8_names -u examples/*.py
 
