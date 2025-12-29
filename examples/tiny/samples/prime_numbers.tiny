@@ -2,8 +2,9 @@ int is_factorable_by(int a, int b) {
     /* prime is not factorable by any number >= itself */
     if b >= a then return 0; end
 
-    int quo := a / b;
-    return quo * b = a;
+    float quo := a / b;
+    int iquo := quo;
+    return quo = iquo;
 }
 
 int is_prime(int n) {
