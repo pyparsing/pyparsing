@@ -68,6 +68,8 @@ categories (several examples include supporting railroad diagrams):
     * [sexpParser.py](./sexpParser.py)
   * rosetta code
     * [rosettacode.py](./rosettacode.py) [(diagram)](./rosettacode_diagram.html) [(PNG)](./rosettacode_diagram.png)
+  * SPy - simplified Python
+    * [spy_parser.py](./spy_parser.py) [(diagram)](./spy_parser_diagram.html) [(PNG)](./spy_parser_diagram.png)
   * TINY - parser, interpreter, and REPL
     * [README.md](./tiny/README.md)
     * [tiny_parser.py](./tiny/tiny_parser.py) [(diagram)](./tiny/tiny_parser_diagram.html) [(PNG)](./tiny/tiny_parser_diagram.png)
