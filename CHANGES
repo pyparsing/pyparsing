@@ -37,6 +37,8 @@ Version 3.3.2 - in development
   - `PyparsingDiagnosticWarning` - warning raised when pyparsing diagnostics are
     enabled and a diagnostic feature is used (inherits from `PyparsingWarning`)
 
+- Minor performance improvements in `ParseResults` class.
+
 - Added SPy (Simplified Python) parser to examples.
 
 

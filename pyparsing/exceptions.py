@@ -176,7 +176,7 @@ class ParseBaseException(Exception):
         # pull out next word at error location
         found_match = _exception_word_extractor.match(self.pstr, self.loc)
         if found_match is not None:
-            found_text = found_match.group(0)
+            found_text = found_match[0]
         else:
             found_text = self.pstr[self.loc : self.loc + 1]
 

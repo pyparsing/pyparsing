@@ -38,6 +38,7 @@ from .util import (
     _UnboundedCache,
     __config_flags,
     _collapse_string_to_ranges,
+    _convert_escaped_numerics_to_char,
     _escape_regex_range_chars,
     _flatten,
     LRUMemo as _LRUMemo,
@@ -3367,7 +3368,7 @@ class Word(Token):
             raise ParseException(instring, loc, self.errmsg, self)
 
         loc = result.end()
-        return loc, result.group()
+        return loc, result[0]
 
 
 class Char(Word):
@@ -3551,7 +3552,7 @@ class Regex(Token):
             raise ParseException(instring, loc, self.errmsg, self)
 
         loc = result.end()
-        ret = ParseResults(result.group())
+        ret = ParseResults(result[0])
         d = result.groupdict()
 
         for k, v in d.items():
@@ -3814,17 +3815,7 @@ class QuotedString(Token):
 
         # get ending loc and matched string from regex matching result
         loc = result.end()
-        ret = result.group()
-
-        def convert_escaped_numerics(s: str) -> str:
-            if s == "0":
-                return "\0"
-            if s.isdigit() and len(s) == 3:
-                return chr(int(s, base=8))
-            elif s.startswith(("u", "x")):
-                return chr(int(s[1:], base=16))
-            else:
-                return s
+        ret = result[0]
 
         if self.unquote_results:
             # strip off quotes
@@ -3838,22 +3829,22 @@ class QuotedString(Token):
                     # regex matches (only 1 group will match at any given time)
                     ret = "".join(
                         # match group 1 matches \t, \n, etc.
-                        self.ws_map[match.group(1)] if match.group(1)
+                        self.ws_map[g] if (g := match[1])
                         # match group 2 matches escaped octal, null, hex, and Unicode
                         # sequences
-                        else convert_escaped_numerics(match.group(2)[1:]) if match.group(2)
+                        else _convert_escaped_numerics_to_char(g[1:]) if (g := match[2])
                         # match group 3 matches escaped characters
-                        else match.group(3)[-1] if match.group(3)
+                        else g[-1] if (g := match[3])
                         # match group 4 matches any character
-                        else match.group(4)
+                        else match[4]
                         for match in self.unquote_scan_re.finditer(ret)
                     )
                 else:
                     ret = "".join(
                         # match group 1 matches escaped characters
-                        match.group(1)[-1] if match.group(1)
+                        g[-1] if (g := match[1])
                         # match group 2 matches any character
-                        else match.group(2)
+                        else match[2]
                         for match in self.unquote_scan_re.finditer(ret)
                     )
                 # fmt: on
