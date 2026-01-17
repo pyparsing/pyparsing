@@ -98,7 +98,7 @@
                 remaining_count = 0
                 for i, _ in enumerate(invert_iter, 1):
                     remaining_count = i
-                    if i % 1000 == 0:
+                    if i % 100_000 == 0:
                         status_div.innerText = f"Counting matches... {num_shown + i:,} found so far"
                         await asyncio.sleep(0)
                         if is_cancelled:
