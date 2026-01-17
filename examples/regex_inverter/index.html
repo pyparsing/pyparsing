@@ -23,7 +23,7 @@
             <p><strong>Constraints:</strong></p>
             <ul>
                 <li>Unbounded repetition operators <code>+</code> and <code>*</code> are <strong>not supported</strong>.</li>
-                <li>Please replace <code>+</code> or <code>*</code> with explicit <code>{n}</code> or <code>{min,max}</code> repetition operators (e.g., use <code>[A-Z]{1,10}</code> instead of <code>[A-Z]+</code>).</li>
+                <li>Replace <code>+</code> or <code>*</code> with explicit <code>{n}</code> or <code>{min,max}</code> repetition operators (e.g., use <code>[A-Z]{1,10}</code> instead of <code>[A-Z]+</code>, or <code>[A-Z]{,10}</code> instead of <code>[A-Z]*</code>).</li>
             </ul>
             <p><strong>Note:</strong> Complex regular expressions or those with large repetition counts may take some time to process.</p>
         </div>
@@ -76,7 +76,9 @@
                 invert_iter = invert(regex)
                 results = list(itertools.islice(invert_iter, max_results))
                 num_shown = len(results)
-                
+                output_area.value = "\n".join(results)
+                await asyncio.sleep(0.1)
+
                 # Count the remaining items in the iterator
                 remaining_count = sum(1 for _ in invert_iter)
                 total_count = num_shown + remaining_count
@@ -84,8 +86,7 @@
                 status_div.innerText = f"Total matching strings: {total_count:,}"
                 if total_count > max_results:
                     status_div.innerText += f" (showing first {max_results:,})"
-                output_area.value = "\n".join(results)
-                
+
             except pyparsing.ParseFatalException as pfe:
                 status_div.innerText = "Error"
                 output_area.value = f"Parse Error: {pfe.msg}"
