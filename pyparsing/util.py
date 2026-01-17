@@ -236,7 +236,7 @@ def _is_iterable(obj, _str_type=(str, bytes), _iter_exception=Exception):
 
 
 def _escape_re_range_char(c: str) -> str:
-    return "\\" + c if c in r"\^-][" else c
+    return fr"\{c}" if c in r"\^-][" else c
 
 
 def _collapse_string_to_ranges(

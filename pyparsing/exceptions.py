@@ -27,7 +27,7 @@ class _ExceptionWordUnicodeSet(
 
 
 _extract_alphanums = _collapse_string_to_ranges(_ExceptionWordUnicodeSet.alphanums)
-_exception_word_extractor = re.compile("([" + _extract_alphanums + "]{1,16})|.")
+_exception_word_extractor = re.compile(fr"([{_extract_alphanums}]{{1,16}})|.")
 
 
 class ParseBaseException(Exception):

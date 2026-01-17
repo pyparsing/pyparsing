@@ -303,7 +303,7 @@ class pyparsing_common:
     """typical code identifier (leading alpha or '_', followed by 0 or more alphas, nums, or '_')"""
 
     ipv4_address = Regex(
-        r"(25[0-5]|2[0-4][0-9]|1?[0-9]{1,2})(\.(25[0-5]|2[0-4][0-9]|1?[0-9]{1,2})){3}"
+        r"(?:25[0-5]|2[0-4][0-9]|1?[0-9]{1,2})(?:\.(?:25[0-5]|2[0-4][0-9]|1?[0-9]{1,2})){3}"
     ).set_name("IPv4 address")
     "IPv4 address (``0.0.0.0 - 255.255.255.255``)"
 
@@ -404,7 +404,7 @@ class pyparsing_common:
     ).set_name("ISO8601 datetime")
     "ISO8601 datetime (``yyyy-mm-ddThh:mm:ss.s(Z|+-00:00)``) - trailing seconds, milliseconds, and timezone optional; accepts separating ``'T'`` or ``' '``"
 
-    uuid = Regex(r"[0-9a-fA-F]{8}(-[0-9a-fA-F]{4}){3}-[0-9a-fA-F]{12}").set_name("UUID")
+    uuid = Regex(r"[0-9a-fA-F]{8}(?:-[0-9a-fA-F]{4}){3}-[0-9a-fA-F]{12}").set_name("UUID")
     "UUID (``xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx``)"
 
     _html_stripper = any_open_tag.suppress() | any_close_tag.suppress()
@@ -463,48 +463,48 @@ class pyparsing_common:
     url = Regex(
         # https://mathiasbynens.be/demo/url-regex
         # https://gist.github.com/dperini/729294
-        r"(?P<url>" +
+        r"(?P<url>"
         # protocol identifier (optional)
         # short syntax // still required
-        r"(?:(?:(?P<scheme>https?|ftp):)?\/\/)" +
+        r"(?:(?:(?P<scheme>https?|ftp):)?\/\/)"
         # user:pass BasicAuth (optional)
-        r"(?:(?P<auth>\S+(?::\S*)?)@)?" +
-        r"(?P<host>" +
+        r"(?:(?P<auth>\S+(?::\S*)?)@)?"
+        r"(?P<host>"
         # IP address exclusion
         # private & local networks
-        r"(?!(?:10|127)(?:\.\d{1,3}){3})" +
-        r"(?!(?:169\.254|192\.168)(?:\.\d{1,3}){2})" +
-        r"(?!172\.(?:1[6-9]|2\d|3[0-1])(?:\.\d{1,3}){2})" +
+        r"(?!(?:10|127)(?:\.\d{1,3}){3})"
+        r"(?!(?:169\.254|192\.168)(?:\.\d{1,3}){2})"
+        r"(?!172\.(?:1[6-9]|2\d|3[0-1])(?:\.\d{1,3}){2})"
         # IP address dotted notation octets
         # excludes loopback network 0.0.0.0
         # excludes reserved space >= 224.0.0.0
         # excludes network & broadcast addresses
         # (first & last IP address of each class)
-        r"(?:[1-9]\d?|1\d\d|2[01]\d|22[0-3])" +
-        r"(?:\.(?:1?\d{1,2}|2[0-4]\d|25[0-5])){2}" +
-        r"(?:\.(?:[1-9]\d?|1\d\d|2[0-4]\d|25[0-4]))" +
-        r"|" +
+        r"(?:[1-9]\d?|1\d\d|2[01]\d|22[0-3])"
+        r"(?:\.(?:1?\d{1,2}|2[0-4]\d|25[0-5])){2}"
+        r"(?:\.(?:[1-9]\d?|1\d\d|2[0-4]\d|25[0-4]))"
+        r"|"
         # host & domain names, may end with dot
         # can be replaced by a shortest alternative
         # (?![-_])(?:[-\w\u00a1-\uffff]{0,63}[^-_]\.)+
-        r"(?:" +
-        r"(?:" +
-        r"[a-z0-9\u00a1-\uffff]" +
-        r"[a-z0-9\u00a1-\uffff_-]{0,62}" +
-        r")?" +
-        r"[a-z0-9\u00a1-\uffff]\." +
-        r")+" +
+        r"(?:"
+        r"(?:"
+        r"[a-z0-9\u00a1-\uffff]"
+        r"[a-z0-9\u00a1-\uffff_-]{0,62}"
+        r")?"
+        r"[a-z0-9\u00a1-\uffff]\."
+        r")+"
         # TLD identifier name, may end with dot
-        r"(?:[a-z\u00a1-\uffff]{2,}\.?)" +
-        r")" +
+        r"(?:[a-z\u00a1-\uffff]{2,}\.?)"
+        r")"
         # port number (optional)
-        r"(:(?P<port>\d{2,5}))?" +
+        r"(:(?P<port>\d{2,5}))?"
         # resource path (optional)
-        r"(?P<path>\/[^?# ]*)?" +
+        r"(?P<path>\/[^?# ]*)?"
         # query string (optional)
-        r"(\?(?P<query>[^#]*))?" +
+        r"(\?(?P<query>[^#]*))?"
         # fragment (optional)
-        r"(#(?P<fragment>\S*))?" +
+        r"(#(?P<fragment>\S*))?"
         r")"
     ).set_name("url")
     """

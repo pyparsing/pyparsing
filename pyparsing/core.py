@@ -232,13 +232,17 @@ DebugSuccessAction = Callable[
 DebugExceptionAction = Callable[[str, int, "ParserElement", Exception, bool], None]
 
 
-alphas: str = string.ascii_uppercase + string.ascii_lowercase
+alphas: str = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
 identchars: str = pyparsing_unicode.Latin1.identchars
 identbodychars: str = pyparsing_unicode.Latin1.identbodychars
 nums: str = "0123456789"
-hexnums: str = nums + "ABCDEFabcdef"
-alphanums: str = alphas + nums
-printables: str = "".join([c for c in string.printable if c not in string.whitespace])
+hexnums: str = "0123456789ABCDEFabcdef"
+alphanums: str = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
+printables: str = (
+    '!"'
+    "#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+    "[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~"
+)
 
 
 class _ParseActionIndexError(Exception):
