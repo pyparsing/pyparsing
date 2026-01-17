@@ -22,7 +22,7 @@ REM Remove any previous consolidated CSV (do this once for the full matrix run)
 if exist "%CSV%" del /f /q "%CSV%"
 
 REM List of pyparsing versions to test
-set "VERSIONS=3.1.1 3.1.2 3.1.3 3.1.4 3.2.0 3.2.1 3.2.3 3.2.5 3.3.1 3.3.2"
+set "VERSIONS=3.1.1 3.1.2 3.1.3 3.1.4 3.2.0 3.2.1 3.2.3 3.2.5 3.3.1 3.3.2 ."
 
 REM Python versions to use
 set "PY_VERSIONS=3.9 3.10 3.11 3.12 3.13 3.14"
@@ -87,7 +87,11 @@ for %%P in (%PY_VERSIONS%) do (
               echo.
               echo === Running perf for Python %%P, pyparsing %%V ===
               "!PIP!" uninstall -y pyparsing >nul 2>&1
-              "!PIP!" install "pyparsing==%%V"
+              if "%%V" == "." (
+                "!PIP!" install -e .
+              ) else (
+                "!PIP!" install "pyparsing==%%V"
+              )
               if errorlevel 1 (
                 echo Failed to install pyparsing %%V on Python %%P, skipping...
               ) else (
