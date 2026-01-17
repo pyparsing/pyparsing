@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PyParsing Regex Inverter</title>
+    <link rel="stylesheet" href="https://pyscript.net/releases/2024.3.2/core.css">
+    <script type="module" src="https://pyscript.net/releases/2024.3.2/core.js"></script>
+    <style>
+        body { font-family: sans-serif; margin: 2em; }
+        #regex-input { width: 300px; }
+        #output { width: 100%; height: 400px; margin-top: 1em; font-family: monospace; white-space: pre; border: 1px solid #ccc; padding: 0.5em; overflow: auto; }
+        .controls { margin-bottom: 1em; }
+    </style>
+</head>
+<body>
+    <h1>Regex Inverter</h1>
+    <details>
+        <summary>Description</summary>
+        <div>
+            <p>This page allows you to invert a regular expression, generating all strings that match it.</p>
+            <p><strong>Instructions:</strong> Enter a regular expression in the "Regex" field and specify the maximum number of results you want to see. Click "Invert" or press Enter to generate the matching strings.</p>
+            <p><strong>Constraints:</strong></p>
+            <ul>
+                <li>Unbounded repetition operators <code>+</code> and <code>*</code> are <strong>not supported</strong>.</li>
+                <li>Please replace <code>+</code> or <code>*</code> with explicit <code>{n}</code> or <code>{min,max}</code> repetition operators (e.g., use <code>[A-Z]{1,10}</code> instead of <code>[A-Z]+</code>).</li>
+            </ul>
+            <p><strong>Note:</strong> Complex regular expressions or those with large repetition counts may take some time to process.</p>
+        </div>
+    </details>
+    <p>Enter a regular expression to see its matching strings.</p>
+    <div class="controls">
+        <label for="regex-input">Regex:</label>
+        <input type="text" id="regex-input" placeholder="e.g. [A-Z]{3}\d{3}" value="[A-Z]{3}\d{3}">
+        <label for="max-results">Max results:</label>
+        <input type="number" id="max-results" value="200" min="1" style="width: 60px;">
+        <button id="invert-btn" py-click="do_invert">Invert</button>
+    </div>
+    <div id="status"></div>
+    <textarea id="output" readonly></textarea>
+
+    <py-config>
+        packages = ["pyparsing"]
+        [[fetch]]
+        files = ["inv_regex.py"]
+    </py-config>
+
+    <script type="py">
+        from pyscript import document
+        from inv_regex import invert, count
+        import pyparsing
+        import itertools
+
+        async def do_invert(event):
+            regex = document.querySelector("#regex-input").value.strip()
+            if not regex:
+                return
+            
+            try:
+                max_results = int(document.querySelector("#max-results").value)
+            except ValueError:
+                max_results = 200
+
+            output_area = document.querySelector("#output")
+            status_div = document.querySelector("#status")
+            
+            output_area.value = ""
+            status_div.innerText = "Processing..."
+            
+            # Use a small delay to allow status to update in the UI
+            import asyncio
+            await asyncio.sleep(0.1)
+            
+            try:
+                # Get up to max_results items using an iterator
+                invert_iter = invert(regex)
+                results = list(itertools.islice(invert_iter, max_results))
+                num_shown = len(results)
+                
+                # Count the remaining items in the iterator
+                remaining_count = sum(1 for _ in invert_iter)
+                total_count = num_shown + remaining_count
+                
+                status_div.innerText = f"Total matching strings: {total_count:,}"
+                if total_count > max_results:
+                    status_div.innerText += f" (showing first {max_results:,})"
+                output_area.value = "\n".join(results)
+                
+            except pyparsing.ParseFatalException as pfe:
+                status_div.innerText = "Error"
+                output_area.value = f"Parse Error: {pfe.msg}"
+            except Exception as e:
+                status_div.innerText = "Error"
+                output_area.value = f"Error: {str(e)}"
+
+        # Add event listener for Enter key in input box
+        def on_keypress(event):
+            if event.key == "Enter":
+                import asyncio
+                asyncio.create_task(do_invert(None))
+
+        document.querySelector("#regex-input").onkeypress = on_keypress
+        document.querySelector("#max-results").onkeypress = on_keypress
+    </script>
+</body>
+</html>

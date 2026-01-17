@@ -40,7 +40,10 @@ Version 3.3.2 - in development
 - Various performance improvements in `ParseResults` class and core functions, with
   10-20% performance overall.
 
-- Added SPy (Simplified Python) parser to examples.
+- Added `regex_inverter` web page (using PyScript) to demonstrate using the inv_regex.py
+  example.
+
+- Added `SPy` (Simplified Python) parser to examples.
 
 
 Version 3.3.1 - December, 2025
