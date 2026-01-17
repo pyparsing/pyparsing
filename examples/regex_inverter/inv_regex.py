@@ -20,6 +20,7 @@ from pyparsing import (
     printables,
     ParserElement,
     Combine,
+    Optional,
     SkipTo,
     infix_notation,
     ParseFatalException,
@@ -209,7 +210,7 @@ def parser():
         re_dot = Literal(".")
         repetition = (
             (lbrace + Word(nums)("count") + rbrace)
-            | (lbrace + Word(nums)("minCount") + "," + Word(nums)("maxCount") + rbrace)
+            | (lbrace + Optional(Word(nums), default=0)("minCount") + "," + Word(nums)("maxCount") + rbrace)
             | one_of(list("*+?"))
         )
 
