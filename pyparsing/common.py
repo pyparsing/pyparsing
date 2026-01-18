@@ -4,7 +4,7 @@ from .helpers import DelimitedList, any_open_tag, any_close_tag
 from datetime import datetime
 import sys
 
-PY_310 = sys.version_info >= (3, 10)
+PY_310_OR_LATER = sys.version_info >= (3, 10)
 
 
 # some other useful expressions - using lower-case class name since we are really using this as a namespace
@@ -206,7 +206,7 @@ class pyparsing_common:
         .set_name("integer")
         .set_parse_action(
             convert_to_integer
-            if PY_310
+            if PY_310_OR_LATER
             else lambda t: [int(tt) for tt in t]  # type: ignore[misc]
         )
     )
@@ -222,7 +222,7 @@ class pyparsing_common:
         .set_name("signed integer")
         .set_parse_action(
             convert_to_integer
-            if PY_310
+            if PY_310_OR_LATER
             else lambda t: [int(tt) for tt in t]  # type: ignore[misc]
         )
     )
@@ -231,13 +231,13 @@ class pyparsing_common:
     fraction = (
         signed_integer().set_parse_action(
             convert_to_float
-            if PY_310
+            if PY_310_OR_LATER
             else lambda t: [float(tt) for tt in t]  # type: ignore[misc]
         )
         + "/"
         + signed_integer().set_parse_action(
             convert_to_float
-            if PY_310
+            if PY_310_OR_LATER
             else lambda t: [float(tt) for tt in t]  # type: ignore[misc]
         )
     ).set_name("fraction")
@@ -255,7 +255,7 @@ class pyparsing_common:
         .set_name("real number")
         .set_parse_action(
             convert_to_float
-            if PY_310
+            if PY_310_OR_LATER
             else lambda t: [float(tt) for tt in t]  # type: ignore[misc]
         )
     )
@@ -266,7 +266,7 @@ class pyparsing_common:
         .set_name("real number with scientific notation")
         .set_parse_action(
             convert_to_float
-            if PY_310
+            if PY_310_OR_LATER
             else lambda t: [float(tt) for tt in t]  # type: ignore[misc]
         )
     )
@@ -282,7 +282,7 @@ class pyparsing_common:
         .set_name("fnumber")
         .set_parse_action(
             convert_to_float
-            if PY_310
+            if PY_310_OR_LATER
             else lambda t: [float(tt) for tt in t]  # type: ignore[misc]
         )
     )
@@ -293,7 +293,7 @@ class pyparsing_common:
         .set_name("ieee_float")
         .set_parse_action(
             convert_to_float
-            if PY_310
+            if PY_310_OR_LATER
             else lambda t: [float(tt) for tt in t]  # type: ignore[misc]
         )
     )
@@ -366,10 +366,10 @@ class pyparsing_common:
     @staticmethod
     def convert_to_datetime(fmt: str = "%Y-%m-%dT%H:%M:%S.%f"):
         """Helper to create a parse action for converting parsed
-        datetime string to Python datetime.datetime
+        datetime string to Python :class:`datetime.datetime`
 
         Params -
-        - fmt - format to be passed to datetime.strptime (default= ``"%Y-%m-%dT%H:%M:%S.%f"``)
+        - fmt - format to be passed to :class:`datetime.strptime` (default= ``"%Y-%m-%dT%H:%M:%S.%f"``)
 
         Example:
 
@@ -404,7 +404,45 @@ class pyparsing_common:
     ).set_name("ISO8601 datetime")
     "ISO8601 datetime (``yyyy-mm-ddThh:mm:ss.s(Z|+-00:00)``) - trailing seconds, milliseconds, and timezone optional; accepts separating ``'T'`` or ``' '``"
 
-    uuid = Regex(r"[0-9a-fA-F]{8}(?:-[0-9a-fA-F]{4}){3}-[0-9a-fA-F]{12}").set_name("UUID")
+    @staticmethod
+    def as_datetime(s, l, t):
+        """Parse action to convert parsed dates or datetimes to a Python
+        :class:`datetime.datetime`.
+
+        This parse action will use the year, month, day, etc. results
+        names defined in the ISO8601 date expressions, but it can be
+        used with any expression that provides one or more of these fields.
+
+        Omitted fields will default to fields from Jan 1, 00:00:00.
+
+        Invalid dates will raise a :class:`ParseException` with the
+        error message indicating the invalid date fields.
+        """
+        year = int(t.year.lstrip("0") or 0)
+        month = int(t.month or 1)
+        day = int(t.day or 1)
+        hour = int(t.hour or 0)
+        minute = int(t.minute or 0)
+        second = float(t.second or 0)
+        try:
+            return datetime(
+                year, month, day, hour, minute, int(second), int((second % 1) * 1000)
+            )
+        except ValueError as ve:
+            raise ParseException(t, l, f"Invalid date/time: {ve}").with_traceback(
+                ve.__traceback__
+            ) from None
+
+    if PY_310_OR_LATER:
+        iso8601_date_validated = iso8601_date().add_parse_action(as_datetime)
+        "Validated ISO8601 date strings, raising :class:`ParseException` for invalid date values."
+
+        iso8601_datetime_validated = iso8601_datetime().add_parse_action(as_datetime)
+        "Validated ISO8601 date and time strings, raising :class:`ParseException` for invalid date/time values."
+
+    uuid = Regex(r"[0-9a-fA-F]{8}(?:-[0-9a-fA-F]{4}){3}-[0-9a-fA-F]{12}").set_name(
+        "UUID"
+    )
     "UUID (``xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx``)"
 
     _html_stripper = any_open_tag.suppress() | any_close_tag.suppress()

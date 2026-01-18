@@ -7323,6 +7323,67 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
                     f"numeric parse failed (wrong type) ({type(result[0])} should be {type(expected)})",
                 )
 
+    def testDateTimeValidation(self):
+        if sys.version_info[:2] < (3, 10):
+            return
+
+        ppc = pp.pyparsing_common
+        date_expr = ppc.iso8601_date_validated
+        datetime_expr = ppc.iso8601_datetime_validated
+
+        valid_dates = [
+            "2023-01-01",
+            "2024-02-29",  # Leap year
+            "2000-02-29",  # Century leap year
+            "1900-01-01",
+            "9999-12-31",
+            "2023-12",  # Optional day
+            "2023",  # Optional month and day
+        ]
+        for d in valid_dates:
+            with self.subTest(date=d):
+                date_expr.parse_string(d, parse_all=True)
+
+        invalid_dates = [
+            "2023-02-29",  # Not a leap year
+            "2023-04-31",  # April has 30 days
+            "2023-13-01",  # Invalid month
+            "2023-00-01",  # Invalid month
+            "2023-01-32",  # Invalid day
+            "2023-01-00",  # Invalid day
+            "1900-02-29",  # 1900 was not a leap year
+        ]
+        for d in invalid_dates:
+            with self.subTest(date=d):
+                with self.assertRaises(pp.ParseException):
+                    date_expr.parse_string(d, parse_all=True)
+
+        valid_datetimes = [
+            "2023-01-01T12:00:00",
+            "2023-01-01 12:00:00",
+            "2023-01-01T12:00:00Z",
+            "2023-01-01T12:00:00+05:00",
+            "2023-01-01T12:00:00-05:00",
+            "2023-01-01T12:00:00.123",
+            "2023-01-01T12:00:00.123Z",
+            "2024-02-29T23:59:59",
+        ]
+        for dt in valid_datetimes:
+            with self.subTest(datetime=dt):
+                datetime_expr.parse_string(dt, parse_all=True)
+
+        invalid_datetimes = [
+            "2023-02-29T12:00:00",  # Invalid date
+            "2023-01-01T24:00:00",  # Invalid hour
+            "2023-01-01T12:60:00",  # Invalid minute
+            "2023-01-01T12:00:60",  # Invalid second
+            # "2023-01-01T12:00:00+24:00", # Invalid timezone (Regex might catch it or not, valid_date_time doesn't check it)
+        ]
+        for dt in invalid_datetimes:
+            with self.subTest(datetime=dt):
+                with self.assertRaises(pp.ParseException):
+                    datetime_expr.parse_string(dt, parse_all=True)
+
     def testCommonUrl(self):
         url_good_tests = """\
             http://foo.com/blah_blah

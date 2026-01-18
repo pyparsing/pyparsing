@@ -37,11 +37,24 @@ Version 3.3.2 - January, 2026
   - `PyparsingDiagnosticWarning` - warning raised when pyparsing diagnostics are
     enabled and a diagnostic feature is used (inherits from `PyparsingWarning`)
 
+- Added `as_datetime` parse action to `pyparsing.common` - a more generalized
+  version of the `convert_to_datetime` parse action (supports any expression that extracts
+  date/time fields into "year", "month", "day", etc. results names), and validates
+  that the parsed fields represent a valid date and time.
+
+- Added `iso8601_date_validated` and `iso8601_datetime_validated` expressions to
+  `pyparsing.common`, which return a Python `datetime.datetime`
+
 - Various performance improvements in `ParseResults` class and core functions, with
   10-20% performance overall.
 
 - Added `regex_inverter` web page (using PyScript) to demonstrate using the `inv_regex.py`
   example.
+
+- Expanded regex forms handled by the `examples/inv_regex.py` example:
+  - named capturing groups (`?P<name>`)
+  - partial repetition (`{m,}` and `{,n}`)
+  - negated character classes (`[^...]`)
 
 - Added `SPy` (Simplified Python) parser to examples.
 
