@@ -69,3 +69,6 @@ class TestExamples(unittest.TestCase):
 
     def test_lox_parser(self):
         self._run("lox_parser")
+
+    def test_inv_regex(self):
+        self._run("inv_regex")

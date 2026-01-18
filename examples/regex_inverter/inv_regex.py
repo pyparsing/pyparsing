@@ -124,7 +124,11 @@ class LiteralEmitter:
 
 
 def handle_range(toks):
-    return CharacterRangeEmitter(srange(toks[0]))
+    inner = toks[0][1:-1]
+    if inner.startswith("^"):
+        range_chars = set(printables) - set(srange(f"[{inner[1:]}]"))
+        return CharacterRangeEmitter(sorted(range_chars))
+    return CharacterRangeEmitter(sorted(srange(toks[0])))
 
 
 def handle_repetition(toks):
@@ -169,6 +173,14 @@ def handle_macro(toks):
         return CharacterRangeEmitter(srange("[A-Za-z0-9_]"))
     elif macro_char == "s":
         return LiteralEmitter(" ")
+    elif macro_char == "D":
+        return CharacterRangeEmitter(sorted(set(printables + " ") - set("0123456789")))
+    elif macro_char == "W":
+        return CharacterRangeEmitter(
+            sorted(set(printables + " ") - set(srange("[A-Za-z0-9_]")))
+        )
+    elif macro_char == "S":
+        return CharacterRangeEmitter(printables)
     else:
         raise ParseFatalException(
             "", 0, "unsupported macro character (" + macro_char + ")"
@@ -194,23 +206,29 @@ def parser():
     global _parser
     if _parser is None:
         ParserElement.set_default_whitespace_chars("")
-        lbrack, rbrack, lbrace, rbrace, lparen, rparen, colon, qmark = Literal.using_each(
-            "[]{}():?"
+        lbrack, rbrack, lbrace, rbrace, lparen, rparen, colon, qmark = (
+            Literal.using_each("[]{}():?")
         )
 
-        re_macro = Combine("\\" + one_of("d w s"))
+        re_macro = Combine("\\" + one_of("d w s D W S"))
         escaped_char = ~re_macro + Combine("\\" + one_of(list(printables)))
         re_literal_char = (
             "".join(c for c in printables if c not in r"\[]{}().*?+|") + " \t"
         )
 
-        re_range = Combine(lbrack + SkipTo(rbrack, ignore=escaped_char) + rbrack) # type: ignore 
+        re_range = Combine(lbrack + SkipTo(rbrack, ignore=escaped_char) + rbrack)  # type: ignore
         re_literal = escaped_char | one_of(list(re_literal_char))
         re_non_capture_group = Suppress("?:")
         re_dot = Literal(".")
         repetition = (
             (lbrace + Word(nums)("count") + rbrace)
-            | (lbrace + Optional(Word(nums), default=0)("minCount") + "," + Word(nums)("maxCount") + rbrace)
+            | (
+                lbrace
+                + Optional(Word(nums), default=0)("minCount")
+                + ","
+                + Word(nums)("maxCount")
+                + rbrace
+            )
             | one_of(list("*+?"))
         )
 
@@ -284,6 +302,9 @@ def main():
     [ABCDEFG](?:#|##|b|bb)?(?:maj|min|m|sus|aug|dim)?[0-9]?(?:/[ABCDEFG](?:#|##|b|bb)?)?
     (Fri|Mon|S(atur|un)|T(hur|ue)s|Wednes)day
     A(pril|ugust)|((Dec|Nov|Sept)em|Octo)ber|(Febr|Jan)uary|Ju(ly|ne)|Ma(rch|y)
+    \S-\d{2}
+    \D{2}-\W
+    [^A-Z]-\d{3}
     """.splitlines()
 
     for t in tests:
