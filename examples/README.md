@@ -4,13 +4,14 @@ This directory contains a number of examples of parsers created using pyparsing.
 categories (several examples include supporting railroad diagrams):
 
 <!-- TOC -->
-* [Pyparsing tutorial and language feature demonstrations](#pyparsing-tutorial-and-language-feature-demonstrations)
-* [Language parsers](#language-parsers)
-* [Domain Specific Language parsers](#domain-specific-language-parsers)
-* [Search and query language parsers](#search-and-query-language-parsers)
-* [Data format parsers](#data-format-parsers)
-* [Logical and arithmetic infix notation parsers and examples](#logical-and-arithmetic-infix-notation-parsers-and-examples)
-* [Helpful utilities](#helpful-utilities)
+* [Pyparsing Examples](#pyparsing-examples)
+  * [Pyparsing tutorial and language feature demonstrations](#pyparsing-tutorial-and-language-feature-demonstrations)
+  * [Language parsers](#language-parsers)
+  * [Domain Specific Language parsers](#domain-specific-language-parsers)
+  * [Search and query language parsers](#search-and-query-language-parsers)
+  * [Data format parsers](#data-format-parsers)
+  * [Logical and arithmetic infix notation parsers and examples](#logical-and-arithmetic-infix-notation-parsers-and-examples)
+  * [Helpful utilities](#helpful-utilities)
 <!-- TOC -->
 
 ## Pyparsing tutorial and language feature demonstrations
@@ -51,6 +52,7 @@ categories (several examples include supporting railroad diagrams):
     * [html_stripper.py](./html_stripper.py)
     * [html_table_parser.py](./html_table_parser.py)
     * [urlExtractorNew.py](./urlExtractorNew.py)
+
 ## Language parsers
   * C
     * [oc.py](./oc.py)
@@ -84,6 +86,7 @@ categories (several examples include supporting railroad diagrams):
   * EBNF - Extended Backus-Naur Format parser (and compiler to a running pyparsing parser)
     * [ebnf.py](./ebnf.py) [(diagram)](./ebnf_diagram.html) [(PNG)](./ebnf_diagram.png)
     * [ebnf_number_words.py](./ebnf_number_words.py) [(diagram)](./ebnf_number_parser_diagram.html) [(PNG)](./ebnf_number_parser_diagram.png)
+
 ## Search and query language parsers
   * basic search
     * [searchparser.py](./searchparser.py) [demo](./searchParserAppDemo.py)
@@ -96,6 +99,7 @@ categories (several examples include supporting railroad diagrams):
     * [sql2dot.py](./sql2dot.py) (TABLE DML statements)
   * BigQuery view
     * [bigquery_view_parser.py](./bigquery_view_parser.py)
+
 ## Data format parsers
   * JSON
     * [jsonParser.py](./jsonParser.py)
@@ -105,6 +109,7 @@ categories (several examples include supporting railroad diagrams):
     * [stackish.py](./stackish.py)
   * CORBA IDL
     * [idlparse.py](./idlparse.py)
+
 ## Logical and arithmetic infix notation parsers and examples
   * [fourFn.py](./fourFn.py)
   * [simpleArith.py](./simpleArith.py)
@@ -112,11 +117,13 @@ categories (several examples include supporting railroad diagrams):
   * [simpleCalc.py](./simpleCalc.py)
   * [LAparser.py](./LAparser.py) (linear algebra)
   * [simpleBool.py](./simpleBool.py)
+
 ## Helpful utilities
   * parse time expressions ("2pm the day after tomorrow")
     * [delta_time.py](./delta_time.py) [(diagram)](./delta_time_diagram.html) [(PNG)](./delta_time_diagram.png)
   * invert regex (generate sample strings matching a regex)
     * [inv_regex.py](./inv_regex.py)
+    * [PyScript demo page](./regex_inverter/index.html)
   * email addresses
     * [email_address_parser.py](./email_address_parser.py)
   * Excel cell formula
@@ -125,5 +132,3 @@ categories (several examples include supporting railroad diagrams):
     * [gen_ctypes.py](./gen_ctypes.py)
   * log file parsing
     * [httpServerLogPaser.py](./httpServerLogPaser.py)
-
-
