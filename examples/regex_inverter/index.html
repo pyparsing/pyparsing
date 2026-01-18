@@ -112,9 +112,9 @@
                     if total_count > max_results:
                         status_div.innerText += f" (showing first {max_results:,})"
 
-            except pyparsing.ParseFatalException as pfe:
+            except pyparsing.ParseBaseException as pe:
                 status_div.innerText = "Error"
-                output_area.value = f"Parse Error: {pfe.msg}"
+                output_area.value = f"Parse Error: {pe.msg}\n{pe.explain(depth=0)}"
             except Exception as e:
                 status_div.innerText = "Error"
                 output_area.value = f"Error: {str(e)}"

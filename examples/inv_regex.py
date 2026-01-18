@@ -30,6 +30,8 @@ from pyparsing import (
     Suppress,
     ParseResults,
     srange,
+    autoname_elements,
+    Regex,
 )
 
 ParserElement.enable_packrat()
@@ -128,7 +130,7 @@ def handle_range(toks):
     if inner.startswith("^"):
         range_chars = set(printables) - set(srange(f"[{inner[1:]}]"))
         return CharacterRangeEmitter(sorted(range_chars))
-    return CharacterRangeEmitter(sorted(srange(toks[0])))
+    return CharacterRangeEmitter(srange(toks[0]))
 
 
 def handle_repetition(toks):
@@ -219,6 +221,7 @@ def parser():
         re_range = Combine(lbrack + SkipTo(rbrack, ignore=escaped_char) + rbrack)  # type: ignore
         re_literal = escaped_char | one_of(list(re_literal_char))
         re_non_capture_group = Suppress("?:")
+        re_named_group = Suppress(Regex(r"\?P<\w+>"))
         re_dot = Literal(".")
         repetition = (
             (lbrace + Word(nums)("count") + rbrace)
@@ -237,13 +240,24 @@ def parser():
         re_macro.add_parse_action(handle_macro)
         re_dot.add_parse_action(handle_dot)
 
-        re_term = re_literal | re_range | re_macro | re_dot | re_non_capture_group
+        re_term = (
+            re_literal
+            | re_range
+            | re_macro
+            | re_dot
+            | re_non_capture_group
+            | re_named_group
+        )
+        re_term.set_name("re_term")
+        alt_op = Suppress("|")
+        seq_op = Empty()
+        autoname_elements()
         re_expr = infix_notation(
             re_term,
             [
                 (repetition, 1, OpAssoc.LEFT, handle_repetition),
-                (Empty(), 2, OpAssoc.LEFT, handle_sequence),
-                (Suppress("|"), 2, OpAssoc.LEFT, handle_alternative),
+                (seq_op, 2, OpAssoc.LEFT, handle_sequence),
+                (alt_op.set_name("re"), 2, OpAssoc.LEFT, handle_alternative),
             ],
         )
         _parser = re_expr
@@ -269,6 +283,7 @@ def invert(regex):
 
 def main():
     tests = r"""
+    abc|def
     [A-EA]
     [A-D]*
     [A-D]{3}
