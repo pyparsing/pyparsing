@@ -22,12 +22,13 @@
     <details>
         <summary>Description</summary>
         <div>
-            <p>This page allows you to invert a regular expression, generating all strings that match it.</p>
+            <p>This page allows you to invert a regular expression, generating strings that match it.</p>
             <p><strong>Instructions:</strong> Enter a regular expression in the "Regex" field and specify the maximum number of results you want to see (up to 100,000,000). Click "Invert" or press Enter to generate the matching strings.</p>
             <p><strong>Constraints:</strong></p>
             <ul>
                 <li>Unbounded repetition operators <code>+</code> and <code>*</code> are <strong>not supported</strong>.</li>
                 <li>Replace <code>+</code> or <code>*</code> with explicit <code>{n}</code> or <code>{min,max}</code> repetition operators (e.g., use an explicit repetition like <code>[A-Z]{1,4}</code> instead of <code>[A-Z]+</code>, or <code>[A-Z]{,4}</code> instead of <code>[A-Z]*</code>).</li>
+                <li>For brevity, all generated strings in this utility are limited to 7-bit ASCII characters. By default, Python's re methods will match the full Unicode set, so macros like <code>\d</code> could match numeric digits in other language character sets beyond just the ASCII digits '0' through '9'.</li>
             </ul>
             <p><strong>Note:</strong> Complex regular expressions or those with large repetition counts may take some time to process.</p>
         </div>
