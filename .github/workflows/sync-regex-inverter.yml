@@ -19,10 +19,20 @@ jobs:
           repository: ptmcg/regex_inverter
           token: ${{ secrets.PAT_TOKEN }}
           path: dest
+          ref: main
+
+      - name: Debug source directory
+        run: |
+          ls -R examples/regex_inverter
 
       - name: Copy updated example files
         run: |
           rsync -av --delete examples/regex_inverter/ dest/
+
+      - name: Show git status after rsync
+        run: |
+          cd dest
+          git status
 
       - name: Commit and push changes
         run: |
