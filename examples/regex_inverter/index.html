@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PyParsing Regex Inverter</title>
-    <link rel="stylesheet" href="https://pyscript.net/releases/2024.3.2/core.css">
-    <script type="module" src="https://pyscript.net/releases/2024.3.2/core.js"></script>
+    <link rel="stylesheet" href="https://pyscript.net/releases/2025.11.1/core.css">
+    <script type="module" src="https://pyscript.net/releases/2025.11.1/core.js"></script>
     <style>
         body { font-family: sans-serif; margin: 2em; }
         #regex-input { width: 300px; }
@@ -18,11 +18,12 @@
 </head>
 <body>
     <h1>Regex Inverter</h1>
+    <h4>by Paul McGuire, January 2026</h4>
     <details>
         <summary>Description</summary>
         <div>
             <p>This page allows you to invert a regular expression, generating all strings that match it.</p>
-            <p><strong>Instructions:</strong> Enter a regular expression in the "Regex" field and specify the maximum number of results you want to see. Click "Invert" or press Enter to generate the matching strings.</p>
+            <p><strong>Instructions:</strong> Enter a regular expression in the "Regex" field and specify the maximum number of results you want to see (up to 100,000,000). Click "Invert" or press Enter to generate the matching strings.</p>
             <p><strong>Constraints:</strong></p>
             <ul>
                 <li>Unbounded repetition operators <code>+</code> and <code>*</code> are <strong>not supported</strong>.</li>
@@ -48,16 +49,32 @@
                     <td><pre>[A-Z]-\d{3}</pre></td>
                 </tr>
                 <tr>
+                    <td>Time of day (HH:MM:SS)</td>
+                    <td><pre>(2[0-3]|[01]\d):([0-5]\d):([0-5]\d)</pre></td>
+                </tr>
+                <tr>
+                    <td>8-bit binary numbers</td>
+                    <td><pre>[01]{8}</pre></td>
+                </tr>
+                <tr>
+                    <td>Integer from 0 to 99</td>
+                    <td><pre>[1-9]?\d</pre></td>
+                </tr>
+                <tr>
+                    <td>Integer from 0 to 255</td>
+                    <td><pre>25[0-5]|2[0-4]\d|1\d{2}|[1-9]\d|\d</pre></td>
+                </tr>
+                <tr>
+                    <td>Roman Numerals to 50</td>
+                    <td><pre>(X{,3}|XL)(I{,3}|IV|VI{,3}|IX)|L</pre></td>
+                </tr>
+                <tr>
                     <td>IPv4 addresses in 192.168.0.0/16</td>
-                    <td><pre> 192\.168(\.((25[0-5]|2[0-4]\d|1\d{2}|[1-9]\d|\d))){2}</pre></td>
+                    <td><pre>192\.168(\.((25[0-5]|2[0-4]\d|1\d{2}|[1-9]\d|\d))){2}</pre></td>
                 </tr>
                 <tr>
                     <td>MAC address</td>
                     <td><pre>[0-9A-Fa-f]{2}([:-][0-9A-Fa-f]{2}){5}</pre></td>
-                </tr>
-                <tr>
-                    <td>UUID</td>
-                    <td><pre>[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12}</pre></td>
                 </tr>
                 <tr>
                     <td>UUID</td>
@@ -67,7 +84,6 @@
                     <td>Original US Area codes</td>
                     <td><pre>[2-9][10][2-9]</pre></td>
                 </tr>
-
             </table>
         </div>
     </details>
@@ -82,6 +98,8 @@
     </div>
     <div id="status"></div>
     <textarea id="output" readonly></textarea>
+    <p>GitHub repo for this page <a href="https://github.com/ptmcg/regex_inverter.git" target="_blank">regex-inverter</a></p>
+    <p>Powered by <a href="https://pyscript.net" target="_blank">PyScript</a> and <a href="https://pypi.org/project/pyparsing/" target="_blank">pyparsing</a></p>
 
     <py-config>
         packages = ["pyparsing"]
@@ -105,15 +123,18 @@
         async def do_invert(event):
             global is_cancelled
             is_cancelled = False
-            
+
             regex = document.querySelector("#regex-input").value.strip()
             if not regex:
                 return
-            
+
             try:
                 max_results = int(document.querySelector("#max-results").value)
             except ValueError:
                 max_results = 200
+            if max_results  > 100_000_000:
+                max_results = 100_000_000
+                document.querySelector("#max-results").value = 100_000_000
 
             output_area = document.querySelector("#output")
             status_div = document.querySelector("#status")
