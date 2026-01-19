@@ -11,6 +11,9 @@
         #regex-input { width: 300px; }
         #output { width: 100%; height: 400px; margin-top: 1em; font-family: monospace; white-space: pre; border: 1px solid #ccc; padding: 0.5em; overflow: auto; }
         .controls { margin-bottom: 1em; }
+        table { border-collapse: collapse; width: 100%; }
+        table th, table td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        table th { background-color: #f2f2f2; }
     </style>
 </head>
 <body>
@@ -28,10 +31,50 @@
             <p><strong>Note:</strong> Complex regular expressions or those with large repetition counts may take some time to process.</p>
         </div>
     </details>
+    <p>
+    <details>
+        <summary>Examples</summary>
+        <div>
+            <p>Here are some example regular expressions to try:</p>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Description</th>
+                        <th>Regex</th>
+                    </tr>
+                </thead>
+                <tr>
+                    <td>Match one uppercase letter followed by three digits</td>
+                    <td><pre>[A-Z]-\d{3}</pre></td>
+                </tr>
+                <tr>
+                    <td>IPv4 addresses in 192.168.0.0/16</td>
+                    <td><pre> 192\.168(\.((25[0-5]|2[0-4]\d|1\d{2}|[1-9]\d|\d))){2}</pre></td>
+                </tr>
+                <tr>
+                    <td>MAC address</td>
+                    <td><pre>[0-9A-Fa-f]{2}([:-][0-9A-Fa-f]{2}){5}</pre></td>
+                </tr>
+                <tr>
+                    <td>UUID</td>
+                    <td><pre>[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12}</pre></td>
+                </tr>
+                <tr>
+                    <td>UUID</td>
+                    <td><pre>[0-9A-F]{8}(-[0-9A-F]{4}){3}-[0-9A-F]{12}</pre></td>
+                </tr>
+                <tr>
+                    <td>Original US Area codes</td>
+                    <td><pre>[2-9][10][2-9]</pre></td>
+                </tr>
+
+            </table>
+        </div>
+    </details>
     <p>Enter a regular expression to see its matching strings.</p>
     <div class="controls">
         <label for="regex-input">Regex:</label>
-        <input type="text" id="regex-input" placeholder="e.g. [A-Z]{3}\d{3}" value="[A-Z]{3}\d{3}">
+        <input type="text" id="regex-input" placeholder="e.g. [A-Z]-\d{3}" value="">
         <label for="max-results">Max results:</label>
         <input type="number" id="max-results" value="200" min="1" style="width: 60px;">
         <button id="invert-btn" py-click="do_invert">Invert</button>
