@@ -1,0 +1,34 @@
+name: Sync regex_inverter example to showcase repo
+
+on:
+  push:
+    paths:
+      - "examples/regex_inverter/**"
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout pyparsing (source)
+        uses: actions/checkout@v4
+
+      - name: Checkout regex_inverter (destination)
+        uses: actions/checkout@v4
+        with:
+          repository: ptmcg/regex_inverter
+          token: ${{ secrets.PAT_TOKEN }}
+          path: dest
+
+      - name: Copy updated example files
+        run: |
+          rsync -av --delete examples/regex_inverter/ dest/
+
+      - name: Commit and push changes
+        run: |
+          cd dest
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          git add .
+          git commit -m "Sync regex_inverter example from pyparsing" || echo "No changes to commit"
+          git push
