@@ -27,7 +27,7 @@
             <p><strong>Constraints:</strong></p>
             <ul>
                 <li>Unbounded repetition operators <code>+</code> and <code>*</code> are <strong>not supported</strong>.</li>
-                <li>Replace <code>+</code> or <code>*</code> with explicit <code>{n}</code> or <code>{min,max}</code> repetition operators (e.g., use <code>[A-Z]{1,10}</code> instead of <code>[A-Z]+</code>, or <code>[A-Z]{,10}</code> instead of <code>[A-Z]*</code>).</li>
+                <li>Replace <code>+</code> or <code>*</code> with explicit <code>{n}</code> or <code>{min,max}</code> repetition operators (e.g., use an explicit repetition like <code>[A-Z]{1,4}</code> instead of <code>[A-Z]+</code>, or <code>[A-Z]{,4}</code> instead of <code>[A-Z]*</code>).</li>
             </ul>
             <p><strong>Note:</strong> Complex regular expressions or those with large repetition counts may take some time to process.</p>
         </div>
@@ -39,10 +39,7 @@
             <p>Here are some example regular expressions to try:</p>
             <table>
                 <thead>
-                    <tr>
-                        <th>Description</th>
-                        <th>Regex</th>
-                    </tr>
+                    <tr><th>Description</th><th>Regex</th></tr>
                 </thead>
                 <tr>
                     <td>Match one uppercase letter followed by three digits</td>
