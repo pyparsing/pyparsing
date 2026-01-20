@@ -13,7 +13,8 @@
         .controls { margin-bottom: 1em; }
         table { border-collapse: collapse; width: 100%; }
         table th, table td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-        table th { background-color: #f2f2f2; }
+        table th { background-color: #f2f2f2; text-align: center; }
+        table.quick-ref td:first-child { text-align: center; }
     </style>
 </head>
 <body>
@@ -27,10 +28,52 @@
             <p><strong>Constraints:</strong></p>
             <ul>
                 <li>Unbounded repetition operators <code>+</code> and <code>*</code> are <strong>not supported</strong>.</li>
-                <li>Replace <code>+</code> or <code>*</code> with explicit <code>{n}</code> or <code>{min,max}</code> repetition operators (e.g., use an explicit repetition like <code>[A-Z]{1,4}</code> instead of <code>[A-Z]+</code>, or <code>[A-Z]{,4}</code> instead of <code>[A-Z]*</code>).</li>
-                <li>For brevity, all generated strings in this utility are limited to 7-bit ASCII characters. By default, Python's re methods will match the full Unicode set, so macros like <code>\d</code> could match numeric digits in other language character sets beyond just the ASCII digits '0' through '9'.</li>
+                <li>Replace <code>+</code> or <code>*</code> with explicit <code>{1,n}</code> or <code>{min,max}</code> repetition operators (e.g., use an explicit repetition like <code>[A-Z]{1,4}</code> instead of <code>[A-Z]+</code>, or <code>[A-Z]{,4}</code> instead of <code>[A-Z]*</code>).</li>
+                <li>For brevity, all generated strings in this utility are limited to 7-bit ASCII characters. By default, Python's <code>re</code> methods will match the full Unicode set, so macros like <code>\d</code> could match numeric digits in other language character sets beyond just the ASCII digits '0' through '9'.</li>
             </ul>
             <p><strong>Note:</strong> Complex regular expressions or those with large repetition counts may take some time to process.</p>
+        </div>
+    </details>
+    <p>
+    <details>
+        <summary>Regular Expressions Quick Reference</summary>
+        <div>
+            <table class="quick-ref">
+                <thead>
+                    <tr><th>Construct</th><th>Description</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td><code>.</code></td><td>Any character except newline</td></tr>
+                    <tr><td><code>\d</code></td><td>Digit <code>[0-9]</code></td></tr>
+                    <tr><td><code>\w</code></td><td>Word (identifier) character <code>[a-zA-Z0-9_]</code></td></tr>
+                    <tr><td><code>\s</code></td><td>Whitespace character</td></tr>
+                    <tr><td><code>\D</code></td><td>Non-digit</td></tr>
+                    <tr><td><code>\W</code></td><td>Non-word character</td></tr>
+                    <tr><td><code>\S</code></td><td>Non-whitespace character</td></tr>
+                    <tr><td><code>?</code></td><td>0 or 1 repetition</td></tr>
+                    <tr><td><code>{n}</code></td><td>Exactly <i>n</i> repetitions</td></tr>
+                    <tr><td><code>{n,m}</code></td><td>Between <i>n</i> and <i>m</i> repetitions</td></tr>
+                    <tr><td><code>{,m}</code></td><td>0 to <i>m</i> repetitions</td></tr>
+                    <tr><td><code>[...]</code></td><td>Character class (any of these characters)</td></tr>
+                    <tr><td><code>[^...]</code></td><td>Negated character class</td></tr>
+                    <tr><td><code>|</code></td><td>Alternation (OR)</td></tr>
+                    <tr><td><code>(...)</code></td><td>Grouping</td></tr>
+                    <tr><td><code>(?:...)</code></td><td>Grouping (non-capturing)</td></tr>
+                    <tr><td><code>(?P&lt;name&gt;...)</code></td><td>Grouping (named group)</td></tr>
+                    <tr><td colspan="2">Other common regex features not covered in this utility</td></tr>
+                    <tr><td><code>^</code></td><td>Start of a line</td></tr>
+                    <tr><td><code>$</code></td><td>End of a line</td></tr>
+                    <tr><td><code>\A</code></td><td>Start of string</td></tr>
+                    <tr><td><code>\Z</code></td><td>End of string</td></tr>
+                    <tr><td><code>*</code></td><td>0 or more repetitions (use <code>{,m}</code> to limit repetitions)</td></tr>
+                    <tr><td><code>+</code></td><td>1 or more repetitions (use <code>{1,m}</code> to limit repetitions)</td></tr>
+                    <tr><td><code>\b</code></td><td>Word boundary</td></tr>
+                    <tr><td><code>(?=...)</code></td><td>Positive lookahead</td></tr>
+                    <tr><td><code>(?!...)</code></td><td>Negative lookahead</td></tr>
+                    <tr><td><code>(?&lt;=...)</code></td><td>Positive lookbehind</td></tr>
+                    <tr><td><code>(?&lt;!...)</code></td><td>Negative lookbehind</td></tr>
+                </tbody>
+            </table>
         </div>
     </details>
     <p>
@@ -44,43 +87,43 @@
                 </thead>
                 <tr>
                     <td>Match one uppercase letter followed by three digits</td>
-                    <td><pre>[A-Z]-\d{3}</pre></td>
+                    <td><code>[A-Z]-\d{3}</code></td>
                 </tr>
                 <tr>
                     <td>Time of day (HH:MM:SS)</td>
-                    <td><pre>(2[0-3]|[01]\d):([0-5]\d):([0-5]\d)</pre></td>
+                    <td><code>(2[0-3]|[01][0-9]):([0-5][0-9]):([0-5][0-9])</code></td>
                 </tr>
                 <tr>
                     <td>8-bit binary numbers</td>
-                    <td><pre>[01]{8}</pre></td>
+                    <td><code>[01]{8}</code></td>
                 </tr>
                 <tr>
                     <td>Integer from 0 to 99</td>
-                    <td><pre>[1-9]?\d</pre></td>
+                    <td><code>[1-9]?\d</code></td>
                 </tr>
                 <tr>
                     <td>Integer from 0 to 255</td>
-                    <td><pre>25[0-5]|2[0-4]\d|1\d{2}|[1-9]\d|\d</pre></td>
+                    <td><code>25[0-5]|2[0-4]\d|1\d{2}|[1-9]\d|\d</code></td>
                 </tr>
                 <tr>
                     <td>Roman Numerals to 50</td>
-                    <td><pre>(X{,3}|XL)(I{,3}|IV|VI{,3}|IX)|L</pre></td>
+                    <td><code>(X{,3}|XL)(I{,3}|IV|VI{,3}|IX)|L</code></td>
                 </tr>
                 <tr>
                     <td>IPv4 addresses in 192.168.0.0/16</td>
-                    <td><pre>192\.168(\.((25[0-5]|2[0-4]\d|1\d{2}|[1-9]\d|\d))){2}</pre></td>
+                    <td><code>192\.168(\.((25[0-5]|2[0-4]\d|1\d{2}|[1-9]\d|\d))){2}</code></td>
                 </tr>
                 <tr>
                     <td>MAC address</td>
-                    <td><pre>[0-9A-Fa-f]{2}([:-][0-9A-Fa-f]{2}){5}</pre></td>
+                    <td><code>[0-9A-Fa-f]{2}([:-][0-9A-Fa-f]{2}){5}</code></td>
                 </tr>
                 <tr>
                     <td>UUID</td>
-                    <td><pre>[0-9A-F]{8}(-[0-9A-F]{4}){3}-[0-9A-F]{12}</pre></td>
+                    <td><code>[0-9A-F]{8}(-[0-9A-F]{4}){3}-[0-9A-F]{12}</code></td>
                 </tr>
                 <tr>
-                    <td>Original US Area codes</td>
-                    <td><pre>[2-9][10][2-9]</pre></td>
+                    <td>Original US Area codes (leading and trailing digit 2-9, middle digit 1 or 0)</td>
+                    <td><code>[2-9][10][2-9]</code></td>
                 </tr>
             </table>
         </div>
