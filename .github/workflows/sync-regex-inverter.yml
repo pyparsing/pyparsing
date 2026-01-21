@@ -18,27 +18,27 @@ jobs:
         with:
           repository: ptmcg/regex_inverter
           token: ${{ secrets.PAT_TOKEN }}
+          persist-credentials: false
           path: dest
-          ref: main
-
-      - name: Debug source directory
-        run: |
-          ls -R examples/regex_inverter
 
       - name: Copy updated example files
         run: |
           rsync -av --delete examples/regex_inverter/ dest/
-
-      - name: Show git status after rsync
-        run: |
-          cd dest
-          git status
 
       - name: Commit and push changes
         run: |
           cd dest
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
-          git add .
-          git commit -m "Sync regex_inverter example from pyparsing" || echo "No changes to commit"
-          git push
+
+          git remote set-url origin https://github.com/ptmcg/regex_inverter.git
+          git remote -v
+
+          if git status --porcelain | grep .; then
+            echo "Changes detected, committing..."
+            git add .
+            git commit -m "Sync regex_inverter example from pyparsing"
+            git push
+          else
+            echo "No changes detected, skipping commit."
+          fi
