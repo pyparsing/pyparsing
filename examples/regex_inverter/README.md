@@ -27,6 +27,11 @@ The Regex Inverter allows you to enter a regular expression and generate all pos
 - `index.html`: The web interface and PyScript configuration.
 - `inv_regex.py`: The core inversion logic using `pyparsing`.
 
+## Run the Regex Inverter web page online
+
+To run the Regex Inverter from the Github Pages server, open your browser 
+and go to [https://ptmcg.github.io/regex_inverter/](https://ptmcg.github.io/regex_inverter/).
+
 ## How to Run Locally
 
 To run the Regex Inverter on your own machine:
