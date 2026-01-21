@@ -3,7 +3,8 @@ name: Sync regex_inverter example to showcase repo
 on:
   push:
     paths:
-      - "examples/regex_inverter/**"
+      - "examples/regex_inverter/index.html"
+      - "examples/regex_inverter/inv_regex.py"
 
 jobs:
   sync:
