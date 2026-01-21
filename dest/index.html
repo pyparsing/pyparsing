@@ -110,6 +110,10 @@
                     <td><code>(X{,3}|XL)(I{,3}|IV|VI{,3}|IX)|L</code></td>
                 </tr>
                 <tr>
+                    <td>Chemical Symbol</td>
+                    <td><code>A[cglmrstu]|B[aehikr]?|C[adeflmorsu]?|D[bsy]|E[rsu]|F[emr]?|G[ade]|H[efgos]?|I[nr]?|Kr?|L[airu]|M[dgnot]|N[abdeiop]?|Os?|P[abdmortu]?|R[abefghnu]|S[bcegimnr]?|T[abcehilm]|U(u[bhopqst])?|V|W|Xe|Yb?|Z[nr]</code></td>
+                </tr>
+                <tr>
                     <td>IPv4 addresses in 192.168.0.0/16</td>
                     <td><code>192\.168(\.((25[0-5]|2[0-4]\d|1\d{2}|[1-9]\d|\d))){2}</code></td>
                 </tr>
@@ -186,32 +190,38 @@
             
             # Use a small delay to allow status to update in the UI
             await asyncio.sleep(0.1)
-            
+
             try:
                 # Get up to max_results items using an iterator
                 invert_iter = invert(regex)
-                results = list(itertools.islice(invert_iter, max_results))
-                num_shown = len(results)
-                output_area.value = "\n".join(results)
-                
-                if num_shown == max_results:
-                    cancel_btn.style.display = "inline"
-                    
-                await asyncio.sleep(0.1)
+                num_shown = 0
+                while num_shown < max_results:
+                    results = list(itertools.islice(invert_iter, min(max_results - num_shown, 100_000)))
+                    num_shown += len(results)
+                    output_area.value += "\n".join(results) + "\n"
+                    if len(results) < 100_000:
+                        break
+                    if num_shown < max_results:
+                        cancel_btn.style.display = "inline"
+                    await asyncio.sleep(0)
+                    if is_cancelled:
+                        status_div.innerText += " (cancelled)"
+                        break
 
-                # Count the remaining items in the iterator
-                remaining_count = 0
-                for i, _ in enumerate(invert_iter, 1):
-                    remaining_count = i
-                    if i % 100_000 == 0:
-                        status_div.innerText = f"Counting matches... {num_shown + i:,} found so far"
-                        await asyncio.sleep(0)
-                        if is_cancelled:
-                            status_div.innerText += " (cancelled)"
-                            break
-                
-                total_count = num_shown + remaining_count
-                
+                if not is_cancelled:
+                    # Count the remaining items in the iterator
+                    remaining_count = 0
+                    for i, _ in enumerate(invert_iter, 1):
+                        remaining_count = i
+                        if i % 100_000 == 0:
+                            status_div.innerText = f"Counting matches... {num_shown + i:,} found so far"
+                            await asyncio.sleep(0)
+                            if is_cancelled:
+                                status_div.innerText += " (cancelled)"
+                                break
+
+                    total_count = num_shown + remaining_count
+
                 if not is_cancelled:
                     status_div.innerText = f"Total matching strings: {total_count:,}"
                     if total_count > max_results:
@@ -225,6 +235,7 @@
                 output_area.value = f"Error: {str(e)}"
             finally:
                 cancel_btn.style.display = "none"
+                await asyncio.sleep(0)
 
         # Add event listener for Enter key in input box
         def on_keypress(event):
