@@ -9,6 +9,8 @@
     <style>
         body { font-family: sans-serif; margin: 2em; }
         #regex-input { width: 300px; }
+        #copy-link-btn { cursor: pointer; font-size: 1.2em; vertical-align: middle; margin-left: 5px; border: none; background: none; padding: 0; }
+        #copy-link-btn:hover { filter: brightness(0.8); }
         #output { width: 100%; height: 400px; margin-top: 1em; font-family: monospace; white-space: pre; border: 1px solid #ccc; padding: 0.5em; overflow: auto; }
         .controls { margin-bottom: 1em; }
         table { border-collapse: collapse; width: 100%; }
@@ -136,6 +138,7 @@
     <div class="controls">
         <label for="regex-input">Regex:</label>
         <input type="text" id="regex-input" placeholder="e.g. [A-Z]-\d{3}" value="">
+        <button id="copy-link-btn" title="Copy link to this regex" py-click="copy_link">🔗</button>
         <label for="max-results">Max results:</label>
         <input type="number" id="max-results" value="200" min="1" style="width: 60px;">
         <button id="invert-btn" py-click="do_invert">Invert</button>
@@ -154,7 +157,7 @@
 
     <script type="py">
         from pyscript import document, window
-        from inv_regex import invert, count
+        from inv_regex import invert
         import pyparsing
         import itertools
         import asyncio
@@ -164,6 +167,24 @@
         def cancel_invert(event):
             global is_cancelled
             is_cancelled = True
+
+        async def copy_link(event):
+            regex = document.querySelector("#regex-input").value.strip()
+            if not regex:
+                return
+            
+            encoded_regex = window.encodeURIComponent(regex)
+            base_url = window.location.origin + window.location.pathname
+            link = f"{base_url}?r={encoded_regex}"
+            
+            await window.navigator.clipboard.writeText(link)
+            
+            status_div = document.querySelector("#status")
+            original_status = status_div.innerText
+            status_div.innerText = "Link copied to clipboard!"
+            await asyncio.sleep(2)
+            if status_div.innerText == "Link copied to clipboard!":
+                status_div.innerText = original_status
 
         async def do_invert(event):
             global is_cancelled
