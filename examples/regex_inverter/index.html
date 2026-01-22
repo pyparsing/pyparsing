@@ -153,7 +153,7 @@
     </py-config>
 
     <script type="py">
-        from pyscript import document
+        from pyscript import document, window
         from inv_regex import invert, count
         import pyparsing
         import itertools
@@ -211,6 +211,8 @@
                 if not is_cancelled:
                     # Count the remaining items in the iterator
                     remaining_count = 0
+                    cancel_btn.style.display = "inline"
+                    await asyncio.sleep(0)
                     for i, _ in enumerate(invert_iter, 1):
                         remaining_count = i
                         if i % 100_000 == 0:
@@ -244,6 +246,17 @@
 
         document.querySelector("#regex-input").onkeypress = on_keypress
         document.querySelector("#max-results").onkeypress = on_keypress
+
+        # Initialize page with query argument 'r'
+        async def init_page():
+            query_params = window.URLSearchParams.new(window.location.search)
+            regex_arg = query_params.get("r")
+            if regex_arg:
+                document.querySelector("#regex-input").value = regex_arg
+                # auto-start
+                # await do_invert(None)
+
+        asyncio.create_task(init_page())
     </script>
 </body>
 </html>
