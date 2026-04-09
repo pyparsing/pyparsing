@@ -29,6 +29,10 @@ Version 3.3.3 - in development
 ------------------------------
 - Adding support for Python 3.15.
 
+- Fixed matching bug in `match_previous_expr()`, when expression is modified with
+  `leave_whitespace(recursive=True)`. Issue #633, reported by Ahmed Mohamed Abdelaal,
+  PR submitted by fcardosojr18 et AI.
+
 - Update type checking to use `mypy 1.20.0`.
 
 - 5-8% performance boost optimizing `ParseResults.copy()`. Inspired by similar changes

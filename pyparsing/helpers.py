@@ -156,20 +156,19 @@ def match_previous_expr(expr: ParserElement) -> ParserElement:
     e2 = expr.copy()
     rep <<= e2
 
-    match_tokens = []
-
     def copy_token_to_repeater(s, l, t):
-        match_tokens[:] = _flatten(t.as_list())
+        match_tokens = _flatten(t.as_list())
 
-    def must_match_these_tokens(s, l, t):
-        these_tokens = _flatten(t.as_list())
-        if these_tokens != match_tokens:
-            raise ParseException(
-                s, l, f"Expected {match_tokens}, found{these_tokens}"
-            )
+        def must_match_these_tokens(s, l, t):
+            these_tokens = _flatten(t.as_list())
+            if these_tokens != match_tokens:
+                raise ParseException(
+                    s, l, f"Expected {match_tokens}, found{these_tokens}"
+                )
+
+        e2.add_parse_action(must_match_these_tokens, call_during_try=True)
 
     expr.add_parse_action(copy_token_to_repeater, call_during_try=True)
-    rep.add_parse_action(must_match_these_tokens, call_during_try=True)
     rep.set_name(f"(prev) {expr}")
     return rep
 

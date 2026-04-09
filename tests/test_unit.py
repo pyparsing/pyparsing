@@ -2422,36 +2422,6 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
 
         self.assertParseResultsEquals(result, expected_list=expected)
 
-    def testRepeaterRecursiveWhitespace(self):
-        """test match_previous_expr with recursive whitespace"""
-
-        if ParserElement._packratEnabled or ParserElement._left_recursion_enabled:
-            print("skipping this test, not compatible with memoization")
-            return
-
-        first = pp.Char(pp.nums)
-        second = pp.match_previous_expr(first)
-        expr = first + ":" + second
-        expr.leave_whitespace(recursive=True)
-
-        tests = [
-            ("1:1", True),
-            ("1:2", False),
-            ("1:a", False),
-        ]
-
-        for tst, expected in tests:
-            found = False
-            for tokens, start, end in expr.scan_string(tst):
-                found = True
-            if not found:
-                print("No match in", tst)
-
-            self.assertEqual(
-                expected,
-                found,
-                f"Failed recursive whitespace repeater test: {tst}",
-            )
     def testRecursiveCombine(self):
         testInput = "myc(114)r(11)dd"
         stream = pp.Forward()
@@ -2471,34 +2441,39 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
 
         self.assertParseResultsEquals(testVal, expected_list=expected)
 
-    def testRepeaterControlCase(self):
-        """test match_previous_expr without whitespace changes"""
+    def testRepeaterRecursiveWhitespace(self):
+        """test match_previous_expr with recursive whitespace"""
 
         if ParserElement._packratEnabled or ParserElement._left_recursion_enabled:
             print("skipping this test, not compatible with memoization")
             return
 
+        COLON = pp.Suppress(":").set_name(":")
         first = pp.Char(pp.nums)
         second = pp.match_previous_expr(first)
-        expr = first + ":" + second
+        expr = first + COLON + second
+        expr.leave_whitespace(recursive=True)
 
         tests = [
             ("1:1", True),
+            ("1: 1", False),
             ("1:2", False),
+            ("1:a", False),
         ]
 
         for tst, expected in tests:
-            found = False
-            for tokens, start, end in expr.scan_string(tst):
-                found = True
-            if not found:
-                print("No match in", tst)
+            if expected:
+                expected_int_list = [t.strip() for t in tst.split(":")]
+                self.assertParseAndCheckList(
+                    expr, tst, expected_int_list,
+                    msg=f"Failed recursive whitespace repeater test, expected pass:  {expr=} {tst=}"
+                )
+            else:
+                with self.assertRaisesParseException(
+                    msg=f"Failed recursive whitespace repeater test, expected fail:  {expr=} {tst=}"
+                ):
+                    expr.parse_string(tst)
 
-            self.assertEqual(
-                expected,
-                found,
-                f"Failed control repeater test: {tst}",
-            )
 
     def testRepeaterRecursiveFalse(self):
         """test match_previous_expr with recursive=False"""
@@ -2507,28 +2482,30 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             print("skipping this test, not compatible with memoization")
             return
 
+        COLON = pp.Suppress(":").set_name(":")
         first = pp.Char(pp.nums)
         second = pp.match_previous_expr(first)
-        expr = first + ":" + second
+        expr = first + COLON + second
         expr.leave_whitespace(recursive=False)
 
         tests = [
             ("1:1", True),
+            ("1: 1", True),
             ("1:2", False),
         ]
 
         for tst, expected in tests:
-            found = False
-            for tokens, start, end in expr.scan_string(tst):
-                found = True
-            if not found:
-                print("No match in", tst)
-
-            self.assertEqual(
-                expected,
-                found,
-                f"Failed recursive=False repeater test: {tst}",
-            )
+            if expected:
+                expected_int_list = [t.strip() for t in tst.split(":")]
+                self.assertParseAndCheckList(
+                    expr, tst, expected_int_list,
+                    msg=f"Failed recursive=False repeater test, expected pass: {expr=} {tst=}"
+                )
+            else:
+                with self.assertRaisesParseException(
+                    msg=f"Failed recursive=False repeater test, expected fail: {expr=} {tst=}"
+                ):
+                    expr.parse_string(tst)
 
     def testRepeaterPreservesParseAction(self):
         """test match_previous_expr preserves existing parse actions"""
@@ -2537,35 +2514,31 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             print("skipping this test, not compatible with memoization")
             return
 
+        COLON = pp.Suppress(":").set_name(":")
         first = ppc.integer
         second = pp.match_previous_expr(first)
-        expr = first + ":" + second
+        expr = first + COLON + second
         expr.leave_whitespace(recursive=True)
 
         tests = [
             ("1:1", True),
+            ("1: 1", False),
             ("1:2", False),
         ]
 
         for tst, expected in tests:
-            found = False
-            for tokens, start, end in expr.scan_string(tst):
-                f, _, s = tokens
+            if expected:
+                expected_int_list = [int(t) for t in tst.split(":")]
+                self.assertParseAndCheckList(
+                    expr, tst, expected_int_list,
+                    msg=f"Failed parse action preservation repeater test, expected pass: {expr=} {tst=}"
+                )
+            else:
+                with self.assertRaisesParseException(
+                    msg=f"Failed parse action preservation repeater test, expected fail: {expr=} {tst=}"
+                ):
+                    expr.parse_string(tst)
 
-                # ensure parse action still converts to int
-                self.assertIsInstance(f, int)
-                self.assertIsInstance(s, int)
-
-                found = True
-
-            if not found:
-                print("No match in", tst)
-
-            self.assertEqual(
-                expected,
-                found,
-                f"Failed parse action preservation test: {tst}",
-            )
     def testSetNameToStrAndNone(self):
         wd = pp.Word(pp.alphas)
         with self.subTest():
@@ -11247,6 +11220,11 @@ class Test04_WithPackrat(Test02_WithoutPackrat):
     """
     rerun Test2 tests, now that packrat is enabled
     """
+    def setUp(self):
+        ParserElement.enable_packrat(force=True)
+
+    def tearDown(self):
+        default_suite_context.restore()
 
     def test000_assert_packrat_status(self):
         print("Packrat enabled:", ParserElement._packratEnabled)
@@ -11263,21 +11241,15 @@ class Test04_WithPackrat(Test02_WithoutPackrat):
         )
 
 
-class Test05_EnableBoundedPackratParsing(TestCase):
-    def runTest(self):
-        Test02_WithoutPackrat.suite_context = Test02_WithoutPackrat.save_suite_context
-        Test02_WithoutPackrat.suite_context.restore()
-
-        ParserElement.enable_packrat(cache_size_limit=16)
-
-        # SAVE A NEW SUITE CONTEXT
-        Test02_WithoutPackrat.suite_context = ppt.reset_pyparsing_context().save()
-
-
 class Test06_WithBoundedPackrat(Test02_WithoutPackrat):
     """
     rerun Test2 tests, now with bounded packrat cache
     """
+    def setUp(self):
+        ParserElement.enable_packrat(cache_size_limit=16, force=True)
+
+    def tearDown(self):
+        default_suite_context.restore()
 
     def test000_assert_packrat_status(self):
         print("Packrat enabled:", ParserElement._packratEnabled)
@@ -11300,21 +11272,16 @@ class Test06_WithBoundedPackrat(Test02_WithoutPackrat):
         self.assertEqual(list(result), list(letters))
 
 
-class Test07_EnableUnboundedPackratParsing(TestCase):
-    def runTest(self):
-        Test02_WithoutPackrat.suite_context = Test02_WithoutPackrat.save_suite_context
-        Test02_WithoutPackrat.suite_context.restore()
-
-        ParserElement.enable_packrat(cache_size_limit=None)
-
-        # SAVE A NEW SUITE CONTEXT
-        Test02_WithoutPackrat.suite_context = ppt.reset_pyparsing_context().save()
-
-
 class Test08_WithUnboundedPackrat(Test02_WithoutPackrat):
     """
     rerun Test2 tests, now with unbounded packrat cache
     """
+    def setUp(self):
+        ParserElement.enable_packrat(cache_size_limit=None, force=True)
+
+    def tearDown(self):
+        default_suite_context.restore()
+
 
     def test000_assert_packrat_status(self):
         print("Packrat enabled:", ParserElement._packratEnabled)
