@@ -27,8 +27,15 @@ Required Python versions by pyparsing version
 
 Version 3.3.3 - in development
 ------------------------------
-- 5-8% performance boost optimizing ParseResults.copy(). Inspired by similar changes
+- Adding support for Python 3.15.
+
+- Update type checking to use `mypy 1.20.0`.
+
+- 5-8% performance boost optimizing `ParseResults.copy()`. Inspired by similar changes
   made by Evan Hubinger in https://github.com/evhub/cpyparsing.
+
+- Added `docs/pyparsing_class.md`, a more comprehensive class diagram capturing the major
+  classes and modules in the pyparsing package.
 
 
 Version 3.3.2 - January, 2026
