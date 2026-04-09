@@ -11206,16 +11206,6 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
         pass
 
 
-class Test03_EnablePackratParsing(TestCase):
-    def runTest(self):
-        Test02_WithoutPackrat.suite_context.restore()
-
-        ParserElement.enable_packrat()
-
-        # SAVE A NEW SUITE CONTEXT
-        Test02_WithoutPackrat.suite_context = ppt.reset_pyparsing_context().save()
-
-
 class Test04_WithPackrat(Test02_WithoutPackrat):
     """
     rerun Test2 tests, now that packrat is enabled
