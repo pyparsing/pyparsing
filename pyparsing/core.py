@@ -1708,7 +1708,7 @@ class ParserElement(ABC):
         if other is Ellipsis:
             other = (0, None)
         elif isinstance(other, tuple) and other[:1] == (Ellipsis,):
-            other = ((0,) + other[1:] + (None,))[:2]
+            other = (0, *other[1:2], None)[:2]
 
         if not isinstance(other, (int, tuple)):
             return NotImplemented
@@ -1717,7 +1717,7 @@ class ParserElement(ABC):
             minElements, optElements = other, 0
         else:
             other = tuple(o if o is not Ellipsis else None for o in other)
-            other = (other + (None, None))[:2]
+            other = (*other, None, None)[:2]
             if other[0] is None:
                 other = (0, other[1])
             if isinstance(other[0], int) and other[1] is None:
@@ -2824,7 +2824,7 @@ class Keyword(Token):
     For case-insensitive matching, use :class:`CaselessKeyword`.
     """
 
-    DEFAULT_KEYWORD_CHARS = alphanums + "_$"
+    DEFAULT_KEYWORD_CHARS = f"{alphanums}_$"
 
     def __init__(
         self,
@@ -3315,7 +3315,7 @@ class Word(Token):
             s = _collapse_string_to_ranges(s, re_escape=False)
 
             if len(s) > max_repr_len:
-                return s[: max_repr_len - 3] + "..."
+                return f"{s[:max_repr_len - 3]}..."
 
             return s
 
@@ -4380,29 +4380,29 @@ class ParseExpression(ParserElement):
         # but only if there are no parse actions or resultsNames on the nested And's
         # (likewise for :class:`Or`'s and :class:`MatchFirst`'s)
         if len(self.exprs) == 2:
-            other = self.exprs[0]
+            first, second = self.exprs
             if (
-                isinstance(other, self.__class__)
-                and not other.parseAction
-                and other.resultsName is None
-                and not other.debug
+                isinstance(first, self.__class__)
+                and not first.parseAction
+                and first.resultsName is None
+                and not first.debug
             ):
-                self.exprs = other.exprs[:] + [self.exprs[1]]
+                self.exprs[:] = (*first.exprs, second)
                 self._defaultName = None
-                self._may_return_empty |= other.mayReturnEmpty
-                self.mayIndexError |= other.mayIndexError
+                self._may_return_empty |= first.mayReturnEmpty
+                self.mayIndexError |= first.mayIndexError
 
-            other = self.exprs[-1]
+            last = self.exprs[-1]
             if (
-                isinstance(other, self.__class__)
-                and not other.parseAction
-                and other.resultsName is None
-                and not other.debug
+                isinstance(last, self.__class__)
+                and not last.parseAction
+                and last.resultsName is None
+                and not last.debug
             ):
-                self.exprs = self.exprs[:-1] + other.exprs[:]
+                self.exprs[-1:] = last.exprs
                 self._defaultName = None
-                self._may_return_empty |= other.mayReturnEmpty
-                self.mayIndexError |= other.mayIndexError
+                self._may_return_empty |= last.mayReturnEmpty
+                self.mayIndexError |= last.mayIndexError
 
         self.errmsg = f"Expected {self}"
 
@@ -4603,18 +4603,26 @@ class And(ParseExpression):
         return self
 
     def parseImpl(self, instring, loc, do_actions=True):
+
+        # if no exprs defined, assume we contain a single Empty
+        # (consistent with behavior of `all([])` returning True)
+        exprs = iter(self.exprs or (Empty(),))
+
         # pass False as callPreParse arg to _parse for first element, since we already
         # pre-parsed the string as part of our And pre-parsing
-        loc, resultlist = self.exprs[0]._parse(
+        loc, resultlist = next(exprs)._parse(
             instring, loc, do_actions, callPreParse=False
         )
-        errorStop = False
-        for e in self.exprs[1:]:
+
+        # iterate over remaining expressions
+        raise_syntax_error_immediately = False
+        for e in exprs:
             # if isinstance(e, And._ErrorStop):
             if type(e) is And._ErrorStop:
-                errorStop = True
+                raise_syntax_error_immediately = True
                 continue
-            if errorStop:
+
+            if raise_syntax_error_immediately:
                 try:
                     loc, exprtokens = e._parse(instring, loc, do_actions)
                 except ParseSyntaxException:
