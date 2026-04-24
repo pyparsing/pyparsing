@@ -64,6 +64,7 @@ class TinyNode(ABC):
         stype = getattr(self, "statement_type", None)
         return f"<{cls} statement_type={stype!r}>"
 
+    # registry of TinyNode AST subclasses by statement_type tag
     _lookup_statement_type: dict[str, type[TinyNode]] = {}
 
     @classmethod
@@ -77,7 +78,7 @@ class TinyNode(ABC):
 
     @classmethod
     def from_statement_type(cls, statement_type_tag: str) -> type[TinyNode] | None:
-        """Return the TinyNode subclass matching `type_name`."""
+        """Return the TinyNode subclass matching `statement_type_tag`."""
         return TinyNode._lookup_statement_type.get(statement_type_tag)
 
     # All subclasses must provide a uniform factory for construction
