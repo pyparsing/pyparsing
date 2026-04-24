@@ -86,3 +86,31 @@ Local date/time: 2026-04-24 01:29
   Actions taken:
   - Refactored `_mini_tests` in `examples/zef/zef_parser.py` to use `Program.run_tests`.
   - Verified the output of `python examples/zef/zef_parser.py`.
+
+- User prompt:
+  List all the different Tag names, which will need to be implemented in the next stage, creating the zef_ast.py
+
+  Plan:
+  - 1. Review `examples/zef/zef_parser.py` to identify all `pp.Tag("type", ...)` usages.
+  - 2. Compile a list of these tag names for the AST implementation.
+
+  Actions taken:
+  - Scanned `examples/zef/zef_parser.py` and identified the following tags: `array_lit`, `fn_def`, `lambda`, `if_expr`, `assignment`, `var_decl`, `expr_stmt`, `if_stmt`, `while_loop`, `accessor`, `class_def`, `package_def`.
+  - Removed redundant parenthesized expression handling from `primary` at line 95, as `pp.infix_notation` handles this automatically.
+  - Verified that all test cases still pass.
+
+- User prompt:
+  Redo the implementation of function_call, to include the function identifier. Make function_call a term within primary (must occur before Identifier). Add a Tag for function_call.
+
+  Plan:
+  - 1. Redefine `function_call` to include the function name (`Identifier`) and a `func_call` tag.
+  - 2. Move `function_call` into `primary`, ensuring it precedes the bare `Identifier` to avoid incorrect matching.
+  - 3. Adjust `primary_postfix` to use `method_call` (parameters only) for chained calls like `obj.method()`.
+  - 4. Update the railroad diagram and verify with existing tests.
+
+  Actions taken:
+  - Refactored `function_call` in `examples/zef/zef_parser.py` to include the function name and the `func_call` tag.
+  - Reordered `primary` to include `function_call` before `Identifier`.
+  - Introduced `method_call` for postfix application in member access chains.
+  - Verified that all test cases still pass and that the `func_call` tag is correctly generated in the parse results.
+  - Regenerated `examples/zef/docs/zef_parser_diagram.html`.

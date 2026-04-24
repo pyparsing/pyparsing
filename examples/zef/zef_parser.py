@@ -87,32 +87,37 @@ if_expression = pp.Group(
 ).set_name("if_expression")
 
 # Primary
-# literal | identifier | '(' expression ')' | array_literal | anonymous_function | if_expression
+# literal | function_call | identifier | array_literal | anonymous_function | if_expression
 primary = pp.Forward().set_name("primary")
+
+# Function Call: identifier '(' [args] ')'
+function_call = pp.Group(
+    pp.Tag("type", "func_call")
+    + Identifier("name")
+    + LPAREN
+    + pp.Optional(pp.DelimitedList(expr))("args")
+    + RPAREN
+).set_name("function_call")
+
+# Member Access: primary ('.' identifier | '(' args ')' | '[' index ']')*
+# We'll define a helper for the trailing parts.
+member_access = pp.Group(DOT + Identifier).set_name("member_access")
+method_call = pp.Group(LPAREN + pp.Optional(pp.DelimitedList(expr))("args") + RPAREN).set_name("method_call")
+index_access = pp.Group(LBRACK + expr + RBRACK).set_name("index_access")
+
 primary << (
     literal
+    | function_call
     | Identifier
-    | pp.Group(LPAREN + expr + RPAREN)
     | array_literal
     | anonymous_function
     | if_expression
     | SUPER
 )
 
-# Member access and Function calls
-# These need to be handled carefully because they can be chained: p.toString().size
-# pyparsing's infix_notation can handle some of this, but member access and calls are usually postfix-like.
-# We'll use a combination.
-
-# Member Access: primary ('.' identifier | '(' args ')' | '[' index ']')*
-# We'll define a helper for the trailing parts.
-member_access = pp.Group(DOT + Identifier).set_name("member_access")
-function_call = pp.Group(LPAREN + pp.Optional(pp.DelimitedList(expr))("args") + RPAREN).set_name("function_call")
-index_access = pp.Group(LBRACK + expr + RBRACK).set_name("index_access")
-
 # Postfix operators for member access and calls
 primary_postfix = pp.Forward().set_name("primary_postfix")
-primary_postfix << primary + pp.ZeroOrMore(member_access | function_call | index_access)
+primary_postfix << primary + pp.ZeroOrMore(member_access | method_call | index_access)
 
 # Expressions using infix_notation
 # We'll put assignment at a higher level than infix_notation
@@ -222,7 +227,7 @@ def parse_zef(text: str):
     return program.parse_string(text, parse_all=True)
 
 Program = program # Alias for diagram generation if needed
-# Program.create_diagram("examples/zef/docs/zef_parser_diagram.html")
+Program.create_diagram("examples/zef/docs/zef_parser_diagram.html")
 
 def _mini_tests():
     # Test with some examples
@@ -280,7 +285,11 @@ def _mini_tests():
         }
         """,
     ]
-    Program.run_tests(test_cases, comment=None, parse_all=True)
+
+    success, _ = Program.run_tests(test_cases, comment=None, parse_all=True)
+
+    assert success, "One or more tests failed"
+    print("\nAll tests passed!")
 
 if __name__ == "__main__":
     _mini_tests()
