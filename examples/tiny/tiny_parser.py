@@ -258,6 +258,8 @@ Program = pp.Group(
     pp.Group(pp.ZeroOrMore(Function_Definition))("functions") + Main_Function("main")
 )("program").set_name("Program")
 
+# Program.create_diagram('tiny_parser_diagram.html')
+
 # Ignore comments
 Program.ignore(comment)
 

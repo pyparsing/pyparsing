@@ -83,7 +83,7 @@ trying out statements and functions.
   - In debug mode, file import errors will also show full Python tracebacks.
 
 For a fuller walkthrough of REPL features and development notes, see
-`examples/tiny/docs/tiny_repl_transcript.md`.
+`examples/tiny/docs/transcript_3_tiny_repl.md`.
 
 ## Project Structure
 
@@ -98,6 +98,8 @@ For a fuller walkthrough of REPL features and development notes, see
 
 - tiny_ast.py
   - Declares the abstract base `TinyNode` and node subclasses for each TINY statement type.
+  - Each subclass defines its `statement_type`, mapping to the respective `type` tags defined in the parsed statements.
+  - The base `TinyNode` uses `__init_subclass__` to maintain a registry of statement types to `TinyNode` subclasses.
   - Nodes wrap parser results and implement `execute(engine)`; nodes that contain bodies pre-build their child nodes.
 
 - tiny_engine.py
@@ -117,7 +119,7 @@ For a fuller walkthrough of REPL features and development notes, see
   - Uses `tiny_parser.py`, `tiny_ast.py`, and `tiny_engine.py` to parse and execute TINY statements.
 
 - samples/
-  - Sample TINY programs (for example: `hello.tiny`, `hello_5.tiny`, `factorial.tiny`).
+  - Sample TINY programs (for example: `hello.tiny`, `hello_5.tiny`, `factorial.tiny`, `fizzbuzz.tiny`).
 
 - tests/ and examples/tiny/tests/
   - Pytest-based tests that exercise the parser and AST/engine execution.

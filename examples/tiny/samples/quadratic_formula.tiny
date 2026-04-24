@@ -1,0 +1,82 @@
+/*
+ quadratic_formula.tiny
+ */
+
+float sqrt(float a) {
+    float eps := 0.00000000001;
+    float y := a / 2.0;
+    repeat
+        if abs(y * y - a) < eps then return y; end
+        y := (y + a / y) / 2;
+    until 0
+}
+
+
+float abs(float a) {
+    if a < 0 then return -a; end
+    return a;
+}
+
+string sign(float x) {
+    if x < 0 then return "-"; end
+    return "+";
+}
+
+string format_coeff(float coeff) {
+    /* return a string for the given coefficient, showing ints as integers with no trailing ".0" */
+    int icoeff := coeff;
+    string ret;
+    if icoeff = coeff then ret := icoeff; else ret := coeff; end
+    return ret;
+}
+
+string poly(float a, float b, float c) {
+    /* format a string in the form "Ax² + Bx + C" */
+
+    string asign := sign(a);
+    string bsign := sign(b);
+    string csign := sign(c);
+
+    a := abs(a);
+    b := abs(b);
+    c := abs(c);
+
+    astr := format_coeff(a);
+    bstr := format_coeff(b);
+    cstr := format_coeff(c);
+
+    if asign = "+" then asign := ""; end
+    if astr = "1" then astr := ""; end
+    if bstr = "1" then bstr := ""; end
+
+    return asign + astr + "x²" + " " + bsign + " " + bstr + "x" + " " + csign + " " + cstr;
+}
+
+int main() {
+    float a, b, c;
+    float disc, x1, x2;
+
+    /* read coefficients a, b, and c */
+    read a;
+    read b;
+    read c;
+    write endl;
+
+    write poly(a, b, c); write endl;
+
+    /* compute discriminant */
+    disc := b*b - 4*a*c;
+
+    /* print results based on discriminant */
+    if (disc > 0) then
+        x1 := (-b + sqrt(disc)) / (2*a);
+        x2 := (-b - sqrt(disc)) / (2*a);
+        write "Two real roots: "; write x1; write " and "; write x2; write endl;
+    elseif (disc = 0) then
+        x1 := -b / (2*a);
+        write "One real root: "; write x1; write endl;
+    else
+        write "no real roots";
+    end
+}
+

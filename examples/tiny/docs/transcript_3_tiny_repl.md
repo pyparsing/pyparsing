@@ -6,7 +6,7 @@ This document transcribes the current session pertaining to the TINY REPL work. 
 
 ## Session Overview
 
-- Repository root: `D:/dev/pyparsing/gh/pyparsing`
+- Repository root: `/pyparsing`
 - Key component: `examples/tiny/tiny_repl.py`
 
 ## Timeline
@@ -18,12 +18,12 @@ Prompt:
 ```
 Implement a REPL for the TINY language, that will run interactive lines of TINY code. Initialize the REPL with an empty TinyEngine with an empty TinyFrame. 
 
-Execute any entered TINY statements in the context of the engine's current TInyFrame.
+Execute any entered TINY statements in the context of the engine's current TinyFrame.
 
 Add support for these REPL commands:
 - quit - exits the REPL
 - import <tiny file name> - parses the input TINY file, loading all define functions, but ignoring any main() function present
-- reimport <tiny file name> - same as import, but overwirtes any functions that were previously defined
+- reimport <tiny file name> - same as import, but overwrites any functions that were previously defined
 - clear vars - clear all locally defined variables in the REPL's engine
 - clear all - clear all variables and functions in the REPL's engine
 ```
@@ -288,12 +288,12 @@ Outcome:
 
 ## Current File State Snapshot (Key Paths)
 
-- `D:\dev\pyparsing\gh\pyparsing\examples\tiny\tiny_repl.py` — 341 lines; incremental REPL with Ctrl-C handling, listing, `help`, debug mode/exception policy, and versioned banner/help.
-- `D:\dev\pyparsing\gh\pyparsing\examples\tiny\tiny_parser.py` — grammar for TINY including `stmt_seq`.
-- `D:\dev\pyparsing\gh\pyparsing\examples\tiny\tiny_ast.py` — AST node implementations.
-- `D:\dev\pyparsing\gh\pyparsing\examples\tiny\tiny_engine.py` — execution engine and frames.
-- `D:\dev\pyparsing\gh\pyparsing\examples\tiny\samples\math_functions.tiny` — sample functions used for import testing.
- - `D:\dev\pyparsing\gh\pyparsing\examples\tiny\README.md` — includes REPL usage and debug mode documentation.
+- `/pyparsing/examples/tiny/tiny_repl.py` — 341 lines; incremental REPL with Ctrl-C handling, listing, `help`, debug mode/exception policy, and versioned banner/help.
+- `/pyparsing/examples/tiny/tiny_parser.py` — grammar for TINY including `stmt_seq`.
+- `/pyparsing/examples/tiny/tiny_ast.py` — AST node implementations.
+- `/pyparsing/examples/tiny/tiny_engine.py` — execution engine and frames.
+- `/pyparsing/examples/tiny/samples/math_functions.tiny` — sample functions used for import testing.
+ - `/pyparsing/examples/tiny/README.md` — includes REPL usage and debug mode documentation.
 
 ## Usage Reminder
 
