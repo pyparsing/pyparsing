@@ -11,7 +11,7 @@ from collections.abc import (
     Iterable,
 )
 import pprint
-from typing import Any
+from typing import Any, NamedTuple
 
 from .util import deprecate_argument, _is_iterable, _flatten
 
@@ -21,20 +21,9 @@ _generator_type = type((_ for _ in ()))
 NULL_SLICE: slice = slice(None)
 
 
-class _ParseResultsWithOffset:
-    __slots__ = ["tup"]
-
-    def __init__(self, p1: ParseResults, p2: int) -> None:
-        self.tup: tuple[ParseResults, int] = (p1, p2)
-
-    def __getitem__(self, i):
-        return self.tup[i]
-
-    def __getstate__(self):
-        return self.tup
-
-    def __setstate__(self, state):
-        self.tup = state
+class _ParseResultsWithOffset(NamedTuple):
+    result: ParseResults
+    offset: int
 
 
 class ParseResults:
@@ -254,14 +243,14 @@ class ParseResults:
             return self._toklist[i]
 
         if i not in self._all_names:
-            return self._tokdict[i][-1][0]
+            return self._tokdict[i][-1].result
 
-        return ParseResults([v[0] for v in self._tokdict[i]])
+        return ParseResults([v.result for v in self._tokdict[i]])
 
     def __setitem__(self, k, v, isinstance=isinstance):
         if isinstance(v, _ParseResultsWithOffset):
             self._tokdict[k] = self._tokdict.get(k, list()) + [v]
-            sub = v[0]
+            sub = v.result
         elif isinstance(k, (int, slice)):
             self._toklist[k] = v
             sub = v
@@ -298,9 +287,8 @@ class ParseResults:
         for occurrences in self._tokdict.values():
             for j in removed:
                 for k, (value, position) in enumerate(occurrences):
-                    occurrences[k] = _ParseResultsWithOffset(
-                        value, position - (position > j)
-                    )
+                    if position > j:
+                        occurrences[k] = _ParseResultsWithOffset(value, position - 1)
 
     def __contains__(self, k) -> bool:
         return k in self._tokdict
@@ -451,9 +439,8 @@ class ParseResults:
         # fixup indices in token dictionary
         for occurrences in self._tokdict.values():
             for k, (value, position) in enumerate(occurrences):
-                occurrences[k] = _ParseResultsWithOffset(
-                    value, position + (position > index)
-                )
+                if position > index:
+                    occurrences[k] = _ParseResultsWithOffset(value, position + 1)
 
     def append(self, item):
         """
@@ -535,17 +522,25 @@ class ParseResults:
 
         if other._tokdict:
             offset = len(self._toklist)
-            addoffset = lambda a: offset if a < 0 else a + offset
+            # addoffset = lambda a: offset if a < 0 else a + offset
             otheritems = other._tokdict.items()
             otherdictitems = [
-                (k, _ParseResultsWithOffset(v[0], addoffset(v[1])))
+                # (k, _ParseResultsWithOffset(v[0], addoffset(v[1])))
+                (
+                    k,
+                    _ParseResultsWithOffset(
+                        v.result,
+                        # addoffset(v[1])
+                        (offset if v.offset < 0 else v.offset + offset),
+                    ),
+                )
                 for k, vlist in otheritems
                 for v in vlist
             ]
             for k, v in otherdictitems:
                 self[k] = v
-                if isinstance(v[0], ParseResults):
-                    v[0]._parent = self
+                if isinstance(v.result, ParseResults):
+                    v.result._parent = self
 
         self._toklist += other._toklist
         self._all_names |= other._all_names
@@ -750,14 +745,12 @@ class ParseResults:
                 ),
                 None,
             )
-        elif (
-            len(self) == 1
-            and len(self._tokdict) == 1
-            and next(iter(self._tokdict.values()))[0][1] in (0, -1)
-        ):
-            return next(iter(self._tokdict.keys()))
-        else:
-            return None
+        elif len(self) == 1 and len(self._tokdict) == 1:
+            first_name, first_pr_offset = next(iter(self._tokdict.items()))
+            if first_pr_offset[0].offset <= 0:
+                return first_name
+
+        return None
 
     def dump(self, indent="", full=True, include_list=True, _depth=0) -> str:
         """
