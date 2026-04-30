@@ -105,6 +105,7 @@ class ParseResults:
         "_modal",
         "_toklist",
         "_tokdict",
+        "_is_dict_context",
     )
 
     class List(list):
@@ -185,6 +186,7 @@ class ParseResults:
         self._name = None
         self._parent = None
         self._all_names = set()
+        self._is_dict_context = False
 
         if toklist is None:
             self._toklist = []
@@ -659,7 +661,9 @@ class ParseResults:
 
         def to_item(obj):
             if isinstance(obj, ParseResults):
-                return obj.as_dict() if obj.haskeys() else [to_item(v) for v in obj]
+                if obj.haskeys() or obj._is_dict_context:
+                    return obj.as_dict()
+                return [to_item(v) for v in obj]
             else:
                 return obj
 
@@ -679,6 +683,7 @@ class ParseResults:
         ret._all_names = {*self._all_names}
         ret._name = self._name
         ret._modal = self._modal
+        ret._is_dict_context = self._is_dict_context
         return ret
 
     def deepcopy(self) -> ParseResults:
@@ -884,6 +889,7 @@ class ParseResults:
         self._toklist, (self._tokdict, par, inAccumNames, self._name) = state
         self._all_names = set(inAccumNames)
         self._parent = None
+        self._is_dict_context = False
 
     def __getnewargs__(self):
         return self._toklist, self._name

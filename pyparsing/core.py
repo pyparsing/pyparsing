@@ -6635,6 +6635,11 @@ class Dict(TokenConverter):
                 else:
                     tokenlist[ikey] = _ParseResultsWithOffset(dictvalue[0], i)
 
+        # Mark the tokenlist so that as_dict() knows to serialize an empty
+        # result as {} rather than [], preserving dict semantics even when
+        # there are no matched entries.
+        tokenlist._is_dict_context = True
+
         if self._asPythonDict:
             return [tokenlist.as_dict()] if self.resultsName else tokenlist.as_dict()
 
