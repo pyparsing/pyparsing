@@ -188,14 +188,14 @@ class pyparsing_common:
     """
 
     @staticmethod
-    def convert_to_integer(_, __, t):
+    def convert_to_integer(_, __, t) -> list[int]:
         """
         Parse action for converting parsed integers to Python int
         """
         return [int(tt) for tt in t]
 
     @staticmethod
-    def convert_to_float(_, __, t):
+    def convert_to_float(_, __, t) -> list[float]:
         """
         Parse action for converting parsed numbers to Python float
         """
@@ -207,7 +207,7 @@ class pyparsing_common:
         .set_parse_action(
             convert_to_integer
             if PY_310_OR_LATER
-            else lambda t: [int(tt) for tt in t]
+            else token_map(int)
         )
     )
     """expression that parses an unsigned integer, converts to an int"""
@@ -223,7 +223,7 @@ class pyparsing_common:
         .set_parse_action(
             convert_to_integer
             if PY_310_OR_LATER
-            else lambda t: [int(tt) for tt in t]
+            else token_map(int)
         )
     )
     """expression that parses an integer with optional leading sign, converts to an int"""
@@ -232,13 +232,13 @@ class pyparsing_common:
         signed_integer().set_parse_action(
             convert_to_float
             if PY_310_OR_LATER
-            else lambda t: [float(tt) for tt in t]
+            else token_map(float)
         )
         + "/"
         + signed_integer().set_parse_action(
             convert_to_float
             if PY_310_OR_LATER
-            else lambda t: [float(tt) for tt in t]
+            else token_map(float)
         )
     ).set_name("fraction")
     """fractional expression of an integer divided by an integer, converts to a float"""
@@ -256,7 +256,7 @@ class pyparsing_common:
         .set_parse_action(
             convert_to_float
             if PY_310_OR_LATER
-            else lambda t: [float(tt) for tt in t]
+            else token_map(float)
         )
     )
     """expression that parses a floating point number, converts to a float"""
@@ -267,7 +267,7 @@ class pyparsing_common:
         .set_parse_action(
             convert_to_float
             if PY_310_OR_LATER
-            else lambda t: [float(tt) for tt in t]
+            else token_map(float)
         )
     )
     """expression that parses a floating point number with optional
@@ -283,7 +283,7 @@ class pyparsing_common:
         .set_parse_action(
             convert_to_float
             if PY_310_OR_LATER
-            else lambda t: [float(tt) for tt in t]
+            else token_map(float)
         )
     )
     """any int or real number, always converts to a float"""
@@ -294,7 +294,7 @@ class pyparsing_common:
         .set_parse_action(
             convert_to_float
             if PY_310_OR_LATER
-            else lambda t: [float(tt) for tt in t]
+            else token_map(float)
         )
     )
     """any floating-point literal (int, real number, infinity, or NaN), converts to a float"""
