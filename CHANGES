@@ -41,6 +41,10 @@ Version 3.3.3 - in development
 - Added `docs/pyparsing_class.md`, a more comprehensive class diagram capturing the major
   classes and modules in the pyparsing package.
 
+- Updated `examples/http_server_log_parser.py` to use more modern Python and pyparsing
+  features, including PEP8 naming, datetime and timezone parsing and conversion, and
+  associated railroad diagram.
+
 
 Version 3.3.2 - January, 2026
 -----------------------------
