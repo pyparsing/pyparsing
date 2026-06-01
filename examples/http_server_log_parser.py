@@ -28,6 +28,7 @@ import calendar
 from datetime import datetime, timedelta, timezone
 
 import pyparsing as pp
+ppc = pp.common
 
 
 def _get_command_fields(t: pp.ParseResults) -> None:
@@ -49,34 +50,46 @@ def _make_timezone(offset: str) -> timezone:
     return timezone(sign * timedelta(hours=hours, minutes=minutes))
 
 
-def _make_datetime(t: pp.ParseResults) -> None:
+def _translate_month_abbreviation(t: pp.ParseResults) -> None:
     """
-    Parse action to compose a Python datetime object from the parsed timestamp fields.
+    Parse action to translate month abbreviation to month number, and insert
+    into parsed structure.
     """
-    year = int(t.year or 0)
-    month = list(calendar.month_abbr).index(t.month)
-    day = int(t.day or 1)
-    hour = int(t.hour or 0)
-    minute = int(t.minute or 0)
-    second = int(t.second or 0)
-    tz = _make_timezone(t.tz_offset) if t.tz_offset else None
+    t["month"] = list(calendar.month_abbr).index(t.month_abbr)
 
-    # add datetime as another named result
-    t["datetime"] = datetime(
-        year, month, day, hour, minute, second, tzinfo=tz
+
+def _insert_datetime_from_fields(t: pp.ParseResults) -> None:
+    """
+    Parse action to insert a datetime object into the parsed structure.
+    """
+    # mimic call to parse action
+    dt = ppc.as_datetime("", 0, t.timestamp_fields)
+
+    # convert parsed "+nnnn" time zone offset to timezone object
+    tz = (
+        _make_timezone(t.timestamp_fields.tz_offset)
+        if t.timestamp_fields.tz_offset else None
     )
+
+    # insert datetime object into parsed structure
+    t["timestamp"] = dt.replace(tzinfo=tz)
+
 
 def _restructure_timestamp(t: pp.ParseResults) -> None:
     """
-    Parse action to restructure the parsed structure,
-    adding a Python datetime field
-    representation of the timestamp, and converting the nested ParseResults to a string.
+    Parse action to restructure the parsed structure, adding a Python
+    datetime field representation of the timestamp, and converting the
+    nested ParseResults to a string.
     """
-    _make_datetime(t[0])
-
     # convert nested ParseResults to string
-    t[0][0] = ''.join(t[0][:-1])
+    t[0][0] = ''.join(t.timestamp_fields[:-1])
+
+    # delete separately parsed timestamp fields from token list, leaving only
+    # the joined string
     del t[0][1:-1]
+
+    # delete "timestamp_fields", can just use "timestamp" datetime object
+    del t["timestamp_fields"]
 
 
 log_line_bnf: pp.ParserElement = pp.NoMatch()
@@ -91,21 +104,22 @@ def get_log_line_bnf() -> pp.ParserElement:
         integer_value = integer().set_parse_action(lambda t: int(t[0]))
         ip_address = pp.DelimitedList(integer, ".", combine=True)
 
-        # build up fields for timestamp
+        # build up fields for timestamp (clip leading empty string inserted into
+        # calendar.month_abbr to convert abbreviation indexing to 1-based index
         _, *month_abbreviations = calendar.month_abbr
         month_abbr = pp.one_of(month_abbreviations).set_name("month_abbr")
 
         timestamp = (
-            integer("day") + "/" + month_abbr("month") + "/" + integer("year")
+            integer("day") + "/" + month_abbr("month_abbr") + "/" + integer("year")
             + ":"
             + integer("hour") + ":" + integer("minute") + ":" + integer("second")
-        )
+        ).add_parse_action(_translate_month_abbreviation)
 
         time_zone_offset = pp.Word("+-", pp.nums)
 
         server_date_time = pp.Group(
             pp.Suppress("[") + timestamp + time_zone_offset("tz_offset") + pp.Suppress("]")
-        ).add_parse_action(_restructure_timestamp)
+        ).add_parse_action(_insert_datetime_from_fields, _restructure_timestamp)
 
 
         # add set_name() to all local vars that are ParserElements, for nice diagramming
@@ -115,12 +129,15 @@ def get_log_line_bnf() -> pp.ParserElement:
             ip_address("client_ip_addr")
             + ("-" | pp.Word(pp.alphanums + "@._"))("user_ident")
             + ("-" | pp.Word(pp.alphanums + "@._"))("auth")
-            + server_date_time("timestamp")
-            + pp.dbl_quoted_string("cmd_uri_protocol_version").set_parse_action(_get_command_fields)
+            + server_date_time("timestamp_fields")
+            + pp.dbl_quoted_string("cmd_uri_protocol_version")
+              .add_parse_action(_get_command_fields)
             + (integer_value | "-")("status_code")
             + (integer_value | "-")("num_bytes_sent")
-            + pp.dbl_quoted_string("referrer").set_parse_action(pp.remove_quotes)
-            + pp.dbl_quoted_string("client_software").set_parse_action(pp.remove_quotes)
+            + pp.dbl_quoted_string("referrer")
+              .add_parse_action(pp.remove_quotes)
+            + pp.dbl_quoted_string("client_software")
+              .add_parse_action(pp.remove_quotes)
         ).set_name("log_line_bnf")
 
     return log_line_bnf
