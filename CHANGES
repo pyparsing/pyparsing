@@ -33,6 +33,14 @@ Version 3.3.3 - in development
   `leave_whitespace(recursive=True)`. Issue #633, reported by Ahmed Mohamed Abdelaal,
   PR submitted by fcardosojr18 et AI.
 
+- Fixed `Located` reporting a `locn_start` that included leading whitespace when the
+  wrapped expression delegates whitespace skipping to its sub-expressions (such as
+  `MatchFirst` or `And`, whose `callPreparse` is `False`). `Located` now skips the
+  leading whitespace that the wrapped expression would skip before recording the start
+  location, so the located span no longer captures preceding whitespace. Expressions
+  modified with `leave_whitespace()` still keep their leading whitespace as before.
+  Issue #621, reported by MeanSquaredError.
+
 - Update type checking to use `mypy 1.20.0`.
 
 - 5-8% performance boost optimizing `ParseResults.copy()`. Inspired by similar changes
