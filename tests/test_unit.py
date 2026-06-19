@@ -6570,6 +6570,45 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             print(re_match)
             print(pp_match.value)
 
+    def testLocatedExprLeadingWhitespace(self):
+        # Located must mark the start of the actual match and skip any leading
+        # whitespace the wrapped expression would skip - even when that
+        # expression delegates whitespace skipping to its sub-expressions, such
+        # as MatchFirst or And (whose callPreparse is False). Issue #621.
+        abc = pp.Keyword("abc")
+
+        # a single token already reported the correct location...
+        single = pp.Located(abc).parse_string("   abc")
+        self.assertParseResultsEquals(single, [3, ["abc"], 6])
+
+        # ...but a MatchFirst used to capture the leading whitespace too,
+        # reporting locn_start=0 and a "   abc" span instead of "abc"
+        match_first = pp.Located(abc | abc).parse_string("   abc")
+        self.assertParseResultsEquals(match_first, [3, ["abc"], 6])
+        self.assertEqual(
+            "abc",
+            "   abc"[match_first.locn_start : match_first.locn_end],
+            "Located(MatchFirst) included leading whitespace in its location",
+        )
+
+        # an And (sequence) likewise delegates whitespace skipping
+        sample = "   ID PARI12345678"
+        seq = pp.Located(pp.Literal("ID") + pp.Word(pp.alphanums)).parse_string(sample)
+        self.assertEqual(
+            "ID PARI12345678",
+            sample[seq.locn_start : seq.locn_end],
+            "Located(And) included leading whitespace in its location",
+        )
+
+        # an expression that explicitly leaves whitespace must keep it, so the
+        # reported start should remain at the leading whitespace
+        leave_ws = pp.Located(pp.Word(" abc").leave_whitespace()).parse_string("   abc")
+        self.assertEqual(
+            0,
+            leave_ws.locn_start,
+            "Located should not skip whitespace for a leave_whitespace expression",
+        )
+
     def testPop(self):
         source = "AAA 123 456 789 234"
         patt = pp.Word(pp.alphas)("name") + pp.Word(pp.nums) * (1,)
