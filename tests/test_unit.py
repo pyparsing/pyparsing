@@ -7365,6 +7365,26 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
                 "error in parsing valid iso8601_datetime - incorrect value",
             )
 
+        with self.subTest("ppc.as_datetime fractional seconds run_tests"):
+            success, results = (
+                ppc.iso8601_datetime()
+                .add_parse_action(ppc.as_datetime)
+                .run_tests(
+                    """
+                1997-07-16T19:20:30.45
+                """
+                )
+            )
+
+            self.assertTrue(success, "error in parsing valid iso8601_datetime")
+            # as_datetime must scale fractional seconds to microseconds, matching
+            # convert_to_datetime above (0.45 s -> 450000 us, not 449 us).
+            self.assertEqual(
+                datetime.datetime(1997, 7, 16, 19, 20, 30, 450000),
+                results[0][1][0],
+                "error in as_datetime fractional seconds - incorrect microseconds",
+            )
+
         with self.subTest("ppc.uuid success run_tests"):
             success, _ = ppc.uuid.run_tests(
                 """
