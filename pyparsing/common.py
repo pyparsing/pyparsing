@@ -426,7 +426,13 @@ class pyparsing_common:
         second = float(t.second or 0)
         try:
             return datetime(
-                year, month, day, hour, minute, int(second), int((second % 1) * 1000)
+                year,
+                month,
+                day,
+                hour,
+                minute,
+                int(second),
+                round((second % 1) * 1_000_000),
             )
         except ValueError as ve:
             raise ParseException(t, l, f"Invalid date/time: {ve}").with_traceback(
