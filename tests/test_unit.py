@@ -3761,6 +3761,72 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             result, expected, msg="issue with ParseResults.append()"
         )
 
+    def testParseResultsArithmeticContract(self):
+        """test ParseResults.__add__ and __radd__ arithmetic contract"""
+
+        import operator
+
+        pr = pp.ParseResults(["a", "b"])
+
+        # ParseResults + ParseResults (normal case)
+        pr_sum = pr + pp.ParseResults(["c"])
+        self.assertEqual(["a", "b", "c"], list(pr_sum))
+
+        # ParseResults + non-ParseResults -> TypeError (was AttributeError)
+        with self.assertRaises(
+            TypeError,
+            msg="ParseResults + int should raise TypeError, not AttributeError",
+        ):
+            pr + 1
+
+        with self.assertRaises(
+            TypeError,
+            msg="ParseResults + str should raise TypeError",
+        ):
+            pr + "extra"
+
+        # non-zero int + ParseResults -> TypeError (was RecursionError)
+        with self.assertRaises(
+            TypeError,
+            msg="non-zero int + ParseResults should raise TypeError, not RecursionError",
+        ):
+            1 + pr
+
+        with self.assertRaises(
+            TypeError,
+            msg="float + ParseResults should raise TypeError",
+        ):
+            1.5 + pr
+
+        with self.assertRaises(
+            TypeError,
+            msg="str + ParseResults should raise TypeError",
+        ):
+            "x" + pr
+
+        # 0 + ParseResults works (supports sum() builtin)
+        zero_sum = 0 + pr
+        self.assertEqual(["a", "b"], list(zero_sum))
+
+        # sum() of ParseResults objects works
+        total = sum(
+            [
+                pp.ParseResults(["x"]),
+                pp.ParseResults(["y"]),
+                pp.ParseResults(["z"]),
+            ]
+        )
+        self.assertEqual(["x", "y", "z"], list(total))
+
+        # reduce(operator.add, ...) also works
+        import functools
+
+        reduced = functools.reduce(
+            operator.add,
+            [pp.ParseResults(["m"]), pp.ParseResults(["n"])],
+        )
+        self.assertEqual(["m", "n"], list(reduced))
+
     def testParseResultsClear(self):
         """test simple case of ParseResults.clear()"""
 
