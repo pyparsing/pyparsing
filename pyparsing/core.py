@@ -975,13 +975,41 @@ class ParserElement(ABC):
                             raise exc from parse_action_exc
 
                         if tokens is not None and tokens is not ret_tokens:
-                            ret_tokens = ParseResults(
-                                tokens,
-                                self.resultsName,
-                                aslist=self.saveAsList
-                                and isinstance(tokens, (ParseResults, list)),
-                                modal=self.modalResults,
-                            )
+                            if isinstance(tokens, ParseResults):
+                                ret_tokens = ParseResults(
+                                    tokens,
+                                    self.resultsName,
+                                    aslist=self.saveAsList,
+                                    modal=self.modalResults,
+                                )
+                            elif isinstance(tokens, list):
+                                # Lists spread as token list (existing behavior).
+                                ret_tokens = ParseResults(
+                                    tokens,
+                                    self.resultsName,
+                                    aslist=self.saveAsList,
+                                    modal=self.modalResults,
+                                )
+                            else:
+                                # Non-ParseResults, non-list return value:
+                                # wrap so the named result stores the full
+                                # value (fixes issue #401). Null values
+                                # (empty tuple etc.) are not wrapped so
+                                # they clear the result as before.
+                                if isinstance(tokens, tuple) and len(tokens) == 0:
+                                    ret_tokens = ParseResults(
+                                        tokens,
+                                        self.resultsName,
+                                        aslist=False,
+                                        modal=self.modalResults,
+                                    )
+                                else:
+                                    ret_tokens = ParseResults(
+                                        [tokens],
+                                        self.resultsName,
+                                        aslist=False,
+                                        modal=self.modalResults,
+                                    )
                 except Exception as err:
                     # print "Exception raised in user parse action:", err
                     if self.debugActions.debug_fail:
@@ -998,13 +1026,41 @@ class ParserElement(ABC):
                         raise exc from parse_action_exc
 
                     if tokens is not None and tokens is not ret_tokens:
-                        ret_tokens = ParseResults(
-                            tokens,
-                            self.resultsName,
-                            aslist=self.saveAsList
-                            and isinstance(tokens, (ParseResults, list)),
-                            modal=self.modalResults,
-                        )
+                        if isinstance(tokens, ParseResults):
+                            ret_tokens = ParseResults(
+                                tokens,
+                                self.resultsName,
+                                aslist=self.saveAsList,
+                                modal=self.modalResults,
+                            )
+                        elif isinstance(tokens, list):
+                            # Lists spread as token list (existing behavior).
+                            ret_tokens = ParseResults(
+                                tokens,
+                                self.resultsName,
+                                aslist=self.saveAsList,
+                                modal=self.modalResults,
+                            )
+                        else:
+                            # Non-ParseResults, non-list return value:
+                            # wrap so the named result stores the full
+                            # value (fixes issue #401). Null values
+                            # (empty tuple etc.) are not wrapped so
+                            # they clear the result as before.
+                            if isinstance(tokens, tuple) and len(tokens) == 0:
+                                ret_tokens = ParseResults(
+                                    tokens,
+                                    self.resultsName,
+                                    aslist=False,
+                                    modal=self.modalResults,
+                                )
+                            else:
+                                ret_tokens = ParseResults(
+                                    [tokens],
+                                    self.resultsName,
+                                    aslist=False,
+                                    modal=self.modalResults,
+                                )
         if debugging:
             # print("Matched", self, "->", ret_tokens.as_list())
             if self.debugActions.debug_match:
