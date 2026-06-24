@@ -512,6 +512,8 @@ class ParseResults:
             return ""
 
     def __add__(self, other: ParseResults) -> ParseResults:
+        if not isinstance(other, ParseResults):
+            return NotImplemented
         ret = self.copy()
         ret += other
         return ret
@@ -550,9 +552,7 @@ class ParseResults:
         if isinstance(other, int) and other == 0:
             # useful for merging many ParseResults using sum() builtin
             return self.copy()
-        else:
-            # this may raise a TypeError - so be it
-            return other + self
+        return NotImplemented
 
     def __repr__(self) -> str:
         return f"{type(self).__name__}({self._toklist!r}, {self.as_dict()})"
