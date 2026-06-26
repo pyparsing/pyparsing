@@ -204,7 +204,11 @@ class pyparsing_common:
     integer = (
         Word(nums)
         .set_name("integer")
-        .set_parse_action(convert_to_integer if PY_310_OR_LATER else token_map(int))
+        .set_parse_action(
+            convert_to_integer
+            if PY_310_OR_LATER
+            else token_map(int)
+        )
     )
     """expression that parses an unsigned integer, converts to an int"""
 
@@ -216,17 +220,25 @@ class pyparsing_common:
     signed_integer = (
         Regex(r"[+-]?\d+")
         .set_name("signed integer")
-        .set_parse_action(convert_to_integer if PY_310_OR_LATER else token_map(int))
+        .set_parse_action(
+            convert_to_integer
+            if PY_310_OR_LATER
+            else token_map(int)
+        )
     )
     """expression that parses an integer with optional leading sign, converts to an int"""
 
     fraction = (
         signed_integer().set_parse_action(
-            convert_to_float if PY_310_OR_LATER else token_map(float)
+            convert_to_float
+            if PY_310_OR_LATER
+            else token_map(float)
         )
         + "/"
         + signed_integer().set_parse_action(
-            convert_to_float if PY_310_OR_LATER else token_map(float)
+            convert_to_float
+            if PY_310_OR_LATER
+            else token_map(float)
         )
     ).set_name("fraction")
     """fractional expression of an integer divided by an integer, converts to a float"""
@@ -241,14 +253,22 @@ class pyparsing_common:
     real = (
         Regex(r"[+-]?(?:\d+\.\d*|\.\d+)")
         .set_name("real number")
-        .set_parse_action(convert_to_float if PY_310_OR_LATER else token_map(float))
+        .set_parse_action(
+            convert_to_float
+            if PY_310_OR_LATER
+            else token_map(float)
+        )
     )
     """expression that parses a floating point number, converts to a float"""
 
     sci_real = (
         Regex(r"[+-]?(?:\d+(?:[eE][+-]?\d+)|(?:\d+\.\d*|\.\d+)(?:[eE][+-]?\d+)?)")
         .set_name("real number with scientific notation")
-        .set_parse_action(convert_to_float if PY_310_OR_LATER else token_map(float))
+        .set_parse_action(
+            convert_to_float
+            if PY_310_OR_LATER
+            else token_map(float)
+        )
     )
     """expression that parses a floating point number with optional
     scientific notation, converts to a float"""
@@ -260,14 +280,22 @@ class pyparsing_common:
     fnumber = (
         Regex(r"[+-]?\d+\.?\d*(?:[eE][+-]?\d+)?")
         .set_name("fnumber")
-        .set_parse_action(convert_to_float if PY_310_OR_LATER else token_map(float))
+        .set_parse_action(
+            convert_to_float
+            if PY_310_OR_LATER
+            else token_map(float)
+        )
     )
     """any int or real number, always converts to a float"""
 
     ieee_float = (
         Regex(r"(?i:[+-]?(?:(?:\d+\.?\d*(?:e[+-]?\d+)?)|nan|inf(?:inity)?))")
         .set_name("ieee_float")
-        .set_parse_action(convert_to_float if PY_310_OR_LATER else token_map(float))
+        .set_parse_action(
+            convert_to_float
+            if PY_310_OR_LATER
+            else token_map(float)
+        )
     )
     """any floating-point literal (int, real number, infinity, or NaN), converts to a float"""
 

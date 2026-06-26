@@ -2465,16 +2465,15 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             if expected:
                 expected_int_list = [t.strip() for t in tst.split(":")]
                 self.assertParseAndCheckList(
-                    expr,
-                    tst,
-                    expected_int_list,
-                    msg=f"Failed recursive whitespace repeater test, expected pass:  {expr=} {tst=}",
+                    expr, tst, expected_int_list,
+                    msg=f"Failed recursive whitespace repeater test, expected pass:  {expr=} {tst=}"
                 )
             else:
                 with self.assertRaisesParseException(
                     msg=f"Failed recursive whitespace repeater test, expected fail:  {expr=} {tst=}"
                 ):
                     expr.parse_string(tst)
+
 
     def testRepeaterRecursiveFalse(self):
         """test match_previous_expr with recursive=False"""
@@ -2499,10 +2498,8 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             if expected:
                 expected_int_list = [t.strip() for t in tst.split(":")]
                 self.assertParseAndCheckList(
-                    expr,
-                    tst,
-                    expected_int_list,
-                    msg=f"Failed recursive=False repeater test, expected pass: {expr=} {tst=}",
+                    expr, tst, expected_int_list,
+                    msg=f"Failed recursive=False repeater test, expected pass: {expr=} {tst=}"
                 )
             else:
                 with self.assertRaisesParseException(
@@ -2533,10 +2530,8 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             if expected:
                 expected_int_list = [int(t) for t in tst.split(":")]
                 self.assertParseAndCheckList(
-                    expr,
-                    tst,
-                    expected_int_list,
-                    msg=f"Failed parse action preservation repeater test, expected pass: {expr=} {tst=}",
+                    expr, tst, expected_int_list,
+                    msg=f"Failed parse action preservation repeater test, expected pass: {expr=} {tst=}"
                 )
             else:
                 with self.assertRaisesParseException(
@@ -11358,7 +11353,6 @@ class Test04_WithPackrat(Test02_WithoutPackrat):
     """
     rerun Test2 tests, now that packrat is enabled
     """
-
     def setUp(self):
         ParserElement.enable_packrat(force=True)
 
@@ -11384,7 +11378,6 @@ class Test06_WithBoundedPackrat(Test02_WithoutPackrat):
     """
     rerun Test2 tests, now with bounded packrat cache
     """
-
     def setUp(self):
         ParserElement.enable_packrat(cache_size_limit=16, force=True)
 
@@ -11416,12 +11409,12 @@ class Test08_WithUnboundedPackrat(Test02_WithoutPackrat):
     """
     rerun Test2 tests, now with unbounded packrat cache
     """
-
     def setUp(self):
         ParserElement.enable_packrat(cache_size_limit=None, force=True)
 
     def tearDown(self):
         default_suite_context.restore()
+
 
     def test000_assert_packrat_status(self):
         print("Packrat enabled:", ParserElement._packratEnabled)
