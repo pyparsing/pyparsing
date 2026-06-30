@@ -683,12 +683,16 @@ class ParseResults:
         .. versionadded:: 3.1.0
         """
         ret = self.copy()
+        # map id() of each copied token to its copy, so that results names
+        # referencing items in the token list stay linked to the copies (and
+        # decoupled from the original)
+        memo: dict[int, Any] = {}
         # replace values with copies if they are of known mutable types
         for i, obj in enumerate(self._toklist):
             if isinstance(obj, ParseResults):
                 ret._toklist[i] = obj.deepcopy()
             elif isinstance(obj, (str, bytes)):
-                pass
+                continue
             elif isinstance(obj, MutableMapping):
                 ret._toklist[i] = dest = type(obj)()
                 for k, v in obj.items():
@@ -697,6 +701,29 @@ class ParseResults:
                 ret._toklist[i] = type(obj)(
                     v.deepcopy() if isinstance(v, ParseResults) else v for v in obj  # type: ignore[call-arg]
                 )
+            else:
+                continue
+            memo[id(obj)] = ret._toklist[i]
+
+        # rebuild the results-name dict so that named results point at the
+        # deep-copied tokens, instead of remaining linked to the original
+        if self._tokdict:
+
+            def copy_value(value):
+                if id(value) in memo:
+                    return memo[id(value)]
+                if isinstance(value, ParseResults):
+                    memo[id(value)] = new_value = value.deepcopy()
+                    return new_value
+                return value
+
+            ret._tokdict = {
+                name: [
+                    _ParseResultsWithOffset(copy_value(value), offset)
+                    for value, offset in occurrences
+                ]
+                for name, occurrences in self._tokdict.items()
+            }
         return ret
 
     def get_name(self) -> str | None:
