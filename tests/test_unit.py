@@ -7487,6 +7487,27 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
                 "error in as_datetime fractional seconds - incorrect microseconds",
             )
 
+        with self.subTest(
+            "ppc.as_datetime ParseException receives input string, not tokens"
+        ):
+            # as_datetime should raise ParseException with the input string
+            # as pstr, not the ParseResults tokens, so that the exception
+            # message can be formatted without a secondary TypeError.
+            result = ppc.iso8601_datetime.parse_string("1997-13-01T00:00:00")
+            msg = ""
+            try:
+                ppc.as_datetime("", 0, result)
+            except ParseException as pe:
+                msg = str(pe)
+            except Exception:
+                pass
+            self.assertNotIn(
+                "TypeError",
+                msg,
+                "ParseException string must not contain TypeError "
+                "(pstr should be the input string, not tokens).",
+            )
+
         with self.subTest("ppc.uuid success run_tests"):
             success, _ = ppc.uuid.run_tests(
                 """

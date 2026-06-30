@@ -435,7 +435,7 @@ class pyparsing_common:
                 round((second % 1) * 1_000_000),
             )
         except ValueError as ve:
-            raise ParseException(t, l, f"Invalid date/time: {ve}").with_traceback(
+            raise ParseException(s, l, f"Invalid date/time: {ve}").with_traceback(
                 ve.__traceback__
             ) from None
 
