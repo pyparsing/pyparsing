@@ -4268,6 +4268,35 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             ],
         )
 
+    def testParseResultsDeepcopy4(self):
+        # a top-level results name pointing at a mutable sub-ParseResults
+        # (the named token is also the list item) must be deep-copied, so the
+        # copy stays decoupled from the original whether reached by index or
+        # by name
+        expr = pp.Group(pp.Word(pp.nums)("a") + pp.Word(pp.nums)("b"))("grp") + pp.Word(
+            pp.alphas
+        )("w")
+        result = expr.parse_string("1 2 xyz")
+
+        r2 = result.deepcopy()
+
+        # named result and list item must be the same object within the copy,
+        # and both must differ from the original
+        self.assertTrue(r2["grp"] is r2[0], "named result diverged from list item")
+        self.assertFalse(
+            r2["grp"] is result["grp"], "deep copy failed for named result"
+        )
+
+        # mutate the original's named sub-result; the deep copy must not change
+        result["grp"][0] = result["grp"]["a"] = "999"
+
+        self.assertParseResultsEquals(
+            r2,
+            expected_list=[["1", "2"], "xyz"],
+            expected_dict={"grp": {"a": "1", "b": "2"}, "w": "xyz"},
+        )
+        self.assertEqual({"a": "1", "b": "2"}, r2["grp"].as_dict())
+
     def testIgnoreString(self):
         """test ParserElement.ignore() passed a string arg"""
 
