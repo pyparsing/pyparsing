@@ -975,13 +975,21 @@ class ParserElement(ABC):
                             raise exc from parse_action_exc
 
                         if tokens is not None and tokens is not ret_tokens:
-                            ret_tokens = ParseResults(
-                                tokens,
-                                self.resultsName,
-                                aslist=self.saveAsList
-                                and isinstance(tokens, (ParseResults, list)),
-                                modal=self.modalResults,
-                            )
+                            if isinstance(tokens, (ParseResults, list)) or tokens == ():
+                                ret_tokens = ParseResults(
+                                    tokens,
+                                    self.resultsName,
+                                    aslist=self.saveAsList
+                                    and isinstance(tokens, (ParseResults, list)),
+                                    modal=self.modalResults,
+                                )
+                            else:
+                                ret_tokens = ParseResults(
+                                    [tokens],
+                                    self.resultsName,
+                                    aslist=False,
+                                    modal=self.modalResults,
+                                )
                 except Exception as err:
                     # print "Exception raised in user parse action:", err
                     if self.debugActions.debug_fail:
@@ -998,13 +1006,21 @@ class ParserElement(ABC):
                         raise exc from parse_action_exc
 
                     if tokens is not None and tokens is not ret_tokens:
-                        ret_tokens = ParseResults(
-                            tokens,
-                            self.resultsName,
-                            aslist=self.saveAsList
-                            and isinstance(tokens, (ParseResults, list)),
-                            modal=self.modalResults,
-                        )
+                        if isinstance(tokens, (ParseResults, list)) or tokens == ():
+                            ret_tokens = ParseResults(
+                                tokens,
+                                self.resultsName,
+                                aslist=self.saveAsList
+                                and isinstance(tokens, (ParseResults, list)),
+                                modal=self.modalResults,
+                            )
+                        else:
+                            ret_tokens = ParseResults(
+                                [tokens],
+                                self.resultsName,
+                                aslist=False,
+                                modal=self.modalResults,
+                            )
         if debugging:
             # print("Matched", self, "->", ret_tokens.as_list())
             if self.debugActions.debug_match:
