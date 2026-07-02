@@ -354,15 +354,27 @@ def condition_as_parse_action(
     return pa
 
 
+# control characters escaped so they can't corrupt the printed debug line
+# (for example a stray '\r' would otherwise return the cursor to column 0)
+_debug_control_char_map = {c: repr(chr(c))[1:-1] for c in (*range(0x20), 0x7F)}
+
+
 def _default_start_debug_action(
     instring: str, loc: int, expr: ParserElement, cache_hit: bool = False
 ):
     cache_hit_str = "*" if cache_hit else ""
+    current_col = col(loc, instring)
+    current_line = line(loc, instring)
+    escaped_line = current_line.translate(_debug_control_char_map)
+    # keep the caret under the match location after escaping widens the line
+    caret_col = (
+        len(current_line[: current_col - 1].translate(_debug_control_char_map)) + 1
+    )
     print(
         (
-            f"{cache_hit_str}Match {expr} at loc {loc}({lineno(loc, instring)},{col(loc, instring)})\n"
-            f"  {line(loc, instring)}\n"
-            f"  {'^':>{col(loc, instring)}}"
+            f"{cache_hit_str}Match {expr} at loc {loc}({lineno(loc, instring)},{current_col})\n"
+            f"  {escaped_line}\n"
+            f"  {'^':>{caret_col}}"
         )
     )
 
