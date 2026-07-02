@@ -9982,6 +9982,42 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             "invalid debug output when using parse action",
         )
 
+    def testSetDebugWithControlCharInLine(self):
+        # issue #496 - a '\r' embedded in the parsed line used to be printed
+        # verbatim, sending the terminal cursor back to column 0 and corrupting
+        # the debug output; control characters should be shown escaped instead
+        with ppt.reset_pyparsing_context():
+            test_stdout = StringIO()
+
+            with resetting(sys, "stdout", "stderr"):
+                sys.stdout = test_stdout
+                sys.stderr = test_stdout
+
+                word = pp.Word(pp.alphas).set_name("word").set_debug()
+                word[...].parse_string("abc\rdef", parse_all=True)
+
+            expected_debug_output = dedent(
+                """\
+                Match word at loc 0(1,1)
+                  abc\\rdef
+                  ^
+                Matched word -> ['abc']
+                Match word at loc 4(1,5)
+                  abc\\rdef
+                       ^
+                Matched word -> ['def']
+                Match word at loc 7(1,8)
+                  abc\\rdef
+                          ^
+                Match word failed, ParseException raised: Expected word, found end of text  (at char 7), (line:1, col:8)
+                """
+            )
+            self.assertEqual(
+                expected_debug_output,
+                test_stdout.getvalue(),
+                "control characters in debug output were not escaped",
+            )
+
     def testEnableDebugWithCachedExpressionsMarkedWithAsterisk(self):
         a = pp.Literal("a").set_name("A").set_debug()
         b = pp.Literal("b").set_name("B").set_debug()
