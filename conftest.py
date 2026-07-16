@@ -9,13 +9,8 @@ def pytest_report_header(config, start_path):
         jit_status = "Not Supported by Python Binary"
 
     # 2. Fetch the GIL status (Free-threaded Python 3.13+)
-    gil_supported = hasattr(sys, "_get_gil_config")
-    if gil_supported:
-        # sys._get_gil_config() returns a dict, e.g., {'enabled': True}
-        gil_active = sys._get_gil_config().get("enabled", True)
-        gil_status = "Active (Standard)" if gil_active else "Disabled (Free-Threaded)"
-    else:
-        gil_status = "Active (Standard CPython)"
+    gil_active = getattr(sys, "_is_gil_enabled", lambda: True)()
+    gil_status = "Active (Standard)" if gil_active else "Disabled (Free-Threaded)"
 
     # Return lines to inject directly beneath rootdir/cachedir
     return [f"JIT compiler: {jit_status}", f"GIL status:   {gil_status}"]
