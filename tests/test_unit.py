@@ -4163,7 +4163,13 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
     def testParseResultsDeepcopy(self):
         expr = (
             pp.Word(pp.nums)
-            + pp.Group(pp.Word(pp.alphas)("key") + "=" + pp.Word(pp.nums)("value"))[...]
+            + pp.Group(
+                pp.Word(pp.alphas)("key")
+                + "="
+                + pp.Group(
+                    pp.Word(pp.nums)
+                )("value")
+            )[...]
         )
         result = expr.parse_string("1 a=100 b=200 c=300")
         orig_elements = result._toklist[:]
@@ -4174,6 +4180,10 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
         # check copy and contained results are different from original
         self.assertFalse(r2 is result, "copy failed")
         self.assertFalse(r2[1] is result[1], "deep copy failed")
+
+        # check that the copy's list and dict entries are the same object
+        for i in (1, 2, 3):
+            self.assertTrue(r2[i][2] is r2[i].value)
 
         # check copy and original are equal
         self.assertEqual(result.as_dict(), r2.as_dict())
@@ -4197,12 +4207,12 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             r2,
             expected_list=[
                 "1",
-                ["a", "=", "100"],
-                ["b", "=", "200"],
-                ["c", "=", "300"],
+                ["a", "=", ["100"]],
+                ["b", "=", ["200"]],
+                ["c", "=", ["300"]],
             ],
         )
-        self.assertParseResultsEquals(r2[1], expected_dict={"key": "a", "value": "100"})
+        self.assertParseResultsEquals(r2[1], expected_dict={"key": "a", "value": ["100"]})
 
     def testParseResultsDeepcopy2(self):
         expr = (

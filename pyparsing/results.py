@@ -22,7 +22,7 @@ NULL_SLICE: slice = slice(None)
 
 
 class _ParseResultsWithOffset(NamedTuple):
-    result: ParseResults
+    result: Any
     offset: int
 
 
@@ -185,7 +185,7 @@ class ParseResults:
             )
         else:
             self._toklist = [toklist]
-        self._tokdict = dict()
+        self._tokdict = {}
         return self
 
     # Performance tuning: we construct a *lot* of these, so keep this
@@ -707,23 +707,14 @@ class ParseResults:
 
         # rebuild the results-name dict so that named results point at the
         # deep-copied tokens, instead of remaining linked to the original
-        if self._tokdict:
+        ret._tokdict = {
+            name: [
+                _ParseResultsWithOffset(memo.get(id(value), value), offset)
+                for value, offset in occurrences
+            ]
+            for name, occurrences in self._tokdict.items()
+        }
 
-            def copy_value(value):
-                if id(value) in memo:
-                    return memo[id(value)]
-                if isinstance(value, ParseResults):
-                    memo[id(value)] = new_value = value.deepcopy()
-                    return new_value
-                return value
-
-            ret._tokdict = {
-                name: [
-                    _ParseResultsWithOffset(copy_value(value), offset)
-                    for value, offset in occurrences
-                ]
-                for name, occurrences in self._tokdict.items()
-            }
         return ret
 
     def get_name(self) -> str | None:
