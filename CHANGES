@@ -35,6 +35,12 @@ Version 3.3.3 - in development
   at loc" text. Control characters in the debug line are now shown escaped, and the
   caret stays aligned with the match location. Issue #496, reported by Matthew Rowles.
 
+- Fixed `ParseResults.copy()` sharing its results-name bookkeeping with the original.
+  The copy got its own token list, but the per-name lists of matched occurrences were
+  shared, and `insert()`/`pop()`/`del` renumber those offsets in place - so mutating a
+  copy silently corrupted the original's results names, and `get_name()` on the
+  original could return `None`. PR submitted by Andrew Chen et AI.
+
 - Fixed bugs in `ParseResults.__add__()` and `ParseResults.__radd__()`, where
   erroneous `AttributeError` or `RecursionError` could be raised when adding
   `ParseResults` objects to non-`ParseResults` objects, instead of expected
