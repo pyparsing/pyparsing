@@ -7527,6 +7527,24 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             )
 
         with self.subTest(
+            "ppc.as_datetime fractional seconds rounding up carry into next second"
+        ):
+            # A fractional-seconds value that rounds up to a full second (e.g. the
+            # trailing digits of a nanosecond-precision timestamp) must carry into
+            # the next second, not overflow datetime's 0..999999 microsecond arg.
+            parse_dt = ppc.iso8601_datetime().add_parse_action(ppc.as_datetime)
+            self.assertEqual(
+                datetime.datetime(2021, 1, 1, 0, 0, 1),
+                parse_dt.parse_string("2021-01-01T00:00:00.999999999")[0],
+                "as_datetime must carry a rounded-up fractional second, not raise",
+            )
+            self.assertEqual(
+                datetime.datetime(2021, 6, 15, 12, 31, 0),
+                parse_dt.parse_string("2021-06-15T12:30:59.9999995")[0],
+                "as_datetime must carry a rounded-up fractional second across minutes",
+            )
+
+        with self.subTest(
             "ppc.as_datetime ParseException receives input string, not tokens"
         ):
             # as_datetime should raise ParseException with the input string
