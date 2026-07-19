@@ -1,7 +1,7 @@
 # common.py
 from .core import *
 from .helpers import DelimitedList, any_open_tag, any_close_tag
-from datetime import datetime
+from datetime import datetime, timedelta
 import sys
 
 PY_310_OR_LATER = sys.version_info >= (3, 10)
@@ -425,14 +425,11 @@ class pyparsing_common:
         minute = int(t.minute or 0)
         second = float(t.second or 0)
         try:
-            return datetime(
-                year,
-                month,
-                day,
-                hour,
-                minute,
-                int(second),
-                round((second % 1) * 1_000_000),
+            # Add the fractional seconds via timedelta so a value that rounds up
+            # to a full second (e.g. "...59.9999995") carries into the next second
+            # instead of overflowing datetime's 0..999999 microsecond argument.
+            return datetime(year, month, day, hour, minute, int(second)) + timedelta(
+                microseconds=round((second % 1) * 1_000_000)
             )
         except ValueError as ve:
             raise ParseException(s, l, f"Invalid date/time: {ve}").with_traceback(
