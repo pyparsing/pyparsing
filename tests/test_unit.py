@@ -4160,6 +4160,24 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             r2[1], expected_dict={"key": "q", "value": "100", "xyz": 1000}
         )
 
+    def testParseResultsCopyResultsNamesAreIndependent(self):
+        # copy() shares the contained results, but each copy keeps its own
+        # results-name bookkeeping: insert/pop/del renumber the offsets in
+        # place, so a copy that shared them would renumber the original too.
+        expr = pp.Word(pp.nums) + pp.Word(pp.nums)("b")
+
+        result = expr.parse_string("1 2")
+        r2 = result.copy()
+        self.assertFalse(
+            r2._tokdict["b"] is result._tokdict["b"],
+            "copy shares results-name occurrences with the original",
+        )
+
+        # mutating the copy must not disturb the original's names
+        r2.insert(0, "X")
+        del result[0]
+        self.assertEqual("b", result.get_name())
+
     def testParseResultsDeepcopy(self):
         expr = (
             pp.Word(pp.nums)

@@ -669,7 +669,9 @@ class ParseResults:
         """
         ret: ParseResults = object.__new__(ParseResults)
         ret._toklist = self._toklist[:]
-        ret._tokdict = {**self._tokdict}
+        # copy the occurrence lists too: insert/pop/del renumber the offsets
+        # in place, so sharing the lists would let a copy renumber the original
+        ret._tokdict = {k: v[:] for k, v in self._tokdict.items()}
         ret._parent = self._parent
         ret._all_names = {*self._all_names}
         ret._name = self._name
