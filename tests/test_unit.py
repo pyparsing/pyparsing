@@ -3827,6 +3827,24 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
         )
         self.assertEqual(["m", "n"], list(reduced))
 
+        # ParseResults += non-ParseResults -> TypeError (was AttributeError),
+        # mirroring the __add__ contract above.
+        pr_iadd = pp.ParseResults(["a", "b"])
+        with self.assertRaises(
+            TypeError,
+            msg="ParseResults += int should raise TypeError, not AttributeError",
+        ):
+            pr_iadd += 1
+        with self.assertRaises(
+            TypeError,
+            msg="ParseResults += list should raise TypeError, not AttributeError",
+        ):
+            pr_iadd += ["extra"]
+
+        # ParseResults += ParseResults still works
+        pr_iadd += pp.ParseResults(["c"])
+        self.assertEqual(["a", "b", "c"], list(pr_iadd))
+
     def testParseResultsClear(self):
         """test simple case of ParseResults.clear()"""
 
