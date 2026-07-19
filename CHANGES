@@ -29,6 +29,14 @@ Version 3.3.3 - in development
 ------------------------------
 - Adding support for Python 3.15.
 
+- Fixed `Word(..., max=n)` raising instead of matching up to `max` characters
+  when the character set contained whitespace. `Word` uses a char-by-char
+  fallback for such sets (instead of the regex fast path), and that fallback
+  raised once the run of matching characters exceeded `max`, so
+  `Word(nums, max=3)` and `Word(nums + " ", max=3)` gave opposite results on
+  the same input. The fallback now matches up to `max` and leaves the rest for
+  the next parser, consistent with the regex path and `testWordMinMaxExactArgs`.
+
 - Fixed debug output corruption when a parsed line contains a carriage return or
   other control character. `set_debug()` printed the source line verbatim, so a
   stray `\r` returned the terminal cursor to column 0 and overwrote the "Match ...

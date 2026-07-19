@@ -3365,8 +3365,6 @@ class Word(Token):
         throw_exception = False
         if loc - start < self.minLen:
             throw_exception = True
-        elif self.maxSpecified and loc < instrlen and instring[loc] in body_chars:
-            throw_exception = True
         elif self.asKeyword and (
             (start > 0 and instring[start - 1] in body_chars)
             or (loc < instrlen and instring[loc] in body_chars)
