@@ -29,6 +29,14 @@ Version 3.3.3 - in development
 ------------------------------
 - Adding support for Python 3.15.
 
+- Fixed `QuotedString` stripping whitespace that is part of a multi-character
+  quote delimiter, e.g. the leading newline in `QuotedString("\n;",
+  multiline=True)`. The delimiter was silently collapsed to `";"`, so the
+  newline was ignored when matching. `QuotedString` now only rejects
+  quote_char/end_quote_char values that are empty or entirely whitespace, and
+  preserves any surrounding whitespace that is part of a valid delimiter.
+  Reported in issue #492.
+
 - Fixed `pyparsing_common.as_datetime` raising `Invalid date/time: microsecond
   must be in 0..999999` for valid ISO-8601 timestamps whose fractional seconds
   round up to a full second (e.g. `2021-06-15T12:30:59.9999995`, common in

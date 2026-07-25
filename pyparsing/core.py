@@ -3715,17 +3715,16 @@ class QuotedString(Token):
         )
         quote_char = quoteChar or quote_char
 
-        # remove white space from quote chars
-        quote_char = quote_char.strip()
-        if not quote_char:
+        # reject empty or whitespace-only quote chars, but preserve any
+        # whitespace that is part of a valid quote delimiter (e.g. a leading
+        # newline in a multiline quote such as "\n;")
+        if not quote_char.strip():
             raise ValueError("quote_char cannot be the empty string")
 
         if end_quote_char is None:
             end_quote_char = quote_char
-        else:
-            end_quote_char = end_quote_char.strip()
-            if not end_quote_char:
-                raise ValueError("end_quote_char cannot be the empty string")
+        elif not end_quote_char.strip():
+            raise ValueError("end_quote_char cannot be the empty string")
 
         self.quote_char: str = quote_char
         self.quote_char_len: int = len(quote_char)

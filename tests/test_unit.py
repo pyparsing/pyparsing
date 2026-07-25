@@ -2231,6 +2231,32 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
         self.assertParseAndCheckList(qs, "*///*", ["/"])
         self.assertParseAndCheckList(qs, "*////*", ["//"])
 
+    def testQuotedStringWithWhitespaceInQuoteChars(self):
+        # Issue #492 - a leading/trailing whitespace character that is part of a
+        # multi-character quote delimiter (such as a newline in "\n;") must not
+        # be stripped away, which previously collapsed the delimiter to ";".
+        with ppt.reset_pyparsing_context():
+            pp.ParserElement.set_default_whitespace_chars("")
+            newline_quote = pp.QuotedString("\n;", multiline=True)
+            self.assertParseAndCheckList(
+                newline_quote, "\n;Hi \n mum!\n;", ["Hi \n mum!"]
+            )
+            self.assertEqual(
+                [["Hi \n mum!"]],
+                newline_quote.search_string("lsjdf \n;Hi \n mum!\n; sldjf").as_list(),
+            )
+            self.assertEqual(
+                [["Hi \n m;um!"]],
+                newline_quote.search_string("lsjdf \n;Hi \n m;um!\n; sldjf").as_list(),
+            )
+
+        # a fully whitespace (or empty) quote_char is still rejected
+        for bad_quote in ("", "   ", "\n"):
+            with self.assertRaises(ValueError):
+                pp.QuotedString(bad_quote)
+            with self.assertRaises(ValueError):
+                pp.QuotedString('"', end_quote_char=bad_quote)
+
     def testRepeater(self):
         if ParserElement._packratEnabled or ParserElement._left_recursion_enabled:
             print("skipping this test, not compatible with memoization")
