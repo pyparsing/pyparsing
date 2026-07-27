@@ -3325,6 +3325,43 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             msg=f"Failed accessing named results containing a tuple, got {res.Achar!r}",
         )
 
+    def testParseActionReturningNonListType(self):
+        # from Issue #401
+        for test_value in [
+            (1, 2, 3),
+            {1, 2, 3},
+            {"a": 1},
+            collections.defaultdict(str),
+            "123",
+            0,
+        ]:
+            with self.subTest(f"value = {test_value!r}"):
+                expr = pp.Empty()("name").add_parse_action(lambda: test_value)
+                result = expr.parse_string("")
+                print(result.dump())
+                self.assertParseResultsEquals(
+                    result,
+                    expected_list=[test_value],
+                    expected_dict={"name": test_value},
+                )
+
+    def testParseActionReturningEmptySequence(self):
+        # () and [] are null values, and clear the results name (Issue #401)
+        for test_value in ((), []):
+            with self.subTest(f"value = {test_value!r}"):
+                expr = pp.Empty()("name").add_parse_action(lambda: test_value)
+                result = expr.parse_string("")
+                self.assertNotIn("name", result)
+
+    def testParseActionReturningList(self):
+        # a returned list still spreads into the token list, so the results name
+        # gets its first element - unchanged by #640, see Issue #401
+        expr = pp.Empty()("name").add_parse_action(lambda: [1, 2, 3])
+        result = expr.parse_string("")
+        self.assertParseResultsEquals(
+            result, expected_list=[1, 2, 3], expected_dict={"name": 1}
+        )
+
     def testParserElementAddOperatorWithOtherTypes(self):
         """test the overridden "+" operator with other data types"""
 
