@@ -86,6 +86,7 @@ class ParseResults:
     _modal: bool
     _toklist: list[Any]
     _tokdict: dict[str, Any]
+    _own_keys: set[Any] | None
 
     __slots__ = (
         "_name",
@@ -94,6 +95,7 @@ class ParseResults:
         "_modal",
         "_toklist",
         "_tokdict",
+        "_own_keys",
     )
 
     class List(list):
@@ -186,6 +188,7 @@ class ParseResults:
         else:
             self._toklist = [toklist]
         self._tokdict = {}
+        self._own_keys = None
         return self
 
     # Performance tuning: we construct a *lot* of these, so keep this
@@ -249,22 +252,43 @@ class ParseResults:
 
     def __setitem__(self, k, v, isinstance=isinstance):
         if isinstance(v, _ParseResultsWithOffset):
-            self._tokdict[k] = self._tokdict.get(k, list()) + [v]
+            self._append_occurrence(k, v)
             sub = v.result
         elif isinstance(k, (int, slice)):
             self._toklist[k] = v
             sub = v
         else:
-            self._tokdict[k] = self._tokdict.get(k, []) + [
-                _ParseResultsWithOffset(v, 0)
-            ]
+            self._append_occurrence(k, _ParseResultsWithOffset(v, 0))
             sub = v
         if isinstance(sub, ParseResults):
             sub._parent = self
 
+    def _append_occurrence(self, k, v) -> None:
+        # Recording an occurrence of results name k used to rebuild that whole
+        # list (``tokdict[k] = tokdict.get(k, []) + [v]``), so accumulating n
+        # occurrences of a single name cost O(n**2). Append in place instead,
+        # but only for a name in _own_keys: one whose list this ParseResults
+        # built itself and has not since shared with a copy() or removed. Any
+        # other name evaluates the original expression unchanged, so its
+        # behavior - including the TypeError raised when _tokdict[k] holds a
+        # non-list - is preserved, and the list is stored back either way, so
+        # the number of key lookups (hence of hash/eq calls) is unchanged too.
+        tokdict = self._tokdict
+        own_keys = self._own_keys
+        if type(own_keys) is set and k in own_keys:
+            tokdict[k].append(v)
+            return
+        tokdict[k] = tokdict.get(k, []) + [v]
+        if type(own_keys) is set:
+            own_keys.add(k)
+        elif own_keys is None:
+            self._own_keys = {k}
+
     def __delitem__(self, i):
         if not isinstance(i, (int, slice)):
             del self._tokdict[i]
+            if self._own_keys is not None:
+                self._own_keys.discard(i)
             return
 
         # slight optimization if del results[:]
@@ -502,6 +526,7 @@ class ParseResults:
         """
         del self._toklist[:]
         self._tokdict.clear()
+        self._own_keys = None
 
     def __getattr__(self, name):
         try:
@@ -670,6 +695,12 @@ class ParseResults:
         ret: ParseResults = object.__new__(ParseResults)
         ret._toklist = self._toklist[:]
         ret._tokdict = {**self._tokdict}
+        # ret's occurrence lists are the very same list objects as self's, so
+        # neither side may extend one in place any more: both drop their record
+        # of which lists are private (see _append_occurrence). Sharing the
+        # lists here is what keeps copy() O(number of results names) rather
+        # than O(number of occurrences).
+        ret._own_keys = self._own_keys = None
         ret._parent = self._parent
         ret._all_names = {*self._all_names}
         ret._name = self._name
@@ -714,6 +745,7 @@ class ParseResults:
             ]
             for name, occurrences in self._tokdict.items()
         }
+        ret._own_keys = None
 
         return ret
 
@@ -881,6 +913,11 @@ class ParseResults:
 
     # add support for pickle protocol
     def __getstate__(self):
+        # The dict copy is shallow, so the state shares this instance's occurrence
+        # lists. Give up ownership of them: appending in place would otherwise also
+        # append to whatever is rebuilt from this state. `copy.copy` reaches here,
+        # since there is no __copy__ or __reduce__.
+        self._own_keys = None
         return (
             self._toklist,
             (
@@ -895,6 +932,9 @@ class ParseResults:
         self._toklist, (self._tokdict, par, inAccumNames, self._name) = state
         self._all_names = set(inAccumNames)
         self._parent = None
+        # _tokdict came from outside this instance (unpickling, or copy.copy(),
+        # which reuses the source object's occurrence lists) - own none of it.
+        self._own_keys = None
 
     def __getnewargs__(self):
         return self._toklist, self._name
