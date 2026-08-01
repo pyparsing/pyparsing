@@ -54,7 +54,7 @@ If you have an example you wish to submit, please follow these guidelines.
   ```
 
 - Submitted examples _must_ be Python 3.9 or later compatible.
-  (It is acceptable if examples use Python features added after 3.6)
+  (It is acceptable if examples use Python features added after 3.9)
 
 - Where possible use operators to create composite parse expressions:
 
@@ -92,18 +92,19 @@ article on the pyparsing wiki, to get a general feel for the historical and futu
 design, and intended developer experience as an embedded DSL.
 
 If you are using new Python features or changing usage of the Python stdlib, please check that they work as
-intended on prior versions of Python (currently back to Python 3.6.8).
+intended on prior versions of Python (currently back to Python 3.9).
 
 ## Some design points
 
-- Minimize additions to the module namespace. Over time, pyparsing's namespace has acquired a _lot_ of names.
+- **Minimize additions to the module namespace**. Over time, pyparsing's namespace has acquired a _lot_ of names.
   New features have been encapsulated into namespace classes to try to hold back the name flooding when importing
   pyparsing.
 
 - New operator overloads for ParserElement will need to show broad applicability, and should be related to
   parser construction.
 
-- Performance tuning should focus on parse time performance. Optimizing parser definition performance is secondary.
+- **Performance tuning should focus on parse time performance**. Optimizing parser definition performance is secondary.
+  (Note that builtin parse actions also run at parse time.)
 
 - New external dependencies will require substantial justification, and if included, will need to be guarded for
   `ImportError`s raised if the external module is not installed.
@@ -133,7 +134,7 @@ These coding styles are encouraged whether submitting code for core pyparsing or
 
 - Maximum line length is 120 characters. (Black will override this.)
 
-- Changes to core pyparsing must be compatible back to Py3.6 without conditionalizing. Later Py3 features may be
+- Changes to core pyparsing must be compatible back to Py3.9 without conditionalizing. Later Py3 features may be
   used in examples by way of illustration.
 
 - `str.format()` statements should use named format arguments (unless this proves to be a slowdown at parse time).
@@ -145,6 +146,9 @@ These coding styles are encouraged whether submitting code for core pyparsing or
 
 - Do not modify `pyparsing_archive.py`. This file is kept as a reference artifact from when pyparsing was distributed
   as a single source file.
+
+- Changes implemented with AI assistance should be annotated in the CHANGES file using "submitted by *author name*
+  et AI". This follows the Latin *et alii* attribution meaning "and others", often abbreviated as "et al."
 
 ## Some documentation points
 
