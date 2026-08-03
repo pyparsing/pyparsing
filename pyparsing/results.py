@@ -519,6 +519,8 @@ class ParseResults:
         return ret
 
     def __iadd__(self, other: ParseResults) -> ParseResults:
+        if not isinstance(other, ParseResults):
+            return NotImplemented
         if not other:
             return self
 
