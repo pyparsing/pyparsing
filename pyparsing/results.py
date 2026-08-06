@@ -283,12 +283,15 @@ class ParseResults:
         # get removed indices
         removed = list(range(*i.indices(mylen)))
         removed.reverse()
-        # fixup indices in token dictionary
-        for occurrences in self._tokdict.values():
+        # fixup indices in token dictionary; copy() shares these lists, so
+        # renumber a private copy rather than the list itself
+        for name, occurrences in self._tokdict.items():
+            occurrences = occurrences[:]
             for j in removed:
                 for k, (value, position) in enumerate(occurrences):
                     if position > j:
                         occurrences[k] = _ParseResultsWithOffset(value, position - 1)
+            self._tokdict[name] = occurrences
 
     def __contains__(self, k) -> bool:
         return k in self._tokdict
@@ -436,11 +439,14 @@ class ParseResults:
 
         """
         self._toklist.insert(index, ins_string)
-        # fixup indices in token dictionary
-        for occurrences in self._tokdict.values():
+        # fixup indices in token dictionary; copy() shares these lists, so
+        # renumber a private copy rather than the list itself
+        for name, occurrences in self._tokdict.items():
+            occurrences = occurrences[:]
             for k, (value, position) in enumerate(occurrences):
                 if position > index:
                     occurrences[k] = _ParseResultsWithOffset(value, position + 1)
+            self._tokdict[name] = occurrences
 
     def append(self, item):
         """
@@ -669,9 +675,10 @@ class ParseResults:
         """
         ret: ParseResults = object.__new__(ParseResults)
         ret._toklist = self._toklist[:]
-        # copy the occurrence lists too: insert/pop/del renumber the offsets
-        # in place, so sharing the lists would let a copy renumber the original
-        ret._tokdict = {k: v[:] for k, v in self._tokdict.items()}
+        # the occurrence lists are shared with the original; the only methods
+        # that renumber them (__delitem__, insert) copy before writing, so a
+        # copy can never renumber the original's offsets
+        ret._tokdict = {**self._tokdict}
         ret._parent = self._parent
         ret._all_names = {*self._all_names}
         ret._name = self._name
