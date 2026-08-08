@@ -42,22 +42,17 @@ ASSIGN = pp.Suppress(":=")
 comment = pp.c_style_comment
 
 # Keywords
-(
+all_keywords = (
     IF, THEN, ELSE, ELSEIF, END, REPEAT, UNTIL, READ, WRITE, RETURN, ENDL,
     INT, FLOAT, STRING, MAIN,
-) = pp.Keyword.using_each(
+) = [*pp.Keyword.using_each(
     """
     if then else elseif end repeat until read write return endl
     int float string main
     """.split()
-)
+)]
 
-RESERVED = pp.MatchFirst(
-    [
-        IF, THEN, ELSE, ELSEIF, END, REPEAT, UNTIL, READ, WRITE, RETURN, ENDL,
-        INT, FLOAT, STRING, MAIN,
-    ]
-).set_name("RESERVED")
+RESERVED = pp.MatchFirst(all_keywords).set_name("RESERVED")
 
 # Identifiers
 ident = pp.Word(pp.alphas, pp.alphanums + "_")
