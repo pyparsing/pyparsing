@@ -248,16 +248,23 @@ class ParseResults:
         return ParseResults([v.result for v in self._tokdict[i]])
 
     def __setitem__(self, k, v, isinstance=isinstance):
+        no_value = object()
         if isinstance(v, _ParseResultsWithOffset):
-            self._tokdict[k] = self._tokdict.get(k, list()) + [v]
+            cur_tokdict_value = self._tokdict.get(k, no_value)
+            if cur_tokdict_value is no_value:
+                self._tokdict[k] = [v]
+            else:
+                cur_tokdict_value.append(v)
             sub = v.result
         elif isinstance(k, (int, slice)):
             self._toklist[k] = v
             sub = v
         else:
-            self._tokdict[k] = self._tokdict.get(k, []) + [
-                _ParseResultsWithOffset(v, 0)
-            ]
+            cur_tokdict_value = self._tokdict.get(k, no_value)
+            if cur_tokdict_value is no_value:
+                self._tokdict[k] = [_ParseResultsWithOffset(v, 0)]
+            else:
+                cur_tokdict_value.append(_ParseResultsWithOffset(v, 0))
             sub = v
         if isinstance(sub, ParseResults):
             sub._parent = self

@@ -94,6 +94,9 @@ Version 3.3.3 - in development
 
 - Update type checking to use `mypy 1.20.0`.
 
+- Up to 30% performance boost in `ParseResults.__setitem__`, which benefits all pyparsing
+  parsers. Inspired by work proposed in PR #650, submitted by Justin Zhang.
+
 - 5-8% performance boost optimizing `ParseResults.copy()`. Inspired by similar changes
   made by Evan Hubinger in https://github.com/evhub/cpyparsing.
 
