@@ -36,6 +36,7 @@ Version 3.3.3 - in development
   `Word(nums, max=3)` and `Word(nums + " ", max=3)` gave opposite results on
   the same input. The fallback now matches up to `max` and leaves the rest for
   the next parser, consistent with the regex path and `testWordMinMaxExactArgs`.
+  PR #646 submitted by Andrew Chen et AI.
 
 - Fixed `QuotedString` stripping whitespace that is part of a multi-character
   quote delimiter, e.g. the leading newline in `QuotedString("\n;",
