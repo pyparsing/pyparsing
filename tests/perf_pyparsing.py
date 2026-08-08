@@ -110,6 +110,12 @@ def gen_log(n_lines: int, seed: int = 3) -> str:
     return "\n".join(out)
 
 
+def gen_words_and_ints(length: int = 1000, seed: int=3) -> str:
+    rnd = random.Random(seed)
+    levels = ["INFO", "WARN", "ERROR", "DEBUG"]
+    return "".join(f"{rnd.choice(levels)} {rnd.randint(1000, 9999)} " for _ in range(length))
+
+
 # ---------- Grammars ----------
 
 
@@ -162,6 +168,16 @@ def log_grammar():
         + pp.rest_of_line("msg")
     )
     return line
+
+
+def results_accumulator(modal: bool = False):
+    level = pp.one_of("INFO WARN ERROR DEBUG")
+    integer = pp.Word(pp.nums)
+    if modal:
+        data = level("level") | integer("value")
+    else:
+        data = level("level*") | integer("value*")
+    return data[...]
 
 
 # ---------- Tasks ----------
@@ -235,6 +251,17 @@ def bench_matchfirst_vs_or(n_alts=2000, seed=4):
     return run_mf, run_or
 
 
+def bench_results_accumulator(n_vals: int = 1000, modal: bool = False, seed: int = 4):
+    rnd = random.Random(seed)
+    parser = results_accumulator(modal)
+    data = gen_words_and_ints(n_vals)
+
+    def run():
+        parser.parse_string(data)
+
+    return run
+
+
 def bench_packrat_effect(base_fn_factory: Callable[[], Callable[[], None]]):
     def run_packrat_on():
         with_packrat(True)
@@ -297,6 +324,10 @@ def main():
         run_csv_heavy = bench_packrat_effect(lambda: bench_csv_parse(rows=8000, cols=10))
         bench("csv_heavy_packrat_on", run_csv_heavy[0], iters=3)
         bench("csv_heavy_packrat_off", run_csv_heavy[1])
+
+        # 8) Parse results accumulator - test set_results_name(modal=False)
+        bench("results_name_accumulator_modal", bench_results_accumulator(modal=True))
+        bench("results_name_accumulator_nonmodal", bench_results_accumulator(modal=False))
 
     elapsed = time.perf_counter() - start
     print(f"\aTotal elapsed: {str(timedelta(seconds=elapsed))[:-5]}")
