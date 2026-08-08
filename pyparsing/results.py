@@ -202,7 +202,7 @@ class ParseResults:
         asList = deprecate_argument(kwargs, "asList", True, new_name="aslist")
 
         asList = asList and aslist
-        self._tokdict: dict[str, _ParseResultsWithOffset]
+        self._tokdict: dict[str, list[_ParseResultsWithOffset]]
         self._modal = modal
 
         if name is None or name == "":
