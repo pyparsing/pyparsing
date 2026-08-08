@@ -5983,6 +5983,24 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
                     ["A1234567890"[:exarg]],
                 )
 
+    def testWordMaxIndependentOfWhitespaceInCharset(self):
+        # A Word constructed with an explicit `max` uses an internal regex
+        # fast-path only when its character set contains no space; otherwise
+        # it falls back to the char-by-char parseImpl. Both paths must agree:
+        # `max` means "match at most `max` characters, leaving the remainder"
+        # (see testWordMinMaxExactArgs and the "W:(0-9){1,3}" repr contract).
+        for extra, path in [("", "regex fast-path"), (" ", "char-by-char path")]:
+            with self.subTest(charset_extra=repr(extra), path=path):
+                expr = pp.Word(pp.nums + extra, max=3)("field") + pp.Word(pp.nums)(
+                    "rest"
+                )
+                self.assertParseAndCheckDict(
+                    expr,
+                    "0123456",
+                    {"field": "012", "rest": "3456"},
+                    "Failed to parse regex and non-regex parse_impl in Word consistently"
+                )
+
     def testWordMin(self):
         # failing tests
         for min_val in range(3, 5):
