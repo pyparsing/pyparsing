@@ -29,6 +29,17 @@ Version 3.3.3 - in development
 ------------------------------
 - Adding support for Python 3.15.
 
+- Fixed `Dict` returning an empty nested `ParseResults.as_dict()` as `[]`
+  instead of `{}`. Incorporates partial solution submitted in PR #635
+  submitted by Leo Ji.
+
+  Additional fixes found as part of this work:
+
+  - Removed vestigial unused `ParseResults._modal` attribute.
+
+  - Fixed incidental bug when Dict tries to create a dict with a ParseResults
+    value for a key (not hashable).
+
 - Fixed `Word(..., max=n)` raising instead of matching up to `max` characters
   when the character set contained whitespace. `Word` uses a char-by-char
   fallback for such sets (instead of the regex fast path), and that fallback

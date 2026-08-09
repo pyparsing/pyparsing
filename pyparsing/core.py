@@ -6623,6 +6623,10 @@ class Dict(TokenConverter):
             if isinstance(ikey, int):
                 ikey = str(ikey).strip()
 
+            # ParseResults are not hashable, cannot be used as a dict key
+            if isinstance(ikey, ParseResults):
+                continue
+
             if len(tok) == 1:
                 tokenlist[ikey] = _ParseResultsWithOffset("", i)
 
@@ -6647,6 +6651,11 @@ class Dict(TokenConverter):
                     tokenlist[ikey] = _ParseResultsWithOffset(dictvalue, i)
                 else:
                     tokenlist[ikey] = _ParseResultsWithOffset(dictvalue[0], i)
+
+        # Mark the tokenlist so that as_dict() knows to serialize an empty
+        # result as {} rather than [], preserving dict semantics even when
+        # there are no matched entries.
+        tokenlist._is_dict_context = True
 
         if self._asPythonDict:
             return [tokenlist.as_dict()] if self.resultsName else tokenlist.as_dict()

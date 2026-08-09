@@ -3090,6 +3090,18 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
                 f"Error pickling ParseResults object (protocol={protocol})",
             )
 
+            # check all internal attributes
+            for attr in pp.ParseResults.__slots__:
+                # can't pickle/unpickle parent reference
+                if attr == "_parent":
+                    continue
+                self.assertEqual(
+                    getattr(result, attr),
+                    getattr(newresult, attr),
+                    f"Mismatch in ParseResults.{attr}"
+                )
+
+
     def testParseResultsPickle2(self):
         import pickle
 
@@ -9499,6 +9511,20 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             print(pp.ParseException.explain(pe))
         else:
             self.fail("failed to raise exception when matching empty string")
+
+    def testEmptyDictReturnsDictWhenCallingAsDict(self):
+        parser1 = pp.Dict(pp.ZeroOrMore(pp.Group(pp.Word(pp.alphas) + pp.Word(pp.alphas))))
+        parser2 = parser1.copy()('fubar')
+
+        p1_result = parser1.parse_string('foo bar').as_dict()  # {'foo': 'bar'}  ✓
+        p2_result = parser2.parse_string('foo bar').as_dict()  # {'fubar': {'foo': 'bar'}}  ✓
+        self.assertEqual({"foo": "bar"}, p1_result)
+        self.assertEqual({"fubar": {"foo": "bar"}}, p2_result)
+
+        p1_result = parser1.parse_string('').as_dict()  # {}  ✓
+        p2_result = parser2.parse_string('').as_dict()  # {'fubar': []}  ✗  should be {'fubar': {}}
+        self.assertEqual({}, p1_result)
+        self.assertEqual({"fubar": {}}, p2_result)
 
     def testExplainException(self):
         expr = pp.Word(pp.nums).set_name("int") + pp.Word(pp.alphas).set_name("word")
