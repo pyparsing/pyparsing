@@ -9,6 +9,7 @@ from . import __diag__
 from .core import *
 from .util import (
     _bslash,
+    _collapse_string_to_ranges,
     _flatten,
     _escape_regex_range_chars,
     make_compressed_re,
@@ -188,10 +189,10 @@ def one_of(
     :param strs: a string of space-delimited literals, or a collection of
        string literals
     :param caseless: treat all literals as caseless
-    :param use_regex: bool - as an optimization, will
-       generate a :class:`Regex` object; otherwise, will generate
-       a :class:`MatchFirst` object (if ``caseless=True`` or
-       ``as_keyword=True``, or if creating a :class:`Regex` raises an exception)
+    :param use_regex: bool - as an optimization, will generate a :class:`Regex`
+       object, even if ``caseless=True`` or ``as_keyword=True``; otherwise, or
+       if creating a :class:`Regex` raises an exception, will generate a
+       :class:`MatchFirst` object
     :param as_keyword: bool - enforce :class:`Keyword`-style matching on the
        generated expressions
 
@@ -277,9 +278,11 @@ def one_of(
             else:
                 patt = "|".join(re.escape(sym) for sym in symbols)
 
-            # wrap with \b word break markers if defining as keywords
-            if asKeyword:
-                patt = rf"\b(?:{patt})\b"
+            # assert keyword boundaries if defining as keywords; \b is wrong here,
+            # since it asserts a word character outside a symbol like "<=" or "+case1"
+            if asKeyword and Keyword.DEFAULT_KEYWORD_CHARS:
+                kwd_chars = _collapse_string_to_ranges(Keyword.DEFAULT_KEYWORD_CHARS)
+                patt = rf"(?<![{kwd_chars}])(?:{patt})(?![{kwd_chars}])"
 
             ret = Regex(patt, flags=re_flags)
             ret.set_name(" | ".join(repr(s) for s in symbols))

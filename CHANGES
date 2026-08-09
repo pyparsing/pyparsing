@@ -29,6 +29,14 @@ Version 3.3.3 - in development
 ------------------------------
 - Adding support for Python 3.15.
 
+- Fixed `one_of(..., as_keyword=True)` never matching symbols that begin or end
+  with a non-word character, such as `one_of("< > <= >=", as_keyword=True)`. The
+  generated regex wrapped the alternation in `\b`, which asserts a *word*
+  character on the outside; it now asserts the absence of a keyword character,
+  which is what `Keyword` checks, and so also follows
+  `Keyword.set_default_keyword_chars()`. Reported in issue #554 by theroucken.
+  Submitted by Haïm Dimerman et AI.
+
 - Fixed `Word(..., max=n)` raising instead of matching up to `max` characters
   when the character set contained whitespace. `Word` uses a char-by-char
   fallback for such sets (instead of the regex fast path), and that fallback

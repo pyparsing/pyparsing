@@ -9624,6 +9624,55 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
         )
         self.assertTrue(success, "failed keyword one_of failure tests")
 
+    def testOneOfKeywordsWithNonKeywordCharacters(self):
+        # one_of(..., as_keyword=True) builds a Regex for speed, but must match
+        # the same text at the same locations as the equivalent Keyword
+        # expressions - including symbols that begin or end with a non-keyword
+        # character (Issue #554), and "$", which is a keyword character but not
+        # a regex word character.
+        tests = [
+            (["+case1", "+case2"], {"caseless": True}, "+case2"),
+            (["+case1", "+case2"], {"caseless": True}, "x+case1"),
+            (["<", "<=", ">="], {}, "a <= b < c"),
+            (["<", "<="], {}, "<=<"),
+            (["if", "else"], {}, "$if x"),
+            (["if", "else"], {}, "if$ x"),
+            (["a", "b"], {"caseless": True}, "A b ab"),
+        ]
+
+        def scan(expr, test_string):
+            return [(t.as_list(), s, e) for t, s, e in expr.scan_string(test_string)]
+
+        for symbols, kwargs, test_string in tests:
+            with self.subTest(symbols=symbols, kwargs=kwargs, string=test_string):
+                as_regex = pp.one_of(symbols, as_keyword=True, **kwargs)
+                as_keywords = pp.one_of(
+                    symbols, as_keyword=True, use_regex=False, **kwargs
+                )
+                self.assertEqual(
+                    scan(as_keywords, test_string),
+                    scan(as_regex, test_string),
+                    f"one_of({symbols}, as_keyword=True, {kwargs}) did not match"
+                    f" the equivalent Keyword expressions in {test_string!r}",
+                )
+
+        # the generated regex must also follow a redefined keyword character set,
+        # including an empty one (meaning no character is a keyword character)
+        for keyword_chars in ("<>=", ""):
+            with self.subTest(keyword_chars=keyword_chars):
+                with ppt.reset_pyparsing_context():
+                    pp.Keyword.set_default_keyword_chars(keyword_chars)
+                    symbols = ["<=", ">="]
+                    self.assertEqual(
+                        scan(
+                            pp.one_of(symbols, as_keyword=True, use_regex=False),
+                            "a<=b >= c",
+                        ),
+                        scan(pp.one_of(symbols, as_keyword=True), "a<=b >= c"),
+                        f"one_of(as_keyword=True) did not honor keyword chars"
+                        f" {keyword_chars!r}",
+                    )
+
     def testWarnUngroupedNamedTokens(self):
         """
         - warn_ungrouped_named_tokens_in_collection - flag to enable warnings when a results
