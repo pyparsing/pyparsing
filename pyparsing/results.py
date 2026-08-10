@@ -84,7 +84,7 @@ class ParseResults:
     _parent: ParseResults
     _all_names: set[str]
     _toklist: list[Any]
-    _tokdict: dict[str, Any]
+    _tokdict: dict[str, list[_ParseResultsWithOffset]]
     _is_dict_context: bool
 
     __slots__ = (
@@ -303,9 +303,13 @@ class ParseResults:
         for name, occurrences in self._tokdict.items():
             occurrences = occurrences[:]
             for j in removed:
-                for k, (value, position) in enumerate(occurrences):
+                for k, (value, position) in enumerate(reversed(occurrences)):
                     if position > j:
-                        occurrences[k] = _ParseResultsWithOffset(value, position - 1)
+                        occurrences[len(occurrences) - 1 - k] = _ParseResultsWithOffset(
+                            value, position - 1
+                        )
+                    else:
+                        break
             self._tokdict[name] = occurrences
 
     def __contains__(self, k) -> bool:
@@ -535,6 +539,9 @@ class ParseResults:
     def __add__(self, other: ParseResults) -> ParseResults:
         if not isinstance(other, ParseResults):
             return NotImplemented
+        if not other:
+            return self
+
         ret = self.copy()
         ret += other
         return ret
