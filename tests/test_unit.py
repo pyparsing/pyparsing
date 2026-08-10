@@ -5521,6 +5521,46 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
         self.assertEqual(res.as_list(), ["DEF"])
         self.assertEqual(res.as_dict(), {"ints": ["123", "456"]})
 
+    def test_delitem_slices(self):
+        results = pp.Char(pp.alphas)("char*")[...].parse_string(pp.alphas[:10])
+        chars_list = list(pp.alphas[:10])
+        self.assertEqual(results.as_list(), chars_list)
+        print(results.char)
+        self.assertEqual(results.char.as_list(), chars_list)
+
+        del results[::2]
+        print(results.as_list())
+        self.assertEqual(results.as_list(), chars_list[1::2])
+        print(results.char)
+        self.assertEqual(results.char.as_list(), chars_list)
+
+        del results[:]
+        print(results.as_list())
+        self.assertEqual(results.as_list(), [])
+        self.assertEqual(results.char.as_list(), chars_list)
+
+    def test_delitem_slices_copy(self):
+        results = pp.Char(pp.alphas)("char*")[...].parse_string(pp.alphas[:10])
+        chars_list = list(pp.alphas[:10])
+        self.assertEqual(results.as_list(), chars_list)
+        print(results.char)
+        self.assertEqual(results.char.as_list(), chars_list)
+
+        res2 = results.copy()
+
+        del results[::2]
+        print(results.as_list())
+        self.assertEqual(results.as_list(), chars_list[1::2])
+        self.assertEqual(res2.as_list(), chars_list)
+        print(results.char)
+        self.assertEqual(results.char.as_list(), chars_list)
+
+        del results[:]
+        print(results.as_list())
+        self.assertEqual(results.as_list(), [])
+        self.assertEqual(res2.as_list(), chars_list)
+        self.assertEqual(results.char.as_list(), chars_list)
+
     def testWithAttributeParseAction(self):
         """
         This unit test checks with_attribute in these ways:
