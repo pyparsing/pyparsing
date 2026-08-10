@@ -27,7 +27,7 @@ Required Python versions by pyparsing version
 
 Version 3.3.3 - in development
 ------------------------------
-- Adding support for Python 3.15.
+- Added support for Python 3.15.
 
 - Fixed `Dict` returning an empty nested `ParseResults.as_dict()` as `[]`
   instead of `{}`. Incorporates partial solution submitted in PR #635
@@ -37,17 +37,14 @@ Version 3.3.3 - in development
 
   - Removed vestigial unused `ParseResults._modal` attribute.
 
-  - Fixed incidental bug when Dict tries to create a dict with a ParseResults
+  - Fixed incidental bug when Dict tries to create a dict with a `ParseResults`
     value for a key (not hashable).
 
 - Fixed `Word(..., max=n)` raising instead of matching up to `max` characters
-  when the character set contained whitespace. `Word` uses a char-by-char
-  fallback for such sets (instead of the regex fast path), and that fallback
-  raised once the run of matching characters exceeded `max`, so
-  `Word(nums, max=3)` and `Word(nums + " ", max=3)` gave opposite results on
-  the same input. The fallback now matches up to `max` and leaves the rest for
-  the next parser, consistent with the regex path and `testWordMinMaxExactArgs`.
-  PR #646 submitted by Andrew Chen et AI.
+  when the character set contained whitespace - `Word(nums, max=3)` and
+  `Word(nums + " ", max=3)` gave opposite results on
+  the same input. Now both forms match up to `max` and leave the rest for
+  the next parser. PR #646 submitted by Andrew Chen et AI.
 
 - Fixed `QuotedString` stripping whitespace that is part of a multi-character
   quote delimiter, e.g. the leading newline in `QuotedString("\n;",
@@ -56,11 +53,6 @@ Version 3.3.3 - in development
   quote_char/end_quote_char values that are empty or entirely whitespace, and
   preserves any surrounding whitespace that is part of a valid delimiter.
   Reported in issue #492.
-
-- Fixed `ParseResults.__iadd__` (``+=``) leaking an `AttributeError` about a
-  private attribute when the right-hand operand is not a `ParseResults` (e.g.
-  `results += [1]`). It now returns `NotImplemented` so Python raises a
-  `TypeError`, matching the `__add__` operator. PR submitted by Andrew Chen et AI.
 
 - Fixed `pyparsing_common.as_datetime` raising `Invalid date/time: microsecond
   must be in 0..999999` for valid ISO-8601 timestamps whose fractional seconds
@@ -73,7 +65,8 @@ Version 3.3.3 - in development
   other control character. `set_debug()` printed the source line verbatim, so a
   stray `\r` returned the terminal cursor to column 0 and overwrote the "Match ...
   at loc" text. Control characters in the debug line are now shown escaped, and the
-  caret stays aligned with the match location. Issue #496, reported by Matthew Rowles.
+  marker caret stays aligned with the match location. Issue #496, reported by
+  Matthew Rowles.
 
 - Fixed `ParseResults.copy()` sharing its results-name bookkeeping with the original.
   The copy got its own token list, but the per-name lists of matched occurrences were
@@ -85,6 +78,11 @@ Version 3.3.3 - in development
   erroneous `AttributeError` or `RecursionError` could be raised when adding
   `ParseResults` objects to non-`ParseResults` objects, instead of expected
   `TypeError`. PR submitted by Vincent Gao et AI.
+
+- Fixed `ParseResults.__iadd__` (``+=``) leaking an `AttributeError` about a
+  private attribute when the right-hand operand is not a `ParseResults` (e.g.
+  `results += [1]`). It now returns `NotImplemented` so Python raises a
+  `TypeError`, matching the `__add__` operator. PR submitted by Andrew Chen et AI.
 
 - Fixed `pyparsing_common.as_datetime` parse action incorrectly scaling fractional
   seconds, writing milliseconds into the `datetime` microsecond field (for example
