@@ -5516,6 +5516,11 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             "DEF", res[-1], "updated list, should have updated named attributes only"
         )
 
+        # delete a slice (modifies list, leaves dict intact)
+        del res[:-1]
+        self.assertEqual(res.as_list(), ["DEF"])
+        self.assertEqual(res.as_dict(), {"ints": ["123", "456"]})
+
     def testWithAttributeParseAction(self):
         """
         This unit test checks with_attribute in these ways:
