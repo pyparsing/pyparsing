@@ -3527,6 +3527,35 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
                     "3",
                 )
 
+    def testBoundedRepetitionLargeUpperBound(self):
+        """issue #332 - expr[..., upper_bound] (and expr * (0, upper_bound))
+        with a large upper_bound must not raise RecursionError during
+        construction or parsing.
+        """
+        # Lower the recursion limit so a deeply nested implementation would
+        # fail deterministically, instead of depending on the host's default.
+        saved_limit = sys.getrecursionlimit()
+        sys.setrecursionlimit(300)
+        try:
+            # both the [...] shorthand and the explicit *(0, n) form
+            expr_shorthand = pp.Literal("A")[..., 1000]
+            expr_tuple = pp.Word(pp.nums) * (0, 1000)
+        finally:
+            sys.setrecursionlimit(saved_limit)
+
+        # construction must succeed
+        self.assertIsNotNone(expr_shorthand)
+        self.assertIsNotNone(expr_tuple)
+
+        # parsing a small input must succeed and yield the matched tokens
+        self.assertParseAndCheckList(
+            expr_shorthand, "A A A A A", expected_list=["A", "A", "A", "A", "A"]
+        )
+
+        # the upper bound is still enforced (only 3 words allowed before num)
+        with self.assertRaisesParseException():
+            (pp.Word(pp.alphas)[..., 3] + pp.Word(pp.nums)).parse_string("a b c d 1")
+
     def testParserElementMulByZero(self):
         alpwd = pp.Word(pp.alphas)
         numwd = pp.Word(pp.nums)

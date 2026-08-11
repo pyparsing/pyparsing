@@ -1755,20 +1755,20 @@ class ParserElement(ABC):
             return And([])
 
         if optElements:
-
-            def makeOptionalList(n):
-                if n > 1:
-                    return Opt(self + makeOptionalList(n - 1))
-                else:
-                    return Opt(self)
+            # Build the optional tail as a flat list of independent Optionals
+            # instead of a deeply nested ``Opt(self + Opt(self + ...))`` chain.
+            # The nested form recursed ``optElements`` levels deep, which raised
+            # RecursionError for large upper bounds (e.g. ``expr[..., 1000]``)
+            # -- see issue #332.
+            optionalTail = And([Opt(self)] * optElements)
 
             if minElements:
                 if minElements == 1:
-                    ret = self + makeOptionalList(optElements)
+                    ret = self + optionalTail
                 else:
-                    ret = And([self] * minElements) + makeOptionalList(optElements)
+                    ret = And([self] * minElements) + optionalTail
             else:
-                ret = makeOptionalList(optElements)
+                ret = optionalTail
         else:
             if minElements == 1:
                 ret = self
