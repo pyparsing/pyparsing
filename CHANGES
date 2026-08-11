@@ -131,8 +131,9 @@ Version 3.3.3 - in development
   bound, such as ``expr[..., 1000]`` or ``expr * (0, 1000)``. The optional tail was
   built as a deeply nested chain of ``Optional`` expressions, which recursed the upper
   bound number of levels deep during both construction and parsing. It is now built as
-  a flat list of independent ``Optional`` expressions, so construction and parsing no
-  longer scale with the upper bound. Reported in issue #332.
+  a flat, bounded ``ZeroOrMore`` loop, so construction and parsing no longer scale with
+  the upper bound -- and the loop still exits early (stopping at the first non-match),
+  preserving the original early-exit behavior. Reported in issue #332.
 
 
 Version 3.3.2 - January, 2026

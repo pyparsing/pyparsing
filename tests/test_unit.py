@@ -3556,6 +3556,36 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
         with self.assertRaisesParseException():
             (pp.Word(pp.alphas)[..., 3] + pp.Word(pp.nums)).parse_string("a b c d 1")
 
+    def testBoundedRepetitionLargeUpperBoundEarlyExit(self):
+        """issue #332 - the optional tail of ``expr[..., upper_bound]`` must
+        still *exit early* (like the original recursive implementation): once
+        the repeated expression can no longer match, parsing must stop instead
+        of attempting it for every remaining slot in the upper bound.
+
+        This guards against a regression where the tail was flattened into a
+        list of independent ``Optional`` expressions, which always tried to
+        match the repeated expression for all ``upper_bound`` slots.
+        """
+        upper_bound = 1000
+        attempts = {"n": 0}
+
+        def count_attempt(instring, loc, tokens):
+            attempts["n"] += 1
+
+        repeated = pp.Literal("A").set_parse_action(count_attempt)
+        expr = repeated[..., upper_bound]
+
+        # input has a single match, so a correct early-exit implementation
+        # must attempt the repeated expression only a handful of times -- not
+        # once per slot in the (large) upper bound.
+        expr.parse_string("A")
+        self.assertLess(
+            attempts["n"],
+            10,
+            "bounded repetition did not exit early; it attempted the "
+            f"repeated expression {attempts['n']} times for a single match",
+        )
+
     def testParserElementMulByZero(self):
         alpwd = pp.Word(pp.alphas)
         numwd = pp.Word(pp.nums)
