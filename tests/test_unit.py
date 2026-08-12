@@ -86,21 +86,6 @@ class resetting:
                 delattr(self.ob, attr)
 
 
-def find_all_re_matches(patt, s):
-    ret = []
-    start = 0
-    if isinstance(patt, str):
-        patt = re.compile(patt)
-    while True:
-        found = patt.search(s, pos=start)
-        if found:
-            ret.append(found)
-            start = found.end()
-        else:
-            break
-    return ret
-
-
 def current_method_name(level=2):
     import traceback
 
@@ -159,6 +144,15 @@ class TestCase(unittest.TestCase):
             finally:
                 warnings.simplefilter("default")
 
+    @contextlib.contextmanager
+    def resetting_recursion_limit(self):
+        """Reset the recursion limit to its original value after
+         the context manager exits."""
+        orig_recursion_limit = sys.getrecursionlimit()
+        try:
+            yield
+        finally:
+            sys.setrecursionlimit(orig_recursion_limit)
 
 class Test01_PyparsingTestInit(TestCase):
     def runTest(self):
@@ -3534,22 +3528,24 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
         """
         # Lower the recursion limit so a deeply nested implementation would
         # fail deterministically, instead of depending on the host's default.
-        saved_limit = sys.getrecursionlimit()
-        sys.setrecursionlimit(300)
-        try:
+        with self.resetting_recursion_limit():
+            sys.setrecursionlimit(300)
             # both the [...] shorthand and the explicit *(0, n) form
             expr_shorthand = pp.Literal("A")[..., 1000]
             expr_tuple = pp.Word(pp.nums) * (0, 1000)
-        finally:
-            sys.setrecursionlimit(saved_limit)
+
+            # check for recursion during parsing
+            expr_shorthand.parse_string("A " * 1000)
 
         # construction must succeed
         self.assertIsNotNone(expr_shorthand)
         self.assertIsNotNone(expr_tuple)
 
         # parsing a small input must succeed and yield the matched tokens
+        test_string = "A A A A A"
+        expected_list = test_string.split()
         self.assertParseAndCheckList(
-            expr_shorthand, "A A A A A", expected_list=["A", "A", "A", "A", "A"]
+            expr_shorthand, test_string, expected_list
         )
 
         # the upper bound is still enforced (only 3 words allowed before num)
@@ -6862,7 +6858,7 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
         wd = pp.Word(pp.alphas)
         test_string = "ljsdf123lksdjjf123lkkjj1222"
         pp_matches = pp.Located(wd).search_string(test_string)
-        re_matches = find_all_re_matches("[a-z]+", test_string)
+        re_matches = re.finditer("[a-z]+", test_string)
         for pp_match, re_match in zip(pp_matches, re_matches):
             self.assertParseResultsEquals(
                 pp_match, [re_match.start(), [re_match.group(0)], re_match.end()]
