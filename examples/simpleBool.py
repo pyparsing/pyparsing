@@ -100,6 +100,8 @@ boolExpr = infix_notation(
 
 
 if __name__ == "__main__":
+    boolExpr.create_diagram("simpleBool_diagram.html")
+
     p = True
     q = False
     r = True

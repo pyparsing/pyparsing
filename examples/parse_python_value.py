@@ -14,7 +14,10 @@ convert_dict = lambda toks: dict(toks.as_list())
 convert_list = lambda toks: [toks.as_list()]
 
 # define punctuation as suppressed literals
-lparen, rparen, lbrack, rbrack, lbrace, rbrace, colon, comma = pp.Suppress.using_each("()[]{}:,")
+lparen, rparen, lbrack, rbrack, lbrace, rbrace, colon, comma = (
+    expr.set_name(str(expr.expr))
+    for expr in pp.Suppress.using_each("()[]{}:,")
+)
 
 integer = pp.Regex(r"[+-]?\d+").set_name("integer").add_parse_action(convert_int)
 real = pp.Regex(r"[+-]?\d+\.\d*([Ee][+-]?\d+)?").set_name("real").add_parse_action(convert_real)

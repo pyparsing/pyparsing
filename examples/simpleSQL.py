@@ -79,6 +79,8 @@ oracleSqlComment = "--" + rest_of_line
 simpleSQL.ignore(oracleSqlComment)
 
 if __name__ == "__main__":
+    simpleSQL.create_diagram("simpleSQL_diagram.html")
+
     simpleSQL.run_tests(
         """\
 

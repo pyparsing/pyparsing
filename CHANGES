@@ -25,6 +25,27 @@ Required Python versions by pyparsing version
 +--------------------------------------------------+-------------------+
 
 
+Version 3.3.3 - August, 2026
+----------------------------
+- Refactored recursive implementations in pyparsing, for improved performance and
+  reduced memory usage.
+
+  - repetition using a large upper bound with multiplication or slicing notation
+    has replaced a recursive `Optional` expression with a modified `ZeroOrMore`
+    expression, using a new `max` argument. PR #652, submitted by sudo.
+
+  - `nested_expr` now uses an internal class that maintains its own stack for
+    managing nesting levels.
+
+  - `infix_notation` replaced its recursive implementation with a shunting-yard
+    algorithm.
+
+  These changes should not cause any regressions in existing code, and tests
+  show significant performance improvements for some of the more complex examples.
+  Railroad diagrams may render differently, since they now no longer rely on
+  recursion using `Forward` expressions.
+
+
 Version 3.3.2 - January, 2026
 -----------------------------
 - Defined pyparsing-specific warning classes so that they can be selectively enabled
