@@ -3566,24 +3566,22 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
         list of independent ``Optional`` expressions, which always tried to
         match the repeated expression for all ``upper_bound`` slots.
         """
-        upper_bound = 1000
-        attempts = {"n": 0}
+        def count_fails(*args):
+            count_fails.fail_counter += 1
+        count_fails.fail_counter = 0
 
-        def count_attempt(instring, loc, tokens):
-            attempts["n"] += 1
-
-        repeated = pp.Literal("A").set_parse_action(count_attempt)
-        expr = repeated[..., upper_bound]
+        A_expr = pp.Literal("A").set_fail_action(count_fails)
+        expr = A_expr[..., 1000]
 
         # input has a single match, so a correct early-exit implementation
-        # must attempt the repeated expression only a handful of times -- not
+        # must fail the repeated expression only once -- not
         # once per slot in the (large) upper bound.
         expr.parse_string("A")
-        self.assertLess(
-            attempts["n"],
-            10,
-            "bounded repetition did not exit early; it attempted the "
-            f"repeated expression {attempts['n']} times for a single match",
+        self.assertEqual(
+            count_fails.fail_counter,
+            1,
+            "bounded repetition did not exit early; it attempted the"
+            f" repeated expression {count_fails.fail_counter} times for a single match",
         )
 
     def testParserElementMulByZero(self):
@@ -7326,6 +7324,63 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
                 test.split(),
                 f"Did not successfully stop on ending expression {ender!r}",
             )
+
+    def testOneOrMoreMax(self):
+        # Test OneOrMore with max
+        expr = pp.OneOrMore(pp.Word(pp.nums), max=3)
+
+        # Should match 1, 2, or 3
+        self.assertEqual(len(expr.parse_string("1")), 1)
+        self.assertEqual(len(expr.parse_string("1 2")), 2)
+        self.assertEqual(len(expr.parse_string("1 2 3")), 3)
+
+        # Should match ONLY 3 and leave the rest
+        res = expr.parse_string("1 2 3 4 5")
+        self.assertEqual(len(res), 3)
+        self.assertEqual(res.as_list(), ["1", "2", "3"])
+
+        # Test max=1
+        expr = pp.OneOrMore(pp.Word(pp.nums), max=1)
+        res = expr.parse_string("1 2 3")
+        self.assertEqual(len(res), 1)
+
+        # Test max=0 (should raise ValueError)
+        with self.assertRaises(ValueError):
+            pp.OneOrMore(pp.Word(pp.nums), max=0)
+
+    def testZeroOrMoreMax(self):
+        # Test ZeroOrMore with max
+        expr = pp.ZeroOrMore(pp.Word(pp.nums), max=3)
+
+        # Should match 0, 1, 2, or 3
+        self.assertEqual(len(expr.parse_string("")), 0)
+        self.assertEqual(len(expr.parse_string("1")), 1)
+        self.assertEqual(len(expr.parse_string("1 2")), 2)
+        self.assertEqual(len(expr.parse_string("1 2 3")), 3)
+
+        # Should match ONLY 3 and leave the rest
+        res = expr.parse_string("1 2 3 4 5")
+        self.assertEqual(len(res), 3)
+        self.assertEqual(res.as_list(), ["1", "2", "3"])
+
+        # Test max=1
+        expr = pp.ZeroOrMore(pp.Word(pp.nums), max=1)
+        res = expr.parse_string("1 2 3")
+        self.assertEqual(len(res), 1)
+
+        # Test max=0 (should raise ValueError)
+        with self.assertRaises(ValueError):
+            pp.ZeroOrMore(pp.Word(pp.nums), max=0)
+
+    def testOneOrMoreMaxNegative(self):
+        # If max is negative, OneOrMore should raise ValueError
+        with self.assertRaises(ValueError):
+            pp.OneOrMore(pp.Word(pp.nums), max=-1)
+
+    def testZeroOrMoreMaxNegative(self):
+        # If max is negative, ZeroOrMore should raise ValueError
+        with self.assertRaises(ValueError):
+            pp.ZeroOrMore(pp.Word(pp.nums), max=-1)
 
     def testNestedAsDict(self):
         equals = pp.Literal("=").suppress()

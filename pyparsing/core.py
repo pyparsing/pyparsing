@@ -5671,6 +5671,8 @@ class _MultipleMatch(ParseElementEnhance):
         )
 
         super().__init__(expr)
+        if max is not None and max <= 0:
+            raise ValueError("max must be greater than 0")
         stopOn = stopOn or stop_on
         self.saveAsList = True
         self.max_count = max
