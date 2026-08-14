@@ -2559,6 +2559,71 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
                 ):
                     expr.parse_string(tst)
 
+    def testRepeaterNested(self):
+        """test match_previous_expr with nested and repeated matches"""
+
+        if ParserElement._packratEnabled or ParserElement._left_recursion_enabled:
+            print("skipping this test, not compatible with memoization")
+            return
+
+        LBRACE, RBRACE, SLASH = map(pp.Suppress, "{}/")
+        tag_name = pp.Word(pp.alphanums + "_")
+        open_tag = LBRACE + tag_name + RBRACE
+        close_tag = LBRACE + SLASH + pp.match_previous_expr(tag_name) + RBRACE
+
+        content = pp.Forward()
+        content <<= (open_tag + pp.Group(content) + close_tag) | pp.Word(pp.alphas)
+
+        tests = [
+            ("{a}xx{/a}", True),
+            ("{a}{b}xx{/b}{/a}", True),
+            ("{a}{b}{c}xx{/c}{/b}{/a}", True),
+            ("{a}{b}xx{/a}{/b}", False),
+            ("{a}{b}xx{/b}{/c}", False),
+            ("{a}xx{/b}", False),
+        ]
+
+        for tst, expected in tests:
+            if expected:
+                content.parse_string(tst, parse_all=True)
+            else:
+                with self.assertRaisesParseException(
+                    msg=f"Failed nested repeater test, expected fail: {tst=}"
+                ):
+                    content.parse_string(tst, parse_all=True)
+
+    def testRepeaterReusedParser(self):
+        """test match_previous_expr matches repeatedly, and after a failed parse"""
+
+        if ParserElement._packratEnabled or ParserElement._left_recursion_enabled:
+            print("skipping this test, not compatible with memoization")
+            return
+
+        first = pp.Word(pp.alphas)
+        second = pp.match_previous_expr(first)
+        expr = first + pp.Suppress(":") + second
+
+        # repeated matches within a single parse
+        self.assertParseAndCheckList(
+            pp.OneOrMore(expr), "a:a b:b c:c", ["a", "a", "b", "b", "c", "c"]
+        )
+
+        # a mismatch must not poison later parses of the same expression
+        tests = [("d:d", True), ("e:f", False), ("g:g", True)]
+        for tst, expected in tests:
+            if expected:
+                self.assertParseAndCheckList(
+                    expr,
+                    tst,
+                    tst.split(":"),
+                    msg=f"Failed reused repeater test, expected pass: {tst=}",
+                )
+            else:
+                with self.assertRaisesParseException(
+                    msg=f"Failed reused repeater test, expected fail: {tst=}"
+                ):
+                    expr.parse_string(tst, parse_all=True)
+
     def testSetNameToStrAndNone(self):
         wd = pp.Word(pp.alphas)
         with self.subTest():

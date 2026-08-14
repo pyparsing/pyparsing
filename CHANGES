@@ -94,6 +94,14 @@ Version 3.3.3 - in development
   `leave_whitespace(recursive=True)`. Issue #633, reported by Ahmed Mohamed Abdelaal,
   PR submitted by fcardosojr18 et AI.
 
+- Fixed `match_previous_expr()` failing to match nested or repeated expressions, so that
+  it can now be used for matching nested open/close tags. A new guard parse action was
+  added on every match of the repeated expression and never removed, so all of them ran
+  on each attempt to match and only one could succeed; a second pair anywhere in the
+  input would fail, and after a failed parse the expression would keep rejecting valid
+  input. The pending matches are now kept on a stack, so an inner match pairs with the
+  nearest enclosing one. Issue #560, PR submitted by Rajesh Kanade et AI.
+
 - Fixed `Located` reporting a `locn_start` that included leading whitespace when the
   wrapped expression delegates whitespace skipping to sub-expressions (such as
   `MatchFirst` or `And`). The leading whitespace is now skipped before the start
