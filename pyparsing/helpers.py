@@ -151,23 +151,57 @@ def match_previous_expr(expr: ParserElement) -> ParserElement:
     in ``"1:10"``; the expressions are evaluated first, and then
     compared, so ``"1"`` is compared with ``"10"``. Do *not* use
     with packrat parsing enabled.
+
+    Matches may be nested, so that an inner match is paired with the
+    nearest enclosing occurrence of ``expr``:
+
+    .. testcode::
+
+       tag_name = Word(alphas)
+       open_tag = "<" + tag_name + ">"
+       close_tag = "</" + match_previous_expr(tag_name) + ">"
+
+    will match ``"<a><b></b></a>"``, but not ``"<a><b></a></b>"``.
     """
     rep = Forward()
     e2 = expr.copy()
     rep <<= e2
 
+    # stack of (location, tokens) for matches of expr not yet paired with a
+    # match of rep, innermost last
+    match_stack: list[tuple[int, list]] = []
+    last_match: typing.Optional[tuple[int, list]] = None
+
     def copy_token_to_repeater(s, l, t):
-        match_tokens = _flatten(t.as_list())
+        nonlocal last_match
 
-        def must_match_these_tokens(s, l, t):
-            these_tokens = _flatten(t.as_list())
-            if these_tokens != match_tokens:
-                raise ParseException(
-                    s, l, f"Expected {match_tokens}, found{these_tokens}"
-                )
+        # entries at or after this location belong to a branch that was
+        # abandoned on backtracking, and can never be paired
+        while match_stack and match_stack[-1][0] >= l:
+            match_stack.pop()
+        match_stack.append((l, _flatten(t.as_list())))
+        last_match = None
 
-        e2.add_parse_action(must_match_these_tokens, call_during_try=True)
+    def must_match_these_tokens(s, l, t):
+        nonlocal last_match
 
+        these_tokens = _flatten(t.as_list())
+
+        # a memoizing parser may run this action more than once for the
+        # same match, which must not consume a second stack entry
+        if last_match == (l, these_tokens):
+            return
+
+        if not match_stack:
+            raise ParseException(s, l, "no previous expression to match")
+
+        match_tokens = match_stack[-1][1]
+        if these_tokens != match_tokens:
+            raise ParseException(s, l, f"Expected {match_tokens}, found{these_tokens}")
+        match_stack.pop()
+        last_match = (l, these_tokens)
+
+    e2.add_parse_action(must_match_these_tokens, call_during_try=True)
     expr.add_parse_action(copy_token_to_repeater, call_during_try=True)
     rep.set_name(f"(prev) {expr}")
     return rep
