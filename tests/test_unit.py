@@ -3423,6 +3423,8 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
         )
 
     def testParseActionReturningNonListType(self):
+        import copy
+
         # from Issue #401
         for test_value in [
             (1, 2, 3),
@@ -3433,13 +3435,14 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             0,
         ]:
             with self.subTest(f"value = {test_value!r}"):
+                expected = copy.copy(test_value)
                 expr = pp.Empty()("name").add_parse_action(lambda: test_value)
                 result = expr.parse_string("")
                 print(result.dump())
                 self.assertParseResultsEquals(
                     result,
-                    expected_list=[test_value],
-                    expected_dict={"name": test_value},
+                    expected_list=[expected],
+                    expected_dict={"name": expected},
                 )
 
     def testParseActionReturningEmptySequence(self):
