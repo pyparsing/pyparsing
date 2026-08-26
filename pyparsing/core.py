@@ -1256,6 +1256,12 @@ class ParserElement(ABC):
         For best results, call ``enable_packrat()`` immediately after
         importing pyparsing.
 
+        Memoizing adds a stack frame per parse position, so a deeply recursive
+        grammar will hit Python's recursion limit at a shallower input nesting
+        depth with packrat enabled than without it. If parsing deeply nested
+        input raises ``RecursionError``, raise the limit using
+        ``sys.setrecursionlimit()``.
+
         .. Can't really be doctested, alas
 
         Example::

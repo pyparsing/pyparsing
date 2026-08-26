@@ -12,6 +12,7 @@ when generating Python code using pyparsing.
   - If referencing names from `pyparsing.common`, follow the pyparsing import with "ppc = pp.common" and use `ppc` as the namespace to access `pyparsing.common`.
   - If referencing names from `pyparsing.unicode`, follow the pyparsing import with "ppu = pp.unicode" and use `ppu` as the namespace to access `pyparsing.unicode`.
 - When writing parsers that contain recursive elements (using `Forward()` or `infix_notation()`), immediately enable packrat parsing for performance: `pp.ParserElement.enable_packrat()` (call this right after importing pyparsing). See https://pyparsing-docs.readthedocs.io/en/latest/HowToUsePyparsing.html.
+  - Packrat memoizing adds a stack frame per parse position, so a recursive grammar reaches Python's recursion limit at a shallower input nesting depth with packrat enabled than without it. If parsing deeply nested input raises `RecursionError`, raise the limit with `sys.setrecursionlimit()`.
   - For recursive grammars, define placeholders with `pp.Forward()` and assign later using the `<<=` operator; give Forwards meaningful names with `set_name()` to improve errors.
 - Use PEP8 method and argument names in the pyparsing API (`parse_string`, not `parseString`).
 - Do not include expressions for matching whitespace in the grammar. Pyparsing skips whitespace by default.
