@@ -128,6 +128,18 @@ Version 3.3.3 - in development
 - Minor performance improvement in builtin quoted string expressions, using `Regex` instead
   of `And`.
 
+- Fixed exponential backtracking in the builtin quoted string expressions, introduced
+  when the closing delimiters were moved into the regexes. Where two body alternatives
+  accept the same text, a body of k such runs has `2**k` splits, and input with no
+  closing delimiter fails and tries all of them. Three overlaps are removed: the hex
+  escape `\x[0-9a-fA-F]+` could hand trailing hex digits back to the general branch;
+  `python_quoted_string` carried a `\"` branch that its general escape branch already
+  matched, since a quote is not `x`; and the triple-quoted bodies matched both one and
+  two quotes at a time. `"` + `\xAA` * 26 took over 12 seconds and `"` + `\"` * 26,
+  only 53 characters, took over 5. Also reached through `nested_expr`,
+  `common.comma_separated_list` and `make_html_tags`/`make_xml_tags`, which use these
+  expressions by default.
+
 - Added `docs/pyparsing_class.md`, a more comprehensive class diagram capturing the major
   classes and modules in the pyparsing package.
 
