@@ -242,3 +242,15 @@ def test_make_compressed_re_random():
             while random_word in word_list:
                 random_word = generate_random_word(word_length)
             assert regex.match(random_word) is None, f"Regex {regex_pattern!r} incorrectly matched word: {random_word!r}"
+
+
+@pytest.mark.parametrize("capacity", [0, 1, 2, 4])
+def test_lru_memo_retains_capacity_items(capacity):
+    """LRUMemo retains exactly `capacity` deleted items, most recent first."""
+    memo = pp.util.LRUMemo(capacity)
+    for i in range(20):
+        memo[i] = i
+        del memo[i]
+
+    assert len(memo._memory) == capacity
+    assert list(memo._memory) == list(range(20 - capacity, 20))
