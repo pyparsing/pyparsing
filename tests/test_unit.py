@@ -8910,6 +8910,29 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             "failed testing parse actions being run inside a NotAny",
         )
 
+    def testParseActionLocOnOrAndMatchFirst(self):
+        # a parse action on Or ('^') or MatchFirst ('|') should receive the
+        # whitespace-skipped loc, just as And ('+') does
+        src = "   abc"
+        expected_loc = src.index("abc")
+        word = pp.Word(pp.alphas)
+
+        for label, expr in (
+            ("Or", word ^ pp.Literal("xyz")),
+            ("MatchFirst", word | pp.Literal("xyz")),
+        ):
+            with self.subTest(label=label):
+                seen_locs = []
+                expr = expr.copy().set_parse_action(
+                    lambda s, loc, toks: seen_locs.append(loc)
+                )
+                expr.parse_string(src)
+                self.assertEqual(
+                    [expected_loc],
+                    seen_locs,
+                    f"{label} parse action received wrong loc (whitespace not skipped)",
+                )
+
     def testParseResultsNameBelowUngroupedName(self):
         rule_num = pp.Regex("[0-9]+")("LIT_NUM*")
         list_num = pp.Group(

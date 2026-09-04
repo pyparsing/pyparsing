@@ -4703,6 +4703,9 @@ class Or(ParseExpression):
         if self.exprs:
             self._may_return_empty = any(e.mayReturnEmpty for e in self.exprs)
             self.skipWhitespace = all(e.skipWhitespace for e in self.exprs)
+            # pre-skip whitespace here only if every alternative would have
+            # done so itself, matching the condition used in parseImpl below
+            self.callPreparse = all(e.callPreparse for e in self.exprs)
         else:
             self._may_return_empty = True
 
@@ -4863,6 +4866,10 @@ class MatchFirst(ParseExpression):
         if self.exprs:
             self._may_return_empty = any(e.mayReturnEmpty for e in self.exprs)
             self.skipWhitespace = all(e.skipWhitespace for e in self.exprs)
+            # pre-skip whitespace here only if every alternative would have
+            # done so itself; an alternative starting with White() must not
+            # lose the whitespace it needs to see
+            self.callPreparse = all(e.callPreparse for e in self.exprs)
         else:
             self._may_return_empty = True
 
