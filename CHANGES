@@ -29,6 +29,11 @@ Version 3.3.3 - in development
 ------------------------------
 - Added support for Python 3.15.
 
+- Fixed copies of previously parsed `Each` expressions reusing cached references
+  to the original children. Copies now use their own children when matching,
+  including their parse actions, optional defaults, and newly added requirements.
+  Submitted by Yifan Chen et AI.
+
 - Fixed `Dict` returning an empty nested `ParseResults.as_dict()` as `[]`
   instead of `{}`. Incorporates partial solution submitted in PR #635
   submitted by Leo Ji.

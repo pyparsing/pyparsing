@@ -6648,6 +6648,71 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
                 f" and {res2.as_list} to contain the same words in any order",
             )
 
+    def testEachCopyUsesCopiedRequiredExpressions(self):
+        for warm_original in (False, True):
+            for copy_expr in (lambda e: e.copy(), lambda e: e(), lambda e: e("pair")):
+                with self.subTest(warm_original=warm_original, copy_expr=copy_expr):
+                    expr = pp.Literal("a") & pp.Literal("b")
+                    if warm_original:
+                        expr.parse_string("ab", parse_all=True)
+
+                    copied = copy_expr(expr)
+                    copied.recurse()[0].set_parse_action(pp.token_map(str.upper))
+                    # Changes to either grammar's children must stay local, even
+                    # if Each already classified its children before copying.
+                    expr.recurse()[1].set_parse_action(pp.replace_with("original"))
+                    for source, expected_copy, expected_original in (
+                        ("ab", ["A", "b"], ["a", "original"]),
+                        ("ba", ["b", "A"], ["original", "a"]),
+                    ):
+                        self.assertParseAndCheckList(copied, source, expected_copy)
+                        self.assertParseAndCheckList(expr, source, expected_original)
+
+    def testEachCopyUsesCopiedOptionalExpressions(self):
+        expr = pp.Opt("a", default="missing") & pp.Literal("b")
+        expr.parse_string("ab", parse_all=True)
+        copied = expr.copy()
+        copied.recurse()[0].set_parse_action(pp.token_map(str.upper))
+
+        for source, expected in (
+            ("ab", ["A", "b"]),
+            ("ba", ["b", "A"]),
+            ("b", ["b", "MISSING"]),
+        ):
+            with self.subTest(source=source):
+                self.assertParseAndCheckList(copied, source, expected)
+        self.assertParseAndCheckList(expr, "ab", ["a", "b"])
+        self.assertParseAndCheckList(expr, "b", ["b", "missing"])
+
+    def testEachCopyCanAddRequiredExpression(self):
+        expr = pp.Literal("a") & pp.Literal("b")
+        expr.parse_string("ab", parse_all=True)
+        copied = expr.copy()
+        copied &= pp.Literal("c")
+
+        for source in ("abc", "cab", "bca"):
+            self.assertParseAndCheckList(copied, source, list(source))
+        with self.assertRaisesParseException():
+            copied.parse_string("ab", parse_all=True)
+        self.assertParseAndCheckList(expr, "ab", ["a", "b"])
+
+    def testEachCopyUsesCopiedRepeatedExpressions(self):
+        for repetition in (pp.OneOrMore, pp.ZeroOrMore):
+            with self.subTest(repetition=repetition):
+                expr = repetition("a") & pp.Literal("b")
+                expr.parse_string("a b a", parse_all=True)
+                copied = expr.copy().leave_whitespace()
+
+                self.assertParseAndCheckList(copied, "aba", ["a", "b", "a"])
+                with self.assertRaisesParseException():
+                    copied.parse_string("a b a", parse_all=True)
+                self.assertParseAndCheckList(expr, "a b a", ["a", "b", "a"])
+                if repetition is pp.ZeroOrMore:
+                    self.assertParseAndCheckList(copied, "b", ["b"])
+                else:
+                    with self.assertRaisesParseException():
+                        copied.parse_string("b", parse_all=True)
+
     def testOptionalEachTest1(self):
         for the_input in [
             "Tal Weiss Major",
