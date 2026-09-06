@@ -92,6 +92,11 @@ class pyparsing_test:
                 "collect_all_And_tokens": __compat__.collect_all_And_tokens
             }
 
+            self._save_context["builtin_expr_parse_actions"] = [
+                (expr, expr.parseAction[:], expr.callDuringTry)
+                for expr in core_builtin_exprs
+            ]
+
             return self
 
         def restore(self):
@@ -122,6 +127,13 @@ class pyparsing_test:
             ParserElement._left_recursion_enabled = self._save_context[
                 "recursion_enabled"
             ]
+
+            # restore parse actions on all builtins
+            for expr, parse_actions, call_during_try in self._save_context[
+                "builtin_expr_parse_actions"
+            ]:
+                expr.parseAction[:] = parse_actions
+                expr.callDuringTry = call_during_try
 
             # clear debug flags on all builtins
             for expr in core_builtin_exprs:
