@@ -3999,7 +3999,9 @@ class White(Token):
         super().__init__()
         self.matchWhite = ws
         self.set_whitespace_chars(
-            "".join(c for c in self.whiteStrs if c not in self.matchWhite),
+            "".join(
+                c for c in ParserElement.DEFAULT_WHITE_CHARS if c not in self.matchWhite
+            ),
             copy_defaults=True,
         )
         # self.leave_whitespace()

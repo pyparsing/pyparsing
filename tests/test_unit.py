@@ -273,6 +273,14 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
         print(result.dump())
         self.assertParseResultsEquals(result, ["    ", "test"], {"word": "test"})
 
+    def testWhiteRespectsDefaultWhitespaceChars(self):
+        # test case reproducing Issue #359
+        ParserElement.set_default_whitespace_chars("")
+        parser = pp.Literal("a") + pp.White(" ") + pp.Literal("c")
+
+        self.assertParseAndCheckList(parser, "a c", ["a", " ", "c"])
+        self.assertRaisesParseException(parser, "a\n c")
+
     def testTransformString(self):
         make_int_with_commas = ppc.integer().add_parse_action(lambda t: f"{t[0]:,}")
         lower_case_words = pp.Word(pp.alphas.lower(), as_keyword=True) + pp.Optional(
