@@ -27,6 +27,10 @@ Required Python versions by pyparsing version
 
 Version 3.3.3 - in development
 ------------------------------
+- Updated `ParseResults.copy()` and `deepcopy()` to preserve the dictionary
+  context of empty `Dict` results, so nested empty dictionaries retain their
+  `{}` representation in `as_dict()`. Submitted by emme1t et AI.
+
 - Added support for Python 3.15.
 
 - Fixed `Dict` returning an empty nested `ParseResults.as_dict()` as `[]`
