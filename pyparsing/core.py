@@ -4883,6 +4883,49 @@ class MatchFirst(ParseExpression):
         return self
 
     def parseImpl(self, instring, loc, do_actions=True) -> ParseImplReturnType:
+        exprs = self.exprs
+
+        # Fast path for the very common alternation of two single-character
+        # literals (for example, ``Literal("+") | Literal("-")``).  Each
+        # alternative is otherwise a full _parse call, including a
+        # ParseResults wrapper and, for the failing alternative, an
+        # exception round-trip.  The common preParse and failure semantics
+        # are reproduced directly, so this behaves as the loop below does.
+        if (
+            len(exprs) == 2
+            and type(exprs[0]) is _SingleCharLiteral
+            and type(exprs[1]) is _SingleCharLiteral
+            and not exprs[0].parseAction
+            and not exprs[1].parseAction
+            and exprs[0].resultsName is None
+            and exprs[1].resultsName is None
+            and not exprs[0].ignoreExprs
+            and not exprs[1].ignoreExprs
+            and not exprs[0].debug
+            and not exprs[1].debug
+            and exprs[0].failAction is None
+            and exprs[1].failAction is None
+            and not self.ignoreExprs
+            and exprs[0].skipWhitespace == exprs[1].skipWhitespace
+            and self.skipWhitespace == exprs[0].skipWhitespace
+            and (
+                not self.skipWhitespace
+                or self.whiteChars == exprs[0].whiteChars == exprs[1].whiteChars
+            )
+        ):
+            e0, e1 = exprs
+            loc0 = e0.preParse(instring, loc)
+            n = len(instring)
+            if loc0 < n:
+                c = instring[loc0]
+                if c == e0.firstMatchChar:
+                    return loc0 + 1, e0.match
+                if c == e1.firstMatchChar:
+                    return loc0 + 1, e1.match
+                raise ParseException(instring, loc0, self.errmsg or "", e0)
+
+            raise ParseException(instring, n, self.errmsg or "", e0)
+
         maxExcLoc = -1
         maxException = None
 
