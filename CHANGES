@@ -13,20 +13,17 @@ the new function names before the legacy functions are completely removed.
 Required Python versions by pyparsing version
 ---------------------------------------------
 
-+--------------------------------------------------+-------------------+
-| pyparsing version                                | Required Python   |
-+==================================================+===================+
-| 3.3.0 and later                                  | 3.9 or later      |
-| 3.2.0 - 3.2.4                                    | 3.9 or later      |
-| 3.0.8 - 3.1.4                                    | 3.6.8 or later    |
-| 3.0.0 - 3.0.7 (these versions are discouraged)   | 3.6 or later      |
-| 2.4.7                                            | 2.7 or later      |
-| 1.5.7                                            | 2.6 - 2.7         |
-+--------------------------------------------------+-------------------+
+See the `Python version requirements
+<https://pyparsing-docs.readthedocs.io/en/latest/python_versions.html>`_
+for the current minimum and compatibility with older Python versions.
 
 
 Version 3.3.3 - in development
 ------------------------------
+- Consolidated Python version requirements in a shared documentation page,
+  linked from the README, contribution guidelines, and this changelog.
+  Addresses issue #613; submitted by xuu33030 et AI.
+
 - Added support for Python 3.15.
 
 - Fixed `Dict` returning an empty nested `ParseResults.as_dict()` as `[]`

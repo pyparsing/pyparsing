@@ -12,6 +12,7 @@ Release v\ |version|
 .. toctree::
    :maxdepth: 2
 
+   python_versions
    HowToUsePyparsing
    whats_new_in_3_3
    whats_new_in_3_2
