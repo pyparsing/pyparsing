@@ -6198,6 +6198,7 @@ class Forward(ParseElementEnhance):
         self.caller_frame = traceback.extract_stack(limit=2)[0]
         super().__init__(other, savelist=False)  # type: ignore[arg-type]
         self.lshift_line = None
+        self._whitespace_is_explicit = False
 
     def __lshift__(self, other) -> Forward:
         if hasattr(self, "caller_frame"):
@@ -6216,6 +6217,7 @@ class Forward(ParseElementEnhance):
             self.expr.whiteChars, copy_defaults=self.expr.copyDefaultWhiteChars
         )
         self.skipWhitespace = self.expr.skipWhitespace
+        self._whitespace_is_explicit = False
         self.saveAsList = self.expr.saveAsList
         self.ignoreExprs.extend(self.expr.ignoreExprs)
         self.lshift_line = traceback.extract_stack(limit=2)[-2]  # type: ignore[assignment]
@@ -6360,6 +6362,7 @@ class Forward(ParseElementEnhance):
         Extends ``leave_whitespace`` defined in base class.
         """
         self.skipWhitespace = False
+        self._whitespace_is_explicit = True
         return self
 
     def ignore_whitespace(self, recursive: bool = True) -> ParserElement:
@@ -6367,6 +6370,14 @@ class Forward(ParseElementEnhance):
         Extends ``ignore_whitespace`` defined in base class.
         """
         self.skipWhitespace = True
+        self._whitespace_is_explicit = True
+        return self
+
+    def set_whitespace_chars(
+        self, chars: Union[set[str], str], copy_defaults: bool = False
+    ) -> ParserElement:
+        super().set_whitespace_chars(chars, copy_defaults)
+        self._whitespace_is_explicit = True
         return self
 
     def streamline(self) -> ParserElement:
@@ -6374,6 +6385,14 @@ class Forward(ParseElementEnhance):
             self.streamlined = True
             if self.expr is not None:
                 self.expr.streamline()
+                if not self._whitespace_is_explicit:
+                    # A nested Forward may have been assigned after this one
+                    # inherited its whitespace settings during construction.
+                    super().set_whitespace_chars(
+                        self.expr.whiteChars,
+                        copy_defaults=self.expr.copyDefaultWhiteChars,
+                    )
+                    self.skipWhitespace = self.expr.skipWhitespace
         return self
 
     def validate(self, validateTrace=None) -> None:
@@ -6442,6 +6461,7 @@ class Forward(ParseElementEnhance):
     # fmt: off
     leaveWhitespace = replaced_by_pep8("leaveWhitespace", leave_whitespace)
     ignoreWhitespace = replaced_by_pep8("ignoreWhitespace", ignore_whitespace)
+    setWhitespaceChars = replaced_by_pep8("setWhitespaceChars", set_whitespace_chars)
     # fmt: on
 
 

@@ -11640,6 +11640,114 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
         self.assertEqual(len(ff.expr.exprs), 4)
         self.assertEqual(len(w3.exprs), 3)
 
+    def testNestedForwardInheritsLateWhitespace(self):
+        wrappers = (
+            lambda inner: pp.Forward(inner),
+            lambda inner: pp.Forward() << inner,
+            lambda inner: pp.Forward(pp.Forward(inner)),
+            lambda inner: inner.copy(),
+            lambda inner: inner("value"),
+            lambda inner: pp.Forward(inner).copy(),
+        )
+        for index, wrap in enumerate(wrappers):
+            with self.subTest(wrapper=index):
+                inner = pp.Forward()
+                outer = wrap(inner)
+                inner <<= pp.Literal("a").leave_whitespace()
+                self.assertEqual(
+                    outer.parse_string("a", parse_all=True).as_list(), ["a"]
+                )
+                if outer.resultsName:
+                    self.assertEqual(outer.parse_string("a")["value"], "a")
+                for parser in (inner, outer):
+                    with unittest.TestCase.assertRaises(
+                        self, pp.ParseException
+                    ) as caught:
+                        parser.parse_string("  a", parse_all=True)
+                    self.assertEqual(caught.exception.loc, 0)
+
+    def testNestedForwardInheritsCustomWhitespace(self):
+        inner = pp.Forward()
+        outer = pp.Forward(pp.Forward(inner))
+        locations = []
+        outer.add_parse_action(lambda s, loc, t: locations.append(loc))
+        inner <<= pp.Literal("a").set_whitespace_chars("_")
+        self.assertEqual(outer.parse_string("__a__", parse_all=True).as_list(), ["a"])
+        self.assertEqual(locations, [2])
+        with unittest.TestCase.assertRaises(self, pp.ParseException) as caught:
+            outer.parse_string("  a", parse_all=True)
+        self.assertEqual(caught.exception.loc, 0)
+
+    def testNestedForwardCustomWhitespaceScanning(self):
+        for always_skip in (True, False):
+            with self.subTest(always_skip_whitespace=always_skip):
+                inner = pp.Forward()
+                outer = pp.Forward(inner)
+                locations = []
+                outer.add_parse_action(lambda s, loc, t: locations.append(loc))
+                inner <<= pp.Literal(" a").set_whitespace_chars("_")
+                matches = list(
+                    outer.scan_string("__ a__ a", always_skip_whitespace=always_skip)
+                )
+                self.assertEqual(
+                    [(tokens.as_list(), start, end) for tokens, start, end in matches],
+                    [([" a"], 2, 4), ([" a"], 6, 8)],
+                )
+                self.assertEqual(locations, [2, 6])
+
+    def testNestedForwardPreservesExplicitWhitespace(self):
+        settings = (
+            ("leave_whitespace", (), "a", " a"),
+            ("ignore_whitespace", (), " a", "_a"),
+            ("set_whitespace_chars", ("_",), "_a", " a"),
+            ("set_whitespace_chars", (" \n\t\r",), " a", "_a"),
+            ("leaveWhitespace", (), "a", " a"),
+            ("ignoreWhitespace", (), " a", "_a"),
+            ("setWhitespaceChars", ("_",), "_a", " a"),
+        )
+        for method, args, accepted, rejected in settings:
+            for child_skips, copy_outer in (
+                (False, False),
+                (False, True),
+                (True, False),
+            ):
+                with self.subTest(
+                    method=method, copy=copy_outer, child_skips=child_skips
+                ):
+                    inner = pp.Forward()
+                    outer = pp.Forward(inner)
+                    with warnings.catch_warnings():
+                        warnings.simplefilter("ignore", pp.PyparsingDeprecationWarning)
+                        getattr(outer, method)(*args)
+                    if copy_outer:
+                        outer = outer.copy()
+                    inner <<= pp.Literal("a")
+                    if not child_skips:
+                        inner.leave_whitespace()
+                    self.assertEqual(
+                        outer.parse_string(accepted, parse_all=True).as_list(), ["a"]
+                    )
+                    with self.assertRaises(pp.ParseException):
+                        outer.parse_string(rejected, parse_all=True)
+
+    def testNestedForwardWhitespaceWithComments(self):
+        inner = pp.Forward()
+        outer = pp.Forward(inner).ignore(pp.c_style_comment)
+        inner <<= pp.Literal("a")
+        self.assertEqual(
+            outer.parse_string(" /* comment */ a ", parse_all=True).as_list(), ["a"]
+        )
+
+    def testNestedForwardWhitespaceWithRecursion(self):
+        inner = pp.Forward()
+        outer = pp.Forward(inner)
+        inner <<= (pp.Literal("a") + pp.Opt(outer)).leave_whitespace()
+        self.assertEqual(outer.parse_string("aaa", parse_all=True).as_list(), ["a"] * 3)
+        for text in (" aaa", "a aa"):
+            with self.subTest(text=text):
+                with self.assertRaises(pp.ParseException):
+                    outer.parse_string(text, parse_all=True)
+
     test_exception_messages_tests = (
         (pp.Word(pp.alphas), "123", "Expected W:(A-Za-z), found '123'"),
         (pp.Word(pp.alphas).set_name("word"), "123", "Expected word, found '123'"),
