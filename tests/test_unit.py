@@ -11730,6 +11730,44 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
                     with self.assertRaises(pp.ParseException):
                         outer.parse_string(rejected, parse_all=True)
 
+    def testForwardCopyUsesCurrentDefaultWhitespace(self):
+        for copy_defaults in (None, False, True):
+            for named in (False, True):
+                with self.subTest(copy_defaults=copy_defaults, named=named):
+                    with ppt.reset_pyparsing_context():
+                        literal = pp.Literal("a")
+                        if copy_defaults is not None:
+                            literal.set_whitespace_chars(
+                                ".", copy_defaults=copy_defaults
+                            )
+                        original = pp.Forward(literal)
+                        pp.ParserElement.set_default_whitespace_chars("_")
+                        copied = original("value") if named else original.copy()
+                        accepted = ".a." if copy_defaults is False else "_a_"
+                        rejected = "_a" if copy_defaults is False else ".a"
+                        result = copied.parse_string(accepted, parse_all=True)
+                        self.assertEqual(result.as_list(), ["a"])
+                        if named:
+                            self.assertEqual(result["value"], "a")
+                        with self.assertRaises(pp.ParseException):
+                            copied.parse_string(rejected, parse_all=True)
+
+    def testNestedForwardCopyDefaultsPreservesLateWhitespace(self):
+        for named in (False, True):
+            with self.subTest(named=named):
+                with ppt.reset_pyparsing_context():
+                    inner = pp.Forward()
+                    original = pp.Forward(inner)
+                    pp.ParserElement.set_default_whitespace_chars("_")
+                    copied = original("value") if named else original.copy()
+                    inner <<= pp.Literal("_a").leave_whitespace()
+                    result = copied.parse_string("_a", parse_all=True)
+                    self.assertEqual(result.as_list(), ["_a"])
+                    if named:
+                        self.assertEqual(result["value"], "_a")
+                    with self.assertRaises(pp.ParseException):
+                        copied.parse_string("__a", parse_all=True)
+
     def testNestedForwardWhitespaceWithComments(self):
         inner = pp.Forward()
         outer = pp.Forward(inner).ignore(pp.c_style_comment)
