@@ -25,8 +25,14 @@ Required Python versions by pyparsing version
 +--------------------------------------------------+-------------------+
 
 
-Version 3.3.3 - August, 2026
-----------------------------
+Version 3.3.3 - September, 2026
+-------------------------------
+- Added support for Python 3.15.
+
+- Fixed CI unit test jobs selecting a tox environment with no test commands.
+  The matrix and fallback now select `py-unit`, as diagnosed and proposed by
+  glaziermag in issue #662; submitted by Neal Lin et AI.
+
 - Refactored recursive implementations in pyparsing, for improved performance and
   reduced memory usage.
 

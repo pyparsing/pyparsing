@@ -1660,6 +1660,20 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             (pp.quotedString, "'" + "\xff" * repeat),
             (pp.QuotedString('"'), '"' + "\xff" * repeat),
             (pp.QuotedString("'"), "'" + "\xff" * repeat),
+            # The cases above repeat a single character, which only the general
+            # body branch can match, so they never exercise the hex-escape
+            # branch of the alternation. These do.
+            (pp.dbl_quoted_string, '"' + r"\xAA" * repeat),
+            (pp.sgl_quoted_string, "'" + r"\xAA" * repeat),
+            (pp.quoted_string, '"' + r"\xAA" * repeat),
+            (pp.quoted_string, "'" + r"\xAA" * repeat),
+            (pp.python_quoted_string, '"' + r"\xAA" * repeat),
+            (pp.python_quoted_string, "'" + r"\xAA" * repeat),
+            # python_quoted_string had a second ambiguity of the same kind: its
+            # escaped-quote branch and its general escape branch both matched
+            # \" and \', since a quote is not "x". These exercise that one.
+            (pp.python_quoted_string, '"' + r"\"" * repeat),
+            (pp.python_quoted_string, "'" + r"\'" * repeat),
         ]:
             test_string_label = f"{test_string[:2]}..."
             with self.subTest(expr=expr, test_string=repr(test_string_label)):
@@ -1667,6 +1681,22 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
                 expr.parse_string(test_string + test_string[0], parse_all=True)
 
                 # try to parse a quoted string with no trailing quote
+                with self.assertRaisesParseException():
+                    expr.parse_string(test_string, parse_all=True)
+
+        # The triple-quoted branches have an overlap of the same kind, between
+        # their one-quote and two-quote alternatives, but their delimiter is
+        # three characters and so does not fit the loop above.
+        for expr, delim, body in [
+            (pp.python_quoted_string, '"""', '""a'),
+            (pp.python_quoted_string, "'''", "''a"),
+        ]:
+            test_string = delim + body * repeat
+            with self.subTest(expr=expr, test_string=repr(f"{delim}...")):
+                # parse a valid triple-quoted string
+                expr.parse_string(test_string + delim, parse_all=True)
+
+                # try to parse one with no closing delimiter
                 with self.assertRaisesParseException():
                     expr.parse_string(test_string, parse_all=True)
 
