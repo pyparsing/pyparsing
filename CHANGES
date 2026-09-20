@@ -132,6 +132,14 @@ Version 3.3.3 - in development
 - Minor performance improvement in builtin quoted string expressions, using `Regex` instead
   of `And`.
 
+- Documented that packrat memoizing adds a stack frame per parse position, so a deeply
+  recursive grammar reaches Python's recursion limit at a shallower input nesting depth
+  with packrat enabled than without it, and that `sys.setrecursionlimit()` is the remedy.
+  Added to the `enable_packrat()` docstring, to the `enable_packrat()` entry in
+  `docs/HowToUsePyparsing.rst`, and to `ai/best_practices.md`, all three of which
+  recommended enabling packrat for recursive grammars without noting the trade-off.
+  Documentation only; no behavior change.
+
 - Added `docs/pyparsing_class.md`, a more comprehensive class diagram capturing the major
   classes and modules in the pyparsing package.
 
