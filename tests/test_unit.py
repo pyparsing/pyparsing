@@ -9786,6 +9786,31 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
         self.assertEqual({}, p1_result)
         self.assertEqual({"fubar": {}}, p2_result)
 
+    def testParseResultsCopyPreservesEmptyDict(self):
+        parser = pp.Dict(pp.Group(pp.Word(pp.alphas) + pp.Word(pp.nums))[...])
+        original = parser.parse_string("")
+
+        for copy_method in ("copy", "deepcopy"):
+            with self.subTest(copy_method=copy_method):
+                copied = getattr(original, copy_method)()
+                container = pp.ParseResults()
+                container["original"] = original
+                container["copied"] = copied
+                self.assertEqual({"original": {}, "copied": {}}, container.as_dict())
+                self.assertIsNot(original, copied)
+
+    def testParseResultsDeepcopyPreservesNestedEmptyDict(self):
+        parser = pp.Dict(pp.Group(pp.Word(pp.alphas) + pp.Word(pp.nums))[...])(
+            "settings"
+        ) + pp.Group(pp.Empty())("items")
+        original = parser.parse_string("")
+        copied = original.deepcopy()
+
+        self.assertEqual({"settings": {}, "items": []}, original.as_dict())
+        self.assertEqual(original.as_dict(), copied.as_dict())
+        self.assertIsNot(original.settings, copied.settings)
+        self.assertIsNot(original["items"], copied["items"])
+
     def testExplainException(self):
         expr = pp.Word(pp.nums).set_name("int") + pp.Word(pp.alphas).set_name("word")
         try:
