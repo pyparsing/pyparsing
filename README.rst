@@ -51,6 +51,13 @@ The examples directory includes a simple SQL parser, simple CORBA IDL
 parser, a config file parser, a chemical formula parser, and a four-
 function algebraic notation parser, among many others.
 
+Python version requirements
+===========================
+
+See `Python version requirements
+<https://pyparsing-docs.readthedocs.io/en/latest/python_versions.html>`_
+for the minimum supported Python version and compatible older pyparsing releases.
+
 Documentation
 =============
 
@@ -102,7 +109,7 @@ For usage instructions and details on the performance benchmark suite, see
     :alt: License
 
 .. |Python Versions| image:: https://img.shields.io/pypi/pyversions/pyparsing.svg?style=flat-square
-    :target: https://pypi.org/project/python-liquid/
+    :target: https://pyparsing-docs.readthedocs.io/en/latest/python_versions.html
     :alt: Python versions
 
 .. |Snyk Score| image:: https://snyk.io//advisor/python/pyparsing/badge.svg

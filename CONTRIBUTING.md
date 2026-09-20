@@ -53,8 +53,8 @@ If you have an example you wish to submit, please follow these guidelines.
   ppu = pp.pyparsing_unicode
   ```
 
-- Submitted examples _must_ be Python 3.9 or later compatible.
-  (It is acceptable if examples use Python features added after 3.9)
+- Submitted examples _must_ be compatible with the [supported Python versions][python-versions].
+  It is acceptable for examples to use newer Python features by way of illustration.
 
 - Where possible use operators to create composite parse expressions:
 
@@ -92,7 +92,7 @@ article on the pyparsing wiki, to get a general feel for the historical and futu
 design, and intended developer experience as an embedded DSL.
 
 If you are using new Python features or changing usage of the Python stdlib, please check that they work as
-intended on prior versions of Python (currently back to Python 3.9).
+intended on all [supported Python versions][python-versions].
 
 ## Some design points
 
@@ -134,8 +134,8 @@ These coding styles are encouraged whether submitting code for core pyparsing or
 
 - Maximum line length is 120 characters. (Black will override this.)
 
-- Changes to core pyparsing must be compatible back to Py3.9 without conditionalizing. Later Py3 features may be
-  used in examples by way of illustration.
+- Changes to core pyparsing must work on all [supported Python versions][python-versions] without conditionalizing.
+  Newer Python features may be used in examples by way of illustration.
 
 - `str.format()` statements should use named format arguments (unless this proves to be a slowdown at parse time).
 
@@ -204,5 +204,6 @@ These coding styles are encouraged whether submitting code for core pyparsing or
   project.
 
 <!-- Named hyperlink targets, used in the preceding text -->
+[python-versions]: https://pyparsing-docs.readthedocs.io/en/latest/python_versions.html
 [pitfalls]: https://github.com/pyparsing/pyparsing/wiki/Common-Pitfalls-When-Writing-Parsers
 [pyparsing-docs]: https://pyparsing-docs.readthedocs.io/en/latest/
