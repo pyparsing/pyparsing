@@ -5697,6 +5697,31 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
         self.assertEqual(results.as_list(), [])
         self.assertEqual(results.char.as_list(), chars_list)
 
+    def test_delitem_slices_preserve_results_name(self):
+        grammar = pp.Word(pp.nums) * 3 + pp.Word(pp.nums)("last")
+        deletions = [
+            (slice(None, 3),),
+            (slice(2, None, -1),),
+            (slice(-2, None, -1),),
+            (slice(None, 3, 2), 0),
+            (slice(2, None, -2), 0),
+            (-2, -2, -2),
+        ]
+        for indices in deletions:
+            with self.subTest(indices=indices):
+                original = grammar.parse_string("1 2 3 4", parse_all=True)
+                results = original.copy()
+                for index in indices:
+                    del results[index]
+
+                self.assertEqual(results.as_list(), ["4"])
+                self.assertEqual(results.as_dict(), {"last": "4"})
+                self.assertEqual(results.get_name(), "last")
+
+                self.assertEqual(original.as_list(), ["1", "2", "3", "4"])
+                del original[:3]
+                self.assertEqual(original.get_name(), "last")
+
     def test_delitem_slices_copy(self):
         results = pp.Char(pp.alphas)("char*")[...].parse_string(pp.alphas[:10])
         chars_list = list(pp.alphas[:10])
