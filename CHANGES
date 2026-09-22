@@ -29,6 +29,11 @@ Version 3.3.3 - in development
 ------------------------------
 - Added support for Python 3.15.
 
+- Fixed negative-step slice deletion from `ParseResults` leaving incorrect
+  offsets for named results. `get_name()` now preserves the surviving result's
+  name just as it does after an equivalent positive-step deletion; submitted
+  by Eric3-jp et AI.
+
 - Parse actions that return a tuple value for a named expression formerly saved
   just the first value of the tuple. Now they return the entire tuple. Partially
   fixes Issue #401, PR #640 submitted by Vincent Gao et AI.

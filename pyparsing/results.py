@@ -295,9 +295,11 @@ class ParseResults:
             if i < 0:
                 i += mylen
             i = slice(i, i + 1)
-        # get removed indices
-        removed = list(range(*i.indices(mylen)))
-        removed.reverse()
+        # get removed indices from highest to lowest
+        start, stop, step = i.indices(mylen)
+        removed = list(range(start, stop, step))
+        if step > 0:
+            removed.reverse()
         # fixup indices in token dictionary; copy() shares these lists, so
         # renumber a private copy rather than the list itself
         for name, occurrences in self._tokdict.items():
