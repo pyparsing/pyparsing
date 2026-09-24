@@ -5637,6 +5637,11 @@ class NotAny(ParseElementEnhance):
     does *not* match at the current position.  Also, ``NotAny`` does
     *not* skip over leading whitespace. ``NotAny`` always returns
     a null token list.  May be constructed using the ``'~'`` operator.
+    The whitespace handling of the wrapped expression is preserved. If the
+    wrapped expression skips leading whitespace, ``NotAny`` will evaluate
+    that expression after the whitespace has been skipped. Use
+    ``expr.leave_whitespace()`` to check the current position without
+    skipping leading whitespace.
 
     Example:
 
