@@ -29,6 +29,14 @@ Version 3.3.3 - in development
 ------------------------------
 - Added support for Python 3.15.
 
+- Parse actions that return a tuple value for a named expression formerly saved
+  just the first value of the tuple. Now they return the entire tuple. Partially
+  fixes Issue #401, PR #640 submitted by Vincent Gao et AI.
+
+- Fixed CI unit test jobs selecting a tox environment with no test commands.
+  The matrix and fallback now select `py-unit`, as diagnosed and proposed by
+  glaziermag in issue #662; submitted by Neal Lin et AI.
+
 - Fixed copies of previously parsed `Each` expressions reusing cached references
   to the original children. Copies now use their own children when matching,
   including their parse actions, optional defaults, and newly added requirements.

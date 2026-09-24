@@ -21,7 +21,7 @@ jobs:
     strategy:
       matrix:
         os: ["ubuntu-latest"]
-        toxenv: [py]
+        toxenv: [py-unit]
         python-version: ["3.9", "3.10", "3.11", "3.12", "3.13", "3.14"]
         include:
           - python-version: "3.14"
@@ -30,7 +30,7 @@ jobs:
             toxenv: mypy-check
           - python-version: "pypy-3.9"
     env:
-      TOXENV: ${{ matrix.toxenv || 'py' }}
+      TOXENV: ${{ matrix.toxenv || 'py-unit' }}
     steps:
       - uses: actions/checkout@v5
 
