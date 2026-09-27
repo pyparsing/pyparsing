@@ -630,7 +630,7 @@ class ParserElement(ABC):
         self, name: str, list_all_matches: bool = False, **kwargs
     ) -> ParserElement:
         """
-        Define name for referencing matching tokens as a nested attribute
+        Define a name for referencing matching tokens as an attribute or key
         of the returned parse results.
 
         Normally, results names are assigned as you would assign keys in a dict:
@@ -646,6 +646,31 @@ class ParserElement(ABC):
         ``expr("name")`` in place of ``expr.set_results_name("name")``
         - see :meth:`__call__`. If ``list_all_matches`` is required, use
         ``expr("name*")``.
+
+        Naming a composite expression does not group its results. Names assigned
+        to its contained expressions remain at the same level in the returned
+        :class:`ParseResults`. To access those names through the composite
+        expression's name, wrap the expression in :class:`Group` before naming it:
+
+        .. doctest::
+
+            >>> pronoun = Word(alphas)("pronoun")
+            >>> verb = Word(alphas)("verb")
+            >>> sentence = (pronoun + verb)("sentence")
+            >>> parsed = sentence.parse_string("You are")
+            >>> parsed.pronoun, parsed.verb
+            ('You', 'are')
+            >>> parsed.sentence.as_list()
+            ['You', 'are']
+            >>> "pronoun" in parsed.sentence
+            False
+
+            >>> sentence = Group(pronoun + verb)("sentence")
+            >>> parsed = sentence.parse_string("You are")
+            >>> parsed.sentence.pronoun, parsed.sentence.verb
+            ('You', 'are')
+            >>> parsed.as_dict()
+            {'sentence': {'pronoun': 'You', 'verb': 'are'}}
 
         Example:
 
