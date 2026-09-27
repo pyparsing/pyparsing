@@ -25,6 +25,14 @@ Required Python versions by pyparsing version
 +--------------------------------------------------+-------------------+
 
 
+Version 3.3.4 - in development
+------------------------------
+- Restored the type annotations on `infix_notation` that were dropped when it was
+  reimplemented in 3.3.3; the function is now typed as returning a `ParserElement`
+  (it no longer returns a `Forward`). Fixes Issue #671, reported by stefanor;
+  submitted by zxcheergo et AI.
+
+
 Version 3.3.3 - September, 2026
 -------------------------------
 - Added support for Python 3.15.
