@@ -1446,7 +1446,12 @@ class _InfixNotation(ParseElementEnhance):
             return loc, ParseResults([final_result])
 
 
-def infix_notation(base_expr, op_list, lpar="(", rpar=")"):
+def infix_notation(
+    base_expr: ParserElement,
+    op_list: list[InfixNotationOperatorSpec],
+    lpar: Union[str, ParserElement] = "(",
+    rpar: Union[str, ParserElement] = ")",
+) -> ParserElement:
     """Helper method for constructing grammars of expressions made up of
     operators working in a precedence hierarchy.  Operators may be unary
     or binary, left- or right-associative.  Parse actions can also be
@@ -1533,7 +1538,9 @@ def infix_notation(base_expr, op_list, lpar="(", rpar=")"):
        -2--11
        [[['-', 2], '-', ['-', 11]]]
     """
-    return _InfixNotation(base_expr, op_list, lpar=lpar, rpar=rpar)
+    # _InfixNotation.__init__ annotates op_list with the internal normalized spec type,
+    # but it accepts (and normalizes) the public InfixNotationOperatorSpec tuples
+    return _InfixNotation(base_expr, op_list, lpar=lpar, rpar=rpar)  # type: ignore[arg-type]
 
 
 def indentedBlock(blockStatementExpr, indentStack, indent=True, backup_stacks=[]):
