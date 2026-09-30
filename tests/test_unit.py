@@ -11948,6 +11948,173 @@ class Test11_LR1_Recursion(ppt.TestParseResultsAsserts, TestCase):
     def tearDown(self):
         default_suite_context.restore()
 
+    def test_left_recursion_with_late_bound_whitespace(self):
+        # The recursive sequences are constructed before their leading Forward
+        # inherits the whitespace behavior of the NotAny-led atom.
+        for cache_size in (None, 4):
+            with self.subTest(cache_size=cache_size), ppt.reset_pyparsing_context():
+                ParserElement.enable_left_recursion(cache_size, force=True)
+                ParserElement.inline_literals_using(pp.Suppress)
+                top = pp.Forward()
+                atom = ~pp.Literal("xxx") + pp.Word("xyz")
+                indexed = pp.Forward()
+                indexed <<= indexed + "[" + top + "]" | atom
+                top <<= top + "*" + indexed | indexed
+
+                for text, expected in (
+                    ("x[y*x]", ["x", "y", "x"]),
+                    ("x [y * xx ]", ["x", "y", "xx"]),
+                    ("  x", ["x"]),
+                    ("x[ y*xx]", ["x", "y", "xx"]),
+                    ("  x*y", ["x", "y"]),
+                ):
+                    with self.subTest(text=text):
+                        self.assertParseResultsEquals(
+                            top.parse_string(text, parse_all=True),
+                            expected_list=expected,
+                        )
+
+                for text in ("xxx", "  xxx", "x[ xxx]", "x*xxx"):
+                    with self.subTest(rejected=text):
+                        with self.assertRaises(pp.ParseException):
+                            top.parse_string(text, parse_all=True)
+
+    def test_left_recursion_whitespace_action_locations(self):
+        for cache_size in (None, 4):
+            for whitespace, text, positions in (
+                (" ", "x*y", [0, 2]),
+                (" ", "  x*y", [2, 4]),
+                (" _", "__x*_y", [2, 5]),
+            ):
+                with self.subTest(cache_size=cache_size, text=text):
+                    with ppt.reset_pyparsing_context():
+                        ParserElement.set_default_whitespace_chars(whitespace)
+                        ParserElement.enable_left_recursion(cache_size, force=True)
+                        calls = []
+                        word = pp.Word("xy").add_parse_action(
+                            lambda s, loc, tokens: calls.append((loc, tokens[0]))
+                        )
+                        atom = ~pp.Literal("xxx") + word
+                        expr = pp.Forward()
+                        expr <<= expr + pp.Suppress("*") + atom | atom
+                        self.assertParseResultsEquals(
+                            expr.parse_string(text, parse_all=True),
+                            expected_list=["x", "y"],
+                        )
+                        self.assertEqual(calls, list(zip(positions, ("x", "y"))))
+
+    def test_and_late_bound_whitespace_with_comments(self):
+        first = pp.Forward()
+        expr = first + "!"
+        first <<= pp.White(" ") + pp.Word(pp.alphas)
+        expr.ignore(pp.c_style_comment)
+        self.assertParseResultsEquals(
+            expr.parse_string("/* leading */ x!", parse_all=True),
+            expected_list=[" ", "x", "!"],
+        )
+
+    def test_and_nested_explicit_whitespace(self):
+        inner = (pp.Literal("x") + "y").leave_whitespace(recursive=False)
+        outer = inner + "z"
+        for _ in range(2):
+            outer.streamline()
+            self.assertParseResultsEquals(
+                outer.parse_string("x y z", parse_all=True),
+                expected_list=["x", "y", "z"],
+            )
+            with self.assertRaises(pp.ParseException):
+                outer.parse_string(" x y z", parse_all=True)
+
+        extended = outer + "!"
+        with self.assertRaises(pp.ParseException):
+            extended.parse_string(" x y z!", parse_all=True)
+
+    def test_and_nested_explicit_ignore_whitespace(self):
+        first = pp.Literal("x").leave_whitespace()
+        inner = (first + "y").ignore_whitespace(recursive=False)
+        outer = inner + "z"
+        for _ in range(2):
+            outer.streamline()
+            self.assertParseResultsEquals(
+                outer.parse_string(" x y z", parse_all=True),
+                expected_list=["x", "y", "z"],
+            )
+
+        extended = outer + "!"
+        self.assertParseResultsEquals(
+            extended.parse_string(" x y z!", parse_all=True),
+            expected_list=["x", "y", "z", "!"],
+        )
+
+    def test_and_copied_default_whitespace(self):
+        with ppt.reset_pyparsing_context():
+            expr = pp.Literal("x") + pp.Literal("y")
+            ParserElement.set_default_whitespace_chars("_")
+            copied = expr.copy()
+            self.assertParseResultsEquals(
+                copied.parse_string("__x__y", parse_all=True),
+                expected_list=["x", "y"],
+            )
+            self.assertParseResultsEquals(
+                expr.parse_string(" x y", parse_all=True),
+                expected_list=["x", "y"],
+            )
+            with self.assertRaises(pp.ParseException):
+                expr.parse_string("__x__y", parse_all=True)
+
+    def test_and_explicit_whitespace_settings(self):
+        for use_legacy_names in (False, True):
+            with self.subTest(legacy=use_legacy_names):
+                first = pp.Literal("x")
+                expr = first + "y"
+                leave = (
+                    expr.leaveWhitespace if use_legacy_names else expr.leave_whitespace
+                )
+                with warnings.catch_warnings():
+                    warnings.simplefilter("ignore", PyparsingDeprecationWarning)
+                    leave(recursive=False)
+                for parser in (expr, expr.copy()):
+                    self.assertParseResultsEquals(
+                        parser.parse_string("x y", parse_all=True),
+                        expected_list=["x", "y"],
+                    )
+                    with self.assertRaises(pp.ParseException):
+                        parser.parse_string(" x y", parse_all=True)
+
+                first = pp.Literal("x").leave_whitespace()
+                expr = first + "y"
+                ignore = (
+                    expr.ignoreWhitespace
+                    if use_legacy_names
+                    else expr.ignore_whitespace
+                )
+                with warnings.catch_warnings():
+                    warnings.simplefilter("ignore", PyparsingDeprecationWarning)
+                    ignore(recursive=False)
+                for parser in (expr, expr.copy()):
+                    self.assertParseResultsEquals(
+                        parser.parse_string(" x y", parse_all=True),
+                        expected_list=["x", "y"],
+                    )
+
+                first = pp.Literal("x").leave_whitespace()
+                expr = first + "y"
+                set_chars = (
+                    expr.setWhitespaceChars
+                    if use_legacy_names
+                    else expr.set_whitespace_chars
+                )
+                with warnings.catch_warnings():
+                    warnings.simplefilter("ignore", PyparsingDeprecationWarning)
+                    set_chars("_")
+                for parser in (expr, expr.copy()):
+                    self.assertParseResultsEquals(
+                        parser.parse_string("__xy", parse_all=True),
+                        expected_list=["x", "y"],
+                    )
+                    with self.assertRaises(pp.ParseException):
+                        parser.parse_string(" xy", parse_all=True)
+
     def test_repeat_as_recurse(self):
         """repetition rules formulated with recursion"""
         one_or_more = pp.Forward().set_name("one_or_more")
