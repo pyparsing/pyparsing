@@ -233,10 +233,20 @@ class pyparsing_common:
     fraction.add_parse_action(lambda tt: tt[0] / tt[-1])
 
     mixed_integer = (
-        fraction | signed_integer + Opt(Opt("-").suppress() + fraction)
+        fraction
+        | (
+            # Keep the sign of the integer text, including "-0".
+            signed_integer().set_parse_action()
+            + Opt("-").suppress()
+            + fraction
+        ).set_parse_action(
+            lambda t: (
+                int(t[0]) - abs(t[1]) if t[0].startswith("-") else int(t[0]) + t[1]
+            )
+        )
+        | signed_integer
     ).set_name("fraction or mixed integer-fraction")
     """mixed integer of the form 'integer - fraction', with optional leading integer, converts to a float"""
-    mixed_integer.add_parse_action(sum)
 
     real = (
         Regex(r"[+-]?(?:\d+\.\d*|\.\d+)")

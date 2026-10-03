@@ -27,6 +27,11 @@ Required Python versions by pyparsing version
 
 Version 3.3.3 - in development
 ------------------------------
+- Fixed `pyparsing_common.mixed_integer` adding the fractional part to a negative
+  integer instead of preserving the sign of the mixed number. For example,
+  `-1 1/2` now gives `-1.5`, and `-0 1/2` gives `-0.5`. Both whitespace and
+  hyphen separators are supported. PR submitted by kokotatan et AI.
+
 - Added support for Python 3.15.
 
 - Parse actions that return a tuple value for a named expression formerly saved
