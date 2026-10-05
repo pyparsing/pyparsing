@@ -1456,6 +1456,32 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
                 print()
         # fmt: on
 
+    def testQuotedStringOctalHexUnicodeEscapes(self):
+        # test for Issue #679: octal, \x and \u escape translation broken
+        # by f-string bug in unquote_scan_re construction
+        # fmt: off
+        backslash = chr(92)
+        test_cases = [
+            # (test_string, expected_result)
+            (f'"{backslash}101"', "A"),           # octal escape \101 = 'A'
+            (f'"{backslash}000"', "\x00"),        # null escape \000
+            (f'"{backslash}x41"', "A"),           # hex escape \x41 = 'A'
+            (f'"{backslash}u0041"', "A"),         # unicode escape \u0041 = 'A'
+            (f'"{backslash}101{backslash}x42{backslash}u0043"',
+             "ABC"),                              # combined escapes
+        ]
+        # fmt: on
+        for test_string, expected in test_cases:
+            with self.subTest(test_string=test_string, expected=expected):
+                qs_expr = pp.QuotedString(
+                    quote_char='"',
+                    esc_char='\\',
+                    unquote_results=True,
+                    convert_whitespace_escapes=True,
+                )
+                result = qs_expr.parse_string(test_string)
+                self.assertEqual(expected, result[0])
+
     def testPythonQuotedStrings(self):
         # fmt: off
         success1, _ = pp.python_quoted_string.run_tests([
