@@ -1067,6 +1067,7 @@ class ParserElement(ABC):
 
     # cache for left-recursion in Forward references
     recursion_lock = RLock()
+    _recursion_depths: dict[int, int] = {}
     recursion_memos: collections.abc.MutableMapping[
         tuple[int, Forward, bool], tuple[int, Union[ParseResults, Exception]]
     ] = {}
@@ -1169,6 +1170,7 @@ class ParserElement(ABC):
                 ParserElement.packrat_cache_stats
             )
             ParserElement.recursion_memos.clear()
+            ParserElement._recursion_depths.clear()
 
     # class attributes to keep caching status
     _packratEnabled = False
@@ -6324,7 +6326,9 @@ class Forward(ParseElementEnhance):
         # we expand using `do_actions=False` and only run `do_actions=True` if the next
         # recursion level is acceptable.
         with ParserElement.recursion_lock:
-            memo = ParserElement.recursion_memos
+            memo = typing.cast(
+                Union[_LRUMemo, _UnboundedMemo], ParserElement.recursion_memos
+            )
             try:
                 # we are parsing at a specific recursion expansion - use it as-is
                 prev_loc, prev_result = memo[loc, self, do_actions]
@@ -6334,42 +6338,60 @@ class Forward(ParseElementEnhance):
             except KeyError:
                 act_key = (loc, self, True)
                 peek_key = (loc, self, False)
-                # we are searching for the best recursion expansion - keep on improving
-                # both `do_actions` cases must be tracked separately here!
-                prev_loc, prev_peek = memo[peek_key] = (
-                    loc - 1,
-                    ParseException(
-                        instring, loc, "Forward recursion without base case", self
-                    ),
-                )
-                if do_actions:
-                    memo[act_key] = memo[peek_key]
-                while True:
-                    try:
-                        new_loc, new_peek = super().parseImpl(instring, loc, False)
-                    except ParseException:
-                        # we failed before getting any match - do not hide the error
-                        if isinstance(prev_peek, Exception):
-                            raise
-                        new_loc, new_peek = prev_loc, prev_peek
-                    # the match did not get better: we are done
-                    if new_loc <= prev_loc:
-                        if do_actions:
-                            # replace the match for do_actions=False as well,
-                            # in case the action did backtrack
-                            prev_loc, prev_result = memo[peek_key] = memo[act_key]
-                            del memo[peek_key], memo[act_key]
-                            return prev_loc, copy.copy(prev_result)
-                        del memo[peek_key]
-                        return prev_loc, copy.copy(prev_peek)
-                    # the match did get better: see if we can improve further
+                depths = ParserElement._recursion_depths
+                depths[loc] = depths.get(loc, 0) + 1
+                try:
+                    # we are searching for the best recursion expansion - keep on improving
+                    # both `do_actions` cases must be tracked separately here!
+                    prev_loc, prev_peek = memo[peek_key] = (
+                        loc - 1,
+                        ParseException(
+                            instring, loc, "Forward recursion without base case", self
+                        ),
+                    )
                     if do_actions:
+                        memo[act_key] = memo[peek_key]
+                    while True:
                         try:
-                            memo[act_key] = super().parseImpl(instring, loc, True)
-                        except ParseException as e:
-                            memo[peek_key] = memo[act_key] = (new_loc, e)
-                            raise
-                    prev_loc, prev_peek = memo[peek_key] = new_loc, new_peek
+                            new_loc, new_peek = super().parseImpl(instring, loc, False)
+                        except ParseException:
+                            # we failed before getting any match - do not hide the error
+                            if isinstance(prev_peek, Exception):
+                                raise
+                            new_loc, new_peek = prev_loc, prev_peek
+                        # the match did not get better: we are done
+                        if new_loc <= prev_loc:
+                            if do_actions:
+                                # replace the match for do_actions=False as well,
+                                # in case the action did backtrack
+                                prev_loc, prev_result = memo[peek_key] = memo[act_key]
+                                return (
+                                    prev_loc,
+                                    typing.cast(ParseResults, prev_result).copy(),
+                                )
+                            return prev_loc, typing.cast(ParseResults, prev_peek).copy()
+                        # the match did get better: see if we can improve further
+                        if do_actions:
+                            try:
+                                memo[act_key] = super().parseImpl(instring, loc, True)
+                            except ParseException as e:
+                                memo[peek_key] = memo[act_key] = (new_loc, e)
+                                raise
+                        prev_loc, prev_peek = memo[peek_key] = new_loc, new_peek
+                finally:
+                    depths[loc] -= 1
+                    if depths[loc]:
+                        # Matches found while another Forward is expanding here
+                        # depend on its current seed. Do not retain them after
+                        # that seed grows, or indirect recursion cannot improve.
+                        memo.discard(peek_key)
+                        if do_actions:
+                            memo.discard(act_key)
+                    else:
+                        del depths[loc]
+                        del memo[peek_key]
+                        if do_actions:
+                            del memo[act_key]
 
     def leave_whitespace(self, recursive: bool = True) -> ParserElement:
         """

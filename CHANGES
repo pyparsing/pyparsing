@@ -27,6 +27,12 @@ Required Python versions by pyparsing version
 
 Version 3.3.3 - in development
 ------------------------------
+- Fixed indirect left recursion retaining intermediate matches tied to an
+  enclosing Forward's recursion seed. This could truncate matches when a
+  grammar was split across multiple Forward expressions (issue #451).
+  Also isolated returned tokens from the recursion cache so lookahead cannot
+  clear a later match's results; submitted by Jay1023CN et AI.
+
 - Added support for Python 3.15.
 
 - Parse actions that return a tuple value for a named expression formerly saved
