@@ -29,6 +29,12 @@ Version 3.3.3 - in development
 ------------------------------
 - Added support for Python 3.15.
 
+- Fixed nested `Dict(asdict=True)` expressions raising an unhashable-key
+  `TypeError` when `Each` or `Or` tries an expression before its key-generating
+  parse actions run. Actual parsing still rejects unhashable dict keys, and
+  explicit trial parse actions and custom `postParse` methods retain their
+  existing behavior. Issue #432; submitted by jovial-liu et AI.
+
 - Parse actions that return a tuple value for a named expression formerly saved
   just the first value of the tuple. Now they return the entire tuple. Partially
   fixes Issue #401, PR #640 submitted by Vincent Gao et AI.

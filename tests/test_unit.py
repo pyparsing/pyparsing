@@ -4205,6 +4205,181 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
                 print(r.get("_info_"))
             self.assertEqual([0, 15], [r["_info_"][1] for r in result])
 
+    def testNestedNativeDictWithTrialParsing(self):
+        expected = {
+            "point1": {"x": 1, "y": 2, "z": 3},
+            "point2": {"x": 4, "y": 5, "z": 6},
+        }
+        expected_calls = collections.Counter(x=2, y=2, z=2, point1=1, point2=1)
+
+        for wrapper in (None, pp.Each, pp.Or):
+            for named in (False, True):
+                with self.subTest(wrapper=wrapper, named=named):
+                    calls = []
+
+                    def label(name):
+                        def action():
+                            calls.append(name)
+                            return name
+
+                        return pp.Empty().set_parse_action(action)
+
+                    point = pp.Dict(
+                        pp.And(
+                            [
+                                pp.Group(label(name) + ppc.signed_integer)
+                                for name in ("x", "y", "z")
+                            ]
+                        ),
+                        asdict=True,
+                    )
+                    points = pp.Dict(
+                        pp.And(
+                            [
+                                pp.Group(label(name) + point)
+                                for name in ("point1", "point2")
+                            ]
+                        )
+                    )
+                    if named:
+                        points = points("points")
+                    if wrapper is not None:
+                        points = wrapper([points])
+                    result = points.parse_string("1 2 3 4 5 6", parse_all=True)
+                    self.assertEqual(
+                        result.as_dict(), {"points": expected} if named else expected
+                    )
+                    parsed_points = result["points"] if named else result
+                    self.assertIsInstance(parsed_points["point1"], dict)
+                    self.assertIsInstance(parsed_points["point2"], dict)
+                    self.assertEqual(collections.Counter(calls), expected_calls)
+
+    def testDictRejectsActualUnhashableDictKeys(self):
+        for asdict in (False, True):
+            for key_only in (False, True):
+                with self.subTest(asdict=asdict, key_only=key_only):
+                    key = pp.Word(pp.alphas) if key_only else pp.Empty()
+                    key.set_parse_action(lambda: [{"not": "hashable"}])
+                    entry = key if key_only else key + pp.Word(pp.alphas)
+                    parser = pp.Dict(pp.Group(entry), asdict=asdict)
+                    with self.assertRaisesRegex(TypeError, "unhashable"):
+                        parser.parse_string("value", parse_all=True)
+
+    def testDictNativeValuesInTrialParseActions(self):
+        for wrapper in (pp.Each, pp.Or):
+            with self.subTest(wrapper=wrapper):
+                integer = pp.Word(pp.nums).set_parse_action(
+                    lambda tokens: int(tokens[0])
+                )
+                value = pp.Dict(
+                    pp.Group(pp.Word(pp.alphas) + integer)[1, ...], asdict=True
+                )
+                parent = pp.Dict(
+                    pp.Group(
+                        pp.Keyword("point")
+                        + pp.Suppress("{")
+                        + value
+                        + pp.Suppress("}")
+                    )
+                )
+                received = []
+
+                def validate(tokens):
+                    mapping = tokens["point"]
+                    self.assertIsInstance(mapping, dict)
+                    self.assertEqual(set(mapping), {"x", "y"})
+                    self.assertLess(int(mapping["x"]), int(mapping["y"]))
+                    received.append(dict(mapping))
+                    return tokens
+
+                parent.add_parse_action(validate, call_during_try=True)
+                result = wrapper([parent]).parse_string(
+                    "point {x 1 y 2}", parse_all=True
+                )
+                self.assertEqual(result.as_dict(), {"point": {"x": 1, "y": 2}})
+                self.assertEqual(received, [{"x": "1", "y": "2"}, {"x": 1, "y": 2}])
+
+    def testDictTrialParseActionRejectsInvalidDictKeys(self):
+        for wrapper in (pp.Each, pp.Or):
+            with self.subTest(wrapper=wrapper):
+                key = pp.Dict(
+                    pp.Group(pp.Word(pp.alphas) + pp.Word(pp.nums)), asdict=True
+                )
+                parser = pp.Dict(pp.Group(key + pp.Word(pp.alphas)))
+                received = []
+                parser.add_parse_action(
+                    lambda tokens: received.append(tokens.as_dict()),
+                    call_during_try=True,
+                )
+                with self.assertRaisesRegex(TypeError, "unhashable"):
+                    wrapper([parser]).parse_string("key 1 value", parse_all=True)
+                self.assertEqual(received, [])
+
+    def testDictHashableDictKeyInParentTrialCondition(self):
+        class HashableDict(dict):
+            __hash__ = object.__hash__
+
+        for wrapper in (pp.Each, pp.Or):
+            with self.subTest(wrapper=wrapper):
+                key = HashableDict(k="v")
+                child = pp.Dict(
+                    pp.Group(
+                        pp.Empty().set_parse_action(lambda: key, call_during_try=True)
+                        + pp.Literal("value")
+                    )
+                )
+                parent = pp.Group(child)
+                received = []
+
+                def validate(tokens):
+                    present = key in tokens[0]
+                    received.append(present)
+                    return present
+
+                parent.add_condition(validate, call_during_try=True)
+                result = wrapper([parent]).parse_string("value", parse_all=True)
+                self.assertIn(key, result[0])
+                self.assertEqual(result[0][key], "value")
+                self.assertEqual(received, [True, True])
+
+    def testDictCustomPostParseDuringTrialParsing(self):
+        for wrapper in (pp.Each, pp.Or):
+            for replacement in ("subclass", "instance", "class"):
+                with self.subTest(wrapper=wrapper, replacement=replacement):
+                    received = []
+
+                    class LoggingDict(pp.Dict):
+                        def postParse(self, instring, loc, tokenlist):
+                            received.append(tokenlist.as_list())
+                            return super().postParse(instring, loc, tokenlist)
+
+                    entry = pp.Group(pp.Word(pp.alphas) + pp.Word(pp.nums))
+                    if replacement == "subclass":
+                        parser = LoggingDict(entry)
+                        context = contextlib.nullcontext()
+                    elif replacement == "instance":
+                        parser = pp.Dict(entry)
+                        original = parser.postParse
+
+                        def hook(instring, loc, tokenlist):
+                            received.append(tokenlist.as_list())
+                            return original(instring, loc, tokenlist)
+
+                        context = patch.object(parser, "postParse", hook)
+                    else:
+                        parser = pp.Dict(entry)
+                        original = pp.Dict.postParse
+
+                        def hook(self, instring, loc, tokenlist):
+                            received.append(tokenlist.as_list())
+                            return original(self, instring, loc, tokenlist)
+
+                        context = patch.object(pp.Dict, "postParse", hook)
+                    with context:
+                        result = wrapper([parser]).parse_string("x 1", parse_all=True)
+                    self.assertEqual(result.as_dict(), {"x": "1"})
+                    self.assertEqual(received, [[["x", "1"]], [["x", "1"]]])
+
     def testParseResultsFromDict(self):
         """test helper classmethod ParseResults.from_dict()"""
 
