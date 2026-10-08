@@ -1,7 +1,7 @@
 /* Deprecated get a red border spanning the entire length of the doc
  * (class, function, etc.), and the message itself has a faint red
  * background shading, but no border. */
-dl.py:where(.class,.exception,.method,.function):has(> dd > div.deprecated)
+dl.py:where(.class,.exception,.method,.function,.property):has(> dd > div.deprecated)
 {
     margin-inline-start: -0.6rem;
     border-inline-start: 0.4rem solid #f00;
