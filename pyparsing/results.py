@@ -717,33 +717,37 @@ class ParseResults:
         .. versionadded:: 3.1.0
         """
         ret = self.copy()
-        # map id() of each copied token to its copy, so that results names
-        # referencing items in the token list stay linked to the copies (and
-        # decoupled from the original)
+        # Share copies between positional tokens and results names.
         memo: dict[int, Any] = {}
-        # replace values with copies if they are of known mutable types
-        for i, obj in enumerate(self._toklist):
+
+        def copy_value(obj: Any) -> Any:
+            if id(obj) in memo:
+                return memo[id(obj)]
+            copied: Any
             if isinstance(obj, ParseResults):
-                ret._toklist[i] = obj.deepcopy()
+                copied = obj.deepcopy()
             elif isinstance(obj, (str, bytes)):
-                continue
+                return obj
             elif isinstance(obj, MutableMapping):
-                ret._toklist[i] = dest = type(obj)()
+                copied = type(obj)()
                 for k, v in obj.items():
-                    dest[k] = v.deepcopy() if isinstance(v, ParseResults) else v
+                    copied[k] = v.deepcopy() if isinstance(v, ParseResults) else v
             elif isinstance(obj, Iterable):
-                ret._toklist[i] = type(obj)(
+                copied = type(obj)(
                     v.deepcopy() if isinstance(v, ParseResults) else v for v in obj  # type: ignore[call-arg]
                 )
             else:
-                continue
-            memo[id(obj)] = ret._toklist[i]
+                return obj
+            memo[id(obj)] = copied
+            return copied
+
+        ret._toklist = [copy_value(obj) for obj in self._toklist]
 
         # rebuild the results-name dict so that named results point at the
         # deep-copied tokens, instead of remaining linked to the original
         ret._tokdict = {
             name: [
-                _ParseResultsWithOffset(memo.get(id(value), value), offset)
+                _ParseResultsWithOffset(copy_value(value), offset)
                 for value, offset in occurrences
             ]
             for name, occurrences in self._tokdict.items()
