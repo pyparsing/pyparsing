@@ -9537,6 +9537,14 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
         self.assertEqual(result.as_list(), ["A", [1, 2], "B", [3]])
         self.assertEqual(result.as_dict(), {"values": [[1, 2], [3]]})
 
+    def testIndentedBlockRecursiveResultsName(self):
+        block = pp.IndentedBlock(ppc.integer, recursive=True)("values")
+        result = (pp.Keyword("stem") + block).parse_string(
+            "stem\n    1\n        2\n    3\n", parse_all=True
+        )
+        self.assertEqual(result.as_list(), ["stem", [1, [2], 3]])
+        self.assertEqual(result.as_dict(), {"values": [1, [2], 3]})
+
     def testIndentedBlockClass2(self):
         datas = [
             """\
