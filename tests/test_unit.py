@@ -8457,6 +8457,53 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
                 print("\n>>> " + line)
                 self.fail("invalid split on expression with maxSplits=1, corner case")
 
+    def testExprSplitterWithTabs(self):
+        samples = [
+            "a\tb,c",
+            "a,b\tc,d",
+            "\t,a\t,,\tb,",
+            "\ta\tb",
+        ]
+        for expr in (pp.Literal(","), pp.Literal(",") | pp.Literal(";")):
+            for keep_tabs in (False, True):
+                if keep_tabs:
+                    expr.parse_with_tabs()
+                for sample in samples:
+                    for maxsplit in (0, 1, 2, 10):
+                        for include_separators in (False, True):
+                            with self.subTest(
+                                expr=expr,
+                                keep_tabs=keep_tabs,
+                                sample=sample,
+                                maxsplit=maxsplit,
+                                include_separators=include_separators,
+                            ):
+                                expected = sample.split(",", maxsplit)
+                                if include_separators:
+                                    expected = [
+                                        part
+                                        for field in expected
+                                        for part in (field, ",")
+                                    ][:-1]
+                                self.assertEqual(
+                                    expected,
+                                    list(
+                                        expr.split(
+                                            sample,
+                                            maxsplit=maxsplit,
+                                            include_separators=include_separators,
+                                        )
+                                    ),
+                                )
+                                self.assertEqual(keep_tabs, expr.keepTabs)
+
+    def testExprSplitterWithTabsAndIgnoredText(self):
+        expr = pp.Literal(",").ignore(pp.quoted_string)
+        self.assertEqual(
+            ['a\t"b,c"', "\td"],
+            list(expr.split('a\t"b,c",\td')),
+        )
+
     def testParseFatalException(self):
         with self.assertRaisesParseException(
             exc_type=ParseFatalException, msg="failed to raise ErrorStop exception"

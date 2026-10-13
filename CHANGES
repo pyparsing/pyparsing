@@ -27,6 +27,11 @@ Required Python versions by pyparsing version
 
 Version 3.3.3 - in development
 ------------------------------
+- Fixed `ParserElement.split()` returning incorrect fields when the input
+  contains tabs. Scanning now preserves tabs so match offsets refer to the
+  original input, without changing the separator's tab handling setting.
+  Submitted by 00200200 et AI.
+
 - Added support for Python 3.15.
 
 - Parse actions that return a tuple value for a named expression formerly saved
