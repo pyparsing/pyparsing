@@ -27,6 +27,11 @@ Required Python versions by pyparsing version
 
 Version 3.3.3 - in development
 ------------------------------
+- Fixed `QuotedString` translation of octal, hex, and ``\\u`` escapes.
+  The unquote regex is built from an rf-string, so the ``{3}``, ``{2}``,
+  and ``{4}`` quantifiers were being treated as f-string fields.
+  Fixes Issue #679, submitted by ANSHUL SINGH et AI.
+
 - Added support for Python 3.15.
 
 - Parse actions that return a tuple value for a named expression formerly saved
