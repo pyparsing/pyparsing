@@ -5829,6 +5829,40 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
                 verbose=False,
             )
 
+    def testNestedExpressionIgnoreOmitsCommentToken(self):
+        parser = pp.nested_expr(
+            "[",
+            "]",
+            pp.Word(pp.alphas),
+            pp.cpp_style_comment,
+        ).set_results_name("target")
+        parser.ignore(pp.cpp_style_comment)
+
+        tokens, start, end = next(parser.scan_string("[x /* */]"))
+
+        self.assertEqual((start, end), (0, len("[x /* */]")))
+        self.assertEqual(tokens.target.as_list(), [["x"]])
+
+    def testNestedExpressionIgnoreSkipsCommentBeforeCloser(self):
+        parser = pp.nested_expr("[", "]", pp.Word(pp.alphas)).set_results_name("target")
+        parser.ignore(pp.cpp_style_comment)
+
+        tokens, _, _ = next(parser.scan_string("[x /* */]"))
+
+        self.assertEqual(tokens.target.as_list(), [["x"]])
+
+    def testNestedExpressionIgnoreExprKeepsCommentText(self):
+        parser = pp.nested_expr(
+            "[",
+            "]",
+            pp.Word(pp.alphas),
+            pp.cpp_style_comment,
+        ).set_results_name("target")
+
+        tokens, _, _ = next(parser.scan_string("[x /* */]"))
+
+        self.assertEqual(tokens.target.as_list(), [["x", "/* */"]])
+
     def testNestedExpressionRecursionError(self):
         # reproduce CWE reported by Kai Aizen
         with resetting_recursion_limit():

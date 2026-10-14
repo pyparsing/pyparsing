@@ -643,6 +643,10 @@ class _NestedExpr(ParseElementEnhance):
         loc, _ = self.opener._parse(instring, loc, do_actions=do_actions)
         stack = [[]]
         while stack:
+            skipped_to = self._skipIgnorables(instring, loc)
+            if skipped_to > loc:
+                loc = skipped_to
+                continue
             # 1. try ignore_expr
             if self.ignore_expr is not None:
                 try:

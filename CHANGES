@@ -25,6 +25,14 @@ Required Python versions by pyparsing version
 +--------------------------------------------------+-------------------+
 
 
+Version 3.3.4 - in development
+------------------------------
+- Fixed ``nested_expr`` so ``ParserElement.ignore()`` skips matches inside
+  the list. In 3.3.3 the stack-based parser kept those matches as tokens, and
+  a match placed immediately before the closer failed the parse. Fixes #693,
+  submitted by WU Leizhi et AI.
+
+
 Version 3.3.3 - September, 2026
 -------------------------------
 - Added support for Python 3.15.
