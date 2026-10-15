@@ -1118,10 +1118,18 @@ def indentedBlock(blockStatementExpr, indentStack, indent=True, backup_stacks=[]
         stacklevel=2,
     )
 
-    backup_stacks.append(indentStack[:])
-
-    def reset_stack():
-        indentStack[:] = backup_stacks[-1]
+    # Keep backup_stacks in the signature for compatibility; each parse now
+    # owns its checkpoint instead of using the shared construction-time list.
+    class _IndentationGroup(Group):
+        def parseImpl(self, instring, loc, do_actions=True):
+            # Save the current state for each parse attempt, including nested
+            # attempts, rather than sharing backups made during construction.
+            backup = indentStack[:]
+            try:
+                return super().parseImpl(instring, loc, do_actions)
+            except Exception:
+                indentStack[:] = backup
+                raise
 
     def checkPeerIndent(s, l, t):
         if l >= len(s):
@@ -1153,24 +1161,19 @@ def indentedBlock(blockStatementExpr, indentStack, indent=True, backup_stacks=[]
     PEER = Empty().set_parse_action(checkPeerIndent).set_name("")
     UNDENT = Empty().set_parse_action(checkUnindent).set_name("UNINDENT")
     if indent:
-        smExpr = Group(
+        smExpr = _IndentationGroup(
             Opt(NL)
             + INDENT
             + OneOrMore(PEER + Group(blockStatementExpr) + Opt(NL))
             + UNDENT
         )
     else:
-        smExpr = Group(
+        smExpr = _IndentationGroup(
             Opt(NL)
             + OneOrMore(PEER + Group(blockStatementExpr) + Opt(NL))
             + Opt(UNDENT)
         )
 
-    # add a parse action to remove backup_stack from list of backups
-    smExpr.add_parse_action(
-        lambda: backup_stacks.pop(-1) and None if backup_stacks else None
-    )
-    smExpr.set_fail_action(lambda a, b, c, d: reset_stack())
     blockStatementExpr.ignore(_bslash + LineEnd())
     return smExpr.set_name("indented block")
 
