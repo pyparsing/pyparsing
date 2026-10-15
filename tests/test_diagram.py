@@ -12,6 +12,7 @@ import pyparsing as pp
 import railroad
 import tempfile
 import os
+import re
 import sys
 
 
@@ -199,6 +200,43 @@ class TestRailroadDiagrams(unittest.TestCase):
         diag_str = diag_strio.getvalue().lower()
         tags = "<html> </html> <head> </head> <body> </body>".split()
         assert not any(tag in diag_str for tag in tags)
+
+    def test_verbose_regex_comments(self):
+        cases = [
+            ("abc\n# omitted comment\ndef", "abcdef", "abcdef"),
+            ("abc # omitted comment\ndef", "abcdef", "abcdef"),
+            ("abc\ndef\n# omitted comment", "abcdef", "abcdef"),
+            ("abc\\#\ndef", "abc#def", r"abc\#def"),
+            ("abc[#]\ndef", "abc#def", "abc[#]def"),
+            ("abc[]#]\ndef", "abc#def", "abc[]#]def"),
+            (r"abc\\" + " # omitted comment\ndef", "abc\\def", r"abc\\def"),
+            ("abc\ndef", "abcdef", "abcdef"),
+        ]
+        for pattern, text, expected in cases:
+            with self.subTest(pattern=pattern):
+                expr = pp.Regex(pattern, flags=re.VERBOSE)
+                self.assertEqual(expr.parse_string(text, parse_all=True).as_list(), [text])
+                output = StringIO()
+                expr.create_diagram(output, embed=True)
+                self.assertIn(f">{expected}</text>", output.getvalue())
+                self.assertNotIn("omitted comment", output.getvalue())
+
+    def test_non_verbose_regex_literal_hash(self):
+        for pattern in ("abc\n#def", "abc#\ndef"):
+            with self.subTest(pattern=pattern):
+                expr = pp.Regex(pattern)
+                self.assertEqual(expr.parse_string(pattern, parse_all=True).as_list(), [pattern])
+                output = StringIO()
+                expr.create_diagram(output, embed=True)
+                self.assertIn(f">{pattern}</text>", output.getvalue())
+
+    def test_compiled_verbose_regex(self):
+        expr = pp.Regex(re.compile("abc\n# omitted comment\ndef", re.VERBOSE))
+        self.assertEqual(expr.parse_string("abcdef", parse_all=True).as_list(), ["abcdef"])
+        output = StringIO()
+        expr.create_diagram(output, embed=True)
+        self.assertIn(">abcdef</text>", output.getvalue())
+        self.assertNotIn("omitted comment", output.getvalue())
 
     def test_create_diagram_for_oneormore_with_stopon(self):
         wd = pp.Word(pp.alphas)

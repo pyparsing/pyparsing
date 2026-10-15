@@ -85,7 +85,10 @@ def _make_bookmark(s: str) -> str:
 def _collapse_verbose_regex(regex_str: str) -> str:
     if "\n" not in regex_str:
         return regex_str
-    collapsed = pyparsing.Regex(r"#.*$").suppress().transform_string(regex_str)
+    # Preserve escaped characters and character classes containing literal '#'.
+    literal = pyparsing.Regex(r"\\.|\[\^?\]?(?:\\.|[^\]\\])*\]")
+    comment = pyparsing.Regex(r"#[^\n]*").suppress()
+    collapsed = (literal | comment).transform_string(regex_str)
     collapsed = re.sub(r"\s*\n\s*", "", collapsed)
     return collapsed
 
@@ -687,7 +690,11 @@ def _to_diagram_element(
     elif len(exprs) > 0 and not element_results_name:
         ret = EditablePartial.from_call(railroad.Group, item="", label=name)
     elif isinstance(element, pyparsing.Regex):
-        collapsed_patt = _collapse_verbose_regex(element.pattern)
+        collapsed_patt = (
+            _collapse_verbose_regex(element.pattern)
+            if element.re.flags & re.VERBOSE
+            else element.pattern
+        )
         ret = EditablePartial.from_call(railroad.Terminal, collapsed_patt)
     elif len(exprs) > 0:
         ret = EditablePartial.from_call(railroad.Sequence, items=[])
