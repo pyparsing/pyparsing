@@ -31,7 +31,9 @@ Version 3.3.3 - in development
 
 - Fixed `Word` falling back to its initial characters when `exclude_chars`
   removes all explicitly supplied body characters, causing it to consume
-  additional characters that are not allowed in the body. Changes submitted by
+  additional characters that are not allowed in the body. Preserved both keyword
+  boundaries for the exhausted body alphabet when `as_keyword=True`, including
+  the fallback path for character sets containing spaces. Changes submitted by
   AryanRG et AI.
 
 - Parse actions that return a tuple value for a named expression formerly saved

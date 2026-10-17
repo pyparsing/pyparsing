@@ -6368,6 +6368,74 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
                 with self.assertRaisesParseException():
                     word.parse_string("ab", parse_all=True)
 
+    def testWordExcludingAllBodyCharsAsKeywordEnd(self):
+        for length_args in ({}, {"max": 1}, {"max": 2}, {"exact": 1}):
+            word = pp.Word("a", "b", exclude_chars="b", as_keyword=True, **length_args)
+            self.assertParseAndCheckList(word, "a", ["a"])
+            self.assertParseAndCheckDict(
+                word("head") + pp.Literal("!")("tail"),
+                "a!",
+                {"head": "a", "tail": "!"},
+            )
+            for suffix in ("1", "a", "b", "_", "é"):
+                with self.subTest(length_args=length_args, suffix=suffix):
+                    with self.assertRaisesParseException():
+                        (word + pp.Literal(suffix)).parse_string(
+                            "a" + suffix, parse_all=True
+                        )
+
+    def testWordExcludingAllBodyCharsAsKeywordStart(self):
+        for length_args in ({}, {"max": 1}, {"max": 2}, {"exact": 1}):
+            word = pp.Word("a", "b", exclude_chars="b", as_keyword=True, **length_args)
+            self.assertEqual(
+                [
+                    (tokens.as_list(), start, end)
+                    for tokens, start, end in word.scan_string("!a!")
+                ],
+                [(["a"], 1, 2)],
+            )
+            for prefix in ("z", "a", "b", "1", "_", "é"):
+                with self.subTest(length_args=length_args, prefix=prefix):
+                    self.assertEqual(list(word.scan_string(prefix + "a")), [])
+                    with self.assertRaisesParseException():
+                        (pp.Literal(prefix) + word).parse_string(
+                            prefix + "a", parse_all=True
+                        )
+
+    def testWordExcludingAllBodyCharsAsKeywordEndWithSpace(self):
+        for length_args in ({}, {"max": 1}, {"max": 2}, {"exact": 1}):
+            for exclude_arg in ("exclude_chars", "excludeChars"):
+                with self.subTest(length_args=length_args, exclude_arg=exclude_arg):
+                    word = pp.Word(
+                        "a ", "b", as_keyword=True, **length_args, **{exclude_arg: "b"}
+                    )
+                    self.assertParseAndCheckList(word, "a", ["a"])
+                    self.assertParseAndCheckDict(
+                        word("head") + pp.Literal("!")("tail"),
+                        "a!",
+                        {"head": "a", "tail": "!"},
+                    )
+                    with self.assertRaisesParseException():
+                        (word + pp.Literal("a")).parse_string("aa", parse_all=True)
+
+    def testWordExcludingAllBodyCharsAsKeywordStartWithSpace(self):
+        for length_args in ({}, {"max": 1}, {"max": 2}, {"exact": 1}):
+            for exclude_arg in ("exclude_chars", "excludeChars"):
+                with self.subTest(length_args=length_args, exclude_arg=exclude_arg):
+                    word = pp.Word(
+                        "a ", "b", as_keyword=True, **length_args, **{exclude_arg: "b"}
+                    )
+                    self.assertEqual(
+                        [
+                            (tokens.as_list(), start, end)
+                            for tokens, start, end in word.scan_string("!a!")
+                        ],
+                        [(["a"], 1, 2)],
+                    )
+                    self.assertEqual(list(word.scan_string("aa")), [])
+                    with self.assertRaisesParseException():
+                        (pp.Literal("a") + word).parse_string("aa", parse_all=True)
+
     def testWordBodyCharExclusionControls(self):
         for body_chars, excluded, text, expected in (
             (None, "b", "aa", ["aa"]),

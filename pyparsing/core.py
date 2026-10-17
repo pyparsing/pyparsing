@@ -3284,6 +3284,9 @@ class Word(Token):
                     else:
                         repeat = f"{{{self.minLen}}}"
                 self.reString = f"{re_leading_fragment}{repeat}"
+            elif not self.bodyChars and self.minLen == 1:
+                # An exhausted body alphabet permits only the initial character.
+                self.reString = re_leading_fragment
             else:
                 if max == 1:
                     re_body_fragment = ""
@@ -3381,11 +3384,14 @@ class Word(Token):
         throw_exception = False
         if loc - start < self.minLen:
             throw_exception = True
-        elif self.asKeyword and (
-            (start > 0 and instring[start - 1] in body_chars)
-            or (loc < instrlen and instring[loc] in body_chars)
-        ):
-            throw_exception = True
+        elif self.asKeyword:
+            # Even when exclusions exhaust the body, the initial characters
+            # still delimit a keyword; they must not become consumable body chars.
+            keyword_chars = body_chars or self.init_chars
+            if (start > 0 and instring[start - 1] in keyword_chars) or (
+                loc < instrlen and instring[loc] in keyword_chars
+            ):
+                throw_exception = True
 
         if throw_exception:
             raise ParseException(instring, loc, self.errmsg, self)
