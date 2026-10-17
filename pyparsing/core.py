@@ -3225,20 +3225,16 @@ class Word(Token):
             )
 
         initChars_set = set(initChars)
+        bodyChars_set = set(bodyChars) if bodyChars else initChars_set
         if excludeChars:
             excludeChars_set = set(excludeChars)
             initChars_set -= excludeChars_set
-            if bodyChars:
-                bodyChars = "".join(set(bodyChars) - excludeChars_set)
+            bodyChars_set -= excludeChars_set
         self.init_chars = initChars_set
         self.initCharsOrig = "".join(sorted(initChars_set))
 
-        if bodyChars:
-            self.bodyChars = set(bodyChars)
-            self.bodyCharsOrig = "".join(sorted(bodyChars))
-        else:
-            self.bodyChars = initChars_set
-            self.bodyCharsOrig = self.initCharsOrig
+        self.bodyChars = bodyChars_set
+        self.bodyCharsOrig = "".join(sorted(bodyChars_set))
 
         self.maxSpecified = max > 0
 

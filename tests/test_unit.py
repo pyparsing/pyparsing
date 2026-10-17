@@ -6346,6 +6346,41 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             "failed matching with exclude_chars (2)",
         )
 
+    def testWordExcludingAllBodyChars(self):
+        for init_chars in ("a", "a "):
+            for exclude_arg in ("exclude_chars", "excludeChars"):
+                with self.subTest(init_chars=init_chars, exclude_arg=exclude_arg):
+                    word = pp.Word(init_chars, "b", **{exclude_arg: "b"})
+                    self.assertEqual(word.parse_string("aa").as_list(), ["a"])
+                    self.assertParseAndCheckList(word, "a", ["a"])
+                    with self.assertRaisesParseException():
+                        word.parse_string("aa", parse_all=True)
+                    self.assertParseAndCheckDict(
+                        word("head") + pp.Literal("a")("tail"),
+                        "aa",
+                        {"head": "a", "tail": "a"},
+                    )
+
+    def testWordExcludingAllBodyCharsWithMinimumLength(self):
+        for length_arg in ("min", "exact"):
+            with self.subTest(length_arg=length_arg):
+                word = pp.Word("ab", "0", exclude_chars="0", **{length_arg: 2})
+                with self.assertRaisesParseException():
+                    word.parse_string("ab", parse_all=True)
+
+    def testWordBodyCharExclusionControls(self):
+        for body_chars, excluded, text, expected in (
+            (None, "b", "aa", ["aa"]),
+            ("", "b", "aa", ["aa"]),
+            ("bc", "b", "acc", ["acc"]),
+            ("bc", "", "abbc", ["abbc"]),
+        ):
+            with self.subTest(body_chars=body_chars, excluded=excluded):
+                word = pp.Word("ab", body_chars, exclude_chars=excluded)
+                self.assertParseAndCheckList(word, text, expected)
+        with self.assertRaisesParseException():
+            pp.Word("ab", "bc", exclude_chars="b").parse_string("b", parse_all=True)
+
     def testWordMinOfZero(self):
         """test a Word with min=0"""
 
