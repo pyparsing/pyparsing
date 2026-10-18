@@ -29,6 +29,13 @@ Version 3.3.3 - in development
 ------------------------------
 - Added support for Python 3.15.
 
+- Performance improvement when using packrat parsing: exceptions returned from
+  the packrat cache are now re-raised without their previous traceback. Each
+  re-raise of the same cached exception was adding new frames to the traceback,
+  keeping those frames alive and adding garbage collection work. ~15% faster
+  on the `select_parser.py` example (which uses packrat and a comment `ignore`
+  expression). Submitted by Afonso Ribeiro et AI.
+
 - Parse actions that return a tuple value for a named expression formerly saved
   just the first value of the tuple. Now they return the entire tuple. Partially
   fixes Issue #401, PR #640 submitted by Vincent Gao et AI.
