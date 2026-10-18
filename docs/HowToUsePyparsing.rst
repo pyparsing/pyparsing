@@ -487,6 +487,11 @@ methods for code to use are:
   parse actions.  To activate the packrat feature, your
   program must call the class method ``ParserElement.enable_packrat()``. For best
   results, call ``enable_packrat()`` immediately after importing pyparsing.
+  Note that memoizing adds a stack frame per parse position, so a deeply
+  recursive grammar will reach Python's recursion limit at a shallower input
+  nesting depth with packrat enabled than without it; if parsing deeply nested
+  input raises ``RecursionError``, raise the limit using
+  ``sys.setrecursionlimit()``.
 
 - ``enable_left_recursion()`` - a class-level static method to enable
   pyparsing with left-recursive (LR) parsers. Similar to ``ParserElement.enable_packrat()``,
