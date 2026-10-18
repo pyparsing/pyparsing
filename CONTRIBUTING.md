@@ -142,13 +142,16 @@ These coding styles are encouraged whether submitting code for core pyparsing or
 - List, tuple, and dict literals should include a trailing comma after the last element, which reduces changeset
   clutter when another element gets added to the end.
 
-- New features should be accompanied by updates to `unitTests.py` and a bullet in the CHANGES file.
+- New features should be accompanied by updates to `unitTests.py`.
+
+- DO NOT add a bullet in the CHANGES file, as this tends to generate merge conflicts across submitted PRs. 
+  Instead, add the CHANGES file blurb in the description section of your pull request.
+
+- Changes implemented with AI assistance should be annotated in the CHANGES file blurb using "submitted by *author name*
+  et AI". This follows the Latin *et alii* attribution meaning "and others", often abbreviated as "et al."
 
 - Do not modify `pyparsing_archive.py`. This file is kept as a reference artifact from when pyparsing was distributed
   as a single source file.
-
-- Changes implemented with AI assistance should be annotated in the CHANGES file using "submitted by *author name*
-  et AI". This follows the Latin *et alii* attribution meaning "and others", often abbreviated as "et al."
 
 ## Some documentation points
 
