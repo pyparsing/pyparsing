@@ -166,6 +166,11 @@ class LRUMemo:
         self._active.clear()
         self._memory.clear()
 
+    def discard(self, key):
+        """Remove an item without retaining it for later reuse."""
+        self._active.pop(key, None)
+        self._memory.pop(key, None)
+
 
 class UnboundedMemo(dict):
     """
@@ -174,6 +179,10 @@ class UnboundedMemo(dict):
 
     def __delitem__(self, key):
         pass
+
+    def discard(self, key):
+        """Remove an item without retaining it for later reuse."""
+        self.pop(key, None)
 
 
 def _escape_regex_range_chars(s: str) -> str:
