@@ -4541,6 +4541,25 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
         )
         self.assertEqual({"a": "1", "b": "2"}, r2["grp"].as_dict())
 
+    def testParseResultsDeepcopyNamedOnlyValues(self):
+        for value in (pp.ParseResults(["original"]), ["original"], {"key": "original"}):
+            with self.subTest(value_type=type(value).__name__):
+                result = pp.Word(pp.alphas).parse_string("abc")
+                result["metadata"] = value
+                result["also_metadata"] = value
+
+                copied = result.deepcopy()
+
+                self.assertIsNot(copied["metadata"], value)
+                self.assertIs(copied["metadata"], copied["also_metadata"])
+                self.assertEqual(result.as_dict(), copied.as_dict())
+                if isinstance(value, dict):
+                    copied["metadata"]["key"] = "changed"
+                    self.assertEqual(value["key"], "original")
+                else:
+                    copied["metadata"][0] = "changed"
+                    self.assertEqual(value[0], "original")
+
     def testIgnoreString(self):
         """test ParserElement.ignore() passed a string arg"""
 
