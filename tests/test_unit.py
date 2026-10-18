@@ -5963,6 +5963,34 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             msg="using different openers and closers shouldn't affect resulting ParseResults",
         )
 
+    def testNestedExprParseActionAppliesToInnerExpression(self):
+        # Issue #695 - a parse action on nested_expr must run for both the
+        # outer and inner matches (3.3.3's _NestedExpr helper skipped the
+        # inner one for multi-character delimiters).
+        prior_ws_chars = pp.ParserElement.DEFAULT_WHITE_CHARS
+        try:
+            pp.ParserElement.set_default_whitespace_chars("")
+
+            def strip_template(s, loc, toks):
+                toks = toks.as_list(flatten=True)
+                tag = toks[0]
+                tag_args = toks[1:]
+                return [*tag.split("|")[1:], *tag_args]
+
+            template_expr = pp.nested_expr(
+                opener="{{",
+                closer="}}",
+                ignore_expr=None,
+            ).set_parse_action(strip_template)
+        finally:
+            pp.ParserElement.set_default_whitespace_chars(prior_ws_chars)
+
+        text_in = "{{citation|citation={{Romain|Surr\u00e9alisme}} citation continue}}"
+        self.assertEqual(
+            "citation=Surr\u00e9alisme citation continue",
+            template_expr.transform_string(text_in),
+        )
+
     def testNestedExpressions3(self):
 
         prior_ws_chars = pp.ParserElement.DEFAULT_WHITE_CHARS
