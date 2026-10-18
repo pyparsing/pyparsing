@@ -8928,6 +8928,51 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
 
         self.assertParseAndCheckList(named_number_list, test_string, expected)
 
+    def testNotAnyWhitespaceBehavior(self):
+        ast = pp.Literal("FOO") + pp.NotAny(pp.Literal("B")) + pp.Literal("BAR")
+        self.assertRaisesParseException(ast, "FOO BAR")
+        self.assertRaisesParseException(ast, "FOOBAR")
+
+        ast = pp.Literal("FOO") + pp.NotAny("B") + pp.Literal("BAR")
+        self.assertRaisesParseException(ast, "FOO BAR")
+        self.assertRaisesParseException(ast, "FOOBAR")
+
+        explicit_child = pp.Literal("B").leave_whitespace()
+        ast = pp.Literal("FOO") + pp.NotAny(explicit_child) + pp.Literal("BAR")
+        self.assertParseAndCheckList(ast, "FOO BAR", ["FOO", "BAR"])
+        self.assertRaisesParseException(ast, "FOOBAR")
+
+        composite = pp.Literal("B") + pp.Literal("A")
+        self.assertRaisesParseException(
+            pp.Literal("FOO") + pp.NotAny(composite) + pp.Literal("BA"),
+            "FOO BA",
+        )
+
+    def testNotAnyPreservesChildWhitespace(self):
+        child = pp.Literal("B")
+        not_any = pp.NotAny(child)
+        self.assertIs(not_any.expr, child)
+        self.assertTrue(child.skipWhitespace)
+
+        nonrecursive_child = (pp.Literal("B") + pp.Literal("A")).leave_whitespace(
+            recursive=False
+        )
+        not_any = pp.NotAny(nonrecursive_child)
+        self.assertIs(not_any.expr, nonrecursive_child)
+        self.assertFalse(not_any.expr.skipWhitespace)
+        self.assertTrue(not_any.expr.exprs[0].skipWhitespace)
+
+        explicit_child = (pp.Literal("B") + pp.Literal("A")).leave_whitespace()
+        not_any = pp.NotAny(explicit_child)
+        self.assertIs(not_any.expr, explicit_child)
+        self.assertFalse(not_any.expr.skipWhitespace)
+        self.assertFalse(not_any.expr.exprs[0].skipWhitespace)
+        self.assertParseAndCheckList(
+            pp.Literal("FOO") + not_any + pp.Literal("BA"),
+            "FOO BA",
+            ["FOO", "BA"],
+        )
+
     def testParseActionRunsInNotAny(self):
         # see Issue #482
         data = """ [gog1] [G1] [gog2] [gog3] [gog4] [G2] [gog5] [G3] [gog6] """
