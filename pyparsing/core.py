@@ -5392,9 +5392,12 @@ class IndentedBlock(ParseElementEnhance):
             wrapper = Group
         else:
             wrapper = lambda expr: expr  # type: ignore[misc, assignment]
-        return (wrapper(block) + Optional(trailing_undent)).parseImpl(
+        loc, tokens = (wrapper(block) + Optional(trailing_undent)).parseImpl(
             instring, anchor_loc, do_actions
         )
+        # Like Group, return a list around the grouped tokens so a results name
+        # refers to the block itself, rather than adding another nesting level.
+        return loc, list(tokens) if self._grouped else tokens
 
 
 class AtStringStart(ParseElementEnhance):

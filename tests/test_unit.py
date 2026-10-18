@@ -9492,6 +9492,59 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             group[...], data, [["A", [100, 101, 102]], ["B", [200, 201]], ["C", [300]]]
         )
 
+    def testIndentedBlockResultsNames(self):
+        data = "stem\n    a > b\n    b < c\n    c = d\n"
+        leaf = ppc.identifier + pp.one_of("> < =") + ppc.identifier
+        expected = [["a", ">", "b"], ["b", "<", "c"], ["c", "=", "d"]]
+
+        for grouped in (True, False):
+            for name in ("leaves", "leaves*"):
+                with self.subTest(grouped=grouped, name=name):
+                    block = pp.IndentedBlock(pp.Group(leaf), grouped=grouped)(name)
+                    result = (pp.Keyword("stem") + block).parse_string(
+                        data, parse_all=True
+                    )
+                    self.assertEqual(
+                        result.as_list(),
+                        ["stem", expected] if grouped else ["stem", *expected],
+                    )
+                    self.assertEqual(
+                        result.as_dict(),
+                        {"leaves": [expected] if name.endswith("*") else expected},
+                    )
+
+    def testIndentedBlockNamedChildren(self):
+        leaf = pp.Group(ppc.identifier("key") + ppc.integer("value"))
+        block = pp.IndentedBlock(leaf)("leaves")
+        seen = []
+        block.add_parse_action(lambda tokens: seen.append(tokens.leaves.as_list()))
+        result = (pp.Keyword("stem") + block).parse_string(
+            "stem\n    a 1\n    b 2\n", parse_all=True
+        )
+        self.assertEqual(result.as_list(), ["stem", [["a", 1], ["b", 2]]])
+        self.assertEqual(
+            result.as_dict(),
+            {"leaves": [{"key": "a", "value": 1}, {"key": "b", "value": 2}]},
+        )
+        self.assertEqual(result.leaves[0].key, "a")
+        self.assertEqual(result.leaves[1].value, 2)
+        self.assertEqual(seen, [[["a", 1], ["b", 2]]])
+
+    def testIndentedBlockRepeatedResultsNames(self):
+        block = pp.IndentedBlock(ppc.integer)("values*")
+        expr = (pp.Char(pp.alphas) + block)[...]
+        result = expr.parse_string("A\n    1\n    2\nB\n    3\n", parse_all=True)
+        self.assertEqual(result.as_list(), ["A", [1, 2], "B", [3]])
+        self.assertEqual(result.as_dict(), {"values": [[1, 2], [3]]})
+
+    def testIndentedBlockRecursiveResultsName(self):
+        block = pp.IndentedBlock(ppc.integer, recursive=True)("values")
+        result = (pp.Keyword("stem") + block).parse_string(
+            "stem\n    1\n        2\n    3\n", parse_all=True
+        )
+        self.assertEqual(result.as_list(), ["stem", [1, [2], 3]])
+        self.assertEqual(result.as_dict(), {"values": [1, [2], 3]})
+
     def testIndentedBlockClass2(self):
         datas = [
             """\

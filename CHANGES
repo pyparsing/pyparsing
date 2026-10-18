@@ -27,6 +27,11 @@ Required Python versions by pyparsing version
 
 Version 3.3.3 - in development
 ------------------------------
+- Fixed an extra nesting level in the named results of `IndentedBlock` with
+  `grouped=True`. Named and positional results now refer to the same block,
+  preserving names on its contained expressions. Fixes issue #358; submitted
+  by v1shay et AI.
+
 - Added support for Python 3.15.
 
 - Parse actions that return a tuple value for a named expression formerly saved
