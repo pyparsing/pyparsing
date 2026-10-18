@@ -322,7 +322,21 @@ def one_of(
                 # add parse action to return symbols as specified, not in random
                 # casing as found in input string
                 symbol_map = {sym.lower(): sym for sym in symbols}
-                ret.add_parse_action(lambda s, l, t: symbol_map[t[0].lower()])
+
+                def restore_symbol(s, l, t):
+                    token = t[0]
+                    try:
+                        return symbol_map[token.lower()]
+                    except KeyError:
+                        # Unicode IGNORECASE matches are not always equivalent
+                        # under str.lower() (for example, "s" and "ſ").
+                        return next(
+                            sym
+                            for sym in symbols
+                            if re.fullmatch(re.escape(sym), token, re_flags)
+                        )
+
+                ret.add_parse_action(restore_symbol)
 
             return ret
 

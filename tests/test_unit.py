@@ -1522,6 +1522,67 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             "Aa" * 4, "".join(res), "caseless1 CaselessLiteral return failed"
         )
 
+    def testCaselessOneOfUnicode(self):
+        cases = [
+            ("s", "ſ"),
+            ("S", "ſ"),
+            ("i", "İ"),
+            ("i", "ı"),
+            ("I", "İ"),
+            ("İ", "i"),
+            ("ı", "I"),
+            ("Σ", "ς"),
+            ("σ", "ς"),
+            ("µ", "μ"),
+            ("ϴ", "θ"),
+            ("Ω", "ω"),
+            ("k", "K"),
+            ("SELECT", "ſelect"),
+            ("IF", "ıf"),
+            ("IF", "İf"),
+            ("S+", "ſ+"),
+            ("I?", "ı?"),
+        ]
+        for symbol, text in cases:
+            for as_keyword in (False, True):
+                if as_keyword and not symbol[-1].isalnum():
+                    continue
+                with self.subTest(symbol=symbol, text=text, as_keyword=as_keyword):
+                    expr = pp.one_of(
+                        [symbol, "other"], caseless=True, as_keyword=as_keyword
+                    )
+                    self.assertParseResultsEquals(
+                        expr.parse_string(text, parse_all=True),
+                        expected_list=[symbol],
+                    )
+
+    def testCaselessOneOfUnicodeCharacterClass(self):
+        expr = pp.one_of("S I K Σ", caseless=True)("letter")
+        for text, expected in [
+            ("ſ", "S"),
+            ("İ", "I"),
+            ("ı", "I"),
+            ("K", "K"),
+            ("ς", "Σ"),
+        ]:
+            with self.subTest(text=text):
+                self.assertParseResultsEquals(
+                    expr.parse_string(text, parse_all=True),
+                    expected_list=[expected],
+                    expected_dict={"letter": expected},
+                )
+        self.assertEqual(
+            expr.search_string("ſ İ ı K ς").as_list(),
+            [["S"], ["I"], ["I"], ["K"], ["Σ"]],
+        )
+
+    def testCaselessOneOfUnicodeNonMatches(self):
+        for symbol, text in [("ss", "ß"), ("i", "i\u0307"), ("SELECT", "ſelection")]:
+            with self.subTest(symbol=symbol, text=text):
+                expr = pp.one_of([symbol], caseless=True, as_keyword=True)
+                with self.assertRaises(pp.ParseException):
+                    expr.parse_string(text, parse_all=True)
+
     def testCStyleCommentParser(self):
         print("verify processing of C-style /* */ comments")
         testdata = f"""
