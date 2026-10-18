@@ -708,6 +708,7 @@ class ParseResults:
         ret._parent = self._parent
         ret._all_names = {*self._all_names}
         ret._name = self._name
+        ret._is_dict_context = self._is_dict_context
         return ret
 
     def deepcopy(self) -> ParseResults:
