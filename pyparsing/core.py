@@ -3803,7 +3803,7 @@ class QuotedString(Token):
             if self.convert_whitespace_escapes:
                 self.unquote_scan_re = re.compile(
                     rf"({'|'.join(re.escape(k) for k in self.ws_map)})"
-                    rf"|(\\[0-7]{3}|\\0|\\x[0-9a-fA-F]{2}|\\u[0-9a-fA-F]{4})"
+                    rf"|(\\[0-7]{{3}}|\\0|\\x[0-9a-fA-F]{{2}}|\\u[0-9a-fA-F]{{4}})"
                     rf"|({re.escape(self.esc_char)}.)"
                     rf"|(\n|.)",
                     flags=self.re_flags,
