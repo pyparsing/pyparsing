@@ -3626,6 +3626,17 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
                     "3",
                 )
 
+    def testSingleOptionalRepetitionKeepsScalarResultsName(self):
+        """issue #674 - one optional repetition is Opt, not a one-item list."""
+        word = pp.Word(pp.nums)
+        self.assertEqual(word[0, 1]("a").parse_string("5").as_dict(), {"a": "5"})
+        self.assertEqual(word[0, 1]("a").parse_string("").as_dict(), {})
+        self.assertEqual((word * (0, 1))("a").parse_string("5").as_dict(), {"a": "5"})
+        self.assertEqual(word[..., 1]("a").parse_string("5").as_dict(), {"a": "5"})
+        # More than one optional element stays a list (issue #332).
+        self.assertEqual(word[0, 2]("a").parse_string("5").as_dict(), {"a": ["5"]})
+        self.assertEqual(word[0, 2]("a").parse_string("").as_dict(), {"a": []})
+
     def testBoundedRepetitionLargeUpperBound(self):
         """issue #332 - expr[..., upper_bound] (and expr * (0, upper_bound))
         with a large upper_bound must not raise RecursionError during
