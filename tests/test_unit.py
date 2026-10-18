@@ -6594,6 +6594,28 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             "failed to parse embedded numeric escapes",
         )
 
+    def testQuotedStringRawNumericEscapes(self):
+        # Issue #679 - escape-sequence translation must see the raw
+        # source text (the previous test expands the escapes in Python
+        # before pyparsing does). The unquote regex is built from an
+        # rf-string, so quantifiers must be written as {{n}}.
+        quoted = pp.QuotedString('"', esc_char="\\")
+        cases = [
+            (r'"\101"', "A"),
+            (r'"\x41"', "A"),
+            (r'"\u0041"', "A"),
+            (r'"\043"', "#"),
+            (r'"\0"', "\0"),
+        ]
+        for src, expected in cases:
+            with self.subTest(src=src):
+                self.assertParseAndCheckList(
+                    quoted,
+                    src,
+                    [expected],
+                    f"failed to translate raw numeric escape {src!r}",
+                )
+
     def testWordBoundaryExpressions(self):
         ws = pp.WordStart()
         we = pp.WordEnd()
