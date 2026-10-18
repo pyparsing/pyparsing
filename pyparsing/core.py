@@ -971,7 +971,10 @@ class ParserElement(ABC):
             else:
                 loc, tokens = self.parseImpl(instring, pre_loc, do_actions)
 
-        tokens = self.postParse(instring, loc, tokens)
+        if not do_actions and isinstance(self, Dict):
+            tokens = self._post_parse_no_actions(instring, loc, tokens)
+        else:
+            tokens = self.postParse(instring, loc, tokens)
 
         ret_tokens = ParseResults(
             tokens, self.resultsName, aslist=self.saveAsList, modal=self.modalResults
@@ -6642,6 +6645,19 @@ class Dict(TokenConverter):
         self._asPythonDict = asdict
 
     def postParse(self, instring, loc, tokenlist):
+        return self._post_parse_dict(instring, loc, tokenlist, skip_dict_keys=False)
+
+    _original_post_parse = postParse
+
+    def _post_parse_no_actions(self, instring, loc, tokenlist):
+        # Preserve explicit trial validation and custom postParse implementations.
+        if self.callDuringTry or (
+            getattr(self.postParse, "__func__", None) is not Dict._original_post_parse
+        ):
+            return self.postParse(instring, loc, tokenlist)
+        return self._post_parse_dict(instring, loc, tokenlist, skip_dict_keys=True)
+
+    def _post_parse_dict(self, instring, loc, tokenlist, skip_dict_keys):
         for i, tok in enumerate(tokenlist):
             if len(tok) == 0:
                 continue
@@ -6651,7 +6667,10 @@ class Dict(TokenConverter):
                 ikey = str(ikey).strip()
 
             # ParseResults are not hashable, cannot be used as a dict key
-            if isinstance(ikey, ParseResults):
+            # Trial parses can also see a native dict before key-generating actions run.
+            if isinstance(ikey, ParseResults) or (
+                skip_dict_keys and type(ikey) is dict
+            ):
                 continue
 
             if len(tok) == 1:
