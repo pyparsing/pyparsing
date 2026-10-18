@@ -372,6 +372,14 @@ methods for code to use are:
   basic element can be referenced multiple times and given
   different names within a complex grammar.
 
+  Naming a composite expression does not group its results or nest the names
+  of its contained expressions. Wrap it in ``Group`` before assigning a name
+  to access the contained names through the outer name. For example,
+  ``Group(pronoun + verb)("sentence")`` allows ``parsed.sentence.pronoun``;
+  ``(pronoun + verb)("sentence")`` leaves ``pronoun`` accessible as
+  ``parsed.pronoun``. See :meth:`pyparsing.ParserElement.set_results_name` for a complete
+  example.
+
 .. _using_each:
 
 - ``using_each(list_of_symbols)`` a short-cut for defining a number of
