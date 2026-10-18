@@ -4561,6 +4561,21 @@ class And(ParseExpression):
         else:
             self._may_return_empty = True
         self.callPreparse = True
+        self._skip_whitespace_is_explicit = False
+
+    def leave_whitespace(self, recursive: bool = True) -> ParserElement:
+        self._skip_whitespace_is_explicit = True
+        return super().leave_whitespace(recursive)
+
+    def ignore_whitespace(self, recursive: bool = True) -> ParserElement:
+        self._skip_whitespace_is_explicit = True
+        return super().ignore_whitespace(recursive)
+
+    def set_whitespace_chars(
+        self, chars: Union[set[str], str], copy_defaults: bool = False
+    ) -> ParserElement:
+        self._skip_whitespace_is_explicit = True
+        return super().set_whitespace_chars(chars, copy_defaults)
 
     def streamline(self) -> ParserElement:
         """
@@ -4582,6 +4597,9 @@ class And(ParseExpression):
 
         Resolves pending Skip commands defined using `...` terms.
         """
+        if self.streamlined:
+            return self
+
         # collapse any _PendingSkip's
         if self.exprs and any(
             isinstance(e, ParseExpression)
@@ -4602,7 +4620,16 @@ class And(ParseExpression):
                     self.exprs[i + 1] = deleted_expr_marker
             self.exprs = [e for e in self.exprs if e is not deleted_expr_marker]
 
+        # Preserve the first child's settings even if streamlining flattens a
+        # nested And with its own explicit whitespace setting.
+        first = self.exprs[0] if self.exprs else None
         super().streamline()
+
+        # A leading Forward can acquire its whitespace behavior after this
+        # sequence is constructed. Keep recursive calls at the same location,
+        # unless the sequence has its own explicit whitespace setting.
+        if first is not None and not self._skip_whitespace_is_explicit:
+            self.skipWhitespace = first.skipWhitespace and not isinstance(first, White)
 
         # link any IndentedBlocks to the prior expression
         prev: ParserElement
@@ -4688,6 +4715,13 @@ class And(ParseExpression):
         while len(inner) > 1 and inner[0 :: len(inner) - 1] == "{}":
             inner = inner[1:-1]
         return f"{{{inner}}}"
+
+    # Compatibility synonyms
+    # fmt: off
+    leaveWhitespace = replaced_by_pep8("leaveWhitespace", leave_whitespace)
+    ignoreWhitespace = replaced_by_pep8("ignoreWhitespace", ignore_whitespace)
+    setWhitespaceChars = replaced_by_pep8("setWhitespaceChars", set_whitespace_chars)
+    # fmt: on
 
 
 class Or(ParseExpression):
