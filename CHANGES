@@ -27,6 +27,11 @@ Required Python versions by pyparsing version
 
 Version 3.3.3 - in development
 ------------------------------
+- Fixed railroad diagrams retaining comments on intermediate lines of verbose
+  regular expressions. Escaped hashes and hashes inside character classes are
+  preserved, and non-verbose patterns are no longer treated as commented patterns.
+  PR submitted by Xucheng Zhou et AI.
+
 - Added support for Python 3.15.
 
 - Parse actions that return a tuple value for a named expression formerly saved
