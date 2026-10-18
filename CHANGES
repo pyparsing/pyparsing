@@ -29,13 +29,6 @@ Version 3.3.3 - in development
 ------------------------------
 - Added support for Python 3.15.
 
-- Fixed `Word` falling back to its initial characters when `exclude_chars`
-  removes all explicitly supplied body characters, causing it to consume
-  additional characters that are not allowed in the body. Preserved both keyword
-  boundaries for the exhausted body alphabet when `as_keyword=True`, including
-  the fallback path for character sets containing spaces. Changes submitted by
-  AryanRG et AI.
-
 - Parse actions that return a tuple value for a named expression formerly saved
   just the first value of the tuple. Now they return the entire tuple. Partially
   fixes Issue #401, PR #640 submitted by Vincent Gao et AI.
