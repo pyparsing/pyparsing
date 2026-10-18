@@ -12076,6 +12076,189 @@ class Test11_LR1_Recursion(ppt.TestParseResultsAsserts, TestCase):
         )
 
 
+class TestLegacyIndentedBlock(ppt.TestParseResultsAsserts, TestCase):
+    def setUp(self):
+        context = ppt.reset_pyparsing_context().save()
+        self.addCleanup(context.restore)
+        pp.ParserElement.disable_memoization()
+        warning_context = warnings.catch_warnings()
+        warning_context.__enter__()
+        self.addCleanup(warning_context.__exit__, None, None, None)
+        warnings.simplefilter("ignore", pp.PyparsingDeprecationWarning)
+
+    def test_reported_nested_fragment_with_optional_else(self):
+        # Both complete inputs from issue #262 are valid; the first inner
+        # else is the only difference between them.
+        indent_stack = [0]
+
+        def conditional(contents):
+            return (
+                pp.Literal("if")
+                + "cond"
+                + pp.Suppress(":")
+                + contents
+                + pp.ZeroOrMore(
+                    pp.Literal("elif") + "cond" + pp.Suppress(":") + contents
+                )
+                + pp.Opt(pp.Literal("else") + pp.Suppress(":") + contents)
+            )
+
+        cond_block = pp.Forward()
+        key_content = pp.indentedBlock(pp.OneOrMore("val" | cond_block), indent_stack)
+        key_body = pp.Literal("key") + ":" + key_content
+        fragment_header = pp.Literal("[") + "type" + pp.Suppress(":") + "name" + "]"
+        fragment_content = pp.indentedBlock(
+            key_body[1, ...], indent_stack, indent=False
+        )
+        fragment_body = fragment_header + fragment_content
+        cond_block <<= conditional(key_content)
+        top_cond_block = pp.Forward()
+        top_cond_content = pp.indentedBlock(
+            (fragment_body | top_cond_block)[1, ...], indent_stack
+        )
+        top_cond_block <<= conditional(top_cond_content)
+        parser = pp.indentedBlock(
+            (fragment_body | top_cond_block)[1, ...], indent_stack
+        )
+        text = """\
+if cond:
+    [type:name]
+    key:
+        val
+    key:
+        val
+        if cond:
+            val
+        elif cond:
+            val
+        else:
+            val
+elif cond:
+    [type:name]
+    key:
+        val
+else:
+    [type:name]
+    key:
+        val
+
+[type:name]
+key:
+    val
+key:
+    val
+    if cond:
+        val
+    elif cond:
+        val
+    else:
+        val
+"""
+        samples = (
+            (text.replace("        else:\n            val\n", "", 1), 11),
+            (text, 12),
+        )
+        for newline in ("\r\n", "\n"):
+            for sample, expected_values in samples:
+                with self.subTest(newline=newline, expected_values=expected_values):
+                    indent_stack[:] = [0]
+                    result = parser.parse_string(
+                        sample.replace("\n", newline), parse_all=True
+                    )
+                    self.assertEqual(
+                        flatten(result.as_list()).count("val"), expected_values
+                    )
+
+    def test_nested_optional_else(self):
+        # Issue #262: omitting a nested else must not prevent backtracking
+        # to an outer elif, or consume that outer branch as nested content.
+        indent_stack = [1]
+        statement = pp.Forward()
+        body = pp.indentedBlock(statement, indent_stack)
+        statement <<= pp.Group(
+            pp.Keyword("if")
+            + pp.Word(pp.alphas)
+            + ":"
+            + body
+            + pp.ZeroOrMore(pp.Keyword("elif") + pp.Word(pp.alphas) + ":" + body)
+            + pp.Opt(pp.Keyword("else") + ":" + body)
+        ) | pp.Keyword("pass")
+        parser = statement[1, ...]
+        for inner_else in ("", "    else:\n        pass\n"):
+            with self.subTest(inner_else=bool(inner_else)):
+                indent_stack[:] = [1]
+                text = (
+                    "if outer:\n"
+                    "    if inner:\n"
+                    "        pass\n"
+                    "    elif inner:\n"
+                    "        pass\n" + inner_else + "elif outer:\n"
+                    "    pass\n"
+                    "pass\n"
+                )
+                inner = [
+                    "if",
+                    "inner",
+                    ":",
+                    [["pass"]],
+                    "elif",
+                    "inner",
+                    ":",
+                    [["pass"]],
+                ]
+                if inner_else:
+                    inner += ["else", ":", [["pass"]]]
+                expected = [
+                    ["if", "outer", ":", [[inner]], "elif", "outer", ":", [["pass"]]],
+                    "pass",
+                ]
+                for _ in range(2):
+                    self.assertParseResultsEquals(
+                        parser.parse_string(text, parse_all=True),
+                        expected_list=expected,
+                    )
+                    self.assertEqual(indent_stack, [1])
+
+    def test_failed_block_restores_current_indent_stack(self):
+        indent_stack = [1]
+        block = pp.indentedBlock(pp.Keyword("pass"), indent_stack)
+        # The checkpoint must be taken while parsing, not while defining
+        # the grammar, since callers share this stack with enclosing blocks.
+        indent_stack.append(5)
+        with self.assertRaises(pp.ParseException):
+            block.parse_string("      other", parse_all=True)
+        self.assertEqual(indent_stack, [1, 5])
+
+    def test_independent_stacks_and_reuse_after_failure(self):
+        first_stack, second_stack = [1], [1, 3]
+        first = pp.indentedBlock(pp.Keyword("pass"), first_stack)
+        second = pp.indentedBlock(pp.Keyword("pass"), second_stack)
+        for _ in range(2):
+            with self.assertRaises(pp.ParseException):
+                first.parse_string("    other", parse_all=True)
+            self.assertEqual(first_stack, [1])
+            self.assertEqual(second_stack, [1, 3])
+            self.assertParseResultsEquals(
+                (second + "end").parse_string("    pass\n  end", parse_all=True),
+                expected_list=[[["pass"]], "end"],
+            )
+            self.assertEqual(second_stack, [1, 3])
+            self.assertParseResultsEquals(
+                (first + "end").parse_string("    pass\nend", parse_all=True),
+                expected_list=[[["pass"]], "end"],
+            )
+            self.assertEqual(first_stack, [1])
+
+    def test_unindented_block_preserves_grouping_and_continuations(self):
+        indent_stack = [1]
+        block = pp.indentedBlock(pp.Word(pp.alphas)[1, ...], indent_stack, indent=False)
+        self.assertParseResultsEquals(
+            block.parse_string("one \\\n two\nthree\n", parse_all=True),
+            expected_list=[[["one", "two", "three"]]],
+        )
+        self.assertEqual(indent_stack, [1])
+
+
 class TestShowBestPractices(unittest.TestCase):
     def test_loads_markdown_file(self):
         # Mock the file read to simulate the Markdown content
