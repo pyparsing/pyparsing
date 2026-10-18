@@ -209,6 +209,30 @@ class Test01a_PyparsingEnvironmentTests(TestCase):
 
 
 class Test01b_PyparsingUnitTestUtilitiesTests(TestCase):
+    def test_reset_context_restores_builtin_parse_actions(self):
+        expr = pp.quoted_string
+        original_parse_actions = expr.parseAction[:]
+        original_call_during_try = expr.callDuringTry
+        parse_action_list = expr.parseAction
+
+        try:
+            with ppt.reset_pyparsing_context():
+                expr.add_parse_action(lambda: None, call_during_try=True)
+                outer_parse_actions = expr.parseAction[:]
+
+                with ppt.reset_pyparsing_context():
+                    expr.set_parse_action(lambda: None)
+
+                self.assertEqual(expr.parseAction, outer_parse_actions)
+                self.assertTrue(expr.callDuringTry)
+
+            self.assertIs(expr.parseAction, parse_action_list)
+            self.assertEqual(expr.parseAction, original_parse_actions)
+            self.assertEqual(expr.callDuringTry, original_call_during_try)
+        finally:
+            expr.parseAction[:] = original_parse_actions
+            expr.callDuringTry = original_call_during_try
+
     def runTest(self):
         with ppt.reset_pyparsing_context():
             pp.enable_diag(pp.Diagnostics.warn_on_parse_using_empty_Forward)
