@@ -7975,6 +7975,41 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
                     f"numeric parse failed (wrong type) ({type(result[0])} should be {type(expected)})",
                 )
 
+    def testCommonMixedIntegerSigns(self):
+        parser = pp.pyparsing_common.mixed_integer
+        cases = [
+            ("-1 1/2", -1.5),
+            ("-1-1/2", -1.5),
+            ("-2 3/4", -2.75),
+            ("-2-3/4", -2.75),
+            ("-0 1/2", -0.5),
+            ("-0-1/2", -0.5),
+            ("  -1 1/2", -1.5),
+            ("1 1/2", 1.5),
+            ("1-1/2", 1.5),
+            ("+1 1/2", 1.5),
+            ("-3/4", -0.75),
+            ("-3/-4", 0.75),
+            ("0 -3/-4", -0.75),
+            ("1--1/2", 0.5),
+            ("-1--1/2", -1.5),
+            ("-1 1/-2", -1.5),
+            ("-2", -2),
+        ]
+        for text, expected in cases:
+            with self.subTest(text=text):
+                self.assertEqual(parser.parse_string(text, parse_all=True)[0], expected)
+
+        prefixed = pp.Suppress("length:") + parser
+        self.assertEqual(
+            prefixed.parse_string("length: -0 1/2", parse_all=True)[0], -0.5
+        )
+
+        commented = parser.copy().ignore(pp.c_style_comment)
+        self.assertEqual(
+            commented.parse_string("/* length */ -0 1/2", parse_all=True)[0], -0.5
+        )
+
     def testDateTimeValidation(self):
         if sys.version_info[:2] < (3, 10):
             return
