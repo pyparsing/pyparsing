@@ -212,7 +212,9 @@ class ParseResults:
             name = str(name)
 
         if not modal:
-            self._all_names = {name}
+            # Keep names already collected on this result. Wrapping a match
+            # that itself used list_all_matches used to replace the set.
+            self._all_names.add(name)
 
         self._name = name
 

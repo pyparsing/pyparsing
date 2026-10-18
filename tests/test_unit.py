@@ -3626,6 +3626,22 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
                     "3",
                 )
 
+    def testNestedListAllMatchesNamesAreKept(self):
+        """issue #506 - a results name must not drop nested list-all-matches names."""
+        ident = pp.Word(pp.alphas)
+        num = pp.Word(pp.nums)
+        term = (ident("vars*") | num("const*"))("terms*")
+        func = (
+            ident("function_name")
+            + "("
+            + pp.Opt(pp.DelimitedList(term))("args*")
+            + ")"
+        )
+        parsed = func.parse_string("fn(a, b, 100)")
+        self.assertEqual(parsed.vars.as_list(), ["a", "b"])
+        self.assertEqual(parsed.const.as_list(), ["100"])
+        self.assertEqual(parsed.terms.as_list(), ["a", "b", "100"])
+
     def testBoundedRepetitionLargeUpperBound(self):
         """issue #332 - expr[..., upper_bound] (and expr * (0, upper_bound))
         with a large upper_bound must not raise RecursionError during
