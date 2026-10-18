@@ -11774,6 +11774,174 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
 
         print(pe_context.exception)
 
+    def test_parse_action_exception_messages(self):
+        def invalid_option(s, loc, tokens):
+            if tokens[0] not in ("one", "two"):
+                raise pp.ParseException(f"Invalid option id: {tokens[0]}")
+
+        def raised(expression, text, exc_type=pp.ParseException):
+            try:
+                expression.parse_string(text, parse_all=True)
+            except exc_type as exception:
+                return exception
+            self.fail(f"expected {exc_type.__name__}")
+
+        option = (
+            ppc.identifier.copy().set_name("option id").set_parse_action(invalid_option)
+        )
+        component = pp.Group(
+            pp.Keyword("component")
+            + pp.IndentedBlock(
+                pp.OneOrMore(
+                    pp.Group(option - pp.Suppress("=") - ppc.number).set_name("option")
+                )
+                - pp.OneOrMore(pp.Group(pp.Keyword("do") + ppc.identifier).set_name("task"))
+            )
+        )
+
+        valid = "component\n    one = 1\n    do task"
+        self.assertEqual(
+            [["component", [["one", 1], ["do", "task"]]]],
+            component.parse_string(valid, parse_all=True).as_list(),
+        )
+        context = raised(component, "component\n    three = 1\n    do task")
+        self.assertIn("Invalid option id: three", str(context))
+
+        for expression_type in (pp.Or, pp.MatchFirst):
+            with self.subTest(expression_type=expression_type.__name__):
+                expression = expression_type(
+                    [pp.Literal("x").set_parse_action(invalid_option), pp.Literal("y")]
+                ).set_name("choice")
+                context = raised(expression, "x")
+                self.assertIn("Invalid option id: x", str(context))
+
+                ordinary = expression_type([pp.Literal("x"), pp.Literal("y")]).set_name(
+                    "choice"
+                )
+                context = raised(ordinary, "z")
+                self.assertIn("Expected choice", str(context))
+
+                def first_failure(s, loc, tokens):
+                    raise pp.ParseException("first validator")
+
+                def second_failure(s, loc, tokens):
+                    raise pp.ParseException("second validator")
+
+                tied = expression_type(
+                    [
+                        pp.Literal("x").set_parse_action(first_failure),
+                        pp.Literal("x").set_parse_action(second_failure),
+                    ]
+                ).set_name("choice")
+                context = raised(tied, "x")
+                self.assertIn("first validator", str(context))
+
+                deeper_failure = expression_type(
+                    [
+                        pp.Literal("x").set_parse_action(first_failure),
+                        pp.Literal("x") + pp.Literal("y").set_name("y"),
+                    ]
+                ).set_name("choice")
+                context = raised(deeper_failure, "xz")
+                self.assertIn("Expected y", str(context))
+
+                recoverable = expression_type(
+                    [
+                        pp.Literal("x").set_parse_action(first_failure),
+                        pp.Literal("x"),
+                    ]
+                )
+                self.assertEqual(["x"], recoverable.parse_string("x").as_list())
+
+                def fatal_failure(s, loc, tokens):
+                    raise pp.ParseFatalException("fatal validator")
+
+                fatal = expression_type(
+                    [
+                        pp.Literal("x").set_parse_action(fatal_failure),
+                        pp.Literal("x"),
+                    ]
+                )
+                context = raised(fatal, "x", pp.ParseFatalException)
+                self.assertIn("fatal validator", str(context))
+
+        class CustomParseException(pp.ParseException):
+            pass
+
+        marker = object()
+
+        def raise_custom(s, loc, tokens):
+            raise CustomParseException(s, loc, "custom validator", marker)
+
+        custom = pp.Group(pp.Literal("x").set_parse_action(raise_custom)).set_name("custom")
+        context = raised(custom, "x", CustomParseException)
+        self.assertEqual("x", context.pstr)
+        self.assertEqual(0, context.loc)
+        self.assertEqual("custom validator", context.msg)
+        self.assertIs(marker, context.parser_element)
+
+        index_error = (
+            pp.Literal("x").set_name("indexed").add_parse_action(lambda tokens: tokens[1])
+        )
+        try:
+            index_error.parse_string("x", parse_all=True)
+        except IndexError:
+            pass
+        else:
+            self.fail("expected IndexError from parse action")
+
+        def raise_fatal(s, loc, tokens):
+            raise pp.ParseFatalException(s, loc, "fatal validator")
+
+        fatal = pp.Literal("x").set_name("fatal").set_parse_action(raise_fatal)
+        context = raised(fatal, "x", pp.ParseFatalException)
+        self.assertIn("fatal validator", str(context))
+
+        def raise_syntax(s, loc, tokens):
+            raise pp.ParseSyntaxException(s, loc, "syntax validator")
+
+        syntax = pp.Literal("x").set_name("syntax").set_parse_action(raise_syntax)
+        context = raised(syntax, "x", pp.ParseSyntaxException)
+        self.assertIn("syntax validator", str(context))
+
+        ordinary_error_stop = pp.Literal("a") - pp.Literal("b").set_name("b")
+        context = raised(ordinary_error_stop, "ac", pp.ParseSyntaxException)
+        self.assertIn("Expected b", str(context))
+
+        error_stop_validator = pp.Literal("a") - pp.Literal("b").set_name(
+            "b"
+        ).set_parse_action(invalid_option)
+        context = raised(error_stop_validator, "ab", pp.ParseSyntaxException)
+        self.assertIn("Invalid option id: b", str(context))
+
+    def test_parse_action_exception_messages_memoization(self):
+        for debug in (False, True):
+            with self.subTest(debug=debug):
+                with ppt.reset_pyparsing_context():
+                    pp.ParserElement.enable_packrat(force=True)
+                    pp.ParserElement.reset_cache()
+                    calls = 0
+
+                    def validate(s, loc, tokens):
+                        nonlocal calls
+                        calls += 1
+                        raise pp.ParseException("cached validator")
+
+                    validated = pp.Group(
+                        pp.Literal("x").set_parse_action(validate)
+                    ).set_name("validated")
+                    if debug:
+                        validated.set_debug()
+                    expression = pp.MatchFirst([validated, validated]).set_name("choice")
+
+                    try:
+                        expression.parse_string("x", parse_all=True)
+                    except pp.ParseException as exception:
+                        self.assertIn("cached validator", str(exception))
+                    else:
+                        self.fail("expected cached validator exception")
+                    self.assertEqual(1, calls)
+
     def test_pep8_synonyms(self):
         """
         Test that staticmethods wrapped by replaced_by_pep8 wrapper are properly

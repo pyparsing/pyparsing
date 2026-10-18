@@ -45,6 +45,7 @@ class ParseBaseException(Exception):
         "pstr",
         "parser_element",
         "args",
+        "_from_parse_action",
     )
 
     # Performance tuning: we construct a *lot* of these, so keep this
@@ -64,6 +65,7 @@ class ParseBaseException(Exception):
         self.pstr = pstr
         self.parser_element = elem
         self.args = (pstr, loc, msg)
+        self._from_parse_action = False
 
     @staticmethod
     def explain_exception(exc: Exception, depth: int = 16) -> str:
@@ -135,7 +137,9 @@ class ParseBaseException(Exception):
         internal factory method to simplify creating one type of ParseException
         from another - avoids having __init__ signature conflicts among subclasses
         """
-        return cls(pe.pstr, pe.loc, pe.msg, pe.parser_element)
+        new_exception = cls(pe.pstr, pe.loc, pe.msg, pe.parser_element)
+        new_exception._from_parse_action = pe._from_parse_action
+        return new_exception
 
     @cached_property
     def line(self) -> str:
@@ -202,7 +206,9 @@ class ParseBaseException(Exception):
         self.parser_element = elem
 
     def copy(self):
-        return copy.copy(self)
+        new_exception = copy.copy(self)
+        new_exception._from_parse_action = self._from_parse_action
+        return new_exception
 
     def formatted_message(self) -> str:
         """

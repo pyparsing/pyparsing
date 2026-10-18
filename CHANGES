@@ -27,6 +27,10 @@ Required Python versions by pyparsing version
 
 Version 3.3.3 - in development
 ------------------------------
+- Fixed parse action ``ParseException`` messages being replaced by enclosing
+  named expressions, including ``Or`` and ``MatchFirst`` alternatives.
+  Submitted by WU Leizhi et AI.
+
 - Added support for Python 3.15.
 
 - Parse actions that return a tuple value for a named expression formerly saved

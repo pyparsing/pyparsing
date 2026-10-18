@@ -982,6 +982,9 @@ class ParserElement(ABC):
                     for fn in self.parseAction:
                         try:
                             tokens = fn(instring, tokens_start, ret_tokens)  # type: ignore [call-arg, arg-type]
+                        except ParseBaseException as parse_action_exc:
+                            parse_action_exc._from_parse_action = True
+                            raise
                         except IndexError as parse_action_exc:
                             exc = ParseException("exception raised in parse action")
                             raise exc from parse_action_exc
@@ -1013,6 +1016,9 @@ class ParserElement(ABC):
                 for fn in self.parseAction:
                     try:
                         tokens = fn(instring, tokens_start, ret_tokens)  # type: ignore [call-arg, arg-type]
+                    except ParseBaseException as parse_action_exc:
+                        parse_action_exc._from_parse_action = True
+                        raise
                     except IndexError as parse_action_exc:
                         exc = ParseException("exception raised in parse action")
                         raise exc from parse_action_exc
@@ -1122,7 +1128,7 @@ class ParserElement(ABC):
                     value = self._parseNoCache(instring, loc, do_actions, callPreParse)
                 except ParseBaseException as pe:
                     # cache a copy of the exception, without the traceback
-                    cache.set(lookup, pe.__class__(*pe.args))
+                    cache.set(lookup, pe.copy())
                     raise
                 else:
                     cache.set(lookup, (value[0], value[1].copy(), loc))
@@ -4753,7 +4759,12 @@ class Or(ParseExpression):
             except ParseException as err:
                 if not fatals:
                     err.__traceback__ = None
-                    if err.loc > maxExcLoc:
+                    if err.loc > maxExcLoc or (
+                        err.loc == maxExcLoc
+                        and err._from_parse_action
+                        and maxException is not None
+                        and not maxException._from_parse_action
+                    ):
                         maxException = err
                         maxExcLoc = err.loc
             except IndexError:
@@ -4787,7 +4798,12 @@ class Or(ParseExpression):
                     loc2, toks = expr1._parse(instring, loc, do_actions)
                 except ParseException as err:
                     err.__traceback__ = None
-                    if err.loc > maxExcLoc:
+                    if err.loc > maxExcLoc or (
+                        err.loc == maxExcLoc
+                        and err._from_parse_action
+                        and maxException is not None
+                        and not maxException._from_parse_action
+                    ):
                         maxException = err
                         maxExcLoc = err.loc
                 else:
@@ -4812,7 +4828,7 @@ class Or(ParseExpression):
             # infer from this check that all alternatives failed at the current position
             # so emit this collective error message instead of any single error message
             parse_start_loc = self.preParse(instring, loc)
-            if maxExcLoc == parse_start_loc:
+            if maxExcLoc == parse_start_loc and not maxException._from_parse_action:
                 maxException.msg = self.errmsg or ""
             raise maxException
 
@@ -4910,7 +4926,12 @@ class MatchFirst(ParseExpression):
                 pfe.parser_element = e
                 raise
             except ParseException as err:
-                if err.loc > maxExcLoc:
+                if err.loc > maxExcLoc or (
+                    err.loc == maxExcLoc
+                    and err._from_parse_action
+                    and maxException is not None
+                    and not maxException._from_parse_action
+                ):
                     maxException = err
                     maxExcLoc = err.loc
             except IndexError:
@@ -4924,7 +4945,7 @@ class MatchFirst(ParseExpression):
             # infer from this check that all alternatives failed at the current position
             # so emit this collective error message instead of any individual error message
             parse_start_loc = self.preParse(instring, loc)
-            if maxExcLoc == parse_start_loc:
+            if maxExcLoc == parse_start_loc and not maxException._from_parse_action:
                 maxException.msg = self.errmsg or ""
             raise maxException
 
@@ -5193,7 +5214,7 @@ class ParseElementEnhance(ParserElement):
             pbe.loc = pbe.loc or loc
             pbe.parser_element = pbe.parser_element or self
             if not isinstance(self, Forward) and self.customName is not None:
-                if self.errmsg:
+                if self.errmsg and not pbe._from_parse_action:
                     pbe.msg = self.errmsg
             raise
 
