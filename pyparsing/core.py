@@ -5043,6 +5043,13 @@ class Each(ParseExpression):
         self.initExprGroups = True
         self.saveAsList = True
 
+    def copy(self) -> ParserElement:
+        ret = typing.cast(Each, super().copy())
+        # Rebuild the matching groups from the copied expressions, instead of
+        # reusing cached references to the original expression's children.
+        ret.initExprGroups = True
+        return ret
+
     def __iand__(self, other):
         if isinstance(other, str_type):
             other = self._literalStringClass(other)
