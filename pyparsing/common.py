@@ -291,7 +291,9 @@ class pyparsing_common:
     _short_ipv6_address.add_condition(
         lambda t: sum(1 for tt in t if pyparsing_common._ipv6_part.matches(tt)) < 8
     )
-    _mixed_ipv6_address = ("::ffff:" + ipv4_address).set_name("mixed IPv6 address")
+    _mixed_ipv6_address = (Regex(r"::[fF]{4}:") + ipv4_address).set_name(
+        "mixed IPv6 address"
+    )
     ipv6_address = Combine(
         (_full_ipv6_address | _mixed_ipv6_address | _short_ipv6_address).set_name(
             "IPv6 address"
