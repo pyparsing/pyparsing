@@ -8036,6 +8036,30 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
                 with self.assertRaises(pp.ParseException):
                     datetime_expr.parse_string(dt, parse_all=True)
 
+    def testCommonIPv6MappedAddressCase(self):
+        for address in (
+            "::ffff:192.0.2.1",
+            "::FFFF:192.0.2.1",
+            "::FfFf:192.0.2.1",
+        ):
+            with self.subTest(address=address):
+                result = ppc.ipv6_address.parse_string(address, parse_all=True)
+                self.assertEqual(result.as_list(), [address])
+
+                endpoint = (
+                    pp.Suppress("[")
+                    + ppc.ipv6_address("host")
+                    + pp.Suppress("]:")
+                    + ppc.integer("port")
+                )
+                result = endpoint.parse_string(f"[{address}]:80", parse_all=True)
+                self.assertEqual(result.as_dict(), {"host": address, "port": 80})
+
+        for address in ("::FFFF:256.0.2.1", "::FfFf:192.0.2.1x"):
+            with self.subTest(invalid_address=address):
+                with self.assertRaises(pp.ParseException):
+                    ppc.ipv6_address.parse_string(address, parse_all=True)
+
     def testCommonUrl(self):
         url_good_tests = """\
             http://foo.com/blah_blah
