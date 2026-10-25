@@ -8504,6 +8504,19 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             list(expr.split('a\t"b,c",\td')),
         )
 
+    def testExprSplitterStreamlinesOriginal(self):
+        for expr in (
+            pp.And([pp.And([pp.Literal("a"), pp.Literal("b")]), pp.Literal(";")]),
+            pp.And([pp.Literal("a"), pp.And([pp.Literal("b"), pp.Literal(";")])]),
+        ):
+            with self.subTest(expr=expr):
+                self.assertFalse(expr.streamlined)
+                for _ in range(2):
+                    self.assertEqual(["x\t", "\ty"], list(expr.split("x\ta b ;\ty")))
+                    self.assertTrue(expr.streamlined)
+                    self.assertEqual(3, len(expr.exprs))
+                    self.assertFalse(expr.keepTabs)
+
     def testParseFatalException(self):
         with self.assertRaisesParseException(
             exc_type=ParseFatalException, msg="failed to raise ErrorStop exception"

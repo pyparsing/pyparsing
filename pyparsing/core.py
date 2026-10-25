@@ -1628,6 +1628,8 @@ class ParserElement(ABC):
 
         include_separators = includeSeparators or include_separators
         last = 0
+        if not self.streamlined:
+            self.streamline()
         # Keep scan offsets aligned with the original, unexpanded input.
         scanner = copy.copy(self).parse_with_tabs()
         for t, s, e in scanner.scan_string(instring, max_matches=maxsplit):
