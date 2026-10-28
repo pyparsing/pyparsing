@@ -8135,6 +8135,26 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
 
         self.assertParseAndCheckDict(ppc.url, sample_url, expected, verbose=True)
 
+    def testCommonUrlAuthDelimiters(self):
+        import time
+        from urllib.parse import urlparse
+
+        # '@' in the path, query, or fragment must not be taken as the end of userinfo
+        for sample_url in [
+            "https://evil.example/x@trusted.example",
+            "https://evil.example/?next=a@trusted.example",
+            "https://evil.example#@trusted.example",
+        ]:
+            with self.subTest(url=sample_url):
+                result = ppc.url.parse_string(sample_url)
+                self.assertEqual(urlparse(sample_url).hostname, result.host)
+                self.assertFalse(result.auth)
+
+        # unterminated userinfo-like input must not cause excessive backtracking
+        start = time.perf_counter()
+        ppc.url.search_string("//:" * 1000)
+        self.assertLess(time.perf_counter() - start, 1.0)
+
     def testCommonUrlExprs(self):
         def extract_parts(s, split=" "):
             return [[_.strip(split)] for _ in s.strip(split).split(split)]

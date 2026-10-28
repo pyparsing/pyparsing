@@ -481,7 +481,7 @@ class pyparsing_common:
         # short syntax // still required
         r"(?:(?:(?P<scheme>https?|ftp):)?\/\/)"
         # user:pass BasicAuth (optional)
-        r"(?:(?P<auth>\S+(?::\S*)?)@)?"
+        r"(?:(?P<auth>[^\s:@/?#]+(?::[^\s@/?#]*)?)@)?"
         r"(?P<host>"
         # IP address exclusion
         # private & local networks
