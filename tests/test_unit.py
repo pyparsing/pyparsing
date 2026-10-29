@@ -4063,6 +4063,62 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             msg="issue with ParseResults.clear()",
         )
 
+    def testParseResultsClearResetsListAllMatchesNames(self):
+        expr = pp.Word(pp.alphas)("value*") + pp.Word(pp.alphas)("other*")
+        replacement = (
+            pp.Word(pp.alphas)("value") + pp.Word(pp.alphas)("other")
+        ).parse_string("new fresh", parse_all=True)
+
+        for operation in ("assignment", "iadd", "extend"):
+            with self.subTest(operation=operation):
+                result = expr.parse_string("old stale", parse_all=True)
+                result.clear()
+                result.clear()
+                self.assertFalse(result)
+                self.assertEqual(list(result.keys()), [])
+
+                if operation == "assignment":
+                    result["value"] = "new"
+                    result["other"] = "fresh"
+                    expected_list = []
+                elif operation == "iadd":
+                    result += replacement
+                    expected_list = ["new", "fresh"]
+                else:
+                    result.extend(replacement)
+                    expected_list = ["new", "fresh"]
+
+                result["different"] = "extra"
+                self.assertParseResultsEquals(
+                    result,
+                    expected_list=expected_list,
+                    expected_dict={
+                        "value": "new",
+                        "other": "fresh",
+                        "different": "extra",
+                    },
+                )
+                self.assertEqual(result.value, "new")
+
+    def testParseResultsClearKeepsNewCollectionAndCopiesIndependent(self):
+        expr = pp.Word(pp.alphas)("value*")[1, ...]
+        original = expr.parse_string("old stale", parse_all=True)
+        result = original.copy()
+        result.clear()
+
+        self.assertParseResultsEquals(
+            original,
+            expected_list=["old", "stale"],
+            expected_dict={"value": ["old", "stale"]},
+        )
+
+        result += expr.parse_string("new fresh", parse_all=True)
+        self.assertParseResultsEquals(
+            result,
+            expected_list=["new", "fresh"],
+            expected_dict={"value": ["new", "fresh"]},
+        )
+
     def testParseResultsExtendWithString(self):
         """test ParseResults.extend() with input of type str"""
 
