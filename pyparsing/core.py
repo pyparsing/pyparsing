@@ -3800,11 +3800,11 @@ class QuotedString(Token):
         )
 
         if self.unquote_results:
-            esc_quote_pattern = re.escape(self.esc_quote) if self.esc_quote else r"(?!)"
+            esc_quote_pattern = rf"(?:{re.escape(self.esc_quote)})|" if self.esc_quote else ""
             if self.convert_whitespace_escapes:
                 self.unquote_scan_re = re.compile(
-                    rf"({esc_quote_pattern})"
-                    rf"|({'|'.join(re.escape(k) for k in self.ws_map)})"
+                    esc_quote_pattern
+                    + rf"({'|'.join(re.escape(k) for k in self.ws_map)})"
                     rf"|(\\[0-7]{3}|\\0|\\x[0-9a-fA-F]{2}|\\u[0-9a-fA-F]{4})"
                     rf"|({re.escape(self.esc_char)}.)"
                     rf"|(\n|.)",
@@ -3812,8 +3812,8 @@ class QuotedString(Token):
                 )
             else:
                 self.unquote_scan_re = re.compile(
-                    rf"({esc_quote_pattern})"
-                    rf"|({re.escape(self.esc_char)}.)"
+                    esc_quote_pattern
+                    + rf"({re.escape(self.esc_char)}.)"
                     rf"|(\n|.)",
                     flags=self.re_flags
                 )
@@ -3862,29 +3862,26 @@ class QuotedString(Token):
                 if self.convert_whitespace_escapes:
                     # as we iterate over matches in the input string,
                     # collect from whichever match group of the unquote_scan_re
-                    # regex matches (only 1 group will match at any given time)
+                    # regex matches (only 1 group will match at any given time).
+                    # If no group matches, this is an escaped quote.
                     ret = "".join(
-                        # match group 1 matches escaped quotes
-                        self.end_quote_char if match[1]
-                        # match group 2 matches \t, \n, etc.
-                        else self.ws_map[g] if (g := match[2])
-                        # match group 3 matches escaped octal, null, hex, and Unicode
+                        # match group 1 matches \t, \n, etc.
+                        self.ws_map[g] if (g := match[1])
+                        # match group 2 matches escaped octal, null, hex, and Unicode
                         # sequences
-                        else _convert_escaped_numerics_to_char(g[1:]) if (g := match[3])
-                        # match group 4 matches escaped characters
-                        else g[-1] if (g := match[4])
-                        # match group 5 matches any character
-                        else match[5]
+                        else _convert_escaped_numerics_to_char(g[1:]) if (g := match[2])
+                        # match group 3 matches escaped characters
+                        else g[-1] if (g := match[3])
+                        # match group 4 matches any character
+                        else match[4] or self.end_quote_char
                         for match in self.unquote_scan_re.finditer(ret)
                     )
                 else:
                     ret = "".join(
-                        # match group 1 matches escaped quotes
-                        self.end_quote_char if match[1]
-                        # match group 2 matches escaped characters
-                        else g[-1] if (g := match[2])
-                        # match group 3 matches any character
-                        else match[3]
+                        # match group 1 matches escaped characters
+                        g[-1] if (g := match[1])
+                        # match group 2 matches any character; otherwise escaped quote
+                        else match[2] or self.end_quote_char
                         for match in self.unquote_scan_re.finditer(ret)
                     )
                 # fmt: on
