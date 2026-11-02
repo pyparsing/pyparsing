@@ -1492,6 +1492,37 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
         self.assertTrue(success1 and success2, "Python quoted string matching failure")
         # fmt: on
 
+    def testCaselessLiteralUnicodeCaseExpansion(self):
+        cases = [
+            ("straße", "straße"),
+            ("straße", "STRASSE"),
+            ("SS", "ß"),
+            ("ﬃ", "ﬃ"),
+            ("ffi", "ﬃ"),
+            ("ßß", "ßss"),
+        ]
+        for literal, text in cases:
+            with self.subTest(literal=literal, text=text):
+                expr = pp.CaselessLiteral(literal)
+                self.assertParseResultsEquals(
+                    (expr + "!").parse_string(text + "!", parse_all=True),
+                    [literal, "!"],
+                )
+                for prefix, suffix in (("", ""), ("--", "!")):
+                    matches = list(expr.scan_string(prefix + text + suffix))
+                    self.assertEqual(1, len(matches))
+                    tokens, start, end = matches[0]
+                    self.assertEqual([literal], tokens.as_list())
+                    self.assertEqual((len(prefix), len(prefix + text)), (start, end))
+                expr.set_parse_action(pp.replace_with("matched"))
+                self.assertEqual("matched!", expr.transform_string(text + "!"))
+
+    def testCaselessLiteralDoesNotSplitCaseExpansion(self):
+        for literal, text in (("s", "ß"), ("ff", "ﬃ"), ("ßx", "ssy")):
+            with self.subTest(literal=literal, text=text):
+                with self.assertRaises(pp.ParseException):
+                    pp.CaselessLiteral(literal).parse_string(text)
+
     def testCaselessOneOf(self):
         caseless1 = pp.one_of("d a b c aA B A C", caseless=True)
         caseless1str = str(caseless1)
