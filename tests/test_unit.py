@@ -6585,6 +6585,34 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
         print(res.as_list())
         self.assertEqual(["aaayaaa"], res.as_list())
 
+    def testQuotedStringDoesNotUnescapeQuotesTwice(self):
+        for quote, end_quote, esc_quote in (
+            ('"', '"', '""'),
+            ("'", "'", "''"),
+            ("y", "y", "xy"),
+            ("<", ">", ">>"),
+            ("[[", "]]", "]]]]"),
+        ):
+            for convert_whitespace in (False, True):
+                with self.subTest(quote=quote, convert_whitespace=convert_whitespace):
+                    expr = pp.QuotedString(
+                        quote,
+                        end_quote_char=end_quote,
+                        esc_char="\\",
+                        esc_quote=esc_quote,
+                        convert_whitespace_escapes=convert_whitespace,
+                    )
+                    escaped_characters = "".join("\\" + char for char in esc_quote)
+                    for content, expected in (
+                        (escaped_characters, esc_quote),
+                        (esc_quote, end_quote),
+                        (esc_quote * 2, end_quote * 2),
+                    ):
+                        with self.subTest(content=content):
+                            self.assertParseAndCheckList(
+                                expr, quote + content + end_quote, [expected]
+                            )
+
     def testQuotedStringEscapedExtendedChars(self):
         quoted = pp.QuotedString("'")
         self.assertParseAndCheckList(
