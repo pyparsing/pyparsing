@@ -2983,8 +2983,22 @@ class CaselessLiteral(Literal):
         self.errmsg = f"Expected {self.name}"
 
     def parseImpl(self, instring, loc, do_actions=True) -> ParseImplReturnType:
-        if instring[loc : loc + self.matchLen].upper() == self.match:
-            return loc + self.matchLen, self.returnString
+        candidate = instring[loc : loc + self.matchLen]
+        upper_candidate = candidate.upper()
+        if upper_candidate == self.match:
+            return loc + len(candidate), self.returnString
+
+        # Unicode uppercasing can expand one input character into several.
+        # Find the input boundary without consuming a following character.
+        if len(upper_candidate) > self.matchLen:
+            match_loc = 0
+            for end, char in enumerate(candidate, start=loc + 1):
+                upper_char = char.upper()
+                if not self.match.startswith(upper_char, match_loc):
+                    break
+                match_loc += len(upper_char)
+                if match_loc == self.matchLen:
+                    return end, self.returnString
         raise ParseException(instring, loc, self.errmsg, self)
 
 
