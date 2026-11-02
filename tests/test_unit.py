@@ -5031,6 +5031,47 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
                                 matches[0], ["1"], {"prefix": expected_prefix}
                             )
 
+    def testPrecededByParseActionsDuringTry(self):
+        for prefix_factory in (
+            lambda: pp.Literal("a"),
+            lambda: pp.Word("a", exact=1),
+            lambda: pp.Word("a"),
+        ):
+            for call_during_try in (False, True):
+                calls = []
+                prefix = prefix_factory().set_parse_action(
+                    lambda: calls.append("called"), call_during_try=call_during_try
+                )
+                expr = pp.PrecededBy(prefix, retreat=3)
+                with self.subTest(prefix=prefix, call_during_try=call_during_try):
+                    self.assertEqual(1, expr.try_parse("ab", 1))
+                    self.assertEqual(["called"] if call_during_try else [], calls)
+
+    def testPrecededByParseActionsInLongestMatch(self):
+        for prefix_factory in (lambda: pp.Literal("a"), lambda: pp.Word("a")):
+            for selected in (False, True):
+                calls = []
+                prefix = prefix_factory().set_parse_action(
+                    lambda: calls.append("called")
+                )
+                behind = pp.PrecededBy(prefix, retreat=3)
+                candidate = behind + ("bc" if selected else "b")
+                alternative = pp.Literal("b" if selected else "bc")
+                expr = "a" + (candidate ^ alternative)
+                with self.subTest(prefix=prefix, selected=selected):
+                    self.assertParseResultsEquals(
+                        expr.parse_string("abc", parse_all=True), ["a", "bc"]
+                    )
+                    self.assertEqual(["called"] if selected else [], calls)
+
+    def testPrecededByConditionsDuringTry(self):
+        for prefix in (pp.Literal("a"), pp.Word("a")):
+            expr = pp.PrecededBy(prefix.add_condition(lambda: False), retreat=3)
+            with self.subTest(prefix=prefix):
+                self.assertEqual(1, expr.try_parse("ab", 1))
+                with self.assertRaises(pp.ParseException):
+                    ("a" + expr + "b").parse_string("ab", parse_all=True)
+
     def testCountedArray(self):
         testString = "2 5 7 6 0 1 2 3 4 5 0 3 5 4 3"
 
