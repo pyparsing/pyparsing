@@ -3535,7 +3535,7 @@ class Regex(Token):
         Generally only used internally by pyparsing.
         """
         if self._re:
-            self._may_return_empty = self._re.match("", pos=0) is not None
+            self._may_return_empty = self._re.match("") is not None
             return self._re
 
         if callable(self.pattern):
@@ -3546,7 +3546,7 @@ class Regex(Token):
             if hasattr(self.pattern, "pattern") and hasattr(self.pattern, "match"):
                 self._re = cast(re.Pattern[str], self.pattern)
                 self.pattern = self.reString = self._re.pattern
-                self._may_return_empty = self._re.match("", pos=0) is not None
+                self._may_return_empty = self._re.match("") is not None
                 return self._re
 
         try:
@@ -3554,7 +3554,7 @@ class Regex(Token):
         except re.error:
             raise ValueError(f"invalid pattern ({self.pattern!r}) passed to Regex")
         else:
-            self._may_return_empty = self._re.match("", pos=0) is not None
+            self._may_return_empty = self._re.match("") is not None
             return self._re
 
     @cached_property
