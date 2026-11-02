@@ -4978,6 +4978,59 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
         else:
             print("got maximum excursion limit exception")
 
+    def testPrecededByMaximumLength(self):
+        cases = [
+            (1, "1", None),
+            (1, "a1", "a"),
+            (1, "ab1", "b"),
+            (1, "abc1", "c"),
+            (1, "abcd1", "d"),
+            (1, "a??1", None),
+            (1, "abc?1", None),
+            (2, "a1", None),
+            (2, "ab1", "ab"),
+            (2, "abc1", "bc"),
+            (2, "abcd1", "cd"),
+            (2, "abc?1", None),
+        ]
+        for token_class, chars in ((pp.Word, pp.alphas), (pp.CharsNotIn, "?1")):
+            for minimum, text, expected_prefix in cases:
+                with self.subTest(token=token_class, minimum=minimum, text=text):
+                    prefix = token_class(chars, min=minimum, max=3)("prefix")
+                    expr = pp.PrecededBy(prefix) + pp.Char(pp.nums)
+                    matches = list(expr.scan_string(text))
+                    if expected_prefix is None:
+                        self.assertEqual([], matches)
+                    else:
+                        self.assertEqual(1, len(matches))
+                        tokens, start, end = matches[0]
+                        self.assertParseResultsEquals(
+                            tokens, ["1"], {"prefix": expected_prefix}
+                        )
+                        self.assertEqual((len(text) - 1, len(text)), (start, end))
+
+    def testPrecededByExactLength(self):
+        for token_class, chars in ((pp.Word, pp.alphas), (pp.CharsNotIn, "?1")):
+            for bounds in ({"exact": 3}, {"min": 3, "max": 3}):
+                prefix = token_class(chars, **bounds)("prefix")
+                expr = pp.PrecededBy(prefix) + pp.Char(pp.nums)
+                for text, expected_prefix in (
+                    ("a1", None),
+                    ("ab1", None),
+                    ("abc1", "abc"),
+                    ("abcd1", "bcd"),
+                    ("abc?1", None),
+                ):
+                    with self.subTest(token=token_class, bounds=bounds, text=text):
+                        matches = list(expr.search_string(text))
+                        if expected_prefix is None:
+                            self.assertEqual([], matches)
+                        else:
+                            self.assertEqual(1, len(matches))
+                            self.assertParseResultsEquals(
+                                matches[0], ["1"], {"prefix": expected_prefix}
+                            )
+
     def testCountedArray(self):
         testString = "2 5 7 6 0 1 2 3 4 5 0 3 5 4 3"
 

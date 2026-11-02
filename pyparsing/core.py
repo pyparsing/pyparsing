@@ -5544,7 +5544,7 @@ class PrecededBy(ParseElementEnhance):
             self.exact = True
         elif isinstance(expr, (Word, CharsNotIn)) and expr.maxLen != _MAX_INT:
             retreat = expr.maxLen
-            self.exact = True
+            self.exact = expr.minLen == expr.maxLen
         elif isinstance(expr, PositionToken):
             retreat = 0
             self.exact = True
