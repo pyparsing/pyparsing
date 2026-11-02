@@ -6126,18 +6126,11 @@ class SkipTo(ParseElementEnhance):
         startloc = loc
         instrlen = len(instring)
         self_expr_parse = self.expr._parse
-        self_failOn_canParseNext = (
-            self.failOn.can_parse_next if self.failOn is not None else None
-        )
+        self_failOn_parse = self.failOn._parse if self.failOn is not None else None
         ignorer_try_parse = self.ignorer.try_parse if self.ignorer.ignoreExprs else None
 
         tmploc = loc
         while tmploc <= instrlen:
-            if self_failOn_canParseNext is not None:
-                # break if failOn expression matches
-                if self_failOn_canParseNext(instring, tmploc):
-                    break
-
             if ignorer_try_parse is not None:
                 # advance past ignore expressions
                 prev_tmploc = tmploc
@@ -6154,6 +6147,15 @@ class SkipTo(ParseElementEnhance):
             try:
                 self_expr_parse(instring, tmploc, do_actions=False, callPreParse=False)
             except (ParseException, IndexError):
+                if self_failOn_parse is not None:
+                    try:
+                        self_failOn_parse(
+                            instring, tmploc, do_actions=False, callPreParse=False
+                        )
+                    except (ParseBaseException, IndexError):
+                        pass
+                    else:
+                        raise ParseException(instring, tmploc, self.errmsg, self)
                 # no match, advance loc in string
                 tmploc += 1
             else:
