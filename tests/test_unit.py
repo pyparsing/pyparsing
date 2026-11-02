@@ -2023,7 +2023,13 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
                 expr = pp.SkipTo(
                     "END", include=include, fail_on=fail_on, ignore=pp.QuotedString('"')
                 )
-                for text in ("STOP END", "abc STOP END", "abc STOP"):
+                for text in (
+                    "STOP END",
+                    "abc STOP END",
+                    "abc STOP",
+                    'abc "END"STOPEND',
+                    'abc "END"STOP',
+                ):
                     with self.subTest(include=include, fail_on=fail_on, text=text):
                         with self.assertRaises(pp.ParseException):
                             expr.parse_string(text)
@@ -2040,6 +2046,19 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
         text = "abc STOP"
         expr = pp.SkipTo("END", fail_on="STOP") | pp.Literal(text)
         self.assertParseAndCheckList(expr, text, [text])
+
+    def testSkipToTargetTakesPrecedenceOverFailOn(self):
+        for include in (False, True):
+            for fail_on in ("END", pp.Regex("[A-Z]+")):
+                expr = pp.SkipTo(
+                    "END", include=include, fail_on=fail_on
+                ).parse_with_tabs()
+                for prefix in ("", "abc", "abc ", "abc\t", "abc\n"):
+                    with self.subTest(include=include, fail_on=fail_on, prefix=prefix):
+                        expected = [prefix, "END"] if include else [prefix]
+                        self.assertParseResultsEquals(
+                            expr.parse_string(prefix + "END"), expected
+                        )
 
     def testSkipToPreParseIgnoreExprs(self):
         # added to verify fix to Issue #475
