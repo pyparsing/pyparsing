@@ -5067,12 +5067,13 @@ class Each(ParseExpression):
             opt2 = [
                 e
                 for e in self.exprs
-                if e.mayReturnEmpty and not isinstance(e, (Opt, Regex, ZeroOrMore))
+                if e.mayReturnEmpty and not isinstance(e, (Opt, Regex, _MultipleMatch))
             ]
             self.optionals = opt1 + opt2
             multiple_exprs = [e for e in self.exprs if isinstance(e, _MultipleMatch)]
+            # Reused unnamed expressions still need separate repetition limits.
             self.multioptionals = [
-                e.expr.set_results_name(e.resultsName, list_all_matches=True)
+                e.expr.copy().set_results_name(e.resultsName, list_all_matches=True)
                 for e in multiple_exprs
             ]
             self.multirequired = [
@@ -5101,7 +5102,13 @@ class Each(ParseExpression):
         failed: list[ParserElement] = []
         fatals: list[ParseFatalException] = []
         while keepMatching:
-            tmpExprs = tmpReqd + tmpOpt + multis
+            tmpExprs = tmpReqd + tmpOpt
+            if tmpReqd and self.multirequired:
+                # A required repetition also appears in multis; try it only once.
+                required_ids = {id(e) for e in tmpReqd}
+                tmpExprs.extend(e for e in multis if id(e) not in required_ids)
+            else:
+                tmpExprs += multis
             failed.clear()
             fatals.clear()
             for e in tmpExprs:

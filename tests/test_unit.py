@@ -6895,6 +6895,56 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
                     with self.assertRaises(pp.ParseException):
                         expr.parse_string(text, parse_all=True)
 
+    def testEachWithSharedBoundedMultipleMatch(self):
+        for first_repeat in (pp.ZeroOrMore, pp.OneOrMore):
+            for second_repeat in (pp.ZeroOrMore, pp.OneOrMore):
+                shared = pp.Literal("a")
+                expr = first_repeat(shared, max=2) & second_repeat(shared, max=1) & "b"
+                independent = (
+                    first_repeat(pp.Literal("a"), max=2)
+                    & second_repeat(pp.Literal("a"), max=1)
+                    & "b"
+                )
+                for text in ("aab", "aaab", "aba", "abaa"):
+                    with self.subTest(
+                        first=first_repeat, second=second_repeat, text=text
+                    ):
+                        self.assertEqual(
+                            independent.parse_string(text, parse_all=True).as_list(),
+                            expr.parse_string(text, parse_all=True).as_list(),
+                        )
+                with self.assertRaises(pp.ParseException):
+                    expr.parse_string("aaaab", parse_all=True)
+
+    def testEachWithNullableBoundedMultipleMatch(self):
+        for repeat in (pp.ZeroOrMore, pp.OneOrMore):
+            for maximum in (1, 2):
+                for child in (pp.Opt("a"), pp.Regex("a?")):
+                    expr = repeat(child, max=maximum) & "b"
+                    for count in range(maximum + 2):
+                        text = "a" * count + "b"
+                        with self.subTest(
+                            repeat=repeat, maximum=maximum, child=child, text=text
+                        ):
+                            if count <= maximum:
+                                result = expr.parse_string(text, parse_all=True)
+                                self.assertEqual(count, result.as_list().count("a"))
+                                self.assertEqual(1, result.as_list().count("b"))
+                            else:
+                                with self.assertRaises(pp.ParseException):
+                                    expr.parse_string(text, parse_all=True)
+                    if maximum == 2:
+                        with self.subTest(repeat=repeat, child=child, text="aba"):
+                            result = expr.parse_string("aba", parse_all=True)
+                            self.assertEqual(2, result.as_list().count("a"))
+                            self.assertEqual(1, result.as_list().count("b"))
+                empty = pp.Empty().set_parse_action(lambda: "empty")
+                expr = repeat(empty, max=maximum) & "b"
+                with self.subTest(repeat=repeat, maximum=maximum, child=empty):
+                    result = expr.parse_string("b", parse_all=True)
+                    self.assertEqual(maximum, result.as_list().count("empty"))
+                    self.assertEqual(1, result.as_list().count("b"))
+
     def testEachWithBoundedSlice(self):
         expr = pp.Literal("a")[..., 2] & "b"
         self.assertParseResultsEquals(
