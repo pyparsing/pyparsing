@@ -5036,6 +5036,8 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             lambda: pp.Literal("a"),
             lambda: pp.Word("a", exact=1),
             lambda: pp.Word("a"),
+            lambda: pp.Word("a", max=3),
+            lambda: pp.CharsNotIn("bc", max=3),
         ):
             for call_during_try in (False, True):
                 calls = []
@@ -5048,7 +5050,12 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
                     self.assertEqual(["called"] if call_during_try else [], calls)
 
     def testPrecededByParseActionsInLongestMatch(self):
-        for prefix_factory in (lambda: pp.Literal("a"), lambda: pp.Word("a")):
+        for prefix_factory in (
+            lambda: pp.Literal("a"),
+            lambda: pp.Word("a"),
+            lambda: pp.Word("a", max=3),
+            lambda: pp.CharsNotIn("bc", max=3),
+        ):
             for selected in (False, True):
                 calls = []
                 prefix = prefix_factory().set_parse_action(
@@ -5065,7 +5072,12 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
                     self.assertEqual(["called"] if selected else [], calls)
 
     def testPrecededByConditionsDuringTry(self):
-        for prefix in (pp.Literal("a"), pp.Word("a")):
+        for prefix in (
+            pp.Literal("a"),
+            pp.Word("a"),
+            pp.Word("a", max=3),
+            pp.CharsNotIn("bc", max=3),
+        ):
             expr = pp.PrecededBy(prefix.add_condition(lambda: False), retreat=3)
             with self.subTest(prefix=prefix):
                 self.assertEqual(1, expr.try_parse("ab", 1))
