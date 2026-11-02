@@ -2017,6 +2017,30 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             {"_skipped": ["red ", "456 "]},
         )
 
+    def testSkipToFailOnRejectsPartialMatch(self):
+        for include in (False, True):
+            for fail_on in ("STOP", pp.Literal("STOP"), pp.Regex("STOP")):
+                expr = pp.SkipTo(
+                    "END", include=include, fail_on=fail_on, ignore=pp.QuotedString('"')
+                )
+                for text in ("STOP END", "abc STOP END", "abc STOP"):
+                    with self.subTest(include=include, fail_on=fail_on, text=text):
+                        with self.assertRaises(pp.ParseException):
+                            expr.parse_string(text)
+
+                for text, skipped in (
+                    ("abc END", "abc "),
+                    ("abc END STOP", "abc "),
+                    ('abc "STOP" END', 'abc "STOP" '),
+                ):
+                    with self.subTest(include=include, fail_on=fail_on, text=text):
+                        expected = [skipped, "END"] if include else [skipped]
+                        self.assertParseResultsEquals(expr.parse_string(text), expected)
+
+        text = "abc STOP"
+        expr = pp.SkipTo("END", fail_on="STOP") | pp.Literal(text)
+        self.assertParseAndCheckList(expr, text, [text])
+
     def testSkipToPreParseIgnoreExprs(self):
         # added to verify fix to Issue #475
         from pyparsing import Word, alphanums, python_style_comment

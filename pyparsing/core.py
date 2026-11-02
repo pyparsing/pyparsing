@@ -6134,9 +6134,9 @@ class SkipTo(ParseElementEnhance):
         tmploc = loc
         while tmploc <= instrlen:
             if self_failOn_canParseNext is not None:
-                # break if failOn expression matches
+                # fail if failOn expression matches
                 if self_failOn_canParseNext(instring, tmploc):
-                    break
+                    raise ParseException(instring, tmploc, self.errmsg, self)
 
             if ignorer_try_parse is not None:
                 # advance past ignore expressions
