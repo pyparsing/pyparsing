@@ -9011,6 +9011,30 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             result, ["body", False, "Hello", "</body>"], msg="issue using make_xml_tags"
         )
 
+    def testMakeXMLTagsWithQuotedAttributes(self):
+        for attributes, expected in (
+            ("a='one'", {"a": "one"}),
+            ('a="one"', {"a": "one"}),
+            ("a=''", {"a": ""}),
+            ('a=""', {"a": ""}),
+            ("""a='one "two"' """, {"a": 'one "two"'}),
+            ("""a="one 'two'" """, {"a": "one 'two'"}),
+            ('''a='one' b="two"''', {"a": "one", "b": "two"}),
+            ("""a="one" b='two' """, {"a": "one", "b": "two"}),
+        ):
+            for empty in (False, True):
+                with self.subTest(attributes=attributes, empty=empty):
+                    opening, closing = pp.make_xml_tags("item")
+                    expr = opening if empty else opening + closing
+                    ending = "/>" if empty else "></item>"
+                    result = expr.parse_string(
+                        f"<item {attributes}{ending}", parse_all=True
+                    )
+                    self.assertEqual("item", result.tag)
+                    self.assertEqual(empty, result.empty)
+                    for key, value in expected.items():
+                        self.assertEqual(value, result[key])
+
     def testFollowedBy(self):
         expr = pp.Word(pp.alphas)("item") + pp.FollowedBy(ppc.integer("qty"))
         result = expr.parse_string("balloon 99", parse_all=False)
