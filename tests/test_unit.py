@@ -6849,6 +6849,60 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
                 result = spec.parse_string(test, parse_all=True)
                 self.assertParseResultsEquals(result, expected_dict=expected_dict)
 
+    def testEachWithBoundedMultipleMatch(self):
+        for repeat, minimum in ((pp.ZeroOrMore, 0), (pp.OneOrMore, 1)):
+            for maximum in (1, 2, 3):
+                expr = repeat("a", max=maximum)("items") & pp.Literal("b")
+                for count in range(maximum + 2):
+                    for marker_index in range(count + 1):
+                        text = "a" * marker_index + "b" + "a" * (count - marker_index)
+                        with self.subTest(repeat=repeat, maximum=maximum, text=text):
+                            if minimum <= count <= maximum:
+                                result = expr.parse_string(text, parse_all=True)
+                                self.assertEqual(list(text), result.as_list())
+                                self.assertEqual(
+                                    ["a"] * count, list(result.get("items", []))
+                                )
+                            else:
+                                with self.assertRaises(pp.ParseException):
+                                    expr.parse_string(text, parse_all=True)
+
+    def testEachWithMultipleBoundedMatches(self):
+        expr = (
+            pp.ZeroOrMore("a", max=2)("a_items")
+            & pp.OneOrMore("b", max=1)("b_items")
+            & "c"
+        )
+        for text, succeeds in (
+            ("aabc", True),
+            ("abca", True),
+            ("cba", True),
+            ("aaabc", False),
+            ("abbc", False),
+            ("aac", False),
+            ("bc", True),
+            ("abca", True),
+        ):
+            with self.subTest(text=text):
+                if succeeds:
+                    result = expr.parse_string(text, parse_all=True)
+                    self.assertEqual(list(text), result.as_list())
+                    self.assertEqual(
+                        ["a"] * text.count("a"), list(result.get("a_items", []))
+                    )
+                    self.assertEqual(["b"], result["b_items"].as_list())
+                else:
+                    with self.assertRaises(pp.ParseException):
+                        expr.parse_string(text, parse_all=True)
+
+    def testEachWithBoundedSlice(self):
+        expr = pp.Literal("a")[..., 2] & "b"
+        self.assertParseResultsEquals(
+            expr.parse_string("aba", parse_all=True), ["a", "b", "a"]
+        )
+        with self.assertRaises(pp.ParseException):
+            expr.parse_string("aaba", parse_all=True)
+
     def testSumParseResults(self):
         samplestr1 = "garbage;DOB 10-10-2010;more garbage\nID PARI12345678;more garbage"
         samplestr2 = "garbage;ID PARI12345678;more garbage\nDOB 10-10-2010;more garbage"
