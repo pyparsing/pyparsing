@@ -5544,7 +5544,7 @@ class PrecededBy(ParseElementEnhance):
             self.exact = True
         elif isinstance(expr, (Word, CharsNotIn)) and expr.maxLen != _MAX_INT:
             retreat = expr.maxLen
-            self.exact = True
+            self.exact = expr.minLen == expr.maxLen
         elif isinstance(expr, PositionToken):
             retreat = 0
             self.exact = True
@@ -5558,7 +5558,7 @@ class PrecededBy(ParseElementEnhance):
             if loc < self.retreat:
                 raise ParseException(instring, loc, self.errmsg, self)
             start = loc - self.retreat
-            _, ret = self.expr._parse(instring, start)
+            _, ret = self.expr._parse(instring, start, do_actions=do_actions)
             return loc, ret
 
         # retreat specified a maximum lookbehind window, iterate
@@ -5569,7 +5569,9 @@ class PrecededBy(ParseElementEnhance):
         for offset in range(1, min(loc, self.retreat + 1) + 1):
             try:
                 # print('trying', offset, instring_slice, repr(instring_slice[loc - offset:]))
-                _, ret = test_expr._parse(instring_slice, len(instring_slice) - offset)
+                _, ret = test_expr._parse(
+                    instring_slice, len(instring_slice) - offset, do_actions=do_actions
+                )
             except ParseBaseException as pbe:
                 last_expr = pbe
             else:
