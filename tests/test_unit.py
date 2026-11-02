@@ -4715,6 +4715,18 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
         )
         self.assertEqual(non_empty_re_expr._re, compiled)
 
+    def testRegexEmptyMatchForCompiledPatterns(self):
+        for pattern, matches_empty in ((r"[A-Z]*", True), (r"[A-Z]+", False)):
+            compiled = re.compile(pattern, re.IGNORECASE)
+            for source in (compiled, lambda: compiled):
+                with self.subTest(pattern=pattern, source=source):
+                    expr = pp.Regex(source)
+                    self.assertIs(expr.re, compiled)
+                    self.assertIs(expr.mayReturnEmpty, matches_empty)
+                    self.assertParseResultsEquals(
+                        expr.parse_string("abc", parse_all=True), ["abc"]
+                    )
+
     def testRegexDeferredCompileCommonHtmlEntity(self):
         # this is the most important expression to defer, because it takes a long time to compile
         perf_test_common_html_entity = pp.common_html_entity()
@@ -4938,6 +4950,19 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
         empty_line = pp.rest_of_line() + NL
         result = empty_line[1, 10].parse_string("\n\n")
         self.assertEqual(3, len(result))
+
+    def testCompiledRegexLoopPastEndOfString(self):
+        pattern = r"([^\n]*)"
+        compiled = re.compile(pattern)
+        for source in (pattern, compiled, lambda: compiled):
+            for options in ({}, {"as_group_list": True}, {"as_match": True}):
+                with self.subTest(source=source, options=options):
+                    empty_line = (
+                        pp.Regex(source, **options).leave_whitespace()
+                        + pp.LineEnd().suppress()
+                    )
+                    result = empty_line[1, 10].parse_string("\n\n", parse_all=True)
+                    self.assertEqual(3, len(result))
 
     def testPrecededBy(self):
         num = pp.Word(pp.nums).set_parse_action(lambda t: int(t[0]))
