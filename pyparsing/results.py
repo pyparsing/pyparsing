@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import collections
+import operator
 from collections.abc import (
     MutableMapping,
     Mapping,
@@ -457,6 +458,9 @@ class ParseResults:
            [0, '0', '123', '321']
 
         """
+        index = operator.index(index)
+        if index < 0:
+            index = max(0, len(self._toklist) + index)
         self._toklist.insert(index, ins_string)
         # fixup indices in token dictionary; copy() shares these lists, so
         # renumber a private copy rather than the list itself

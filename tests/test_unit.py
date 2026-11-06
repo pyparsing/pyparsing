@@ -4265,6 +4265,48 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             result, compare_list, msg="issue with ParseResults.insert()"
         )
 
+    def testParseResultsNegativeInsertWithResultsName(self):
+        grammar = pp.Word(pp.nums) + pp.Word(pp.nums)("middle") + pp.Word(pp.nums) * 2
+        for index in (-1, -2, -3, -4, -100, 0, 1, 2, 3, 4, 100):
+            with self.subTest(index=index):
+                original = grammar.parse_string("0 1 2 3", parse_all=True)
+                result = original.copy()
+                expected = original.as_list()
+                expected.insert(index, "X")
+
+                result.insert(index, "X")
+                self.assertParseResultsEquals(
+                    result, expected_list=expected, expected_dict={"middle": "1"}
+                )
+
+                del result[expected.index("X")]
+                del result[2:]
+                del result[0]
+                self.assertParseResultsEquals(
+                    result, expected_list=["1"], expected_dict={"middle": "1"}
+                )
+                self.assertEqual(result.get_name(), "middle")
+
+                del original[2:]
+                del original[0]
+                self.assertEqual(original.get_name(), "middle")
+
+    def testParseResultsInsertIndexProtocol(self):
+        class Index:
+            def __init__(self, value):
+                self.value = value
+
+            def __index__(self):
+                return self.value
+
+        for index in (-1, 3, -100, 100):
+            with self.subTest(index=index):
+                result = pp.ParseResults(["0", "1", "2", "3"])
+                expected = result.as_list()
+                expected.insert(Index(index), "X")
+                result.insert(Index(index), "X")
+                self.assertParseResultsEquals(result, expected_list=expected)
+
     def testParseResultsAddingSuppressedTokenWithResultsName(self):
         parser = "aaa" + (pp.NoMatch() | pp.Suppress("-"))("B")
         try:
