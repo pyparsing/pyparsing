@@ -3644,13 +3644,19 @@ class Regex(Token):
 
         if self.asMatch:
 
-            def pa(tokens):
+            def pa(s, l, tokens):
                 return tokens[0].expand(repl)
 
         else:
 
-            def pa(tokens):
-                return self.re.sub(repl, tokens[0])
+            def pa(s, l, tokens):
+                # Match against the original input to retain lookaround and boundary context.
+                match = self.re_match(s, l)
+                if tokens[0] != match[0]:
+                    # A preceding parse action has changed the text to be substituted.
+                    return self.re.sub(repl, tokens[0])
+                replacement = repl(match) if callable(repl) else match.expand(repl)
+                return "" if replacement is None else replacement
 
         return self.add_parse_action(pa)
 
