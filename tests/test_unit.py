@@ -255,6 +255,48 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             msg="scan_string with overlaps failed",
         )
 
+    def testScanStringWithOverlapAfterSkippedText(self):
+        for text in ("aaa", " aaa", "  aaaa", "aaa aaa", "\naaa", "\taaa"):
+            expected_starts = [m.start() for m in re.finditer(r"(?=aa)", text)]
+            for skip_whitespace in (True, False):
+                for overlap in (True, False):
+                    with self.subTest(
+                        text=text, skip_whitespace=skip_whitespace, overlap=overlap
+                    ):
+                        parser = pp.Literal("aa")("pair").parse_with_tabs()
+                        matches = list(
+                            parser.scan_string(
+                                text,
+                                overlap=overlap,
+                                always_skip_whitespace=skip_whitespace,
+                            )
+                        )
+                        starts = (
+                            expected_starts
+                            if overlap
+                            else [m.start() for m in re.finditer("aa", text)]
+                        )
+                        self.assertEqual(
+                            [(s, s + 2) for s in starts],
+                            [(s, e) for _, s, e in matches],
+                        )
+                        self.assertEqual(
+                            ["aa"] * len(starts), [t.pair for t, _, _ in matches]
+                        )
+
+        parser = pp.Literal("aa").ignore(pp.c_style_comment)
+        self.assertEqual(
+            [(6, 8), (7, 9)],
+            [(s, e) for _, s, e in parser.scan_string("/*x*/ aaa", overlap=True)],
+        )
+        self.assertEqual(
+            [(1, 3), (2, 4)],
+            [
+                (s, e)
+                for _, s, e in parser.scan_string(" aaaa", overlap=True, max_matches=2)
+            ],
+        )
+
     def testCombineWithResultsNames(self):
         # test case reproducing Issue #350
         from pyparsing import White, alphas, Word

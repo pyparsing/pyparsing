@@ -1463,11 +1463,7 @@ class ParserElement(ABC):
                             )
                         yield tokens, preloc, nextLoc
                         if overlap:
-                            nextloc = preparseFn(instring, loc)
-                            if nextloc > loc:
-                                loc = nextLoc
-                            else:
-                                loc += 1
+                            loc = preloc + 1
                         else:
                             loc = nextLoc
                     else:
