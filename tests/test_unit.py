@@ -5602,6 +5602,37 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             "failed to preserve results names in original_text_for",
         )
 
+    def testOriginalTextForWhitespacePolicy(self):
+        cases = [
+            (pp.Literal(" abc").leave_whitespace(), " abc", " abc"),
+            (pp.White(" ") + pp.Word(pp.alphas), "  abc", "  abc"),
+            (pp.Literal("\nabc").set_whitespace_chars(" "), "  \nabc", "\nabc"),
+            (pp.Word(pp.alphas).set_whitespace_chars("_"), "__abc", "abc"),
+            (pp.Word(pp.alphas), "  abc  ", "abc"),
+        ]
+        for expr, text, expected in cases:
+            for as_string in (True, False):
+                with self.subTest(expr=str(expr), text=text, as_string=as_string):
+                    # Wrapping a parser must preserve the text that it accepts.
+                    expr.parse_string(text, parse_all=True)
+                    wrapped = pp.original_text_for(expr("value"), as_string=as_string)
+                    result = wrapped.parse_string(text, parse_all=True)
+                    self.assertEqual([expected], result.as_list())
+                    if not as_string:
+                        self.assertEqual(
+                            expr("value").parse_string(text).value, result.value
+                        )
+                    self.assertEqual(
+                        [expected], wrapped.search_string("!" + text)[0].as_list()
+                    )
+
+        expr = (pp.Word(pp.alphas) + ";").ignore(pp.c_style_comment)
+        wrapped = pp.original_text_for(expr)
+        self.assertEqual(
+            ["abc /*inner*/ ;"],
+            wrapped.parse_string("/*outer*/ abc /*inner*/ ;", parse_all=True).as_list(),
+        )
+
     def testPackratParsingCacheCopy(self):
         integer = pp.Word(pp.nums).set_name("integer")
         id = pp.Word(pp.alphas + "_", pp.alphanums + "_")

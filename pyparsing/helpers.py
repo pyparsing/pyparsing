@@ -447,6 +447,10 @@ def original_text_for(
     asString = asString and as_string
 
     locMarker = Empty().set_parse_action(lambda s, loc, t: loc)
+    locMarker.set_whitespace_chars(
+        expr.whiteChars, copy_defaults=expr.copyDefaultWhiteChars
+    )
+    locMarker.skipWhitespace = expr.skipWhitespace
     endlocMarker = locMarker.copy()
     endlocMarker.callPreparse = False
     matchExpr = locMarker("_original_start") + expr + endlocMarker("_original_end")
