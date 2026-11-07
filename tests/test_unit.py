@@ -4926,6 +4926,53 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
         with self.assertRaises(TypeError):
             pp.Regex(r"<(.*?)>", as_group_list=True).sub("")
 
+    def testRegexSubPreservesMatchContext(self):
+        cases = [
+            (r"(?<=x)(y)", "xy xy"),
+            (r"(x)(?=y)", "xy xy"),
+            (r"\B(y)\b", "xy xy"),
+            (r"(?<=x)(?P<letter>y)(?=z)", "xyz xyz"),
+        ]
+        replacements = [r"<\1>", lambda m: f"<{m[1]}>"]
+        for pattern, text in cases:
+            with self.subTest(pattern=pattern, as_match=True):
+                parser = pp.Regex(pattern, as_match=True).sub(r"<\1>")
+                self.assertEqual(
+                    re.sub(pattern, r"<\1>", text), parser.transform_string(text)
+                )
+            for replacement in replacements:
+                with self.subTest(pattern=pattern, replacement=replacement):
+                    expected = re.sub(pattern, replacement, text)
+                    parser = pp.Regex(pattern).sub(replacement)
+                    self.assertEqual(expected, parser.transform_string(text))
+                    self.assertEqual(expected, parser.copy().transform_string(text))
+
+        for pattern, text in [(r"(a)?b", "ab b"), (r"(?<=x)(a)?b", "xab xb")]:
+            with self.subTest(pattern=pattern, optional_group=True):
+                replacement = lambda m: m[1]
+                parser = pp.Regex(pattern).sub(replacement)
+                self.assertEqual(
+                    re.sub(pattern, replacement, text), parser.transform_string(text)
+                )
+
+        parser = "x" + pp.Regex(r"(?<=x)y(?=z)").sub("Y") + "z"
+        self.assertEqual(
+            ["x", "Y", "z"], parser.parse_string("xyz", parse_all=True).as_list()
+        )
+
+        # Callables must receive the match in the original input, including its position.
+        parser = pp.Regex(r"(?<=x)y").sub(lambda m: f"<{m.start()}:{m.string}>")
+        self.assertEqual("x<1:xy>", parser.transform_string("xy"))
+
+        parser = pp.Regex(r"[a-z]+").add_parse_action(lambda t: t[0].upper()).sub("X")
+        self.assertEqual(["ABC"], parser.parse_string("abc", parse_all=True).as_list())
+        parser = (
+            pp.Regex(r"\w+").add_parse_action(lambda t: t[0].upper()).sub(r"<\g<0>>")
+        )
+        self.assertEqual(
+            ["<ABC>"], parser.parse_string("abc", parse_all=True).as_list()
+        )
+
     def testRegexInvalidType(self):
         """test Regex of an invalid type"""
 
