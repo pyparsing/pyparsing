@@ -6668,6 +6668,12 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             else:
                 pass
 
+    def testWordEndDoesNotMatchBeforeFirstCharacter(self):
+        parser = pp.WordEnd(pp.alphanums) + "."
+        source = ".word. next"
+        matches = [(start, end) for _, start, end in parser.scan_string(source)]
+        self.assertEqual([(5, 6)], matches)
+
     def testRequiredEach(self):
         parser = pp.Keyword("bam") & pp.Keyword("boo")
         try:

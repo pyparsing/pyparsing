@@ -4257,7 +4257,8 @@ class WordEnd(PositionToken):
         instrlen = len(instring)
         if instrlen > 0 and loc < instrlen:
             if (
-                instring[loc] in self.wordChars
+                loc == 0
+                or instring[loc] in self.wordChars
                 or instring[loc - 1] not in self.wordChars
             ):
                 raise ParseException(instring, loc, self.errmsg, self)
