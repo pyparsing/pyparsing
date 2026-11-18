@@ -4255,8 +4255,11 @@ class WordEnd(PositionToken):
 
     def parseImpl(self, instring, loc, do_actions=True) -> ParseImplReturnType:
         instrlen = len(instring)
-        if instrlen > 0 and loc < instrlen:
-            if (
+        if instrlen > 0:
+            if loc == 0:
+                # there is no preceding character, so no word can end here
+                raise ParseException(instring, loc, self.errmsg, self)
+            if loc < instrlen and (
                 instring[loc] in self.wordChars
                 or instring[loc - 1] not in self.wordChars
             ):
