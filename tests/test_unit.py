@@ -1492,6 +1492,40 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
         self.assertTrue(success1 and success2, "Python quoted string matching failure")
         # fmt: on
 
+    def testQuotedStringUnterminatedBacktracking(self):
+        # overlapping alternatives in the quoted string regexes made an unterminated
+        # string backtrack exponentially; each of these took several seconds or more
+        from time import perf_counter
+
+        hex_escapes = "\\xaaaaaaaa" * 9
+        for expr, instring in (
+            (pp.dbl_quoted_string, '"' + hex_escapes),
+            (pp.sgl_quoted_string, "'" + hex_escapes),
+            (pp.quoted_string, '"' + hex_escapes),
+            (pp.python_quoted_string, '"' + hex_escapes),
+            (pp.python_quoted_string, '"' + '\\"' * 26),
+            (pp.python_quoted_string, '"""' + '""a' * 26),
+            (pp.python_quoted_string, "'''" + "''a" * 26),
+            (pp.QuotedString('"""', multiline=True), '"""' + '""a' * 25),
+            (pp.QuotedString("<!--", end_quote_char="-->"), "<!--" + "--a" * 25),
+        ):
+            with self.subTest(expr=expr, instring=instring):
+                start = perf_counter()
+                with self.assertRaises(pp.ParseException):
+                    expr.parse_string(instring, parse_all=True)
+                self.assertLess(perf_counter() - start, 1.0)
+
+        self.assertParseAndCheckList(
+            pp.quoted_string, '"\\xaaaaaaaa\\x41"', ['"\\xaaaaaaaa\\x41"']
+        )
+        # a multi-character end quote also ends the string at its first occurrence
+        self.assertEqual(
+            [[" a -"]],
+            pp.QuotedString("<!--", end_quote_char="-->")
+            .search_string("<!-- a ---> b -->")
+            .as_list(),
+        )
+
     def testCaselessOneOf(self):
         caseless1 = pp.one_of("d a b c aA B A C", caseless=True)
         caseless1str = str(caseless1)
