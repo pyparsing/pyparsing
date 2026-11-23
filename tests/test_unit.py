@@ -169,6 +169,22 @@ class TestCase(unittest.TestCase):
                 warnings.simplefilter("default")
 
 
+class PyparsingTestCase(TestCase):
+    def setUp(self):
+        super().setUp()
+        self.pyparsing_context = ppt.reset_pyparsing_context().save()
+        self.recursion_memos = ParserElement.recursion_memos
+        self.collect_all_and_tokens = pp.__compat__.collect_all_And_tokens
+        self.addCleanup(self.restore_pyparsing_context)
+        ParserElement.disable_memoization()
+
+    def restore_pyparsing_context(self):
+        ParserElement.disable_memoization()
+        self.pyparsing_context.restore()
+        ParserElement.recursion_memos = self.recursion_memos
+        pp.__compat__.collect_all_And_tokens = self.collect_all_and_tokens
+
+
 class Test01_PyparsingTestInit(TestCase):
     def runTest(self):
         print(
@@ -240,12 +256,7 @@ class Test01b_PyparsingUnitTestUtilitiesTests(TestCase):
                         pass
 
 
-class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
-    suite_context = None
-    save_suite_context = None
-
-    def setUp(self):
-        self.suite_context.restore()
+class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, PyparsingTestCase):
 
     def test000_assert_packrat_status(self):
         print("Packrat enabled:", ParserElement._packratEnabled)
@@ -11799,20 +11810,14 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
         pass
 
 
-class Test03_EnablePackratParsing(TestCase):
-    def runTest(self):
-        Test02_WithoutPackrat.suite_context.restore()
-
-        ParserElement.enable_packrat()
-
-        # SAVE A NEW SUITE CONTEXT
-        Test02_WithoutPackrat.suite_context = ppt.reset_pyparsing_context().save()
-
-
 class Test04_WithPackrat(Test02_WithoutPackrat):
     """
     rerun Test2 tests, now that packrat is enabled
     """
+
+    def setUp(self):
+        super().setUp()
+        ParserElement.enable_packrat()
 
     def test000_assert_packrat_status(self):
         print("Packrat enabled:", ParserElement._packratEnabled)
@@ -11827,17 +11832,7 @@ class Test04_WithPackrat(Test02_WithoutPackrat):
             type(ParserElement.packrat_cache).__name__,
             msg="incorrect cache type",
         )
-
-
-class Test05_EnableBoundedPackratParsing(TestCase):
-    def runTest(self):
-        Test02_WithoutPackrat.suite_context = Test02_WithoutPackrat.save_suite_context
-        Test02_WithoutPackrat.suite_context.restore()
-
-        ParserElement.enable_packrat(cache_size_limit=16)
-
-        # SAVE A NEW SUITE CONTEXT
-        Test02_WithoutPackrat.suite_context = ppt.reset_pyparsing_context().save()
+        self.assertEqual(128, ParserElement.packrat_cache.size)
 
 
 class Test06_WithBoundedPackrat(Test02_WithoutPackrat):
@@ -11845,6 +11840,10 @@ class Test06_WithBoundedPackrat(Test02_WithoutPackrat):
     rerun Test2 tests, now with bounded packrat cache
     """
 
+    def setUp(self):
+        super().setUp()
+        ParserElement.enable_packrat(cache_size_limit=16)
+
     def test000_assert_packrat_status(self):
         print("Packrat enabled:", ParserElement._packratEnabled)
         print(
@@ -11858,6 +11857,7 @@ class Test06_WithBoundedPackrat(Test02_WithoutPackrat):
             type(ParserElement.packrat_cache).__name__,
             msg="incorrect cache type",
         )
+        self.assertEqual(16, ParserElement.packrat_cache.size)
 
     def test_exceeding_fifo_cache_size(self):
         letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
@@ -11866,21 +11866,14 @@ class Test06_WithBoundedPackrat(Test02_WithoutPackrat):
         self.assertEqual(list(result), list(letters))
 
 
-class Test07_EnableUnboundedPackratParsing(TestCase):
-    def runTest(self):
-        Test02_WithoutPackrat.suite_context = Test02_WithoutPackrat.save_suite_context
-        Test02_WithoutPackrat.suite_context.restore()
-
-        ParserElement.enable_packrat(cache_size_limit=None)
-
-        # SAVE A NEW SUITE CONTEXT
-        Test02_WithoutPackrat.suite_context = ppt.reset_pyparsing_context().save()
-
-
 class Test08_WithUnboundedPackrat(Test02_WithoutPackrat):
     """
     rerun Test2 tests, now with unbounded packrat cache
     """
+
+    def setUp(self):
+        super().setUp()
+        ParserElement.enable_packrat(cache_size_limit=None)
 
     def test000_assert_packrat_status(self):
         print("Packrat enabled:", ParserElement._packratEnabled)
@@ -11895,6 +11888,7 @@ class Test08_WithUnboundedPackrat(Test02_WithoutPackrat):
             type(ParserElement.packrat_cache).__name__,
             msg="incorrect cache type",
         )
+        self.assertIsNone(ParserElement.packrat_cache.size)
 
 
 class Test09_WithLeftRecursionParsing(Test02_WithoutPackrat):
@@ -11903,10 +11897,8 @@ class Test09_WithLeftRecursionParsing(Test02_WithoutPackrat):
     """
 
     def setUp(self):
-        ParserElement.enable_left_recursion(force=True)
-
-    def tearDown(self):
-        default_suite_context.restore()
+        super().setUp()
+        ParserElement.enable_left_recursion()
 
     def test000_assert_packrat_status(self):
         print("Left-Recursion enabled:", ParserElement._left_recursion_enabled)
@@ -11922,10 +11914,8 @@ class Test10_WithLeftRecursionParsingBoundedMemo(Test02_WithoutPackrat):
     """
 
     def setUp(self):
-        ParserElement.enable_left_recursion(cache_size_limit=4, force=True)
-
-    def tearDown(self):
-        default_suite_context.restore()
+        super().setUp()
+        ParserElement.enable_left_recursion(cache_size_limit=4)
 
     def test000_assert_packrat_status(self):
         print("Left-Recursion enabled:", ParserElement._left_recursion_enabled)
@@ -11939,19 +11929,14 @@ class Test10_WithLeftRecursionParsingBoundedMemo(Test02_WithoutPackrat):
         self.assertGreater(ParserElement.recursion_memos._capacity * 3, 4)
 
 
-class Test11_LR1_Recursion(ppt.TestParseResultsAsserts, TestCase):
+class Test11_LR1_Recursion(ppt.TestParseResultsAsserts, PyparsingTestCase):
     """
     Tests for recursive parsing
     """
 
-    suite_context = None
-    save_suite_context = None
-
     def setUp(self):
-        recursion_suite_context.restore()
-
-    def tearDown(self):
-        default_suite_context.restore()
+        super().setUp()
+        ParserElement.enable_left_recursion()
 
     def test_repeat_as_recurse(self):
         """repetition rules formulated with recursion"""
@@ -12125,13 +12110,142 @@ class TestShowBestPractices(unittest.TestCase):
         self.assertIn("## Debugging", subproc_stdout)
 
 
-# force clear of packrat parsing flags before saving contexts
-pp.ParserElement.disable_memoization()
+class TestMemoizationTestSetupIsolation(unittest.TestCase):
+    @staticmethod
+    def _memoization_state():
+        packrat_enabled = ParserElement._packratEnabled
+        return (
+            packrat_enabled,
+            ParserElement._left_recursion_enabled,
+            (
+                type(ParserElement.packrat_cache).__name__,
+                getattr(ParserElement.packrat_cache, "size", None),
+            )
+            if packrat_enabled
+            else None,
+            type(ParserElement.recursion_memos).__name__,
+            getattr(ParserElement.recursion_memos, "_capacity", None),
+            id(ParserElement.recursion_memos),
+            ParserElement._parse,
+        )
 
-Test02_WithoutPackrat.suite_context = ppt.reset_pyparsing_context().save()
-Test02_WithoutPackrat.save_suite_context = ppt.reset_pyparsing_context().save()
+    def _assert_memoization_mode(self, mode, cache_size):
+        if mode == "disabled":
+            self.assertFalse(ParserElement._packratEnabled)
+            self.assertFalse(ParserElement._left_recursion_enabled)
+        elif mode == "packrat":
+            self.assertTrue(ParserElement._packratEnabled)
+            self.assertFalse(ParserElement._left_recursion_enabled)
+            self.assertEqual(
+                "_UnboundedCache" if cache_size is None else "_FifoCache",
+                type(ParserElement.packrat_cache).__name__,
+            )
+            self.assertEqual(cache_size, ParserElement.packrat_cache.size)
+        else:
+            self.assertFalse(ParserElement._packratEnabled)
+            self.assertTrue(ParserElement._left_recursion_enabled)
+            if cache_size is None:
+                self.assertIsInstance(
+                    ParserElement.recursion_memos, pp.util.UnboundedMemo
+                )
+            else:
+                self.assertIsInstance(ParserElement.recursion_memos, pp.util.LRUMemo)
+                self.assertEqual(cache_size, ParserElement.recursion_memos._capacity)
 
-default_suite_context = ppt.reset_pyparsing_context().save()
-pp.ParserElement.enable_left_recursion()
-recursion_suite_context = ppt.reset_pyparsing_context().save()
-default_suite_context.restore()
+    def test_mode_setup_is_independent_and_restores_previous_configuration(self):
+        original_context = ppt.reset_pyparsing_context().save()
+        original_recursion_memos = ParserElement.recursion_memos
+        original_collect_all_and_tokens = pp.__compat__.collect_all_And_tokens
+
+        previous_modes = (
+            ("disabled", None),
+            ("bounded packrat", lambda: ParserElement.enable_packrat(16)),
+            ("unbounded packrat", lambda: ParserElement.enable_packrat(None)),
+            ("left recursion", lambda: ParserElement.enable_left_recursion()),
+            (
+                "bounded left recursion",
+                lambda: ParserElement.enable_left_recursion(cache_size_limit=4),
+            ),
+        )
+        test_cases = (
+            (Test02_WithoutPackrat, "test000_assert_packrat_status", "disabled", None),
+            (Test04_WithPackrat, "test000_assert_packrat_status", "packrat", 128),
+            (Test06_WithBoundedPackrat, "test000_assert_packrat_status", "packrat", 16),
+            (Test08_WithUnboundedPackrat, "test000_assert_packrat_status", "packrat", None),
+            (
+                Test09_WithLeftRecursionParsing,
+                "test000_assert_packrat_status",
+                "left recursion",
+                None,
+            ),
+            (
+                Test10_WithLeftRecursionParsingBoundedMemo,
+                "test000_assert_packrat_status",
+                "left recursion",
+                4,
+            ),
+            (Test11_LR1_Recursion, "test_repeat_as_recurse", "left recursion", None),
+        )
+
+        try:
+            for previous_mode, configure_previous_mode in previous_modes:
+                for test_case_class, test_name, expected_mode, cache_size in test_cases:
+                    with self.subTest(
+                        previous_mode=previous_mode, test_case=test_case_class.__name__
+                    ):
+                        ParserElement.disable_memoization()
+                        if configure_previous_mode is not None:
+                            configure_previous_mode()
+
+                        previous_state = self._memoization_state()
+                        previous_recursion_memos = ParserElement.recursion_memos
+                        previous_collect_all_and_tokens = (
+                            pp.__compat__.collect_all_And_tokens
+                        )
+                        previous_whitespace = ParserElement.DEFAULT_WHITE_CHARS
+                        test_case = test_case_class(test_name)
+                        try:
+                            test_case.setUp()
+                            self._assert_memoization_mode(expected_mode, cache_size)
+                            ParserElement.enable_packrat(cache_size_limit=7, force=True)
+                            ParserElement.set_default_whitespace_chars("!")
+                            pp.__compat__.collect_all_And_tokens = False
+                        finally:
+                            test_case.doCleanups()
+
+                        self.assertEqual(previous_state, self._memoization_state())
+                        self.assertIs(
+                            ParserElement.recursion_memos, previous_recursion_memos
+                        )
+                        self.assertIs(
+                            pp.__compat__.collect_all_And_tokens,
+                            previous_collect_all_and_tokens,
+                        )
+                        self.assertEqual(
+                            previous_whitespace, ParserElement.DEFAULT_WHITE_CHARS
+                        )
+        finally:
+            ParserElement.disable_memoization()
+            original_context.restore()
+            ParserElement.recursion_memos = original_recursion_memos
+            pp.__compat__.collect_all_And_tokens = original_collect_all_and_tokens
+
+    def test_cleanup_runs_if_setup_fails(self):
+        class FailingSetup(Test04_WithPackrat):
+            def setUp(self):
+                super().setUp()
+                raise RuntimeError("setup failed")
+
+        previous_state = self._memoization_state()
+        previous_collect_all_and_tokens = pp.__compat__.collect_all_And_tokens
+        result = unittest.TestResult()
+        FailingSetup("test000_assert_packrat_status").run(result)
+
+        self.assertEqual(1, len(result.errors))
+        self.assertIn("setup failed", result.errors[0][1])
+        self.assertEqual(previous_state, self._memoization_state())
+        self.assertIs(
+            previous_collect_all_and_tokens, pp.__compat__.collect_all_And_tokens
+        )
+
+

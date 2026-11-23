@@ -2,19 +2,33 @@
 # test_examples.py
 #
 from importlib import import_module
+from types import SimpleNamespace
 import unittest
+from unittest.mock import patch
 
+from pyparsing import ParserElement
 from pyparsing import testing as ppt
 
 
 class TestExamples(unittest.TestCase):
     def _run(self, name):
-        mod = import_module("examples." + name)
-
         # use pyparsing context to reset each test to clean
         # pyparsing settings
         with ppt.reset_pyparsing_context():
+            mod = import_module("examples." + name)
             getattr(mod, "main", lambda *args, **kwargs: None)()
+
+    def test_import_restores_pyparsing_configuration(self):
+        previous_whitespace = ParserElement.DEFAULT_WHITE_CHARS
+
+        def import_with_whitespace_change(name):
+            ParserElement.set_default_whitespace_chars("!")
+            return SimpleNamespace()
+
+        with patch(__name__ + ".import_module", side_effect=import_with_whitespace_change):
+            self._run("example")
+
+        self.assertEqual(previous_whitespace, ParserElement.DEFAULT_WHITE_CHARS)
 
     def test_numerics(self):
         self._run("numerics")
