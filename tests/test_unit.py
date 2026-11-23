@@ -5777,6 +5777,67 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
         expr = pp.nested_expr(content=content)
         assert content.parseAction[0] is orig_pa
 
+    def testNestedExpressionIgnoreMethod(self):
+        expr = pp.nested_expr("[", "]", pp.Word(pp.alphas)).ignore(
+            pp.cpp_style_comment
+        )
+        result = expr.parse_string(
+            "[alpha /* before nested */ [beta] /* before closer */]", parse_all=True
+        )
+        self.assertEqual(result.as_list(), [["alpha", ["beta"]]])
+
+    def testNestedExpressionInnerResultsNames(self):
+        expr = pp.nested_expr().set_results_name("nested")
+        result = expr.parse_string("(outer (inner))")
+
+        self.assertEqual(result["nested"].as_list(), [["outer", ["inner"]]])
+        self.assertNotIn("nested", result[0])
+
+    def testNestedExpressionNamedContent(self):
+        expr = pp.nested_expr(content=pp.Word(pp.alphas)("value"))
+        result = expr.parse_string("(outer (inner))")
+
+        self.assertEqual(result[0]["value"], "outer")
+        self.assertEqual(result[0][1]["value"], "inner")
+
+    def testNestedExpressionInnerParseActions(self):
+        action_locations = []
+
+        def mark_nested(s, loc, toks):
+            action_locations.append(loc)
+            return pp.ParseResults.List(["parsed", *toks[0]])
+
+        expr = pp.nested_expr().set_parse_action(mark_nested)
+        result = expr.parse_string("(outer (inner) tail)")
+
+        self.assertEqual(action_locations, [7, 0])
+        self.assertEqual(
+            result.as_list(), [["parsed", "outer", ["parsed", "inner"], "tail"]]
+        )
+
+        action_locations.clear()
+        expr._parse("(outer (inner) tail)", 0, do_actions=False)
+        self.assertEqual(action_locations, [])
+
+    def testNestedExpressionCopyParseActionsAreNotRecursive(self):
+        action_locations = []
+
+        def mark_nested(s, loc, toks):
+            action_locations.append(loc)
+            return pp.ParseResults.List(["parsed", *toks[0]])
+
+        expr = pp.nested_expr().copy().set_parse_action(mark_nested)
+        result = expr.parse_string("(outer (inner) tail)")
+
+        self.assertEqual(action_locations, [0])
+        self.assertEqual(result[0][:2], ["parsed", "outer"])
+        self.assertEqual(result[0][2].as_list(), ["inner"])
+        self.assertEqual(result[0][3], "tail")
+
+    def testNestedExpressionUnterminated(self):
+        with self.assertRaisesParseException():
+            pp.nested_expr("[", "]").parse_string("[outer [inner]", parse_all=True)
+
     def testNestedExpressionRandom(self):
         import random
 

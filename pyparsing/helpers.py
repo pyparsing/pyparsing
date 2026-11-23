@@ -633,6 +633,11 @@ class _NestedExpr(ParseElementEnhance):
         self.errmsg = None
         self.original_content = original_content
 
+    def copy(self):
+        cpy = typing.cast(_NestedExpr, super().copy())
+        cpy._nested_expr_source = getattr(self, "_nested_expr_source", self)
+        return cpy
+
     def _generateDefaultName(self) -> str:
         if self.original_content is None:
             return f"nested {self.opener_raw}{self.closer_raw} expression"
@@ -640,9 +645,12 @@ class _NestedExpr(ParseElementEnhance):
             return f"nested {self.opener_raw}{self.original_content}{self.closer_raw} expression"
 
     def parseImpl(self, instring, loc, do_actions=True):
+        nested_expr_source = getattr(self, "_nested_expr_source", self)
         loc, _ = self.opener._parse(instring, loc, do_actions=do_actions)
-        stack = [[]]
+        stack = [ParseResults([])]
+        nested_start_locs = []
         while stack:
+            loc = self.preParse(instring, loc)
             # 1. try ignore_expr
             if self.ignore_expr is not None:
                 try:
@@ -655,10 +663,12 @@ class _NestedExpr(ParseElementEnhance):
                     pass
             # 2. try opener
             try:
+                nested_start_locs.append(loc)
                 loc, _ = self.opener._parse(instring, loc, do_actions=do_actions)
-                stack.append([])
+                stack.append(ParseResults([]))
                 continue
             except ParseException:
+                nested_start_locs.pop()
                 pass
             # 3. try content
             try:
@@ -674,14 +684,41 @@ class _NestedExpr(ParseElementEnhance):
             # 4. try closer
             try:
                 loc, _ = self.closer._parse(instring, loc, do_actions=do_actions)
-                top = ParseResults(stack.pop())
+            except ParseException:
+                pass
+            else:
+                top = stack.pop()
                 if stack:
-                    stack[-1].append(top)
+                    nested_result = ParseResults(
+                        [top],
+                        nested_expr_source.resultsName,
+                        aslist=nested_expr_source.saveAsList,
+                        modal=nested_expr_source.modalResults,
+                    )
+                    nested_start_loc = nested_start_locs.pop()
+                    if nested_expr_source.parseAction and (
+                        do_actions or nested_expr_source.callDuringTry
+                    ):
+                        for fn in nested_expr_source.parseAction:
+                            try:
+                                tokens = fn(instring, nested_start_loc, nested_result)
+                            except IndexError as parse_action_exc:
+                                exc = ParseException("exception raised in parse action")
+                                raise exc from parse_action_exc
+
+                            if tokens is not None and tokens is not nested_result:
+                                nested_result = ParseResults(
+                                    tokens,
+                                    nested_expr_source.resultsName,
+                                    aslist=nested_expr_source.saveAsList
+                                    and isinstance(tokens, (ParseResults, list)),
+                                    modal=nested_expr_source.modalResults,
+                                )
+
+                    stack[-1].extend(nested_result)
                 else:
                     return loc, ParseResults([top])
                 continue
-            except ParseException:
-                pass
 
             raise ParseException(instring, loc, f"Expected {self.closer_raw!r}")
 
@@ -1009,6 +1046,7 @@ def infix_notation(
        -2--11
        [[['-', 2], '-', ['-', 11]]]
     """
+
     # captive version of FollowedBy that does not do parse actions or capture results names
     class _FB(FollowedBy):
         def parseImpl(self, instring, loc, doActions=True):
