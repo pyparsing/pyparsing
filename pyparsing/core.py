@@ -1743,16 +1743,21 @@ class ParserElement(ABC):
             return And([])
 
         if optElements:
-            # Build the optional tail as a bounded ``ZeroOrMore`` instead of a
-            # deeply nested ``Opt(self + Opt(self + ...))`` chain. The nested
-            # form recursed ``optElements`` levels deep, which raised
-            # RecursionError for large upper bounds (e.g. ``expr[..., 1000]``)
-            # -- see issue #332. ``ZeroOrMore(..., max=optElements)`` is a flat
-            # loop that still *exits early* (it stops at the first non-match,
-            # just like the recursive form), so it preserves the original
-            # early-exit behavior while no longer scaling the call stack with
-            # the upper bound.
-            optionalTail = ZeroOrMore(self, max=optElements)
+            # Keep a single optional element as Opt to preserve its scalar
+            # results-name behavior. Larger optional tails use a bounded
+            # ``ZeroOrMore`` instead of a deeply nested
+            # ``Opt(self + Opt(self + ...))`` chain. The nested form recursed
+            # ``optElements`` levels deep, which raised RecursionError for
+            # large upper bounds (e.g. ``expr[..., 1000]``) -- see issue #332.
+            # ``ZeroOrMore(..., max=optElements)`` is a flat loop that still
+            # *exits early* (it stops at the first non-match, just like the
+            # recursive form), so it preserves the original early-exit behavior
+            # while no longer scaling the call stack with the upper bound.
+            optionalTail = (
+                Opt(self)
+                if optElements == 1
+                else ZeroOrMore(self, max=optElements)
+            )
 
             if minElements:
                 if minElements == 1:
@@ -1905,10 +1910,11 @@ class ParserElement(ABC):
 
         # clip to 2 elements
         ret = self * tuple(key[:2])
-        ret = typing.cast(_MultipleMatch, ret)
 
         if stop_on_defined:
-            ret.stopOn(stop_on)
+            if isinstance(ret, Opt):
+                ret = ZeroOrMore(self, max=1)
+            typing.cast(_MultipleMatch, ret).stopOn(stop_on)
 
         return ret
 
@@ -5009,6 +5015,12 @@ class Each(ParseExpression):
         self.skipWhitespace = True
         self.initExprGroups = True
         self.saveAsList = True
+        self.opt1map: dict[int, Opt] = {}
+        self.optionals: list[ParserElement] = []
+        self.multioptionals: list[ParserElement] = []
+        self.multirequired: list[ParserElement] = []
+        self.multimax_counts: dict[int, typing.Optional[int]] = {}
+        self.required: list[ParserElement] = []
 
     def __iand__(self, other):
         if isinstance(other, str_type):
@@ -5034,19 +5046,23 @@ class Each(ParseExpression):
             opt2 = [
                 e
                 for e in self.exprs
-                if e.mayReturnEmpty and not isinstance(e, (Opt, Regex, ZeroOrMore))
+                if e.mayReturnEmpty and not isinstance(e, (Opt, Regex, _MultipleMatch))
             ]
             self.optionals = opt1 + opt2
+            multiple_exprs = [e for e in self.exprs if isinstance(e, _MultipleMatch)]
             self.multioptionals = [
-                e.expr.set_results_name(e.resultsName, list_all_matches=True)
-                for e in self.exprs
-                if isinstance(e, _MultipleMatch)
+                e.expr.copy().set_results_name(e.resultsName, list_all_matches=True)
+                for e in multiple_exprs
             ]
             self.multirequired = [
-                e.expr.set_results_name(e.resultsName, list_all_matches=True)
-                for e in self.exprs
-                if isinstance(e, OneOrMore)
+                child
+                for wrapper, child in zip(multiple_exprs, self.multioptionals)
+                if isinstance(wrapper, OneOrMore)
             ]
+            self.multimax_counts = {
+                id(child): wrapper.max_count
+                for wrapper, child in zip(multiple_exprs, self.multioptionals)
+            }
             self.required = [
                 e for e in self.exprs if not isinstance(e, (Opt, ZeroOrMore, OneOrMore))
             ]
@@ -5057,16 +5073,26 @@ class Each(ParseExpression):
         tmpReqd = self.required[:]
         tmpOpt = self.optionals[:]
         multis = self.multioptionals[:]
+        remaining_counts = self.multimax_counts.copy()
         matchOrder: list[ParserElement] = []
 
         keepMatching = True
         failed: list[ParserElement] = []
         fatals: list[ParseFatalException] = []
         while keepMatching:
-            tmpExprs = tmpReqd + tmpOpt + multis
+            tmpExprs = tmpReqd + tmpOpt
+            if tmpReqd and self.multirequired:
+                required_ids = {id(e) for e in tmpReqd}
+                tmpExprs.extend(e for e in multis if id(e) not in required_ids)
+            else:
+                tmpExprs += multis
             failed.clear()
             fatals.clear()
             for e in tmpExprs:
+                multi_id = id(e)
+                if remaining_counts.get(multi_id) == 0:
+                    failed.append(e)
+                    continue
                 try:
                     tmpLoc = e.try_parse(instring, tmpLoc, raise_fatal=True)
                 except ParseFatalException as pfe:
@@ -5077,6 +5103,12 @@ class Each(ParseExpression):
                 except ParseException:
                     failed.append(e)
                 else:
+                    remaining = remaining_counts.get(multi_id)
+                    if remaining is not None:
+                        remaining -= 1
+                        remaining_counts[multi_id] = remaining
+                        if remaining == 0:
+                            multis = [m for m in multis if m is not e]
                     matchOrder.append(self.opt1map.get(id(e), e))
                     if e in tmpReqd:
                         tmpReqd.remove(e)

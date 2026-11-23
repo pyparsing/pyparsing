@@ -3597,6 +3597,41 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
         with self.assertRaisesParseException():
             (pp.Word(pp.alphas)[..., 3] + pp.Word(pp.nums)).parse_string("a b c d 1")
 
+    def testBoundedRepetitionSingleOptionalResultNames(self):
+        word = pp.Word(pp.alphas)
+        for repetition in (word[0, 1], word[..., 1], word * (0, 1)):
+            with self.subTest(repetition=repetition):
+                named_repetition = repetition("value")
+                result = named_repetition.parse_string("alpha", parse_all=True)
+                self.assertEqual(result["value"], "alpha")
+
+                result = named_repetition.parse_string("", parse_all=True)
+                self.assertNotIn("value", result)
+
+        # Directly constructed ZeroOrMore expressions retain their list results.
+        bounded_zero_or_more = pp.ZeroOrMore(word, max=1)("value")
+        result = bounded_zero_or_more.parse_string("alpha", parse_all=True)
+        self.assertEqual(result["value"].as_list(), ["alpha"])
+
+    def testBoundedRepetitionSingleOptionalWithStopOn(self):
+        word = pp.Word(pp.alphas)
+        end = pp.Keyword("END")
+        expr = word[0, 1 : end] + end
+
+        self.assertParseAndCheckList(expr, "END", ["END"])
+        self.assertParseAndCheckList(expr, "alpha END", ["alpha", "END"])
+
+    def testSingleOptionalRepetitionKeepsScalarResultsName(self):
+        """issue #674 - one optional repetition is Opt, not a one-item list."""
+        word = pp.Word(pp.nums)
+        self.assertEqual(word[0, 1]("a").parse_string("5").as_dict(), {"a": "5"})
+        self.assertEqual(word[0, 1]("a").parse_string("").as_dict(), {})
+        self.assertEqual((word * (0, 1))("a").parse_string("5").as_dict(), {"a": "5"})
+        self.assertEqual(word[..., 1]("a").parse_string("5").as_dict(), {"a": "5"})
+        # More than one optional element stays a list (issue #332).
+        self.assertEqual(word[0, 2]("a").parse_string("5").as_dict(), {"a": ["5"]})
+        self.assertEqual(word[0, 2]("a").parse_string("").as_dict(), {"a": []})
+
     def testBoundedRepetitionLargeUpperBoundEarlyExit(self):
         """issue #332 - the optional tail of ``expr[..., upper_bound]`` must
         still *exit early* (like the original recursive implementation): once
@@ -5945,6 +5980,40 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
                 verbose=False,
             )
 
+    def testNestedExpressionIgnoreOmitsCommentToken(self):
+        parser = pp.nested_expr(
+            "[",
+            "]",
+            pp.Word(pp.alphas),
+            pp.cpp_style_comment,
+        ).set_results_name("target")
+        parser.ignore(pp.cpp_style_comment)
+
+        tokens, start, end = next(parser.scan_string("[x /* */]"))
+
+        self.assertEqual((start, end), (0, len("[x /* */]")))
+        self.assertEqual(tokens.target.as_list(), [["x"]])
+
+    def testNestedExpressionIgnoreSkipsCommentBeforeCloser(self):
+        parser = pp.nested_expr("[", "]", pp.Word(pp.alphas)).set_results_name("target")
+        parser.ignore(pp.cpp_style_comment)
+
+        tokens, _, _ = next(parser.scan_string("[x /* */]"))
+
+        self.assertEqual(tokens.target.as_list(), [["x"]])
+
+    def testNestedExpressionIgnoreExprKeepsCommentText(self):
+        parser = pp.nested_expr(
+            "[",
+            "]",
+            pp.Word(pp.alphas),
+            pp.cpp_style_comment,
+        ).set_results_name("target")
+
+        tokens, _, _ = next(parser.scan_string("[x /* */]"))
+
+        self.assertEqual(tokens.target.as_list(), [["x", "/* */"]])
+
     def testNestedExpressionRecursionError(self):
         # reproduce CWE reported by Kai Aizen
         with resetting_recursion_limit():
@@ -6650,6 +6719,110 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
                 result = spec.parse_string(test, parse_all=True)
                 self.assertParseResultsEquals(result, expected_dict=expected_dict)
 
+    def testEachWithBoundedMultipleMatch(self):
+        for repeat, minimum in ((pp.ZeroOrMore, 0), (pp.OneOrMore, 1)):
+            for maximum in (1, 2, 3):
+                expr = repeat("a", max=maximum)("items") & pp.Literal("b")
+                for count in range(maximum + 2):
+                    for marker_index in range(count + 1):
+                        text = "a" * marker_index + "b" + "a" * (count - marker_index)
+                        with self.subTest(repeat=repeat, maximum=maximum, text=text):
+                            if minimum <= count <= maximum:
+                                result = expr.parse_string(text, parse_all=True)
+                                self.assertEqual(list(text), result.as_list())
+                                self.assertEqual(
+                                    ["a"] * count, list(result.get("items", []))
+                                )
+                            else:
+                                with self.assertRaises(pp.ParseException):
+                                    expr.parse_string(text, parse_all=True)
+
+    def testEachWithMultipleBoundedMatches(self):
+        expr = (
+            pp.ZeroOrMore("a", max=2)("a_items")
+            & pp.OneOrMore("b", max=1)("b_items")
+            & "c"
+        )
+        for text, succeeds in (
+            ("aabc", True),
+            ("abca", True),
+            ("cba", True),
+            ("aaabc", False),
+            ("abbc", False),
+            ("aac", False),
+            ("bc", True),
+            ("abca", True),
+        ):
+            with self.subTest(text=text):
+                if succeeds:
+                    result = expr.parse_string(text, parse_all=True)
+                    self.assertEqual(list(text), result.as_list())
+                    self.assertEqual(
+                        ["a"] * text.count("a"), list(result.get("a_items", []))
+                    )
+                    self.assertEqual(["b"], result["b_items"].as_list())
+                else:
+                    with self.assertRaises(pp.ParseException):
+                        expr.parse_string(text, parse_all=True)
+
+    def testEachWithSharedBoundedMultipleMatch(self):
+        for first_repeat in (pp.ZeroOrMore, pp.OneOrMore):
+            for second_repeat in (pp.ZeroOrMore, pp.OneOrMore):
+                shared = pp.Literal("a")
+                expr = first_repeat(shared, max=2) & second_repeat(shared, max=1) & "b"
+                independent = (
+                    first_repeat(pp.Literal("a"), max=2)
+                    & second_repeat(pp.Literal("a"), max=1)
+                    & "b"
+                )
+                for text in ("aab", "aaab", "aba", "abaa"):
+                    with self.subTest(
+                        first=first_repeat, second=second_repeat, text=text
+                    ):
+                        self.assertEqual(
+                            independent.parse_string(text, parse_all=True).as_list(),
+                            expr.parse_string(text, parse_all=True).as_list(),
+                        )
+                with self.assertRaises(pp.ParseException):
+                    expr.parse_string("aaaab", parse_all=True)
+
+    def testEachWithNullableBoundedMultipleMatch(self):
+        for repeat in (pp.ZeroOrMore, pp.OneOrMore):
+            for maximum in (1, 2):
+                for child in (pp.Opt("a"), pp.Regex("a?")):
+                    expr = repeat(child, max=maximum) & "b"
+                    for count in range(maximum + 2):
+                        text = "a" * count + "b"
+                        with self.subTest(
+                            repeat=repeat, maximum=maximum, child=child, text=text
+                        ):
+                            if count <= maximum:
+                                result = expr.parse_string(text, parse_all=True)
+                                self.assertEqual(count, result.as_list().count("a"))
+                                self.assertEqual(1, result.as_list().count("b"))
+                            else:
+                                with self.assertRaises(pp.ParseException):
+                                    expr.parse_string(text, parse_all=True)
+                    if maximum == 2:
+                        with self.subTest(repeat=repeat, child=child, text="aba"):
+                            result = expr.parse_string("aba", parse_all=True)
+                            self.assertEqual(2, result.as_list().count("a"))
+                            self.assertEqual(1, result.as_list().count("b"))
+                empty = pp.Empty().set_parse_action(lambda: "empty")
+                expr = repeat(empty, max=maximum) & "b"
+                with self.subTest(repeat=repeat, maximum=maximum, child=empty):
+                    result = expr.parse_string("b", parse_all=True)
+                    self.assertEqual(maximum, result.as_list().count("empty"))
+                    self.assertEqual(1, result.as_list().count("b"))
+
+    def testEachWithBoundedSlice(self):
+        expr = pp.Literal("a")[..., 2] & "b"
+        self.assertParseResultsEquals(
+            expr.parse_string("aba", parse_all=True), ["a", "b", "a"]
+        )
+        with self.assertRaises(pp.ParseException):
+            expr.parse_string("aaba", parse_all=True)
+
     def testSumParseResults(self):
         samplestr1 = "garbage;DOB 10-10-2010;more garbage\nID PARI12345678;more garbage"
         samplestr2 = "garbage;ID PARI12345678;more garbage\nDOB 10-10-2010;more garbage"
@@ -7249,6 +7422,87 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
         # If max is negative, ZeroOrMore should raise ValueError
         with self.assertRaises(ValueError):
             pp.ZeroOrMore(pp.Word(pp.nums), max=-1)
+
+    def testEachInitializesExpressionGroups(self):
+        expr = pp.Each(
+            [pp.Opt("a"), pp.OneOrMore("b", max=2), pp.Literal("c")]
+        )
+        another_expr = pp.Each([])
+
+        for attr_name in (
+            "opt1map",
+            "optionals",
+            "multioptionals",
+            "multirequired",
+            "multimax_counts",
+            "required",
+        ):
+            attr = getattr(expr, attr_name)
+            self.assertEqual(attr, {} if isinstance(attr, dict) else [])
+            self.assertIsNot(attr, getattr(another_expr, attr_name))
+
+        expr.parse_string("a b c", parse_all=True)
+
+        self.assertTrue(expr.opt1map)
+        self.assertTrue(expr.optionals)
+        self.assertTrue(expr.multioptionals)
+        self.assertTrue(expr.multirequired)
+        self.assertTrue(expr.multimax_counts)
+        self.assertTrue(expr.required)
+
+    def testEachHonorsBoundedRepetitionLimits(self):
+        word = pp.Word(pp.alphas)
+        expr = pp.Each(
+            [
+                pp.ZeroOrMore(word, max=1)("once"),
+                pp.ZeroOrMore(word, max=2)("twice"),
+                pp.Literal("!"),
+            ]
+        )
+
+        for source, expected_once, expected_twice in (
+            ("a b c !", ["a"], ["b", "c"]),
+            ("d e f !", ["d"], ["e", "f"]),
+        ):
+            with self.subTest(source=source):
+                result = expr.parse_string(source, parse_all=True)
+                self.assertEqual(result["once"].as_list(), expected_once)
+                self.assertEqual(result["twice"].as_list(), expected_twice)
+
+        with self.assertRaisesParseException():
+            expr.parse_string("a b c d !", parse_all=True)
+
+        result = expr.parse_string("g h i !", parse_all=True)
+        self.assertEqual(result["once"].as_list(), ["g"])
+        self.assertEqual(result["twice"].as_list(), ["h", "i"])
+
+        sliced_expr = pp.Each([word[..., 2]("sliced"), pp.Literal("!")])
+        result = sliced_expr.parse_string("a b !", parse_all=True)
+        self.assertEqual(result["sliced"].as_list(), ["a", "b"])
+        with self.assertRaisesParseException():
+            sliced_expr.parse_string("a b c !", parse_all=True)
+
+        repeated = pp.ZeroOrMore(pp.Literal("a"), max=2)
+        shared_expr = pp.Each([repeated, repeated, pp.Literal("!")])
+        self.assertParseAndCheckList(shared_expr, "a a a a !", ["a"] * 4 + ["!"])
+        with self.assertRaisesParseException():
+            shared_expr.parse_string("a a a a a !", parse_all=True)
+
+    def testEachCountsRequiredOneOrMoreMatchAgainstBound(self):
+        word = pp.Word(pp.alphas)
+        expr = pp.Each([pp.OneOrMore(word, max=2)("words"), pp.Literal("!")])
+
+        result = expr.parse_string("a ! b", parse_all=True)
+        self.assertEqual(result["words"].as_list(), ["a", "b"])
+
+        with self.assertRaisesParseException():
+            expr.parse_string("a ! b c", parse_all=True)
+
+    def testEachBoundedNullableRepetitionTerminates(self):
+        expr = pp.Each(
+            [pp.OneOrMore(pp.Opt("x"), max=2), pp.Literal("!")]
+        )
+        self.assertParseAndCheckList(expr, "!", ["!"])
 
     def testNestedAsDict(self):
         equals = pp.Literal("=").suppress()
