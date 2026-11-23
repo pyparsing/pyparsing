@@ -36,7 +36,7 @@ Version 3.3.4 - In development
   the list. In 3.3.3 the stack-based parser kept those matches as tokens, and
   a match placed immediately before the closer failed the parse. Fixes #693,
   submitted by WU Leizhi et AI. (issues #693 and #695; see PR #694 and regression
-  test added in PR #697)
+  test added in PR #697 submitted by ekanshul)
 
 - Restored scalar result-name behavior for a single optional repetition (issue
   #674, PR #682), while retaining iterative handling for larger bounds. PR
@@ -48,7 +48,11 @@ Version 3.3.4 - In development
 - Fixed exponential regex backtracking in `quoted_string`, `dbl_quoted_string`,
   `sgl_quoted_string`, `python_quoted_string`, and `QuotedString` with an end
   quote of 3 or more characters, when parsing a string with no closing quote.
-  (PR #725 submitted by kumkuma78.)
+  PR #725 submitted by kumkuma78. Similar solution provided in PR #656, along
+  with additional unit testing, submitted by Guillermo Garcia.
+
+- Fixed handling of octal, hex, and Unicode escapes in parsing quoted strings.
+  PR #684, submitted by Priyansh Kansara.
 
 
 Version 3.3.3 - September, 2026
