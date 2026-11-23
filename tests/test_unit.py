@@ -6761,6 +6761,24 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             else:
                 pass
 
+    def testWordEndNotAtStartOfString(self):
+        # a word cannot end at position 0, where no character precedes it
+        word_end = pp.WordEnd(pp.alphanums)
+
+        dotted = word_end + "."
+        self.assertEqual(
+            [(s, e) for _, s, e in dotted.scan_string(".word. next")],
+            [(5, 6)],
+            "WordEnd must not match at the start of the string",
+        )
+
+        with self.assertRaises(pp.ParseException):
+            word_end.parse_string(".word", parse_all=False)
+
+        # the end of the string is still a word end
+        self.assertEqual((pp.Word(pp.alphas) + word_end).parse_string("word", parse_all=True).as_list(), ["word"])
+        self.assertEqual(word_end.parse_string("", parse_all=False).as_list(), [])
+
     def testRequiredEach(self):
         parser = pp.Keyword("bam") & pp.Keyword("boo")
         try:
