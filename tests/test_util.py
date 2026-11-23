@@ -196,6 +196,30 @@ def test_make_compressed_re() -> None:
         regex = re.compile(make_compressed_re(words, max_level=i) + "$")
         assert all(regex.match(wd) for wd in words)
 
+
+@pytest.mark.parametrize("max_level", [0, 1, 2, 4])
+@pytest.mark.parametrize(
+    "make_iterable", [iter, lambda words: (word for word in words)]
+)
+def test_make_compressed_re_iterables(max_level, make_iterable):
+    import re
+    from pyparsing.util import make_compressed_re
+
+    words = ["foo", "foobar", "a.b", "a+b", "foo"]
+    pattern = make_compressed_re(make_iterable(words), max_level=max_level)
+    assert pattern == make_compressed_re(words, max_level=max_level)
+    regex = re.compile(pattern)
+    assert all(regex.fullmatch(word) for word in words)
+
+
+@pytest.mark.parametrize("words", [[], ["foo", "", "bar"]])
+def test_make_compressed_re_invalid_iterables(words):
+    from pyparsing.util import make_compressed_re
+
+    with pytest.raises(ValueError):
+        make_compressed_re(iter(words))
+
+
 def test_make_compressed_re_bad_input():
     from pyparsing.util import make_compressed_re
 

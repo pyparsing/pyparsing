@@ -360,7 +360,7 @@ def make_compressed_re(
     _level: int = 1,
 ) -> str:
     """
-    Create a regular expression string from a list of words, collapsing by common
+    Create a regular expression string from an iterable of words, collapsing by common
     prefixes and optional suffixes.
 
     Calls itself recursively to build nested sublists for each group of suffixes
@@ -374,6 +374,9 @@ def make_compressed_re(
         else:
             yield namelist[0][0], [namelist[0][1:]]
 
+    # Materialize and dedupe before inspecting possibly single-use iterables.
+    word_list = list({}.fromkeys(word_list))
+
     if _level == 1:
         if not word_list:
             raise ValueError("no words given to make_compressed_re()")
@@ -384,9 +387,6 @@ def make_compressed_re(
         # internal recursive call, just return empty string if no words
         if not word_list:
             return ""
-
-    # dedupe the word list
-    word_list = list({}.fromkeys(word_list))
 
     if max_level == 0:
         if any(len(wd) > 1 for wd in word_list):
