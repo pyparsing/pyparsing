@@ -5572,6 +5572,24 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, PyparsingTestCase):
             1, len(result[1]), "packrat parsing is duplicating And term exprs"
         )
 
+    def testPackratParsingExceptionsAccumulateTracebacks(self):
+        import traceback
+
+        if not ParserElement._packratEnabled:
+            return
+
+        aword = pp.Word(pp.alphas)
+        for i in range(10):
+            try:
+                aword._parse("42", 0)
+            except pp.ParseException:
+                pass
+
+        try:
+            aword._parse("42", 0)
+        except pp.ParseException as exc:
+            self.assertEqual(2, len(traceback.extract_tb(exc.__traceback__)))
+
     def testParseResultsDel(self):
         grammar = pp.OneOrMore(pp.Word(pp.nums))("ints") + pp.OneOrMore(
             pp.Word(pp.alphas)
