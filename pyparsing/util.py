@@ -374,6 +374,9 @@ def make_compressed_re(
         else:
             yield namelist[0][0], [namelist[0][1:]]
 
+    # dedupe the word list
+    word_list = list({}.fromkeys(word_list))
+
     if _level == 1:
         if not word_list:
             raise ValueError("no words given to make_compressed_re()")
@@ -384,9 +387,6 @@ def make_compressed_re(
         # internal recursive call, just return empty string if no words
         if not word_list:
             return ""
-
-    # dedupe the word list
-    word_list = list({}.fromkeys(word_list))
 
     if max_level == 0:
         if any(len(wd) > 1 for wd in word_list):

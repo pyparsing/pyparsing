@@ -58,6 +58,9 @@ Version 3.3.4 - In development
   returning them, preventing extra matches past end of input; submitted by
   Sskift et AI.
 
+- Fixed `make_compressed_re()` consuming generators and iterators during input
+  validation; submitted by Sskift et AI.
+
 
 Version 3.3.3 - September, 2026
 -------------------------------
