@@ -88,9 +88,8 @@ class TestRailroadDiagrams(unittest.TestCase):
     def test_example_rr_diags(self):
         subtests = [
             ("jsonObject", jsonObject, 8),
-            # TODO - fix these after fixing diagram genration for infix notations
-            ("boolExpr", boolExpr, 2),
-            ("simpleSQL", simpleSQL, 16),
+            ("boolExpr", boolExpr, 6),
+            ("simpleSQL", simpleSQL, 20),
             # TODO - add diagram test for nested_expr
             ("calendars", calendars, 13),
         ]

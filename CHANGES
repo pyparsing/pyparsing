@@ -25,6 +25,14 @@ Required Python versions by pyparsing version
 +--------------------------------------------------+-------------------+
 
 
+Version 3.3.4 - In development
+------------------------------
+- Restored the recursive `infix_notation` implementation to preserve operator
+  matching, token nesting, and results names (issues #672 and #674), as well as
+  previous railroad diagram construction. Very deeply nested infix notation
+  expressions may again run into Python's recursion limit.
+
+
 Version 3.3.3 - September, 2026
 -------------------------------
 - Added support for Python 3.15.

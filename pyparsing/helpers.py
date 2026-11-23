@@ -1,5 +1,5 @@
 # helpers.py
-from enum import Enum, auto
+from enum import Enum
 import html.entities
 import operator
 import re
@@ -917,536 +917,12 @@ InfixNotationOperatorSpec = Union[
 ]
 
 
-class _ParserState(Enum):
-    EXPECT_OPERAND = auto()
-    EXPECT_OPERATOR = auto()
-
-
-class _OpType(Enum):
-    PREFIX = auto()
-    POSTFIX = auto()
-    INFIX2 = auto()
-    INFIX2_RIGHT = auto()
-    TERNARY_LEFT_STAGE1 = auto()
-    TERNARY_LEFT_STAGE2 = auto()
-    TERNARY_RIGHT_STAGE1 = auto()
-    TERNARY_RIGHT_STAGE2 = auto()
-    LPAR = auto()
-
-
-class _InfixNotationOperatorSpec(NamedTuple):
-    op: InfixNotationOperatorArgType
-    arity: int
-    op_type: _OpType
-    parse_action: typing.Optional[list[Callable]]
-
-
-class _InfixNotation(ParseElementEnhance):
-    """
-    An iterative / stack-based implementation of infix_notation (using operator-precedence /
-    shunting-yard style evaluation with an explicit stack).
-    Prevents Python recursion limits from being exceeded on deeply nested expressions or long chains.
-    """
-    def __init__(
-        self,
-        base_expr: ParserElement,
-        op_list: list[_InfixNotationOperatorSpec],
-        lpar: Union[str, ParserElement] = Suppress("("),
-        rpar: Union[str, ParserElement] = Suppress(")"),
-    ):
-        from .core import _trim_arity
-
-        while isinstance(base_expr, _InfixNotation):
-            op_list[:0] = base_expr.op_list[:]  # type: ignore[has-type]
-            base_expr = base_expr.base_expr  # type: ignore[has-type]
-
-        super().__init__(base_expr, savelist=True)
-        self.base_expr = base_expr
-        self.op_list = op_list
-        self.lpar = Suppress(lpar) if isinstance(lpar, str) else lpar
-        self.rpar = Suppress(rpar) if isinstance(rpar, str) else rpar
-        self.keep_parens = not (isinstance(self.lpar, Suppress) and isinstance(self.rpar, Suppress))
-        self.errmsg = None
-
-        # Classify operators by arity and associativity
-        # Precedence is defined by order in op_list (higher index in op_list = lower precedence)
-        # We assign higher numeric precedence to earlier entries in op_list
-        self.prefix_ops: list[_InfixNotationOperatorSpec] = []   # (expr, prec, assoc, pa_list)
-        self.postfix_ops: list[_InfixNotationOperatorSpec] = []  # (expr, prec, assoc, pa_list)
-        self.infix_ops = []  # type: ignore[var-annotated]
-
-        total_ops = len(op_list)
-        for idx, oper_def in enumerate(op_list):
-            op_expr, arity, assoc, *pa_opt = (oper_def + (None,))[:4]
-            pa = pa_opt[0] if pa_opt else None
-            pa_list = (
-                [_trim_arity(f) for f in pa]
-                if isinstance(pa, (tuple, list))
-                else ([_trim_arity(pa)] if pa is not None else [])
-            )
-
-            if not 1 <= arity <= 3:
-                raise ValueError("operator must be unary (1), binary (2), or ternary (3)")
-
-            if assoc not in (OpAssoc.LEFT, OpAssoc.RIGHT):
-                raise ValueError("operator must indicate right or left associativity")
-
-            # Precedence: top of list has highest precedence
-            prec = (total_ops - idx) * 10
-
-            if arity == 1:
-                if isinstance(op_expr, str_type):
-                    op_expr = Literal(op_expr)
-                if assoc is OpAssoc.RIGHT:
-                    self.prefix_ops.append((op_expr, prec, assoc, pa_list))
-                else:
-                    self.postfix_ops.append((op_expr, prec, assoc, pa_list))
-            elif arity == 2:
-                if op_expr is not None and isinstance(op_expr, str_type):
-                    op_expr = Literal(op_expr)
-                self.infix_ops.append((op_expr, prec, assoc, pa_list, 2, None))
-            elif arity == 3:
-                if not isinstance(op_expr, (tuple, list)) or len(op_expr) != 2:
-                    raise ValueError(
-                        "if numterms=3, opExpr must be a tuple or list of two expressions"
-                    )
-                op1, op2 = op_expr
-                if isinstance(op1, str_type):
-                    op1 = Literal(op1)
-                if isinstance(op2, str_type):
-                    op2 = Literal(op2)
-                self.infix_ops.append((op1, prec, assoc, pa_list, 3, op2))
-
-    def _generateDefaultName(self) -> str:
-        return f"{self.base_expr} infix expression"
-
-    def _run_parse_actions(self, pa_list, instring, loc, tokens):
-        ret_tokens = tokens
-        for fn in pa_list:
-            res = fn(instring, loc, ret_tokens)
-            if res is not None and res is not ret_tokens:
-                if isinstance(res, (ParseResults, list, tuple)):
-                    ret_tokens = ParseResults(res, aslist=True)
-                else:
-                    return res
-        return ret_tokens
-
-    def _apply_operator(self, op_info, operand_stack, instring):
-        op_type = op_info["type"]
-        pa_list = op_info.get("pa", [])
-        start_loc = op_info.get("loc", 0)
-
-        if op_type is _OpType.PREFIX:
-            op_tok = op_info["op"]
-            arg = operand_stack.pop()
-            tokens = []
-            if isinstance(op_tok, (list, ParseResults)):
-                tokens.extend(op_tok)
-            elif op_tok is not None:
-                tokens.append(op_tok)
-            tokens.append(arg)
-            tokens_pr = ParseResults(tokens)
-            if pa_list:
-                res = self._run_parse_actions(pa_list, instring, start_loc, ParseResults([tokens_pr]))
-            else:
-                res = tokens_pr
-            operand_stack.append(res)
-
-        elif op_type is _OpType.POSTFIX:
-            arg = operand_stack.pop()
-            if isinstance(arg, ParseResults):
-                res_pr = arg.copy()
-            elif isinstance(arg, list):
-                res_pr = ParseResults(arg)
-            else:
-                res_pr = ParseResults([arg])
-            for op_tok in op_info["ops"]:
-                if isinstance(op_tok, ParseResults):
-                    res_pr += op_tok
-                elif isinstance(op_tok, list):
-                    res_pr.extend(op_tok)
-                elif op_tok is not None:
-                    res_pr.append(op_tok)
-            if pa_list:
-                res = self._run_parse_actions(pa_list, instring, start_loc, ParseResults([res_pr]))
-            else:
-                res = res_pr
-            operand_stack.append(res)
-
-        elif op_type is _OpType.INFIX2:
-            ops = op_info["ops"]
-            num_ops = len(ops)
-            args = [operand_stack.pop() for _ in range(num_ops + 1)]
-            args.reverse()
-            tokens = [args[0]]
-            for i in range(num_ops):
-                op_tok = ops[i]
-                if isinstance(op_tok, (list, ParseResults)):
-                    tokens.extend(op_tok)
-                elif op_tok is not None:
-                    tokens.append(op_tok)
-                tokens.append(args[i + 1])
-            tokens_pr = ParseResults(tokens)
-            if pa_list:
-                res = self._run_parse_actions(pa_list, instring, start_loc, ParseResults([tokens_pr]))
-            else:
-                res = tokens_pr
-            operand_stack.append(res)
-
-        elif op_type is _OpType.INFIX2_RIGHT:
-            op_tok = op_info["op"]
-            right = operand_stack.pop()
-            left = operand_stack.pop()
-            tokens = [left]
-            if isinstance(op_tok, (list, ParseResults)):
-                tokens.extend(op_tok)
-            elif op_tok is not None:
-                tokens.append(op_tok)
-            tokens.append(right)
-            tokens_pr = ParseResults(tokens)
-            if pa_list:
-                res = self._run_parse_actions(pa_list, instring, start_loc, ParseResults([tokens_pr]))
-            else:
-                res = tokens_pr
-            operand_stack.append(res)
-
-        elif op_type is _OpType.TERNARY_LEFT_STAGE2:
-            ops_list = op_info["ops"]
-            num_ops = len(ops_list)
-            num_operands = 2 * num_ops + 1
-            args = [operand_stack.pop() for _ in range(num_operands)]
-            args.reverse()
-            tokens = [args[0]]
-            for i in range(num_ops):
-                op1_tok, op2_tok = ops_list[i]
-                if isinstance(op1_tok, (list, ParseResults)):
-                    tokens.extend(op1_tok)
-                elif op1_tok is not None:
-                    tokens.append(op1_tok)
-                tokens.append(args[2 * i + 1])
-                if isinstance(op2_tok, (list, ParseResults)):
-                    tokens.extend(op2_tok)
-                elif op2_tok is not None:
-                    tokens.append(op2_tok)
-                tokens.append(args[2 * i + 2])
-            tokens_pr = ParseResults(tokens)
-            if pa_list:
-                res = self._run_parse_actions(pa_list, instring, start_loc, ParseResults([tokens_pr]))
-            else:
-                res = tokens_pr
-            operand_stack.append(res)
-
-        elif op_type is _OpType.TERNARY_RIGHT_STAGE2:
-            op1_tok = op_info["op1"]
-            op2_tok = op_info["op2"]
-            arg3 = operand_stack.pop()
-            arg2 = operand_stack.pop()
-            arg1 = operand_stack.pop()
-            tokens = [arg1]
-            if isinstance(op1_tok, (list, ParseResults)):
-                tokens.extend(op1_tok)
-            elif op1_tok is not None:
-                tokens.append(op1_tok)
-            tokens.append(arg2)
-            if isinstance(op2_tok, (list, ParseResults)):
-                tokens.extend(op2_tok)
-            elif op2_tok is not None:
-                tokens.append(op2_tok)
-            tokens.append(arg3)
-            tokens_pr = ParseResults(tokens)
-            if pa_list:
-                res = self._run_parse_actions(pa_list, instring, start_loc, ParseResults([tokens_pr]))
-            else:
-                res = tokens_pr
-            operand_stack.append(res)
-
-        return bool(pa_list)
-
-    def parseImpl(self, instring, loc, do_actions=True):
-        operand_stack = []
-        operator_stack = []
-        last_pa_applied = [False]
-
-        def reduce_operators(min_prec):
-            while operator_stack:
-                top = operator_stack[-1]
-                if top["type"] in (_OpType.LPAR, _OpType.TERNARY_LEFT_STAGE1, _OpType.TERNARY_RIGHT_STAGE1):
-                    break
-                if top["prec"] > min_prec:
-                    op_info = operator_stack.pop()
-                    last_pa_applied[0] = self._apply_operator(op_info, operand_stack, instring)
-                else:
-                    break
-
-        state = _ParserState.EXPECT_OPERAND
-        paren_depth = 0
-
-        while True:
-            try:
-                loc = self.preParse(instring, loc)
-            except ParseException:
-                pass
-
-            if state is _ParserState.EXPECT_OPERAND:
-                # 1. Try prefix operators
-                matched_prefix = False
-                for op_expr, prec, assoc, pa_list in self.prefix_ops:
-                    try:
-                        next_loc, toks = op_expr._parse(instring, loc, do_actions=do_actions)
-                        op_tok = toks.as_list()[0] if len(toks) == 1 else toks.as_list()
-                        operator_stack.append({
-                            "type": _OpType.PREFIX,
-                            "op": op_tok,
-                            "prec": prec,
-                            "assoc": assoc,
-                            "pa": pa_list if do_actions else [],
-                            "loc": loc,
-                        })
-                        loc = next_loc
-                        matched_prefix = True
-                        break
-                    except ParseException:
-                        pass
-                if matched_prefix:
-                    continue
-
-                # 2. Try base_expr
-                try:
-                    next_loc, base_toks = self.base_expr._parse(instring, loc, do_actions=do_actions)
-                    if not base_toks and not base_toks._tokdict:
-                        loc = next_loc
-                        continue
-                    operand = base_toks[0] if len(base_toks) == 1 else base_toks
-                    operand_stack.append(operand)
-                    loc = next_loc
-                    state = _ParserState.EXPECT_OPERATOR
-                    continue
-                except ParseException:
-                    pass
-
-                # 3. Try lpar
-                try:
-                    next_loc, lpar_toks = self.lpar._parse(instring, loc, do_actions=do_actions)
-                    operator_stack.append({
-                        "type": _OpType.LPAR,
-                        "paren_toks": lpar_toks.as_list(),
-                        "loc": loc,
-                    })
-                    paren_depth += 1
-                    loc = next_loc
-                    continue
-                except ParseException:
-                    raise ParseException(instring, loc, f"Expected {self.base_expr}")
-
-            elif state is _ParserState.EXPECT_OPERATOR:
-                # 1. Try postfix operators
-                matched_postfix = False
-                for op_expr, prec, assoc, pa_list in self.postfix_ops:
-                    try:
-                        next_loc, toks = op_expr._parse(instring, loc, do_actions=do_actions)
-                        op_tok = toks
-                        if (
-                            operator_stack
-                            and operator_stack[-1]["type"] is _OpType.POSTFIX
-                            and operator_stack[-1]["prec"] == prec
-                            and operator_stack[-1]["assoc"] is OpAssoc.LEFT
-                        ):
-                            operator_stack[-1]["ops"].append(op_tok)
-                        else:
-                            reduce_operators(prec)
-                            operator_stack.append({
-                                "type": _OpType.POSTFIX,
-                                "ops": [op_tok],
-                                "prec": prec,
-                                "assoc": assoc,
-                                "pa": pa_list if do_actions else [],
-                                "loc": loc,
-                            })
-                        loc = next_loc
-                        matched_postfix = True
-                        break
-                    except ParseException:
-                        pass
-                if matched_postfix:
-                    continue
-
-                # 2. Try rpar if inside parens
-                if paren_depth > 0:
-                    try:
-                        next_loc, rpar_toks = self.rpar._parse(instring, loc, do_actions=do_actions)
-                        reduce_operators(-1)  # reduce all operators inside this paren
-                        if operator_stack and operator_stack[-1]["type"] is _OpType.LPAR:
-                            lpar_info = operator_stack.pop()
-                            if self.keep_parens:
-                                top_val = operand_stack.pop()
-                                operand_stack.append(ParseResults([*lpar_info["paren_toks"], top_val, *rpar_toks.as_list()]))
-                        paren_depth -= 1
-                        loc = next_loc
-                        continue
-                    except ParseException:
-                        pass
-
-                # 3. Try matching op2 for an open ternary operator (STAGE1)
-                matched_op2 = False
-                for i in range(len(operator_stack) - 1, -1, -1):
-                    item = operator_stack[i]
-                    if item["type"] is _OpType.LPAR:
-                        break
-                    if item["type"] in (_OpType.TERNARY_LEFT_STAGE1, _OpType.TERNARY_RIGHT_STAGE1):
-                        try:
-                            next_loc, toks = item["op2_expr"]._parse(instring, loc, do_actions=do_actions)
-                            op2_tok = toks.as_list()[0] if len(toks) == 1 else toks.as_list()
-                            while operator_stack and operator_stack[-1] is not item:
-                                op_info = operator_stack.pop()
-                                self._apply_operator(op_info, operand_stack, instring)
-                            if item["type"] is _OpType.TERNARY_LEFT_STAGE1:
-                                item["type"] = _OpType.TERNARY_LEFT_STAGE2
-                                item["ops"][-1].append(op2_tok)
-                            else:
-                                item["type"] = _OpType.TERNARY_RIGHT_STAGE2
-                                item["op2"] = op2_tok
-                            loc = next_loc
-                            matched_op2 = True
-                            state = _ParserState.EXPECT_OPERAND
-                            break
-                        except ParseException:
-                            pass
-                if matched_op2:
-                    continue
-
-                def _check_operand_follows(check_loc):
-                    for p_op, _, _, _ in self.prefix_ops:
-                        try:
-                            p_op._parse(instring, check_loc, do_actions=False)
-                            return True
-                        except ParseException:
-                            pass
-                    try:
-                        self.base_expr._parse(instring, check_loc, do_actions=False)
-                        return True
-                    except ParseException:
-                        pass
-                    try:
-                        self.lpar._parse(instring, check_loc, do_actions=False)
-                        return True
-                    except ParseException:
-                        pass
-                    return False
-
-                # 4. Try infix binary and ternary operators
-                matched_infix = False
-                for op_expr, prec, assoc, pa_list, arity, op2_expr in self.infix_ops:
-                    if arity == 2:
-                        if op_expr is None:
-                            if not _check_operand_follows(loc):
-                                continue
-                            next_loc = loc
-                            op_tok = None
-                        else:
-                            try:
-                                next_loc, toks = op_expr._parse(instring, loc, do_actions=do_actions)
-                            except ParseException:
-                                continue
-                            if next_loc == loc:
-                                if not _check_operand_follows(loc):
-                                    continue
-                                op_tok = (toks.as_list()[0] if len(toks) == 1 else toks.as_list()) if toks else None
-                            else:
-                                op_tok = toks.as_list()[0] if len(toks) == 1 else toks.as_list()
-
-                        if assoc is OpAssoc.LEFT:
-                            reduce_operators(prec)
-                            if (
-                                operator_stack
-                                and operator_stack[-1]["type"] is _OpType.INFIX2
-                                and operator_stack[-1]["prec"] == prec
-                            ):
-                                operator_stack[-1]["ops"].append(op_tok)
-                            else:
-                                operator_stack.append({
-                                    "type": _OpType.INFIX2,
-                                    "ops": [op_tok],
-                                    "prec": prec,
-                                    "assoc": assoc,
-                                    "pa": pa_list if do_actions else [],
-                                    "loc": loc,
-                                })
-                        else:
-                            reduce_operators(prec)
-                            operator_stack.append({
-                                "type": _OpType.INFIX2_RIGHT,
-                                "op": op_tok,
-                                "prec": prec,
-                                "assoc": assoc,
-                                "pa": pa_list if do_actions else [],
-                                "loc": loc,
-                            })
-                        loc = next_loc
-                        matched_infix = True
-                        state = _ParserState.EXPECT_OPERAND
-                        break
-                    elif arity == 3:
-                        try:
-                            next_loc, toks = op_expr._parse(instring, loc, do_actions=do_actions)
-                            if next_loc == loc and not _check_operand_follows(loc):
-                                continue
-                            op_tok = toks.as_list()[0] if len(toks) == 1 else toks.as_list()
-                            if assoc is OpAssoc.LEFT:
-                                if (
-                                    operator_stack
-                                    and operator_stack[-1]["type"] is _OpType.TERNARY_LEFT_STAGE2
-                                    and operator_stack[-1]["prec"] == prec
-                                ):
-                                    operator_stack[-1]["type"] = _OpType.TERNARY_LEFT_STAGE1
-                                    operator_stack[-1]["ops"].append([op_tok])
-                                else:
-                                    reduce_operators(prec)
-                                    operator_stack.append({
-                                        "type": _OpType.TERNARY_LEFT_STAGE1,
-                                        "ops": [[op_tok]],
-                                        "op2_expr": op2_expr,
-                                        "prec": prec,
-                                        "assoc": assoc,
-                                        "pa": pa_list if do_actions else [],
-                                        "loc": loc,
-                                    })
-                            else:
-                                reduce_operators(prec)
-                                operator_stack.append({
-                                    "type": _OpType.TERNARY_RIGHT_STAGE1,
-                                    "op1": op_tok,
-                                    "op2_expr": op2_expr,
-                                    "prec": prec,
-                                    "assoc": assoc,
-                                    "pa": pa_list if do_actions else [],
-                                    "loc": loc,
-                                })
-                            loc = next_loc
-                            matched_infix = True
-                            state = _ParserState.EXPECT_OPERAND
-                            break
-                        except ParseException:
-                            pass
-                if matched_infix:
-                    continue
-
-                # No more operators can be consumed at this level
-                break
-
-        # Reduce remaining operators
-        reduce_operators(-1)
-
-        if paren_depth != 0 or len(operand_stack) != 1 or operator_stack:
-            raise ParseException(instring, loc, "Unbalanced parentheses or expression syntax error")
-
-        final_result = operand_stack.pop()
-        if last_pa_applied[0] and isinstance(final_result, ParseResults):
-            return loc, final_result
-        else:
-            return loc, ParseResults([final_result])
-
-
-def infix_notation(base_expr, op_list, lpar="(", rpar=")"):
+def infix_notation(
+    base_expr: ParserElement,
+    op_list: list[InfixNotationOperatorSpec],
+    lpar: Union[str, ParserElement] = Suppress("("),
+    rpar: Union[str, ParserElement] = Suppress(")"),
+) -> Forward:
     """Helper method for constructing grammars of expressions made up of
     operators working in a precedence hierarchy.  Operators may be unary
     or binary, left- or right-associative.  Parse actions can also be
@@ -1533,7 +1009,116 @@ def infix_notation(base_expr, op_list, lpar="(", rpar=")"):
        -2--11
        [[['-', 2], '-', ['-', 11]]]
     """
-    return _InfixNotation(base_expr, op_list, lpar=lpar, rpar=rpar)
+    # captive version of FollowedBy that does not do parse actions or capture results names
+    class _FB(FollowedBy):
+        def parseImpl(self, instring, loc, doActions=True):
+            self.expr.try_parse(instring, loc)
+            return loc, []
+
+    _FB.__name__ = "FollowedBy>"
+
+    ret = Forward()
+    ret.set_name(f"{base_expr.name}_expression")
+    if isinstance(lpar, str):
+        lpar = Suppress(lpar)
+    if isinstance(rpar, str):
+        rpar = Suppress(rpar)
+
+    nested_expr = (lpar + ret + rpar).set_name(f"nested_{base_expr.name}_expression")
+
+    # if lpar and rpar are not suppressed, wrap in group
+    if not (isinstance(lpar, Suppress) and isinstance(rpar, Suppress)):
+        lastExpr = base_expr | Group(nested_expr)
+    else:
+        lastExpr = base_expr | nested_expr
+
+    arity: int
+    rightLeftAssoc: OpAssoc
+    pa: typing.Optional[ParseAction]
+    opExpr1: ParserElement
+    opExpr2: ParserElement
+    matchExpr: ParserElement
+    match_lookahead: ParserElement
+    for operDef in op_list:
+        opExpr, arity, rightLeftAssoc, pa = (operDef + (None,))[:4]  # type: ignore[assignment]
+        if isinstance(opExpr, str_type):
+            opExpr = ParserElement._literalStringClass(opExpr)
+        opExpr = typing.cast(ParserElement, opExpr)
+        if arity == 3:
+            if not isinstance(opExpr, (tuple, list)) or len(opExpr) != 2:
+                raise ValueError(
+                    "if numterms=3, opExpr must be a tuple or list of two expressions"
+                )
+            opExpr1, opExpr2 = opExpr
+            term_name = f"{opExpr1}{opExpr2} operations"
+        else:
+            term_name = f"{opExpr} operations"
+
+        if not 1 <= arity <= 3:
+            raise ValueError("operator must be unary (1), binary (2), or ternary (3)")
+
+        if rightLeftAssoc not in (OpAssoc.LEFT, OpAssoc.RIGHT):
+            raise ValueError("operator must indicate right or left associativity")
+
+        thisExpr: ParserElement = Forward().set_name(term_name)
+        thisExpr = typing.cast(Forward, thisExpr)
+        match_lookahead = And([])
+        if rightLeftAssoc is OpAssoc.LEFT:
+            if arity == 1:
+                match_lookahead = _FB(lastExpr + opExpr)
+                matchExpr = Group(lastExpr + opExpr[1, ...])
+            elif arity == 2:
+                if opExpr is not None:
+                    match_lookahead = _FB(lastExpr + opExpr + lastExpr)
+                    matchExpr = Group(lastExpr + (opExpr + lastExpr)[1, ...])
+                else:
+                    match_lookahead = _FB(lastExpr + lastExpr)
+                    matchExpr = Group(lastExpr[2, ...])
+            elif arity == 3:
+                match_lookahead = _FB(
+                    lastExpr + opExpr1 + lastExpr + opExpr2 + lastExpr
+                )
+                matchExpr = Group(
+                    lastExpr + (opExpr1 + lastExpr + opExpr2 + lastExpr)[1, ...]
+                )
+        elif rightLeftAssoc is OpAssoc.RIGHT:
+            if arity == 1:
+                # try to avoid LR with this extra test
+                if not isinstance(opExpr, Opt):
+                    opExpr = Opt(opExpr)
+                match_lookahead = _FB(opExpr.expr + thisExpr)
+                matchExpr = Group(opExpr + thisExpr)
+            elif arity == 2:
+                if opExpr is not None:
+                    match_lookahead = _FB(lastExpr + opExpr + thisExpr)
+                    matchExpr = Group(lastExpr + (opExpr + thisExpr)[1, ...])
+                else:
+                    match_lookahead = _FB(lastExpr + thisExpr)
+                    matchExpr = Group(lastExpr + thisExpr[1, ...])
+            elif arity == 3:
+                match_lookahead = _FB(
+                    lastExpr + opExpr1 + thisExpr + opExpr2 + thisExpr
+                )
+                matchExpr = Group(lastExpr + opExpr1 + thisExpr + opExpr2 + thisExpr)
+
+        # suppress lookahead expr from railroad diagrams
+        match_lookahead.show_in_diagram = False
+
+        # TODO - determine why this statement can't be included in the following
+        #  if pa block
+        matchExpr = match_lookahead + matchExpr
+
+        if pa:
+            if isinstance(pa, (tuple, list)):
+                matchExpr.set_parse_action(*pa)
+            else:
+                matchExpr.set_parse_action(pa)
+
+        thisExpr <<= (matchExpr | lastExpr).set_name(term_name)
+        lastExpr = thisExpr
+
+    ret <<= lastExpr
+    return ret
 
 
 def indentedBlock(blockStatementExpr, indentStack, indent=True, backup_stacks=[]):
