@@ -4428,6 +4428,108 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
         del r2[0]
         self.assertEqual("b", r2.get_name())
 
+    def testParseResultsCopyNamedAssignmentsAreIndependent(self):
+        import copy
+
+        for copier in (pp.ParseResults.copy, copy.copy):
+            for accumulating in (False, True):
+                expr = pp.Word(pp.alphas)("name*" if accumulating else "name")
+                for changed_index in range(3):
+                    with self.subTest(
+                        copier=copier,
+                        accumulating=accumulating,
+                        changed_index=changed_index,
+                    ):
+                        original = expr.parse_string("original")
+                        first_copy = copier(original)
+                        results = [original, first_copy, copier(first_copy)]
+
+                        # Adding a new name must not lose track of existing
+                        # names that still share their occurrence lists.
+                        changed = results[changed_index]
+                        changed["extra"] = "new"
+                        changed["name"] = "changed"
+                        changed["name"] = "again"
+
+                        for index, result in enumerate(results):
+                            expected = ["original"] if accumulating else "original"
+                            if index == changed_index:
+                                expected = (
+                                    ["original", "changed", "again"]
+                                    if accumulating
+                                    else "again"
+                                )
+                            actual = result["name"]
+                            if accumulating:
+                                actual = actual.as_list()
+                            self.assertEqual(expected, actual)
+                            self.assertEqual(index == changed_index, "extra" in result)
+
+    def testParseResultsAdditionDoesNotChangeOperands(self):
+        expr = pp.Word(pp.alphas)("name*")
+        left = expr.parse_string("left")
+        right = expr.parse_string("right")
+
+        combined = left + right
+
+        self.assertParseResultsEquals(
+            combined,
+            expected_list=["left", "right"],
+            expected_dict={"name": ["left", "right"]},
+        )
+        self.assertParseResultsEquals(
+            left, expected_list=["left"], expected_dict={"name": ["left"]}
+        )
+        self.assertParseResultsEquals(
+            right, expected_list=["right"], expected_dict={"name": ["right"]}
+        )
+
+        left["name"] = "later"
+        self.assertEqual(["left", "right"], combined["name"].as_list())
+
+    def testParseResultsCopyExtendNamesAreIndependent(self):
+        expr = pp.Word(pp.alphas)("name*")
+        for method in (pp.ParseResults.__iadd__, pp.ParseResults.extend):
+            for change_copy in (False, True):
+                with self.subTest(method=method, change_copy=change_copy):
+                    original = expr.parse_string("original")
+                    copied = original.copy()
+                    changed, unchanged = (
+                        (copied, original) if change_copy else (original, copied)
+                    )
+
+                    method(changed, expr.parse_string("extra"))
+
+                    self.assertParseResultsEquals(
+                        changed,
+                        expected_list=["original", "extra"],
+                        expected_dict={"name": ["original", "extra"]},
+                    )
+                    self.assertParseResultsEquals(
+                        unchanged,
+                        expected_list=["original"],
+                        expected_dict={"name": ["original"]},
+                    )
+
+    def testBacktrackingDoesNotChangeCachedResultsNames(self):
+        word = pp.Word(pp.alphas)("name*")
+
+        def change_name(tokens):
+            tokens["name"] = "changed"
+
+        # This branch changes its result, then fails. Retrying the cached word
+        # in the next branch must not include the failed branch's assignment.
+        first_branch = (word + pp.Empty()).add_parse_action(change_name) + "!"
+        result = (first_branch | (word + pp.Empty())).parse_string(
+            "original", parse_all=True
+        )
+
+        self.assertParseResultsEquals(
+            result,
+            expected_list=["original"],
+            expected_dict={"name": ["original"]},
+        )
+
     def testParseResultsDeepcopy(self):
         expr = (
             pp.Word(pp.nums)

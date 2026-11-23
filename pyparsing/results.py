@@ -85,6 +85,7 @@ class ParseResults:
     _all_names: set[str]
     _toklist: list[Any]
     _tokdict: dict[str, list[_ParseResultsWithOffset]]
+    _tokdict_shared: bool
     _is_dict_context: bool
 
     __slots__ = (
@@ -93,6 +94,7 @@ class ParseResults:
         "_all_names",
         "_toklist",
         "_tokdict",
+        "_tokdict_shared",
         "_is_dict_context",
     )
 
@@ -187,6 +189,7 @@ class ParseResults:
         else:
             self._toklist = [toklist]
         self._tokdict = {}
+        self._tokdict_shared = False
         return self
 
     # Performance tuning: we construct a *lot* of these, so keep this
@@ -256,6 +259,13 @@ class ParseResults:
         return ParseResults([v.result for v in self._tokdict[i]])
 
     def __setitem__(self, k, v, isinstance=isinstance):
+        if self._tokdict_shared:
+            # Copies share occurrence lists until either result is modified.
+            # Detach once so subsequent named assignments can append in place.
+            self._tokdict = {
+                name: occurrences[:] for name, occurrences in self._tokdict.items()
+            }
+            self._tokdict_shared = False
         no_value = object()
         if isinstance(v, _ParseResultsWithOffset):
             cur_tokdict_value = self._tokdict.get(k, no_value)
@@ -701,10 +711,10 @@ class ParseResults:
         """
         ret: ParseResults = object.__new__(ParseResults)
         ret._toklist = self._toklist[:]
-        # the occurrence lists are shared with the original; the only methods
-        # that renumber them (__delitem__, insert) copy before writing, so a
-        # copy can never renumber the original's offsets
+        # Share occurrence lists until an assignment needs to append to them.
+        # Methods that renumber offsets (__delitem__, insert) already copy them.
         ret._tokdict = {**self._tokdict}
+        self._tokdict_shared = ret._tokdict_shared = bool(self._tokdict)
         ret._parent = self._parent
         ret._all_names = {*self._all_names}
         ret._name = self._name
@@ -748,6 +758,7 @@ class ParseResults:
             ]
             for name, occurrences in self._tokdict.items()
         }
+        ret._tokdict_shared = False
 
         return ret
 
@@ -915,6 +926,8 @@ class ParseResults:
 
     # add support for pickle protocol
     def __getstate__(self):
+        # copy.copy() also uses this state, sharing its occurrence lists.
+        self._tokdict_shared = bool(self._tokdict)
         return (
             self._toklist,
             (
@@ -936,6 +949,7 @@ class ParseResults:
         ) = state
         self._all_names = set(inAccumNames)
         self._parent = None
+        self._tokdict_shared = bool(self._tokdict)
 
     def __getnewargs__(self):
         return self._toklist, self._name
