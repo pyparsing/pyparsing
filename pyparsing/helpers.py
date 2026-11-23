@@ -680,7 +680,7 @@ def _makeTags(tagStr, xml, suppress_LT=Suppress("<"), suppress_GT=Suppress(">"))
 
     tagAttrName = Word(alphas, alphanums + "_-:")
     if xml:
-        tagAttrValue = dbl_quoted_string.copy().set_parse_action(remove_quotes)
+        tagAttrValue = quoted_string.copy().set_parse_action(remove_quotes)
         openTag = (
             suppress_LT
             + tagStr("tag")
