@@ -1780,7 +1780,14 @@ class ParserElement(ABC):
             # just like the recursive form), so it preserves the original
             # early-exit behavior while no longer scaling the call stack with
             # the upper bound.
-            optionalTail = ZeroOrMore(self, max=optElements)
+            #
+            # A single optional element stays ``Opt``. A named ``ZeroOrMore``
+            # always stores a list, so ``expr[0, 1]("name")`` would no longer
+            # match a named ``Opt`` (issue #674).
+            if optElements == 1:
+                optionalTail = Opt(self)
+            else:
+                optionalTail = ZeroOrMore(self, max=optElements)
 
             if minElements:
                 if minElements == 1:
