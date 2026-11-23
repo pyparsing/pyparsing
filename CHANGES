@@ -29,9 +29,8 @@ Version 3.3.4 - In development
 ------------------------------
 - Restored the recursive `infix_notation` implementation from pyparsing 3.3.2
   to preserve operator matching, token nesting, and results names (issues
-  #672 and #674), as well as previous railroad diagram construction. Very
-  deeply nested infix notation expressions may again run into Python's
-  recursion limit.
+  #672 and #674), as well as previous railroad diagram construction. Deeply
+  nested infix notation expressions may again run into Python's recursion limit.
 
 - Fixed `nested_expr` so `ParserElement.ignore()` skips matches inside
   the list. In 3.3.3 the stack-based parser kept those matches as tokens, and
@@ -45,6 +44,11 @@ Version 3.3.4 - In development
 
 - Fixed `Each` ignoring maximum counts on bounded repetition expressions,
   submitted by Sskift et AI. (PR #715).
+
+- Fixed exponential regex backtracking in `quoted_string`, `dbl_quoted_string`,
+  `sgl_quoted_string`, `python_quoted_string`, and `QuotedString` with an end
+  quote of 3 or more characters, when parsing a string with no closing quote.
+  (PR #725 submitted by kumkuma78.)
 
 
 Version 3.3.3 - September, 2026

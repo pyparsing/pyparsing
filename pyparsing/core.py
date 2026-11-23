@@ -3749,13 +3749,11 @@ class QuotedString(Token):
             inner_pattern.append(rf"(?:{re.escape(esc_char)}.)")
 
         if len(self.end_quote_char) > 1:
+            # only the first char of the end quote needs the lookahead; adding longer
+            # end quote prefixes as alternatives makes the content ambiguous, and an
+            # unterminated string then backtracks exponentially
             inner_pattern.append(
-                "(?:"
-                + "|".join(
-                    f"(?:{re.escape(self.end_quote_char[:i])}(?!{re.escape(self.end_quote_char[i:])}))"
-                    for i in range(len(self.end_quote_char) - 1, 0, -1)
-                )
-                + ")"
+                f"(?:{re.escape(self.end_quote_char[0])}(?!{re.escape(self.end_quote_char[1:])}))"
             )
 
         if self.multiline:
@@ -6942,18 +6940,18 @@ def autoname_elements() -> None:
 
 
 dbl_quoted_string = Combine(
-    Regex(r'"(?:[^"\n\r\\]|(?:"")|(?:\\(?:[^x]|x[0-9a-fA-F]+)))*') + '"'
+    Regex(r'"(?:[^"\n\r\\]|(?:"")|(?:\\(?:[^x]|x[0-9a-fA-F])))*') + '"'
 ).set_name("string enclosed in double quotes")
 
 sgl_quoted_string = Combine(
-    Regex(r"'(?:[^'\n\r\\]|(?:'')|(?:\\(?:[^x]|x[0-9a-fA-F]+)))*") + "'"
+    Regex(r"'(?:[^'\n\r\\]|(?:'')|(?:\\(?:[^x]|x[0-9a-fA-F])))*") + "'"
 ).set_name("string enclosed in single quotes")
 
 quoted_string = Combine(
-    (Regex(r'"(?:[^"\n\r\\]|(?:"")|(?:\\(?:[^x]|x[0-9a-fA-F]+)))*') + '"').set_name(
+    (Regex(r'"(?:[^"\n\r\\]|(?:"")|(?:\\(?:[^x]|x[0-9a-fA-F])))*') + '"').set_name(
         "double quoted string"
     )
-    | (Regex(r"'(?:[^'\n\r\\]|(?:'')|(?:\\(?:[^x]|x[0-9a-fA-F]+)))*") + "'").set_name(
+    | (Regex(r"'(?:[^'\n\r\\]|(?:'')|(?:\\(?:[^x]|x[0-9a-fA-F])))*") + "'").set_name(
         "single quoted string"
     )
 ).set_name("quoted string using single or double quotes")
@@ -6961,16 +6959,16 @@ quoted_string = Combine(
 # XXX: Is there some way to make this show up in API docs?
 # .. versionadded:: 3.1.0
 python_quoted_string = Combine(
-    (Regex(r'"""(?:[^"\\]|""(?!")|"(?!"")|\\.)*', flags=re.MULTILINE) + '"""').set_name(
+    Regex(r'"""(?:[^"\\]|"(?!"")|\\.)*"""', flags=re.MULTILINE).set_name(
         "multiline double quoted string"
     )
-    ^ (
-        Regex(r"'''(?:[^'\\]|''(?!')|'(?!'')|\\.)*", flags=re.MULTILINE) + "'''"
-    ).set_name("multiline single quoted string")
-    ^ (Regex(r'"(?:[^"\n\r\\]|(?:\\")|(?:\\(?:[^x]|x[0-9a-fA-F]+)))*') + '"').set_name(
+    ^ Regex(r"'''(?:[^'\\]|'(?!'')|\\.)*'''", flags=re.MULTILINE).set_name(
+        "multiline single quoted string"
+    )
+    ^ Regex(r'"(?:[^"\n\r\\]|(?:\\(?:[^x]|x[0-9a-fA-F])))*"').set_name(
         "double quoted string"
     )
-    ^ (Regex(r"'(?:[^'\n\r\\]|(?:\\')|(?:\\(?:[^x]|x[0-9a-fA-F]+)))*") + "'").set_name(
+    ^ Regex(r"'(?:[^'\n\r\\]|(?:\\(?:[^x]|x[0-9a-fA-F])))*'").set_name(
         "single quoted string"
     )
 ).set_name("Python quoted string")
