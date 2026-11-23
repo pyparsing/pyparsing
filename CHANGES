@@ -54,6 +54,10 @@ Version 3.3.4 - In development
 - Fixed handling of octal, hex, and Unicode escapes in parsing quoted strings.
   PR #684, submitted by Priyansh Kansara.
 
+- Fixed empty-match detection for compiled `Regex` patterns and callables
+  returning them, preventing extra matches past end of input; submitted by
+  Sskift et AI.
+
 
 Version 3.3.3 - September, 2026
 -------------------------------

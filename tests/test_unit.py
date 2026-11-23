@@ -4608,6 +4608,22 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
         )
         self.assertEqual(non_empty_re_expr._re, compiled)
 
+    def testRegexEmptyMatchForCompiledPatterns(self):
+        pattern_empty_match_cases = [
+            (r"[A-Z]*", True),
+            (r"[A-Z]+", False),
+        ]
+        for pattern, matches_empty in pattern_empty_match_cases:
+            compiled = re.compile(pattern, re.IGNORECASE)
+            for source in (compiled, lambda: compiled):
+                with self.subTest(pattern=pattern, source=source):
+                    expr = pp.Regex(source)
+                    self.assertIs(expr.re, compiled)
+                    self.assertIs(expr.mayReturnEmpty, matches_empty)
+                    self.assertParseResultsEquals(
+                        expr.parse_string("abc", parse_all=True), ["abc"]
+                    )
+
     def testRegexDeferredCompileCommonHtmlEntity(self):
         # this is the most important expression to defer, because it takes a long time to compile
         perf_test_common_html_entity = pp.common_html_entity()
