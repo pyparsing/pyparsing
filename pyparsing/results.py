@@ -527,6 +527,7 @@ class ParseResults:
         """
         del self._toklist[:]
         self._tokdict.clear()
+        self._all_names.clear()
 
     def __getattr__(self, name):
         try:
