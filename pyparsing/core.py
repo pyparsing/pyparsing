@@ -1142,7 +1142,7 @@ class ParserElement(ABC):
                             )
                         except TypeError:
                             pass
-                    raise value
+                    raise value.with_traceback(None)
 
                 value = cast(tuple[int, ParseResults, int], value)
                 loc_, result, endloc = value[0], value[1].copy(), value[2]
