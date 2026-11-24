@@ -6971,6 +6971,20 @@ def autoname_elements() -> None:
             var.set_name(name)
 
 
+# NOTE: keep the repeated body alternatives below unambiguous. The closing
+# delimiter is inside each Regex, so an unterminated input makes the match
+# fail, and re then explores every way the body could have been split. Where
+# two alternatives accept the same text, k such runs give 2**k splits.
+#
+# Three shapes here need that care. The hex escape takes a single hex digit,
+# since the general branch already accepts the rest. python_quoted_string has
+# no separate escaped-quote branch, since the general escape branch already
+# matches it. The triple-quoted bodies use one quote-prefix alternative
+# rather than also matching two quotes at once.
+#
+# Check a change here by timing a repeated unit, not only by testing which
+# strings are accepted: an ambiguous pattern accepts the same language as an
+# unambiguous one.
 dbl_quoted_string = (
     Regex(r'"(?:[^"\n\r\\]|(?:"")|(?:\\(?:[^x]|x[0-9a-fA-F])))*"')
 ).set_name("string enclosed in double quotes")
