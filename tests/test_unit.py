@@ -293,6 +293,34 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             msg="failure in transform_string",
         )
 
+    def testTransformStringPreservesFalsyValues(self):
+        for replacement, expected in [
+            (0, "0"),
+            (0.0, "0.0"),
+            (False, "False"),
+            (1, "1"),
+            (True, "True"),
+            ("0", "0"),
+            ("", ""),
+            ([], ""),
+            ([None], ""),
+            (None, "123"),
+            ([0, False], "0False"),
+            ([[0, False]], "0False"),
+        ]:
+            with self.subTest(replacement=replacement):
+                expr = pp.Word(pp.nums).set_parse_action(lambda: replacement)
+                self.assertEqual(
+                    expr.transform_string("before 123 after"),
+                    f"before {expected} after",
+                )
+
+    def testTransformStringWithZeroInteger(self):
+        self.assertEqual(
+            ppc.integer().transform_string("zero=000; nonzero=001;\tend"),
+            "zero=0; nonzero=1;\tend",
+        )
+
     def testTransformStringWithLeadingWhitespace(self):
         sample = "\n\ncheck"
         sample = "    check"

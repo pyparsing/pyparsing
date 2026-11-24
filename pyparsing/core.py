@@ -1529,7 +1529,7 @@ class ParserElement(ABC):
                     out.append(t)
 
             out.append(instring[lastE:])
-            out = [o for o in out if o]
+            out = [o for o in out if o is not None]
             return "".join([str(s) for s in _flatten(out)])
         except ParseBaseException as exc:
             if ParserElement.verbose_stacktrace:
